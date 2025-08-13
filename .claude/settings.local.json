@@ -4,9 +4,23 @@
       "Bash(php:*)",
       "Bash(mkdir:*)",
       "Bash(export:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(sudo systemctl status:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(sudo a2enmod:*)",
+      "Bash(sudo systemctl restart:*)",
+      "Bash(sudo mkdir:*)",
+      "Bash(sudo chown:*)",
+      "Bash(cp:*)",
+      "Bash(sudo a2ensite:*)",
+      "Bash(sudo a2dissite:*)",
+      "Bash(sudo systemctl reload:*)",
+      "Bash(sudo:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "/var/www/pavimentacion/backend"
+    ]
   }
 }

@@ -86,6 +86,7 @@ lerna-debug.log*
 *.doc
 *.txt
 *.md
+!README.md
 *.html
 response.html
 temp_*.txt

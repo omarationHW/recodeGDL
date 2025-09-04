@@ -11,6 +11,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 const app = createApp(App)
 
+// Agregar una función para manejar errores globales
 // Configurar axios como propiedad global
 app.config.globalProperties.$axios = axios
 

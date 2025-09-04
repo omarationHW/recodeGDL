@@ -82,18 +82,6 @@ php artisan migrate
 php artisan serve
 ```
 
-### Base de Datos
-Configurar las variables de entorno en `.env`:
-```env
-DB_CONNECTION=pgsql
-DB_HOST=68.155.217.137
-DB_PORT=5432
-DB_DATABASE=postgres
-DB_USERNAME=postgres
-DB_PASSWORD=R3c0d325
-DB_SCHEMA=pavimentacion
-```
-
 ## 👥 Usuarios del Sistema
 
 - **Administrador** - ElChampion (Acceso completo)

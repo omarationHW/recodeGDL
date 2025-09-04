@@ -1,173 +1,98 @@
 <template>
-  <aside class="position-fixed start-0 top-0 bottom-0 bg-white shadow border-end d-flex flex-column" style="width: 280px; z-index: 1050;">
-    <!-- Header con búsqueda - Fijo -->
-    <div class="flex-shrink-0 p-4 border-bottom bg-white">
-      <div class="d-flex align-items-center mb-4">
-        <div class="bg-primary rounded me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-          <i class="fas fa-code text-white"></i>
+  <aside class="municipal-sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
+    <!-- Header Simple -->
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" @click="toggleSidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+      
+      <div class="sidebar-brand" v-if="!isCollapsed">
+        <div class="logo-container">
+          <img src="@/assets/logo/Gdl Logo blanco.png" alt="Guadalajara" class="brand-logo" />
         </div>
-        <div>
-          <div class="h6 fw-semibold text-dark mb-0">RefactorX</div>
-          <div class="small text-muted">Sistema Municipal</div>
+        <div class="brand-text">
+          <div class="brand-title">Sistema Municipal</div>
+          <div class="brand-subtitle">Guadalajara, Jalisco</div>
         </div>
       </div>
       
-      <div class="position-relative">
+      <div class="sidebar-brand-small" v-if="isCollapsed">
+        <img src="@/assets/logo/Gdl Logo blanco.png" alt="Guadalajara" class="brand-logo-small" />
+      </div>
+      
+      <!-- Search Simple -->
+      <div class="search-box" v-if="!isCollapsed">
+        <i class="fas fa-search search-icon"></i>
         <input 
           type="text" 
-          placeholder="Buscar módulo o funcionalidad..." 
-          class="form-control form-control-sm ps-5"
+          placeholder="Buscar..." 
+          class="search-input"
           v-model="searchTerm"
         />
-        <i class="fas fa-search position-absolute text-muted" style="left: 12px; top: 8px; font-size: 12px;"></i>
       </div>
     </div>
 
-    <!-- Área de navegación con scroll -->
-    <nav class="flex-grow-1 overflow-auto px-4 py-4">
-        <!-- Dashboard -->
-        <div class="mb-3">
-          <router-link 
-            to="/dashboard"
-            class="d-flex align-items-center w-100 px-3 py-2 text-start text-decoration-none text-dark bg-white hover-bg-light rounded-3 transition"
-            active-class="bg-primary bg-opacity-10 text-primary"
+    <!-- Navigation Simple -->
+    <nav class="sidebar-nav">
+      <!-- Dashboard -->
+      <div class="nav-section">
+        <router-link 
+          to="/dashboard"
+          class="nav-item"
+          active-class="nav-item-active"
+          :title="isCollapsed ? 'Dashboard' : ''"
+        >
+          <div class="nav-icon">
+            <i class="fas fa-tachometer-alt"></i>
+          </div>
+          <span class="nav-text" v-if="!isCollapsed">Dashboard</span>
+        </router-link>
+      </div>
+
+      <!-- Modules -->
+      <div v-for="module in filteredModules" :key="module.name" class="nav-group">
+        <button 
+          @click="toggleModule(module.name)"
+          class="module-button"
+          :class="{ 'module-expanded': expandedModules[module.name] }"
+          :title="isCollapsed ? module.displayName : ''"
+        >
+          <div class="module-icon">
+            <i v-if="module.name === 'estacionamientos'" class="fas fa-car-side"></i>
+            <i v-else-if="module.name === 'aseo'" class="fas fa-broom"></i>
+            <i v-else-if="module.name === 'licencias'" class="fas fa-file-contract"></i>
+            <i v-else-if="module.name === 'mercados'" class="fas fa-store-alt"></i>
+            <i v-else-if="module.name === 'recaudadora'" class="fas fa-coins"></i>
+            <i v-else-if="module.name === 'tramite-trunk'" class="fas fa-file-invoice"></i>
+            <i v-else-if="module.name === 'convenios'" class="fas fa-handshake"></i>
+            <i v-else-if="module.name === 'apremios'" class="fas fa-exclamation-triangle"></i>
+            <i v-else-if="module.name === 'cementerios'" class="fas fa-cross"></i>
+            <i v-else-if="module.name === 'otras-oblig'" class="fas fa-tasks"></i>
+            <i v-else class="fas fa-folder"></i>
+          </div>
+          <div class="module-content" v-if="!isCollapsed">
+            <span class="module-name">{{ module.displayName }}</span>
+            <span class="module-count">{{ module.routes.length }}</span>
+          </div>
+          <div class="module-arrow" v-if="!isCollapsed">
+            <i class="fas fa-chevron-right" :class="{ 'arrow-expanded': expandedModules[module.name] }"></i>
+          </div>
+        </button>
+        
+        <!-- Submenu -->
+        <div class="submenu" v-if="expandedModules[module.name] && !isCollapsed">
+          <router-link
+            v-for="route in module.routes"
+            :key="route.path"
+            :to="route.path"
+            class="submenu-item"
+            active-class="submenu-item-active"
           >
-            <div class="me-3 flex-shrink-0 d-flex align-items-center justify-content-center">
-              <i class="fas fa-tachometer-alt text-primary"></i>
-            </div>
-            <span class="flex-grow-1 text-start">Dashboard</span>
+            <span class="submenu-text">{{ route.name }}</span>
           </router-link>
         </div>
-
-        <!-- Módulos dinámicos -->
-        <div v-for="module in filteredModules" :key="module.name" class="mb-3">
-          <button 
-            @click="toggleModule(module.name)"
-            class="d-flex align-items-center justify-content-between w-100 px-3 py-2 text-start btn btn-outline-secondary border-0 bg-white hover-bg-light rounded-3 transition"
-            :class="{ 'bg-primary bg-opacity-10 text-primary': expandedModules[module.name] }"
-          >
-            <div class="d-flex align-items-center flex-grow-1">
-              <!-- Icono específico según el módulo -->
-              <div class="me-3 d-flex align-items-center justify-content-center">
-                <i v-if="module.name === 'estacionamientos'" class="fas fa-car text-secondary"></i>
-                <i v-else-if="module.name === 'aseo'" class="fas fa-broom text-secondary"></i>
-                <i v-else-if="module.name === 'licencias'" class="fas fa-file-contract text-secondary"></i>
-                <i v-else-if="module.name === 'mercados'" class="fas fa-shopping-cart text-secondary"></i>
-                <i v-else-if="module.name === 'recaudadora'" class="fas fa-coins text-secondary"></i>
-                <i v-else-if="module.name === 'tramite-trunk'" class="fas fa-file-alt text-secondary"></i>
-                <i v-else-if="module.name === 'convenios'" class="fas fa-handshake text-secondary"></i>
-                <i v-else-if="module.name === 'apremios'" class="fas fa-exclamation-triangle text-secondary"></i>
-                <i v-else-if="module.name === 'cementerios'" class="fas fa-cross text-secondary"></i>
-                <i v-else-if="module.name === 'otras-oblig'" class="fas fa-tasks text-secondary"></i>
-                <i v-else class="fas fa-folder text-secondary"></i>
-              </div>
-              <span class="flex-grow-1 text-start text-truncate">{{ module.displayName }}</span>
-            </div>
-            <div class="d-flex align-items-center justify-content-center">
-              <i :class="{ 'fa-rotate-90': expandedModules[module.name] }" class="fas fa-chevron-right text-muted transition"></i>
-            </div>
-          </button>
-          
-          <!-- Submódulos -->
-          <div v-if="expandedModules[module.name]" class="ms-4 mt-2">
-            <router-link 
-              v-for="submodule in module.routes" 
-              :key="submodule.name"
-              :to="submodule.path"
-              class="d-flex align-items-center px-3 py-2 text-decoration-none text-muted small hover-bg-light rounded-2 transition mb-1"
-              active-class="bg-primary bg-opacity-10 text-primary fw-medium"
-            >
-              <div class="me-2 d-flex align-items-center justify-content-center">
-                <!-- Iconos FontAwesome para todos los submódulos - TODOS EN GRIS -->
-                <!-- Casos específicos primero para evitar conflictos -->
-                <i v-if="submodule.name.includes('empleadoslistado')" class="fas fa-users-cog text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('acceso')" class="fas fa-key text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('agenda')" class="fas fa-calendar text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('alta') || submodule.name.includes('nuevo') || submodule.name.includes('nvo')" class="fas fa-plus text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('aplicar') || submodule.name.includes('aplica')" class="fas fa-check-circle text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('archivo') || submodule.name.includes('arc')" class="fas fa-file-archive text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('aspecto')" class="fas fa-palette text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('baja') || submodule.name.includes('bja')" class="fas fa-trash text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('bloquear')" class="fas fa-ban text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('busqueda') || submodule.name.includes('buscar') || submodule.name.includes('busque')" class="fas fa-search text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('calendario')" class="fas fa-calendar-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('cancelar') || submodule.name.includes('cancela')" class="fas fa-times-circle text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('carga') || submodule.name.includes('cargar') || submodule.name.includes('cga')" class="fas fa-upload text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('carton') || submodule.name.includes('tarjeta')" class="fas fa-credit-card text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('catastro') || submodule.name.includes('predial')" class="fas fa-map text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('catalogo') || submodule.name.includes('cat') || submodule.name.includes('abc')" class="fas fa-list text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('conciliacion') || submodule.name.includes('conci')" class="fas fa-balance-scale text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('configuracion') || submodule.name.includes('config')" class="fas fa-cog text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('cons') || submodule.name.includes('consulta')" class="fas fa-search text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('contrato')" class="fas fa-file-contract text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('control')" class="fas fa-sliders-h text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('datos')" class="fas fa-database text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('descuento') || submodule.name.includes('descto')" class="fas fa-percent text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('diario')" class="fas fa-calendar-day text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('editar') || submodule.name.includes('modif')" class="fas fa-edit text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('eliminar') || submodule.name.includes('del')" class="fas fa-trash-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('empresa')" class="fas fa-building text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('estado')" class="fas fa-flag text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('exclusivo') || submodule.name.includes('exclu')" class="fas fa-crown text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('expediente') || submodule.name.includes('exp')" class="fas fa-folder-open text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('folio')" class="fas fa-receipt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('gasto')" class="fas fa-dollar-sign text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('gen') || submodule.name.includes('generar') || submodule.name.includes('genera')" class="fas fa-plus-circle text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('imprimir') || submodule.name.includes('imp')" class="fas fa-print text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('individual') || submodule.name.includes('ind')" class="fas fa-user text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('insertar') || submodule.name.includes('ins')" class="fas fa-plus-square text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('listado')" class="fas fa-list-ul text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('menu')" class="fas fa-bars text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('mensaje')" class="fas fa-comment text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('meter')" class="fas fa-tachometer-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('modulo') || submodule.name.includes('mod')" class="fas fa-cube text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('multa')" class="fas fa-exclamation-triangle text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('multiple') || submodule.name.includes('mult')" class="fas fa-layer-group text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('municipio') || submodule.name.includes('mpio')" class="fas fa-city text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('oficio')" class="fas fa-file-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('operacion') || submodule.name.includes('cves')" class="fas fa-calculator text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('padron')" class="fas fa-list-ol text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('pago') || submodule.name.includes('pag') || submodule.name.includes('banorte')" class="fas fa-credit-card text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('parametros') || submodule.name.includes('param')" class="fas fa-sliders-h text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('pasar')" class="fas fa-arrow-right text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('password') || submodule.name.includes('pass')" class="fas fa-lock text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('pdf')" class="fas fa-file-pdf text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('periodo') || submodule.name.includes('per')" class="fas fa-calendar-week text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('propietario') || submodule.name.includes('prop')" class="fas fa-user-tie text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('publico') || submodule.name.includes('pub')" class="fas fa-users text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('reactiva')" class="fas fa-power-off text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('recargo')" class="fas fa-plus-circle text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('recaudadora') || submodule.name.includes('recaud')" class="fas fa-coins text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('relacion') || submodule.name.includes('rel')" class="fas fa-link text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('remesa')" class="fas fa-envelope text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('reporte') || submodule.name.includes('rep')" class="fas fa-chart-bar text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('scian')" class="fas fa-industry text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('transferir') || submodule.name.includes('trans')" class="fas fa-exchange-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('tipo')" class="fas fa-tags text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('ubicacion')" class="fas fa-map-marker-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('unidad') || submodule.name.includes('und')" class="fas fa-truck text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('update') || submodule.name.includes('upd') || submodule.name.includes('up')" class="fas fa-sync-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('usuario')" class="fas fa-user text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('valet')" class="fas fa-car text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('vencido') || submodule.name.includes('venc')" class="fas fa-clock text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('viewer')" class="fas fa-eye text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('webservice')" class="fas fa-globe text-secondary" style="font-size: 12px;"></i>
-                <i v-else-if="submodule.name.includes('zona')" class="fas fa-map-marked-alt text-secondary" style="font-size: 12px;"></i>
-                <i v-else class="fas fa-file text-muted" style="font-size: 10px;"></i>
-              </div>
-              <span class="flex-grow-1 text-start text-truncate">{{ submodule.displayName }}</span>
-            </router-link>
-          </div>
-        </div>
-      </nav>
-
-    <!-- Footer del sidebar - Fijo en la parte inferior -->
-    <div class="flex-shrink-0 p-4 border-top bg-white">
-      <div class="text-center small text-muted">
-        <div><i class="fas fa-bolt text-warning"></i> Power by <strong>generic.studio</strong> <i class="fas fa-bolt text-warning"></i></div>
-        <div class="mt-1">ver. 1.0.0.570</div>
       </div>
-    </div>
+    </nav>
   </aside>
 </template>
 
@@ -178,181 +103,339 @@ export default {
   name: 'Sidebar',
   data() {
     return {
+      isCollapsed: false,
       searchTerm: '',
-      expandedModules: {
-        // Todos los módulos empiezan contraídos por defecto
-        'apremios': false,
-        'aseo': false,
-        'cementerios': false,
-        'convenios': false,
-        'estacionamientos': false,
-        'licencias': false,
-        'mercados': false,
-        'otras-oblig': false,
-        'recaudadora': false,
-        'tramite-trunk': false
-      },
-      modules: []
-    }
-  },
-  mounted() {
-    this.loadFallbackModules()
-  },
-  computed: {
-    filteredModules() {
-      if (!this.searchTerm) return this.modules
-      
-      const searchLower = this.searchTerm.toLowerCase()
-      
-      return this.modules.map(module => {
-        // Filtrar submódulos que coincidan con la búsqueda
-        const filteredRoutes = module.routes.filter(route =>
-          route.displayName.toLowerCase().includes(searchLower) ||
-          route.name.toLowerCase().includes(searchLower)
-        )
-        
-        // Si el módulo principal coincide o tiene submódulos que coinciden, incluirlo
-        const moduleMatches = module.displayName.toLowerCase().includes(searchLower)
-        
-        if (moduleMatches || filteredRoutes.length > 0) {
-          // Auto-expandir módulos que tienen coincidencias en submódulos
-          if (filteredRoutes.length > 0 && !moduleMatches) {
-            this.$nextTick(() => {
-              if (!this.expandedModules[module.name]) {
-                const newExpandedModules = { ...this.expandedModules }
-                newExpandedModules[module.name] = true
-                this.expandedModules = newExpandedModules
-              }
-            })
-          }
-          
-          return {
-            ...module,
-            routes: moduleMatches ? module.routes : filteredRoutes
-          }
-        }
-        
-        return null
-      }).filter(Boolean)
-    }
-  },
-  methods: {
-    toggleModule(moduleName) {
-      console.log('Toggling module:', moduleName)
-      console.log('Current state:', this.expandedModules[moduleName])
-      
-      // Crear una copia del objeto para forzar reactividad
-      const newExpandedModules = { ...this.expandedModules }
-      newExpandedModules[moduleName] = !newExpandedModules[moduleName]
-      this.expandedModules = newExpandedModules
-      
-      console.log('New state:', this.expandedModules[moduleName])
-      console.log('All expanded modules:', this.expandedModules)
-      
-      // Force reactivity update
-      this.$forceUpdate()
-    },
-    
-    loadFallbackModules() {
-      console.log('Cargando módulos completos (631 componentes)...')
-      this.modules = [
+      expandedModules: {},
+      modules: [
         {
-          name: "apremios",
-          displayName: "Apremios",
+          name: 'apremios',
+          displayName: 'Apremios',
           routes: apremiosRoutes
         },
         {
-          name: "aseo",
-          displayName: "Aseo",
+          name: 'aseo',
+          displayName: 'Aseo',
           routes: aseoRoutes
         },
         {
-          name: "cementerios",
-          displayName: "Cementerios",
+          name: 'cementerios',
+          displayName: 'Cementerios',
           routes: cementeriosRoutes
         },
         {
-          name: "convenios",
-          displayName: "Convenios",
+          name: 'convenios',
+          displayName: 'Convenios',
           routes: conveniosRoutes
         },
         {
-          name: "estacionamientos",
-          displayName: "Estacionamientos",
+          name: 'estacionamientos',
+          displayName: 'Estacionamientos',
           routes: estacionamientosRoutes
         },
         {
-          name: "licencias",
-          displayName: "Licencias",
+          name: 'licencias',
+          displayName: 'Licencias',
           routes: licenciasRoutes
         },
         {
-          name: "mercados",
-          displayName: "Mercados",
+          name: 'mercados',
+          displayName: 'Mercados',
           routes: mercadosRoutes
         },
         {
-          name: "otras-oblig",
-          displayName: "Otras Obligaciones",
+          name: 'otras-oblig',
+          displayName: 'Otras Obligaciones',
           routes: otrasObligRoutes
         },
         {
-          name: "recaudadora",
-          displayName: "Padrón Recaudación",
+          name: 'recaudadora',
+          displayName: 'Padrón Recaudación',
           routes: recaudadoraRoutes
         },
         {
-          name: "tramite-trunk",
-          displayName: "Padrón Catastral",
+          name: 'tramite-trunk',
+          displayName: 'Padrón Catastral',
           routes: tramiteTrunkRoutes
         }
       ]
-      console.log('Módulos fallback cargados:', this.modules)
+    }
+  },
+  computed: {
+    filteredModules() {
+      if (!this.searchTerm) return this.modules;
+      return this.modules.filter(module => 
+        module.displayName.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    }
+  },
+  methods: {
+    toggleSidebar() {
+      this.isCollapsed = !this.isCollapsed;
+      this.$emit('toggle', this.isCollapsed);
+    },
+    toggleModule(moduleName) {
+      this.expandedModules[moduleName] = !this.expandedModules[moduleName];
+    }
+  },
+  mounted() {
+    const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+    if (savedCollapsed) {
+      this.isCollapsed = JSON.parse(savedCollapsed);
+    }
+  },
+  watch: {
+    isCollapsed(newVal) {
+      localStorage.setItem('sidebarCollapsed', JSON.stringify(newVal));
     }
   }
 }
 </script>
 
 <style scoped>
-.hover-bg-light:hover {
-  background-color: #f8f9fa !important;
+/* Simple Professional Sidebar */
+.municipal-sidebar {
+  width: 280px;
+  background: white;
+  border-right: 1px solid #e2e8f0;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  transition: width 0.3s ease;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
-.transition {
+.sidebar-collapsed {
+  width: 80px;
+}
+
+/* Header */
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: var(--municipal-blue);
+  color: white;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.sidebar-brand-small {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.brand-logo, .brand-logo-small {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.brand-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+/* Search */
+.search-box {
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 0.5rem 0.5rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.875rem;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+/* Navigation */
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.nav-section, .nav-group {
+  margin-bottom: 0.5rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: var(--slate-600);
+  text-decoration: none;
   transition: all 0.2s ease;
+  border-left: 3px solid transparent;
 }
 
-nav::-webkit-scrollbar {
-  width: 6px;
+.nav-item:hover {
+  background: #f8fafc;
+  color: var(--municipal-blue);
 }
 
-nav::-webkit-scrollbar-track {
-  background: #f8f9fa;
-  border-radius: 3px;
+.nav-item-active {
+  background: #e0f2fe;
+  color: var(--municipal-blue);
+  border-left-color: var(--municipal-blue);
 }
 
-nav::-webkit-scrollbar-thumb {
-  background: #dee2e6;
-  border-radius: 3px;
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  margin-right: 0.75rem;
+  font-size: 1rem;
 }
 
-nav::-webkit-scrollbar-thumb:hover {
-  background: #adb5bd;
+.sidebar-collapsed .nav-icon {
+  margin-right: 0;
 }
 
-.fa-rotate-90 {
+.nav-text {
+  font-weight: 500;
+}
+
+/* Module Buttons */
+.module-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  color: var(--slate-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.module-button:hover {
+  background: #f8fafc;
+  color: var(--municipal-blue);
+}
+
+.module-expanded {
+  background: #f1f5f9;
+  color: var(--municipal-blue);
+}
+
+.module-icon {
+  width: 20px;
+  text-align: center;
+  margin-right: 0.75rem;
+  font-size: 1rem;
+}
+
+.sidebar-collapsed .module-icon {
+  margin-right: 0;
+}
+
+.module-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.module-name {
+  font-weight: 500;
+}
+
+.module-count {
+  font-size: 0.75rem;
+  background: var(--municipal-blue);
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.module-arrow {
+  margin-left: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.arrow-expanded {
   transform: rotate(90deg);
 }
 
-@media (max-width: 1024px) {
-  aside { width: 280px !important; }
+/* Submenu */
+.submenu {
+  background: #f8fafc;
+  border-left: 2px solid #e2e8f0;
 }
 
+.submenu-item {
+  display: block;
+  padding: 0.5rem 1.5rem 0.5rem 3rem;
+  color: var(--slate-500);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.submenu-item:hover {
+  background: #e2e8f0;
+  color: var(--slate-700);
+}
+
+.submenu-item-active {
+  background: #dbeafe;
+  color: var(--municipal-blue);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  aside { width: 250px !important; }
-}
-
-@media (max-width: 640px) {
-  aside { width: 100vw !important; position: fixed !important; z-index: 1060 !important; }
+  .municipal-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .municipal-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
 }
 </style>

@@ -1,584 +1,62 @@
 <template>
-  <div class="min-vh-100 bg-light">
-    <!-- Header del Dashboard -->
-    <div class="bg-white shadow-sm border-bottom">
-      <div class="container-fluid py-5">
-        <div class="text-center">
-          <h1 class="display-4 fw-bold text-dark mb-3">
-            <i class="fas fa-rocket me-3 text-primary"></i>RefactorX
-          </h1>
-          <p class="fs-4 text-muted mb-4">
-            Sistema de Gestión Municipal
-          </p>
-          <div class="d-inline-flex align-items-center px-4 py-2 rounded-pill bg-success bg-opacity-10 text-success">
-            <i class="fas fa-circle me-2 text-success" style="font-size: 8px;"></i>
-            <span class="small fw-medium">Sistema Operativo</span>
+  <div class="dashboard-container">
+    <!-- Hero Section Simplified -->
+    <div class="hero-section">
+      <div class="hero-content">
+        
+        <h1 class="page-title">Sistema Municipal Digital</h1>
+        <p class="page-subtitle">Gobierno de Guadalajara, Jalisco</p>
+        
+        <!-- Simple Stats -->
+        <div class="stats-row">
+          <div class="stat-card" v-for="metric in realTimeMetrics" :key="metric.id">
+            <div class="stat-icon">
+              <i :class="metric.icon"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ metric.value }}</div>
+              <div class="stat-label">{{ metric.label }}</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Estadísticas Generales -->
-    <div class="container-fluid py-5">
-      <div class="row g-4 mb-5">
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="bg-primary bg-opacity-10 rounded p-3">
-                    <i class="fas fa-cubes fa-lg text-primary"></i>
-                  </div>
-                </div>
-                <div class="ms-3">
-                  <p class="small fw-medium text-muted mb-1">Total Módulos</p>
-                  <p class="h2 fw-bold text-dark mb-0">{{ totalModules }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="bg-success bg-opacity-10 rounded p-3">
-                    <i class="fas fa-check-circle fa-lg text-success"></i>
-                  </div>
-                </div>
-                <div class="ms-3">
-                  <p class="small fw-medium text-muted mb-1">Componentes Totales</p>
-                  <p class="h2 fw-bold text-dark mb-0">736</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="bg-info bg-opacity-10 rounded p-3">
-                    <i class="fas fa-code-branch fa-lg text-info"></i>
-                  </div>
-                </div>
-                <div class="ms-3">
-                  <p class="small fw-medium text-muted mb-1">Versión</p>
-                  <p class="h2 fw-bold text-dark mb-0">2.0.0</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="bg-warning bg-opacity-10 rounded p-3">
-                    <i class="fas fa-shield-alt fa-lg text-warning"></i>
-                  </div>
-                </div>
-                <div class="ms-3">
-                  <p class="small fw-medium text-muted mb-1">Estado</p>
-                  <p class="h5 fw-bold text-success mb-0">Activo</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    
+    <!-- Modules Section -->
+    <div class="modules-section">
+      <div class="section-header">
+        <h2 class="section-title">Módulos del Sistema</h2>
+        <p class="section-subtitle">Gestión integral de servicios municipales</p>
       </div>
-
-      <!-- Cards de Módulos -->
-      <div class="mb-5">
-        <h2 class="h3 fw-bold text-dark mb-4">
-          <i class="fas fa-th-large me-2"></i>Módulos del Sistema
-        </h2>
-        <div class="row g-4">
-          <!-- Card Licencias -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">97</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-file-contract fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Licencias</h4>
-                    <p class="text-muted small mb-0">Permisos y trámites</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Sistema completo de gestión de licencias comerciales, anuncios publicitarios, 
-                  tramitación y consultas administrativas.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">97 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/licencias" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/licencias/empleadoslistado" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
+      
+      <div class="modules-grid">
+        <div 
+          class="module-card" 
+          v-for="module in modules" 
+          :key="module.id"
+          @click="navigateToModule(module)"
+        >
+          <div class="module-header">
+            <div class="module-icon" :class="module.colorClass">
+              <i :class="module.icon"></i>
             </div>
+            <div class="module-count">{{ module.components }}</div>
           </div>
-
-          <!-- Card Aseo -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">103</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-broom fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Aseo</h4>
-                    <p class="text-muted small mb-0">Servicios públicos</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Gestión de servicios de aseo urbano, empresas recolectoras, 
-                  gastos operativos y recargos del sistema.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">103 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/aseo" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/aseo/abc_empresas" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
+          
+          <div class="module-content">
+            <h3 class="module-title">{{ module.name }}</h3>
+            <p class="module-category">{{ module.category }}</p>
+            <div class="module-users">{{ module.activeUsers }} usuarios activos</div>
           </div>
-
-          <!-- Card Apremios -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">61</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-exclamation-triangle fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Apremios</h4>
-                    <p class="text-muted small mb-0">Cobranza coactiva</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Sistema de apremios y cobranza coactiva, gestión de ejecutores, 
-                  facturación electrónica y procedimientos legales.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">61 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/apremios" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/apremiossvn/acceso" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
+          
+          <div class="module-actions">
+            <button class="btn-info" @click.stop="showInfo(module)">
+              <i class="fas fa-info-circle"></i>
+            </button>
+            <button class="btn-access" @click.stop="accessModule(module)">
+              <i class="fas fa-arrow-right"></i>
+            </button>
           </div>
-
-          <!-- Card Cementerios -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">36</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-cross fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Cementerios</h4>
-                    <p class="text-muted small mb-0">Servicios funerarios</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Administración de cementerios municipales, gestión de folios 
-                  y control de servicios funerarios públicos.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">36 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/cementerios" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/cementerios/abcementer" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Convenios -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">94</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-handshake fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Convenios</h4>
-                    <p class="text-muted small mb-0">Acuerdos de pago</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Gestión de convenios de pago, actualización de contratos, 
-                  cálculo de recargos y administración de adeudos.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">94 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/convenios" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/convenios/acceso" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Estacionamientos -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">61</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-car fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Estacionamientos</h4>
-                    <p class="text-muted small mb-0">Control vehicular</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Gestión integral de estacionamientos públicos, control de acceso, 
-                  pagos electrónicos y administración de folios.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">61 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/estacionamientos" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/estacionamientos/acceso" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Mercados -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">107</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-shopping-cart fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Mercados</h4>
-                    <p class="text-muted small mb-0">Gestión comercial</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Administración de mercados municipales, locales comerciales, 
-                  adeudos energéticos y pagos especializados.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">107 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/mercados" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/mercados/acceso" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Otras Obligaciones -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">3</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-tasks fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Otras Obligaciones</h4>
-                    <p class="text-muted small mb-0">Gestión diversa</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Gestión de obligaciones diversas, carga de carteras, 
-                  valores, etiquetas y reportes auxiliares especializados.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">3 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/otras-oblig" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/otras-oblig/apremios" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Recaudadora -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">106</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-coins fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Recaudadora</h4>
-                    <p class="text-muted small mb-0">Padrón recaudación</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Módulo de recaudación fiscal, gestión de pagos, descuentos, 
-                  multas y administración del padrón contributivo.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">106 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/recaudadora" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/recaudadora/busque" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Tramite Trunk -->
-          <div class="col-xl-4 col-md-6">
-            <div class="card border-0 shadow-sm h-100 position-relative">
-              <div class="position-absolute top-0 end-0 translate-middle">
-                <span class="badge bg-secondary rounded-pill">68</span>
-              </div>
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="fas fa-file-alt fa-2x text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-bold text-dark mb-1">Tramite Trunk</h4>
-                    <p class="text-muted small mb-0">Gestión de trámites</p>
-                  </div>
-                </div>
-                <p class="text-muted mb-4">
-                  Sistema de tramitación general, gestión documental 
-                  y seguimiento de procedimientos administrativos.
-                </p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span class="small text-muted">68 Componentes</span>
-                  <span class="badge bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-circle me-1" style="font-size: 6px;"></i>Activo
-                  </span>
-                </div>
-                <div class="d-flex gap-2">
-                  <router-link 
-                    to="/info/tramite-trunk" 
-                    class="btn btn-outline-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-info-circle me-1"></i>Info
-                  </router-link>
-                  <router-link 
-                    to="/tramite-trunk/busque" 
-                    class="btn btn-secondary btn-sm flex-fill"
-                  >
-                    <i class="fas fa-sign-in-alt me-1"></i>Acceder
-                  </router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sección de Pruebas -->
-      <div class="mb-5">
-        <h2 class="h3 fw-bold text-dark mb-4">
-          <i class="fas fa-flask me-2"></i>Pruebas del Sistema
-        </h2>
-        <div class="card border-0 shadow-sm border-start border-primary border-4">
-          <div class="card-body p-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-              <div class="mb-3 mb-md-0">
-                <h4 class="fw-semibold text-dark mb-2">
-                  <i class="fas fa-database me-2 text-primary"></i>Test de Base de Datos PostgreSQL
-                </h4>
-                <p class="text-muted mb-0">
-                  Prueba la conexión real con PostgreSQL, CRUD de usuarios y stored procedures.
-                  Incluye simulación para desarrollo.
-                </p>
-              </div>
-              <router-link 
-                to="/test/usuarios" 
-                class="btn btn-primary d-flex align-items-center"
-              >
-                <i class="fas fa-database me-2"></i>
-                Probar PostgreSQL
-              </router-link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="text-center py-4">
-        <div class="text-muted">
-          <i class="fas fa-bolt me-1"></i>
-          <strong>Powered by generic.studio</strong>
-          <i class="fas fa-bolt ms-1"></i>
-          <br>
-          <small>RefactorX v2.0.0 - Sistema de Gestión Municipal</small>
         </div>
       </div>
     </div>
@@ -591,8 +69,426 @@ export default {
   data() {
     return {
       totalModules: 10,
-      totalComponents: 736
+      totalComponents: 739,
+      activeUsers: 89,
+      
+      realTimeMetrics: [
+        {
+          id: 1,
+          icon: 'fas fa-users',
+          value: '1,263',
+          label: 'Ciudadanos Atendidos'
+        },
+        {
+          id: 2,
+          icon: 'fas fa-file-alt',
+          value: '468',
+          label: 'Trámites Hoy'
+        },
+        {
+          id: 3,
+          icon: 'fas fa-coins',
+          value: '$2.3M',
+          label: 'Recaudación'
+        }
+      ],
+      
+      modules: [
+        {
+          id: 1,
+          name: 'Licencias',
+          category: 'Permisos y Trámites',
+          description: 'Sistema integral de gestión de licencias comerciales, anuncios publicitarios y tramitación administrativa municipal.',
+          icon: 'fas fa-file-contract',
+          colorClass: 'module-purple',
+          components: 97,
+          activeUsers: 24,
+          status: 'active',
+          infoPath: '/info/licencias',
+          accessPath: '/licencias/empleadoslistado'
+        },
+        {
+          id: 2,
+          name: 'Aseo Urbano',
+          category: 'Servicios Públicos',
+          description: 'Gestión de servicios de aseo urbano, empresas recolectoras, gastos operativos y sistema de recargos.',
+          icon: 'fas fa-broom',
+          colorClass: 'module-green',
+          components: 103,
+          activeUsers: 18,
+          status: 'active',
+          infoPath: '/info/aseo',
+          accessPath: '/aseo/abc_empresas'
+        },
+        {
+          id: 3,
+          name: 'Apremios',
+          category: 'Cobranza Coactiva',
+          description: 'Sistema de apremios y cobranza coactiva, gestión de ejecutores, facturación electrónica y procedimientos legales.',
+          icon: 'fas fa-exclamation-triangle',
+          colorClass: 'module-red',
+          components: 61,
+          activeUsers: 12,
+          status: 'active',
+          infoPath: '/info/apremios',
+          accessPath: '/apremiossvn/acceso'
+        },
+        {
+          id: 4,
+          name: 'Cementerios',
+          category: 'Servicios Funerarios',
+          description: 'Administración de cementerios municipales, gestión de folios y control integral de servicios funerarios.',
+          icon: 'fas fa-cross',
+          colorClass: 'module-gray',
+          components: 36,
+          activeUsers: 8,
+          status: 'active',
+          infoPath: '/info/cementerios',
+          accessPath: '/cementerios/abcementer'
+        },
+        {
+          id: 5,
+          name: 'Convenios',
+          category: 'Acuerdos de Pago',
+          description: 'Gestión de convenios de pago, actualización de contratos, cálculo de recargos y administración de adeudos.',
+          icon: 'fas fa-handshake',
+          colorClass: 'module-pink',
+          components: 94,
+          activeUsers: 16,
+          status: 'active',
+          infoPath: '/info/convenios',
+          accessPath: '/convenios/acceso'
+        },
+        {
+          id: 6,
+          name: 'Estacionamientos',
+          category: 'Control Vehicular',
+          description: 'Gestión integral de estacionamientos públicos, control de acceso, pagos electrónicos y administración de folios.',
+          icon: 'fas fa-car-side',
+          colorClass: 'module-blue',
+          components: 61,
+          activeUsers: 22,
+          status: 'active',
+          infoPath: '/info/estacionamientos',
+          accessPath: '/estacionamientos/acceso'
+        },
+        {
+          id: 7,
+          name: 'Mercados',
+          category: 'Gestión Comercial',
+          description: 'Administración de mercados municipales, locales comerciales, adeudos energéticos y pagos especializados.',
+          icon: 'fas fa-store-alt',
+          colorClass: 'module-orange',
+          components: 107,
+          activeUsers: 31,
+          status: 'active',
+          infoPath: '/info/mercados',
+          accessPath: '/mercados/acceso'
+        },
+        {
+          id: 8,
+          name: 'Otras Obligaciones',
+          category: 'Gestión Diversa',
+          description: 'Gestión de obligaciones diversas, carga de carteras, valores, etiquetas y reportes auxiliares especializados.',
+          icon: 'fas fa-tasks',
+          colorClass: 'module-teal',
+          components: 3,
+          activeUsers: 4,
+          status: 'active',
+          infoPath: '/info/otras-oblig',
+          accessPath: '/otras-oblig/apremios'
+        },
+        {
+          id: 9,
+          name: 'Recaudadora',
+          category: 'Padrón Recaudación',
+          description: 'Módulo de recaudación fiscal, gestión de pagos, descuentos, multas y administración del padrón contributivo.',
+          icon: 'fas fa-coins',
+          colorClass: 'module-green',
+          components: 106,
+          activeUsers: 28,
+          status: 'active',
+          infoPath: '/info/recaudadora',
+          accessPath: '/recaudadora/busque'
+        },
+        {
+          id: 10,
+          name: 'Tramite Trunk',
+          category: 'Padrón Catastral',
+          description: 'Sistema de tramitación general, gestión documental y seguimiento de procedimientos administrativos.',
+          icon: 'fas fa-file-invoice',
+          colorClass: 'module-purple',
+          components: 68,
+          activeUsers: 19,
+          status: 'active',
+          infoPath: '/info/tramite-trunk',
+          accessPath: '/tramite-trunk/busque'
+        }
+      ]
+    }
+  },
+  methods: {
+    navigateToModule(module) {
+      this.$router.push(module.accessPath);
+    },
+    
+    showInfo(module) {
+      this.$router.push(module.infoPath);
+    },
+    
+    accessModule(module) {
+      this.$router.push(module.accessPath);
     }
   }
 }
 </script>
+
+<style scoped>
+/* Clean and Professional Dashboard */
+.dashboard-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+  padding: 0.5rem;
+}
+
+/* Hero Section - Simple and Clean */
+.hero-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--municipal-blue);
+  margin: 0 0 0.5rem 0;
+}
+
+.page-subtitle {
+  font-size: 1.2rem;
+  color: var(--slate-600);
+  margin: 0 0 2rem 0;
+}
+
+/* Stats Row - Clean Cards */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  background: var(--municipal-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--municipal-blue);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--slate-600);
+  margin-top: 0.25rem;
+}
+
+/* Modules Section */
+.modules-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--municipal-blue);
+  margin: 0 0 0.5rem 0;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  color: var(--slate-600);
+  margin: 0;
+}
+
+/* Modules Grid - Clean Cards */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.module-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.module-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: var(--municipal-blue);
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.module-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+/* Keep the orange icon color for dashboard modules */
+.module-orange { background: #f97316; }
+.module-blue { background: var(--municipal-blue); }
+.module-green { background: #10b981; }
+.module-red { background: #ef4444; }
+.module-purple { background: #8b5cf6; }
+.module-pink { background: #ec4899; }
+.module-gray { background: #6b7280; }
+.module-teal { background: #14b8a6; }
+
+.module-count {
+  background: var(--gdl-red);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.module-content {
+  margin-bottom: 1rem;
+}
+
+.module-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--slate-800);
+  margin: 0 0 0.25rem 0;
+}
+
+.module-category {
+  font-size: 0.875rem;
+  color: var(--slate-500);
+  margin: 0 0 0.5rem 0;
+}
+
+.module-users {
+  font-size: 0.8rem;
+  color: var(--slate-600);
+}
+
+.module-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.btn-info,
+.btn-access {
+  width: 35px;
+  height: 35px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-info {
+  background: #e2e8f0;
+  color: var(--slate-600);
+}
+
+.btn-info:hover {
+  background: var(--slate-300);
+}
+
+.btn-access {
+  background: var(--municipal-blue);
+  color: white;
+}
+
+.btn-access:hover {
+  background: var(--municipal-blue-dark);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .hero-section {
+    padding: 2rem 1rem;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .modules-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

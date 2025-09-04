@@ -1,0 +1,119 @@
+# Laravel (refactorizacion-gdl)
+/vendor/
+/node_modules/
+/public/hot
+/public/storage
+/storage/*.key
+/storage/app/public/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+.env
+.env.backup
+.env.production
+.env.local
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+
+# Composer
+composer.phar
+composer-setup.exe
+composer.lock
+
+# Frontend/Vue.js (harweb-main/frontend-vue)
+harweb-main/frontend-vue/node_modules/
+harweb-main/frontend-vue/dist/
+harweb-main/frontend-vue/.vite/
+
+# Laravel backend (harweb-main/backend-laravel)
+harweb-main/backend-laravel/vendor/
+harweb-main/backend-laravel/node_modules/
+harweb-main/backend-laravel/storage/logs/*
+harweb-main/backend-laravel/storage/framework/cache/*
+harweb-main/backend-laravel/storage/framework/sessions/*
+harweb-main/backend-laravel/storage/framework/views/*
+
+# Environment files
+*.env
+*.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+nul
+
+# Build/Compiled
+/public/build/
+/public/mix-manifest.json
+/public/js/
+/public/css/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Test files and documentation
+*.pdf
+*.xlsx
+*.xls
+*.docx
+*.doc
+*.txt
+*.md
+*.html
+response.html
+temp_*.txt
+old_files.txt
+
+# Cache
+bootstrap/cache/*.php
+!bootstrap/cache/.gitkeep
+.cache/
+.parcel-cache/
+.vite/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Modules directory
+modules/
+shared/
+
+# Backup files
+*.bak
+*.backup
+*~

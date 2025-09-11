@@ -191,7 +191,7 @@ export default {
           category: 'Gestión Diversa',
           description: 'Gestión de obligaciones diversas, carga de carteras, valores, etiquetas y reportes auxiliares especializados.',
           icon: 'fas fa-tasks',
-          colorClass: 'module-teal',
+          colorClass: 'module-gold',
           components: 3,
           activeUsers: 4,
           status: 'active',
@@ -264,13 +264,16 @@ export default {
 
 .page-title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--municipal-blue);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
+  color: var(--municipal-primary);
   margin: 0 0 0.5rem 0;
 }
 
 .page-subtitle {
   font-size: 1.2rem;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-regular);
   color: var(--slate-600);
   margin: 0 0 2rem 0;
 }
@@ -302,7 +305,7 @@ export default {
 .stat-icon {
   width: 50px;
   height: 50px;
-  background: var(--municipal-blue);
+  background: var(--municipal-secondary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -313,8 +316,9 @@ export default {
 
 .stat-value {
   font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--municipal-blue);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
+  color: var(--municipal-primary);
   line-height: 1;
 }
 
@@ -339,8 +343,9 @@ export default {
 
 .section-title {
   font-size: 2rem;
-  font-weight: 600;
-  color: var(--municipal-blue);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
+  color: var(--municipal-primary);
   margin: 0 0 0.5rem 0;
 }
 
@@ -370,7 +375,7 @@ export default {
 .module-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: var(--municipal-blue);
+  border-color: var(--municipal-primary);
 }
 
 .module-header {
@@ -391,23 +396,26 @@ export default {
   font-size: 1.5rem;
 }
 
-/* Keep the orange icon color for dashboard modules */
-.module-orange { background: #f97316; }
-.module-blue { background: var(--municipal-blue); }
-.module-green { background: #10b981; }
-.module-red { background: #ef4444; }
-.module-purple { background: #8b5cf6; }
-.module-pink { background: #ec4899; }
-.module-gray { background: #6b7280; }
-.module-teal { background: #14b8a6; }
+/* Paleta completa de colores complementarios oficiales */
+.module-orange { background: var(--gov-primary-orange); }    /* Licencias - Naranja Principal #ea8215 */
+.module-green { background: var(--gov-green); }              /* Aseo - Verde #6cca98 */
+.module-red { background: var(--gov-pink); }                 /* Apremios - Rosa #e96cb0 */
+.module-gray { background: var(--gov-gray); }                /* Cementerios - Gris #808080 */
+.module-pink { background: var(--gov-peach); }               /* Convenios - Durazno #ff9d6c */
+.module-blue { background: var(--gov-blue); }                /* Estacionamientos - Azul #009ade */
+.module-teal { background: var(--gov-yellow); }              /* Mercados - Amarillo #ffb700 */
+.module-purple { background: var(--gov-purple); }            /* Tramite Trunk - Púrpura #9264cc */
+
+/* Asignación de todos los colores oficiales únicos */
+.module-gold { background: var(--gov-primary-gold); }        /* Otras Obligaciones - Dorado Principal #cc9f52 */        /* Otras Obligaciones - Dorado Principal #cc9f52 */            /* Tramite Trunk - Púrpura #9264cc */                /* Mercados/Otras Oblig */
 
 .module-count {
-  background: var(--gdl-red);
+  background: var(--municipal-secondary);
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
 }
 
 .module-content {
@@ -416,7 +424,8 @@ export default {
 
 .module-title {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
   color: var(--slate-800);
   margin: 0 0 0.25rem 0;
 }
@@ -461,12 +470,12 @@ export default {
 }
 
 .btn-access {
-  background: var(--municipal-blue);
+  background: var(--municipal-primary);
   color: white;
 }
 
 .btn-access:hover {
-  background: var(--municipal-blue-dark);
+  background: var(--gov-primary-gold);
 }
 
 /* Responsive Design */

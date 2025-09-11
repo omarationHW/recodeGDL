@@ -201,7 +201,7 @@ export default {
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 1000;
+  z-index: 1200;
   transition: width 0.3s ease;
   overflow-y: auto;
   display: flex;
@@ -216,7 +216,7 @@ export default {
 .sidebar-header {
   padding: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
-  background: var(--municipal-blue);
+  background: var(--municipal-primary);
   color: white;
 }
 
@@ -256,12 +256,15 @@ export default {
 
 .brand-title {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
   line-height: 1.2;
 }
 
 .brand-subtitle {
   font-size: 0.875rem;
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-municipal);
   opacity: 0.9;
 }
 
@@ -315,13 +318,13 @@ export default {
 
 .nav-item:hover {
   background: #f8fafc;
-  color: var(--municipal-blue);
+  color: var(--municipal-primary);
 }
 
 .nav-item-active {
-  background: #e0f2fe;
-  color: var(--municipal-blue);
-  border-left-color: var(--municipal-blue);
+  background: rgba(234, 130, 21, 0.1);
+  color: var(--municipal-primary);
+  border-left-color: var(--municipal-primary);
 }
 
 .nav-icon {
@@ -336,7 +339,8 @@ export default {
 }
 
 .nav-text {
-  font-weight: 500;
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-municipal);
 }
 
 /* Module Buttons */
@@ -355,12 +359,12 @@ export default {
 
 .module-button:hover {
   background: #f8fafc;
-  color: var(--municipal-blue);
+  color: var(--municipal-primary);
 }
 
 .module-expanded {
-  background: #f1f5f9;
-  color: var(--municipal-blue);
+  background: rgba(234, 130, 21, 0.05);
+  color: var(--municipal-primary);
 }
 
 .module-icon {
@@ -382,12 +386,13 @@ export default {
 }
 
 .module-name {
-  font-weight: 500;
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-municipal);
 }
 
 .module-count {
   font-size: 0.75rem;
-  background: var(--municipal-blue);
+  background: var(--municipal-secondary);
   color: white;
   padding: 0.125rem 0.5rem;
   border-radius: 10px;
@@ -424,8 +429,8 @@ export default {
 }
 
 .submenu-item-active {
-  background: #dbeafe;
-  color: var(--municipal-blue);
+  background: rgba(234, 130, 21, 0.1);
+  color: var(--municipal-primary);
 }
 
 /* Responsive */

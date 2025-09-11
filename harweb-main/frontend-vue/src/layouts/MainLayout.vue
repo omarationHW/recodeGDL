@@ -55,18 +55,26 @@
 
     <!-- Main Content -->
     <main class="main-content" :class="{ 'main-collapsed': sidebarCollapsed }">
-      <slot />
+      <div class="content-wrapper">
+        <slot />
+      </div>
+      <!-- Footer dentro del main-content pero con ancho completo -->
+      <div class="footer-container">
+        <Footer />
+      </div>
     </main>
   </div>
 </template>
 
 <script>
 import Sidebar from '../components/Sidebar.vue'
+import Footer from '../components/Footer.vue'
 
 export default {
   name: 'MainLayout',
   components: {
-    Sidebar
+    Sidebar,
+    Footer
   },
   data() {
     return {
@@ -102,6 +110,7 @@ export default {
   display: flex;
   min-height: 100vh;
   background: #f8fafc;
+  position: relative;
 }
 
 /* Header */
@@ -275,10 +284,31 @@ export default {
   padding: 0;
   background: transparent;
   transition: margin-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 70px);
+}
+
+.content-wrapper {
+  flex: 1;
 }
 
 .main-collapsed {
   margin-left: 80px;
+}
+
+/* Footer Container - Posición relativa que se extiende fuera del margen */
+.footer-container {
+  position: relative;
+  margin-left: -280px;
+  margin-right: 0;
+  width: 100vw;
+  z-index: 1100;
+  transition: margin-left 0.3s ease;
+}
+
+.main-collapsed .footer-container {
+  margin-left: -80px;
 }
 
 /* Responsive */
@@ -288,6 +318,10 @@ export default {
   }
   
   .main-content {
+    margin-left: 0;
+  }
+  
+  .footer-container {
     margin-left: 0;
   }
   

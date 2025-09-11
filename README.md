@@ -82,26 +82,6 @@ php artisan migrate
 php artisan serve
 ```
 
-### Base de Datos
-Configurar las variables de entorno en `.env`:
-```env
-DB_CONNECTION=pgsql
-DB_HOST=68.155.217.137
-DB_PORT=5432
-DB_DATABASE=postgres
-DB_USERNAME=postgres
-DB_PASSWORD=R3c0d325
-DB_SCHEMA=pavimentacion
-```
-
-## 🎨 Características de la Interfaz
-
-- **Diseño Responsivo** - Adaptable a dispositivos móviles y desktop
-- **Sidebar Inteligente** - Navegación colapsible con 739 opciones
-- **Dashboard Centralizado** - Visión general del sistema con métricas
-- **Tema Municipal** - Colores oficiales de Guadalajara
-- **Componentes Reutilizables** - Arquitectura modular y escalable
-
 ## 👥 Usuarios del Sistema
 
 - **Administrador** - ElChampion (Acceso completo)
@@ -124,28 +104,8 @@ php artisan migrate        # Ejecutar migraciones
 php artisan db:seed        # Poblar base de datos
 ```
 
-## 📊 Estado del Proyecto
-
-- ✅ **Interfaz Base** - Completada
-- ✅ **Sistema de Navegación** - 739 rutas configuradas
-- ✅ **Módulos Principales** - Estructura implementada
-- ✅ **Diseño Consistente** - Template unificado
-- 🔄 **Funcionalidades Específicas** - En desarrollo
-- 🔄 **Integración API** - En progreso
-
-## 🏢 Información del Cliente
-
-**Gobierno Municipal de Guadalajara, Jalisco**
-- Sistema de gestión administrativa integral
-- Digitalización de procesos municipales
-- Mejora en la atención ciudadana
-
 ## 📝 Versión
 
 **v1.0.570** - Sistema Municipal Digital
 
 ---
-
-*Desarrollado para el Gobierno de Guadalajara, Jalisco*
-
-🏛️ **Modernizando la gestión municipal con tecnología de vanguardia**

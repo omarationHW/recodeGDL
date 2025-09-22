@@ -4,6 +4,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Environment variables
 .env
@@ -11,22 +13,37 @@ package-lock.json
 .env.development.local
 .env.test.local
 .env.production.local
+.env.backup
+*.env
+*.env.*
+!.env.example
 
 # Build outputs
 dist/
 build/
 public/build/
+/public/hot
+/public/storage
+/public/mix-manifest.json
+/public/js/
+/public/css/
 
 # Cache
 .cache/
 .parcel-cache/
+.vite/
+bootstrap/cache/*.php
+!bootstrap/cache/.gitkeep
 
 # IDE files
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # OS generated files
 .DS_Store
@@ -36,22 +53,29 @@ public/build/
 .Trashes
 ehthumbs.db
 Thumbs.db
+Desktop.ini
+nul
 
 # Logs
 *.log
 logs/
 error.log
+lerna-debug.log*
 
 # Temporary files
 *.tmp
 *.temp
 .tmp/
 .temp/
+temp/
+tmp/
 
 # Laravel specific
 /vendor/
+vendor/
 /storage/*.key
 /storage/app/public/
+/storage/framework/cache/
 /storage/framework/cache/data/
 /storage/framework/sessions/
 /storage/framework/views/
@@ -59,11 +83,17 @@ error.log
 /bootstrap/cache/
 .phpunit.result.cache
 .phpunit.cache
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Composer
+composer.phar
+composer-setup.exe
+composer.lock
 
 # Vue.js specific
-dist/
 .nuxt/
-.vite/
 coverage/
 
 # Database
@@ -83,6 +113,18 @@ coverage/
 *_REPORT.md
 *_FINAL_REPORT.md
 AGENTE_*.md
+*.pdf
+*.xlsx
+*.xls
+*.docx
+*.doc
+*.txt
+*.md
+!README.md
+*.html
+response.html
+temp_*.txt
+old_files.txt
 
 # Temporary scripts and test files
 check-*.js

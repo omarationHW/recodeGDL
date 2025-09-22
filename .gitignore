@@ -30,6 +30,11 @@ harweb-main/frontend-vue/node_modules/
 harweb-main/frontend-vue/dist/
 harweb-main/frontend-vue/.vite/
 
+# Frontend/Vue.js (harweb-main-v2/frontend-vue)
+harweb-main-v2/frontend-vue/node_modules/
+harweb-main-v2/frontend-vue/dist/
+harweb-main-v2/frontend-vue/.vite/
+
 # Laravel backend (harweb-main/backend-laravel)
 harweb-main/backend-laravel/vendor/
 harweb-main/backend-laravel/node_modules/

@@ -1,0 +1,1 @@
+// Error: No se pudo parsear respuesta de ChatGPT

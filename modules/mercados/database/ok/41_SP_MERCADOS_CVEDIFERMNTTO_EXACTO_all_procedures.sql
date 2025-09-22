@@ -1,0 +1,72 @@
+-- ============================================
+-- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- ESQUEMA: public
+-- ============================================
+\c padron_licencias;
+SET search_path TO public;
+
+-- ============================================
+-- STORED PROCEDURES CONSOLIDADOS
+-- Formulario: CveDiferMntto
+-- Generado: 2025-08-26 23:41:20
+-- Total SPs: 2
+-- ============================================
+
+-- SP 1/2: sp_insert_cve_diferencia
+-- Tipo: CRUD
+-- Descripción: Inserta una nueva clave de diferencia en ta_11_catalogo_dif
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_insert_cve_diferencia(
+    p_clave_diferencia integer,
+    p_descripcion text,
+    p_cuenta_ingreso integer,
+    p_id_usuario integer
+) RETURNS TABLE(success boolean, msg text) AS $$
+DECLARE
+    existe integer;
+BEGIN
+    SELECT COUNT(*) INTO existe FROM public.ta_11_catalogo_dif WHERE clave_diferencia = p_clave_diferencia;
+    IF existe > 0 THEN
+        RETURN QUERY SELECT false, 'La clave de diferencia ya existe';
+        RETURN;
+    END IF;
+    INSERT INTO public.ta_11_catalogo_dif (clave_diferencia, descripcion, cuenta_ingreso, fecha_actual, id_usuario)
+    VALUES (p_clave_diferencia, UPPER(p_descripcion), p_cuenta_ingreso, NOW(), p_id_usuario);
+    RETURN QUERY SELECT true, 'Clave de diferencia insertada correctamente';
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+
+-- SP 2/2: sp_update_cve_diferencia
+-- Tipo: CRUD
+-- Descripción: Actualiza una clave de diferencia existente en ta_11_catalogo_dif
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_update_cve_diferencia(
+    p_clave_diferencia integer,
+    p_descripcion text,
+    p_cuenta_ingreso integer,
+    p_id_usuario integer
+) RETURNS TABLE(success boolean, msg text) AS $$
+DECLARE
+    existe integer;
+BEGIN
+    SELECT COUNT(*) INTO existe FROM public.ta_11_catalogo_dif WHERE clave_diferencia = p_clave_diferencia;
+    IF existe = 0 THEN
+        RETURN QUERY SELECT false, 'La clave de diferencia no existe';
+        RETURN;
+    END IF;
+    UPDATE public.ta_11_catalogo_dif
+    SET descripcion = UPPER(p_descripcion),
+        cuenta_ingreso = p_cuenta_ingreso,
+        fecha_actual = NOW(),
+        id_usuario = p_id_usuario
+    WHERE clave_diferencia = p_clave_diferencia;
+    RETURN QUERY SELECT true, 'Clave de diferencia actualizada correctamente';
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+

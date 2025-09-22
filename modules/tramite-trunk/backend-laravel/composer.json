@@ -1,0 +1,7 @@
+{
+    "name": "unified-api/tramite trunk",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0"
+    }
+}

@@ -25,7 +25,9 @@
       "Bash(start http://localhost:5179)",
       "Bash(start http://localhost:8080/health)",
       "Bash(start http://localhost:5182)",
-      "Bash(start http://localhost:5182/licencias/consultaLicenciafrm)"
+      "Bash(start http://localhost:5182/licencias/consultaLicenciafrm)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

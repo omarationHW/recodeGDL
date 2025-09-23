@@ -32,7 +32,8 @@
       "Bash(git push:*)",
       "Bash(git pull:*)",
       "Bash(php artisan serve:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

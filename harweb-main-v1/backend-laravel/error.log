@@ -9192,3 +9192,244 @@ HINT:  No function matches the given name and argument types. You might need to 
 [23-Sep-2025 16:45:55 UTC] 🔍 SP ejecutado, obteniendo resultados...
 [23-Sep-2025 16:45:55 UTC] ✅ SP completado. Resultados: 10 registros
 [23-Sep-2025 16:45:55 UTC] ✅ Devolviendo respuesta exitosa con 10 registros
+[23-Sep-2025 17:28:04 UTC] 🌐 REQUEST: POST /api/generic
+[23-Sep-2025 17:28:04 UTC] 🌐 HEADERS: Array
+(
+    [Host] => localhost:8000
+    [Connection] => keep-alive
+    [Content-Length] => 108
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    [sec-ch-ua] => "Chromium";v="140", "Not=A?Brand";v="24", "Microsoft Edge";v="140"
+    [DNT] => 1
+    [Content-Type] => application/json
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost:5185
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5185/
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => es-419,es;q=0.9,es-ES;q=0.8,en;q=0.7,en-GB;q=0.6,en-US;q=0.5,es-MX;q=0.4
+)
+
+[23-Sep-2025 17:28:04 UTC] ✅ Entering /api/generic endpoint
+[23-Sep-2025 17:28:04 UTC] 🔍 RAW INPUT: {"eRequest":{"Operacion":"sp_cruces_list","Base":"padron_licencias","Parametros":[],"Tenant":"guadalajara"}}
+[23-Sep-2025 17:28:04 UTC] 🔍 PARSED INPUT: Array
+(
+    [eRequest] => Array
+        (
+            [Operacion] => sp_cruces_list
+            [Base] => padron_licencias
+            [Parametros] => Array
+                (
+                )
+
+            [Tenant] => guadalajara
+        )
+
+)
+
+[23-Sep-2025 17:28:04 UTC] 🔍 Validando eRequest...
+[23-Sep-2025 17:28:04 UTC] 🔍 Variables extraídas: operacion=sp_cruces_list, base=padron_licencias, parametros=0, tenant=guadalajara
+[23-Sep-2025 17:28:04 UTC] 🔍 Leyendo configuración .env...
+[23-Sep-2025 17:28:04 UTC] 🔍 Configuración leída. Variables encontradas: 51
+[23-Sep-2025 17:28:04 UTC] 🔍 Módulo: padron_licencias -> Base: padron_licencias, Esquema: informix
+[23-Sep-2025 17:28:04 UTC] 🔍 Conectando a la base de datos: host=192.168.6.146, port=5432, dbname=padron_licencias
+[23-Sep-2025 17:28:04 UTC] ✅ Conexión a DB exitosa
+[23-Sep-2025 17:28:05 UTC] 🔍 Ejecutando SP: SELECT * FROM informix.sp_cruces_list()
+[23-Sep-2025 17:28:05 UTC] 🔍 Parámetros: []
+[23-Sep-2025 17:28:11 UTC] 🔍 SP ejecutado, obteniendo resultados...
+[23-Sep-2025 17:28:11 UTC] ✅ SP completado. Resultados: 8260 registros
+[23-Sep-2025 17:28:11 UTC] ✅ Devolviendo respuesta exitosa con 8260 registros
+[23-Sep-2025 17:29:26 UTC] 🌐 REQUEST: POST /api/generic
+[23-Sep-2025 17:29:26 UTC] 🌐 HEADERS: Array
+(
+    [Host] => localhost:8000
+    [Connection] => keep-alive
+    [Content-Length] => 108
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    [sec-ch-ua] => "Chromium";v="140", "Not=A?Brand";v="24", "Microsoft Edge";v="140"
+    [DNT] => 1
+    [Content-Type] => application/json
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost:5185
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5185/
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => es-419,es;q=0.9,es-ES;q=0.8,en;q=0.7,en-GB;q=0.6,en-US;q=0.5,es-MX;q=0.4
+)
+
+[23-Sep-2025 17:29:26 UTC] ✅ Entering /api/generic endpoint
+[23-Sep-2025 17:29:26 UTC] 🔍 RAW INPUT: {"eRequest":{"Operacion":"sp_cruces_list","Base":"padron_licencias","Parametros":[],"Tenant":"guadalajara"}}
+[23-Sep-2025 17:29:26 UTC] 🔍 PARSED INPUT: Array
+(
+    [eRequest] => Array
+        (
+            [Operacion] => sp_cruces_list
+            [Base] => padron_licencias
+            [Parametros] => Array
+                (
+                )
+
+            [Tenant] => guadalajara
+        )
+
+)
+
+[23-Sep-2025 17:29:26 UTC] 🔍 Validando eRequest...
+[23-Sep-2025 17:29:26 UTC] 🔍 Variables extraídas: operacion=sp_cruces_list, base=padron_licencias, parametros=0, tenant=guadalajara
+[23-Sep-2025 17:29:26 UTC] 🔍 Leyendo configuración .env...
+[23-Sep-2025 17:29:26 UTC] 🔍 Configuración leída. Variables encontradas: 51
+[23-Sep-2025 17:29:26 UTC] 🔍 Módulo: padron_licencias -> Base: padron_licencias, Esquema: informix
+[23-Sep-2025 17:29:26 UTC] 🔍 Conectando a la base de datos: host=192.168.6.146, port=5432, dbname=padron_licencias
+[23-Sep-2025 17:29:26 UTC] ✅ Conexión a DB exitosa
+[23-Sep-2025 17:29:27 UTC] 🔍 Ejecutando SP: SELECT * FROM informix.sp_cruces_list()
+[23-Sep-2025 17:29:27 UTC] 🔍 Parámetros: []
+[23-Sep-2025 17:29:30 UTC] 🔍 SP ejecutado, obteniendo resultados...
+[23-Sep-2025 17:29:30 UTC] ✅ SP completado. Resultados: 8260 registros
+[23-Sep-2025 17:29:30 UTC] ✅ Devolviendo respuesta exitosa con 8260 registros
+[23-Sep-2025 17:33:24 UTC] 🌐 REQUEST: POST /api/execute
+[23-Sep-2025 17:33:24 UTC] 🌐 HEADERS: Array
+(
+    [Host] => localhost:8000
+    [Connection] => keep-alive
+    [Content-Length] => 27
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    [Accept] => application/json, text/plain, */*
+    [sec-ch-ua] => "Chromium";v="140", "Not=A?Brand";v="24", "Microsoft Edge";v="140"
+    [Content-Type] => application/json
+    [DNT] => 1
+    [sec-ch-ua-mobile] => ?0
+    [Origin] => http://localhost:5186
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5186/
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => es-419,es;q=0.9,es-ES;q=0.8,en;q=0.7,en-GB;q=0.6,en-US;q=0.5,es-MX;q=0.4
+)
+
+[23-Sep-2025 17:33:42 UTC] 🌐 REQUEST: POST /api/execute
+[23-Sep-2025 17:33:42 UTC] 🌐 HEADERS: Array
+(
+    [Host] => localhost:8000
+    [Connection] => keep-alive
+    [Content-Length] => 56
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    [Accept] => application/json, text/plain, */*
+    [sec-ch-ua] => "Chromium";v="140", "Not=A?Brand";v="24", "Microsoft Edge";v="140"
+    [Content-Type] => application/json
+    [DNT] => 1
+    [sec-ch-ua-mobile] => ?0
+    [Origin] => http://localhost:5186
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5186/
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => es-419,es;q=0.9,es-ES;q=0.8,en;q=0.7,en-GB;q=0.6,en-US;q=0.5,es-MX;q=0.4
+)
+
+[23-Sep-2025 17:33:43 UTC] 🌐 REQUEST: POST /api/execute
+[23-Sep-2025 17:33:43 UTC] 🌐 HEADERS: Array
+(
+    [Host] => localhost:8000
+    [Connection] => keep-alive
+    [Content-Length] => 127
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    [Accept] => application/json, text/plain, */*
+    [sec-ch-ua] => "Chromium";v="140", "Not=A?Brand";v="24", "Microsoft Edge";v="140"
+    [Content-Type] => application/json
+    [DNT] => 1
+    [sec-ch-ua-mobile] => ?0
+    [Origin] => http://localhost:5186
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5186/
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => es-419,es;q=0.9,es-ES;q=0.8,en;q=0.7,en-GB;q=0.6,en-US;q=0.5,es-MX;q=0.4
+)
+
+[23-Sep-2025 17:34:00 UTC] 🌐 REQUEST: POST /api/execute
+[23-Sep-2025 17:34:00 UTC] 🌐 HEADERS: Array
+(
+    [Host] => localhost:8000
+    [Connection] => keep-alive
+    [Content-Length] => 56
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    [Accept] => application/json, text/plain, */*
+    [sec-ch-ua] => "Chromium";v="140", "Not=A?Brand";v="24", "Microsoft Edge";v="140"
+    [Content-Type] => application/json
+    [DNT] => 1
+    [sec-ch-ua-mobile] => ?0
+    [Origin] => http://localhost:5186
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5186/
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => es-419,es;q=0.9,es-ES;q=0.8,en;q=0.7,en-GB;q=0.6,en-US;q=0.5,es-MX;q=0.4
+)
+
+[23-Sep-2025 17:34:32 UTC] 🌐 REQUEST: POST /api/generic
+[23-Sep-2025 17:34:32 UTC] 🌐 HEADERS: Array
+(
+    [Host] => localhost:8000
+    [Connection] => keep-alive
+    [Content-Length] => 108
+    [sec-ch-ua-platform] => "Windows"
+    [User-Agent] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    [sec-ch-ua] => "Chromium";v="140", "Not=A?Brand";v="24", "Microsoft Edge";v="140"
+    [DNT] => 1
+    [Content-Type] => application/json
+    [sec-ch-ua-mobile] => ?0
+    [Accept] => */*
+    [Origin] => http://localhost:5185
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5185/
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => es-419,es;q=0.9,es-ES;q=0.8,en;q=0.7,en-GB;q=0.6,en-US;q=0.5,es-MX;q=0.4
+)
+
+[23-Sep-2025 17:34:32 UTC] ✅ Entering /api/generic endpoint
+[23-Sep-2025 17:34:32 UTC] 🔍 RAW INPUT: {"eRequest":{"Operacion":"sp_cruces_list","Base":"padron_licencias","Parametros":[],"Tenant":"guadalajara"}}
+[23-Sep-2025 17:34:32 UTC] 🔍 PARSED INPUT: Array
+(
+    [eRequest] => Array
+        (
+            [Operacion] => sp_cruces_list
+            [Base] => padron_licencias
+            [Parametros] => Array
+                (
+                )
+
+            [Tenant] => guadalajara
+        )
+
+)
+
+[23-Sep-2025 17:34:32 UTC] 🔍 Validando eRequest...
+[23-Sep-2025 17:34:32 UTC] 🔍 Variables extraídas: operacion=sp_cruces_list, base=padron_licencias, parametros=0, tenant=guadalajara
+[23-Sep-2025 17:34:32 UTC] 🔍 Leyendo configuración .env...
+[23-Sep-2025 17:34:32 UTC] 🔍 Configuración leída. Variables encontradas: 51
+[23-Sep-2025 17:34:32 UTC] 🔍 Módulo: padron_licencias -> Base: padron_licencias, Esquema: informix
+[23-Sep-2025 17:34:32 UTC] 🔍 Conectando a la base de datos: host=192.168.6.146, port=5432, dbname=padron_licencias
+[23-Sep-2025 17:34:33 UTC] ✅ Conexión a DB exitosa
+[23-Sep-2025 17:34:34 UTC] 🔍 Ejecutando SP: SELECT * FROM informix.sp_cruces_list()
+[23-Sep-2025 17:34:34 UTC] 🔍 Parámetros: []
+[23-Sep-2025 17:34:41 UTC] 🔍 SP ejecutado, obteniendo resultados...
+[23-Sep-2025 17:34:41 UTC] ✅ SP completado. Resultados: 8260 registros
+[23-Sep-2025 17:34:41 UTC] ✅ Devolviendo respuesta exitosa con 8260 registros

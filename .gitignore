@@ -116,36 +116,23 @@ coverage/
 *.bak
 .cleanup-backup/
 
-# Generated reports and documentation
-*_REPORT.md
-*_FINAL_REPORT.md
-AGENTE_*.md
-*.pdf
-*.xlsx
-*.xls
-*.docx
-*.doc
-*.txt
-*.md
-!README.md
-*.html
+# Build outputs and compiled assets (keep this section)
+dist/
+build/
+/public/build/
+/public/hot
+/public/storage
+/public/mix-manifest.json
+/public/js/
+/public/css/
+
+# Generated temporary files
 response.html
 temp_*.txt
 old_files.txt
 
-# Temporary scripts and test files
-check-*.js
-create-*.js
-fix-*.js
-test-*.js
-verify-*.js
-install-*.js
-force-*.js
-update-*.js
-*.bat
-
-# SQL files (temporary/testing)
-*.sql
-
-# Project specific temporary files
-backend-api.js
+# Keep important project files but exclude some patterns:
+# Allow .md, .js, .sql, .bat files in project but exclude some generated ones
+*_temp.js
+*_backup.js
+*.tmp.*

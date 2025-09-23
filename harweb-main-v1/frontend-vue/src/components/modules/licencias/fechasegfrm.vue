@@ -83,24 +83,26 @@ export default {
       this.message = '';
       this.success = false;
       try {
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'SP_fechaseg_create',
-            Parametros: [
-              { nombre: 'p_fecha', valor: this.form.fecha },
-              { nombre: 'p_oficio', valor: this.form.oficio }
-            ]
-          }
+        const response = await fetch('/api/execute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            eRequest: 'fechasegfrm.save',
+            params: this.form
+          })
         });
-
-        if (response.data.eResponse.success) {
-          this.message = 'Fecha de seguimiento registrada correctamente';
+        const data = await response.json();
+        if (data.eResponse.success) {
+          this.message = data.eResponse.message;
           this.success = true;
           this.form.fecha = '';
           this.form.oficio = '';
           this.loadRegistros();
         } else {
-          this.message = response.data.eResponse.message || 'Error al guardar';
+          this.message = data.eResponse.message;
           this.success = false;
         }
       } catch (e) {
@@ -116,18 +118,20 @@ export default {
     },
     async loadRegistros() {
       try {
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'SP_fechaseg_list',
-            Parametros: [
-              { nombre: 'p_limite', valor: 50 },
-              { nombre: 'p_offset', valor: 0 }
-            ]
-          }
+        const response = await fetch('/api/execute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            eRequest: 'fechasegfrm.list',
+            params: {}
+          })
         });
-
-        if (response.data.eResponse.success) {
-          this.registros = response.data.eResponse.data || [];
+        const data = await response.json();
+        if (data.eResponse.success) {
+          this.registros = data.eResponse.data;
         } else {
           this.registros = [];
         }

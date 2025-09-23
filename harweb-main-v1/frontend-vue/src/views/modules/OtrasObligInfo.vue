@@ -40,8 +40,7 @@
                 </div>
                 <div>
                   <p class="small text-muted mb-1">Componentes</p>
-                  <p class="h2 fw-bold text-secondary mb-0">66</p>
-                  <p class="small text-success mb-0">+4 NUEVOS</p>
+                  <p class="h2 fw-bold text-secondary mb-0">62</p>
                 </div>
               </div>
             </div>
@@ -246,91 +245,6 @@
         </div>
       </div>
 
-      <!-- 🆕 Nuevas Funcionalidades de Modernización -->
-      <div class="card border-0 shadow-sm mb-5" style="border-left: 5px solid #28a745 !important;">
-        <div class="card-body p-5">
-          <div class="d-flex align-items-center justify-content-between mb-4">
-            <h3 class="h4 fw-bold text-success mb-0">
-              <i class="fas fa-sparkles me-2"></i>Nuevas Funcionalidades de Modernización
-            </h3>
-            <span class="badge bg-success fs-6">4 NUEVOS</span>
-          </div>
-          <p class="text-muted mb-4">Sistemas modernos integrados que reemplazan 9 funciones obsoletas</p>
-
-          <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/otras-oblig/sistemaconveniosotrasOblig"
-                class="card border border-success border-opacity-25 text-decoration-none h-100 hover-transform"
-              >
-                <div class="card-body text-center p-4">
-                  <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                    <i class="fas fa-handshake fa-2x text-success"></i>
-                  </div>
-                  <h5 class="fw-bold text-dark">🆕 Sistema de Convenios</h5>
-                  <p class="text-muted small mb-0">Gestión integral con control de intereses, pagos y reportes automatizados</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/otras-oblig/sistemaapremiosotrasOblig"
-                class="card border border-danger border-opacity-25 text-decoration-none h-100 hover-transform"
-              >
-                <div class="card-body text-center p-4">
-                  <div class="bg-danger bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                    <i class="fas fa-gavel fa-2x text-danger"></i>
-                  </div>
-                  <h5 class="fw-bold text-dark">🆕 Sistema de Apremios</h5>
-                  <p class="text-muted small mb-0">Gestión de ejecutores, folios y impresión legal especializada</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/otras-oblig/sistemadescuentosotrasOblig"
-                class="card border border-primary border-opacity-25 text-decoration-none h-100 hover-transform"
-              >
-                <div class="card-body text-center p-4">
-                  <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                    <i class="fas fa-percentage fa-2x text-primary"></i>
-                  </div>
-                  <h5 class="fw-bold text-dark">🆕 Sistema de Descuentos</h5>
-                  <p class="text-muted small mb-0">Descuentos automatizados y conversión de procedimientos</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/otras-oblig/funcionesexcluidasotrasOblig"
-                class="card border border-warning border-opacity-25 text-decoration-none h-100 hover-transform"
-              >
-                <div class="card-body text-center p-4">
-                  <div class="bg-warning bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                    <i class="fas fa-info-circle fa-2x text-warning"></i>
-                  </div>
-                  <h5 class="fw-bold text-dark">🆕 Funciones Excluidas</h5>
-                  <p class="text-muted small mb-0">Documentación de funciones obsoletas y sus reemplazos</p>
-                </div>
-              </router-link>
-            </div>
-          </div>
-
-          <div class="mt-4 alert alert-success">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-info-circle me-2"></i>
-              <div>
-                <strong>Modernización Completa:</strong>
-                <span class="text-muted">Se han excluido 9 funciones obsoletas (Catálogo Gastos, Bajas, Cambios, Prescripción, Condonación, Reportes básicos, Gastos, Configurar impresora, Salir) y se han implementado 4 sistemas modernos integrados que mejoran la eficiencia en un 400%.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Acciones Rápidas -->
       <div class="card border-0 shadow-sm">
         <div class="card-body p-5">
@@ -406,14 +320,5 @@ export default {
 
 .transition {
   transition: all 0.2s ease;
-}
-
-.hover-transform {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hover-transform:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 </style>

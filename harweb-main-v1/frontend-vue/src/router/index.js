@@ -148,13 +148,25 @@ const routes = [
     name: 'MercadosGeneric',
     component: () => import('../views/modules/MercadosGeneric.vue')
   },
-  // Ruta genérica para todos los módulos de recaudadora
+  // Rutas específicas para recaudadora
+  {
+    path: '/recaudadora/busque',
+    name: 'RecaudadoraBusque',
+    component: () => import('../views/modules/RecaudadoraBusque.vue')
+  },
+  // Ruta genérica para todos los demás módulos de recaudadora
   {
     path: '/recaudadora/:submodule',
     name: 'RecaudadoraGeneric',
     component: () => import('../views/modules/RecaudadoraGeneric.vue')
   },
-  // Ruta genérica para todos los módulos de tramite-trunk
+  // Rutas específicas para tramite-trunk
+  {
+    path: '/tramite-trunk/busque',
+    name: 'TramiteTrunkBusque',
+    component: () => import('../views/modules/TramiteTrunkBusque.vue')
+  },
+  // Ruta genérica para todos los demás módulos de tramite-trunk
   {
     path: '/tramite-trunk/:submodule',
     name: 'TramiteTrunkGeneric',

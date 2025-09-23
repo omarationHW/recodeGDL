@@ -40,8 +40,7 @@
                 </div>
                 <div>
                   <p class="small text-muted mb-1">Componentes</p>
-                  <p class="h2 fw-bold text-warning mb-0">109</p>
-                  <p class="small text-warning fw-bold mb-0">+2 NUEVOS</p>
+                  <p class="h2 fw-bold text-secondary mb-0">107</p>
                 </div>
               </div>
             </div>
@@ -246,85 +245,10 @@
         </div>
       </div>
 
-      <!-- 🆕 NUEVAS FUNCIONALIDADES DE MODERNIZACIÓN - MERCADOS -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body p-5">
-          <div class="d-flex align-items-center mb-4">
-            <h3 class="h4 fw-bold text-warning mb-0 me-3">🆕 Modernización del Módulo Mercados</h3>
-            <span class="badge bg-warning text-dark">RECIÉN AGREGADAS</span>
-          </div>
-
-          <!-- Nuevos Componentes -->
-          <div class="row g-3 mb-4">
-            <div class="col-md-6">
-              <router-link
-                to="/mercados/sistemaconveniosmercados"
-                class="d-flex flex-column align-items-center p-4 bg-success bg-opacity-10 rounded-3 text-decoration-none hover-bg-success-subtle transition position-relative"
-              >
-                <span class="badge bg-success position-absolute top-0 end-0 translate-middle">NUEVO</span>
-                <div class="bg-success bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-store fa-2x text-success"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Sistema Convenios Integral</h4>
-                  <p class="text-muted small mb-0">ABC completo: Intereses, Convenios,</p>
-                  <p class="text-muted small mb-0">Parcialidades, Pagos y Reportes</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-6">
-              <router-link
-                to="/mercados/funcionesexcluidas"
-                class="d-flex flex-column align-items-center p-4 bg-danger bg-opacity-10 rounded-3 text-decoration-none hover-bg-danger-subtle transition position-relative"
-              >
-                <span class="badge bg-danger position-absolute top-0 end-0 translate-middle">EXCLUSIONES</span>
-                <div class="bg-danger bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-times-circle fa-2x text-danger"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Funciones Excluidas</h4>
-                  <p class="text-muted small mb-0">10 funciones obsoletas</p>
-                  <p class="text-muted small mb-0">identificadas para remoción</p>
-                </div>
-              </router-link>
-            </div>
-          </div>
-
-          <!-- Resumen de Cambios -->
-          <div class="row g-3">
-            <div class="col-md-4">
-              <div class="card border-success">
-                <div class="card-body text-center">
-                  <h4 class="text-success">1</h4>
-                  <p class="mb-0 small">Sistema Nuevo</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card border-danger">
-                <div class="card-body text-center">
-                  <h4 class="text-danger">10</h4>
-                  <p class="mb-0 small">Funciones Excluidas</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card border-warning">
-                <div class="card-body text-center">
-                  <h4 class="text-warning">7</h4>
-                  <p class="mb-0 small">Módulos Nuevos</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Acciones Rápidas Existentes -->
+      <!-- Acciones Rápidas -->
       <div class="card border-0 shadow-sm">
         <div class="card-body p-5">
-          <h3 class="h4 fw-bold text-dark mb-4">Acciones Rápidas Existentes</h3>
+          <h3 class="h4 fw-bold text-dark mb-4">Acciones Rápidas</h3>
           <div class="row g-3">
             <div class="col-md-4">
               <router-link 

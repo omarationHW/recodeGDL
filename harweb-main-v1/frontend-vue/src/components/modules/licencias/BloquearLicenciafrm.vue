@@ -1,496 +1,261 @@
 <template>
-  <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="h4 mb-1">
-              <i class="fas fa-lock me-2 text-warning"></i>
-              Bloquear Licencia
-            </h2>
-            <p class="text-muted mb-0">Gestión de bloqueos y desbloqueos de licencias</p>
-          </div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-              <li class="breadcrumb-item">
-                <router-link to="/dashboard" class="text-decoration-none">Dashboard</router-link>
-              </li>
-              <li class="breadcrumb-item">
-                <router-link to="/licencias" class="text-decoration-none">Licencias</router-link>
-              </li>
-              <li class="breadcrumb-item active">Bloquear Licencia</li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+  <div class="bloquear-licencia-page">
+    <h1>Bloqueo de Licencias</h1>
+    <div class="search-section">
+      <label for="licencia">No. de licencia:</label>
+      <input v-model="licenciaInput" @keyup.enter="buscarLicencia" type="text" id="licencia" />
+      <button @click="buscarLicencia">Buscar</button>
     </div>
-
-    <!-- Formulario de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5 class="mb-0">
-          <i class="fas fa-search me-2"></i>
-          Buscar Licencia
-        </h5>
-      </div>
-      <div class="card-body">
-        <div class="row g-3 align-items-end">
-          <div class="col-md-4">
-            <label for="numeroLicencia" class="form-label">Número de Licencia</label>
-            <input 
-              type="number" 
-              class="form-control" 
-              id="numeroLicencia"
-              v-model="numeroLicencia"
-              placeholder="Ingrese número de licencia"
-              @keyup.enter="buscarLicencia"
-            >
-          </div>
-          <div class="col-md-2">
-            <button 
-              type="button" 
-              class="btn btn-primary w-100"
-              @click="buscarLicencia"
-              :disabled="buscando || !numeroLicencia"
-            >
-              <i class="fas fa-search me-2"></i>
-              {{ buscando ? 'Buscando...' : 'Buscar' }}
-            </button>
-          </div>
-        </div>
-      </div>
+    <div v-if="licencia" class="licencia-info">
+      <div><strong>Recaudadora:</strong> {{ licencia.recaud }}</div>
+      <div><strong>Giro:</strong> {{ giro }}</div>
+      <div><strong>Actividad:</strong> {{ licencia.actividad }}</div>
+      <div><strong>Propietario:</strong> {{ licencia.primer_ap }} {{ licencia.segundo_ap }} {{ licencia.propietario }}</div>
+      <div><strong>Ubicación:</strong> {{ licencia.ubicacion }} No. ext: {{ licencia.numext_ubic }} letra ext: {{ licencia.letraext_ubic }} No. int: {{ licencia.numint_ubic }} letra int: {{ licencia.letraint_ubic }}</div>
+      <div><strong>Estado:</strong> <span :class="{'bloqueado': licencia.bloqueado > 0, 'no-bloqueado': licencia.bloqueado == 0}">{{ estadoLicencia }}</span></div>
     </div>
-
-    <!-- Información de la licencia encontrada -->
-    <div v-if="licenciaEncontrada" class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">
-          <i class="fas fa-info-circle me-2 text-info"></i>
-          Información de la Licencia
-        </h5>
-        <span class="badge fs-6" :class="getBadgeClass(licenciaEncontrada.bloqueado)">
-          {{ getEstadoLicencia(licenciaEncontrada.bloqueado) }}
-        </span>
+    <div v-if="licencia">
+      <div class="actions">
+        <button :disabled="licencia.bloqueado > 0" @click="abrirBloqueo">Bloquear licencia</button>
+        <button :disabled="!bloqueosActivos.length" @click="abrirDesbloqueo">Desbloquear licencia</button>
       </div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label fw-bold">ID Licencia</label>
-            <div class="form-control-plaintext">{{ licenciaEncontrada.id_licencia }}</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Giro</label>
-            <div class="form-control-plaintext">{{ licenciaEncontrada.giro || 'N/A' }}</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Fecha Expedición</label>
-            <div class="form-control-plaintext">{{ formatearFecha(licenciaEncontrada.fecha_expedicion) }}</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Vigencia</label>
-            <div class="form-control-plaintext">{{ formatearFecha(licenciaEncontrada.vigencia_hasta) }}</div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-bold">Propietario</label>
-            <div class="form-control-plaintext">{{ licenciaEncontrada.nombre_propietario || 'N/A' }}</div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-bold">Ubicación</label>
-            <div class="form-control-plaintext">{{ licenciaEncontrada.ubicacion || 'N/A' }}</div>
-          </div>
-        </div>
+      <div v-if="showBloqueo">
+        <h3>Bloquear licencia</h3>
+        <label>Tipo de bloqueo:</label>
+        <select v-model="tipoBloqueo">
+          <option v-for="tipo in tiposBloqueo" :key="tipo.id" :value="tipo.id">{{ tipo.descripcion }}</option>
+        </select>
+        <label>Motivo:</label>
+        <input v-model="motivoBloqueo" type="text" />
+        <button @click="bloquearLicencia">Confirmar bloqueo</button>
+        <button @click="showBloqueo=false">Cancelar</button>
       </div>
+      <div v-if="showDesbloqueo">
+        <h3>Desbloquear licencia</h3>
+        <label>Seleccione el bloqueo a eliminar:</label>
+        <select v-model="tipoDesbloqueo">
+          <option v-for="bloq in bloqueosActivos" :key="bloq.bloqueado" :value="bloq.bloqueado">{{ bloq.descripcion_bloq }}</option>
+        </select>
+        <label>Motivo:</label>
+        <input v-model="motivoDesbloqueo" type="text" />
+        <button @click="desbloquearLicencia">Confirmar desbloqueo</button>
+        <button @click="showDesbloqueo=false">Cancelar</button>
+      </div>
+      <h3>Histórico de bloqueos</h3>
+      <table class="bloqueos-table">
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>Realizó</th>
+            <th>Fecha</th>
+            <th>Vigencia</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="bloq in bloqueos" :key="bloq.fecha_mov + '-' + bloq.bloqueado">
+            <td>{{ bloq.tipo_bloqueo }}</td>
+            <td>{{ bloq.capturista }}</td>
+            <td>{{ bloq.fecha_mov }}</td>
+            <td>{{ bloq.vigente }}</td>
+            <td>{{ bloq.observa }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <!-- Acciones de bloqueo/desbloqueo -->
-    <div v-if="licenciaEncontrada" class="card mb-4">
-      <div class="card-header">
-        <h5 class="mb-0">
-          <i class="fas fa-cogs me-2"></i>
-          Acciones de Bloqueo
-        </h5>
-      </div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label for="tipoBloqueo" class="form-label">Tipo de Bloqueo *</label>
-            <select 
-              class="form-select" 
-              id="tipoBloqueo"
-              v-model="tipoBloqueoSeleccionado"
-              :disabled="cargandoTipos"
-            >
-              <option value="">{{ cargandoTipos ? 'Cargando...' : 'Seleccione tipo' }}</option>
-              <option 
-                v-for="tipo in tiposBloqueo" 
-                :key="tipo.id" 
-                :value="tipo.id"
-              >
-                {{ tipo.descripcion }}
-              </option>
-            </select>
-          </div>
-          <div class="col-md-5">
-            <label for="observaciones" class="form-label">Observaciones *</label>
-            <textarea 
-              class="form-control" 
-              id="observaciones"
-              v-model="observaciones"
-              rows="3"
-              placeholder="Ingrese las observaciones del bloqueo/desbloqueo"
-            ></textarea>
-          </div>
-          <div class="col-md-4 d-flex flex-column justify-content-end">
-            <div class="d-grid gap-2">
-              <button 
-                v-if="licenciaEncontrada.bloqueado === 0"
-                type="button" 
-                class="btn btn-danger"
-                @click="bloquearLicencia"
-                :disabled="procesando || !tipoBloqueoSeleccionado || !observaciones.trim()"
-              >
-                <i class="fas fa-lock me-2"></i>
-                {{ procesando ? 'Bloqueando...' : 'Bloquear Licencia' }}
-              </button>
-              <button 
-                v-if="licenciaEncontrada.bloqueado > 0"
-                type="button" 
-                class="btn btn-success"
-                @click="desbloquearLicencia"
-                :disabled="procesando || !tipoBloqueoSeleccionado || !observaciones.trim()"
-              >
-                <i class="fas fa-unlock me-2"></i>
-                {{ procesando ? 'Desbloqueando...' : 'Desbloquear Licencia' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Historial de bloqueos -->
-    <div v-if="licenciaEncontrada" class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">
-          <i class="fas fa-history me-2"></i>
-          Historial de Bloqueos
-        </h5>
-        <button 
-          type="button" 
-          class="btn btn-outline-secondary btn-sm"
-          @click="cargarHistorial"
-          :disabled="cargandoHistorial"
-        >
-          <i class="fas fa-sync-alt me-1"></i>
-          {{ cargandoHistorial ? 'Cargando...' : 'Actualizar' }}
-        </button>
-      </div>
-      <div class="card-body p-0">
-        <div v-if="cargandoHistorial" class="p-4 text-center">
-          <p class="mt-3"><i class="fas fa-clock me-2"></i>Cargando historial...</p>
-        </div>
-        <div v-else-if="historialBloqueos.length === 0" class="p-4 text-center text-muted">
-          <i class="fas fa-info-circle me-2"></i>
-          No hay movimientos registrados para esta licencia
-        </div>
-        <div v-else class="table-responsive">
-          <table class="table table-hover table-striped mb-0">
-            <thead class="table-dark">
-              <tr>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Tipo</th>
-                <th>Capturista</th>
-                <th>Observaciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="bloqueo in historialBloqueos" :key="bloqueo.id_bloqueo">
-                <td>{{ formatearFecha(bloqueo.fecha_mov) }}</td>
-                <td>
-                  <span class="badge" :class="getBadgeClass(bloqueo.bloqueado)">
-                    {{ getEstadoBloqueo(bloqueo.bloqueado) }}
-                  </span>
-                </td>
-                <td>{{ getTipoBloqueoNombre(bloqueo.bloqueado) }}</td>
-                <td>{{ bloqueo.capturista || 'N/A' }}</td>
-                <td>{{ bloqueo.observa || 'Sin observaciones' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Alertas -->
-    <div v-if="mensaje" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
-      <div class="toast show" role="alert">
-        <div class="toast-header">
-          <i class="fas me-2" :class="mensaje.tipo === 'success' ? 'fa-check-circle text-success' : 'fa-exclamation-triangle text-danger'"></i>
-          <strong class="me-auto">{{ mensaje.tipo === 'success' ? 'Éxito' : 'Error' }}</strong>
-          <button type="button" class="btn-close" @click="mensaje = null"></button>
-        </div>
-        <div class="toast-body">
-          {{ mensaje.texto }}
-        </div>
-      </div>
-    </div>
+    <div v-if="error" class="error">{{ error }}</div>
+    <div v-if="success" class="success">{{ success }}</div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'BloquearLicenciafrm',
+  name: 'BloquearLicenciaPage',
   data() {
     return {
-      numeroLicencia: '',
-      licenciaEncontrada: null,
+      licenciaInput: '',
+      licencia: null,
+      giro: '',
+      bloqueos: [],
+      bloqueosActivos: [],
       tiposBloqueo: [],
-      tipoBloqueoSeleccionado: '',
-      observaciones: '',
-      historialBloqueos: [],
-      buscando: false,
-      procesando: false,
-      cargandoHistorial: false,
-      cargandoTipos: false,
-      mensaje: null
+      tipoBloqueo: '',
+      motivoBloqueo: '',
+      tipoDesbloqueo: '',
+      motivoDesbloqueo: '',
+      showBloqueo: false,
+      showDesbloqueo: false,
+      error: '',
+      success: ''
+    };
+  },
+  computed: {
+    estadoLicencia() {
+      if (!this.licencia) return '';
+      switch (this.licencia.bloqueado) {
+        case 0: return 'NO BLOQUEADO';
+        case 1: return 'BLOQUEADO';
+        case 2: return 'ESTADO 1';
+        case 3: return 'CABARET';
+        case 4: return 'SUSPENDIDA';
+        case 5: return 'RESPONSIVA';
+        case 6: return 'CONVENIADA';
+        case 7: return 'DESGLOSAR LIC';
+        default: return 'BLOQUEADO';
+      }
     }
   },
   methods: {
-    // Buscar licencia por número
     async buscarLicencia() {
-      if (!this.numeroLicencia) return
-      
-      this.buscando = true
-      this.licenciaEncontrada = null
-      this.historialBloqueos = []
-      this.observaciones = ''
-      this.tipoBloqueoSeleccionado = ''
-      
+      this.error = '';
+      this.success = '';
+      this.licencia = null;
+      this.giro = '';
+      this.bloqueos = [];
+      this.bloqueosActivos = [];
+      this.tiposBloqueo = [];
+      this.tipoBloqueo = '';
+      this.tipoDesbloqueo = '';
+      this.motivoBloqueo = '';
+      this.motivoDesbloqueo = '';
+      this.showBloqueo = false;
+      this.showDesbloqueo = false;
+      if (!this.licenciaInput) return;
       try {
-        const eRequest = {
-          Operacion: 'sp_buscar_licencia',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'numero_licencia', valor: parseInt(this.numeroLicencia), tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-        
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
-        
-        if (response.data.eResponse.success && response.data.eResponse.data.result.length > 0) {
-          this.licenciaEncontrada = response.data.eResponse.data.result[0]
-          this.mostrarMensaje('success', `Licencia ${this.numeroLicencia} encontrada`)
-          this.cargarTiposBloqueo()
-          this.cargarHistorial()
-        } else {
-          this.mostrarMensaje('error', `No se encontró la licencia ${this.numeroLicencia}`)
-        }
-        
-      } catch (error) {
-        console.error('Error buscando licencia:', error)
-        this.mostrarMensaje('error', 'Error al buscar la licencia')
-      } finally {
-        this.buscando = false
+        // Buscar licencia
+        let res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'buscarLicencia', payload: { licencia: this.licenciaInput } })
+        });
+        let data = await res.json();
+        if (!data.success) throw new Error(data.message);
+        this.licencia = data.licencia;
+        this.giro = data.giro;
+        // Consultar bloqueos
+        let res2 = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'consultarBloqueos', payload: { id_licencia: this.licencia.id_licencia } })
+        });
+        let data2 = await res2.json();
+        this.bloqueos = data2.bloqueos;
+        this.bloqueosActivos = data2.bloqueos_activos;
+        // Catálogo tipo bloqueo
+        let res3 = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'catalogoTipoBloqueo' })
+        });
+        let data3 = await res3.json();
+        this.tiposBloqueo = data3.tipos;
+      } catch (e) {
+        this.error = e.message;
       }
     },
-
-    // Cargar tipos de bloqueo
-    async cargarTiposBloqueo() {
-      this.cargandoTipos = true
-      
-      try {
-        const eRequest = {
-          Operacion: 'sp_tipobloqueo_list',
-          Base: 'licencias',
-          Parametros: [],
-          Tenant: 'guadalajara'
-        }
-        
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
-        
-        if (response.data.eResponse.success) {
-          this.tiposBloqueo = response.data.eResponse.data.result || []
-        }
-        
-      } catch (error) {
-        console.error('Error cargando tipos de bloqueo:', error)
-      } finally {
-        this.cargandoTipos = false
-      }
+    abrirBloqueo() {
+      this.showBloqueo = true;
+      this.showDesbloqueo = false;
+      this.tipoBloqueo = '';
+      this.motivoBloqueo = '';
     },
-
-    // Bloquear licencia
+    abrirDesbloqueo() {
+      this.showDesbloqueo = true;
+      this.showBloqueo = false;
+      this.tipoDesbloqueo = '';
+      this.motivoDesbloqueo = '';
+    },
     async bloquearLicencia() {
-      if (!this.tipoBloqueoSeleccionado || !this.observaciones.trim()) return
-      
-      this.procesando = true
-      
+      this.error = '';
+      this.success = '';
+      if (!this.tipoBloqueo || !this.motivoBloqueo) {
+        this.error = 'Seleccione tipo de bloqueo y motivo';
+        return;
+      }
       try {
-        const eRequest = {
-          Operacion: 'sp_bloquear_licencia',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licenciaEncontrada.id_licencia, tipo: 'integer' },
-            { nombre: 'p_tipo_bloqueo', valor: parseInt(this.tipoBloqueoSeleccionado), tipo: 'integer' },
-            { nombre: 'p_motivo', valor: this.observaciones, tipo: 'string' },
-            { nombre: 'p_usuario', valor: 'admin', tipo: 'string' }
-          ],
-          Tenant: 'guadalajara'
-        }
-        
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
-        
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
-          this.licenciaEncontrada.bloqueado = parseInt(this.tipoBloqueoSeleccionado)
-          this.observaciones = ''
-          this.tipoBloqueoSeleccionado = ''
-          this.mostrarMensaje('success', response.data.eResponse.data.result[0].message)
-          this.cargarHistorial()
-        } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al bloquear licencia')
-        }
-        
-      } catch (error) {
-        console.error('Error bloqueando licencia:', error)
-        this.mostrarMensaje('error', 'Error al bloquear la licencia')
-      } finally {
-        this.procesando = false
+        let res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'bloquearLicencia',
+            payload: {
+              id_licencia: this.licencia.id_licencia,
+              tipo_bloqueo: this.tipoBloqueo,
+              motivo: this.motivoBloqueo
+            }
+          })
+        });
+        let data = await res.json();
+        if (!data.success) throw new Error(data.message);
+        this.success = data.message;
+        this.buscarLicencia();
+        this.showBloqueo = false;
+      } catch (e) {
+        this.error = e.message;
       }
     },
-
-    // Desbloquear licencia
     async desbloquearLicencia() {
-      if (!this.tipoBloqueoSeleccionado || !this.observaciones.trim()) return
-      
-      this.procesando = true
-      
-      try {
-        const eRequest = {
-          Operacion: 'sp_desbloquear_licencia',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licenciaEncontrada.id_licencia, tipo: 'integer' },
-            { nombre: 'p_tipo_bloqueo', valor: parseInt(this.tipoBloqueoSeleccionado), tipo: 'integer' },
-            { nombre: 'p_motivo', valor: this.observaciones, tipo: 'string' },
-            { nombre: 'p_usuario', valor: 'admin', tipo: 'string' }
-          ],
-          Tenant: 'guadalajara'
-        }
-        
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
-        
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
-          this.licenciaEncontrada.bloqueado = 0
-          this.observaciones = ''
-          this.tipoBloqueoSeleccionado = ''
-          this.mostrarMensaje('success', response.data.eResponse.data.result[0].message)
-          this.cargarHistorial()
-        } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al desbloquear licencia')
-        }
-        
-      } catch (error) {
-        console.error('Error desbloqueando licencia:', error)
-        this.mostrarMensaje('error', 'Error al desbloquear la licencia')
-      } finally {
-        this.procesando = false
+      this.error = '';
+      this.success = '';
+      if (!this.tipoDesbloqueo || !this.motivoDesbloqueo) {
+        this.error = 'Seleccione el bloqueo y motivo';
+        return;
       }
-    },
-
-    // Cargar historial de bloqueos
-    async cargarHistorial() {
-      if (!this.licenciaEncontrada) return
-      
-      this.cargandoHistorial = true
-      
       try {
-        const eRequest = {
-          Operacion: 'sp_consultar_historial_licencia',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licenciaEncontrada.id_licencia, tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-        
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
-        
-        if (response.data.eResponse.success) {
-          this.historialBloqueos = response.data.eResponse.data.result || []
-        }
-        
-      } catch (error) {
-        console.error('Error cargando historial:', error)
-      } finally {
-        this.cargandoHistorial = false
+        let res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'desbloquearLicencia',
+            payload: {
+              id_licencia: this.licencia.id_licencia,
+              tipo_bloqueo: this.tipoDesbloqueo,
+              motivo: this.motivoDesbloqueo
+            }
+          })
+        });
+        let data = await res.json();
+        if (!data.success) throw new Error(data.message);
+        this.success = data.message;
+        this.buscarLicencia();
+        this.showDesbloqueo = false;
+      } catch (e) {
+        this.error = e.message;
       }
-    },
-
-    // Formatear fecha
-    formatearFecha(fecha) {
-      if (!fecha) return 'N/A'
-      return new Date(fecha).toLocaleDateString('es-MX')
-    },
-
-    // Obtener estado de licencia
-    getEstadoLicencia(bloqueado) {
-      return bloqueado === 0 ? 'ACTIVA' : `BLOQUEADA (TIPO ${bloqueado})`
-    },
-
-    // Obtener estado de bloqueo
-    getEstadoBloqueo(bloqueado) {
-      return bloqueado === 0 ? 'DESBLOQUEADO' : 'BLOQUEADO'
-    },
-
-    // Obtener clase CSS para badge
-    getBadgeClass(bloqueado) {
-      return bloqueado === 0 ? 'bg-success' : 'bg-danger'
-    },
-
-    // Obtener nombre del tipo de bloqueo
-    getTipoBloqueoNombre(bloqueadoId) {
-      if (bloqueadoId === 0) return 'N/A'
-      const tipo = this.tiposBloqueo.find(t => t.id === bloqueadoId)
-      return tipo ? tipo.descripcion : `Tipo ${bloqueadoId}`
-    },
-
-    // Mostrar mensaje
-    mostrarMensaje(tipo, texto) {
-      this.mensaje = { tipo, texto }
-      setTimeout(() => {
-        this.mensaje = null
-      }, 5000)
     }
-  },
-
-  mounted() {
-    console.log('🚀 BloquearLicenciafrm cargado')
   }
-}
+};
 </script>
 
 <style scoped>
-.toast {
-  min-width: 300px;
+.bloquear-licencia-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
 }
-
-.form-control-plaintext {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.75rem;
+.search-section {
+  margin-bottom: 1rem;
 }
+.licencia-info {
+  background: #f8f8f8;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+.actions {
+  margin-bottom: 1rem;
+}
+.bloqueos-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.bloqueos-table th, .bloqueos-table td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+.bloqueado { color: red; font-weight: bold; }
+.no-bloqueado { color: green; font-weight: bold; }
+.error { color: red; margin-top: 1rem; }
+.success { color: green; margin-top: 1rem; }
 </style>

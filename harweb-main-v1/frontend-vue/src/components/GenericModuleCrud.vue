@@ -370,32 +370,34 @@
               <div class="col-12">
                 <h6>Información General</h6>
                 <table class="table table-sm">
-                  <tr>
-                    <td><strong>ID:</strong></td>
-                    <td>{{ viewingItem.id }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Estado:</strong></td>
-                    <td>
-                      <span
-                        class="badge"
-                        :class="{
-                          'bg-success': viewingItem.status === 'active',
-                          'bg-secondary': viewingItem.status === 'inactive'
-                        }"
-                      >
-                        {{ viewingItem.status === 'active' ? 'Activo' : 'Inactivo' }}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Fecha Creación:</strong></td>
-                    <td>{{ formatDate(viewingItem.created_at) }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Fecha Actualización:</strong></td>
-                    <td>{{ formatDate(viewingItem.updated_at) }}</td>
-                  </tr>
+                  <tbody>
+                    <tr>
+                      <td><strong>ID:</strong></td>
+                      <td>{{ viewingItem.id }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Estado:</strong></td>
+                      <td>
+                        <span
+                          class="badge"
+                          :class="{
+                            'bg-success': viewingItem.status === 'active',
+                            'bg-secondary': viewingItem.status === 'inactive'
+                          }"
+                        >
+                          {{ viewingItem.status === 'active' ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Fecha Creación:</strong></td>
+                      <td>{{ formatDate(viewingItem.created_at) }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Fecha Actualización:</strong></td>
+                      <td>{{ formatDate(viewingItem.updated_at) }}</td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
               

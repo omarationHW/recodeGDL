@@ -40,7 +40,7 @@
                 </div>
                 <div>
                   <p class="small text-muted mb-1">Componentes</p>
-                  <p class="h2 fw-bold text-secondary mb-0">87+</p>
+                  <p class="h2 fw-bold text-secondary mb-0">84+</p>
                 </div>
               </div>
             </div>
@@ -239,134 +239,6 @@
               <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
                 <h4 class="fw-medium text-dark mb-2">Procesamiento de Pagos</h4>
                 <p class="text-muted small mb-0">Gestión integral de pagos</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 🆕 MODERNIZACIÓN DEL MÓDULO -->
-      <div class="card border-0 shadow-sm mb-5" style="border-left: 5px solid #0d6efd !important;">
-        <div class="card-body p-5">
-          <div class="d-flex align-items-center mb-4">
-            <div class="bg-primary bg-opacity-10 rounded-3 p-3 me-3">
-              <i class="fas fa-rocket fa-lg text-primary"></i>
-            </div>
-            <div>
-              <h3 class="h4 fw-bold text-dark mb-1">🚀 Modernización del Módulo</h3>
-              <p class="text-muted small mb-0">Nuevas funcionalidades implementadas</p>
-            </div>
-            <div class="ms-auto">
-              <span class="badge bg-primary fs-6">+3 NUEVOS</span>
-            </div>
-          </div>
-
-          <div class="row g-4">
-            <div class="col-lg-4">
-              <div class="card border border-primary border-opacity-25 h-100">
-                <div class="card-body p-4">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-primary bg-opacity-10 rounded-3 p-2 me-3">
-                      <i class="fas fa-handshake text-primary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-bold text-dark mb-1">Sistema de Convenios</h4>
-                      <span class="badge bg-danger small">NUEVO</span>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3">Sistema completo de convenios de pago con georreferenciación y gestión integral de acuerdos.</p>
-                  <div class="d-flex align-items-center">
-                    <router-link
-                      to="/estacionamientos/SistemaConveniosEstacionamientos"
-                      class="btn btn-primary btn-sm"
-                    >
-                      <i class="fas fa-external-link-alt me-2"></i>Acceder
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4">
-              <div class="card border border-primary border-opacity-25 h-100">
-                <div class="card-body p-4">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-primary bg-opacity-10 rounded-3 p-2 me-3">
-                      <i class="fas fa-gavel text-primary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-bold text-dark mb-1">Sistema de Apremios</h4>
-                      <span class="badge bg-danger small">NUEVO</span>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3">Gestión de apremios por zonas con seguimiento automatizado y control de procedimientos coactivos.</p>
-                  <div class="d-flex align-items-center">
-                    <router-link
-                      to="/estacionamientos/SistemaApremiosEstacionamientos"
-                      class="btn btn-primary btn-sm"
-                    >
-                      <i class="fas fa-external-link-alt me-2"></i>Acceder
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4">
-              <div class="card border border-primary border-opacity-25 h-100">
-                <div class="card-body p-4">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-primary bg-opacity-10 rounded-3 p-2 me-3">
-                      <i class="fas fa-percentage text-primary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-bold text-dark mb-1">Descuentos y Conversión</h4>
-                      <span class="badge bg-danger small">NUEVO</span>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3">Sistema unificado de descuentos, conversión de procedimientos y gestión automatizada de beneficios.</p>
-                  <div class="d-flex align-items-center">
-                    <router-link
-                      to="/estacionamientos/SistemaDescuentosConversion"
-                      class="btn btn-primary btn-sm"
-                    >
-                      <i class="fas fa-external-link-alt me-2"></i>Acceder
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Características de la Modernización -->
-          <div class="mt-4 p-4 bg-primary bg-opacity-10 rounded-3">
-            <h5 class="fw-bold text-primary mb-3">
-              <i class="fas fa-star me-2"></i>Características de la Modernización
-            </h5>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                  <span class="small">Georreferenciación de espacios</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-chart-area text-primary me-2"></i>
-                  <span class="small">Gestión por zonas</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-calculator text-primary me-2"></i>
-                  <span class="small">Descuentos automatizados</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-sync-alt text-primary me-2"></i>
-                  <span class="small">Conversión de procedimientos</span>
-                </div>
               </div>
             </div>
           </div>

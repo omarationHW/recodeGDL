@@ -211,12 +211,6 @@ export default {
 
     // Mapeo de componentes que sabemos que tienen implementaciones específicas para aseo
     const hasSpecificImplementation = {
-      // 🆕 NUEVOS COMPONENTES DE MODERNIZACIÓN
-      'sistemaconveniosaseo': 'SistemaConveniosAseo.vue',
-      'sistemaapremiosaseo': 'SistemaApremiosAseo.vue',
-      'sistemadescuentosaseo': 'SistemaDescuentosAseo.vue',
-      'funcionesexcluidasaseo': 'FuncionesExcluidasAseo.vue',
-      // Componentes existentes
       'abc_cves_operacion': 'ABC_Cves_Operacion.vue',
       'abc_empresas': 'ABC_Empresas.vue',
       'abc_gastos': 'ABC_Gastos.vue',

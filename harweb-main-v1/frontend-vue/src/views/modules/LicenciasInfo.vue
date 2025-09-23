@@ -40,8 +40,7 @@
                 </div>
                 <div>
                   <p class="small text-muted mb-1">Formularios</p>
-                  <p class="h2 fw-bold text-success mb-0">101</p>
-                  <p class="small text-success fw-bold mb-0">+4 NUEVOS</p>
+                  <p class="h2 fw-bold text-secondary mb-0">97</p>
                 </div>
               </div>
             </div>
@@ -201,115 +200,10 @@
         </div>
       </div>
 
-      <!-- 🆕 NUEVAS FUNCIONALIDADES DE MODERNIZACIÓN -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body p-5">
-          <div class="d-flex align-items-center mb-4">
-            <h3 class="h4 fw-bold text-success mb-0 me-3">🆕 Nuevas Funcionalidades de Modernización</h3>
-            <span class="badge bg-success">RECIÉN AGREGADAS</span>
-          </div>
-          <div class="row g-3">
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/licencias/perfilesusuariomoderno"
-                class="d-flex flex-column align-items-center p-4 bg-primary bg-opacity-10 rounded-3 text-decoration-none hover-bg-primary-subtle transition position-relative"
-              >
-                <span class="badge bg-primary position-absolute top-0 end-0 translate-middle">NUEVO</span>
-                <div class="bg-primary bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-users-cog fa-2x text-primary"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Perfiles de Usuario</h4>
-                  <p class="text-muted small mb-0">Separación granular</p>
-                  <p class="text-muted small mb-0">(Padrón/Licencias/Ingresos)</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/licencias/catalogogirosimportes"
-                class="d-flex flex-column align-items-center p-4 bg-warning bg-opacity-10 rounded-3 text-decoration-none hover-bg-warning-subtle transition position-relative"
-              >
-                <span class="badge bg-warning position-absolute top-0 end-0 translate-middle">NUEVO</span>
-                <div class="bg-warning bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-money-check-alt fa-2x text-warning"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Giros con Importes</h4>
-                  <p class="text-muted small mb-0">Gestión de costos</p>
-                  <p class="text-muted small mb-0">para usuarios ingresos</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/licencias/permisosprovisionales"
-                class="d-flex flex-column align-items-center p-4 bg-info bg-opacity-10 rounded-3 text-decoration-none hover-bg-info-subtle transition position-relative"
-              >
-                <span class="badge bg-info position-absolute top-0 end-0 translate-middle">NUEVO</span>
-                <div class="bg-info bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-clock fa-2x text-info"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Permisos Temporales</h4>
-                  <p class="text-muted small mb-0">Espectáculos, Licencias</p>
-                  <p class="text-muted small mb-0">y Anuncios</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <router-link
-                to="/licencias/sistemaconvenios"
-                class="d-flex flex-column align-items-center p-4 bg-success bg-opacity-10 rounded-3 text-decoration-none hover-bg-success-subtle transition position-relative"
-              >
-                <span class="badge bg-success position-absolute top-0 end-0 translate-middle">NUEVO</span>
-                <div class="bg-success bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-handshake fa-2x text-success"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Sistema Convenios</h4>
-                  <p class="text-muted small mb-0">ABC completo:</p>
-                  <p class="text-muted small mb-0">Intereses y Parcialidades</p>
-                </div>
-              </router-link>
-            </div>
-          </div>
-
-          <!-- Componente Modificado -->
-          <div class="mt-4 pt-4 border-top">
-            <div class="d-flex align-items-center mb-3">
-              <h5 class="fw-bold text-primary mb-0 me-3">🔄 Componente Modernizado</h5>
-              <span class="badge bg-primary">ACTUALIZADO</span>
-            </div>
-            <div class="row g-3">
-              <div class="col-md-6 col-lg-4">
-                <router-link
-                  to="/licencias/empresasfrm"
-                  class="d-flex align-items-center p-3 bg-primary bg-opacity-10 rounded-3 text-decoration-none hover-bg-primary-subtle transition position-relative"
-                >
-                  <span class="badge bg-primary position-absolute top-0 end-0 translate-middle">CAMPO GÉNERO</span>
-                  <div class="bg-primary bg-opacity-25 rounded-3 p-2 me-3">
-                    <i class="fas fa-building text-primary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Empresas</h4>
-                    <p class="text-muted small mb-0">Ahora con campo Género</p>
-                    <p class="text-muted small mb-0">(Mujer/Hombre/Sociedad)</p>
-                  </div>
-                </router-link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Acciones Rápidas Existentes -->
+      <!-- Acciones Rápidas -->
       <div class="card border-0 shadow-sm">
         <div class="card-body p-5">
-          <h3 class="h4 fw-bold text-dark mb-4">Acciones Rápidas Existentes</h3>
+          <h3 class="h4 fw-bold text-dark mb-4">Acciones Rápidas</h3>
           <div class="row g-3">
             <div class="col-md-4">
               <router-link 

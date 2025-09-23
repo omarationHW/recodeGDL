@@ -1,185 +1,100 @@
 <template>
-  <div class="empleados-module">
-    <!-- Header del módulo -->
-    <div class="module-header">
-      <div class="row align-items-center">
-        <div class="col">
-          <h3 class="module-title">
-            <i class="fas fa-users"></i>
-            Gestión de Empleados
-          </h3>
-          <p class="module-description mb-0">
-            Administración del catálogo de empleados del sistema
-          </p>
-        </div>
-        <div class="col-auto">
-          <button
-            class="btn btn-primary"
-            @click="showCreateModal = true"
-            :disabled="loading"
+  <div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h2 mb-0"><i class="fas fa-users me-2"></i>Empleados</h1>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success" @click="actualizarDatos" title="Actualizar">
+          <i class="fas fa-sync-alt me-2"></i>
+          Actualizar
+        </button>
+        <button class="btn btn-primary" @click="mostrarModalAgregar">
+          <i class="fas fa-plus me-2"></i>
+          Nuevo
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de búsqueda -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input 
+            type="text" 
+            class="form-control"
+            placeholder="Buscar empleados..."
+            v-model="filters.name"
+            @input="aplicarFiltros"
           >
-            <i class="fas fa-plus"></i>
-            Nuevo Empleado
-          </button>
         </div>
       </div>
     </div>
 
-    <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-4">
-            <label class="form-label">Nombre</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="filters.nombre"
-              placeholder="Nombre del empleado"
-            >
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Correo</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="filters.correo"
-              placeholder="Correo electrónico"
-            >
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Estado</label>
-            <select class="form-select" v-model="filters.activo">
-              <option value="">Todos</option>
-              <option value="S">Activos</option>
-              <option value="N">Inactivos</option>
-            </select>
-          </div>
-        </div>
-        <div class="row mt-3">
-          <div class="col-12">
-            <button
-              class="btn btn-outline-primary me-2"
-              @click="searchEmpleados"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadEmpleados"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
-          </div>
-        </div>
+    <!-- Loading -->
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
       </div>
+      <p class="mt-3"><i class="fas fa-clock me-2"></i>Cargando empleados...</p>
     </div>
 
-    <!-- Tabla de resultados -->
-    <div class="card">
+    <!-- Empty state -->
+    <div v-else-if="filteredEmployees.length === 0" class="text-center py-5">
+      <div class="display-1 mb-3"><i class="fas fa-user-slash text-muted"></i></div>
+      <h3>No hay empleados</h3>
+      <p class="text-muted">Comienza agregando el primer empleado</p>
+      <button class="btn btn-primary" @click="mostrarModalAgregar">
+        <i class="fas fa-plus me-2"></i>
+        Agregar empleado
+      </button>
+    </div>
+
+    <!-- Tabla de empleados -->
+    <div v-else class="card">
       <div class="card-header">
-        <h6 class="mb-0">
-          <i class="fas fa-list"></i>
-          Empleados Registrados
-          <span v-if="empleados.length > 0" class="badge bg-primary ms-2">
-            {{ empleados.length }} registros
-          </span>
-        </h6>
+        <h5 class="card-title mb-0">Lista de Empleados</h5>
       </div>
-      <div class="card-body">
-        <!-- Loading state -->
-        <div v-if="loading" class="text-center py-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
-          <p class="mt-2 text-muted">Cargando empleados...</p>
-        </div>
-
-        <!-- Error state -->
-        <div v-else-if="error" class="alert alert-danger">
-          <h6 class="alert-heading">Error al cargar datos</h6>
-          <p class="mb-0">{{ error }}</p>
-          <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadEmpleados">
-            <i class="fas fa-retry"></i>
-            Reintentar
-          </button>
-        </div>
-
-        <!-- Empty state -->
-        <div v-else-if="empleados.length === 0" class="text-center py-5">
-          <i class="fas fa-users fa-3x text-muted mb-3"></i>
-          <h5 class="text-muted">No se encontraron empleados</h5>
-          <p class="text-muted">
-            {{ hasActiveFilters ? 'No hay registros que coincidan con los filtros aplicados.' : 'No hay empleados registrados en el sistema.' }}
-          </p>
-          <button
-            v-if="!hasActiveFilters"
-            class="btn btn-primary"
-            @click="showCreateModal = true"
-          >
-            <i class="fas fa-plus"></i>
-            Registrar primer empleado
-          </button>
-        </div>
-
-        <!-- Tabla con datos -->
-        <div v-else class="table-responsive">
-          <table class="table table-hover">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
             <thead class="table-light">
               <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>Correo</th>
-                <th>Fecha Registro</th>
-                <th>Estado</th>
+                <th>Email</th>
+                <th>Fecha Ingreso</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="empleado in paginatedEmpleados" :key="empleado.id">
+              <tr v-for="employee in paginatedEmployees" :key="employee.id">
+                <td><span class="badge bg-secondary">#{{ employee.employeeId }}</span></td>
+                <td class="fw-medium">{{ employee.firstName }} {{ employee.lastName }}</td>
+                <td>{{ employee.email }}</td>
+                <td>{{ formatDate(employee.hireDate) }}</td>
                 <td>
-                  <strong class="text-primary">#{{ empleado.id }}</strong>
-                </td>
-                <td>{{ empleado.nombre }}</td>
-                <td>{{ empleado.correo }}</td>
-                <td>{{ formatDate(empleado.created_at) }}</td>
-                <td>
-                  <span class="badge" :class="empleado.activo === 'S' ? 'bg-success' : 'bg-secondary'">
-                    {{ empleado.activo === 'S' ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-                <td>
-                  <div class="btn-group btn-group-sm">
-                    <button
-                      class="btn btn-outline-primary"
-                      @click="viewEmpleado(empleado)"
-                      title="Ver detalles"
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-dark" 
+                      @click="verEmpleado(employee)" 
+                      title="Ver"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
-                    <button
-                      class="btn btn-outline-warning"
-                      @click="editEmpleado(empleado)"
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-dark" 
+                      @click="editarEmpleado(employee)" 
                       title="Editar"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button
-                      class="btn btn-outline-danger"
-                      @click="deleteEmpleado(empleado)"
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-dark" 
+                      @click="eliminarEmpleado(employee)" 
                       title="Eliminar"
                     >
                       <i class="fas fa-trash"></i>
@@ -190,191 +105,157 @@
             </tbody>
           </table>
         </div>
-
-        <!-- Paginación -->
-        <div v-if="totalPages > 1" class="d-flex justify-content-between align-items-center mt-4">
-          <div class="pagination-info">
-            <span class="text-muted">
-              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }} a
-              {{ Math.min(currentPage * itemsPerPage, totalRegistros) }} de
-              {{ totalRegistros }} registros
+      </div>
+    </div>
+        
+    <!-- Paginación -->
+    <nav v-if="totalPages > 1" aria-label="Paginación de empleados" class="mt-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="text-muted">
+          <i class="fas fa-info-circle me-2"></i>Mostrando {{ startRecord }} - {{ endRecord }} de {{ filteredEmployees.length }} empleados
+        </div>
+        <ul class="pagination mb-0">
+          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+            <button 
+              class="page-link" 
+              @click="irAPagina(currentPage - 1)"
+              :disabled="currentPage === 1"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          </li>
+          
+          <li class="page-item active">
+            <span class="page-link">
+              {{ currentPage }} / {{ totalPages }}
             </span>
+          </li>
+          
+          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+            <button 
+              class="page-link" 
+              @click="irAPagina(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Modal de detalles -->
+    <div v-if="showViewModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-user-circle me-2"></i>Detalles del empleado</h5>
+            <button type="button" class="btn-close" @click="cerrarModalVer"></button>
           </div>
-          <nav aria-label="Paginación de empleados">
-            <ul class="pagination pagination-sm mb-0">
-              <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                <button
-                  class="page-link"
-                  @click="previousPage"
-                  :disabled="currentPage === 1"
-                  aria-label="Página anterior"
-                >
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-              </li>
-
-              <li
-                v-for="page in getVisiblePages()"
-                :key="page"
-                class="page-item"
-                :class="{ active: page === currentPage }"
-              >
-                <button
-                  class="page-link"
-                  @click="goToPage(page)"
-                  :aria-label="`Página ${page}`"
-                >
-                  {{ page }}
-                </button>
-              </li>
-
-              <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                <button
-                  class="page-link"
-                  @click="nextPage"
-                  :disabled="currentPage === totalPages"
-                  aria-label="Página siguiente"
-                >
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
+          <div class="modal-body" v-if="selectedEmployee">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-id-card me-2"></i>Información Personal</h6>
+                    <table class="table table-sm table-borderless">
+                      <tbody>
+                        <tr>
+                          <td class="fw-bold">Nombre:</td>
+                          <td>{{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold">ID:</td>
+                          <td><span class="badge bg-secondary">#{{ selectedEmployee.employeeId }}</span></td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold">Email:</td>
+                          <td>{{ selectedEmployee.email }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold">Departamento:</td>
+                          <td>{{ selectedEmployee.department }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold">Fecha ingreso:</td>
+                          <td>{{ formatDate(selectedEmployee.hireDate) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="cerrarModalVer">
+              <i class="fas fa-times me-2"></i>Cerrar
+            </button>
+            <button type="button" class="btn btn-warning" @click="editarEmpleado(selectedEmployee)">
+              <i class="fas fa-edit me-2"></i>Editar
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal para crear/editar empleado -->
-    <div class="modal fade" tabindex="-1" v-if="showCreateModal" style="display: block;" @click.self="showCreateModal = false">
-      <div class="modal-dialog modal-lg">
+    <!-- Modal para agregar/editar -->
+    <div v-if="showFormModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
-              <i class="fas fa-plus"></i>
-              {{ editingEmpleado ? 'Editar Empleado' : 'Nuevo Empleado' }}
+              <i :class="editingEmployee ? 'fas fa-edit me-2' : 'fas fa-user-plus me-2'"></i>
+              {{ editingEmployee ? 'Editar empleado' : 'Nuevo empleado' }}
             </h5>
-            <button type="button" class="btn-close" @click="showCreateModal = false"></button>
+            <button type="button" class="btn-close" @click="cerrarModalFormulario"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="saveEmpleado">
-              <div class="row">
-                <div class="col-md-6">
-                  <label class="form-label">Nombre <span class="text-danger">*</span></label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="newEmpleado.nombre"
-                    placeholder="Nombre completo"
-                    required
-                    maxlength="255"
-                  >
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Correo <span class="text-danger">*</span></label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    v-model="newEmpleado.correo"
-                    placeholder="correo@ejemplo.com"
-                    required
-                    maxlength="255"
-                  >
-                </div>
+            <form @submit.prevent="guardarEmpleado">
+              <div class="mb-3">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-user me-2"></i>Nombre completo
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="employeeForm.nombre"
+                  required
+                  placeholder="Ej. Juan Pérez"
+                >
               </div>
-              <div class="row mt-3">
-                <div class="col-md-6">
-                  <label class="form-label">Estado</label>
-                  <select class="form-select" v-model="newEmpleado.activo">
-                    <option value="S">Activo</option>
-                    <option value="N">Inactivo</option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Departamento</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="newEmpleado.departamento"
-                    placeholder="Departamento"
-                    maxlength="100"
-                  >
-                </div>
-              </div>
-              <div class="row mt-3">
-                <div class="col-12">
-                  <label class="form-label">Observaciones</label>
-                  <textarea
-                    class="form-control"
-                    rows="3"
-                    v-model="newEmpleado.observaciones"
-                    placeholder="Observaciones adicionales sobre el empleado"
-                  ></textarea>
-                </div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-envelope me-2"></i>Email
+                </label>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  v-model="employeeForm.correo"
+                  required
+                  placeholder="juan@empresa.com"
+                >
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
-              Cancelar
+            <button type="button" class="btn btn-secondary" @click="cerrarModalFormulario">
+              <i class="fas fa-times me-2"></i>Cancelar
             </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="saveEmpleado"
-              :disabled="creating || !newEmpleado.nombre || !newEmpleado.correo"
+            <button 
+              type="button" 
+              class="btn btn-primary" 
+              @click="guardarEmpleado"
+              :disabled="saving"
             >
-              <span v-if="creating">
-                <i class="fas fa-spinner fa-spin"></i>
-                {{ editingEmpleado ? 'Actualizando...' : 'Creando...' }}
-              </span>
-              <span v-else>
-                <i class="fas fa-save"></i>
-                {{ editingEmpleado ? 'Actualizar Empleado' : 'Crear Empleado' }}
-              </span>
+              <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
+              <i v-else :class="editingEmployee ? 'fas fa-save me-2' : 'fas fa-plus me-2'"></i>
+              {{ saving ? 'Guardando...' : (editingEmployee ? 'Actualizar' : 'Guardar') }}
             </button>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Modal backdrop -->
-    <div v-if="showCreateModal" class="modal-backdrop fade show"></div>
-
-    <!-- SweetAlert Modal -->
-    <div v-if="sweetAlert.show" class="swal-overlay" @click.self="closeSweetAlert">
-      <div class="swal-modal">
-        <div class="swal-icon" :class="sweetAlert.type">
-          <i v-if="sweetAlert.type === 'success'" class="fas fa-check-circle"></i>
-          <i v-else-if="sweetAlert.type === 'error'" class="fas fa-times-circle"></i>
-          <i v-else-if="sweetAlert.type === 'warning'" class="fas fa-exclamation-triangle"></i>
-          <i v-else-if="sweetAlert.type === 'info'" class="fas fa-info-circle"></i>
-          <i v-else class="fas fa-question-circle"></i>
-        </div>
-        <h3 class="swal-title">{{ sweetAlert.title }}</h3>
-        <p class="swal-text">{{ sweetAlert.text }}</p>
-        <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
-            Aceptar
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-for="toast in toasts" :key="toast.id"
-         class="toast-notification"
-         :class="toast.type"
-         :style="{ top: (20 + (toasts.indexOf(toast) * 80)) + 'px' }">
-      <div class="toast-icon">
-        <i v-if="toast.type === 'success'" class="fas fa-check-circle"></i>
-        <i v-else-if="toast.type === 'error'" class="fas fa-times-circle"></i>
-        <i v-else-if="toast.type === 'warning'" class="fas fa-exclamation-triangle"></i>
-        <i v-else-if="toast.type === 'info'" class="fas fa-info-circle"></i>
-      </div>
-      <div class="toast-message">{{ toast.message }}</div>
-      <button class="toast-close" @click="removeToast(toast.id)">
-        <i class="fas fa-times"></i>
-      </button>
     </div>
   </div>
 </template>
@@ -384,524 +265,375 @@ export default {
   name: 'EmpleadosListado',
   data() {
     return {
-      // Estado de carga
-      loading: false,
-      creating: false,
-      error: null,
-
-      // Datos
-      empleados: [],
-      totalRegistros: 0,
-
+      employees: [],
+      filteredEmployees: [],
+      selectedEmployee: null,
+      loading: true,
+      
+      // Modales
+      showViewModal: false,
+      showFormModal: false,
+      
+      // Filtros
+      filters: {
+        name: '',
+        department: '',
+        status: ''
+      },
+      
+      // Ordenamiento
+      sortField: 'name',
+      sortDirection: 'asc',
+      
       // Paginación
       currentPage: 1,
       itemsPerPage: 10,
-      totalPages: 0,
-
-      // Filtros
-      filters: {
+      
+      // CRUD
+      editingEmployee: null,
+      employeeForm: {
         nombre: '',
-        correo: '',
-        activo: ''
+        correo: ''
       },
-
-      // Modal
-      showCreateModal: false,
-      editingEmpleado: null,
-
-      // SweetAlert
-      sweetAlert: {
-        show: false,
-        type: 'info',
-        title: '',
-        text: ''
-      },
-
-      // Toast notifications
-      toasts: [],
-
-      // Nuevo empleado
-      newEmpleado: {
-        nombre: '',
-        correo: '',
-        departamento: '',
-        activo: 'S',
-        observaciones: ''
-      }
+      saving: false
     }
   },
-
+  
   computed: {
-    hasActiveFilters() {
-      return Object.values(this.filters).some(value => value !== null && value !== '')
-    },
-
-    paginatedEmpleados() {
+    paginatedEmployees() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       const end = start + this.itemsPerPage
-      return this.empleados.slice(start, end)
+      return this.filteredEmployees.slice(start, end)
+    },
+    
+    totalPages() {
+      return Math.ceil(this.filteredEmployees.length / this.itemsPerPage)
+    },
+    
+    startRecord() {
+      return (this.currentPage - 1) * this.itemsPerPage + 1
+    },
+    
+    endRecord() {
+      const end = this.currentPage * this.itemsPerPage
+      return end > this.filteredEmployees.length ? this.filteredEmployees.length : end
+    },
+    
+    visiblePages() {
+      const pages = []
+      const start = Math.max(1, this.currentPage - 2)
+      const end = Math.min(this.totalPages, this.currentPage + 2)
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i)
+      }
+      return pages
     }
   },
-
+  
   methods: {
-    async loadEmpleados() {
+    async cargarEmpleados() {
       this.loading = true
-      this.error = null
-
       try {
-        const response = await fetch('http://localhost:8080/api/generic', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            eRequest: {
-              Operacion: 'sp_empleados_list',
-              Base: 'padron_licencias',
-              Parametros: [
-                { nombre: 'p_nombre', valor: this.filters.nombre || null },
-                { nombre: 'p_correo', valor: this.filters.correo || null },
-                { nombre: 'p_activo', valor: this.filters.activo || null },
-                { nombre: 'p_limite', valor: this.itemsPerPage },
-                { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage }
-              ],
-              Tenant: 'informix'
+        const eRequest = {
+          Operacion: 'empleados_mantener', // Nuevo SP
+          Base: 'licencias',
+          Parametros: [
+            { nombre: 'operacion', valor: 0, tipo: 'integer' }, // 0 = Consultar
+            { nombre: 'id', valor: 0, tipo: 'integer' }, // 0 = Todos los registros
+            { nombre: 'nombre', valor: null, tipo: 'string' }, // NULL para consulta
+            { nombre: 'correo', valor: null, tipo: 'string' } // NULL para consulta
+          ],
+          Tenant: 'guadalajara'
+        }
+        
+        console.log('🚀 Cargando empleados desde la API')
+        
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: eRequest
+        })
+        
+        if (response.data.eResponse && response.data.eResponse.success) {
+          const apiData = response.data.eResponse.data.result || []
+          
+          this.employees = apiData.map((emp, index) => {
+            const nombreCompleto = emp.nombre || ''
+            const partesNombre = nombreCompleto.split(' ')
+            const firstName = partesNombre[0] || ''
+            const lastName = partesNombre.slice(1).join(' ') || ''
+            
+            return {
+              id: emp.id,
+              firstName: firstName,
+              lastName: lastName,
+              employeeId: `EMP${String(emp.id).padStart(3, '0')}`,
+              email: emp.correo || '',
+              phone: 'No registrado',
+              department: 'licencias',
+              position: 'Empleado',
+              hireDate: emp.created_at?.split(' ')[0] || '',
+              status: 'activo'
             }
           })
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log('Respuesta del servidor:', data)
-
-        if (data.success && data.data) {
-          this.empleados = data.data || []
-
-          // Obtener el total de registros del primer elemento (si existe)
-          if (this.empleados.length > 0) {
-            this.totalRegistros = parseInt(this.empleados[0].total_registros) || 0
-            this.totalPages = Math.ceil(this.totalRegistros / this.itemsPerPage)
-          } else {
-            this.totalRegistros = 0
-            this.totalPages = 0
-          }
-
-          console.log(`Cargados ${this.empleados.length} empleados de ${this.totalRegistros} totales`)
+          
+          console.log(`✅ ${this.employees.length} empleados cargados desde la API`)
         } else {
-          throw new Error(data.error || 'Error en la respuesta del servidor')
+          throw new Error('API no devolvió datos válidos')
         }
-
+        
+        this.aplicarFiltros()
+        
       } catch (error) {
-        this.error = 'Error al cargar los empleados: ' + error.message
-        console.error('Error loading empleados:', error)
-        this.showToast('error', 'Error al cargar empleados')
+        console.error('❌ Error loading employees:', error)
+        this.employees = []
+        this.aplicarFiltros()
       } finally {
         this.loading = false
       }
     },
-
-    async searchEmpleados() {
-      console.log('Buscando empleados con filtros:', this.filters)
-      this.currentPage = 1
-      this.loadEmpleados()
-    },
-
-    clearFilters() {
-      this.filters = {
-        nombre: '',
-        correo: '',
-        activo: ''
-      }
-      this.currentPage = 1
-      this.loadEmpleados()
-    },
-
-    async saveEmpleado() {
-      if (!this.newEmpleado.nombre || !this.newEmpleado.correo) {
-        this.showSweetAlert('warning', 'Campos Requeridos', 'Por favor complete los campos requeridos (Nombre y Correo)')
+    
+    async guardarEmpleado() {
+      if (!this.employeeForm.nombre || !this.employeeForm.correo) {
+        alert('Por favor complete todos los campos requeridos')
         return
       }
-
-      this.creating = true
-
+      
+      this.saving = true
       try {
-        const response = await fetch('http://localhost:8080/api/generic', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            eRequest: {
-              Operacion: this.editingEmpleado ? 'sp_empleados_update' : 'sp_empleados_create',
-              Base: 'padron_licencias',
-              Parametros: this.editingEmpleado ? [
-                { nombre: 'p_id', valor: this.editingEmpleado.id },
-                { nombre: 'p_nombre', valor: this.newEmpleado.nombre },
-                { nombre: 'p_correo', valor: this.newEmpleado.correo },
-                { nombre: 'p_departamento', valor: this.newEmpleado.departamento },
-                { nombre: 'p_activo', valor: this.newEmpleado.activo },
-                { nombre: 'p_observaciones', valor: this.newEmpleado.observaciones }
-              ] : [
-                { nombre: 'p_nombre', valor: this.newEmpleado.nombre },
-                { nombre: 'p_correo', valor: this.newEmpleado.correo },
-                { nombre: 'p_departamento', valor: this.newEmpleado.departamento },
-                { nombre: 'p_activo', valor: this.newEmpleado.activo },
-                { nombre: 'p_observaciones', valor: this.newEmpleado.observaciones }
-              ],
-              Tenant: 'informix'
-            }
-          })
+        // Parámetros para el nuevo SP: _operacion, _id, _nombre, _correo
+        const parametros = [
+          { nombre: 'operacion', valor: 1, tipo: 'integer' }, // 1 = Insert/Update
+          { nombre: 'id', valor: this.editingEmployee ? this.editingEmployee.id : 0, tipo: 'integer' },
+          { nombre: 'nombre', valor: this.employeeForm.nombre, tipo: 'string' },
+          { nombre: 'correo', valor: this.employeeForm.correo, tipo: 'string' }
+        ]
+        
+        const eRequest = {
+          Operacion: 'empleados_mantener', // Nuevo SP
+          Base: 'licencias',
+          Parametros: parametros,
+          Tenant: 'guadalajara'
+        }
+        
+        console.log(`🚀 ${this.editingEmployee ? 'Actualizando' : 'Creando'} empleado:`, parametros)
+        console.log('📋 eRequest completo:', JSON.stringify(eRequest, null, 2))
+        
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: eRequest
         })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log('Respuesta del servidor:', data)
-
-        if (data.success && data.data) {
-          const result = data.data[0]
-          if (result.success) {
-            this.showSweetAlert(
-              'success',
-              this.editingEmpleado ? 'Empleado Actualizado' : 'Empleado Creado',
-              result.message || (this.editingEmpleado ? 'Empleado actualizado exitosamente' : 'Empleado creado exitosamente')
-            )
-            this.resetCreateForm()
-            this.showCreateModal = false
-            this.loadEmpleados()
-          } else {
-            this.showSweetAlert('error', 'Error', result.message || 'Error en la operación')
-            return
-          }
+        
+        console.log('📋 Response recibida:', response.data)
+        
+        if (response.data.eResponse && response.data.eResponse.success) {
+          console.log('✅ Empleado guardado correctamente')
+          // Cerrar modal
+          this.cerrarModalFormulario()
+          await this.cargarEmpleados()
         } else {
-          throw new Error(data.error || 'Error en la respuesta del servidor')
+          throw new Error(response.data.eResponse?.message || 'Error al guardar empleado')
         }
-
+        
       } catch (error) {
-        this.showSweetAlert('error', 'Error al Guardar', 'Error al guardar el empleado: ' + error.message)
-        console.error('Error saving empleado:', error)
+        console.error('❌ Error saving employee:', error)
+        console.error('❌ Error response data:', error.response?.data)
+        console.error('❌ Error status:', error.response?.status)
+        
+        let errorMessage = 'Error desconocido'
+        if (error.response?.data?.eResponse?.message) {
+          errorMessage = error.response.data.eResponse.message
+        } else if (error.message) {
+          errorMessage = error.message
+        }
+        
+        alert('Error al guardar empleado: ' + errorMessage)
       } finally {
-        this.creating = false
+        this.saving = false
       }
     },
-
-    editEmpleado(empleado) {
-      this.editingEmpleado = empleado
-      this.newEmpleado = {
-        nombre: empleado.nombre,
-        correo: empleado.correo,
-        departamento: empleado.departamento || '',
-        activo: empleado.activo || 'S',
-        observaciones: empleado.observaciones || ''
-      }
-      this.showCreateModal = true
-    },
-
-    async deleteEmpleado(empleado) {
-      if (!confirm(`¿Está seguro de eliminar al empleado "${empleado.nombre}"?`)) {
+    
+    async eliminarEmpleado(employee) {
+      console.log('🗑️ Eliminar empleado:', employee)
+      if (!confirm(`¿Está seguro de eliminar al empleado "${employee.firstName} ${employee.lastName}"?`)) {
         return
       }
-
+      
       try {
-        const response = await fetch('http://localhost:8080/api/generic', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            eRequest: {
-              Operacion: 'sp_empleados_delete',
-              Base: 'padron_licencias',
-              Parametros: [
-                { nombre: 'p_id', valor: empleado.id }
-              ],
-              Tenant: 'informix'
-            }
-          })
+        // Parámetros para eliminar: _operacion=2, _id, _nombre=null, _correo=null
+        const eRequest = {
+          Operacion: 'empleados_mantener',
+          Base: 'licencias',
+          Parametros: [
+            { nombre: 'operacion', valor: 2, tipo: 'integer' }, // 2 = Eliminar
+            { nombre: 'id', valor: employee.id, tipo: 'integer' },
+            { nombre: 'nombre', valor: null, tipo: 'string' },
+            { nombre: 'correo', valor: null, tipo: 'string' }
+          ],
+          Tenant: 'guadalajara'
+        }
+        
+        console.log('🚀 Eliminando empleado:', employee.id)
+        
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: eRequest
         })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-
-        if (data.success && data.data) {
-          this.showSweetAlert('success', 'Empleado Eliminado', 'El empleado ha sido eliminado exitosamente')
-          this.loadEmpleados()
+        
+        if (response.data.eResponse && response.data.eResponse.success) {
+          console.log('✅ Empleado eliminado correctamente')
+          await this.cargarEmpleados()
         } else {
-          throw new Error(data.error || 'Error al eliminar el empleado')
+          throw new Error(response.data.eResponse?.message || 'Error al eliminar empleado')
         }
-
+        
       } catch (error) {
-        this.showSweetAlert('error', 'Error al Eliminar', 'Error al eliminar el empleado: ' + error.message)
-        console.error('Error deleting empleado:', error)
+        console.error('❌ Error deleting employee:', error)
+        alert('Error al eliminar empleado: ' + error.message)
       }
     },
-
-    viewEmpleado(empleado) {
-      this.showSweetAlert('info', 'Información del Empleado',
-        `Nombre: ${empleado.nombre}\nCorreo: ${empleado.correo}\nDepartamento: ${empleado.departamento || 'No asignado'}\nEstado: ${empleado.activo === 'S' ? 'Activo' : 'Inactivo'}`)
+    
+    mostrarModalAgregar() {
+      console.log('➕ Mostrar modal agregar empleado')
+      this.editingEmployee = null
+      this.resetearFormulario()
+      this.showFormModal = true
     },
-
-    resetCreateForm() {
-      this.editingEmpleado = null
-      this.newEmpleado = {
+    
+    resetearFormulario() {
+      this.employeeForm = {
         nombre: '',
-        correo: '',
-        departamento: '',
-        activo: 'S',
-        observaciones: ''
+        correo: ''
       }
     },
-
-    formatDate(dateString) {
-      if (!dateString) return 'N/A'
-      try {
-        return new Date(dateString).toLocaleDateString('es-MX')
-      } catch {
-        return dateString
-      }
+    
+    aplicarFiltros() {
+      this.filteredEmployees = this.employees.filter(employee => {
+        const matchesName = !this.filters.name || 
+          (employee.firstName + ' ' + employee.lastName)
+            .toLowerCase()
+            .includes(this.filters.name.toLowerCase())
+        
+        const matchesDepartment = !this.filters.department || 
+          employee.department === this.filters.department
+        
+        const matchesStatus = !this.filters.status || 
+          employee.status === this.filters.status
+        
+        return matchesName && matchesDepartment && matchesStatus
+      })
+      
+      this.ordenarEmpleados()
+      this.currentPage = 1
     },
-
-    // Métodos de paginación
-    goToPage(page) {
-      if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+    
+    limpiarFiltros() {
+      this.filters = {
+        name: '',
+        department: '',
+        status: ''
+      }
+      this.aplicarFiltros()
+    },
+    
+    ordenarPor(field) {
+      if (this.sortField === field) {
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.sortField = field
+        this.sortDirection = 'asc'
+      }
+      this.ordenarEmpleados()
+    },
+    
+    ordenarEmpleados() {
+      this.filteredEmployees.sort((a, b) => {
+        let aVal = a[this.sortField]
+        let bVal = b[this.sortField]
+        
+        if (this.sortField === 'name') {
+          aVal = a.firstName + ' ' + a.lastName
+          bVal = b.firstName + ' ' + b.lastName
+        }
+        
+        if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase()
+          bVal = bVal.toLowerCase()
+        }
+        
+        if (this.sortDirection === 'asc') {
+          return aVal > bVal ? 1 : -1
+        } else {
+          return aVal < bVal ? 1 : -1
+        }
+      })
+    },
+    
+    irAPagina(page) {
+      if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page
-        this.loadEmpleados()
       }
     },
-
-    previousPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--
-        this.loadEmpleados()
-      }
+    
+    verEmpleado(employee) {
+      console.log('👁️ Ver empleado:', employee)
+      this.selectedEmployee = employee
+      this.showViewModal = true
     },
-
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++
-        this.loadEmpleados()
-      }
+    
+    cerrarModalVer() {
+      this.showViewModal = false
+      this.selectedEmployee = null
     },
-
-    getVisiblePages() {
-      const pages = []
-      const maxVisible = 5
-      let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2))
-      let end = Math.min(this.totalPages, start + maxVisible - 1)
-
-      if (end - start + 1 < maxVisible) {
-        start = Math.max(1, end - maxVisible + 1)
+    
+    editarEmpleado(employee) {
+      console.log('✏️ Editar empleado:', employee)
+      this.editingEmployee = employee
+      this.employeeForm = {
+        nombre: `${employee.firstName} ${employee.lastName}`.trim(),
+        correo: employee.email
       }
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i)
-      }
-
-      return pages
+      
+      // Cerrar modal de detalles si está abierto
+      this.showViewModal = false
+      
+      // Mostrar modal de edición
+      this.showFormModal = true
     },
-
-    // SweetAlert personalizado
-    showSweetAlert(type, title, text) {
-      this.sweetAlert = {
-        show: true,
-        type: type,
-        title: title,
-        text: text
-      }
-
-      // Auto cerrar después de 3 segundos para success, 5 segundos para error y warning
-      const autoCloseTime = (type === 'success' || type === 'info') ? 3000 : 5000
-      setTimeout(() => {
-        this.sweetAlert.show = false
-      }, autoCloseTime)
+    
+    cerrarModalFormulario() {
+      this.showFormModal = false
+      this.editingEmployee = null
+      this.resetearFormulario()
     },
-
-    closeSweetAlert() {
-      this.sweetAlert.show = false
+    
+    imprimirReporte() {
+      window.print()
     },
-
-    // Sistema de Toast
-    showToast(type, message) {
-      const toast = {
-        id: Date.now(),
-        type: type,
-        message: message
-      }
-
-      this.toasts.push(toast)
-
-      // Auto remover después de 4 segundos
-      setTimeout(() => {
-        this.removeToast(toast.id)
-      }, 4000)
+    
+    async actualizarDatos() {
+      console.log('🔄 Actualizando datos de empleados...')
+      await this.cargarEmpleados()
     },
-
-    removeToast(toastId) {
-      const index = this.toasts.findIndex(toast => toast.id === toastId)
-      if (index > -1) {
-        this.toasts.splice(index, 1)
-      }
+    
+    formatDate(dateString) {
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
     }
   },
-
+  
   mounted() {
-    console.log('EmpleadosListado component mounted')
-    this.loadEmpleados()
+    console.log('🎯 EmpleadosListado component mounted')
+    this.cargarEmpleados()
   }
 }
 </script>
 
 <style scoped>
-/* Estilos específicos del módulo de empleados */
-.empleados-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para empleados */
-.table-hover tbody tr:hover {
-  background-color: rgba(23, 162, 184, 0.05);
-}
-
-/* Paginación con tema cyan para empleados */
-.pagination .page-link {
-  color: #17a2b8;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #117a8b;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
-}
-
-/* Estilos globales importados desde src/styles/global.css */
-.swal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.swal-modal {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  text-align: center;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.swal-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.swal-icon.success { color: #28a745; }
-.swal-icon.error { color: #dc3545; }
-.swal-icon.warning { color: #ffc107; }
-.swal-icon.info { color: #17a2b8; }
-
-.swal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.swal-text {
-  margin-bottom: 2rem;
-  color: #6c757d;
-}
-
-.toast-notification {
-  position: fixed;
-  right: 20px;
-  z-index: 9999;
-  min-width: 300px;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border-left: 4px solid;
-  animation: slideInRight 0.3s ease-out;
-}
-
-.toast-notification.success { border-left-color: #28a745; }
-.toast-notification.error { border-left-color: #dc3545; }
-.toast-notification.warning { border-left-color: #ffc107; }
-.toast-notification.info { border-left-color: #17a2b8; }
-
-.toast-icon {
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
-}
-
-.toast-notification.success .toast-icon { color: #28a745; }
-.toast-notification.error .toast-icon { color: #dc3545; }
-.toast-notification.warning .toast-icon { color: #ffc107; }
-.toast-notification.info .toast-icon { color: #17a2b8; }
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  color: #6c757d;
-  cursor: pointer;
-  margin-left: 0.75rem;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+/* Solo estilos mínimos necesarios para los modales personalizados */
+.modal.show.d-block {
+  display: block !important;
 }
 </style>

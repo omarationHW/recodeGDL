@@ -39,22 +39,24 @@
                   <h6>Información del Sistema</h6>
                   <div class="table-responsive">
                     <table class="table table-sm">
-                      <tr>
-                        <td><strong>Módulo:</strong></td>
-                        <td>Licencias</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Submódulo:</strong></td>
-                        <td>{{ currentSubmodule }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Ruta:</strong></td>
-                        <td><code>{{ currentRoute }}</code></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Fecha:</strong></td>
-                        <td>{{ currentDate }}</td>
-                      </tr>
+                      <tbody>
+                        <tr>
+                          <td><strong>Módulo:</strong></td>
+                          <td>Licencias</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Submódulo:</strong></td>
+                          <td>{{ currentSubmodule }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Ruta:</strong></td>
+                          <td><code>{{ currentRoute }}</code></td>
+                        </tr>
+                        <tr>
+                          <td><strong>Fecha:</strong></td>
+                          <td>{{ currentDate }}</td>
+                        </tr>
+                      </tbody>
                     </table>
                   </div>
                 </div>
@@ -120,38 +122,16 @@ export default {
     
     moduleDescription() {
       const descriptions = {
-        // 🆕 NUEVOS COMPONENTES DE MODERNIZACIÓN
-        'perfilesusuariomoderno': '🆕 NUEVO: Separación granular de perfiles (Padrón, Licencias, Ingresos)',
-        'catalogogirosimportes': '🆕 NUEVO: Catálogo de giros con gestión de importes para usuarios ingresos',
-        'permisosprovisionales': '🆕 NUEVO: Sistema de permisos temporales (Espectáculos, Licencias, Anuncios)',
-        'sistemaconvenios': '🆕 NUEVO: Sistema integral ABC de convenios, intereses y parcialidades',
-        // Componentes existentes
         'empleadoslistado': 'Gestión y consulta de empleados del sistema',
         'agendavisitasfrm': 'Gestión y consulta de agenda de visitas programadas',
-        'bajaanunciofrm': '* Administración de baja de anuncios publicitarios',
+        'bajaanunciofrm': 'Administración de baja de anuncios publicitarios',
         'bajalicenciafrm': 'Gestión de baja de licencias comerciales',
         'bloquearanunciorm': 'Bloqueo y control de anuncios publicitarios',
         'bloquearlicenciafrm': 'Bloqueo temporal de licencias',
         'bloqueartramitefrm': 'Control de bloqueo de trámites',
         'catalogogirosfrm': 'Catálogo y administración de giros comerciales',
         'busque': 'Sistema de búsqueda general de licencias',
-        'constanciafrm': '* Gestión y consulta de constancias de licencias',
-        'consultapredial': '* Consulta de información predial',
-        'consultaanunciofrm': '* Consulta y gestión de anuncios publicitarios',
-        'consultatramitefrm': '* Consulta y gestión de trámites de control',
-        'consultausuariosfrm': '* Consulta y administración de usuarios del sistema',
-        'consultaLicenciafrm': '* Consulta y gestión de licencias comerciales',
-        'cruces': '* Sistema de cruces y validaciones',
-        'dependenciasfrm': '* Gestión de dependencias administrativas',
-        'dictamenfrm': '* Generación y consulta de dictámenes',
-        'empresasfrm': '* Administración de empresas y comercios',
-        'estatusfrm': '* Control de estatus de trámites',
-        'fechasegfrm': '* Gestión de fechas de seguimiento',
-        'formatosecologiafrm': '* Formatos y requisitos de ecología',
-        'girosdconadeudofrm': '* Gestión de giros con adeudos',
-        'licenciasvigentesfrm': '* Control de licencias vigentes',
-        'gestionhologramasfrm': 'Gestión de hologramas',
-        'gruposanunciosfrm': 'Administración de grupos de anuncios',
+        'consultapredial': 'Consulta de información predial',
         'default': 'Módulo del sistema de licencias'
       }
       
@@ -168,12 +148,6 @@ export default {
 
     hasSpecificImplementation() {
       return {
-        // 🆕 NUEVOS COMPONENTES DE MODERNIZACIÓN
-        'perfilesusuariomoderno': 'PerfilesUsuarioModerno.vue',
-        'catalogogirosimportes': 'CatalogoGirosImportes.vue',
-        'permisosprovisionales': 'PermisosProvisionales.vue',
-        'sistemaconvenios': 'SistemaConvenios.vue',
-        // Componentes existentes
         'empleadoslistado': 'EmpleadosListado.vue',
         'agendavisitasfrm': 'Agendavisitasfrm.vue',
         'bajaanunciofrm': 'bajaAnunciofrm.vue',
@@ -202,7 +176,6 @@ export default {
         'constanciafrm': 'constanciafrm.vue',
         'constancianooficialfrm': 'constanciaNoOficialfrm.vue',
         'consultaanunciofrm': 'consultaAnunciofrm.vue',
-        'consultaLicenciafrm': 'consultaLicenciafrm.vue',
         'consultalicenciafrm': 'consultaLicenciafrm.vue',
         'consultapredial': 'consultapredial.vue',
         'consultatramitefrm': 'ConsultaTramitefrm.vue',
@@ -299,17 +272,17 @@ export default {
 
       this.loadingComponent = true
       this.loadedComponent = null
-
+      
       try {
-        // Carga dinámica para todos los componentes
         const fileName = hasImplementation
+        // Para Vite, necesitamos usar la ruta completa correcta desde src
         const componentPath = `../../components/modules/licencias/${fileName}`
         console.log(`🔄 Importing component from: ${componentPath}`)
-
+        
         const component = await import(/* @vite-ignore */ `../../components/modules/licencias/${fileName}`)
         console.log(`✅ Component import successful:`, component)
         console.log(`✅ Component default:`, component.default)
-
+        
         if (component.default) {
           this.loadedComponent = component.default
           console.log(`✅ loadedComponent set successfully`)

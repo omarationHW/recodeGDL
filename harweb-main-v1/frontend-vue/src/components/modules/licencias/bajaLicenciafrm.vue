@@ -1,446 +1,231 @@
 <template>
-  <div class="container mt-4">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Baja de Licencia</li>
-      </ol>
-    </nav>
-
-    <h2 class="mb-4 text-center">BAJA DE LICENCIA COMERCIAL</h2>
-
-    <!-- Formulario de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5 class="mb-0">
-          <i class="bi bi-search"></i>
-          Buscar Licencia
-        </h5>
+  <div class="baja-licencia-page">
+    <h1>Baja de Licencia</h1>
+    <form @submit.prevent="buscarLicencia">
+      <div class="form-group">
+        <label for="licencia">No. de licencia:</label>
+        <input v-model="form.licencia" id="licencia" type="text" required />
+        <button type="submit">Buscar</button>
       </div>
-      <div class="card-body">
-        <form @submit.prevent="buscarLicencia" class="row g-3">
-          <div class="col-md-8">
-            <label for="licencia" class="form-label">Número de Licencia *</label>
-            <input
-              v-model="form.licencia"
-              id="licencia"
-              type="text"
-              class="form-control"
-              placeholder="Ingrese el número de licencia"
-              required
-              autofocus
-            />
-          </div>
-          <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary" :disabled="loading">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-              <i class="bi bi-search"></i>
-              Buscar
-            </button>
-          </div>
-        </form>
+    </form>
+    <div v-if="licencia">
+      <div class="licencia-info">
+        <h2>Datos de la Licencia</h2>
+        <p><strong>Recaudadora:</strong> {{ licencia.recaud }}</p>
+        <p><strong>Giro:</strong> {{ giro.descripcion }}</p>
+        <p><strong>Actividad:</strong> {{ licencia.actividad }}</p>
+        <p><strong>Propietario:</strong> {{ licencia.primer_ap }} {{ licencia.segundo_ap }} {{ licencia.propietario }}</p>
+        <p><strong>Ubicación:</strong> {{ licencia.ubicacion }} No. ext: {{ licencia.numext_ubic }} Letra ext: {{ licencia.letraext_ubic }} No. int: {{ licencia.numint_ubic }} Letra int: {{ licencia.letraint_ubic }}</p>
+        <p><strong>Sup. construida:</strong> {{ licencia.sup_construida }}</p>
+        <p><strong>Sup. autorizada:</strong> {{ licencia.sup_autorizada }}</p>
+        <p><strong>Num. cajones:</strong> {{ licencia.num_cajones }}</p>
+        <p><strong>Num. empleados:</strong> {{ licencia.num_empleados }}</p>
       </div>
-    </div>
-
-    <!-- Loading y Error -->
-    <div v-if="loading" class="text-center my-4">
-      <div class="spinner-border"></div>
-      <p class="mt-2">Buscando licencia...</p>
-    </div>
-
-    <div v-if="error" class="alert alert-danger">
-      <i class="bi bi-exclamation-triangle"></i>
-      {{ error }}
-    </div>
-
-    <!-- Datos de la Licencia -->
-    <div v-if="licencia && !loading" class="card mb-4">
-      <div class="card-header">
-        <h5 class="mb-0">
-          <i class="bi bi-file-text"></i>
-          Datos de Licencia #{{ licencia.numero_licencia }}
-        </h5>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6">
-            <p><strong>Recaudadora:</strong> {{ licencia.recaudadora }}</p>
-            <p><strong>Giro:</strong> {{ licencia.giro_descripcion }}</p>
-            <p><strong>Actividad:</strong> {{ licencia.actividad }}</p>
-            <p><strong>Propietario:</strong> {{ licencia.propietario_completo }}</p>
-            <p><strong>Estado:</strong>
-              <span :class="licencia.estado === 'A' ? 'badge bg-success' : 'badge bg-secondary'">
-                {{ licencia.estado === 'A' ? 'Activa' : 'Inactiva' }}
-              </span>
-            </p>
-          </div>
-          <div class="col-md-6">
-            <p><strong>Ubicación:</strong> {{ licencia.ubicacion_completa }}</p>
-            <p><strong>Sup. construida:</strong> {{ licencia.superficie_construida }} m²</p>
-            <p><strong>Sup. autorizada:</strong> {{ licencia.superficie_autorizada }} m²</p>
-            <p><strong>Num. cajones:</strong> {{ licencia.num_cajones }}</p>
-            <p><strong>Num. empleados:</strong> {{ licencia.num_empleados }}</p>
-          </div>
+      <div v-if="adeudos && adeudos.total > 0 && !bajaError">
+        <div class="alert alert-warning">
+          <strong>¡Precaución!</strong> La licencia tiene adeudos.
+        </div>
+        <div class="adeudos-info">
+          <p><strong>Derechos:</strong> {{ adeudos.adeudos[0]?.derechos || 0 }}</p>
+          <p><strong>Anuncios:</strong> {{ adeudos.adeudos[0]?.anuncios || 0 }}</p>
+          <p><strong>Recargos:</strong> {{ adeudos.adeudos[0]?.recargos || 0 }}</p>
+          <p><strong>Gastos:</strong> {{ adeudos.adeudos[0]?.gastos || 0 }}</p>
+          <p><strong>Multas:</strong> {{ adeudos.adeudos[0]?.multas || 0 }}</p>
+          <p><strong>Formas:</strong> {{ adeudos.adeudos[0]?.formas || 0 }}</p>
+          <p><strong>Total:</strong> {{ adeudos.total }}</p>
         </div>
       </div>
-    </div>
-
-    <!-- Adeudos -->
-    <div v-if="adeudos && adeudos.length > 0 && !bajaError" class="card mb-4">
-      <div class="card-header bg-warning">
-        <h5 class="mb-0">
-          <i class="bi bi-exclamation-triangle"></i>
-          ¡PRECAUCIÓN! La licencia tiene adeudos
-        </h5>
+      <div v-if="anuncios && anuncios.length > 0">
+        <h3>Anuncios ligados a esta licencia</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>No. anuncio</th>
+              <th>F. otorgamiento</th>
+              <th>Medidas</th>
+              <th>Área</th>
+              <th>Ubicación</th>
+              <th>No. ext.</th>
+              <th>Letra ext.</th>
+              <th>No. int.</th>
+              <th>Letra int.</th>
+              <th>Colonia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="an in anuncios" :key="an.id_anuncio">
+              <td>{{ an.anuncio }}</td>
+              <td>{{ an.fecha_otorgamiento }}</td>
+              <td>{{ an.medidas1 }}</td>
+              <td>{{ an.area_anuncio }}</td>
+              <td>{{ an.ubicacion }}</td>
+              <td>{{ an.numext_ubic }}</td>
+              <td>{{ an.letraext_ubic }}</td>
+              <td>{{ an.numint_ubic }}</td>
+              <td>{{ an.letraint_ubic }}</td>
+              <td>{{ an.colonia_ubic }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Concepto</th>
-                <th>Importe</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="adeudo in adeudos" :key="adeudo.concepto">
-                <td>{{ adeudo.concepto }}</td>
-                <td class="text-end">${{ adeudo.importe.toFixed(2) }}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr class="table-warning">
-                <th>Total</th>
-                <th class="text-end">${{ totalAdeudos.toFixed(2) }}</th>
-              </tr>
-            </tfoot>
-          </table>
+      <form @submit.prevent="confirmarBaja">
+        <div class="form-group">
+          <label for="motivo">Motivo de la baja:</label>
+          <input v-model="form.motivo" id="motivo" type="text" required />
         </div>
-      </div>
-    </div>
-
-    <!-- Anuncios ligados -->
-    <div v-if="anuncios && anuncios.length > 0" class="card mb-4">
-      <div class="card-header">
-        <h5 class="mb-0">
-          <i class="bi bi-signpost"></i>
-          Anuncios ligados a esta licencia ({{ anuncios.length }})
-        </h5>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-hover table-sm">
-            <thead class="table-dark">
-              <tr>
-                <th>No. Anuncio</th>
-                <th>F. Otorgamiento</th>
-                <th>Medidas</th>
-                <th>Área</th>
-                <th>Ubicación</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="anuncio in anuncios" :key="anuncio.id">
-                <td>{{ anuncio.numero_anuncio }}</td>
-                <td>{{ formatDate(anuncio.fecha_otorgamiento) }}</td>
-                <td>{{ anuncio.medidas }}</td>
-                <td>{{ anuncio.area_anuncio }} m²</td>
-                <td>{{ anuncio.ubicacion_completa }}</td>
-                <td>
-                  <span :class="anuncio.estado === 'A' ? 'badge bg-success' : 'badge bg-secondary'">
-                    {{ anuncio.estado === 'A' ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="form-group">
+          <input type="checkbox" v-model="bajaError" id="bajaError" />
+          <label for="bajaError">Baja por error</label>
         </div>
+        <div v-if="!bajaError" class="form-group">
+          <label for="anio">Año:</label>
+          <input v-model="form.anio" id="anio" type="number" required />
+          <label for="folio">Folio:</label>
+          <input v-model="form.folio" id="folio" type="number" required />
+        </div>
+        <button type="submit" :disabled="bajaEnProceso">Dar de baja</button>
+      </form>
+      <div v-if="mensaje" :class="{'alert': true, 'alert-success': exito, 'alert-danger': !exito}">
+        {{ mensaje }}
       </div>
-    </div>
-
-    <!-- Formulario de baja -->
-    <div v-if="licencia && !loading" class="card">
-      <div class="card-header bg-danger text-white">
-        <h5 class="mb-0">
-          <i class="bi bi-x-circle"></i>
-          Procesar Baja de Licencia
-        </h5>
-      </div>
-      <div class="card-body">
-        <form @submit.prevent="confirmarBaja">
-          <div class="row mb-3">
-            <div class="col-md-8">
-              <label for="motivo" class="form-label">Motivo de la baja *</label>
-              <textarea
-                v-model="form.motivo"
-                id="motivo"
-                class="form-control"
-                rows="3"
-                placeholder="Describa el motivo de la baja de licencia"
-                required
-              ></textarea>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Opciones</label>
-              <div class="form-check">
-                <input v-model="bajaError" type="checkbox" class="form-check-input" id="bajaError">
-                <label class="form-check-label" for="bajaError">
-                  Baja por error administrativo
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="!bajaError" class="row mb-3">
-            <div class="col-md-6">
-              <label for="anio" class="form-label">Año *</label>
-              <input
-                v-model.number="form.anio"
-                id="anio"
-                type="number"
-                class="form-control"
-                :min="2020"
-                :max="new Date().getFullYear()"
-                required
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="folio" class="form-label">Folio *</label>
-              <input
-                v-model.number="form.folio"
-                id="folio"
-                type="number"
-                class="form-control"
-                min="1"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-danger" :disabled="procesando">
-              <span v-if="procesando" class="spinner-border spinner-border-sm me-2"></span>
-              <i class="bi bi-x-circle"></i>
-              Dar de Baja
-            </button>
-            <button type="button" class="btn btn-secondary" @click="limpiarFormulario">
-              <i class="bi bi-arrow-counterclockwise"></i>
-              Limpiar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Mensaje de resultado -->
-    <div v-if="mensaje" :class="'alert mt-4 ' + (exito ? 'alert-success' : 'alert-danger')">
-      <i :class="exito ? 'bi bi-check-circle' : 'bi bi-x-circle'"></i>
-      {{ mensaje }}
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'bajaLicenciafrm',
+  name: 'BajaLicenciaPage',
   data() {
     return {
-      loading: false,
-      error: '',
-      procesando: false,
       form: {
         licencia: '',
         motivo: '',
-        anio: new Date().getFullYear(),
+        anio: '',
         folio: ''
       },
       licencia: null,
-      adeudos: [],
+      giro: {},
+      adeudos: null,
       anuncios: [],
       bajaError: false,
+      bajaEnProceso: false,
       mensaje: '',
       exito: false
-    }
-  },
-  computed: {
-    totalAdeudos() {
-      return this.adeudos.reduce((total, adeudo) => total + (adeudo.importe || 0), 0)
-    }
+    };
   },
   methods: {
     async buscarLicencia() {
-      this.loading = true
-      this.error = ''
-      this.mensaje = ''
-      this.licencia = null
-      this.adeudos = []
-      this.anuncios = []
-
-      try {
-        const eRequest = {
-          Operacion: 'sp_licencia_buscar',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_numero_licencia', valor: this.form.licencia, tipo: 'varchar' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
-
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result && response.data.eResponse.data.result.length > 0) {
-          this.licencia = response.data.eResponse.data.result[0]
-          await this.cargarAdeudos()
-          await this.cargarAnuncios()
-        } else {
-          this.error = 'Licencia no encontrada'
-        }
-      } catch (e) {
-        console.error('Error al buscar licencia:', e)
-        this.error = 'Error al buscar la licencia: ' + (e.message || 'Error desconocido')
-      } finally {
-        this.loading = false
+      this.mensaje = '';
+      this.exito = false;
+      this.licencia = null;
+      this.giro = {};
+      this.adeudos = null;
+      this.anuncios = [];
+      // Buscar licencia
+      const resp = await fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'buscarLicencia', params: { licencia: this.form.licencia } })
+      });
+      const data = await resp.json();
+      if (!data.success) {
+        this.mensaje = data.message || 'Licencia no encontrada';
+        return;
       }
+      this.licencia = data.licencia;
+      this.giro = data.giro;
+      // Adeudos
+      const resp2 = await fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verificarAdeudos', params: { id_licencia: this.licencia.id_licencia } })
+      });
+      this.adeudos = await resp2.json();
+      // Anuncios
+      const resp3 = await fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'listarAnunciosLigados', params: { id_licencia: this.licencia.id_licencia } })
+      });
+      const data3 = await resp3.json();
+      this.anuncios = data3.anuncios || [];
     },
-
-    async cargarAdeudos() {
-      try {
-        const eRequest = {
-          Operacion: 'sp_licencia_adeudos',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
-
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result) {
-          this.adeudos = response.data.eResponse.data.result
-        }
-      } catch (e) {
-        console.error('Error al cargar adeudos:', e)
-      }
-    },
-
-    async cargarAnuncios() {
-      try {
-        const eRequest = {
-          Operacion: 'sp_licencia_anuncios',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
-
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result) {
-          this.anuncios = response.data.eResponse.data.result
-        }
-      } catch (e) {
-        console.error('Error al cargar anuncios:', e)
-      }
-    },
-
     async confirmarBaja() {
-      this.procesando = true
-      this.error = ''
-      this.mensaje = ''
-
-      try {
-        const eRequest = {
-          Operacion: 'sp_licencia_baja',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' },
-            { nombre: 'p_motivo', valor: this.form.motivo, tipo: 'varchar' },
-            { nombre: 'p_anio', valor: this.bajaError ? null : this.form.anio, tipo: 'integer' },
-            { nombre: 'p_folio', valor: this.bajaError ? null : this.form.folio, tipo: 'integer' },
-            { nombre: 'p_baja_error', valor: this.bajaError ? 'S' : 'N', tipo: 'varchar' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
+      this.bajaEnProceso = true;
+      this.mensaje = '';
+      this.exito = false;
+      // Validaciones
+      if (!this.form.motivo) {
+        this.mensaje = 'Debe indicar el motivo de la baja';
+        this.bajaEnProceso = false;
+        return;
+      }
+      if (!this.bajaError && (!this.form.anio || !this.form.folio)) {
+        this.mensaje = 'Debe indicar año y folio';
+        this.bajaEnProceso = false;
+        return;
+      }
+      // Confirmar baja
+      const resp = await fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'bajaLicencia',
+          params: {
+            id_licencia: this.licencia.id_licencia,
+            motivo: this.form.motivo,
+            anio: this.bajaError ? null : this.form.anio,
+            folio: this.bajaError ? null : this.form.folio,
+            baja_error: this.bajaError
+          }
         })
-
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.exito = true
-          this.mensaje = 'Licencia dada de baja exitosamente'
-          this.limpiarFormulario()
-        } else {
-          this.exito = false
-          this.mensaje = response.data.eResponse?.message || 'Error al procesar la baja'
-        }
-      } catch (e) {
-        console.error('Error al confirmar baja:', e)
-        this.exito = false
-        this.mensaje = 'Error al procesar la baja: ' + (e.message || 'Error desconocido')
-      } finally {
-        this.procesando = false
-      }
-    },
-
-    limpiarFormulario() {
-      this.form = {
-        licencia: '',
-        motivo: '',
-        anio: new Date().getFullYear(),
-        folio: ''
-      }
-      this.licencia = null
-      this.adeudos = []
-      this.anuncios = []
-      this.bajaError = false
-      this.mensaje = ''
-      this.error = ''
-    },
-
-    formatDate(dateString) {
-      if (!dateString) return ''
-      try {
-        return new Date(dateString).toLocaleDateString('es-MX')
-      } catch {
-        return dateString
+      });
+      const data = await resp.json();
+      this.bajaEnProceso = false;
+      this.mensaje = data.message;
+      this.exito = data.success;
+      if (data.success) {
+        this.licencia = null;
+        this.giro = {};
+        this.adeudos = null;
+        this.anuncios = [];
+        this.form.motivo = '';
+        this.form.anio = '';
+        this.form.folio = '';
       }
     }
   }
-}
+};
 </script>
 
 <style scoped>
-.card {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.baja-licencia-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
 }
-
-.table th {
-  white-space: nowrap;
+.form-group {
+  margin-bottom: 1rem;
 }
-
-.table td {
-  vertical-align: middle;
+.alert {
+  padding: 1rem;
+  margin-top: 1rem;
 }
-
-.form-label {
-  font-weight: 600;
+.alert-success {
+  background: #e6ffe6;
+  color: #2d662d;
 }
-
-.bg-warning {
-  background-color: #fff3cd !important;
+.alert-danger {
+  background: #ffe6e6;
+  color: #662d2d;
 }
-
-.text-end {
-  text-align: end;
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.table th, .table td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
 }
 </style>

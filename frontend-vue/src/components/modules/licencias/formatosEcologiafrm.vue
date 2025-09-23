@@ -26,7 +26,7 @@
     <!-- Formulario de nuevo formato -->
     <div v-if="mostrarFormularioCrear" class="card mb-4">
       <div class="card-header">
-        <h5 class="mb-0">📄 Nuevo Formato Ecológico</h5>
+        <h5 class="mb-0">📄 {{ nuevoFormato.id ? 'Editar' : 'Nuevo' }} Formato Ecológico</h5>
       </div>
       <div class="card-body">
         <form @submit.prevent="crearFormato">
@@ -86,7 +86,9 @@
           </div>
           <div class="d-flex justify-content-end">
             <button type="button" class="btn btn-secondary me-2" @click="cancelarCreacion">Cancelar</button>
-            <button type="submit" class="btn btn-primary" :disabled="loading">Crear Formato</button>
+            <button type="submit" class="btn btn-primary" :disabled="loading">
+              {{ nuevoFormato.id ? 'Actualizar' : 'Crear' }} Formato
+            </button>
           </div>
         </form>
       </div>
@@ -324,20 +326,22 @@ export default {
 
       try {
         const response = await this.$axios.post('/api/generic', {
-          Operacion: 'SP_formatosecologia_list',
-          Parametros: [
-            { nombre: 'p_nombre', valor: this.filtros.nombre || null },
-            { nombre: 'p_tipo', valor: this.filtros.tipo || null },
-            { nombre: 'p_activo', valor: this.filtros.activo === '' ? null : this.filtros.activo === 'true' },
-            { nombre: 'p_limite', valor: this.itemsPerPage },
-            { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage }
-          ]
+          eRequest: {
+            Operacion: 'sp_formatosecologia_list',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_nombre', valor: this.filtros.nombre || null },
+              { nombre: 'p_tipo', valor: this.filtros.tipo || null },
+              { nombre: 'p_activo', valor: this.filtros.activo === '' ? null : this.filtros.activo === 'true' },
+              { nombre: 'p_limite', valor: this.itemsPerPage },
+              { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage }
+            ],
+            Tenant: 'public'
+          }
         });
 
-        // Compatibilidad con ambos formatos de respuesta
-        const responseData = response.data.eResponse || response.data;
-        if (responseData.success) {
-          this.resultados = responseData.data || [];
+        if (response.data.success) {
+          this.resultados = response.data.data || [];
 
           // Calcular información de paginación
           if (this.resultados.length > 0) {
@@ -348,7 +352,7 @@ export default {
             this.totalPages = 0;
           }
         } else {
-          this.error = responseData.message || 'Error al cargar formatos';
+          this.error = response.data.message || 'Error al cargar formatos';
           this.resultados = [];
         }
       } catch (error) {
@@ -391,15 +395,17 @@ export default {
       try {
         const response = await this.$axios.post('/api/generic', {
           eRequest: {
-            Operacion: 'SP_formatosecologia_get',
+            Operacion: 'sp_formatosecologia_get',
+            Base: 'padron_licencias',
             Parametros: [
               { nombre: 'p_id', valor: formato.id }
-            ]
+            ],
+            Tenant: 'public'
           }
         });
 
-        if (response.data.eResponse.success && response.data.eResponse.data.length > 0) {
-          this.detalle = response.data.eResponse.data[0];
+        if (response.data.success && response.data.data.length > 0) {
+          this.detalle = response.data.data[0];
         } else {
           this.error = 'No se pudo cargar el detalle del formato';
         }
@@ -418,13 +424,19 @@ export default {
 
     // Crear nuevo formato
     async crearFormato() {
+      // Si tiene ID, es una actualización
+      if (this.nuevoFormato.id) {
+        return this.actualizarFormato();
+      }
+
       this.loading = true;
       this.error = '';
 
       try {
         const response = await this.$axios.post('/api/generic', {
           eRequest: {
-            Operacion: 'SP_formatosecologia_create',
+            Operacion: 'sp_formatosecologia_create',
+            Base: 'padron_licencias',
             Parametros: [
               { nombre: 'p_nombre', valor: this.nuevoFormato.nombre },
               { nombre: 'p_codigo', valor: this.nuevoFormato.codigo || null },
@@ -434,16 +446,17 @@ export default {
               { nombre: 'p_vigencia_meses', valor: this.nuevoFormato.vigencia_meses || 12 },
               { nombre: 'p_es_obligatorio', valor: this.nuevoFormato.es_obligatorio },
               { nombre: 'p_activo', valor: this.nuevoFormato.activo }
-            ]
+            ],
+            Tenant: 'public'
           }
         });
 
-        if (response.data.eResponse.success) {
+        if (response.data.success) {
           alert('Formato ecológico creado exitosamente');
           this.cancelarCreacion();
           this.loadFormatos();
         } else {
-          this.error = response.data.eResponse.message || 'Error al crear el formato';
+          this.error = response.data.message || 'Error al crear el formato';
         }
       } catch (error) {
         console.error('Error:', error);
@@ -469,9 +482,61 @@ export default {
       this.error = '';
     },
 
-    // Editar formato (método placeholder)
-    editarFormato(formato) {
-      alert('Función de edición en desarrollo');
+    // Editar formato
+    async editarFormato(formato) {
+      // Cargar datos del formato seleccionado en el formulario
+      this.nuevoFormato = {
+        id: formato.id,
+        nombre: formato.nombre || '',
+        codigo: formato.codigo || '',
+        tipo: formato.tipo || '',
+        descripcion: formato.descripcion || '',
+        observaciones: formato.observaciones || '',
+        vigencia_meses: formato.vigencia_meses || 12,
+        es_obligatorio: formato.es_obligatorio || false,
+        activo: formato.activo !== false
+      };
+      this.mostrarFormularioCrear = true;
+    },
+
+    // Actualizar formato existente
+    async actualizarFormato() {
+      this.loading = true;
+      this.error = '';
+
+      try {
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_formatosecologia_update',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_id', valor: this.nuevoFormato.id },
+              { nombre: 'p_nombre', valor: this.nuevoFormato.nombre },
+              { nombre: 'p_codigo', valor: this.nuevoFormato.codigo || null },
+              { nombre: 'p_tipo', valor: this.nuevoFormato.tipo || null },
+              { nombre: 'p_descripcion', valor: this.nuevoFormato.descripcion || null },
+              { nombre: 'p_observaciones', valor: this.nuevoFormato.observaciones || null },
+              { nombre: 'p_vigencia_meses', valor: this.nuevoFormato.vigencia_meses || 12 },
+              { nombre: 'p_es_obligatorio', valor: this.nuevoFormato.es_obligatorio },
+              { nombre: 'p_activo', valor: this.nuevoFormato.activo }
+            ],
+            Tenant: 'public'
+          }
+        });
+
+        if (response.data.success) {
+          alert('Formato ecológico actualizado exitosamente');
+          this.cancelarCreacion();
+          this.loadFormatos();
+        } else {
+          this.error = response.data.message || 'Error al actualizar el formato';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        this.error = 'Error de conexión al actualizar formato';
+      } finally {
+        this.loading = false;
+      }
     },
 
     // Cambiar estado de formato
@@ -488,19 +553,21 @@ export default {
       try {
         const response = await this.$axios.post('/api/generic', {
           eRequest: {
-            Operacion: 'SP_formatosecologia_cambiar_estado',
+            Operacion: 'sp_formatosecologia_cambiar_estado',
+            Base: 'padron_licencias',
             Parametros: [
               { nombre: 'p_id', valor: formato.id },
               { nombre: 'p_activo', valor: nuevoEstado }
-            ]
+            ],
+            Tenant: 'public'
           }
         });
 
-        if (response.data.eResponse.success) {
+        if (response.data.success) {
           alert(`Formato ${accion} correctamente`);
           this.loadFormatos();
         } else {
-          this.error = response.data.eResponse.message || `Error al ${accion} formato`;
+          this.error = response.data.message || `Error al ${accion} formato`;
         }
       } catch (error) {
         console.error('Error:', error);

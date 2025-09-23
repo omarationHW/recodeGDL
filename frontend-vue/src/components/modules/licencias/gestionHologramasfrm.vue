@@ -154,6 +154,9 @@
                     <button @click="viewQR(holograma)" class="btn btn-sm btn-outline-info me-1" title="Ver QR" :disabled="!holograma.qr_code">
                       <i class="fas fa-qrcode"></i>
                     </button>
+                    <button @click="asignarHolograma(holograma)" class="btn btn-sm btn-outline-warning me-1" title="Asignar a Licencia" :disabled="holograma.estado !== 'disponible'">
+                      <i class="fas fa-link"></i>
+                    </button>
                     <button @click="verifyHolograma(holograma)" class="btn btn-sm btn-outline-success me-1" title="Verificar">
                       <i class="fas fa-check-circle"></i>
                     </button>
@@ -391,7 +394,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import Swal from 'sweetalert2'
 
 export default {
@@ -451,27 +453,36 @@ export default {
     async loadHologramas() {
       this.loading = true
       try {
-        const response = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_hologramas_list',
-          params: {
-            p_codigo: this.filters.codigo || null,
-            p_estado: this.filters.estado || null,
-            p_tipo: this.filters.tipo || null,
-            p_anio: this.filters.anio || null,
-            p_tiene_qr: this.filters.tieneQR || null,
-            p_page: this.pagination.page,
-            p_limit: this.pagination.limit
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_hologramas_list',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_codigo', valor: this.filters.codigo || null },
+              { nombre: 'p_estado', valor: this.filters.estado || null },
+              { nombre: 'p_tipo', valor: this.filters.tipo || null },
+              { nombre: 'p_anio', valor: this.filters.anio || null },
+              { nombre: 'p_tiene_qr', valor: this.filters.tieneQR || null },
+              { nombre: 'p_limite', valor: this.pagination.limit },
+              { nombre: 'p_offset', valor: (this.pagination.page - 1) * this.pagination.limit }
+            ],
+            Tenant: 'public'
           }
         })
 
-        if (response.data && response.data.eResponse && response.data.eResponse.data) {
-          this.hologramas = response.data.eResponse.data.records || []
-          this.pagination.total = response.data.eResponse.data.total || 0
-          this.stats = response.data.eResponse.data.stats || this.stats
+        if (response.data && response.data.success && response.data.data) {
+          this.hologramas = response.data.data || []
+          this.pagination.total = response.data.data[0]?.total_registros || 0
+          this.stats = {
+            disponibles: response.data.data.filter(h => h.estado === 'disponible').length,
+            asignados: response.data.data.filter(h => h.estado === 'asignado').length,
+            usados: response.data.data.filter(h => h.estado === 'usado').length,
+            total: response.data.data.length
+          }
         }
       } catch (error) {
         console.error('Error cargando hologramas:', error)
-        this.$toast.error('Error al cargar los hologramas')
+        this.$toast?.error('Error al cargar los hologramas')
       } finally {
         this.loading = false
       }
@@ -479,13 +490,23 @@ export default {
 
     async loadStats() {
       try {
-        const response = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_hologramas_estadisticas',
-          params: {}
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_hologramas_estadisticas',
+            Base: 'padron_licencias',
+            Parametros: [],
+            Tenant: 'public'
+          }
         })
 
-        if (response.data?.eResponse?.data) {
-          this.detailStats = response.data.eResponse.data
+        if (response.data?.success && response.data?.data) {
+          this.detailStats = response.data.data[0] || {
+            disponibles: 0,
+            asignados: 0,
+            usados: 0,
+            total: 0,
+            porTipo: []
+          }
         }
       } catch (error) {
         console.error('Error cargando estadísticas:', error)
@@ -502,28 +523,37 @@ export default {
 
     async saveItem() {
       try {
-        const operation = this.currentItem.id ? 'U' : 'I'
+        const isUpdate = this.currentItem.id
+        const operation = isUpdate ? 'sp_hologramas_update' : 'sp_hologramas_create'
 
-        const response = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_hologramas_mantener',
-          params: {
-            p_operacion: operation,
-            p_id: this.currentItem.id || null,
-            p_codigo: this.currentItem.codigo,
-            p_tipo: this.currentItem.tipo,
-            p_estado: this.currentItem.estado,
-            p_anio: this.currentItem.anio,
-            p_asignado_a: this.currentItem.asignado_a || null,
-            p_observaciones: this.currentItem.observaciones,
-            p_generar_qr: this.currentItem.generar_qr ? 1 : 0
+        const parametros = [
+          { nombre: 'p_codigo', valor: this.currentItem.codigo },
+          { nombre: 'p_tipo', valor: this.currentItem.tipo || 'licencia' },
+          { nombre: 'p_estado', valor: this.currentItem.estado || 'disponible' },
+          { nombre: 'p_anio', valor: this.currentItem.anio || new Date().getFullYear() },
+          { nombre: 'p_asignado_a', valor: this.currentItem.asignado_a || null },
+          { nombre: 'p_observaciones', valor: this.currentItem.observaciones || null },
+          { nombre: 'p_generar_qr', valor: this.currentItem.generar_qr || false }
+        ]
+
+        if (isUpdate) {
+          parametros.unshift({ nombre: 'p_id', valor: this.currentItem.id })
+        }
+
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: operation,
+            Base: 'padron_licencias',
+            Parametros: parametros,
+            Tenant: 'public'
           }
         })
 
-        if (response.data && response.data.eResponse && response.data.eResponse.success) {
+        if (response.data && response.data.success) {
           await Swal.fire({
             icon: 'success',
             title: 'Éxito',
-            text: operation === 'I' ? 'Holograma registrado correctamente' : 'Holograma actualizado correctamente',
+            text: isUpdate ? 'Holograma actualizado correctamente' : 'Holograma registrado correctamente',
             timer: 3000,
             showConfirmButton: false
           })
@@ -532,7 +562,7 @@ export default {
           this.loadHologramas()
           this.loadStats()
         } else {
-          throw new Error(response.data?.eResponse?.message || 'Error en la operación')
+          throw new Error(response.data?.data?.[0]?.message || 'Error en la operación')
         }
       } catch (error) {
         console.error('Error guardando holograma:', error)
@@ -564,15 +594,18 @@ export default {
         })
 
         if (codigoInput) {
-          const response = await axios.post('http://localhost:8080/api/generic', {
-            sp: 'sp_hologramas_verificar',
-            params: {
-              p_codigo: codigoInput,
-              p_codigo_esperado: holograma.codigo
+          const response = await this.$axios.post('/api/generic', {
+            eRequest: {
+              Operacion: 'sp_hologramas_verificar',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_codigo', valor: codigoInput }
+              ],
+              Tenant: 'public'
             }
           })
 
-          if (response.data?.eResponse?.data?.verificado) {
+          if (response.data?.success && response.data?.data?.[0]?.verificado) {
             await Swal.fire({
               icon: 'success',
               title: 'Verificación Exitosa',
@@ -616,16 +649,20 @@ export default {
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.post('http://localhost:8080/api/generic', {
-            sp: 'sp_hologramas_generar_qr',
-            params: {}
+          const response = await this.$axios.post('/api/generic', {
+            eRequest: {
+              Operacion: 'sp_hologramas_generar_qr',
+              Base: 'padron_licencias',
+              Parametros: [],
+              Tenant: 'public'
+            }
           })
 
-          if (response.data?.eResponse?.success) {
+          if (response.data?.success) {
             await Swal.fire({
               icon: 'success',
               title: 'QR Generados',
-              text: `Se generaron ${response.data.eResponse.data.generados || 0} códigos QR`,
+              text: `Se generaron ${response.data.data?.[0]?.generados || 0} códigos QR`,
               timer: 3000,
               showConfirmButton: false
             })
@@ -658,15 +695,18 @@ export default {
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.post('http://localhost:8080/api/generic', {
-            sp: 'sp_hologramas_mantener',
-            params: {
-              p_operacion: 'D',
-              p_id: holograma.id
+          const response = await this.$axios.post('/api/generic', {
+            eRequest: {
+              Operacion: 'sp_hologramas_delete',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_id', valor: holograma.id }
+              ],
+              Tenant: 'public'
             }
           })
 
-          if (response.data?.eResponse?.success) {
+          if (response.data?.success) {
             await Swal.fire({
               icon: 'success',
               title: 'Eliminado',
@@ -694,6 +734,62 @@ export default {
       this.currentItem = { ...holograma }
       this.modalTitle = 'Editar Holograma'
       this.showModal = true
+    },
+
+    async asignarHolograma(holograma) {
+      try {
+        const { value: licenciaNumero } = await Swal.fire({
+          title: 'Asignar Holograma',
+          text: `Asignar holograma ${holograma.codigo} a licencia:`,
+          input: 'text',
+          inputPlaceholder: 'Número de licencia...',
+          showCancelButton: true,
+          confirmButtonText: 'Asignar',
+          cancelButtonText: 'Cancelar',
+          inputValidator: (value) => {
+            if (!value) {
+              return 'Debe ingresar el número de licencia'
+            }
+          }
+        })
+
+        if (licenciaNumero) {
+          const response = await this.$axios.post('/api/generic', {
+            eRequest: {
+              Operacion: 'sp_hologramas_asignar',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_id_holograma', valor: holograma.id },
+                { nombre: 'p_numero_licencia', valor: licenciaNumero }
+              ],
+              Tenant: 'public'
+            }
+          })
+
+          if (response.data?.success) {
+            await Swal.fire({
+              icon: 'success',
+              title: 'Asignado',
+              text: `Holograma asignado correctamente a la licencia ${licenciaNumero}`,
+              timer: 3000,
+              showConfirmButton: false
+            })
+            this.loadHologramas()
+            this.loadStats()
+          } else {
+            throw new Error(response.data?.message || 'Error al asignar holograma')
+          }
+        }
+      } catch (error) {
+        console.error('Error asignando holograma:', error)
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Error al asignar el holograma',
+          timer: 5000,
+          showConfirmButton: false
+        })
+      }
     },
 
     viewQR(holograma) {

@@ -110,15 +110,20 @@
                     <span class="badge bg-primary">{{ usuario.total_permisos || 0 }} permisos</span>
                   </td>
                   <td>
-                    <button @click="selectUsuario(usuario)" class="btn btn-sm btn-outline-primary me-1" title="Ver Permisos">
-                      <i class="fas fa-key"></i>
-                    </button>
-                    <button @click="editPrivileges(usuario)" class="btn btn-sm btn-outline-warning me-1" title="Editar Privilegios">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button @click="viewAuditoria(usuario)" class="btn btn-sm btn-outline-info" title="Ver Auditoría">
-                      <i class="fas fa-history"></i>
-                    </button>
+                    <div class="btn-group" role="group">
+                      <button @click="selectUsuario(usuario)" class="btn btn-sm btn-outline-primary" title="Ver Permisos">
+                        <i class="fas fa-key"></i>
+                      </button>
+                      <button @click="editPrivileges(usuario)" class="btn btn-sm btn-outline-warning" title="Asignar Privilegio">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                      <button @click="viewAuditoria(usuario)" class="btn btn-sm btn-outline-info" title="Ver Auditoría">
+                        <i class="fas fa-history"></i>
+                      </button>
+                      <button @click="exportUserPrivileges(usuario)" class="btn btn-sm btn-outline-success" title="Exportar Privilegios">
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -316,7 +321,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import Swal from 'sweetalert2'
 
 export default {
@@ -361,26 +365,30 @@ export default {
     async loadPrivilegios() {
       this.loading = true
       try {
-        const response = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_privilegios_list',
-          params: {
-            p_usuario: this.filters.usuario || null,
-            p_departamento: this.filters.departamento || null,
-            p_estado: this.filters.estado || null,
-            p_sort_field: this.sortField,
-            p_sort_dir: this.sortDir,
-            p_page: this.pagination.page,
-            p_limit: this.pagination.limit
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_usuarios_privilegios_list',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_filtro_usuario', valor: this.filters.usuario || null },
+              { nombre: 'p_filtro_departamento', valor: this.filters.departamento || null },
+              { nombre: 'p_filtro_estado', valor: this.filters.estado || null },
+              { nombre: 'p_campo_orden', valor: this.sortField },
+              { nombre: 'p_direccion_orden', valor: this.sortDir },
+              { nombre: 'p_limite_pag', valor: this.pagination.limit },
+              { nombre: 'p_offset_pag', valor: (this.pagination.page - 1) * this.pagination.limit }
+            ],
+            Tenant: 'public'
           }
         })
 
-        if (response.data && response.data.eResponse && response.data.eResponse.data) {
-          this.usuarios = response.data.eResponse.data.records || []
-          this.pagination.total = response.data.eResponse.data.total || 0
+        if (response.data && response.data.success && response.data.data) {
+          this.usuarios = response.data.data || []
+          this.pagination.total = response.data.data[0]?.total_registros || 0
         }
       } catch (error) {
         console.error('Error cargando usuarios:', error)
-        this.$toast.error('Error al cargar los usuarios')
+        this.$toast?.error('Error al cargar los usuarios')
       } finally {
         this.loading = false
       }
@@ -393,58 +401,70 @@ export default {
 
       try {
         // Cargar permisos del usuario
-        const permisosResponse = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_privilegios_usuario',
-          params: {
-            p_usuario: usuario.usuario
+        const permisosResponse = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_usuario_permisos_get',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_usuario_buscar', valor: usuario.usuario }
+            ],
+            Tenant: 'public'
           }
         })
 
-        if (permisosResponse.data?.eResponse?.data) {
-          this.permisos = permisosResponse.data.eResponse.data
+        if (permisosResponse.data?.success && permisosResponse.data?.data) {
+          this.permisos = permisosResponse.data.data
         }
 
         // Cargar auditoría del usuario
-        const auditoriaResponse = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_privilegios_auditoria',
-          params: {
-            p_usuario: usuario.usuario,
-            p_limit: 20
+        const auditoriaResponse = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_usuario_auditoria_get',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_usuario_audit', valor: usuario.usuario },
+              { nombre: 'p_limite_audit', valor: 20 }
+            ],
+            Tenant: 'public'
           }
         })
 
-        if (auditoriaResponse.data?.eResponse?.data) {
-          this.auditoria = auditoriaResponse.data.eResponse.data
+        if (auditoriaResponse.data?.success && auditoriaResponse.data?.data) {
+          this.auditoria = auditoriaResponse.data.data
         }
       } catch (error) {
         console.error('Error cargando detalles del usuario:', error)
-        this.$toast.error('Error al cargar los detalles del usuario')
+        this.$toast?.error('Error al cargar los detalles del usuario')
       }
     },
 
     async saveItem() {
       try {
-        const operation = this.currentItem.id ? 'U' : 'I'
+        const isUpdate = this.currentItem.id
+        const operation = isUpdate ? 'sp_privilegio_actualizar' : 'sp_privilegio_asignar'
 
-        const response = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_privilegios_mantener',
-          params: {
-            p_operacion: operation,
-            p_id: this.currentItem.id || null,
-            p_usuario: this.currentItem.usuario,
-            p_num_tag: this.currentItem.num_tag,
-            p_descripcion: this.currentItem.descripcion,
-            p_fecha_inicio: this.currentItem.fecha_inicio || null,
-            p_fecha_fin: this.currentItem.fecha_fin || null,
-            p_observaciones: this.currentItem.observaciones
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: operation,
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_usuario_destino', valor: this.currentItem.usuario },
+              { nombre: 'p_numero_tag', valor: this.currentItem.num_tag },
+              { nombre: 'p_descripcion_permiso', valor: this.currentItem.descripcion },
+              { nombre: 'p_fecha_vigencia_inicio', valor: this.currentItem.fecha_inicio || null },
+              { nombre: 'p_fecha_vigencia_fin', valor: this.currentItem.fecha_fin || null },
+              { nombre: 'p_observaciones_permiso', valor: this.currentItem.observaciones || null },
+              { nombre: 'p_usuario_asigna', valor: this.$store.state.auth?.user?.usuario || 'sistema' }
+            ],
+            Tenant: 'public'
           }
         })
 
-        if (response.data && response.data.eResponse && response.data.eResponse.success) {
+        if (response.data && response.data.success) {
           await Swal.fire({
             icon: 'success',
             title: 'Éxito',
-            text: operation === 'I' ? 'Privilegio asignado correctamente' : 'Privilegio actualizado correctamente',
+            text: isUpdate ? 'Privilegio actualizado correctamente' : 'Privilegio asignado correctamente',
             timer: 3000,
             showConfirmButton: false
           })
@@ -457,7 +477,7 @@ export default {
             this.selectUsuario(this.selectedUsuario)
           }
         } else {
-          throw new Error(response.data?.eResponse?.message || 'Error en la operación')
+          throw new Error(response.data?.message || 'Error en la operación')
         }
       } catch (error) {
         console.error('Error guardando privilegio:', error)
@@ -485,16 +505,21 @@ export default {
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.post('http://localhost:8080/api/generic', {
-            sp: 'sp_privilegios_mantener',
-            params: {
-              p_operacion: 'D',
-              p_usuario: this.selectedUsuario.usuario,
-              p_num_tag: permiso.num_tag
+          const response = await this.$axios.post('/api/generic', {
+            eRequest: {
+              Operacion: 'sp_privilegio_revocar',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_usuario_objetivo', valor: this.selectedUsuario.usuario },
+                { nombre: 'p_numero_tag_revoke', valor: permiso.num_tag },
+                { nombre: 'p_usuario_revoca', valor: this.$store.state.auth?.user?.usuario || 'sistema' },
+                { nombre: 'p_motivo_revocacion', valor: 'Revocación manual desde interfaz' }
+              ],
+              Tenant: 'public'
             }
           })
 
-          if (response.data?.eResponse?.success) {
+          if (response.data?.success) {
             await Swal.fire({
               icon: 'success',
               title: 'Permiso revocado',
@@ -538,21 +563,26 @@ export default {
 
     async loadGlobalAuditoria() {
       try {
-        const response = await axios.post('http://localhost:8080/api/generic', {
-          sp: 'sp_privilegios_auditoria',
-          params: {
-            p_usuario: null, // Todos los usuarios
-            p_limit: 100
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_auditoria_privilegios_global',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_limite_registros', valor: 100 },
+              { nombre: 'p_fecha_desde', valor: null },
+              { nombre: 'p_fecha_hasta', valor: null }
+            ],
+            Tenant: 'public'
           }
         })
 
-        if (response.data?.eResponse?.data) {
-          this.globalAuditoria = response.data.eResponse.data
+        if (response.data?.success && response.data?.data) {
+          this.globalAuditoria = response.data.data
           this.showAuditModal = true
         }
       } catch (error) {
         console.error('Error cargando auditoría global:', error)
-        this.$toast.error('Error al cargar la auditoría global')
+        this.$toast?.error('Error al cargar la auditoría global')
       }
     },
 

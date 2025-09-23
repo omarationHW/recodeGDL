@@ -62,7 +62,7 @@
               <tr v-for="row in reportData" :key="row.licencia">
                 <td>{{ row.licencia }}</td>
                 <td>{{ row.propietarionvo }}</td>
-                <td>{{ row.domcompleto }}</td>
+                <td>{{ row.domCompleto }}</td>
                 <td>{{ row.descripcion }}</td>
                 <td>{{ row.axo }}</td>
               </tr>
@@ -104,23 +104,24 @@ export default {
         return;
       }
       try {
-        const response = await fetch('/api/execute', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            eRequest: 'GirosDconAdeudoReport',
-            payload: { year: this.year }
-          })
+        const response = await this.$axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'report_giros_dcon_adeudo',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_year', valor: this.year }
+            ],
+            Tenant: 'public'
+          }
         });
-        const data = await response.json();
-        if (data.success) {
-          this.reportData = data.data;
-          this.message = data.message;
+
+        if (response.data && response.data.success) {
+          this.reportData = response.data.data;
+          this.message = response.data.data.length > 0 ?
+            `Se encontraron ${response.data.data.length} licencias con adeudos desde el año ${this.year}` :
+            'No se encontraron licencias con adeudos para el año especificado';
         } else {
-          this.error = data.message || 'Error al obtener el reporte.';
+          this.error = response.data?.message || 'Error al obtener el reporte.';
         }
       } catch (err) {
         this.error = 'Error de comunicación con el servidor.';

@@ -85,7 +85,7 @@ export default {
         body: JSON.stringify({ action: 'getDocumentTypes' })
       });
       const data = await res.json();
-      this.documentTypes = data.data || [];
+      this.documentTypes = data.eResponse.data.result || [];
       this.loading = false;
     },
     async fetchDocs() {
@@ -96,7 +96,7 @@ export default {
         body: JSON.stringify({ action: 'getTramiteDocs', params: { tramite_id: this.tramiteId } })
       });
       const data = await res.json();
-      this.docs = data.data || [];
+      this.docs = data.eResponse.data.result || [];
       this.loading = false;
     },
     onFileChange(e) {
@@ -116,13 +116,13 @@ export default {
       });
       const data = await res.json();
       this.loading = false;
-      if (data.success) {
+      if (data.eResponse.success) {
         this.showUpload = false;
         this.uploadForm.file = null;
         this.uploadForm.document_type_id = null;
         this.fetchDocs();
       } else {
-        alert(data.error || 'Error al subir el documento');
+        alert(data.eResponse.message || 'Error al subir el documento');
       }
     },
     async viewImage(idImagen) {
@@ -134,8 +134,8 @@ export default {
       });
       const data = await res.json();
       this.loading = false;
-      if (data.success && data.data) {
-        this.imageSrc = 'data:image/jpeg;base64,' + data.data;
+      if (data.eResponse.success && data.eResponse.data.result) {
+        this.imageSrc = 'data:image/jpeg;base64,' + data.eResponse.data.result;
         this.imageModal = true;
       } else {
         alert('No se pudo cargar la imagen');
@@ -151,10 +151,10 @@ export default {
       });
       const data = await res.json();
       this.loading = false;
-      if (data.success) {
+      if (data.eResponse.success) {
         this.fetchDocs();
       } else {
-        alert(data.error || 'Error al eliminar el documento');
+        alert(data.eResponse.message || 'Error al eliminar el documento');
       }
     }
   }

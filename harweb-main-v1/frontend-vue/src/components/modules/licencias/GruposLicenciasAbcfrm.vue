@@ -152,7 +152,7 @@ export default {
         this.mostrarMensaje('La descripción es obligatoria', 'error');
         return;
       }
-      let operacion = this.modoFormulario === 'agregar' ? 'insert_grupo_licencia' : 'update_grupo_licencia';
+      let operacion = this.modoFormulario === 'agregar' ? 'sp_insert_grupo_licencia' : 'sp_update_grupo_licencia';
       let params = {
         descripcion: this.formulario.descripcion.trim().toUpperCase()
       };

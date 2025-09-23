@@ -143,7 +143,7 @@ export default {
           }
         });
         if (res.data.status === 'success') {
-          this.results = res.data.data || [];
+          this.results = res.data.eResponse.data.result || [];
           this.message = res.data.message || '';
         } else {
           this.error = res.data.message || 'Error desconocido';

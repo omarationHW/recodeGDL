@@ -83,7 +83,7 @@ export default {
             confirm_password: this.form.confirm_password
           }
         });
-        if (response.data.success) {
+        if (response.data.eResponse.success) {
           this.message = response.data.message;
           this.success = true;
           this.form.current_password = '';

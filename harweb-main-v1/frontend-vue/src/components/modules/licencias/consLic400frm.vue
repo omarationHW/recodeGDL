@@ -1,185 +1,468 @@
 <template>
-  <div class="container mt-4">
-    <router-view />
-  </div>
-</template>
+  <div class="container-fluid">
+    <!-- Loading Overlay -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-content">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-3 mb-0">Consultando licencia AS/400...</p>
+      </div>
+    </div>
 
-<script>
-export default {
-  name: 'Lic400Root',
-};
-</script>
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+      <div v-for="(toast, index) in toasts" :key="index"
+           :class="`toast ${toast.show ? 'show' : ''}`" role="alert">
+        <div class="toast-header">
+          <i :class="`fas ${toast.icon} me-2`" :style="`color: ${toast.color}`"></i>
+          <strong class="me-auto">{{ toast.title }}</strong>
+          <button type="button" class="btn-close" @click="removeToast(index)"></button>
+        </div>
+        <div class="toast-body">{{ toast.message }}</div>
+      </div>
+    </div>
 
-<!--
-Below are two separate Vue components for the two pages (Datos de la licencia y Pagos).
-Assume these are registered in the router as:
-  /lic400/datos  -> Lic400Datos.vue
-  /lic400/pagos  -> Lic400Pagos.vue
--->
+    <!-- SweetAlert-style Modal -->
+    <div v-if="sweetAlert.show" class="swal-overlay" @click.self="closeSweetAlert">
+      <div class="swal-modal">
+        <div class="swal-icon">
+          <i :class="`fas ${sweetAlert.icon}`" :style="`color: ${sweetAlert.color}`"></i>
+        </div>
+        <h3 class="swal-title">{{ sweetAlert.title }}</h3>
+        <p class="swal-text">{{ sweetAlert.text }}</p>
+        <div class="swal-footer">
+          <button @click="closeSweetAlert" :class="`btn ${sweetAlert.buttonClass}`">
+            {{ sweetAlert.buttonText }}
+          </button>
+        </div>
+      </div>
+    </div>
 
-<!-- Lic400Datos.vue -->
-<template>
-  <div>
-    <nav aria-label="breadcrumb">
+    <!-- Main Content -->
+    <div class="container mt-4">
+      <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
         <li class="breadcrumb-item active" aria-current="page">Consulta Licencia 400</li>
       </ol>
     </nav>
+    
     <h2 class="mb-4 text-center">CONSULTA DE LICENCIAS DEL AS/400</h2>
-    <form @submit.prevent="buscarLicencia" class="form-inline mb-3 justify-content-center">
-      <div class="form-group mr-2">
-        <label for="licencia" class="mr-2">Licencia</label>
-        <input type="number" v-model="licencia" id="licencia" class="form-control" required autofocus @keyup.enter="buscarLicencia" />
+    
+    <!-- Formulario de Búsqueda -->
+    <form @submit.prevent="buscarLicencia" class="row mb-4">
+      <div class="col-md-6 offset-md-3">
+        <div class="input-group">
+          <span class="input-group-text">Licencia</span>
+          <input 
+            type="number" 
+            v-model="filtros.licencia" 
+            class="form-control" 
+            placeholder="Número de licencia"
+            required 
+            autofocus 
+          />
+          <button type="submit" class="btn btn-primary" :disabled="loading">
+            <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+            Buscar
+          </button>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
+
+    <!-- Loading y Error -->
     <div v-if="loading" class="text-center my-4">
-      <span class="spinner-border"></span> Cargando...
+      <div class="spinner-border"></div>
+      <p class="mt-2">Cargando datos de licencia...</p>
     </div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="licData">
-      <table class="table table-bordered table-sm">
-        <tbody>
-          <tr><th>Recaud</th><td>{{ licData.ofna }}</td><th>Licencia</th><td>{{ licData.numlic }}</td><th>RFC</th><td>{{ licData.inirfc }}{{ licData.fnarfc }}</td><th>Homonimia</th><td>{{ licData.homono }}</td><th>Dighom</th><td>{{ licData.dighom }}</td></tr>
-          <tr><th>Codgir</th><td>{{ licData.codgir }}</td><th>Ilgir1</th><td colspan="3">{{ licData.ilgir1 }}</td></tr>
-          <tr><th>Ilgir2</th><td colspan="3">{{ licData.ilgir2 }}</td></tr>
-          <tr><th>Ilgir3</th><td colspan="3">{{ licData.ilgir3 }}</td></tr>
-          <tr><th>Nocars</th><td>{{ licData.nocars }}</td><th>Nugrub</th><td>{{ licData.nugrub }}</td></tr>
-          <tr><th>Nomcal</th><td colspan="3">{{ licData.nomcal }}</td><th>Num. Ext.</th><td>{{ licData.nuext }}</td></tr>
-          <tr><th>Letext</th><td>{{ licData.letext }}</td><th>Numint</th><td>{{ licData.numint }}</td><th>Letint</th><td>{{ licData.letint }}</td><th>Piso</th><td>{{ licData.piso }}</td></tr>
-          <tr><th>Letsec</th><td>{{ licData.letsec }}</td><th>Numzon</th><td>{{ licData.numzon }}</td><th>Zonpos</th><td>{{ licData.zonpos }}</td></tr>
-          <tr><th>Fecalt</th><td>{{ licData.fecalt }}</td><th>Fecbaj</th><td>{{ licData.fecbaj }}</td></tr>
-          <tr><th>Tomesu</th><td>{{ licData.tomesu }}</td><th>Numanu</th><td>{{ licData.numanu }}</td><th>Nuayt</th><td>{{ licData.nuayt }}</td><th>Reint</th><td>{{ licData.reint }}</td><th>Reclt</th><td>{{ licData.reclt }}</td><th>Imlit</th><td>{{ licData.imlit }}</td></tr>
-          <tr><th>Liimt</th><td>{{ licData.liimt }}</td><th>Vigenc</th><td>{{ licData.vigenc }}</td><th>Actgrl</th><td>{{ licData.actgrl }}</td><th>Grabo</th><td>{{ licData.grabo }}</td><th>Resta</th><td>{{ licData.resta }}</td><th>Fut1</th><td>{{ licData.fut1 }}</td><th>Fut2</th><td>{{ licData.fut2 }}</td></tr>
-        </tbody>
-      </table>
-      <router-link :to="'/lic400/pagos?numlic=' + licData.numlic" class="btn btn-secondary mt-2">Ver Pagos</router-link>
+    
+    <div v-if="error" class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+
+    <!-- Datos de la Licencia -->
+    <div v-if="licData && !loading" class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="bi bi-file-text"></i>
+          Datos de Licencia #{{ licData.numlic }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm">
+            <tbody>
+              <tr>
+                <th class="bg-light">Recaudadora</th>
+                <td>{{ licData.ofna }}</td>
+                <th class="bg-light">Licencia</th>
+                <td>{{ licData.numlic }}</td>
+                <th class="bg-light">RFC</th>
+                <td>{{ licData.inirfc }}{{ licData.fnarfc }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Homonimia</th>
+                <td>{{ licData.homono }}</td>
+                <th class="bg-light">Dígito Hom.</th>
+                <td>{{ licData.dighom }}</td>
+                <th class="bg-light">Código Giro</th>
+                <td>{{ licData.codgir }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Giro 1</th>
+                <td colspan="5">{{ licData.ilgir1 }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Giro 2</th>
+                <td colspan="5">{{ licData.ilgir2 }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Giro 3</th>
+                <td colspan="5">{{ licData.ilgir3 }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">No. Cars</th>
+                <td>{{ licData.nocars }}</td>
+                <th class="bg-light">No. Grub</th>
+                <td>{{ licData.nugrub }}</td>
+                <th class="bg-light">Calle</th>
+                <td>{{ licData.nomcal }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Núm. Ext.</th>
+                <td>{{ licData.nuext }}</td>
+                <th class="bg-light">Letra Ext.</th>
+                <td>{{ licData.letext }}</td>
+                <th class="bg-light">Núm. Int.</th>
+                <td>{{ licData.numint }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Letra Int.</th>
+                <td>{{ licData.letint }}</td>
+                <th class="bg-light">Piso</th>
+                <td>{{ licData.piso }}</td>
+                <th class="bg-light">Letra Sec.</th>
+                <td>{{ licData.letsec }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Núm. Zona</th>
+                <td>{{ licData.numzon }}</td>
+                <th class="bg-light">Zona Postal</th>
+                <td>{{ licData.zonpos }}</td>
+                <th class="bg-light">Fecha Alta</th>
+                <td>{{ formatDate(licData.fecalt) }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Fecha Baja</th>
+                <td>{{ formatDate(licData.fecbaj) }}</td>
+                <th class="bg-light">Tomo/Medida</th>
+                <td>{{ licData.tomesu }}</td>
+                <th class="bg-light">Núm. Anuncio</th>
+                <td>{{ licData.numanu }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Núm. Ayunt.</th>
+                <td>{{ licData.nuayt }}</td>
+                <th class="bg-light">Re Int.</th>
+                <td>{{ licData.reint }}</td>
+                <th class="bg-light">Rec. Lt.</th>
+                <td>{{ licData.reclt }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Im. Lit.</th>
+                <td>{{ licData.imlit }}</td>
+                <th class="bg-light">Li. Imt.</th>
+                <td>{{ licData.liimt }}</td>
+                <th class="bg-light">Vigencia</th>
+                <td>{{ licData.vigenc }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Act. Gral.</th>
+                <td>{{ licData.actgrl }}</td>
+                <th class="bg-light">Grabó</th>
+                <td>{{ licData.grabo }}</td>
+                <th class="bg-light">Resta</th>
+                <td>{{ licData.resta }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Fut1</th>
+                <td>{{ licData.fut1 }}</td>
+                <th class="bg-light">Fut2</th>
+                <td>{{ licData.fut2 }}</td>
+                <td colspan="2"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Botón para Ver Pagos -->
+        <div class="mt-3">
+          <button @click="verPagos" class="btn btn-secondary">
+            <i class="bi bi-credit-card"></i>
+            Ver Pagos de esta Licencia
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Pagos -->
+    <div v-if="mostrarPagos && pagos" class="card mt-4">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="bi bi-credit-card"></i>
+          Pagos de Licencia #{{ filtros.licencia }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <div v-if="pagos.length > 0" class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead class="table-dark">
+              <tr>
+                <th v-for="(value, key) in pagos[0]" :key="key">{{ key }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(pago, index) in pagos" :key="index">
+                <td v-for="(value, key) in pago" :key="key">{{ value }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="alert alert-info">
+          <i class="bi bi-info-circle"></i>
+          No hay pagos registrados para esta licencia.
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje sin resultados -->
+    <div v-if="!licData && !loading && hasSearched" class="alert alert-warning">
+      <i class="bi bi-search"></i>
+      No se encontró información para la licencia {{ filtros.licencia }}
+    </div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Lic400Datos',
+  name: 'ConsLic400Frm',
   data() {
     return {
-      licencia: '',
-      licData: null,
       loading: false,
-      error: ''
-    };
+      error: '',
+      licData: null,
+      pagos: null,
+      mostrarPagos: false,
+      hasSearched: false,
+      filtros: {
+        licencia: ''
+      },
+      toasts: [],
+      sweetAlert: {
+        show: false,
+        type: 'success',
+        title: '',
+        text: '',
+        icon: 'fa-check-circle',
+        color: '#28a745',
+        buttonText: 'OK',
+        buttonClass: 'btn-success'
+      }
+    }
   },
   methods: {
     async buscarLicencia() {
-      this.error = '';
-      this.licData = null;
-      if (!this.licencia) {
-        this.error = 'Ingrese el número de licencia';
-        return;
+      if (!this.filtros.licencia) {
+        this.error = 'Ingrese el número de licencia'
+        return
       }
-      this.loading = true;
+
+      this.loading = true
+      this.error = ''
+      this.licData = null
+      this.mostrarPagos = false
+      this.pagos = null
+      this.hasSearched = true
+
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: 'getLic400',
-          params: { licencia: this.licencia }
-        });
-        if (res.data.eResponse.success && res.data.eResponse.data.length > 0) {
-          this.licData = res.data.eResponse.data[0];
+        const eRequest = {
+          Operacion: 'sp_conslic400_get',
+          Base: 'padron_licencias',
+          Parametros: [
+            {
+              nombre: 'p_licencia',
+              valor: parseInt(this.filtros.licencia)
+            }
+          ],
+          Tenant: 'informix'
+        }
+
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eRequest })
+        })
+
+        const data = await response.json()
+
+        if (data.eResponse.success && data.eResponse.data.result && data.eResponse.data.result.length > 0) {
+          this.licData = data.eResponse.data.result[0]
+          this.showSweetAlert('success', '¡Éxito!', 'Licencia encontrada exitosamente')
+          this.showToast('Éxito', 'Licencia cargada correctamente', 'success')
         } else {
-          this.error = 'No se encontró la licencia.';
+          this.showSweetAlert('warning', 'No encontrado', 'No se encontró la licencia especificada')
         }
       } catch (e) {
-        this.error = 'Error al consultar la licencia.';
+        console.error('Error al buscar licencia:', e)
+        this.showSweetAlert('error', 'Error', 'Error al consultar la licencia: ' + (e.message || 'Error desconocido'))
+        this.showToast('Error', 'No se pudo consultar la licencia', 'error')
       } finally {
-        this.loading = false;
+        this.loading = false
+      }
+    },
+
+    async verPagos() {
+      if (!this.licData || !this.licData.numlic) {
+        this.error = 'No hay licencia seleccionada para consultar pagos'
+        return
+      }
+
+      this.loading = true
+      this.error = ''
+
+      try {
+        const eRequest = {
+          Operacion: 'sp_conslic400_pagos',
+          Base: 'padron_licencias',
+          Parametros: [
+            {
+              nombre: 'p_licencia',
+              valor: parseInt(this.licData.numlic)
+            }
+          ],
+          Tenant: 'informix'
+        }
+
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eRequest })
+        })
+
+        const data = await response.json()
+
+        if (data.eResponse.success && data.eResponse.data.result) {
+          this.pagos = data.eResponse.data.result
+          this.mostrarPagos = true
+          this.showToast('Información', `Se encontraron ${this.pagos.length} pagos`, 'info')
+        } else {
+          this.pagos = []
+          this.mostrarPagos = true
+          this.showToast('Información', 'No hay pagos registrados', 'info')
+        }
+      } catch (e) {
+        console.error('Error al buscar pagos:', e)
+        this.showSweetAlert('error', 'Error', 'Error al consultar los pagos: ' + (e.message || 'Error desconocido'))
+        this.showToast('Error', 'No se pudieron consultar los pagos', 'error')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return ''
+      try {
+        return new Date(dateString).toLocaleDateString('es-MX')
+      } catch {
+        return dateString
+      }
+    },
+
+    showSweetAlert(type, title, text) {
+      const config = {
+        success: { icon: 'fa-check-circle', color: '#28a745', buttonClass: 'btn-success' },
+        error: { icon: 'fa-times-circle', color: '#dc3545', buttonClass: 'btn-danger' },
+        warning: { icon: 'fa-exclamation-triangle', color: '#ffc107', buttonClass: 'btn-warning' },
+        info: { icon: 'fa-info-circle', color: '#17a2b8', buttonClass: 'btn-info' }
+      };
+
+      this.sweetAlert = {
+        show: true,
+        type: type,
+        title: title,
+        text: text,
+        icon: config[type].icon,
+        color: config[type].color,
+        buttonText: 'OK',
+        buttonClass: config[type].buttonClass
+      };
+
+      // Auto cerrar después de 3 segundos para success e info, 5 segundos para error y warning
+      const autoCloseTime = (type === 'success' || type === 'info') ? 3000 : 5000;
+      setTimeout(() => {
+        this.closeSweetAlert();
+      }, autoCloseTime);
+    },
+
+    closeSweetAlert() {
+      this.sweetAlert.show = false;
+    },
+
+    showToast(title, message, type) {
+      const config = {
+        success: { icon: 'fa-check-circle', color: '#28a745' },
+        error: { icon: 'fa-times-circle', color: '#dc3545' },
+        warning: { icon: 'fa-exclamation-triangle', color: '#ffc107' },
+        info: { icon: 'fa-info-circle', color: '#17a2b8' }
+      };
+
+      const toast = {
+        title: title,
+        message: message,
+        icon: config[type].icon,
+        color: config[type].color,
+        show: false
+      };
+
+      this.toasts.push(toast);
+
+      setTimeout(() => {
+        toast.show = true;
+      }, 100);
+
+      setTimeout(() => {
+        this.removeToast(this.toasts.length - 1);
+      }, 4000);
+    },
+
+    removeToast(index) {
+      if (this.toasts[index]) {
+        this.toasts[index].show = false;
+        setTimeout(() => {
+          this.toasts.splice(index, 1);
+        }, 300);
       }
     }
   }
-};
+}
 </script>
 
-<!-- Lic400Pagos.vue -->
-<template>
-  <div>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item"><router-link to="/lic400/datos">Consulta Licencia 400</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Pagos</li>
-      </ol>
-    </nav>
-    <h2 class="mb-4 text-center">Pagos de Licencia 400</h2>
-    <form @submit.prevent="buscarPagos" class="form-inline mb-3 justify-content-center">
-      <div class="form-group mr-2">
-        <label for="numlic" class="mr-2">Licencia</label>
-        <input type="number" v-model="numlic" id="numlic" class="form-control" required autofocus @keyup.enter="buscarPagos" />
-      </div>
-      <button type="submit" class="btn btn-primary">Buscar Pagos</button>
-    </form>
-    <div v-if="loading" class="text-center my-4">
-      <span class="spinner-border"></span> Cargando...
-    </div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="pagos && pagos.length">
-      <table class="table table-bordered table-sm">
-        <thead>
-          <tr>
-            <th v-for="(v, k) in pagos[0]" :key="k">{{ k }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(pago, idx) in pagos" :key="idx">
-            <td v-for="(v, k) in pago" :key="k">{{ v }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div v-else-if="pagos && !pagos.length" class="alert alert-info">No hay pagos registrados para esta licencia.</div>
-  </div>
-</template>
+<style scoped>
+.table th {
+  width: 120px;
+  white-space: nowrap;
+}
 
-<script>
-export default {
-  name: 'Lic400Pagos',
-  data() {
-    return {
-      numlic: this.$route.query.numlic || '',
-      pagos: null,
-      loading: false,
-      error: ''
-    };
-  },
-  methods: {
-    async buscarPagos() {
-      this.error = '';
-      this.pagos = null;
-      if (!this.numlic) {
-        this.error = 'Ingrese el número de licencia';
-        return;
-      }
-      this.loading = true;
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: 'getPagoLic400',
-          params: { numlic: this.numlic }
-        });
-        if (res.data.eResponse.success) {
-          this.pagos = res.data.eResponse.data;
-        } else {
-          this.error = 'No se encontraron pagos.';
-        }
-      } catch (e) {
-        this.error = 'Error al consultar los pagos.';
-      } finally {
-        this.loading = false;
-      }
-    }
-  },
-  mounted() {
-    if (this.numlic) {
-      this.buscarPagos();
-    }
-  }
-};
-</script>
+.table td {
+  word-wrap: break-word;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+/* Estilos específicos del componente (los globales están en src/styles/global.css) */
+</style>

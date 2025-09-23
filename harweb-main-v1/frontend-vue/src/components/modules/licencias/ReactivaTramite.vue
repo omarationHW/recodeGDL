@@ -136,8 +136,8 @@ export default {
           action: 'licencias2.get_tramite',
           payload: { id_tramite: this.idTramite }
         });
-        if (res.data.status === 'success' && res.data.data) {
-          this.tramite = res.data.data;
+        if (res.data.status === 'success' && res.data.eResponse.data.result) {
+          this.tramite = res.data.eResponse.data.result;
         } else {
           this.mensaje = res.data.message || 'Trámite no encontrado';
           this.exito = false;

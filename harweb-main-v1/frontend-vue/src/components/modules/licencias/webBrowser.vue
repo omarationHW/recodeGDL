@@ -61,7 +61,7 @@ export default {
           payload: { url: this.url }
         });
         if (res.data.status === 'success') {
-          this.iframeUrl = res.data.data.url;
+          this.iframeUrl = res.data.eResponse.data.result.url;
         } else {
           this.error = res.data.message || 'Error al navegar.';
         }

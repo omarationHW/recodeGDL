@@ -85,9 +85,9 @@ export default {
           payload: { anuncio: this.form.anuncio }
         });
         if (res.data.status === 'success') {
-          this.anuncio = res.data.data.anuncio;
-          this.licencia = res.data.data.licencia;
-          this.saldos = res.data.data.saldos;
+          this.anuncio = res.data.eResponse.data.result.anuncio;
+          this.licencia = res.data.eResponse.data.result.licencia;
+          this.saldos = res.data.eResponse.data.result.saldos;
         } else {
           this.errorMessage = res.data.message || 'No se encontró el anuncio';
         }

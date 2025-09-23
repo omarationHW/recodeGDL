@@ -203,7 +203,7 @@ export default {
           payload: payload
         });
         return res.data.status === 'success' ? 
-          { success: true, data: res.data.data, message: res.data.message } : 
+          { success: true, data: res.data.eResponse.data.result, message: res.data.message } : 
           { success: false, message: res.data.message };
       } catch (error) {
         return {success: false, message: error.message};

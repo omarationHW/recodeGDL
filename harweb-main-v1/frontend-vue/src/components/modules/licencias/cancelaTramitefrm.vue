@@ -142,8 +142,8 @@ export default {
           body: JSON.stringify({ action: 'get_tramite_by_id', params: { id_tramite: this.id_tramite } })
         });
         const data = await resp.json();
-        if (data.success && data.data && data.data.length > 0) {
-          this.tramite = data.data[0];
+        if (data.eResponse.success && data.eResponse.data.result && data.eResponse.data.result.length > 0) {
+          this.tramite = data.eResponse.data.result[0];
           // Buscar giro
           if (this.tramite.id_giro) {
             const respGiro = await fetch('/api/execute', {
@@ -194,7 +194,7 @@ export default {
           })
         });
         const data = await resp.json();
-        if (data.success) {
+        if (data.eResponse.success) {
           this.mensaje = 'Trámite cancelado exitosamente.';
           this.mensajeTipo = 'success';
           this.tramite.estatus = 'C';

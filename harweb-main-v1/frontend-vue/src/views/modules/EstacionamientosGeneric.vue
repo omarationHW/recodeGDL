@@ -37,6 +37,9 @@ export default {
     
     // Lista de archivos reales disponibles en el módulo estacionamientos
     const availableFiles = [
+      // 🆕 NUEVOS COMPONENTES DE MODERNIZACIÓN
+      "SistemaConveniosEstacionamientos", "SistemaApremiosEstacionamientos", "SistemaDescuentosConversion",
+      // Componentes existentes
       "Acceso", "AplicaPgo_DivAdmin", "Bja_Multiple", "Bja_Multiple_Ind", "Cga_ArcEdoEx", "ConsGral", "ConsRemesas", "DM_Crbos", "DsDBGasto", "Dspasswords", "frmMetrometers", "Gen_ArcAltas", "Gen_ArcDiario", "Gen_Individual", "Gen_Individual_b", "Gen_PgosBanorte", "mensaje", "Reactiva_Folios", "Reportes_Folios", "sdmWebService", "sfolios_alta", "sfrmMetrometers", "sfrmprediocarto", "sfrm_abc_propietario", "sfrm_alta_ubicaciones", "sfrm_aspecto", "sfrm_chg_autorizadescto", "sfrm_consultapublicos", "sFrm_consulta_folios", "sFrm_datos_oficio", "sfrm_excConsulta", "sfrm_EXC_alta", "sfrm_exc_mod_contrato", "sFrm_menu", "sfrm_modif_folios", "sfrm_nva_calco", "sfrm_pagosestadorel", "sFrm_pasar_padron", "sfrm_pdfviewer", "sfrm_prop_exclusivo", "sfrm_reportescalco", "SFRM_REPORTES_EXEC", "sfrm_report_pagos", "sfrm_rep_folio", "sfrm_transfolios", "sFrm_trans_exclu", "sfrm_trans_pub", "sfrm_tr_estado_mpio", "sFrm_UpExclus", "sfrm_up_pagos", "sfrm_valet_paso", "spubActualizacionfrm", "spublicosnewfrm", "spubreports", "sqrp_esta01", "sqrp_publicos", "sQRp_relacion_folios", "sQRt_imp_padron", "srfrm_conci_banorte", "Unit1", "UNIT9"
     ]
 

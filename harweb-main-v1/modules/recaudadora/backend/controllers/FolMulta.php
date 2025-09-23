@@ -1,1 +1,0 @@
-// Error en generación: Se ha intentado una operación de socket en una red no accesible. (api.openai.com:443)

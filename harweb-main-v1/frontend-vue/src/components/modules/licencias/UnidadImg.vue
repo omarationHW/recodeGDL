@@ -57,8 +57,8 @@ export default {
           action: 'licencias2.getUnidadImg',
           payload: {}
         });
-        if (res.data.status === 'success' && res.data.data) {
-          this.unidadImg = res.data.data;
+        if (res.data.status === 'success' && res.data.eResponse.data.result) {
+          this.unidadImg = res.data.eResponse.data.result;
         } else {
           this.unidadImg = 'N'; // valor por defecto
         }

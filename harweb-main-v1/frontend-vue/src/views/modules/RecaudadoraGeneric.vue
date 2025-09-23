@@ -37,6 +37,9 @@ export default {
     
     // Lista de archivos reales disponibles en el módulo recaudadora
     const availableFiles = [
+      // 🆕 NUEVOS COMPONENTES DE MODERNIZACIÓN
+      "SistemaConveniosRecaudadora", "SistemaApremiosRecaudadora", "FuncionesExcluidasRecaudadora",
+      // Componentes existentes
       "ActualizaFechaEmpresas", "AplicaSdosFavor", "autdescto", "bloqctasreqfrm", "BloqueoMulta", "busque", "canc", "CapturaDif", "CartaInvitacion", "CatastroDM", "centrosfrm", "codificafrm", "conscentrosfrm", "consdesc", "consescrit400", "consmulpagos", "consobsmulfrm", "ConsReq400", "consultapredial", "dderechosLic", "DescDerechosMerc", "descmultampalfrm", "descpredfrm", "desctorec", "DrecgoFosa", "drecgoLic", "drecgoOtrasObligaciones", "DrecgoTrans", "Ejecutores", "Empresas", "entregafrm", "estadreq", "Exclusivos_Upd", "ExtractosRpt", "FirmaElectronica", "FolMulta", "FrmEje", "frmpol", "GastosTransmision", "Hastafrm", "impreqCvecat", "ImpresionNva", "ImprimeDesctos", "ipor", "leyesfrm", "LicenciaMicrogenerador", "LicenciaMicrogeneradorEcologia", "ligapago", "ligapagoTra", "ListaDiferencias", "ListadoMultiple", "ListAna", "listanotificacionesfrm", "listareq", "listchq", "listdesctomultafrm", "ModifMasiva", "multas400frm", "MultasDM", "multasfrm", "multasfrmcalif", "newsfrm", "Otorgadescto", "pagalicfrm", "pagosdivfrm", "PagosEspe", "pagosmultfrm", "PeriodoInicial", "polcon", "prepagofrm", "pres", "Propuestatab", "proyecfrm", "pruebacalcas", "psplash", "Publicos_Upd", "reg", "regHfrm", "RegSecyMas", "reimpfrm", "relmes", "repavance", "RepDescImpto", "repmultampalfrm", "RepOper", "Req", "reqctascanfrm", "ReqFrm", "reqmultas400frm", "ReqPromocion", "ReqTrans", "RequerimientosDM", "RequerxCvecat", "ResolucionJuez", "SdosFavorDM", "SdosFavor_CtrlExp", "SdosFavor_Pagos", "sfrm_calificacionQR", "sfrm_chgpass", "sfrm_prescrip_sec01", "sgcv2", "SinLigarFrm", "SolSdosFavor", "TDMConection", "trasladosfrm", "Ubicodifica"
     ]
 

@@ -6,18 +6,17 @@ import axios from 'axios'
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 import './assets/style.css'
+import './styles/global.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import '@fortawesome/fontawesome-free/css/all.min.css'
 
 const app = createApp(App)
 
-// Agregar una función para manejar errores globales
 // Configurar axios como propiedad global
 app.config.globalProperties.$axios = axios
 
-// Configurar axios base URL y timeout 
-axios.defaults.baseURL = 'http://localhost:8000'
+// Configurar axios base URL y timeout - Node.js Backend (working)
+axios.defaults.baseURL = 'http://localhost:8080'
 axios.defaults.timeout = 60000 // 60 segundos para debugging
 
 // Interceptor de respuesta para logging

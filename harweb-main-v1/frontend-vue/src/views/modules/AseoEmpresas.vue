@@ -2,7 +2,7 @@
   <div class="module-page">
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900">ABC Empresas - Aseo</h1>
-      <p class="mt-2 text-gray-600">Gestión de empresas contratistas del sistema de aseo urbano</p>
+      <p class="mt-2 text-gray-600">Gesti�n de empresas contratistas del sistema de aseo urbano</p>
     </div>
 
     <div class="bg-white shadow-sm rounded-lg border">
@@ -16,7 +16,7 @@
             <h3 class="text-lg font-medium text-gray-900 mb-4">Nueva Empresa</h3>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Razón Social</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Raz�n Social</label>
                 <input 
                   type="text" 
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -34,11 +34,11 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tel�fono</label>
                 <input 
                   type="tel" 
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Teléfono de contacto"
+                  placeholder="Tel�fono de contacto"
                 />
               </div>
               
@@ -46,8 +46,8 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Servicios</label>
                 <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                   <option value="">Seleccione servicio</option>
-                  <option value="recoleccion">Recolección</option>
-                  <option value="limpieza">Limpieza de vías</option>
+                  <option value="recoleccion">Recolecci�n</option>
+                  <option value="limpieza">Limpieza de v�as</option>
                   <option value="mantenimiento">Mantenimiento</option>
                   <option value="transporte">Transporte de residuos</option>
                 </select>
@@ -56,7 +56,7 @@
           </div>
           
           <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Información de Contrato</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Informaci�n de Contrato</h3>
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Inicio</label>
@@ -104,7 +104,7 @@
                 <tr>
                   <td class="px-6 py-4 text-sm font-medium text-gray-900">Servicios Ambientales SA</td>
                   <td class="px-6 py-4 text-sm text-gray-500">SAM850101ABC</td>
-                  <td class="px-6 py-4 text-sm text-gray-500">Recolección</td>
+                  <td class="px-6 py-4 text-sm text-gray-500">Recolecci�n</td>
                   <td class="px-6 py-4">
                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                       Activo

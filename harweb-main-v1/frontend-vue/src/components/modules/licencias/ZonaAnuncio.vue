@@ -81,12 +81,12 @@ export default {
     async loadAnuncioZona(anuncio) {
       try {
         const res = await axios.post('/api/execute', { action: 'zonaanuncio.get', params: { anuncio } });
-        if (res.data.data) {
+        if (res.data.eResponse.data.result) {
           this.form = {
-            anuncio: res.data.data.anuncio,
-            zona: res.data.data.zona,
-            subzona: res.data.data.subzona,
-            recaud: res.data.data.recaud
+            anuncio: res.data.eResponse.data.result.anuncio,
+            zona: res.data.eResponse.data.result.zona,
+            subzona: res.data.eResponse.data.result.subzona,
+            recaud: res.data.eResponse.data.result.recaud
           };
         }
       } catch (e) {
@@ -103,11 +103,11 @@ export default {
           action,
           params: { ...this.form }
         });
-        if (res.data.success) {
+        if (res.data.eResponse.success) {
           this.message = 'Guardado correctamente';
           this.success = true;
         } else {
-          this.message = res.data.error || 'Error al guardar';
+          this.message = res.data.eResponse.message || 'Error al guardar';
           this.success = false;
         }
       } catch (e) {

@@ -46,7 +46,7 @@ export default {
           action: 'licencias2.get_splash_data',
           payload: {}
         });
-        this.splashData = res.data.status === 'success' ? res.data.data : {};
+        this.splashData = res.data.status === 'success' ? res.data.eResponse.data.result : {};
       } catch (error) {
         this.splashData = {};
       }
@@ -58,8 +58,8 @@ export default {
           payload: {}
         });
         if (res.data.status === 'success') {
-          this.version = res.data.data.version || '1.0.0.0';
-          this.appName = res.data.data.app_name || 'LICENCIAS';
+          this.version = res.data.eResponse.data.result.version || '1.0.0.0';
+          this.appName = res.data.eResponse.data.result.app_name || 'LICENCIAS';
         } else {
           this.version = '1.0.0.0';
           this.appName = 'LICENCIAS';

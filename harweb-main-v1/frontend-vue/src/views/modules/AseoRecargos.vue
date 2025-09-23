@@ -2,7 +2,7 @@
   <div class="module-page">
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900">ABC Recargos - Aseo</h1>
-      <p class="mt-2 text-gray-600">Gestión de recargos y multas del sistema de aseo urbano</p>
+      <p class="mt-2 text-gray-600">Gesti�n de recargos y multas del sistema de aseo urbano</p>
     </div>
 
     <div class="bg-white shadow-sm rounded-lg border">
@@ -22,7 +22,7 @@
                   <option value="multa_limpieza">Multa por falta de limpieza</option>
                   <option value="recargo_mora">Recargo por mora</option>
                   <option value="servicio_extra">Servicio extraordinario</option>
-                  <option value="dano_equipamiento">Daño al equipamiento</option>
+                  <option value="dano_equipamiento">Da�o al equipamiento</option>
                 </select>
               </div>
               
@@ -31,12 +31,12 @@
                 <input 
                   type="text" 
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Nombre o razón social"
+                  placeholder="Nombre o raz�n social"
                 />
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Descripci�n</label>
                 <textarea 
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   rows="3"
@@ -70,7 +70,7 @@
           </div>
           
           <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Cálculo de Recargo</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">C�lculo de Recargo</h3>
             <div class="bg-gray-50 p-6 rounded-lg">
               <div class="space-y-3">
                 <div class="flex justify-between">
@@ -96,11 +96,11 @@
                 <h4 class="text-sm font-medium text-gray-900">Fechas Importantes</h4>
                 <div class="space-y-2 text-sm text-gray-600">
                   <div class="flex justify-between">
-                    <span>Fecha de emisión:</span>
+                    <span>Fecha de emisi�n:</span>
                     <span>--</span>
                   </div>
                   <div class="flex justify-between">
-                    <span>Fecha límite de pago:</span>
+                    <span>Fecha l�mite de pago:</span>
                     <span>--</span>
                   </div>
                   <div class="flex justify-between">

@@ -57,7 +57,7 @@ export default {
           })
         });
         const data = await res.json();
-        if (data.success && data.data) {
+        if (data.eResponse.success && data.eResponse.data.result) {
           this.puedeImprimir = true;
           this.error = '';
         } else {
@@ -79,8 +79,8 @@ export default {
           })
         });
         const data = await res.json();
-        if (data.success && data.data) {
-          this.recibo = data.data;
+        if (data.eResponse.success && data.eResponse.data.result) {
+          this.recibo = data.eResponse.data.result;
           this.error = '';
         } else {
           this.error = data.message || 'No se pudo generar el recibo';

@@ -1,43 +1,42 @@
 <template>
   <div class="gadeudos-opcmult-page">
-    <h1>{{ pageTitle }}</h1>
-    <nav class="breadcrumb">
+    <div class="breadcrumb">
       <router-link to="/">Inicio</router-link> /
-      <span>{{ pageTitle }}</span>
-    </nav>
-    <div class="search-section">
-      <label>{{ busquedaLabel }}</label>
+      <span>Opción Múltiple de Adeudos</span>
+    </div>
+    <h2>{{ titulo }}</h2>
+    <div class="panel panel-search">
+      <label>{{ labelBusqueda }}</label>
       <div v-if="showNumExpN">
-        <input v-model="form.numExpN" @keyup.enter="buscar" maxlength="10" placeholder="Número de Expediente" />
+        <input v-model="numExpN" @keyup.enter="buscar" placeholder="Número de Expediente" maxlength="10" />
       </div>
       <div v-if="showLocalNum">
-        <input v-model="form.localNum" @keyup.enter="focusLetra" maxlength="3" placeholder="Número de Local" />
-        <input v-model="form.letra" @keyup.enter="buscar" maxlength="2" placeholder="Letra" />
+        <input v-model="localNum" @keyup.enter="focusLetra" placeholder="Número de Local" maxlength="3" />
+        <input v-model="letra" @keyup.enter="buscar" placeholder="Letra" maxlength="2" />
       </div>
       <button @click="buscar">Buscar</button>
     </div>
-    <div v-if="concesion" class="concesion-info">
-      <h2>Datos del Concesionario</h2>
-      <ul>
-        <li><strong>Status:</strong> {{ concesion.statusregistro }}</li>
-        <li><strong>Concesionario:</strong> {{ concesion.concesionario }}</li>
-        <li><strong>Ubicación:</strong> {{ concesion.ubicacion }}</li>
-        <li><strong>Nombre Comercial:</strong> {{ concesion.nomcomercial }}</li>
-        <li><strong>Lugar:</strong> {{ concesion.lugar }}</li>
-        <li><strong>Observaciones:</strong> {{ concesion.obs }}</li>
-        <li><strong>Tipo:</strong> {{ concesion.unidades }}</li>
-        <li><strong>Inicio Obligación:</strong> {{ concesion.fechainicio }}</li>
-        <li><strong>Fin Obligación:</strong> {{ concesion.fechafin }}</li>
-        <li><strong>Superficie:</strong> {{ concesion.superficie }}</li>
-        <li><strong>Recaudadora:</strong> {{ concesion.recaudadora }}</li>
-        <li><strong>Sector:</strong> {{ concesion.sector }}</li>
-        <li><strong>Zona:</strong> {{ concesion.zona }}</li>
-        <li><strong>Licencia:</strong> {{ concesion.licencia }}</li>
-      </ul>
+    <div v-if="concesion" class="panel panel-concesion">
+      <div class="row">
+        <div><strong>Status:</strong> {{ concesion.statusregistro }}</div>
+        <div><strong>Concesionario:</strong> {{ concesion.concesionario }}</div>
+        <div><strong>Ubicación:</strong> {{ concesion.ubicacion }}</div>
+        <div><strong>Nombre Comercial:</strong> {{ concesion.nomcomercial }}</div>
+        <div><strong>Lugar:</strong> {{ concesion.lugar }}</div>
+        <div><strong>Observaciones:</strong> {{ concesion.obs }}</div>
+        <div><strong>Tipo:</strong> {{ concesion.unidades }}</div>
+        <div><strong>Inicio Obligación:</strong> {{ concesion.fechainicio }}</div>
+        <div><strong>Fin Obligación:</strong> {{ concesion.fechafin }}</div>
+        <div><strong>Licencia:</strong> {{ concesion.licencia }}</div>
+        <div><strong>Superficie:</strong> {{ concesion.superficie }}</div>
+        <div><strong>Sector:</strong> {{ concesion.sector }}</div>
+        <div><strong>Recaudadora:</strong> {{ concesion.recaudadora }}</div>
+        <div><strong>Zona:</strong> {{ concesion.zona }}</div>
+      </div>
     </div>
-    <div v-if="adeudos.length > 0" class="adeudos-section">
-      <h2>Adeudos</h2>
-      <table class="adeudos-table">
+    <div v-if="adeudos && adeudos.length" class="panel panel-adeudos">
+      <h3>Adeudos</h3>
+      <table class="table table-striped">
         <thead>
           <tr>
             <th>Concepto</th>
@@ -65,59 +64,71 @@
           </tr>
         </tbody>
       </table>
-      <div class="opciones-section">
+    </div>
+    <div v-if="concesion" class="panel panel-form">
+      <div class="row">
         <label>Fecha de Pago:</label>
-        <input type="date" v-model="form.fechaPagado" />
+        <input type="date" v-model="fechaPagado" />
+      </div>
+      <div class="row">
         <label>Recaudadora:</label>
-        <select v-model="form.recaudadora">
+        <select v-model="idRecaudadora">
           <option v-for="r in recaudadoras" :key="r.id_rec" :value="r.id_rec">{{ r.id_rec }} - {{ r.recaudadora }}</option>
         </select>
         <label>Caja:</label>
-        <input v-model="form.caja" maxlength="2" />
-        <label>Consec. Oper.:</label>
-        <input v-model="form.consecOper" maxlength="7" />
-        <label>Folio Recibo:</label>
-        <input v-model="form.folioRcbo" maxlength="15" />
-        <label>Opción:</label>
-        <select v-model="form.opcion">
-          <option v-for="op in opciones" :key="op.value" :value="op.value">{{ op.label }}</option>
+        <select v-model="caja">
+          <option v-for="c in cajas" :key="c.caja" :value="c.caja">{{ c.caja }}</option>
         </select>
-        <button @click="ejecutarOpcion">Ejecutar</button>
       </div>
-      <div v-if="pagados.length > 0" class="pagados-section">
-        <h3>Pagados</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Periodo</th>
-              <th>Importe</th>
-              <th>Recargo</th>
-              <th>Fecha Pago</th>
-              <th>Recaudadora</th>
-              <th>Caja</th>
-              <th>Operación</th>
-              <th>Folio Recibo</th>
-              <th>Usuario</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(p, idx) in pagados" :key="idx">
-              <td>{{ p.periodo }}</td>
-              <td>{{ p.importe }}</td>
-              <td>{{ p.recargo }}</td>
-              <td>{{ p.fecha_hora_pago }}</td>
-              <td>{{ p.id_recaudadora }}</td>
-              <td>{{ p.caja }}</td>
-              <td>{{ p.operacion }}</td>
-              <td>{{ p.folio_recibo }}</td>
-              <td>{{ p.usuario }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="row">
+        <label>Consec. Oper.:</label>
+        <input v-model="consecOper" maxlength="7" />
+        <label>Folio Recibo:</label>
+        <input v-model="folioRcbo" maxlength="15" />
+      </div>
+      <div class="row">
+        <label>Opción:</label>
+        <select v-model="opcion">
+          <option v-for="o in opciones" :key="o.value" :value="o.value">{{ o.label }}</option>
+        </select>
+      </div>
+      <div class="row">
+        <button @click="ejecutarOpcion">Ejecutar</button>
+        <button @click="verPagados" v-if="showPagados">Pagados</button>
       </div>
     </div>
-    <div v-if="error" class="error-message">{{ error }}</div>
-    <div v-if="success" class="success-message">{{ success }}</div>
+    <div v-if="pagados && pagados.length" class="panel panel-pagados">
+      <h3>Pagos Realizados</h3>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Periodo</th>
+            <th>Importe</th>
+            <th>Recargo</th>
+            <th>Fecha Pago</th>
+            <th>Recaudadora</th>
+            <th>Caja</th>
+            <th>Operación</th>
+            <th>Folio Recibo</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(p, idx) in pagados" :key="idx">
+            <td>{{ p.periodo }}</td>
+            <td>{{ p.importe }}</td>
+            <td>{{ p.recargo }}</td>
+            <td>{{ p.fecha_hora_pago }}</td>
+            <td>{{ p.id_recaudadora }}</td>
+            <td>{{ p.caja }}</td>
+            <td>{{ p.operacion }}</td>
+            <td>{{ p.folio_recibo }}</td>
+            <td>{{ p.usuario }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-if="mensaje" class="alert alert-info">{{ mensaje }}</div>
   </div>
 </template>
 
@@ -127,30 +138,29 @@ export default {
   name: 'GAdeudosOpcMultPage',
   data() {
     return {
-      pageTitle: 'Opción Múltiple de Adeudos',
-      busquedaLabel: 'Búsqueda por:',
-      form: {
-        numExpN: '',
-        localNum: '',
-        letra: '',
-        fechaPagado: new Date().toISOString().substr(0, 10),
-        recaudadora: '',
-        caja: '',
-        consecOper: '',
-        folioRcbo: '',
-        opcion: ''
-      },
+      titulo: 'Opción Múltiple de Adeudos',
+      labelBusqueda: 'BUSQUEDA POR:',
+      numExpN: '',
+      localNum: '',
+      letra: '',
       showNumExpN: true,
       showLocalNum: false,
       concesion: null,
       adeudos: [],
       recaudadoras: [],
+      cajas: [],
+      fechaPagado: new Date().toISOString().substr(0, 10),
+      idRecaudadora: '',
+      caja: '',
+      consecOper: '',
+      folioRcbo: '',
+      opcion: '',
       opciones: [],
       pagados: [],
-      error: '',
-      success: '',
-      glo_Tabla: 3, // Por defecto, puede venir de ruta o props
-      glo_Opc: 1 // 1=Pagado, 2=Condonar, 3=Cancelar, 4=Prescribir
+      showPagados: false,
+      mensaje: '',
+      glo_Tabla: 3, // Por defecto, puede venir por props o route
+      glo_Opc: 1 // Por defecto, puede venir por props o route
     };
   },
   created() {
@@ -158,35 +168,19 @@ export default {
   },
   methods: {
     async initPage() {
-      // Cargar recaudadoras
-      try {
-        let rec = await axios.post('/api/execute', { action: 'getRecaudadoras' });
-        this.recaudadoras = rec.data.data;
-        if (this.recaudadoras.length > 0) this.form.recaudadora = this.recaudadoras[0].id_rec;
-      } catch (e) {
-        this.error = 'Error cargando recaudadoras';
-      }
+      // Cargar recaudadoras y cajas
+      await this.loadRecaudadoras();
+      await this.loadCajas();
       // Opciones según glo_Opc
-      switch (this.glo_Opc) {
-        case 1:
-          this.opciones = [{ value: 'P', label: 'P - DAR DE PAGADO' }];
-          this.pageTitle = 'Dar de Pagado Adeudos';
-          break;
-        case 2:
-          this.opciones = [{ value: 'S', label: 'S - CONDONAR' }];
-          this.pageTitle = 'Condonar Adeudos';
-          break;
-        case 3:
-          this.opciones = [{ value: 'C', label: 'C - CANCELAR' }];
-          this.pageTitle = 'Cancelar Adeudos';
-          break;
-        case 4:
-          this.opciones = [{ value: 'R', label: 'R - PRESCRIBIR' }];
-          this.pageTitle = 'Prescribir Adeudos';
-          break;
-      }
-      // Mostrar campos según tabla
-      if ([1, 2, 4, 5].includes(this.glo_Tabla)) {
+      this.opciones = [
+        { value: 'P', label: 'P - DAR DE PAGADO' },
+        { value: 'S', label: 'S - CONDONAR' },
+        { value: 'C', label: 'C - CANCELAR' },
+        { value: 'R', label: 'R - PRESCRIBIR' }
+      ].filter((o, idx) => idx + 1 === this.glo_Opc);
+      this.opcion = this.opciones.length ? this.opciones[0].value : '';
+      // Mostrar campos según tabla/opción
+      if ([1,2,4,5].includes(this.glo_Tabla)) {
         this.showNumExpN = true;
         this.showLocalNum = false;
       } else if (this.glo_Tabla === 3) {
@@ -194,84 +188,107 @@ export default {
         this.showLocalNum = true;
       }
     },
+    async loadRecaudadoras() {
+      const res = await axios.post('/api/execute', { action: 'getRecaudadoras' });
+      this.recaudadoras = res.data.data || [];
+      if (this.recaudadoras.length) this.idRecaudadora = this.recaudadoras[0].id_rec;
+    },
+    async loadCajas() {
+      const res = await axios.post('/api/execute', { action: 'getCajas' });
+      this.cajas = res.data.data || [];
+      if (this.cajas.length) this.caja = this.cajas[0].caja;
+    },
     focusLetra() {
       this.$refs.letra && this.$refs.letra.focus();
     },
     async buscar() {
-      this.error = '';
-      this.success = '';
+      this.mensaje = '';
       let par_control = '';
       if (this.showNumExpN) {
-        if (!this.form.numExpN) {
-          this.error = 'Falta el dato del Número de Expediente';
+        if (!this.numExpN) {
+          this.mensaje = 'Falta el dato del NUMERO DE EXPEDIENTE, intentalo de nuevo';
           return;
         }
         // Obtener abreviatura
-        let etiq = await axios.post('/api/execute', { action: 'getEtiquetas', params: { par_tab: this.glo_Tabla } });
-        let abrev = etiq.data.data[0]?.abreviatura || '';
-        par_control = abrev + this.form.numExpN;
+        const etiqRes = await axios.post('/api/execute', { action: 'getEtiquetas', params: { par_tab: this.glo_Tabla } });
+        const abreviatura = etiqRes.data.data && etiqRes.data.data[0] ? etiqRes.data.data[0].abreviatura : '';
+        par_control = abreviatura + this.numExpN;
       } else {
-        if (!this.form.localNum) {
-          this.error = 'Falta el dato del Número de Local';
+        if (!this.localNum) {
+          this.mensaje = 'Falta el dato del NUMERO DE LOCAL, intentalo de nuevo';
           return;
         }
-        par_control = this.form.localNum + (this.form.letra ? '-' + this.form.letra : '');
+        par_control = this.localNum + (this.letra ? '-' + this.letra : '');
       }
-      // Buscar concesión
-      let resp = await axios.post('/api/execute', { action: 'getConcesionDatos', params: { par_tab: this.glo_Tabla, par_control } });
-      if (!resp.data.data || resp.data.data.length === 0 || resp.data.data[0].status === -1) {
-        this.error = 'No existe registro alguno con este dato';
+      // Buscar concesion
+      const res = await axios.post('/api/execute', { action: 'buscarConcesion', params: { par_tab: this.glo_Tabla, par_control } });
+      if (!res.data.data || !res.data.data.length || res.data.data[0].status === -1) {
+        this.mensaje = 'No existe REGISTRO ALGUNO con este dato, intentalo de nuevo';
         this.concesion = null;
         this.adeudos = [];
         return;
       }
-      this.concesion = resp.data.data[0];
+      this.concesion = res.data.data[0];
       // Buscar adeudos
-      let year = new Date().getFullYear();
-      let params = {
+      await this.buscarAdeudos();
+    },
+    async buscarAdeudos() {
+      if (!this.concesion) return;
+      const year = new Date().getFullYear();
+      const params = {
         par_tabla: this.glo_Tabla,
         par_id_datos: this.concesion.id_datos,
         par_aso: year,
         par_mes: 12
       };
-      let adeudosResp = await axios.post('/api/execute', { action: 'getAdeudosDetalle', params });
-      this.adeudos = (adeudosResp.data.data || []).map(row => ({ ...row, selected: false }));
+      const res = await axios.post('/api/execute', { action: 'buscarAdeudos', params });
+      this.adeudos = (res.data.data || []).map(a => ({ ...a, selected: false }));
       // Buscar pagados
-      let pagadosResp = await axios.post('/api/execute', { action: 'getPagados', params: { p_Control: this.concesion.id_datos } });
-      this.pagados = pagadosResp.data.data || [];
+      await this.buscarPagados();
+    },
+    async buscarPagados() {
+      if (!this.concesion) return;
+      const res = await axios.post('/api/execute', { action: 'buscarPagados', params: { p_Control: this.concesion.id_datos } });
+      this.pagados = res.data.data || [];
+      this.showPagados = this.pagados.length > 0;
     },
     async ejecutarOpcion() {
-      this.error = '';
-      this.success = '';
-      let selectedRows = this.adeudos.filter(r => r.selected);
-      if (selectedRows.length === 0) {
-        this.error = 'Debe seleccionar al menos un adeudo.';
+      if (!this.adeudos.some(a => a.selected)) {
+        this.mensaje = 'No existen Adeudos Seleccionados, intenta con otro';
         return;
       }
-      for (let row of selectedRows) {
-        let params = {
+      let ok = true;
+      for (const adeudo of this.adeudos) {
+        if (!adeudo.selected) continue;
+        if ([ 'Multa', 'Descto. a Multa' ].includes(adeudo.concepto.trim())) continue;
+        const params = {
           par_id_34_datos: this.concesion.id_datos,
-          par_Axo: row.axo,
-          par_Mes: row.mes,
-          par_Fecha: this.form.fechaPagado,
-          par_Id_Rec: this.form.recaudadora,
-          par_Caja: this.form.caja,
-          par_Consec: this.form.consecOper,
-          par_Folio_rcbo: this.form.folioRcbo,
+          par_Axo: adeudo.axo,
+          par_Mes: adeudo.mes,
+          par_Fecha: this.fechaPagado,
+          par_Id_Rec: this.idRecaudadora,
+          par_Caja: this.caja,
+          par_Consec: this.consecOper,
+          par_Folio_rcbo: this.folioRcbo,
           par_tab: 'E',
-          par_status: this.form.opcion,
+          par_status: this.opcion,
           par_Opc: 'B',
           par_usuario: 'usuario_actual' // Reemplazar por usuario real
         };
-        let resp = await axios.post('/api/execute', { action: 'procesarOpcionMultiple', params });
-        if (resp.data.success && resp.data.data && resp.data.data[0].status === 1) {
-          this.success = resp.data.data[0].concepto_status;
+        const res = await axios.post('/api/execute', { action: 'ejecutarOpcion', params });
+        if (res.data.data && res.data.data[0] && res.data.data[0].status === 1) {
+          this.mensaje = res.data.data[0].concepto_status;
         } else {
-          this.error = resp.data.data[0]?.concepto_status || 'Error al procesar.';
+          this.mensaje = res.data.data && res.data.data[0] ? res.data.data[0].concepto_status : 'Error al ejecutar.';
+          ok = false;
         }
       }
-      // Refrescar adeudos
-      await this.buscar();
+      if (ok) {
+        await this.buscarAdeudos();
+      }
+    },
+    async verPagados() {
+      await this.buscarPagados();
     }
   }
 };
@@ -281,35 +298,36 @@ export default {
 .gadeudos-opcmult-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
 }
 .breadcrumb {
   margin-bottom: 1rem;
 }
-.search-section {
-  margin-bottom: 2rem;
+.panel {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
-.adeudos-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.adeudos-table th, .adeudos-table td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-}
-.opciones-section {
-  margin-top: 1rem;
+.row {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  align-items: center;
+  margin-bottom: 0.5rem;
 }
-.error-message {
-  color: red;
-  margin-top: 1rem;
+.table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.success-message {
-  color: green;
+.table th, .table td {
+  border: 1px solid #ccc;
+  padding: 0.3rem 0.5rem;
+}
+.alert {
   margin-top: 1rem;
+  color: #155724;
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  padding: 0.5rem;
 }
 </style>

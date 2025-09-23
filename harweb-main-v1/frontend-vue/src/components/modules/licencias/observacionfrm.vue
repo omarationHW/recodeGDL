@@ -114,7 +114,7 @@ export default {
           payload: {}
         });
         if (res.data.status === 'success') {
-          this.observaciones = res.data.data || [];
+          this.observaciones = res.data.eResponse.data.result || [];
         } else {
           this.observaciones = [];
         }

@@ -168,7 +168,7 @@ export default {
           payload: {}
         });
         if (res.data.status === 'success') {
-          this.gruposAnun = res.data.data;
+          this.gruposAnun = res.data.eResponse.data.result;
         }
       } catch (error) { this.error = error.message; }
     },
@@ -183,7 +183,7 @@ export default {
           payload: this.form
         });
         if (res.data.status === 'success') {
-          this.resultados = res.data.data;
+          this.resultados = res.data.eResponse.data.result;
         } else {
           this.error = res.data.message;
         }
@@ -200,7 +200,7 @@ export default {
           payload: this.form
         });
         if (res.data.status === 'success') {
-          this.excelUrl = res.data.data.url;
+          this.excelUrl = res.data.eResponse.data.result.url;
         } else {
           this.error = res.data.message;
         }

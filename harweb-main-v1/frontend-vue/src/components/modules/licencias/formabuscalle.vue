@@ -96,8 +96,8 @@ export default {
           })
         });
         const data = await resp.json();
-        if (data.success) {
-          this.calles = data.data;
+        if (data.eResponse.success) {
+          this.calles = data.eResponse.data.result;
           this.selectedIndex = null;
           this.selectedCveCalle = null;
         }
@@ -120,8 +120,8 @@ export default {
           })
         });
         const data = await resp.json();
-        if (data.success) {
-          this.calles = data.data;
+        if (data.eResponse.success) {
+          this.calles = data.eResponse.data.result;
           this.selectedIndex = null;
           this.selectedCveCalle = null;
         }

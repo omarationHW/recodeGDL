@@ -52,7 +52,7 @@ export default {
           payload: { user_id: this.userId }
         });
         if (res.data.status === 'success') {
-          this.resultado = res.data.data;
+          this.resultado = res.data.eResponse.data.result;
           this.colorActual = this.resultado.color;
           this.botonTexto = 'Aceptar';
         } else {
@@ -98,7 +98,7 @@ export default {
           payload: { user_id: this.userId }
         });
         if (res.data.status === 'success') {
-          this.stats = res.data.data;
+          this.stats = res.data.eResponse.data.result;
         }
       } catch (error) {
         // Handle error silently for stats loading

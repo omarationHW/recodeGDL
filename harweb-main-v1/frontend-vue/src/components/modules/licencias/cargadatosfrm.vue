@@ -143,28 +143,28 @@ export default {
           action: 'getCargadatos',
           params: { cvecatnva: this.form.cvecatnva }
         });
-        if (!res.data.success) throw new Error(res.data.message);
-        this.data = res.data.data;
+        if (!res.data.eResponse.success) throw new Error(res.data.message);
+        this.data = res.data.eResponse.data.result;
         // 2. Avalúos
         const resAva = await this.$axios.post('/api/execute', {
           action: 'getAvaluos',
           params: { cvecatnva: this.form.cvecatnva, subpredio: 0 }
         });
-        this.avaluos = resAva.data.data || [];
+        this.avaluos = resAva.data.eResponse.data.result || [];
         // 3. Construcciones (del primer avalúo)
         if (this.avaluos.length > 0) {
           const resCons = await this.$axios.post('/api/execute', {
             action: 'getConstrucciones',
             params: { cveavaluo: this.avaluos[0].cveavaluo }
           });
-          this.construcciones = resCons.data.data || [];
+          this.construcciones = resCons.data.eResponse.data.result || [];
         }
         // 4. Área cartográfica
         const resCarto = await this.$axios.post('/api/execute', {
           action: 'getAreaCarto',
           params: { cvecatnva: this.form.cvecatnva }
         });
-        this.areaCarto = resCarto.data.data;
+        this.areaCarto = resCarto.data.eResponse.data.result;
       } catch (e) {
         this.error = e.message;
       } finally {

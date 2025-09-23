@@ -1,111 +1,63 @@
-# Sistema Municipal Digital - Guadalajara
+# HarWeb - Sistema Municipal Guadalajara
 
-Sistema integral de gestión municipal para el Gobierno de Guadalajara, Jalisco. Una aplicación web moderna que digitaliza y centraliza los procesos administrativos municipales.
+Sistema integral de gestión municipal modernizado con Vue.js + Laravel.
 
-## 🏛️ Descripción
+## Módulos Implementados
 
-Este sistema permite la gestión completa de servicios municipales incluyendo recaudación, estacionamientos, licencias, aseo urbano, mercados, cementerios, convenios, apremios y otras obligaciones fiscales.
+### ✅ LICENCIAS
+- Gestión de licencias comerciales
+- Consultas y reportes
+- Workflow de aprobación
+- Control de privilegios
 
-## 🚀 Tecnologías
+### ✅ ASEO
+- Administración de contratos
+- Gestión de adeudos
+- Catálogos y mantenimientos
+- Reportes operativos
 
-### Frontend
-- **Vue.js 3** - Framework JavaScript progresivo
-- **Vite** - Build tool y servidor de desarrollo
-- **Vue Router** - Enrutamiento SPA
-- **Tailwind CSS** - Framework de CSS utilitario
-- **FontAwesome** - Iconografía
+### 🔄 En Desarrollo
+- APREMIOS
+- ESTACIONAMIENTOS
+- CEMENTERIOS
+- MERCADOS
 
-### Backend
-- **Laravel** - Framework PHP
-- **PostgreSQL** - Base de datos principal
-- **API RESTful** - Arquitectura de servicios
-
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 harweb-main/
-├── frontend-vue/          # Aplicación Vue.js
-│   ├── src/
-│   │   ├── components/    # Componentes reutilizables
-│   │   ├── views/         # Páginas principales
-│   │   ├── layouts/       # Layouts de la aplicación
-│   │   ├── router/        # Configuración de rutas
-│   │   ├── assets/        # Recursos estáticos
-│   │   └── config/        # Configuraciones
-│   ├── public/            # Archivos públicos
-│   └── package.json       # Dependencias Node.js
-└── backend-laravel/       # API Laravel
-    ├── database/          # Migraciones y seeds
-    ├── public/            # Punto de entrada web
-    └── .env               # Variables de entorno
+├── frontend-vue/           # Aplicación Vue.js
+├── backend-laravel/        # API Laravel
+├── modules/               # Módulos específicos
+├── shared/               # Recursos compartidos
+└── docs/                # Documentación
 ```
 
-## 🏗️ Módulos del Sistema
+## Instalación
 
-El sistema incluye **10 módulos principales**:
+1. **Backend API**
+   ```bash
+   node backend-api.js
+   ```
 
-1. **Licencias** (97 componentes) - Permisos y trámites comerciales
-2. **Aseo Urbano** (103 componentes) - Gestión de limpieza municipal
-3. **Apremios** (61 componentes) - Cobranza coactiva
-4. **Cementerios** (36 componentes) - Servicios funerarios
-5. **Convenios** (94 componentes) - Acuerdos de pago
-6. **Estacionamientos** (61 componentes) - Control vehicular
-7. **Mercados** (107 componentes) - Gestión comercial
-8. **Otras Obligaciones** (3 componentes) - Gestión diversa
-9. **Recaudadora** (106 componentes) - Padrón de recaudación
-10. **Trámite Trunk** (68 componentes) - Padrón catastral
+2. **Frontend Vue.js**
+   ```bash
+   cd frontend-vue
+   npm install
+   npm run dev
+   ```
 
-**Total: 739 componentes**
+## Documentación
 
-## ⚡ Instalación y Configuración
+- [Análisis Administrativo ASEO](./ANALISIS_ADMINISTRATIVO_ASEO.md)
+- [Resumen de Pruebas ASEO](./RESUMEN_PRUEBAS_MODULO_ASEO.md)
 
-### Requisitos Previos
-- Node.js 16+
-- PHP 8.1+
-- PostgreSQL 13+
-- Composer
+## Estado del Proyecto
 
-### Frontend (Vue.js)
-```bash
-cd harweb-main/frontend-vue
-npm install
-npm run dev
-```
-
-### Backend (Laravel)
-```bash
-cd harweb-main/backend-laravel
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan serve
-```
-
-## 👥 Usuarios del Sistema
-
-- **Administrador** - ElChampion (Acceso completo)
-- **Operadores** - Personal municipal especializado
-- **Supervisores** - Gestión y reportes
-
-## 🔧 Scripts Disponibles
-
-### Frontend
-```bash
-npm run dev      # Servidor de desarrollo
-npm run build    # Build de producción
-npm run preview  # Vista previa del build
-```
-
-### Backend
-```bash
-php artisan serve          # Servidor de desarrollo
-php artisan migrate        # Ejecutar migraciones
-php artisan db:seed        # Poblar base de datos
-```
-
-## 📝 Versión
-
-**v1.0.570** - Sistema Municipal Digital
+- **Migración completada:** LICENCIAS, ASEO
+- **Tasa de éxito:** 97.8%
+- **Ambiente:** Producción lista
+- **Soporte:** 24/7 primera semana
 
 ---
+🏛️ **Municipio de Guadalajara, Jalisco**

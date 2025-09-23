@@ -135,7 +135,7 @@ export default {
           payload: {}
         });
         if (res.data.status === 'success') {
-          this.rows = res.data.data;
+          this.rows = res.data.eResponse.data.result;
         } else {
           this.error = res.data.message || 'Error al cargar datos';
         }

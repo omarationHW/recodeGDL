@@ -87,7 +87,7 @@ export default {
       this.loading = true;
       try {
         const res = await this.api('get_recaudadoras');
-        this.recaudadoras = res.data.data;
+        this.recaudadoras = res.data.eResponse.data.result;
       } catch (e) {
         this.error = 'Error cargando recaudadoras';
       } finally {
@@ -99,7 +99,7 @@ export default {
       this.loading = true;
       try {
         const res = await this.api('get_zonas', { recaud: this.form.recaud });
-        this.zonas = res.data.data;
+        this.zonas = res.data.eResponse.data.result;
         this.form.zona = '';
         this.subzonas = [];
         this.form.subzona = '';
@@ -114,7 +114,7 @@ export default {
       this.loading = true;
       try {
         const res = await this.api('get_subzonas', { cvezona: this.form.zona, recaud: this.form.recaud });
-        this.subzonas = res.data.data;
+        this.subzonas = res.data.eResponse.data.result;
         this.form.subzona = '';
       } catch (e) {
         this.error = 'Error cargando subzonas';
@@ -129,18 +129,18 @@ export default {
       this.error = '';
       try {
         const res = await this.api('get_licencia', { licencia: this.form.licencia });
-        if (!res.data.data) {
+        if (!res.data.eResponse.data.result) {
           this.licenciaData = null;
           this.error = 'Licencia no encontrada';
           return;
         }
-        this.licenciaData = res.data.data;
+        this.licenciaData = res.data.eResponse.data.result;
         // Cargar valores actuales de zona/subzona/recaud
         const zonaRes = await this.api('get_licencias_zona', { licencia: this.form.licencia });
-        if (zonaRes.data.data) {
-          this.form.zona = zonaRes.data.data.zona;
-          this.form.subzona = zonaRes.data.data.subzona;
-          this.form.recaud = zonaRes.data.data.recaud;
+        if (zonaRes.data.eResponse.data.result) {
+          this.form.zona = zonaRes.data.eResponse.data.result.zona;
+          this.form.subzona = zonaRes.data.eResponse.data.result.subzona;
+          this.form.recaud = zonaRes.data.eResponse.data.result.recaud;
         } else {
           this.form.zona = '';
           this.form.subzona = '';

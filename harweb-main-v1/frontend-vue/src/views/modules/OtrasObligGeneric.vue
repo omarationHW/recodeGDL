@@ -37,8 +37,22 @@ export default {
     
     // Lista de archivos reales disponibles en el módulo otras-oblig
     const availableFiles = [
+      // 🆕 NUEVOS COMPONENTES DE MODERNIZACIÓN
+      "SistemaConveniosOtrasOblig", "SistemaApremiosOtrasOblig",
+      "SistemaDescuentosOtrasOblig", "FuncionesExcluidasOtrasOblig",
+
+      // COMPONENTES EXISTENTES
       "Apremios", "GActualiza", "GAdeudos_OpcMult"
     ]
+
+    // Mapeo específico para nuevos componentes
+    const hasSpecificImplementation = {
+      // 🆕 NUEVOS COMPONENTES DE MODERNIZACIÓN
+      'sistemaconveniosotrasOblig': 'SistemaConveniosOtrasOblig.vue',
+      'sistemaapremiosotrasOblig': 'SistemaApremiosOtrasOblig.vue',
+      'sistemadescuentosotrasOblig': 'SistemaDescuentosOtrasOblig.vue',
+      'funcionesexcluidasotrasOblig': 'FuncionesExcluidasOtrasOblig.vue',
+    }
 
     // Función para encontrar el archivo más similar
     const findBestMatch = (searchName) => {
@@ -78,11 +92,45 @@ export default {
         loading.value = false
         return
       }
-      
+
       try {
         loading.value = true
         error.value = null
-        
+
+        // 🆕 Verificar si hay una implementación específica para nuevos componentes
+        const lowercaseName = componentName.value.toLowerCase()
+        if (hasSpecificImplementation[lowercaseName]) {
+          console.log(`🎯 Componente específico encontrado: ${hasSpecificImplementation[lowercaseName]}`)
+          try {
+            let componentModule
+
+            // Mapeo específico para evitar problemas con Vite
+            switch (lowercaseName) {
+              case 'sistemaconveniosotrasOblig':
+                componentModule = await import(/* @vite-ignore */ '../../components/modules/otras-oblig/SistemaConveniosOtrasOblig.vue')
+                break
+              case 'sistemaapremiosotrasOblig':
+                componentModule = await import(/* @vite-ignore */ '../../components/modules/otras-oblig/SistemaApremiosOtrasOblig.vue')
+                break
+              case 'sistemadescuentosotrasOblig':
+                componentModule = await import(/* @vite-ignore */ '../../components/modules/otras-oblig/SistemaDescuentosOtrasOblig.vue')
+                break
+              case 'funcionesexcluidasotrasOblig':
+                componentModule = await import(/* @vite-ignore */ '../../components/modules/otras-oblig/FuncionesExcluidasOtrasOblig.vue')
+                break
+              default:
+                throw new Error(`Componente no encontrado: ${lowercaseName}`)
+            }
+
+            currentComponent.value = markRaw(componentModule.default || componentModule)
+            console.log('✅ Nuevo componente cargado correctamente')
+            loading.value = false
+            return
+          } catch (importError) {
+            console.warn(`⚠️ Error cargando nuevo componente: ${importError.message}`)
+          }
+        }
+
         const bestMatch = findBestMatch(componentName.value)
         
         if (bestMatch) {

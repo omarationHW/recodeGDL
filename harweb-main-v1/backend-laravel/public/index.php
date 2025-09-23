@@ -251,10 +251,16 @@ if ($path === '/api/generic' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $placeholders = str_repeat('?,', count($spParametros));
             $placeholders = rtrim($placeholders, ',');
             $sql = "SELECT * FROM {$spFullName}({$placeholders})";
-            
+
+            error_log("🔍 Ejecutando SP: {$sql}");
+            error_log("🔍 Parámetros: " . json_encode($spParametros));
+
             $stmt = $pdo->prepare($sql);
             $stmt->execute($spParametros);
+
+            error_log("🔍 SP ejecutado, obteniendo resultados...");
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("✅ SP completado. Resultados: " . count($result) . " registros");
             
             $debugInfo = [
                 'connection' => $connectionInfo,
@@ -271,6 +277,7 @@ if ($path === '/api/generic' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // eResponse
+        error_log("✅ Devolviendo respuesta exitosa con " . count($result) . " registros");
         echo json_encode([
             'eResponse' => [
                 'success' => true,

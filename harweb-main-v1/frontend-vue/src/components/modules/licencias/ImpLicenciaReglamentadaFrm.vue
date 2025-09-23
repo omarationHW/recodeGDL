@@ -151,23 +151,23 @@ export default {
           })
         });
         const data = await resp.json();
-        if (!data.success || !data.data || !data.data.licencia) {
+        if (!data.eResponse.success || !data.eResponse.data.result || !data.eResponse.data.result.licencia) {
           this.error = data.message || 'Licencia no encontrada';
           this.loading = false;
           return;
         }
         // Validaciones de bloqueo y clasificación
-        if (data.data.licencia.bloqueado === 1) {
+        if (data.eResponse.data.result.licencia.bloqueado === 1) {
           this.error = 'La licencia está bloqueada.';
           this.loading = false;
           return;
         }
-        if (data.data.giro && data.data.giro.clasificacion !== 'D') {
+        if (data.eResponse.data.result.giro && data.eResponse.data.result.giro.clasificacion !== 'D') {
           this.error = 'El giro no es de clasificación D.';
           this.loading = false;
           return;
         }
-        this.licenciaData = data.data;
+        this.licenciaData = data.eResponse.data.result;
         this.puedeImprimir = true;
       } catch (e) {
         this.error = 'Error de comunicación con el servidor';

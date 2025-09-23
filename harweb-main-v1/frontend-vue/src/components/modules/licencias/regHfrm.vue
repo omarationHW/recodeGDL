@@ -96,7 +96,7 @@ export default {
           payload: { cvecuenta: this.cvecuentaFilter }
         });
         if (res.data.status === 'success') {
-          this.records = res.data.data;
+          this.records = res.data.eResponse.data.result;
         } else {
           this.error = res.data.message || 'Error al cargar registros';
         }

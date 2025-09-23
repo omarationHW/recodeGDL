@@ -1,11 +1,17 @@
+# ===================================
+# Unified .gitignore for recodeGDL
+# Covers: Laravel, Vue.js, Node.js, PHP
+# ===================================
+
+# Claude Code directories (all projects)
+.claude/
+**/.claude/
+
 # Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+vendor/
+composer.phar
+composer-setup.exe
 
 # Environment variables
 .env
@@ -18,27 +24,51 @@ pnpm-lock.yaml
 *.env.*
 !.env.example
 
-# Build outputs
+# Laravel specific
+/storage/*.key
+/storage/app/public/
+/storage/framework/cache/
+/storage/framework/cache/data/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/logs/
+/bootstrap/cache/
+.phpunit.result.cache
+.phpunit.cache
+Homestead.json
+Homestead.yaml
+auth.json
+composer.lock
+
+# Build outputs and compiled assets
 dist/
 build/
-public/build/
+/public/build/
 /public/hot
 /public/storage
 /public/mix-manifest.json
 /public/js/
 /public/css/
 
-# Cache
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache directories
 .cache/
 .parcel-cache/
 .vite/
+.nuxt/
 bootstrap/cache/*.php
 !bootstrap/cache/.gitkeep
 
-# IDE files
+# IDE and editor files
 .vscode/
 .idea/
-.claude/
 *.swp
 *.swo
 *~
@@ -70,75 +100,39 @@ lerna-debug.log*
 temp/
 tmp/
 
-# Laravel specific
-/vendor/
-vendor/
-/storage/*.key
-/storage/app/public/
-/storage/framework/cache/
-/storage/framework/cache/data/
-/storage/framework/sessions/
-/storage/framework/views/
-/storage/logs/
-/bootstrap/cache/
-.phpunit.result.cache
-.phpunit.cache
-Homestead.json
-Homestead.yaml
-auth.json
-
-# Composer
-composer.phar
-composer-setup.exe
-composer.lock
-
 # Vue.js specific
-.nuxt/
 coverage/
+.nyc_output/
 
-# Database
+# Database files
 *.sqlite
 *.db
 
 # Testing
 coverage/
-.nyc_output/
 
 # Backup files
 *.backup
 *.bak
 .cleanup-backup/
 
-# Generated reports and documentation
-*_REPORT.md
-*_FINAL_REPORT.md
-AGENTE_*.md
-*.pdf
-*.xlsx
-*.xls
-*.docx
-*.doc
-*.txt
-*.md
-!README.md
-*.html
+# Build outputs and compiled assets (keep this section)
+dist/
+build/
+/public/build/
+/public/hot
+/public/storage
+/public/mix-manifest.json
+/public/js/
+/public/css/
+
+# Generated temporary files
 response.html
 temp_*.txt
 old_files.txt
 
-# Temporary scripts and test files
-check-*.js
-create-*.js
-fix-*.js
-test-*.js
-verify-*.js
-install-*.js
-force-*.js
-update-*.js
-*.bat
-
-# SQL files (temporary/testing)
-*.sql
-
-# Project specific temporary files
-backend-api.js
+# Keep important project files but exclude some patterns:
+# Allow .md, .js, .sql, .bat files in project but exclude some generated ones
+*_temp.js
+*_backup.js
+*.tmp.*

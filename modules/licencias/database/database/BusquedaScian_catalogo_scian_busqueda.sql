@@ -1,0 +1,50 @@
+-- Stored Procedure: catalogo_scian_busqueda
+-- Tipo: Catalog
+-- Descripción: Devuelve los registros de c_scian vigentes filtrados por descripción o código_scian. Si el parámetro es vacío, devuelve todos los vigentes.
+-- Generado para formulario: BusquedaScianFrm
+-- Fecha: 2025-08-27 16:31:49
+
+CREATE OR REPLACE FUNCTION catalogo_scian_busqueda(p_descripcion TEXT)
+RETURNS TABLE (
+    codigo_scian INTEGER,
+    descripcion VARCHAR(200),
+    vigente CHAR(1),
+    es_microgenerador CHAR(1),
+    microgenerador_a CHAR(1),
+    microgenerador_b CHAR(1),
+    microgenerador_c CHAR(1),
+    microgenerador_d CHAR(1),
+    fecha_alta TIMESTAMP,
+    usuario_alta VARCHAR,
+    fecha_baja TIMESTAMP,
+    usuario_baja VARCHAR,
+    tipo CHAR(1)
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        codigo_scian,
+        descripcion,
+        vigente,
+        es_microgenerador,
+        microgenerador_a,
+        microgenerador_b,
+        microgenerador_c,
+        microgenerador_d,
+        fecha_alta,
+        usuario_alta,
+        fecha_baja,
+        usuario_baja,
+        tipo
+    FROM c_scian
+    WHERE vigente = 'V'
+      AND (
+        p_descripcion IS NULL OR p_descripcion = ''
+        OR (
+          UPPER(descripcion) LIKE '%' || UPPER(p_descripcion) || '%'
+          OR CAST(codigo_scian AS VARCHAR) LIKE '%' || p_descripcion || '%'
+        )
+      )
+    ORDER BY descripcion ASC;
+END;
+$$ LANGUAGE plpgsql;

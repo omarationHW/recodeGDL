@@ -1,0 +1,12 @@
+-- Stored Procedure: sp_delete_historic_record
+-- Tipo: CRUD
+-- Descripción: Elimina un registro histórico de h_catastro.
+-- Generado para formulario: regHfrm
+-- Fecha: 2025-08-27 19:06:01
+
+CREATE OR REPLACE FUNCTION sp_delete_historic_record(p_cvecuenta INTEGER, p_axocomp INTEGER, p_nocomp INTEGER)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM h_catastro WHERE cvecuenta = p_cvecuenta AND axocomp = p_axocomp AND nocomp = p_nocomp;
+END;
+$$ LANGUAGE plpgsql;

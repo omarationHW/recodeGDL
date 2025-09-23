@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Axios API</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button { 
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { 
+            background-color: #0056b3;
+        }
+        pre { 
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+            overflow-x: auto;
+        }
+        .error { 
+            color: #dc3545;
+            border-left-color: #dc3545;
+        }
+        .success { 
+            color: #28a745;
+            border-left-color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Axios vs Backend API</h1>
+        <p>Esta página permite probar la conexión entre axios y el backend PHP para identificar el error 500.</p>
+        
+        <div>
+            <button onclick="testCreateEmployee()">🚀 Test Crear Empleado</button>
+            <button onclick="testLoadEmployees()">📋 Test Cargar Empleados</button>
+            <button onclick="clearResults()">🧹 Limpiar Resultados</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Configurar axios
+        axios.defaults.baseURL = 'http://localhost:8000'
+        axios.defaults.timeout = 30000 // 30 segundos
+        
+        // Interceptor para logging detallado
+        axios.interceptors.request.use(
+            (config) => {
+                console.log('📤 AXIOS REQUEST:', {
+                    method: config.method,
+                    url: config.url,
+                    headers: config.headers,
+                    data: config.data
+                })
+                addResult('📤 Enviando request...', 'info')
+                addResult('URL: ' + config.method.toUpperCase() + ' ' + config.url, 'info')
+                addResult('Headers: ' + JSON.stringify(config.headers, null, 2), 'info')
+                addResult('Data: ' + JSON.stringify(config.data, null, 2), 'info')
+                return config
+            },
+            (error) => {
+                console.error('❌ REQUEST ERROR:', error)
+                addResult('❌ Error en request: ' + error.message, 'error')
+                return Promise.reject(error)
+            }
+        )
+        
+        axios.interceptors.response.use(
+            (response) => {
+                console.log('✅ AXIOS RESPONSE:', response)
+                addResult('✅ Response recibida: ' + response.status, 'success')
+                addResult('Data: ' + JSON.stringify(response.data, null, 2), 'success')
+                return response
+            },
+            (error) => {
+                console.error('❌ RESPONSE ERROR:', error)
+                addResult('❌ Error en response:', 'error')
+                addResult('Status: ' + (error.response?.status || 'No status'), 'error')
+                addResult('Status Text: ' + (error.response?.statusText || 'No status text'), 'error')
+                addResult('Data: ' + JSON.stringify(error.response?.data || 'No data', null, 2), 'error')
+                addResult('Message: ' + error.message, 'error')
+                return Promise.reject(error)
+            }
+        )
+
+        async function testCreateEmployee() {
+            addResult('\\n🚀 INICIANDO TEST: Crear Empleado', 'info')
+            
+            try {
+                const eRequest = {
+                    Operacion: 'empleados_mantener',
+                    Base: 'licencias',
+                    Parametros: [
+                        { nombre: 'operacion', valor: 1, tipo: 'integer' },
+                        { nombre: 'id', valor: 0, tipo: 'integer' },
+                        { nombre: 'nombre', valor: 'Test Axios User', tipo: 'string' },
+                        { nombre: 'correo', valor: 'testaxios@example.com', tipo: 'string' }
+                    ],
+                    Tenant: 'guadalajara'
+                }
+                
+                addResult('📋 eRequest a enviar:', 'info')
+                addResult(JSON.stringify(eRequest, null, 2), 'info')
+                
+                const response = await axios.post('/api/generic', {
+                    eRequest: eRequest
+                })
+                
+                addResult('🎉 ¡ÉXITO! Empleado creado correctamente', 'success')
+                
+            } catch (error) {
+                addResult('💥 ERROR: ' + error.message, 'error')
+                console.error('Full error object:', error)
+            }
+        }
+        
+        async function testLoadEmployees() {
+            addResult('\\n📋 INICIANDO TEST: Cargar Empleados', 'info')
+            
+            try {
+                const eRequest = {
+                    Operacion: 'empleados_mantener',
+                    Base: 'licencias',
+                    Parametros: [
+                        { nombre: 'operacion', valor: 0, tipo: 'integer' },
+                        { nombre: 'id', valor: 0, tipo: 'integer' },
+                        { nombre: 'nombre', valor: null, tipo: 'string' },
+                        { nombre: 'correo', valor: null, tipo: 'string' }
+                    ],
+                    Tenant: 'guadalajara'
+                }
+                
+                const response = await axios.post('/api/generic', {
+                    eRequest: eRequest
+                })
+                
+                addResult('🎉 ¡ÉXITO! Empleados cargados: ' + response.data.eResponse.data.count, 'success')
+                
+            } catch (error) {
+                addResult('💥 ERROR: ' + error.message, 'error')
+            }
+        }
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results')
+            const div = document.createElement('div')
+            const pre = document.createElement('pre')
+            
+            pre.textContent = new Date().toLocaleTimeString() + ' - ' + message
+            pre.className = type
+            
+            div.appendChild(pre)
+            results.appendChild(div)
+            
+            // Auto-scroll to bottom
+            results.scrollTop = results.scrollHeight
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = ''
+        }
+    </script>
+</body>
+</html>

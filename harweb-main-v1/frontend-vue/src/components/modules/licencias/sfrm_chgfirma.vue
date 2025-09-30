@@ -62,17 +62,23 @@ export default {
       this.message = '';
       this.success = false;
       try {
-        const response = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'chg_firma',
-            usuario: this.form.usuario,
-            firma_actual: this.form.firma_actual,
-            firma_nueva: this.form.firma_nueva,
-            firma_conf: this.form.firma_conf,
-            modulos_id: this.form.modulos_id
-          }
+        const eRequest = {
+          action: 'chg_firma',
+          usuario: this.form.usuario,
+          firma_actual: this.form.firma_actual,
+          firma_nueva: this.form.firma_nueva,
+          firma_conf: this.form.firma_conf,
+          modulos_id: this.form.modulos_id
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        const res = response.data.eResponse;
+        const data = await response.json();
+        const res = data.eResponse;
         this.success = res.success;
         this.message = res.message;
         if (res.success) {
@@ -82,7 +88,7 @@ export default {
         }
       } catch (e) {
         this.success = false;
-        this.message = e.response?.data?.eResponse?.message || 'Error de red';
+        this.message = e.message || 'Error de red';
       } finally {
         this.loading = false;
       }

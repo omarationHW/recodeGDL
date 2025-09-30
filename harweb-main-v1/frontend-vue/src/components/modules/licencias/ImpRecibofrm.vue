@@ -48,7 +48,7 @@ export default {
         return;
       }
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -70,7 +70,7 @@ export default {
     async imprimirRecibo() {
       if (!this.licencia) return;
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

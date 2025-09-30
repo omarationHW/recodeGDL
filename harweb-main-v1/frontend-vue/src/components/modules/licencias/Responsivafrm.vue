@@ -198,13 +198,21 @@ export default {
     },
     async api(action, payload) {
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: `licencias2.${action}`,
           payload: payload
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        return res.data.status === 'success' ? 
-          { success: true, data: res.data.eResponse.data.result, message: res.data.message } : 
-          { success: false, message: res.data.message };
+        const data = await response.json();
+        return data.status === 'success' ?
+          { success: true, data: data.eResponse.data.result, message: data.message } :
+          { success: false, message: data.message };
       } catch (error) {
         return {success: false, message: error.message};
       }

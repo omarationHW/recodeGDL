@@ -819,20 +819,28 @@ export default {
       this.loading = true;
       try {
         const offset = (this.paginaActual - 1) * this.limite;
-        const response = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'informix.SP_REGSOLIC_LIST',
           payload: {
             ...this.filtros,
             p_limite: this.limite,
             p_offset: offset
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
 
-        if (response.data.status === 'success') {
-          this.solicitudes = response.data.eResponse.data.result || [];
+        if (data.status === 'success') {
+          this.solicitudes = data.eResponse.data.result || [];
           this.totalRegistros = this.solicitudes.length > 0 ? this.solicitudes[0].total_registros : 0;
         } else {
-          this.mostrarMensaje('Error al cargar solicitudes: ' + response.data.message, 'error');
+          this.mostrarMensaje('Error al cargar solicitudes: ' + data.message, 'error');
           this.solicitudes = [];
           this.totalRegistros = 0;
         }
@@ -897,13 +905,21 @@ export default {
       this.modoEdicion = true;
 
       try {
-        const response = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'informix.SP_REGSOLIC_DETAIL',
           payload: { p_folio_solicitud: solicitud.folio_solicitud }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
 
-        if (response.data.status === 'success' && response.data.eResponse.data.result.length > 0) {
-          const detalle = response.data.eResponse.data.result[0];
+        if (data.status === 'success' && data.eResponse.data.result.length > 0) {
+          const detalle = data.eResponse.data.result[0];
           this.formData = {
             id: detalle.id,
             folio_solicitud: detalle.folio_solicitud,
@@ -938,13 +954,21 @@ export default {
 
     async verDetalle(solicitud) {
       try {
-        const response = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'informix.SP_REGSOLIC_DETAIL',
           payload: { p_folio_solicitud: solicitud.folio_solicitud }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
 
-        if (response.data.status === 'success' && response.data.eResponse.data.result.length > 0) {
-          this.solicitudDetalle = response.data.eResponse.data.result[0];
+        if (data.status === 'success' && data.eResponse.data.result.length > 0) {
+          this.solicitudDetalle = data.eResponse.data.result[0];
           this.showModalDetalle = true;
         }
       } catch (error) {
@@ -975,16 +999,24 @@ export default {
 
     async mostrarEstadisticas() {
       try {
-        const response = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'informix.SP_REGSOLIC_ESTADISTICAS',
           payload: {
             p_fecha_desde: this.filtros.fecha_desde || null,
             p_fecha_hasta: this.filtros.fecha_hasta || null
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
 
-        if (response.data.status === 'success' && response.data.eResponse.data.result.length > 0) {
-          this.estadisticas = response.data.eResponse.data.result[0];
+        if (data.status === 'success' && data.eResponse.data.result.length > 0) {
+          this.estadisticas = data.eResponse.data.result[0];
           this.showModalEstadisticas = true;
         }
       } catch (error) {
@@ -1059,13 +1091,21 @@ export default {
           p_usuario_registro: 'USUARIO_ACTUAL' // TODO: obtener del contexto
         };
 
-        const response = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action,
           payload
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
 
-        if (response.data.status === 'success') {
-          const resultado = response.data.eResponse.data.result[0];
+        if (data.status === 'success') {
+          const resultado = data.eResponse.data.result[0];
           if (resultado.success) {
             this.mostrarMensaje(resultado.message, 'success');
             this.cerrarModalForm();
@@ -1074,7 +1114,7 @@ export default {
             this.mostrarMensaje(resultado.message, 'error');
           }
         } else {
-          this.mostrarMensaje('Error al guardar: ' + response.data.message, 'error');
+          this.mostrarMensaje('Error al guardar: ' + data.message, 'error');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -1088,7 +1128,7 @@ export default {
       if (!this.nuevoEstado) return;
 
       try {
-        const response = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'informix.SP_REGSOLIC_UPDATE_STATUS',
           payload: {
             p_folio_solicitud: this.solicitudEstado.folio_solicitud,
@@ -1097,10 +1137,18 @@ export default {
             p_observaciones: this.observacionesEstado,
             p_funcionario_revisor: this.funcionarioRevisor
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
 
-        if (response.data.status === 'success') {
-          const resultado = response.data.eResponse.data.result[0];
+        if (data.status === 'success') {
+          const resultado = data.eResponse.data.result[0];
           if (resultado.success) {
             this.mostrarMensaje(resultado.message, 'success');
             this.cerrarModalEstado();

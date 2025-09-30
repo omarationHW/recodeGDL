@@ -163,12 +163,20 @@ export default {
   methods: {
     async cargarGruposAnun() {
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.getGruposAnun',
           payload: {}
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.gruposAnun = res.data.eResponse.data.result;
+        const data = await response.json();
+        if (data.status === 'success') {
+          this.gruposAnun = data.eResponse.data.result;
         }
       } catch (error) { this.error = error.message; }
     },
@@ -178,14 +186,22 @@ export default {
       this.resultados = [];
       this.excelUrl = '';
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.getReporteAnuncios',
           payload: this.form
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.resultados = res.data.eResponse.data.result;
+        const data = await response.json();
+        if (data.status === 'success') {
+          this.resultados = data.eResponse.data.result;
         } else {
-          this.error = res.data.message;
+          this.error = data.message;
         }
       } catch (error) { this.error = error.message; }
       this.loading = false;
@@ -195,14 +211,22 @@ export default {
       this.error = '';
       this.excelUrl = '';
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.exportReporteAnuncios',
           payload: this.form
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.excelUrl = res.data.eResponse.data.result.url;
+        const data = await response.json();
+        if (data.status === 'success') {
+          this.excelUrl = data.eResponse.data.result.url;
         } else {
-          this.error = res.data.message;
+          this.error = data.message;
         }
       } catch (error) { this.error = error.message; }
       this.loading = false;

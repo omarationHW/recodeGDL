@@ -1,10 +1,10 @@
 <template>
   <div class="container-fluid p-0 h-100">
     <!-- Header -->
-    <div class="bg-primary text-white p-3 mb-0">
+    <div class="municipal-header p-3 mb-0">
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <h1 class="h3 mb-1">🛣️ Gestión de Cruces de Calles</h1>
+          <h1 class="h3 mb-1"><i class="fas fa-map-signs me-2"></i>Gestión de Cruces de Calles</h1>
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 bg-transparent p-0">
               <li class="breadcrumb-item"><a href="#" class="text-white-50">Inicio</a></li>
@@ -20,27 +20,27 @@
     </div>
 
     <!-- Controles -->
-    <div class="bg-light border-bottom p-3">
+    <div class="municipal-controls border-bottom p-3">
       <div class="row g-3 align-items-center">
         <!-- Botones de acción -->
         <div class="col-lg-8">
-          <div class="btn-group" role="group">
-            <button type="button" class="btn btn-success" @click="nuevoCruce" :disabled="formActive">
+          <div class="btn-group" role="group" aria-label="Acciones de cruces">
+            <button type="button" class="btn municipal-group-btn" @click="nuevoCruce" :disabled="formActive">
               <i class="fas fa-plus me-1"></i> Nuevo
             </button>
-            <button type="button" class="btn btn-warning" @click="modificarCruce" :disabled="!selectedRow || formActive">
+            <button type="button" class="btn municipal-group-btn" @click="modificarCruce" :disabled="!selectedRow || formActive">
               <i class="fas fa-edit me-1"></i> Modificar
             </button>
-            <button type="button" class="btn btn-danger" @click="cancelarCruce" :disabled="!selectedRow || formActive">
+            <button type="button" class="btn municipal-group-btn" @click="cancelarCruce" :disabled="!selectedRow || formActive">
               <i class="fas fa-trash me-1"></i> Cancelar
             </button>
-            <button type="button" class="btn btn-info" @click="imprimirCruce" :disabled="!selectedRow">
+            <button type="button" class="btn municipal-group-btn" @click="imprimirCruce" :disabled="!selectedRow">
               <i class="fas fa-print me-1"></i> Imprimir
             </button>
-            <button type="button" class="btn btn-secondary" @click="cargarCruces" :disabled="formActive">
+            <button type="button" class="btn municipal-group-btn" @click="cargarCruces" :disabled="formActive">
               <i class="fas fa-sync-alt me-1"></i> Actualizar
             </button>
-            <button type="button" class="btn btn-dark" @click="toggleSearchHelper">
+            <button type="button" class="btn municipal-group-btn" @click="toggleSearchHelper">
               <i class="fas fa-search me-1"></i> {{ showSearchHelper ? 'Ocultar' : 'Búsqueda Avanzada' }}
             </button>
           </div>
@@ -60,7 +60,7 @@
               placeholder="Buscar..."
               class="form-control"
             />
-            <span class="input-group-text bg-primary text-white">
+            <span class="input-group-text municipal-counter">
               <strong>Total: {{ totalRegistros }}</strong>
             </span>
           </div>
@@ -70,9 +70,9 @@
       <!-- Componente de búsqueda avanzada -->
       <div v-if="showSearchHelper" class="row mt-3">
         <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0"><i class="fas fa-search me-2"></i>Búsqueda Avanzada de Calles</h5>
+          <div class="card municipal-card">
+            <div class="card-header municipal-card-header">
+              <h5 class="mb-0 municipal-card-title"><i class="fas fa-search me-2"></i>Búsqueda Avanzada de Calles</h5>
             </div>
             <div class="card-body">
               <CrucesSearchHelper
@@ -87,11 +87,11 @@
 
     <!-- Tabla -->
     <div class="flex-grow-1 p-3">
-      <div class="card">
+      <div class="card municipal-card">
         <div class="card-body p-0">
           <div class="table-responsive" style="max-height: 600px; overflow-x: auto;">
             <table class="table table-hover table-sm mb-0" style="min-width: 800px;">
-              <thead class="table-dark sticky-top">
+              <thead class="municipal-table-header sticky-top">
                 <tr>
                   <th style="width: 60px;">#</th>
                   <th style="width: 80px;">ID</th>
@@ -103,11 +103,11 @@
               <tbody>
                 <tr v-for="(row, index) in paginatedCruces"
                     :key="row.id"
-                    :class="{ 'table-primary': isSelected(row) }"
+                    :class="{ 'municipal-selected': isSelected(row) }"
                     @click="selectRow(row)"
                     style="cursor: pointer;">
                   <td>{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
-                  <td><span class="badge bg-secondary">{{ row.id }}</span></td>
+                  <td><span class="municipal-badge">{{ row.id }}</span></td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="row.calle1">{{ row.calle1 }}</td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="row.calle2">{{ row.calle2 }}</td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="row.colonia">{{ row.colonia }}</td>
@@ -118,7 +118,7 @@
         </div>
 
         <!-- Paginación -->
-        <div class="card-footer">
+        <div class="card-footer municipal-card-footer">
           <div class="row align-items-center">
             <div class="col-sm-6">
               <nav v-if="totalPages > 1" aria-label="Paginación de cruces">
@@ -787,143 +787,193 @@ export default {
 </script>
 
 <style scoped>
-/* Estilo base del módulo */
+/* Municipal Theme Integration */
 .cruces-page {
   padding: 20px;
-  background: #f8f9fa;
+  background: white;
   min-height: 100vh;
+  font-family: var(--font-municipal);
+}
+
+/* Municipal Header */
+.municipal-header {
+  background: var(--gradient-municipal);
+  color: white;
+  border-radius: 8px 8px 0 0;
+  box-shadow: var(--shadow-md);
 }
 
 /* Encabezado */
 h1 {
-  color: #2c3e50;
+  color: white;
   margin-bottom: 10px;
   font-size: 24px;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
 }
 
 .breadcrumb {
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
   margin-bottom: 20px;
 }
 
-/* Botones de acción */
-.actions {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.breadcrumb a {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
 }
 
-.actions button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
+.breadcrumb a:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.actions button:not(:disabled) {
-  background: #007bff;
-  color: white;
-}
-
-.actions button:not(:disabled):hover {
-  background: #0056b3;
-  transform: translateY(-1px);
-}
-
-.actions button:disabled {
-  background: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
-
-.btn-search {
-  background: #17a2b8 !important;
-  color: white !important;
-}
-
-.btn-search:hover {
-  background: #138496 !important;
-}
-
-/* Sección de búsqueda */
-.busqueda {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.busqueda label {
-  font-weight: 500;
-  color: #495057;
-}
-
-.busqueda select, .busqueda input {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.busqueda select {
-  min-width: 120px;
-}
-
-.busqueda input {
-  min-width: 200px;
-  flex: 1;
-}
-
-/* Tabla */
-.cruces-table {
-  width: 100%;
-  background: white;
-  border-radius: 8px;
+/* Municipal Button Group - Bootstrap Integration */
+.btn-group {
+  box-shadow: 0 2px 4px rgba(234, 130, 21, 0.2);
+  border-radius: 6px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border-collapse: collapse;
-  margin-bottom: 20px;
 }
 
-.cruces-table th {
-  background: #343a40;
+.municipal-group-btn {
+  background: var(--municipal-primary) !important;
+  color: white !important;
+  border: 1px solid var(--municipal-primary) !important;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-medium);
+  padding: 10px 16px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  border-radius: 0 !important;
+  position: relative;
+}
+
+.municipal-group-btn:not(:disabled):hover {
+  background: var(--municipal-secondary) !important;
+  border-color: var(--municipal-secondary) !important;
+  color: white !important;
+  transform: translateY(-1px);
+  z-index: 2;
+  box-shadow: 0 4px 8px rgba(234, 130, 21, 0.3);
+}
+
+.municipal-group-btn:not(:disabled):active {
+  background: var(--municipal-secondary) !important;
+  transform: translateY(0);
+}
+
+.municipal-group-btn:disabled {
+  background: rgba(234, 130, 21, 0.3) !important;
+  border-color: rgba(234, 130, 21, 0.3) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Bootstrap btn-group integration with municipal colors */
+.btn-group .municipal-group-btn + .municipal-group-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.2) !important;
+  margin-left: -1px;
+}
+
+.btn-group .municipal-group-btn:first-child {
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+}
+
+.btn-group .municipal-group-btn:last-child {
+  border-top-right-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+}
+
+/* Ensure Bootstrap doesn't override our styles */
+.btn-group > .municipal-group-btn {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+/* Municipal Search Section */
+.municipal-counter {
+  background: var(--gradient-municipal) !important;
+  color: white !important;
+  border: 1px solid var(--municipal-primary) !important;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-bold);
+  border-radius: 0 6px 6px 0;
+}
+
+.form-control {
+  font-family: var(--font-municipal);
+  border-color: var(--slate-300);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 0.2rem rgba(234, 130, 21, 0.25);
+}
+
+.form-select {
+  font-family: var(--font-municipal);
+  border-color: var(--slate-300);
+}
+
+.form-select:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 0.2rem rgba(234, 130, 21, 0.25);
+}
+
+/* Municipal Table - Clean */
+.municipal-table-header {
+  background: var(--gradient-municipal) !important;
   color: white;
-  padding: 12px 8px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 13px;
-  border-bottom: 2px solid #dee2e6;
 }
 
-.cruces-table td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #dee2e6;
-  font-size: 13px;
+.municipal-table-header th {
+  color: white !important;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-bold);
+  border: none;
 }
 
-.cruces-table tbody tr {
-  cursor: pointer;
-  transition: background-color 0.2s;
+.table {
+  font-family: var(--font-municipal);
+  border: none;
 }
 
-.cruces-table tbody tr:hover {
-  background: #f8f9fa;
+.table td {
+  vertical-align: middle;
+  font-size: 14px;
+  border: none;
 }
 
-.cruces-table tbody tr.selected {
-  background: #e3f2fd !important;
-  border-left: 4px solid #2196f3;
+.table thead th {
+  border: none;
+}
+
+.table tbody tr {
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.table tbody tr:hover {
+  background: rgba(234, 130, 21, 0.05) !important;
+  transform: none;
+}
+
+.municipal-selected {
+  background: rgba(234, 130, 21, 0.1) !important;
+  border: none;
+  border-left: 3px solid var(--municipal-primary);
+}
+
+.municipal-badge {
+  background: var(--gradient-municipal);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
 }
 
 /* Validation Styles */
@@ -944,7 +994,7 @@ h1 {
   font-weight: 500;
 }
 
-/* Loading Overlay */
+/* Municipal Loading Overlay */
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -956,24 +1006,27 @@ h1 {
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  backdrop-filter: blur(4px);
 }
 
 .loading-spinner {
   background: white;
-  padding: 30px;
-  border-radius: 8px;
+  padding: 40px;
+  border-radius: 16px;
   text-align: center;
-  min-width: 200px;
+  min-width: 240px;
+  box-shadow: var(--shadow-xl);
+  font-family: var(--font-municipal);
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #007bff;
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--slate-200);
+  border-top: 4px solid var(--municipal-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 15px;
+  margin: 0 auto 20px;
 }
 
 @keyframes spin {
@@ -983,21 +1036,25 @@ h1 {
 
 .loading-spinner p {
   margin: 0;
-  font-weight: bold;
-  color: #333;
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-800);
+  font-family: var(--font-municipal);
+  font-size: 16px;
 }
 
-/* Toast Notifications */
+/* Municipal Toast Notifications */
 .toast {
   position: fixed;
   top: 20px;
   right: 20px;
-  min-width: 300px;
+  min-width: 320px;
   max-width: 500px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
   z-index: 1500;
   animation: slideIn 0.3s ease-out;
+  font-family: var(--font-municipal);
+  border: 1px solid;
 }
 
 @keyframes slideIn {
@@ -1012,34 +1069,38 @@ h1 {
 }
 
 .toast-success {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: var(--success-300);
+  color: var(--success-800);
+  backdrop-filter: blur(10px);
 }
 
 .toast-error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger-300);
+  color: var(--danger-800);
+  backdrop-filter: blur(10px);
 }
 
 .toast-warning {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  color: #856404;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--warning-300);
+  color: var(--warning-800);
+  backdrop-filter: blur(10px);
 }
 
 .toast-info {
-  background: #d1ecf1;
-  border: 1px solid #bee5eb;
-  color: #0c5460;
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--info-300);
+  color: var(--info-800);
+  backdrop-filter: blur(10px);
 }
 
 .toast-content {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  gap: 10px;
+  padding: 16px 20px;
+  gap: 12px;
 }
 
 .toast-content i {
@@ -1049,28 +1110,34 @@ h1 {
 
 .toast-content span {
   flex: 1;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-municipal);
+  font-size: 14px;
 }
 
 .toast-close {
-  background: none;
+  background: rgba(0, 0, 0, 0.1);
   border: none;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   padding: 0;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0.7;
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
 
 .toast-close:hover {
   opacity: 1;
+  background: rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
 }
 
-/* SweetAlert Styles */
+/* Municipal SweetAlert Styles */
 .sweet-alert-overlay {
   position: fixed;
   top: 0;
@@ -1082,15 +1149,18 @@ h1 {
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  backdrop-filter: blur(4px);
 }
 
 .sweet-alert-modal {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  max-width: 400px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-xl);
+  max-width: 420px;
   width: 90%;
   animation: sweetAlertScale 0.3s ease-out;
+  font-family: var(--font-municipal);
+  overflow: hidden;
 }
 
 @keyframes sweetAlertScale {
@@ -1122,31 +1192,32 @@ h1 {
 }
 
 .sweet-alert-success {
-  background: #28a745;
+  background: var(--success-600);
 }
 
 .sweet-alert-error {
-  background: #dc3545;
+  background: var(--danger-600);
 }
 
 .sweet-alert-warning {
-  background: #ffc107;
-  color: #333 !important;
+  background: var(--warning-500);
+  color: var(--slate-800) !important;
 }
 
 .sweet-alert-question {
-  background: #17a2b8;
+  background: var(--municipal-primary);
 }
 
 .sweet-alert-info {
-  background: #6c757d;
+  background: var(--info-600);
 }
 
 .sweet-alert-title {
   font-size: 20px;
-  font-weight: 600;
-  color: #333;
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-800);
   margin: 0;
+  font-family: var(--font-municipal);
 }
 
 .sweet-alert-body {
@@ -1155,10 +1226,11 @@ h1 {
 }
 
 .sweet-alert-body p {
-  color: #666;
+  color: var(--slate-600);
   font-size: 16px;
   line-height: 1.5;
   margin: 0;
+  font-family: var(--font-municipal);
 }
 
 .sweet-alert-actions {
@@ -1169,14 +1241,15 @@ h1 {
 }
 
 .sweet-alert-btn {
-  padding: 10px 20px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 80px;
+  transition: all 0.3s ease;
+  min-width: 90px;
+  font-family: var(--font-municipal);
 }
 
 .sweet-alert-confirm {
@@ -1184,29 +1257,29 @@ h1 {
 }
 
 .sweet-alert-confirm.sweet-alert-success {
-  background: #28a745;
+  background: var(--success-600);
 }
 
 .sweet-alert-confirm.sweet-alert-error {
-  background: #dc3545;
+  background: var(--danger-600);
 }
 
 .sweet-alert-confirm.sweet-alert-warning {
-  background: #ffc107;
-  color: #333;
+  background: var(--warning-500);
+  color: var(--slate-800);
 }
 
 .sweet-alert-confirm.sweet-alert-question {
-  background: #17a2b8;
+  background: var(--gradient-municipal);
 }
 
 .sweet-alert-confirm.sweet-alert-info {
-  background: #6c757d;
+  background: var(--info-600);
 }
 
 .sweet-alert-cancel {
-  background: #e9ecef;
-  color: #6c757d;
+  background: var(--slate-200);
+  color: var(--slate-600);
 }
 
 .sweet-alert-btn:hover {
@@ -1219,11 +1292,12 @@ h1 {
 }
 
 .sweet-alert-cancel:hover {
-  background: #dee2e6;
-  color: #495057;
+  background: var(--slate-300);
+  color: var(--slate-700);
+  transform: translateY(-1px);
 }
 
-/* Modal Overlay - exact match with constanciafrm */
+/* Municipal Modal Overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1235,33 +1309,37 @@ h1 {
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
+  font-family: var(--font-municipal);
 }
 
 .modal-header {
-  background: #f8f9fa;
+  background: var(--gradient-municipal);
   padding: 16px 20px;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 
 .modal-header h2 {
   margin: 0;
-  color: #333;
+  color: white;
   font-size: 18px;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-bold);
 }
 
 .modal-body {
@@ -1269,24 +1347,24 @@ h1 {
 }
 
 .close-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
-  color: #666;
+  color: white;
   padding: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .close-btn:hover {
-  background: #e9ecef;
-  color: #000;
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
 }
 
 /* Form styling - exact match with constanciafrm */
@@ -1306,19 +1384,32 @@ h1 {
 
 .form-group label {
   display: block;
-  margin-bottom: 4px;
-  font-weight: bold;
-  color: #555;
+  margin-bottom: 6px;
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-700);
+  font-family: var(--font-municipal);
+  font-size: 14px;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--slate-300);
+  border-radius: 6px;
   box-sizing: border-box;
+  font-family: var(--font-municipal);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 0.2rem rgba(234, 130, 21, 0.25);
 }
 
 .form-group textarea {
@@ -1339,25 +1430,37 @@ h1 {
 }
 
 .form-actions button[type="submit"] {
-  background: #007bff;
+  background: var(--gradient-municipal);
   color: white;
-  border-color: #007bff;
+  border: none;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-medium);
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
 .form-actions button[type="submit"]:hover {
-  background: #0056b3;
-  border-color: #0056b3;
+  background: var(--municipal-secondary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .form-actions button[type="button"] {
-  background: #6c757d;
+  background: var(--slate-600);
   color: white;
-  border-color: #6c757d;
+  border: none;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-medium);
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
 .form-actions button[type="button"]:hover {
-  background: #5a6268;
-  border-color: #5a6268;
+  background: var(--slate-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .form-actions button:disabled {
@@ -1438,54 +1541,127 @@ h1 {
   background: #5a6268;
 }
 
-/* Paginación */
+/* Municipal Pagination - Clean */
 .pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: none;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
+  font-family: var(--font-municipal);
+  border: none;
 }
 
 .pagination button {
   padding: 8px 16px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
   background: white;
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  font-family: var(--font-municipal);
+  color: #6c757d;
 }
 
 .pagination button:not(:disabled):hover {
-  background: #e9ecef;
-  border-color: #adb5bd;
+  background: var(--municipal-primary);
+  border-color: var(--municipal-primary);
+  color: white;
 }
 
 .pagination button:disabled {
   background: #f8f9fa;
   color: #6c757d;
   cursor: not-allowed;
-  border-color: #e9ecef;
+  border-color: #dee2e6;
 }
 
 .pagination span {
-  color: #495057;
+  color: var(--slate-700);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-municipal);
 }
 
 .pagination select {
-  padding: 6px 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--slate-300);
+  border-radius: 6px;
   font-size: 14px;
   background: white;
+  font-family: var(--font-municipal);
+  color: var(--slate-700);
+  transition: all 0.3s ease;
+}
+
+.pagination select:focus {
+  outline: none;
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 0.2rem rgba(234, 130, 21, 0.25);
+}
+
+/* Municipal Controls and Cards */
+.municipal-controls {
+  background: white;
+  border: none !important;
+}
+
+.municipal-card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: none;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.municipal-card:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+.municipal-card-header {
+  background: var(--gradient-municipal) !important;
+  border-bottom: none !important;
+  padding: 16px 20px;
+}
+
+.municipal-card-title {
+  color: white !important;
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-bold);
+  font-size: 16px;
+}
+
+.municipal-card-footer {
+  background: white !important;
+  border-top: none !important;
+  padding: 16px 20px;
+}
+
+/* Error States */
+.input-error {
+  border-color: var(--danger-500) !important;
+  box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+}
+
+.field-error {
+  color: var(--danger-600);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-municipal);
+}
+
+.required {
+  color: var(--danger-600);
+  font-weight: var(--font-weight-bold);
 }
 
 /* Responsive */

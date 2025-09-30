@@ -69,10 +69,16 @@ export default {
   methods: {
     async fetchGiros() {
       this.loading = true;
-      const res = await this.$axios.post('/api/execute', {
-        eRequest: { action: 'getGiros', params: { tipo: 'L' } }
+      const eRequest = { action: 'getGiros', params: { tipo: 'L' } };
+      const response = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eRequest)
       });
-      this.giros = res.data.eResponse.data;
+      const data = await response.json();
+      this.giros = data.eResponse.data;
       this.loading = false;
     },
     async buscarGiros() {
@@ -86,15 +92,27 @@ export default {
     async onGiroChange(id_giro) {
       if (!id_giro) return;
       // Carga info del giro
-      const giroRes = await this.$axios.post('/api/execute', {
-        eRequest: { action: 'getGiroById', params: { id_giro } }
+      const eRequest1 = { action: 'getGiroById', params: { id_giro } };
+      const giroResponse = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eRequest1)
       });
-      this.giroInfo = giroRes.data.eResponse.data;
+      const giroData = await giroResponse.json();
+      this.giroInfo = giroData.eResponse.data;
       // Carga requisitos
-      const reqRes = await this.$axios.post('/api/execute', {
-        eRequest: { action: 'getRequisitosByGiro', params: { id_giro } }
+      const eRequest2 = { action: 'getRequisitosByGiro', params: { id_giro } };
+      const reqResponse = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eRequest2)
       });
-      this.requisitos = reqRes.data.eResponse.data;
+      const reqData = await reqResponse.json();
+      this.requisitos = reqData.eResponse.data;
     },
     async imprimir() {
       if (!this.selectedGiro) {

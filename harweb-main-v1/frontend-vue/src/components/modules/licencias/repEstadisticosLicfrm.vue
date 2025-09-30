@@ -98,22 +98,28 @@ export default {
           break;
       }
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action,
-            params
-          }
+        const eRequest = {
+          action,
+          params
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.eResponse.success) {
-          this.result = res.data.eResponse.data;
+        const data = await response.json();
+        if (data.eResponse.success) {
+          this.result = data.eResponse.data;
           if (this.result.length > 0) {
             this.columns = Object.keys(this.result[0]).map(k => ({ prop: k, label: k.toUpperCase() }));
           }
         } else {
-          this.error = res.data.eResponse.error || 'Error desconocido';
+          this.error = data.eResponse.error || 'Error desconocido';
         }
       } catch (e) {
-        this.error = e.response?.data?.eResponse?.error || e.message;
+        this.error = e.message;
       }
     }
   }

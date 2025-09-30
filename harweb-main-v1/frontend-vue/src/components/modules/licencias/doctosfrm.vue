@@ -1,20 +1,20 @@
 <template>
-  <div class="documentos-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
+          <h3 class="mb-1">
             <i class="fas fa-file-alt"></i>
             Gestión de Documentos
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-75">
             Administración del catálogo de documentos requeridos para trámites
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
@@ -26,30 +26,30 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-4">
-            <label class="form-label">Código</label>
+            <label class="municipal-form-label">Código</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.codigo"
               placeholder="Código del documento"
             >
           </div>
           <div class="col-md-4">
-            <label class="form-label">Descripción</label>
+            <label class="municipal-form-label">Descripción</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.descripcion"
               placeholder="Descripción del documento"
             >
           </div>
           <div class="col-md-4">
-            <label class="form-label">Estado</label>
-            <select class="form-select" v-model="filters.activo">
+            <label class="municipal-form-label">Estado</label>
+            <select class="municipal-form-control" v-model="filters.activo">
               <option value="">Todos</option>
               <option value="S">Activos</option>
               <option value="N">Inactivos</option>
@@ -58,47 +58,49 @@
         </div>
         <div class="row mt-3">
           <div class="col-12">
-            <button
-              class="btn btn-outline-primary me-2"
-              @click="searchDocumentos"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadDocumentos"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
+            <div class="municipal-group-btn">
+              <button
+                class="btn-municipal-primary"
+                @click="searchDocumentos"
+                :disabled="loading"
+              >
+                <i class="fas fa-search"></i>
+                Buscar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="clearFilters"
+                :disabled="loading"
+              >
+                <i class="fas fa-times"></i>
+                Limpiar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="loadDocumentos"
+                :disabled="loading"
+              >
+                <i class="fas fa-sync-alt"></i>
+                Actualizar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h6 class="mb-0">
           <i class="fas fa-list"></i>
           Documentos Registrados
-          <span v-if="documentos.length > 0" class="badge bg-primary ms-2">
+          <span v-if="documentos.length > 0" class="municipal-badge municipal-badge-primary ms-2">
             {{ documentos.length }} registros
           </span>
         </h6>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
@@ -108,11 +110,11 @@
         </div>
 
         <!-- Error state -->
-        <div v-else-if="error" class="alert alert-danger">
+        <div v-else-if="error" class="municipal-alert-danger">
           <h6 class="alert-heading">Error al cargar datos</h6>
           <p class="mb-0">{{ error }}</p>
           <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadDocumentos">
+          <button class="btn-municipal-primary btn-sm" @click="loadDocumentos">
             <i class="fas fa-retry"></i>
             Reintentar
           </button>
@@ -127,7 +129,7 @@
           </p>
           <button
             v-if="!hasActiveFilters"
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
           >
             <i class="fas fa-plus"></i>
@@ -137,8 +139,8 @@
 
         <!-- Tabla con datos -->
         <div v-else class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Código</th>
                 <th>Descripción</th>
@@ -155,34 +157,34 @@
                 </td>
                 <td>{{ documento.descripcion }}</td>
                 <td>
-                  <span class="badge" :class="documento.obligatorio === 'S' ? 'bg-warning' : 'bg-info'">
+                  <span class="municipal-badge" :class="documento.obligatorio === 'S' ? 'municipal-badge-warning' : 'municipal-badge-info'">
                     {{ documento.obligatorio === 'S' ? 'Obligatorio' : 'Opcional' }}
                   </span>
                 </td>
                 <td>
-                  <span class="badge" :class="documento.activo === 'S' ? 'bg-success' : 'bg-secondary'">
+                  <span class="municipal-badge" :class="documento.activo === 'S' ? 'municipal-badge-success' : 'municipal-badge-secondary'">
                     {{ documento.activo === 'S' ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
                 <td>{{ formatDate(documento.fecha_registro) }}</td>
                 <td>
-                  <div class="btn-group btn-group-sm">
+                  <div class="municipal-group-btn">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-secondary btn-sm"
                       @click="viewDocumento(documento)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-warning btn-sm"
                       @click="editDocumento(documento)"
                       title="Editar"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button
-                      class="btn btn-outline-danger"
+                      class="btn-municipal-danger btn-sm"
                       @click="deleteDocumento(documento)"
                       title="Eliminar"
                     >
@@ -263,10 +265,10 @@
             <form @submit.prevent="saveDocumento">
               <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Código <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Código <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDocumento.codigo"
                     placeholder="Ej: DOC001"
                     required
@@ -275,8 +277,8 @@
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Estado</label>
-                  <select class="form-select" v-model="newDocumento.activo">
+                  <label class="municipal-form-label">Estado</label>
+                  <select class="municipal-form-control" v-model="newDocumento.activo">
                     <option value="S">Activo</option>
                     <option value="N">Inactivo</option>
                   </select>
@@ -284,10 +286,10 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Descripción <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Descripción <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDocumento.descripcion"
                     placeholder="Descripción del documento"
                     required
@@ -297,17 +299,17 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Obligatorio</label>
-                  <select class="form-select" v-model="newDocumento.obligatorio">
+                  <label class="municipal-form-label">Obligatorio</label>
+                  <select class="municipal-form-control" v-model="newDocumento.obligatorio">
                     <option value="S">Sí</option>
                     <option value="N">No</option>
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Orden</label>
+                  <label class="municipal-form-label">Orden</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDocumento.orden"
                     placeholder="1"
                     min="1"
@@ -316,9 +318,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Observaciones</label>
+                  <label class="municipal-form-label">Observaciones</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="3"
                     v-model="newDocumento.observaciones"
                     placeholder="Observaciones adicionales sobre el documento"
@@ -328,12 +330,12 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
               Cancelar
             </button>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn-municipal-primary"
               @click="saveDocumento"
               :disabled="creating || !newDocumento.codigo || !newDocumento.descripcion"
             >
@@ -367,7 +369,7 @@
         <h3 class="swal-title">{{ sweetAlert.title }}</h3>
         <p class="swal-text">{{ sweetAlert.text }}</p>
         <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
+          <button class="btn-municipal-primary" @click="closeSweetAlert">
             Aceptar
           </button>
         </div>
@@ -777,149 +779,3 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Estilos específicos del módulo de documentos */
-.documentos-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para documentos */
-.table-hover tbody tr:hover {
-  background-color: rgba(111, 66, 193, 0.05);
-}
-
-/* Paginación con tema violeta para documentos */
-.pagination .page-link {
-  color: #6f42c1;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #5a2d91;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #6f42c1;
-  border-color: #6f42c1;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
-}
-
-/* Estilos globales importados desde src/styles/global.css */
-.swal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.swal-modal {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  text-align: center;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.swal-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.swal-icon.success { color: #28a745; }
-.swal-icon.error { color: #dc3545; }
-.swal-icon.warning { color: #ffc107; }
-.swal-icon.info { color: #17a2b8; }
-
-.swal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.swal-text {
-  margin-bottom: 2rem;
-  color: #6c757d;
-}
-
-.toast-notification {
-  position: fixed;
-  right: 20px;
-  z-index: 9999;
-  min-width: 300px;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border-left: 4px solid;
-  animation: slideInRight 0.3s ease-out;
-}
-
-.toast-notification.success { border-left-color: #28a745; }
-.toast-notification.error { border-left-color: #dc3545; }
-.toast-notification.warning { border-left-color: #ffc107; }
-.toast-notification.info { border-left-color: #17a2b8; }
-
-.toast-icon {
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
-}
-
-.toast-notification.success .toast-icon { color: #28a745; }
-.toast-notification.error .toast-icon { color: #dc3545; }
-.toast-notification.warning .toast-icon { color: #ffc107; }
-.toast-notification.info .toast-icon { color: #17a2b8; }
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  color: #6c757d;
-  cursor: pointer;
-  margin-left: 0.75rem;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-</style>

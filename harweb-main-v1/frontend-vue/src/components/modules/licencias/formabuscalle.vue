@@ -84,7 +84,7 @@ export default {
     async buscarCalles() {
       // Llamar API para buscar calles por filtro
       try {
-        const resp = await fetch('/api/execute', {
+        const resp = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ export default {
     async listarCalles() {
       // Llamar API para listar todas las calles
       try {
-        const resp = await fetch('/api/execute', {
+        const resp = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

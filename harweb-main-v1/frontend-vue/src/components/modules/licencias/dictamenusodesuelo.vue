@@ -1,20 +1,20 @@
 <template>
-  <div class="dictamen-uso-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
+          <h3 class="mb-1">
             <i class="fas fa-map-marked-alt"></i>
             Dictámenes de Uso de Suelo
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-75">
             Gestión y emisión de constancias de uso de suelo
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-light"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
@@ -26,48 +26,48 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-2">
-            <label class="form-label">Año</label>
+            <label class="municipal-form-label">Año</label>
             <input
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.axo"
               placeholder="2024"
             >
           </div>
           <div class="col-md-2">
-            <label class="form-label">Folio</label>
+            <label class="municipal-form-label">Folio</label>
             <input
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.folio"
               placeholder="123"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Solicitante</label>
+            <label class="municipal-form-label">Solicitante</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.solicita"
               placeholder="Nombre del solicitante"
             >
           </div>
           <div class="col-md-2">
-            <label class="form-label">Licencia</label>
+            <label class="municipal-form-label">Licencia</label>
             <input
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.licencia"
               placeholder="Número"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Estado</label>
-            <select class="form-select" v-model="filters.vigente">
+            <label class="municipal-form-label">Estado</label>
+            <select class="municipal-form-control" v-model="filters.vigente">
               <option value="">Todos</option>
               <option value="V">Vigente</option>
               <option value="C">Cancelado</option>
@@ -76,46 +76,48 @@
         </div>
         <div class="row mt-3">
           <div class="col-12">
-            <button
-              class="btn btn-outline-teal me-2"
-              @click="searchDictamenes"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadDictamenes"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
+            <div class="municipal-group-btn">
+              <button
+                class="btn-municipal-primary"
+                @click="searchDictamenes"
+                :disabled="loading"
+              >
+                <i class="fas fa-search"></i>
+                Buscar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="clearFilters"
+                :disabled="loading"
+              >
+                <i class="fas fa-times"></i>
+                Limpiar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="loadDictamenes"
+                :disabled="loading"
+              >
+                <i class="fas fa-sync-alt"></i>
+                Actualizar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h6 class="mb-0">
           <i class="fas fa-map-marked-alt"></i>
           Dictámenes de Uso de Suelo
-          <span v-if="dictamenes.length > 0" class="badge bg-teal ms-2">
+          <span v-if="dictamenes.length > 0" class="municipal-badge municipal-badge-primary ms-2">
             {{ dictamenes.length }} registros
           </span>
         </h6>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-teal" role="status">
@@ -125,11 +127,11 @@
         </div>
 
         <!-- Error state -->
-        <div v-else-if="error" class="alert alert-danger">
+        <div v-else-if="error" class="municipal-alert-danger">
           <h6 class="alert-heading">Error al cargar datos</h6>
           <p class="mb-0">{{ error }}</p>
           <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadDictamenes">
+          <button class="btn-municipal-primary btn-sm" @click="loadDictamenes">
             <i class="fas fa-retry"></i>
             Reintentar
           </button>
@@ -144,7 +146,7 @@
           </p>
           <button
             v-if="!hasActiveFilters"
-            class="btn btn-teal"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
           >
             <i class="fas fa-plus"></i>
@@ -154,8 +156,8 @@
 
         <!-- Tabla con datos -->
         <div v-else class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Año-Folio</th>
                 <th>Solicitante</th>
@@ -174,32 +176,32 @@
                 </td>
                 <td>{{ dictamen.solicita }}</td>
                 <td>
-                  <span v-if="dictamen.licencia" class="badge bg-info">{{ dictamen.licencia }}</span>
+                  <span v-if="dictamen.licencia" class="municipal-badge municipal-badge-info">{{ dictamen.licencia }}</span>
                   <span v-else class="text-muted">N/A</span>
                 </td>
                 <td>
-                  <span class="badge" :class="getTipoBadgeClass(dictamen.tipo)">
+                  <span class="municipal-badge" :class="getMunicipalTipoBadgeClass(dictamen.tipo)">
                     {{ dictamen.tipo_texto }}
                   </span>
                 </td>
                 <td>{{ dictamen.domicilio || 'N/A' }}</td>
                 <td>
-                  <span class="badge" :class="getEstadoBadgeClass(dictamen.vigente)">
+                  <span class="municipal-badge" :class="getMunicipalEstadoBadgeClass(dictamen.vigente)">
                     {{ dictamen.vigente_texto }}
                   </span>
                 </td>
                 <td>{{ formatDate(dictamen.feccap) }}</td>
                 <td>
-                  <div class="btn-group btn-group-sm">
+                  <div class="municipal-group-btn">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-secondary btn-sm"
                       @click="viewDictamen(dictamen)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-warning btn-sm"
                       @click="editDictamen(dictamen)"
                       title="Editar"
                       :disabled="dictamen.vigente === 'C'"
@@ -207,7 +209,7 @@
                       <i class="fas fa-edit"></i>
                     </button>
                     <button
-                      class="btn btn-outline-success"
+                      class="btn-municipal-success btn-sm"
                       @click="printDictamen(dictamen)"
                       title="Generar PDF"
                     >
@@ -215,7 +217,7 @@
                     </button>
                     <button
                       v-if="dictamen.vigente === 'V'"
-                      class="btn btn-outline-danger"
+                      class="btn-municipal-danger btn-sm"
                       @click="cancelDictamen(dictamen)"
                       title="Cancelar"
                     >
@@ -295,20 +297,20 @@
             <form @submit.prevent="saveDictamen">
               <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Solicitante <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Solicitante <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.solicita"
                     placeholder="Nombre del solicitante"
                     required
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Número de Licencia</label>
+                  <label class="municipal-form-label">Número de Licencia</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.licencia"
                     placeholder="Número de licencia"
                   >
@@ -316,8 +318,8 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Tipo de Dictamen</label>
-                  <select class="form-select" v-model="newDictamen.tipo">
+                  <label class="municipal-form-label">Tipo de Dictamen</label>
+                  <select class="municipal-form-control" v-model="newDictamen.tipo">
                     <option value="0">Licencia</option>
                     <option value="1">No Licencia</option>
                     <option value="2">No Licencia Propietario</option>
@@ -325,10 +327,10 @@
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Partida de Pago</label>
+                  <label class="municipal-form-label">Partida de Pago</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.partidapago"
                     placeholder="Número de partida"
                   >
@@ -336,19 +338,19 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Capturista</label>
+                  <label class="municipal-form-label">Capturista</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.capturista"
                     placeholder="Nombre del capturista"
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">ID Licencia</label>
+                  <label class="municipal-form-label">ID Licencia</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.id_licencia"
                     placeholder="ID interno"
                   >
@@ -356,10 +358,10 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Domicilio</label>
+                  <label class="municipal-form-label">Domicilio</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.domicilio"
                     placeholder="Dirección completa"
                   >
@@ -367,9 +369,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Observaciones</label>
+                  <label class="municipal-form-label">Observaciones</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="3"
                     v-model="newDictamen.observacion"
                     placeholder="Observaciones o comentarios adicionales"
@@ -379,12 +381,12 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
               Cancelar
             </button>
             <button
               type="button"
-              class="btn btn-teal"
+              class="btn-municipal-primary"
               @click="saveDictamen"
               :disabled="creating || !newDictamen.solicita"
             >
@@ -420,7 +422,7 @@
         <div class="modal-body" v-if="selectedDictamen">
           <div class="row">
             <div class="col-12 mb-4">
-              <div class="alert alert-teal">
+              <div class="municipal-alert-info">
                 <h5 class="alert-heading mb-2">
                   <i class="fas fa-map-marked-alt"></i>
                   Dictamen: {{ selectedDictamen.axo }}-{{ selectedDictamen.folio }}
@@ -441,15 +443,15 @@
                 </div>
                 <div class="card-body">
                   <div class="form-group mb-3">
-                    <label class="form-label">Solicitante:</label>
+                    <label class="municipal-form-label">Solicitante:</label>
                     <p class="form-control-plaintext">{{ selectedDictamen.solicita }}</p>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Domicilio:</label>
+                    <label class="municipal-form-label">Domicilio:</label>
                     <p class="form-control-plaintext">{{ selectedDictamen.domicilio || 'N/A' }}</p>
                   </div>
                   <div class="form-group mb-0">
-                    <label class="form-label">Capturista:</label>
+                    <label class="municipal-form-label">Capturista:</label>
                     <p class="form-control-plaintext">{{ selectedDictamen.capturista || 'N/A' }}</p>
                   </div>
                 </div>
@@ -466,24 +468,24 @@
                 </div>
                 <div class="card-body">
                   <div class="form-group mb-3">
-                    <label class="form-label">Tipo:</label>
-                    <span class="badge" :class="getTipoBadgeClass(selectedDictamen.tipo)">
+                    <label class="municipal-form-label">Tipo:</label>
+                    <span class="municipal-badge" :class="getMunicipalTipoBadgeClass(selectedDictamen.tipo)">
                       {{ selectedDictamen.tipo_texto }}
                     </span>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Estado:</label>
-                    <span class="badge" :class="getEstadoBadgeClass(selectedDictamen.vigente)">
+                    <label class="municipal-form-label">Estado:</label>
+                    <span class="municipal-badge" :class="getMunicipalEstadoBadgeClass(selectedDictamen.vigente)">
                       {{ selectedDictamen.vigente_texto }}
                     </span>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Fecha de Captura:</label>
+                    <label class="municipal-form-label">Fecha de Captura:</label>
                     <p class="form-control-plaintext">{{ formatDate(selectedDictamen.feccap) }}</p>
                   </div>
                   <div class="form-group mb-0" v-if="selectedDictamen.licencia">
-                    <label class="form-label">Licencia:</label>
-                    <span class="badge bg-info">{{ selectedDictamen.licencia }}</span>
+                    <label class="municipal-form-label">Licencia:</label>
+                    <span class="municipal-badge municipal-badge-info">{{ selectedDictamen.licencia }}</span>
                   </div>
                 </div>
               </div>
@@ -507,15 +509,15 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-teal" @click="editDictamen(selectedDictamen)" :disabled="selectedDictamen.vigente === 'C'">
+          <button class="btn-municipal-primary" @click="editDictamen(selectedDictamen)" :disabled="selectedDictamen.vigente === 'C'">
             <i class="fas fa-edit"></i>
             Editar Dictamen
           </button>
-          <button class="btn btn-success" @click="printDictamenInfo(selectedDictamen)">
+          <button class="btn-municipal-success" @click="printDictamenInfo(selectedDictamen)">
             <i class="fas fa-print"></i>
             Imprimir
           </button>
-          <button class="btn btn-secondary" @click="showDetailsModal = false">
+          <button class="btn-municipal-secondary" @click="showDetailsModal = false">
             <i class="fas fa-times"></i>
             Cerrar
           </button>
@@ -536,7 +538,7 @@
         <h3 class="swal-title">{{ sweetAlert.title }}</h3>
         <p class="swal-text">{{ sweetAlert.text }}</p>
         <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
+          <button class="btn-municipal-primary" @click="closeSweetAlert">
             Aceptar
           </button>
         </div>
@@ -634,22 +636,20 @@ export default {
       this.error = null
 
       try {
-        // Llamada real a la API usando SP_DICTAMENUSO_LIST
+        // Llamada real a la API usando sp_dictamenuso_list
         const eRequest = {
           Operacion: 'sp_dictamenuso_list',
           Base: 'padron_licencias',
+          Tenant: 'guadalajara',
           Parametros: [
+            { nombre: 'p_limite', valor: this.itemsPerPage },
+            { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage },
             { nombre: 'p_axo', valor: this.filters.axo ? parseInt(this.filters.axo) : null },
             { nombre: 'p_folio', valor: this.filters.folio ? parseInt(this.filters.folio) : null },
-            { nombre: 'p_solicita', valor: this.filters.solicita || null },
-            { nombre: 'p_licencia', valor: this.filters.licencia ? parseInt(this.filters.licencia) : null },
-            { nombre: 'p_vigente', valor: this.filters.vigente || null },
-            { nombre: 'p_fecha_ini', valor: null },
-            { nombre: 'p_fecha_fin', valor: null },
-            { nombre: 'p_limite', valor: this.itemsPerPage },
-            { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage }
-          ],
-          Tenant: 'informix'
+            { nombre: 'p_solicitante', valor: this.filters.solicita || '' },
+            { nombre: 'p_ubicacion', valor: this.filters.ubicacion || '' },
+            { nombre: 'p_estatus', valor: this.filters.vigente || '' }
+          ]
         }
 
         console.log('📨 Cargando dictámenes uso de suelo con SP_DICTAMENUSO_LIST:', eRequest)
@@ -710,8 +710,91 @@ export default {
       this.currentPage = 1 // Reset to first page
       this.loadDictamenes()
     },
+    async saveDictamen() {
+      if (!this.newDictamen.solicita) {
+        alert('Por favor complete el campo Solicitante')
+        return
+      }
+
+      this.creating = true
+      try {
+        let eRequest
+
+        if (this.editingDictamen) {
+          // Actualizar dictamen existente
+          eRequest = {
+            Operacion: 'sp_dictamenuso_update',
+            Base: 'padron_licencias',
+            Tenant: 'guadalajara',
+            Parametros: [
+              { nombre: 'p_id_dictamen_uso', valor: this.editingDictamen.id_dictamen_uso },
+              { nombre: 'p_solicitante', valor: this.newDictamen.solicita },
+              { nombre: 'p_ubicacion_predio', valor: this.newDictamen.ubicacion || null },
+              { nombre: 'p_uso_solicitado', valor: this.newDictamen.uso_solicitado || null },
+              { nombre: 'p_observaciones', valor: this.newDictamen.observaciones || null },
+              { nombre: 'p_usuario_responsable', valor: 'admin' }
+            ]
+          }
+        } else {
+          // Crear nuevo dictamen
+          eRequest = {
+            Operacion: 'sp_dictamenuso_create',
+            Base: 'padron_licencias',
+            Tenant: 'guadalajara',
+            Parametros: [
+              { nombre: 'p_solicitante', valor: this.newDictamen.solicita },
+              { nombre: 'p_ubicacion_predio', valor: this.newDictamen.ubicacion || 'Sin especificar' },
+              { nombre: 'p_uso_solicitado', valor: this.newDictamen.uso_solicitado || 'Por determinar' },
+              { nombre: 'p_vigencia_meses', valor: 24 },
+              { nombre: 'p_observaciones', valor: this.newDictamen.observaciones || null },
+              { nombre: 'p_usuario_responsable', valor: 'admin' }
+            ]
+          }
+        }
+
+        console.log(`📨 ${this.editingDictamen ? 'Actualizando' : 'Creando'} dictamen uso de suelo:`, eRequest)
+
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+
+        const data = await response.json()
+
+        if (data.eResponse && data.eResponse.success) {
+          console.log(`✅ ${this.editingDictamen ? 'Actualización' : 'Creación'} exitosa:`, data.eResponse)
+
+          // Cerrar modal
+          this.showCreateModal = false
+          this.editingDictamen = null
+
+          // Limpiar formulario
+          this.newDictamen = {
+            solicita: '',
+            ubicacion: '',
+            uso_solicitado: '',
+            observaciones: ''
+          }
+
+          // Recargar datos
+          this.loadDictamenes()
+
+          alert(`Constancia ${this.editingDictamen ? 'actualizada' : 'creada'} exitosamente`)
+        } else {
+          throw new Error(data.eResponse?.message || 'Error en la respuesta del servidor')
+        }
+      } catch (error) {
+        console.error('❌ Error al guardar dictamen:', error)
+        alert(`Error al ${this.editingDictamen ? 'actualizar' : 'crear'} la constancia: ${error.message}`)
+      } finally {
+        this.creating = false
+      }
+    },
     async guardar() {
-      const res = await fetch('/api/execute', {
+      const res = await fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -742,7 +825,7 @@ export default {
     },
     async cancelarConstancia(item) {
       if (!confirm('¿Está seguro de cancelar la constancia?')) return;
-      const res = await fetch('/api/execute', {
+      const res = await fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -786,6 +869,20 @@ export default {
 
     getEstadoBadgeClass(vigente) {
       return vigente === 'V' ? 'bg-success' : 'bg-danger'
+    },
+
+    getMunicipalEstadoBadgeClass(vigente) {
+      return vigente === 'V' ? 'municipal-badge-success' : 'municipal-badge-danger'
+    },
+
+    getMunicipalTipoBadgeClass(tipo) {
+      const classes = {
+        0: 'municipal-badge-primary',    // Licencia
+        1: 'municipal-badge-warning',    // No Licencia
+        2: 'municipal-badge-info',       // No Licencia Propietario
+        3: 'municipal-badge-secondary'   // No Licencia Vigente
+      }
+      return classes[tipo] || 'municipal-badge-light'
     },
 
     formatDate(date) {
@@ -925,356 +1022,3 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Estilos específicos del módulo de dictámenes uso de suelo */
-.dictamen-uso-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para dictámenes uso de suelo */
-.table-hover tbody tr:hover {
-  background-color: rgba(32, 201, 151, 0.05);
-}
-
-/* Botón personalizado teal */
-.btn-teal {
-  background-color: #20c997;
-  border-color: #20c997;
-  color: white;
-}
-
-.btn-teal:hover {
-  background-color: #1aa085;
-  border-color: #1aa085;
-  color: white;
-}
-
-.btn-outline-teal {
-  color: #20c997;
-  border-color: #20c997;
-}
-
-.btn-outline-teal:hover {
-  background-color: #20c997;
-  border-color: #20c997;
-  color: white;
-}
-
-/* Badge personalizado teal */
-.bg-teal {
-  background-color: #20c997 !important;
-}
-
-/* Alert personalizado teal */
-.alert-teal {
-  background-color: #d4f4ed;
-  border-color: #20c997;
-  color: #155724;
-}
-
-/* Paginación con tema teal para dictámenes uso suelo */
-.pagination .page-link {
-  color: #20c997;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #1aa085;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #20c997;
-  border-color: #20c997;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
-}
-
-/* SweetAlert Modal */
-.swal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.swal-modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  max-width: 450px;
-  width: 90%;
-  padding: 2rem;
-  text-align: center;
-}
-
-.swal-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  margin: 0 auto 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  color: white;
-}
-
-.swal-icon.success { background: #28a745; }
-.swal-icon.error { background: #dc3545; }
-.swal-icon.warning { background: #ffc107; color: #333 !important; }
-.swal-icon.info { background: #17a2b8; }
-
-.swal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.swal-text {
-  color: #666;
-  font-size: 1rem;
-  line-height: 1.5;
-  margin-bottom: 2rem;
-}
-
-/* Modal overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1050;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  max-width: 95%;
-  max-height: 90%;
-  overflow-y: auto;
-}
-
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #dee2e6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
-  color: white;
-  border-radius: 12px 12px 0 0;
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #dee2e6;
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-/* Toast Notifications */
-.toast-notification {
-  position: fixed;
-  right: 20px;
-  min-width: 300px;
-  max-width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1500;
-  animation: slideIn 0.3s ease-out;
-  padding: 1rem;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.toast-notification.success {
-  background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.toast-notification.error {
-  background: linear-gradient(135deg, #dc3545, #c82333);
-}
-
-.toast-notification.warning {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-  color: #212529;
-}
-
-.toast-notification.info {
-  background: linear-gradient(135deg, #17a2b8, #20c997);
-}
-
-.toast-icon {
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-  opacity: 0.8;
-}
-
-.toast-close:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  opacity: 1;
-}
-
-/* Estilos específicos para detalles */
-.form-control-plaintext {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-weight: 500;
-  color: #495057;
-}
-
-.card.h-100 {
-  height: 100% !important;
-}
-
-/* Badge personalizado */
-.badge.bg-success { background-color: #28a745 !important; }
-.badge.bg-danger { background-color: #dc3545 !important; }
-.badge.bg-primary { background-color: #007bff !important; }
-.badge.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
-.badge.bg-info { background-color: #17a2b8 !important; }
-.badge.bg-secondary { background-color: #6c757d !important; }
-
-/* Color específico para spinner de loading */
-.text-teal {
-  color: #20c997 !important;
-}
-
-.spinner-border.text-teal {
-  color: #20c997 !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .dictamen-uso-module {
-    padding: 0.5rem;
-  }
-
-  .module-header {
-    padding: 1rem;
-  }
-
-  .card-body .row {
-    flex-direction: column;
-  }
-
-  .col-md-2, .col-md-3 {
-    margin-bottom: 1rem;
-  }
-
-  .table-responsive {
-    font-size: 0.875rem;
-  }
-
-  .toast-notification {
-    right: 10px;
-    left: 10px;
-    min-width: auto;
-  }
-}
-</style>

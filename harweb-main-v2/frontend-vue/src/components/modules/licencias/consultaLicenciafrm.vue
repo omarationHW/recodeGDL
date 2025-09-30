@@ -1,70 +1,159 @@
 <template>
-  <div class="consulta-licencia-page">
-    <h1>Consulta de Licencias</h1>
-    <nav class="breadcrumb">
-      <span>Inicio</span> &gt; <span>Licencias</span> &gt; <span>Consulta</span>
-    </nav>
-    <section class="search-section">
-      <h2>Búsqueda</h2>
-      <form @submit.prevent="buscar">
-        <div class="form-row">
-          <label>No. Licencia:</label>
-          <input v-model="form.licencia" type="text" />
-          <button type="button" @click="buscarPor('licencia')">Buscar</button>
+  <div class="municipal-form-page">
+    <!-- Municipal Header -->
+    <div class="municipal-header">
+      <div class="row align-items-center">
+        <div class="col">
+          <h1>
+            <i class="fas fa-file-contract"></i>
+            Consulta de Licencias
+          </h1>
+          <p class="mb-0">
+            Sistema de consulta y gestión de licencias municipales
+          </p>
         </div>
-        <div class="form-row">
-          <label>Ubicación:</label>
-          <input v-model="form.ubicacion" type="text" />
-          <button type="button" @click="buscarPor('ubicacion')">Buscar</button>
-        </div>
-        <div class="form-row">
-          <label>Contribuyente:</label>
-          <input v-model="form.propietario" type="text" />
-          <button type="button" @click="buscarPor('contribuyente')">Buscar</button>
-        </div>
-        <div class="form-row">
-          <label>No. Trámite:</label>
-          <input v-model="form.id_tramite" type="text" />
-          <button type="button" @click="buscarPor('tramite')">Buscar</button>
-        </div>
-      </form>
-    </section>
-    <section class="result-section" v-if="resultados.length">
-      <h2>Resultados</h2>
-      <table class="result-table">
-        <thead>
-          <tr>
-            <th>Licencia</th>
-            <th>Propietario</th>
-            <th>Ubicación</th>
-            <th>Actividad</th>
-            <th>Vigencia</th>
-            <th>Bloqueado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="lic in resultados" :key="lic.id_licencia">
-            <td>{{ lic.licencia }}</td>
-            <td>{{ lic.propietario }}</td>
-            <td>{{ lic.ubicacion }}</td>
-            <td>{{ lic.actividad }}</td>
-            <td>{{ lic.vigente }}</td>
-            <td>{{ lic.bloqueado ? 'Sí' : 'No' }}</td>
-            <td>
-              <button @click="verDetalle(lic)">Detalle</button>
-              <button v-if="!lic.bloqueado" @click="bloquear(lic)">Bloquear</button>
-              <button v-if="lic.bloqueado" @click="desbloquear(lic)">Desbloquear</button>
-              <button @click="verPagos(lic)">Pagos</button>
-              <button @click="verAdeudos(lic)">Adeudos</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="export-section">
-        <button @click="exportarExcel">Exportar a Excel</button>
       </div>
-    </section>
+    </div>
+
+    <nav aria-label="breadcrumb" class="municipal-breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Licencias</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Consulta</li>
+      </ol>
+    </nav>
+
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-search"></i>
+          Búsqueda de Licencias
+        </h5>
+      </div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="buscar">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <i class="fas fa-id-card"></i> No. Licencia:
+              </label>
+              <div class="input-group">
+                <input v-model="form.licencia" type="text" class="municipal-form-control" placeholder="Ingrese número de licencia" />
+                <button type="button" @click="buscarPor('licencia')" class="btn-municipal-primary">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <i class="fas fa-map-marker-alt"></i> Ubicación:
+              </label>
+              <div class="input-group">
+                <input v-model="form.ubicacion" type="text" class="municipal-form-control" placeholder="Ingrese ubicación" />
+                <button type="button" @click="buscarPor('ubicacion')" class="btn-municipal-primary">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3 mt-2">
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <i class="fas fa-user"></i> Contribuyente:
+              </label>
+              <div class="input-group">
+                <input v-model="form.propietario" type="text" class="municipal-form-control" placeholder="Nombre del contribuyente" />
+                <button type="button" @click="buscarPor('contribuyente')" class="btn-municipal-primary">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <i class="fas fa-file-alt"></i> No. Trámite:
+              </label>
+              <div class="input-group">
+                <input v-model="form.id_tramite" type="text" class="municipal-form-control" placeholder="Número de trámite" />
+                <button type="button" @click="buscarPor('tramite')" class="btn-municipal-primary">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Municipal Results Section -->
+    <div v-if="resultados.length" class="municipal-card">
+      <div class="municipal-card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-table"></i>
+          Resultados de la Búsqueda
+          <span class="badge bg-light text-dark ms-2">{{ resultados.length }}</span>
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table municipal-table mb-0">
+            <thead>
+              <tr>
+                <th><i class="fas fa-id-card me-1"></i>Licencia</th>
+                <th><i class="fas fa-user me-1"></i>Propietario</th>
+                <th><i class="fas fa-map-marker-alt me-1"></i>Ubicación</th>
+                <th><i class="fas fa-briefcase me-1"></i>Actividad</th>
+                <th><i class="fas fa-calendar-check me-1"></i>Vigencia</th>
+                <th><i class="fas fa-lock me-1"></i>Bloqueado</th>
+                <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="lic in resultados" :key="lic.id_licencia" class="municipal-selected">
+                <td><strong class="text-primary">{{ lic.licencia }}</strong></td>
+                <td>{{ lic.propietario }}</td>
+                <td>{{ lic.ubicacion }}</td>
+                <td>{{ lic.actividad }}</td>
+                <td>
+                  <span class="badge" :class="lic.vigente ? 'bg-success' : 'bg-warning'">
+                    {{ lic.vigente ? 'Vigente' : 'No Vigente' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" :class="lic.bloqueado ? 'bg-danger' : 'bg-success'">
+                    {{ lic.bloqueado ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm municipal-group-btn" role="group">
+                    <button @click="verDetalle(lic)" class="btn btn-outline-info municipal-btn-info" title="Ver detalles">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button v-if="!lic.bloqueado" @click="bloquear(lic)" class="btn btn-outline-danger municipal-btn-danger" title="Bloquear">
+                      <i class="fas fa-lock"></i>
+                    </button>
+                    <button v-if="lic.bloqueado" @click="desbloquear(lic)" class="btn btn-outline-success municipal-btn-success" title="Desbloquear">
+                      <i class="fas fa-unlock"></i>
+                    </button>
+                    <button @click="verPagos(lic)" class="btn btn-outline-primary municipal-btn-primary" title="Ver pagos">
+                      <i class="fas fa-money-bill-wave"></i>
+                    </button>
+                    <button @click="verAdeudos(lic)" class="btn btn-outline-warning municipal-btn-warning" title="Ver adeudos">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer municipal-card-footer">
+        <button @click="exportarExcel" class="btn btn-success municipal-btn-success">
+          <i class="fas fa-file-excel"></i>
+          Exportar a Excel
+        </button>
+      </div>
+    </div>
     <section v-if="detalle">
       <h2>Detalle de Licencia</h2>
       <div class="detalle-grid">
@@ -298,65 +387,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.consulta-licencia-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-.breadcrumb {
-  margin-bottom: 1rem;
-  color: #888;
-}
-.search-section {
-  background: #f8f8f8;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 2rem;
-}
-.form-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-.form-row label {
-  width: 140px;
-  font-weight: bold;
-}
-.form-row input {
-  flex: 1;
-  margin-right: 1rem;
-}
-.result-section {
-  margin-bottom: 2rem;
-}
-.result-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-}
-.result-table th, .result-table td {
-  border: 1px solid #ddd;
-  padding: 0.5rem;
-}
-.result-table th {
-  background: #eee;
-}
-.detalle-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.loading {
-  color: #007bff;
-  font-weight: bold;
-}
-.error {
-  color: #c00;
-  font-weight: bold;
-}
-.export-section {
-  margin-top: 1rem;
-}
-</style>

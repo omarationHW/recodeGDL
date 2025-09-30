@@ -74,27 +74,33 @@ export default {
       }
       // Llamada API
       try {
-        const response = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'changePassword',
-            username: this.form.username,
-            current_password: this.form.current_password,
-            new_password: this.form.new_password,
-            confirm_password: this.form.confirm_password
-          }
+        const eRequest = {
+          action: 'changePassword',
+          username: this.form.username,
+          current_password: this.form.current_password,
+          new_password: this.form.new_password,
+          confirm_password: this.form.confirm_password
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (response.data.eResponse.success) {
-          this.message = response.data.message;
+        const data = await response.json();
+        if (data.eResponse.success) {
+          this.message = data.message;
           this.success = true;
           this.form.current_password = '';
           this.form.new_password = '';
           this.form.confirm_password = '';
         } else {
-          this.message = response.data.message;
+          this.message = data.message;
           this.success = false;
         }
       } catch (err) {
-        this.message = err.response?.data?.message || 'Error de red';
+        this.message = err.message || 'Error de red';
         this.success = false;
       } finally {
         this.loading = false;

@@ -344,17 +344,24 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.predios = response.data.eResponse.data || [];
+        if (data.eResponse && data.eResponse.success) {
+          this.predios = data.eResponse.data || [];
           if (this.predios.length === 0) {
             this.mostrarMensaje('No se encontraron predios con los criterios especificados', 'info');
           } else {
             this.mostrarMensaje(`Se encontraron ${this.predios.length} predio(s)`, 'success');
           }
         } else {
-          this.mostrarMensaje('Error al buscar predios: ' + (response.data.eResponse?.message || 'Error desconocido'), 'danger');
+          this.mostrarMensaje('Error al buscar predios: ' + (data.eResponse?.message || 'Error desconocido'), 'danger');
         }
       } catch (error) {
         console.error('Error al buscar predios:', error);

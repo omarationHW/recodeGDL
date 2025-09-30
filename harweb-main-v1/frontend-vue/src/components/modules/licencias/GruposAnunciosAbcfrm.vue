@@ -109,7 +109,7 @@ export default {
   methods: {
     async fetchGrupos() {
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export default {
     async onDelete(grupo) {
       if (!confirm('¿Está seguro de eliminar el grupo seleccionado?')) return;
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ export default {
       if (this.formMode === 'add') {
         // Insert
         try {
-          const response = await fetch('/api/execute', {
+          const response = await fetch('http://localhost:8000/api/generic', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ export default {
       } else if (this.formMode === 'edit') {
         // Update
         try {
-          const response = await fetch('/api/execute', {
+          const response = await fetch('http://localhost:8000/api/generic', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

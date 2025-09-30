@@ -80,13 +80,27 @@ export default {
     this.fetchRecaudadoras();
   },
   methods: {
-    async api(action, params = {}) {
-      return await this.$axios.post('/api/execute', { action, params });
+    async api(operacion, parametros = {}) {
+      const eRequest = {
+        Operacion: operacion,
+        Base: 'padron_licencias',
+        Tenant: 'guadalajara',
+        Parametros: Object.entries(parametros).map(([nombre, valor]) => ({ nombre, valor }))
+      }
+      const response = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ eRequest })
+      })
+      const data = await response.json()
+      return { data }
     },
     async fetchRecaudadoras() {
       this.loading = true;
       try {
-        const res = await this.api('get_recaudadoras');
+        const res = await this.api('sp_get_recaudadoras');
         this.recaudadoras = res.data.eResponse.data.result;
       } catch (e) {
         this.error = 'Error cargando recaudadoras';
@@ -98,7 +112,7 @@ export default {
       if (!this.form.recaud) return;
       this.loading = true;
       try {
-        const res = await this.api('get_zonas', { recaud: this.form.recaud });
+        const res = await this.api('sp_get_zonas', { p_recaud: this.form.recaud });
         this.zonas = res.data.eResponse.data.result;
         this.form.zona = '';
         this.subzonas = [];
@@ -113,7 +127,7 @@ export default {
       if (!this.form.zona || !this.form.recaud) return;
       this.loading = true;
       try {
-        const res = await this.api('get_subzonas', { cvezona: this.form.zona, recaud: this.form.recaud });
+        const res = await this.api('sp_get_subzonas', { p_cvezona: this.form.zona, p_recaud: this.form.recaud });
         this.subzonas = res.data.eResponse.data.result;
         this.form.subzona = '';
       } catch (e) {
@@ -128,7 +142,7 @@ export default {
       this.success = false;
       this.error = '';
       try {
-        const res = await this.api('get_licencia', { licencia: this.form.licencia });
+        const res = await this.api('sp_get_licencia', { p_licencia: this.form.licencia });
         if (!res.data.eResponse.data.result) {
           this.licenciaData = null;
           this.error = 'Licencia no encontrada';
@@ -136,7 +150,7 @@ export default {
         }
         this.licenciaData = res.data.eResponse.data.result;
         // Cargar valores actuales de zona/subzona/recaud
-        const zonaRes = await this.api('get_licencias_zona', { licencia: this.form.licencia });
+        const zonaRes = await this.api('sp_get_licencias_zona', { p_licencia: this.form.licencia });
         if (zonaRes.data.eResponse.data.result) {
           this.form.zona = zonaRes.data.eResponse.data.result.zona;
           this.form.subzona = zonaRes.data.eResponse.data.result.subzona;
@@ -163,11 +177,11 @@ export default {
       }
       this.loading = true;
       try {
-        await this.api('save_licencias_zona', {
-          licencia: this.form.licencia,
-          zona: this.form.zona,
-          subzona: this.form.subzona,
-          recaud: this.form.recaud
+        await this.api('sp_save_licencias_zona', {
+          p_licencia: this.form.licencia,
+          p_zona: this.form.zona,
+          p_subzona: this.form.subzona,
+          p_recaud: this.form.recaud
         });
         this.success = true;
       } catch (e) {

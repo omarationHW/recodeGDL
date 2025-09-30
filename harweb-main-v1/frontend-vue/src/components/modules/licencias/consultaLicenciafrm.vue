@@ -1,10 +1,10 @@
 <template>
-  <div class="container-fluid p-0 h-100 module-layout">
+  <div class="municipal-form-page">
     <!-- Header -->
-    <div class="bg-primary text-white p-3 mb-0">
+    <div class="municipal-header">
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <h1 class="h3 mb-1">🏪 Consulta de Licencias Comerciales</h1>
+          <h1 class="h3 mb-1"><i class="fas fa-store me-2"></i>Consulta de Licencias Comerciales</h1>
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 bg-transparent p-0">
               <li class="breadcrumb-item"><a href="#" class="text-white-50">Inicio</a></li>
@@ -20,48 +20,50 @@
     </div>
 
     <!-- Controles -->
-    <div class="bg-light border-bottom p-3">
-      <div class="row g-3 align-items-center">
-        <!-- Botones de acción -->
-        <div class="col-lg-8">
-          <div class="btn-group" role="group">
-            <button type="button" class="btn btn-success" @click="nuevaLicencia" :disabled="formActive">
-              <i class="fas fa-plus me-1"></i> Nueva
-            </button>
-            <button type="button" class="btn btn-warning" @click="modificarLicencia" :disabled="!selectedRow || formActive">
-              <i class="fas fa-edit me-1"></i> Modificar
-            </button>
-            <button type="button" class="btn btn-danger" @click="eliminarLicencia" :disabled="!selectedRow || formActive">
-              <i class="fas fa-trash me-1"></i> Eliminar
-            </button>
-            <button type="button" class="btn btn-info" @click="imprimirLicencia" :disabled="!selectedRow">
-              <i class="fas fa-print me-1"></i> Imprimir
-            </button>
-            <button type="button" class="btn btn-secondary" @click="cargarDatos" :disabled="formActive">
-              <i class="fas fa-sync-alt me-1"></i> Actualizar
-            </button>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-body">
+        <div class="row g-3 align-items-center">
+          <!-- Botones de acción -->
+          <div class="col-lg-8">
+            <div class="municipal-group-btn" role="group">
+              <button type="button" class="btn-municipal-primary" @click="nuevaLicencia" :disabled="formActive">
+                <i class="fas fa-plus me-1"></i> Nueva
+              </button>
+              <button type="button" class="btn-municipal-primary" @click="modificarLicencia" :disabled="!selectedRow || formActive">
+                <i class="fas fa-edit me-1"></i> Modificar
+              </button>
+              <button type="button" class="btn-municipal-secondary" @click="eliminarLicencia" :disabled="!selectedRow || formActive">
+                <i class="fas fa-trash me-1"></i> Eliminar
+              </button>
+              <button type="button" class="btn-municipal-secondary" @click="imprimirLicencia" :disabled="!selectedRow">
+                <i class="fas fa-print me-1"></i> Imprimir
+              </button>
+              <button type="button" class="btn-municipal-secondary" @click="cargarDatos" :disabled="formActive">
+                <i class="fas fa-sync-alt me-1"></i> Actualizar
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Búsqueda -->
-        <div class="col-lg-4">
-          <div class="input-group">
-            <select v-model="searchType" @change="onSearchTypeChange" class="form-select" style="max-width: 140px;">
-              <option value="razon_social">Razón Social</option>
-              <option value="num_lic">Número</option>
-              <option value="nombre_giro">Giro</option>
-              <option value="direccion">Dirección</option>
-              <option value="colonia">Colonia</option>
-            </select>
-            <input
-              v-model="searchValue"
-              @input="buscar"
-              placeholder="Buscar..."
-              class="form-control"
-            />
-            <span class="input-group-text bg-primary text-white">
-              <strong>Total: {{ totalRegistros }}</strong>
-            </span>
+          <!-- Búsqueda -->
+          <div class="col-lg-4">
+            <div class="input-group">
+              <select v-model="searchType" @change="onSearchTypeChange" class="municipal-form-control" style="max-width: 140px;">
+                <option value="razon_social">Razón Social</option>
+                <option value="num_lic">Número</option>
+                <option value="nombre_giro">Giro</option>
+                <option value="direccion">Dirección</option>
+                <option value="colonia">Colonia</option>
+              </select>
+              <input
+                v-model="searchValue"
+                @input="buscar"
+                placeholder="Buscar..."
+                class="municipal-form-control"
+              />
+              <span class="input-group-text municipal-badge municipal-badge-primary">
+                <strong>Total: {{ totalRegistros }}</strong>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -69,12 +71,12 @@
 
 
     <!-- Tabla -->
-    <div class="flex-grow-1 p-3">
-      <div class="card">
-        <div class="card-body p-0">
+    <div class="flex-grow-1">
+      <div class="municipal-card">
+        <div class="municipal-card-body p-0">
           <div class="table-responsive" style="max-height: 600px; overflow-x: auto;">
-            <table class="table table-hover table-sm mb-0" style="min-width: 1200px;">
-              <thead class="table-dark sticky-top">
+            <table class="municipal-table table-sm mb-0" style="min-width: 1200px;">
+              <thead class="municipal-table-header sticky-top">
                 <tr>
                   <th style="width: 60px;">#</th>
                   <th style="width: 120px;">Número Licencia</th>
@@ -100,13 +102,13 @@
                     @click="selectRow(row)"
                     style="cursor: pointer;">
                   <td>{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
-                  <td><span class="badge bg-secondary">{{ row.num_lic }}</span></td>
+                  <td><span class="municipal-badge municipal-badge-secondary">{{ row.num_lic }}</span></td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="row.razon_social">{{ row.razon_social }}</td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="row.nombre_giro">{{ row.nombre_giro }}</td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="row.direccion">{{ row.direccion }}</td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="row.colonia">{{ row.colonia }}</td>
                   <td>
-                    <span :class="['badge', getStatusBadgeClass(row.status_lic)]">
+                    <span :class="['municipal-badge', getMunicipalStatusBadgeClass(row.status_lic)]">
                       {{ row.status_lic }}
                     </span>
                   </td>
@@ -119,7 +121,7 @@
         </div>
 
         <!-- Paginación -->
-        <div class="card-footer">
+        <div class="municipal-card-footer">
           <div class="row align-items-center">
             <div class="col-sm-6">
               <nav v-if="totalPages > 1" aria-label="Paginación de licencias">
@@ -305,7 +307,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 
 export default {
   name: 'ConsultaLicenciafrm',
@@ -387,29 +388,63 @@ export default {
       this.loadingMessage = 'Cargando licencias...'
       this.error = ''
       try {
-        // Usar el API genérica
-        const response = await axios.post('http://localhost:8000/api/generic', {
-          eRequest: {
-            Operacion: 'sp_consultalicencia_list',
-            Base: 'padron_licencias',
-            Tenant: 'guadalajara',
-            Parametros: [
-              { nombre: 'p_limite', valor: 20 },
-              { nombre: 'p_offset', valor: 0 }
-            ]
-          }
-        })
+        const eRequest = {
+          Operacion: 'SP_CONSULTALICENCIA_LIST',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_numero_licencia', valor: filters.numero_licencia || null },
+            { nombre: 'p_propietario', valor: filters.propietario || null },
+            { nombre: 'p_rfc', valor: filters.rfc || null },
+            { nombre: 'p_giro', valor: filters.giro || null },
+            { nombre: 'p_tipo_licencia', valor: filters.tipo_licencia || null },
+            { nombre: 'p_estado', valor: filters.estado || null },
+            { nombre: 'p_vigentes_solo', valor: false },
+            { nombre: 'p_limite', valor: this.itemsPerPage },
+            { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage }
+          ]
+        }
 
-        if (response.data.eResponse.success) {
-          this.licencias = response.data.eResponse.data.result || []
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const data = await response.json()
+
+        if (data.eResponse.success) {
+          const result = data.eResponse.data.result || []
+          // Mapear campos del SP a los campos que espera el componente
+          this.licencias = result.map(row => ({
+            id: row.id,
+            num_lic: row.numero_licencia || row.folio,
+            folio: row.folio,
+            tipo_licencia: row.tipo_licencia,
+            cuenta_predial: row.cuenta_predial,
+            propietario: row.propietario,
+            razon_social: row.razon_social || row.propietario,
+            rfc: row.rfc,
+            direccion: row.direccion,
+            colonia: row.colonia || '',
+            nombre_giro: row.giro || '',
+            actividad: row.actividad || '',
+            fecha_expedicion: row.fecha_expedicion,
+            fecha_vencimiento: row.fecha_vencimiento,
+            status_lic: row.estado === 'V' ? 'VIGENTE' : (row.estado === 'C' ? 'CANCELADA' : 'INACTIVA'),
+            dias_para_vencer: row.dias_para_vencer,
+            total_registros: row.total_registros || result.length
+          }))
         } else {
           this.licencias = []
-          this.error = response.data.eResponse.message || 'Error al cargar los datos'
+          this.error = data.eResponse.message || 'Error al cargar los datos'
         }
         this.filteredLicencias = [...this.licencias]
         this.selectedRow = null
-        this.showToast('success', `${this.licencias.length} licencias cargadas exitosamente`)
-        console.log('Licencias cargadas:', this.licencias.length)
+        if (this.licencias.length > 0) {
+          this.showToast('success', `${this.licencias.length} licencias cargadas exitosamente`)
+        }
       } catch (error) {
         console.error('Error loading licencias:', error)
         this.error = 'Error al cargar licencias: ' + error.message
@@ -514,15 +549,32 @@ export default {
       this.sweetAlert.show = false
     },
 
-    buscar() {
+    async buscar() {
       if (!this.searchValue.trim()) {
-        this.filteredLicencias = [...this.licencias]
+        await this.cargarDatos()
       } else {
-        const term = this.searchValue.toLowerCase()
-        this.filteredLicencias = this.licencias.filter(item => {
-          const fieldValue = String(item[this.searchType] || '').toLowerCase()
-          return fieldValue.includes(term)
-        })
+        const filters = {}
+        switch (this.searchType) {
+          case 'razon_social':
+            filters.propietario = this.searchValue
+            break
+          case 'num_lic':
+            filters.numero_licencia = this.searchValue
+            break
+          case 'nombre_giro':
+            filters.giro = this.searchValue
+            break
+          default:
+            // Búsqueda local para otros campos
+            const term = this.searchValue.toLowerCase()
+            this.filteredLicencias = this.licencias.filter(item => {
+              const fieldValue = String(item[this.searchType] || '').toLowerCase()
+              return fieldValue.includes(term)
+            })
+            this.currentPage = 1
+            return
+        }
+        await this.cargarDatos(filters)
       }
       this.currentPage = 1
     },
@@ -622,39 +674,102 @@ export default {
 
       try {
         if (this.formMode === 'create') {
-          // Crear nueva licencia usando el servicio API centralizado
-          const licenciaData = {
-            numero_licencia: this.form.num_lic,
-            razon_social: this.form.razon_social,
-            giro: this.form.nombre_giro || '',
-            direccion: this.form.direccion || '',
-            colonia: this.form.colonia || '',
-            estado: this.form.status_lic,
-            fecha_expedicion: this.form.fecha_expedicion || new Date().toISOString().split('T')[0],
-            propietario: this.form.razon_social, // Asumir que razón social es el propietario por defecto
-            usuario_registro: 'USUARIO_SISTEMA' // TODO: Obtener del contexto de usuario
+          // Crear nueva licencia
+          const eRequest = {
+            Operacion: 'SP_CONSULTALICENCIA_CREATE',
+            Base: 'padron_licencias',
+            Tenant: 'guadalajara',
+            Parametros: [
+              { nombre: 'p_numero_licencia', valor: this.form.num_lic },
+              { nombre: 'p_folio', valor: this.form.folio || null },
+              { nombre: 'p_tipo_licencia', valor: 'COMERCIAL' },
+              { nombre: 'p_propietario', valor: this.form.razon_social },
+              { nombre: 'p_razon_social', valor: this.form.razon_social },
+              { nombre: 'p_rfc', valor: this.form.rfc || null },
+              { nombre: 'p_direccion', valor: this.form.direccion },
+              { nombre: 'p_colonia', valor: this.form.colonia },
+              { nombre: 'p_giro', valor: this.form.nombre_giro },
+              { nombre: 'p_actividad', valor: this.form.actividad || null },
+              { nombre: 'p_superficie_autorizada', valor: null },
+              { nombre: 'p_fecha_expedicion', valor: this.form.fecha_expedicion || new Date().toISOString().split('T')[0] },
+              { nombre: 'p_fecha_vencimiento', valor: this.form.fecha_vencimiento || null },
+              { nombre: 'p_usuario_registro', valor: 'USUARIO_SISTEMA' }
+            ]
           }
 
-          // TODO: Implementar creación de licencia via API genérica
-          // const result = await axios.post('http://localhost:8000/api/generic', { eRequest: { Operacion: 'sp_consultalicencia_create', ... } })
-          console.log('TODO: Crear licencia', licenciaData)
-          this.showToast('success', `Licencia creada exitosamente (${this.form.num_lic})`)
+          const response = await fetch('http://localhost:8000/api/generic', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ eRequest })
+          })
+          const data = await response.json()
+
+          if (data.eResponse.success) {
+            this.showToast('success', `Licencia creada exitosamente (${this.form.num_lic})`)
+          } else {
+            throw new Error(data.eResponse.message || 'Error al crear la licencia')
+          }
         } else {
-          // Actualizar licencia existente usando el servicio API centralizado
-          const licenciaData = {
-            numero_licencia: this.form.num_lic,
-            razon_social: this.form.razon_social,
-            giro: this.form.nombre_giro || '',
-            direccion: this.form.direccion || '',
-            colonia: this.form.colonia || '',
-            estado: this.form.status_lic,
-            fecha_expedicion: this.form.fecha_expedicion,
-            propietario: this.form.razon_social
+          // Actualizar licencia existente
+          const eRequest = {
+            Operacion: 'SP_CONSULTALICENCIA_UPDATE',
+            Base: 'padron_licencias',
+            Tenant: 'guadalajara',
+            Parametros: [
+              { nombre: 'p_id', valor: this.selectedRow.id },
+              { nombre: 'p_propietario', valor: this.form.razon_social },
+              { nombre: 'p_razon_social', valor: this.form.razon_social },
+              { nombre: 'p_rfc', valor: this.form.rfc || null },
+              { nombre: 'p_direccion', valor: this.form.direccion },
+              { nombre: 'p_colonia', valor: this.form.colonia },
+              { nombre: 'p_telefono', valor: null },
+              { nombre: 'p_email', valor: null },
+              { nombre: 'p_giro', valor: this.form.nombre_giro },
+              { nombre: 'p_actividad', valor: this.form.actividad || null },
+              { nombre: 'p_superficie_autorizada', valor: null },
+              { nombre: 'p_horario_operacion', valor: null },
+              { nombre: 'p_numero_empleados', valor: null },
+              { nombre: 'p_fecha_vencimiento', valor: this.form.fecha_vencimiento || null },
+              { nombre: 'p_observaciones', valor: null }
+            ]
           }
 
-          // TODO: Implementar actualización de licencia via API genérica
-          console.log('TODO: Actualizar licencia', this.selectedRow.id, licenciaData)
-          this.showToast('success', `Licencia actualizada exitosamente (${this.form.num_lic})`)
+          const response = await fetch('http://localhost:8000/api/generic', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ eRequest })
+          })
+          const data = await response.json()
+
+          if (data.eResponse.success) {
+            // Cambiar estado si es necesario
+            if (this.form.status_lic !== this.selectedRow.status_lic) {
+              const eRequestEstado = {
+                Operacion: 'SP_CONSULTALICENCIA_CAMBIAR_ESTADO',
+                Base: 'padron_licencias',
+                Tenant: 'guadalajara',
+                Parametros: [
+                  { nombre: 'p_numero_licencia', valor: this.form.num_lic },
+                  { nombre: 'p_nuevo_estado', valor: this.form.status_lic },
+                  { nombre: 'p_observaciones', valor: null }
+                ]
+              }
+              await fetch('http://localhost:8000/api/generic', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ eRequest: eRequestEstado })
+              })
+            }
+            this.showToast('success', `Licencia actualizada exitosamente (${this.form.num_lic})`)
+          } else {
+            throw new Error(data.eResponse.message || 'Error al actualizar la licencia')
+          }
         }
 
         this.cancelarEdicion()
@@ -686,11 +801,34 @@ export default {
       this.loadingMessage = 'Eliminando licencia...'
 
       try {
-        // TODO: Implementar eliminación de licencia via API genérica
-        console.log('TODO: Eliminar licencia', this.selectedRow.id)
-        this.showToast('success', `Licencia ${this.selectedRow.num_lic} eliminada exitosamente`)
-        this.selectedRow = null
-        await this.cargarDatos()
+        // Cambiar estado a CANCELADA en lugar de eliminar físicamente
+        const eRequest = {
+          Operacion: 'SP_CONSULTALICENCIA_CAMBIAR_ESTADO',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_numero_licencia', valor: this.selectedRow.num_lic },
+            { nombre: 'p_nuevo_estado', valor: 'CANCELADA' },
+            { nombre: 'p_observaciones', valor: 'Cancelada por usuario del sistema' }
+          ]
+        }
+
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const data = await response.json()
+
+        if (data.eResponse.success) {
+          this.showToast('success', `Licencia ${this.selectedRow.num_lic} cancelada exitosamente`)
+          this.selectedRow = null
+          await this.cargarDatos()
+        } else {
+          throw new Error(data.eResponse.message || 'Error al cancelar la licencia')
+        }
       } catch (error) {
         console.error('Error deleting licencia:', error)
         this.showToast('error', `Error al eliminar licencia: ${error.message}`)
@@ -717,14 +855,15 @@ export default {
       }
     },
 
-    getStatusBadgeClass(estado) {
+    getMunicipalStatusBadgeClass(estado) {
       switch (estado?.toUpperCase()) {
-        case 'ACTIVA': return 'bg-success'
-        case 'SUSPENDIDA': return 'bg-warning'
-        case 'CANCELADA': return 'bg-danger'
-        case 'VENCIDA': return 'bg-danger'
-        case 'INACTIVA': return 'bg-secondary'
-        default: return 'bg-secondary'
+        case 'ACTIVA': return 'municipal-badge-success'
+        case 'VIGENTE': return 'municipal-badge-success'
+        case 'SUSPENDIDA': return 'municipal-badge-warning'
+        case 'CANCELADA': return 'municipal-badge-danger'
+        case 'VENCIDA': return 'municipal-badge-danger'
+        case 'INACTIVA': return 'municipal-badge-secondary'
+        default: return 'municipal-badge-secondary'
       }
     }
   },

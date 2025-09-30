@@ -1,34 +1,87 @@
 <template>
-  <div class="anuncio400-page">
-    <nav aria-label="breadcrumb">
+  <div class="anuncio400-page municipal-page">
+    <!-- Municipal Header with FontAwesome Icon -->
+    <div class="municipal-header">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="municipal-title">
+            <i class="fas fa-bullhorn"></i>
+            CONSULTA DE ANUNCIOS DEL AS/400
+          </h2>
+          <p class="municipal-subtitle mb-0">
+            Sistema de consulta de anuncios publicitarios del mainframe AS/400
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <nav aria-label="breadcrumb" class="municipal-breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
         <li class="breadcrumb-item active" aria-current="page">Consulta de Anuncios AS/400</li>
       </ol>
     </nav>
-    <h2 class="mb-4">CONSULTA DE ANUNCIOS DEL AS/400</h2>
-    <div class="card mb-4">
+    <!-- Municipal Search Form -->
+    <div class="municipal-card mb-4">
       <div class="card-body">
-        <form @submit.prevent="buscarAnuncio">
-          <div class="form-row align-items-end">
-            <div class="form-group col-md-4">
-              <label for="anuncio">Anuncio:</label>
-              <input type="number" v-model="anuncio" class="form-control" id="anuncio" required @keyup.enter="buscarAnuncio" />
+        <form @submit.prevent="buscarAnuncio" class="municipal-form">
+          <div class="row align-items-end">
+            <div class="col-md-4">
+              <label for="anuncio" class="form-label municipal-label">
+                <i class="fas fa-search"></i> Número de Anuncio:
+              </label>
+              <input
+                type="number"
+                v-model="anuncio"
+                class="form-control municipal-input"
+                id="anuncio"
+                required
+                @keyup.enter="buscarAnuncio"
+                placeholder="Ingrese el número de anuncio"
+              />
             </div>
-            <div class="form-group col-md-2">
-              <button type="submit" class="btn btn-primary">Buscar</button>
+            <div class="col-md-3">
+              <div class="btn-group municipal-group-btn" role="group">
+                <button type="submit" class="btn btn-primary municipal-btn-primary" :disabled="loading">
+                  <i class="fas fa-search"></i>
+                  <span v-if="loading">Buscando...</span>
+                  <span v-else>Buscar</span>
+                </button>
+                <button type="button" class="btn btn-outline-secondary municipal-btn-secondary" @click="limpiarBusqueda">
+                  <i class="fas fa-times"></i>
+                  Limpiar
+                </button>
+              </div>
             </div>
           </div>
         </form>
       </div>
     </div>
 
-    <div v-if="loading" class="alert alert-info">Cargando datos...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
+    <!-- Municipal Loading State -->
+    <div v-if="loading" class="alert alert-info municipal-alert">
+      <i class="fas fa-spinner fa-spin"></i>
+      Cargando datos del anuncio...
+    </div>
 
-    <div v-if="anuncioData">
-      <h4>Datos del anuncio</h4>
-      <table class="table table-sm table-bordered">
+    <!-- Municipal Error State -->
+    <div v-if="error" class="alert alert-danger municipal-alert">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+
+    <!-- Municipal Results Section -->
+    <div v-if="anuncioData" class="municipal-results">
+      <div class="municipal-card">
+        <div class="card-header municipal-table-header">
+          <h5 class="mb-0">
+            <i class="fas fa-bullhorn"></i>
+            Datos del Anuncio {{ anuncioData.numanu }}
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm municipal-table">
         <tbody>
           <tr>
             <th>Recaud</th>
@@ -270,9 +323,27 @@
             <th>Fut2</th>
             <td>{{ anuncioData.fut2 }}</td>
           </tr>
-        </tbody>
-      </table>
-      <router-link :to="'/anuncio400/' + anuncio + '/pagos'" class="btn btn-secondary mt-3">Ver Pagos</router-link>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer municipal-card-footer">
+          <div class="btn-group municipal-group-btn" role="group">
+            <router-link :to="'/anuncio400/' + anuncio + '/pagos'" class="btn btn-primary municipal-btn-primary">
+              <i class="fas fa-money-bill-wave"></i>
+              Ver Pagos
+            </router-link>
+            <button type="button" class="btn btn-outline-info municipal-btn-info" @click="exportarDatos" :disabled="!anuncioData">
+              <i class="fas fa-download"></i>
+              Exportar
+            </button>
+            <button type="button" class="btn btn-outline-secondary municipal-btn-secondary" @click="imprimirDatos" :disabled="!anuncioData">
+              <i class="fas fa-print"></i>
+              Imprimir
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -320,23 +391,286 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+
+    limpiarBusqueda() {
+      this.anuncio = '';
+      this.anuncioData = null;
+      this.error = null;
+    },
+
+    exportarDatos() {
+      if (!this.anuncioData) return;
+      // Implementar exportación a Excel/CSV
+      console.log('Exportando datos del anuncio:', this.anuncioData.numanu);
+    },
+
+    imprimirDatos() {
+      if (!this.anuncioData) return;
+      window.print();
     }
   }
 };
 </script>
 
 <style scoped>
+/* Municipal Page Layout */
 .anuncio400-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  background: white;
+  min-height: 100vh;
+  font-family: var(--font-municipal);
 }
-.breadcrumb {
+
+.municipal-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* Municipal Header */
+.municipal-header {
+  background: var(--municipal-primary);
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.municipal-title {
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.municipal-title i {
+  font-size: 1.5rem;
+}
+
+.municipal-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* Municipal Breadcrumb */
+.municipal-breadcrumb {
+  margin-bottom: 1.5rem;
+}
+
+.municipal-breadcrumb .breadcrumb {
   background: none;
   padding: 0;
-  margin-bottom: 1rem;
+  margin: 0;
 }
-.table th, .table td {
+
+/* Municipal Cards */
+.municipal-card {
+  background: white;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Municipal Forms */
+.municipal-form {
+  padding: 0.5rem 0;
+}
+
+.municipal-label {
+  color: var(--municipal-primary);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.municipal-input {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.municipal-input:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(var(--municipal-primary-rgb), 0.1);
+  outline: none;
+}
+
+/* Municipal Buttons */
+.municipal-group-btn {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.municipal-btn-primary {
+  background: var(--municipal-primary);
+  border-color: var(--municipal-primary);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.municipal-btn-primary:hover {
+  background: var(--municipal-secondary);
+  border-color: var(--municipal-secondary);
+  transform: translateY(-1px);
+}
+
+.municipal-btn-secondary {
+  border: 2px solid #6c757d;
+  color: #6c757d;
+  background: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.municipal-btn-secondary:hover {
+  background: #6c757d;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.municipal-btn-info {
+  border: 2px solid #17a2b8;
+  color: #17a2b8;
+  background: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.municipal-btn-info:hover {
+  background: #17a2b8;
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Municipal Alerts */
+.municipal-alert {
+  border: none;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Municipal Table */
+.municipal-table-header {
+  background: var(--municipal-primary);
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+}
+
+.municipal-table-header h5 {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.municipal-table {
+  margin: 0;
+  background: white;
+}
+
+.municipal-table th {
+  background: #f8f9fa;
+  color: var(--municipal-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.75rem;
+  border: none;
+  border-bottom: 2px solid #e9ecef;
   vertical-align: middle;
+}
+
+.municipal-table td {
+  padding: 0.75rem;
+  vertical-align: middle;
+  border: none;
+  border-bottom: 1px solid #f1f3f4;
+  color: #495057;
+}
+
+.municipal-table tbody tr:hover {
+  background-color: rgba(var(--municipal-primary-rgb), 0.05);
+}
+
+/* Municipal Card Footer */
+.municipal-card-footer {
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+}
+
+/* Municipal Results */
+.municipal-results {
+  margin-top: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .municipal-page {
+    padding: 1rem;
+  }
+
+  .municipal-header {
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .municipal-title {
+    font-size: 1.5rem;
+    justify-content: center;
+  }
+
+  .municipal-group-btn {
+    flex-direction: column;
+  }
+
+  .municipal-group-btn .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .municipal-header {
+    background: white !important;
+    color: var(--municipal-primary) !important;
+  }
+
+  .municipal-title {
+    color: var(--municipal-primary) !important;
+  }
+
+  .municipal-card-footer,
+  .municipal-btn-primary,
+  .municipal-btn-secondary,
+  .municipal-btn-info {
+    display: none !important;
+  }
 }
 </style>

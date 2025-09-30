@@ -164,13 +164,18 @@ export default {
         };
         
         console.log('🚀 Cargando tipos de bloqueo desde la API usando TIPOBLOQUEO_LIST');
-        
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
+
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
         
-        if (response.data.eResponse && response.data.eResponse.success) {
-          const apiData = response.data.eResponse.data.result || [];
+        if (data.eResponse && data.eResponse.success) {
+          const apiData = data.eResponse.data.result || [];
           this.tiposBloqueo = apiData;
           console.log(`✅ ${this.tiposBloqueo.length} tipos de bloqueo cargados desde la API`);
         } else {
@@ -239,13 +244,18 @@ export default {
         console.log(`🚀 ${this.isEditing ? 'Actualizando' : 'Creando'} tipo de bloqueo usando ${eRequest.Operacion}`);
         console.log('📋 eRequest completo:', JSON.stringify(eRequest, null, 2));
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
         
-        console.log('📋 Response recibida:', response.data);
-        
-        if (response.data.eResponse && response.data.eResponse.success) {
+        console.log('📋 Response recibida:', data);
+
+        if (data.eResponse && data.eResponse.success) {
           console.log('✅ Tipo de bloqueo guardado correctamente');
           this.showMessage(
             this.isEditing ? 'Tipo de bloqueo actualizado correctamente' : 'Tipo de bloqueo creado correctamente',
@@ -260,19 +270,15 @@ export default {
           
         } else {
           // Mostrar errores específicos del servidor
-          const errorMsg = response.data.eResponse?.message || 'Error al procesar la solicitud';
+          const errorMsg = data.eResponse?.message || 'Error al procesar la solicitud';
           this.showMessage(errorMsg, false);
         }
         
       } catch (error) {
         console.error('❌ Error saving tipo bloqueo:', error);
-        console.error('❌ Error response data:', error.response?.data);
-        console.error('❌ Error status:', error.response?.status);
-        
+
         let errorMessage = 'Error desconocido';
-        if (error.response?.data?.eResponse?.message) {
-          errorMessage = error.response.data.eResponse.message;
-        } else if (error.message) {
+        if (error.message) {
           errorMessage = error.message;
         }
         
@@ -303,16 +309,21 @@ export default {
         
         console.log('🚀 Eliminando tipo de bloqueo usando TIPOBLOQUEO_DELETE:', tipo.id);
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
+        const data = await response.json();
         
-        if (response.data.eResponse && response.data.eResponse.success) {
+        if (data.eResponse && data.eResponse.success) {
           console.log('✅ Tipo de bloqueo eliminado correctamente');
           this.showMessage('Tipo de bloqueo eliminado correctamente', true);
           await this.fetchTiposBloqueo();
         } else {
-          throw new Error(response.data.eResponse?.message || 'Error al eliminar tipo de bloqueo');
+          throw new Error(data.eResponse?.message || 'Error al eliminar tipo de bloqueo');
         }
         
       } catch (error) {

@@ -22,6 +22,13 @@
           </div>
         </div>
 
+        <!-- Center Section - Empty (Search moved to Sidebar) -->
+        <div class="header-center">
+          <div class="header-spacer">
+            <!-- La búsqueda ahora está en el Sidebar -->
+          </div>
+        </div>
+
         <!-- Right Section -->
         <div class="header-right">
           <!-- Notifications -->
@@ -136,6 +143,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
+  gap: 2rem;
 }
 
 /* Header Left */
@@ -172,6 +180,209 @@ export default {
   gap: 0.5rem;
   color: var(--slate-500);
   font-size: 0.875rem;
+}
+
+/* Header Center - Search */
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 25px;
+  background: white;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
+  background: #ffffff;
+}
+
+.search-active .search-input {
+  border-radius: 12px 12px 0 0;
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--slate-400);
+  z-index: 2;
+}
+
+.search-input:focus + .search-icon {
+  color: var(--municipal-primary);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--slate-400);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.clear-search-btn:hover {
+  background: #f1f5f9;
+  color: var(--slate-600);
+}
+
+/* Search Results Dropdown */
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid var(--municipal-primary);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.no-results {
+  padding: 2rem;
+  text-align: center;
+  color: var(--slate-500);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.no-results i {
+  font-size: 2rem;
+  color: var(--slate-400);
+}
+
+.results-header {
+  padding: 0.75rem 1rem 0.5rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--municipal-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.results-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.search-result-item:hover,
+.search-result-item.highlighted {
+  background: linear-gradient(135deg, #fef7ed 0%, #fed7aa 100%);
+  border-left: 4px solid var(--municipal-primary);
+  padding-left: calc(1rem - 4px);
+}
+
+.result-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--gov-primary-gold) 100%);
+  color: white;
+  border-radius: 8px;
+  margin-right: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.result-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.result-title {
+  font-weight: 600;
+  color: var(--slate-800);
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.result-subtitle {
+  font-size: 0.75rem;
+  color: var(--municipal-primary);
+  margin-top: 0.125rem;
+  font-weight: 500;
+}
+
+.result-path {
+  font-size: 0.625rem;
+  color: var(--slate-500);
+  margin-top: 0.25rem;
+  font-family: 'Courier New', monospace;
+  background: #f8fafc;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.result-badge {
+  margin-left: 0.5rem;
+}
+
+.new-badge {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.results-footer {
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--slate-500);
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 /* Header Right */
@@ -327,14 +538,81 @@ export default {
 
   .header-content {
     padding: 0 1rem;
+    gap: 1rem;
   }
 
   .header-left .current-time {
     display: none;
   }
 
+  .header-left {
+    min-width: 120px;
+  }
+
+  .header-center {
+    max-width: 200px;
+    margin: 0;
+  }
+
+  .search-container {
+    max-width: 200px;
+  }
+
+  .search-input {
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    font-size: 0.8rem;
+  }
+
+  .search-icon {
+    left: 0.75rem;
+  }
+
+  .clear-search-btn {
+    right: 0.5rem;
+  }
+
   .user-info {
     display: none;
+  }
+
+  .version-tag {
+    display: none;
+  }
+
+  .breadcrumb-item span {
+    display: none;
+  }
+
+  .breadcrumb-item i {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    gap: 0.5rem;
+  }
+
+  .header-left {
+    min-width: 60px;
+  }
+
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+
+  .search-container {
+    max-width: 150px;
+  }
+
+  .search-input {
+    padding: 0.375rem 0.5rem 0.375rem 1.75rem;
+    font-size: 0.75rem;
+  }
+
+  .search-icon {
+    left: 0.5rem;
+    font-size: 0.875rem;
   }
 }
 </style>

@@ -84,7 +84,7 @@ export default {
       this.seleccionada = null;
       this.resultado = null;
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ export default {
       if (!this.seleccionada) return;
       // Obtener datos completos de la colonia seleccionada
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

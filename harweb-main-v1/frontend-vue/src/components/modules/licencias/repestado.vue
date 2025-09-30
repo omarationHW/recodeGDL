@@ -64,19 +64,25 @@ export default {
       this.tramite = null;
       this.loading = true;
       try {
-        const response = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'get_estado_tramite',
-            params: { id_tramite: this.id_tramite }
-          }
+        const eRequest = {
+          action: 'get_estado_tramite',
+          params: { id_tramite: this.id_tramite }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (response.data.eResponse.success && response.data.eResponse.data.length > 0) {
-          this.tramite = response.data.eResponse.data[0];
+        const data = await response.json();
+        if (data.eResponse.success && data.eResponse.data.length > 0) {
+          this.tramite = data.eResponse.data[0];
         } else {
           this.error = 'No se encontró el trámite.';
         }
       } catch (err) {
-        this.error = err.response?.data?.eResponse?.message || 'Error al consultar el trámite.';
+        this.error = err.message || 'Error al consultar el trámite.';
       } finally {
         this.loading = false;
       }
@@ -85,19 +91,25 @@ export default {
       if (!this.tramite) return;
       this.loading = true;
       try {
-        const response = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'print_reporte',
-            params: { id_tramite: this.tramite.id_tramite }
-          }
+        const eRequest = {
+          action: 'print_reporte',
+          params: { id_tramite: this.tramite.id_tramite }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (response.data.eResponse.success) {
-          window.open(response.data.eResponse.data.pdf_url, '_blank');
+        const data = await response.json();
+        if (data.eResponse.success) {
+          window.open(data.eResponse.data.pdf_url, '_blank');
         } else {
-          this.error = response.data.eResponse.message || 'No se pudo imprimir el reporte.';
+          this.error = data.eResponse.message || 'No se pudo imprimir el reporte.';
         }
       } catch (err) {
-        this.error = err.response?.data?.eResponse?.message || 'Error al imprimir el reporte.';
+        this.error = err.message || 'Error al imprimir el reporte.';
       } finally {
         this.loading = false;
       }

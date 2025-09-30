@@ -287,12 +287,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result && response.data.eResponse.data.result.length > 0) {
-          this.licencia = response.data.eResponse.data.result[0]
+        if (data.eResponse && data.eResponse.success && data.eResponse.data.result && data.eResponse.data.result.length > 0) {
+          this.licencia = data.eResponse.data.result[0]
           await this.cargarAdeudos()
           await this.cargarAnuncios()
         } else {
@@ -317,12 +322,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result) {
-          this.adeudos = response.data.eResponse.data.result
+        if (data.eResponse && data.eResponse.success && data.eResponse.data.result) {
+          this.adeudos = data.eResponse.data.result
         }
       } catch (e) {
         console.error('Error al cargar adeudos:', e)
@@ -340,12 +350,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result) {
-          this.anuncios = response.data.eResponse.data.result
+        if (data.eResponse && data.eResponse.success && data.eResponse.data.result) {
+          this.anuncios = data.eResponse.data.result
         }
       } catch (e) {
         console.error('Error al cargar anuncios:', e)
@@ -371,17 +386,22 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success) {
+        if (data.eResponse && data.eResponse.success) {
           this.exito = true
           this.mensaje = 'Licencia dada de baja exitosamente'
           this.limpiarFormulario()
         } else {
           this.exito = false
-          this.mensaje = response.data.eResponse?.message || 'Error al procesar la baja'
+          this.mensaje = data.eResponse?.message || 'Error al procesar la baja'
         }
       } catch (e) {
         console.error('Error al confirmar baja:', e)

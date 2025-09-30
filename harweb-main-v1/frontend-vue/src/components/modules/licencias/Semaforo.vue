@@ -47,16 +47,24 @@ export default {
       this.enProceso = true;
       this.botonTexto = 'Procesando...';
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.getRandomColor',
           payload: { user_id: this.userId }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.resultado = res.data.eResponse.data.result;
+        const data = await response.json();
+        if (data.status === 'success') {
+          this.resultado = data.eResponse.data.result;
           this.colorActual = this.resultado.color;
           this.botonTexto = 'Aceptar';
         } else {
-          alert(res.data.message || 'Error');
+          alert(data.message || 'Error');
           this.botonTexto = 'Iniciar';
         }
       } catch (error) {
@@ -70,22 +78,30 @@ export default {
       // Simulación: tramiteId debe venir de la navegación real
       const tramiteId = this.tramiteId || 1;
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.registerColorResult',
           payload: {
             tramite_id: tramiteId,
             color: this.resultado.color,
             user_id: this.userId
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
+        const data = await response.json();
+        if (data.status === 'success') {
           alert('Resultado registrado: ' + this.resultado.color);
           this.cargarStats();
           this.resultado = null;
           this.colorActual = null;
           this.botonTexto = 'Iniciar';
         } else {
-          alert(res.data.message || 'Error');
+          alert(data.message || 'Error');
         }
       } catch (error) {
         alert('Error de conexión');
@@ -93,12 +109,20 @@ export default {
     },
     async cargarStats() {
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.getStats',
           payload: { user_id: this.userId }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.stats = res.data.eResponse.data.result;
+        const data = await response.json();
+        if (data.status === 'success') {
+          this.stats = data.eResponse.data.result;
         }
       } catch (error) {
         // Handle error silently for stats loading

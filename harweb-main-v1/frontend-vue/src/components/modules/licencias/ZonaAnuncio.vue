@@ -34,7 +34,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 export default {
   name: 'ZonaAnuncioPage',
   data() {
@@ -71,8 +70,21 @@ export default {
   methods: {
     async loadCatalogs() {
       try {
-        const res = await axios.post('/api/execute', { action: 'zonaanuncio.catalogs' });
-        this.catalogs = res.data;
+        const eRequest = {
+          Operacion: 'sp_zonaanuncio_catalogs',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: []
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        this.catalogs = res.eResponse.data || {};
       } catch (e) {
         this.message = 'Error cargando catálogos';
         this.success = false;
@@ -80,13 +92,28 @@ export default {
     },
     async loadAnuncioZona(anuncio) {
       try {
-        const res = await axios.post('/api/execute', { action: 'zonaanuncio.get', params: { anuncio } });
-        if (res.data.eResponse.data.result) {
+        const eRequest = {
+          Operacion: 'sp_zonaanuncio_get',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_anuncio', valor: anuncio }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.data.result) {
           this.form = {
-            anuncio: res.data.eResponse.data.result.anuncio,
-            zona: res.data.eResponse.data.result.zona,
-            subzona: res.data.eResponse.data.result.subzona,
-            recaud: res.data.eResponse.data.result.recaud
+            anuncio: res.eResponse.data.result.anuncio,
+            zona: res.eResponse.data.result.zona,
+            subzona: res.eResponse.data.result.subzona,
+            recaud: res.eResponse.data.result.recaud
           };
         }
       } catch (e) {
@@ -98,20 +125,35 @@ export default {
       this.loading = true;
       this.message = '';
       try {
-        let action = this.form.anuncio && this.form.zona ? 'zonaanuncio.update' : 'zonaanuncio.create';
-        const res = await axios.post('/api/execute', {
-          action,
-          params: { ...this.form }
-        });
-        if (res.data.eResponse.success) {
+        let operacion = this.form.anuncio && this.form.zona ? 'sp_zonaanuncio_update' : 'sp_zonaanuncio_create';
+        const eRequest = {
+          Operacion: operacion,
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_anuncio', valor: this.form.anuncio },
+            { nombre: 'p_zona', valor: this.form.zona },
+            { nombre: 'p_subzona', valor: this.form.subzona },
+            { nombre: 'p_recaud', valor: this.form.recaud }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
           this.message = 'Guardado correctamente';
           this.success = true;
         } else {
-          this.message = res.data.eResponse.message || 'Error al guardar';
+          this.message = res.eResponse.message || 'Error al guardar';
           this.success = false;
         }
       } catch (e) {
-        this.message = e.response?.data?.error || 'Error de red';
+        this.message = 'Error de red';
         this.success = false;
       } finally {
         this.loading = false;

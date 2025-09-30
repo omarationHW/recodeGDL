@@ -87,7 +87,7 @@ export default {
         eRequest: 'get_calles',
         eParams: { filter: this.filter.trim() }
       };
-      fetch('/api/execute', {
+      fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

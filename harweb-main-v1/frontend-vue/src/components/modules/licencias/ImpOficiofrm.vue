@@ -64,7 +64,7 @@ export default {
   methods: {
     fetchOficioOptions() {
       this.loading = true;
-      fetch('/api/execute', {
+      fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'getOficioOptions' })
@@ -79,7 +79,7 @@ export default {
       if (!this.selectedOficio) return;
       this.loading = true;
       this.message = '';
-      fetch('/api/execute', {
+      fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

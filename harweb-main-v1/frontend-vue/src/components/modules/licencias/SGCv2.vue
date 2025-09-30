@@ -85,14 +85,19 @@ export default {
       }
     },
     async handleSubmit(payload) {
-      // Unificado: /api/execute
-      const response = await this.$axios.post('/api/execute', {
-        eRequest: payload
+      // Unificado: http://localhost:8000/api/generic
+      const response = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
-      if (response.data && response.data.eResponse) {
-        this.$emit('result', response.data.eResponse);
+      const data = await response.json();
+      if (data && data.eResponse) {
+        this.$emit('result', data.eResponse);
       } else {
-        this.$emit('error', response.data);
+        this.$emit('error', data);
       }
     }
   }

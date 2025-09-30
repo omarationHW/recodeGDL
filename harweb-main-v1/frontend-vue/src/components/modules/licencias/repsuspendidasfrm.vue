@@ -133,7 +133,7 @@ export default {
       }
       this.loading = true;
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.repsuspendidas_report',
           payload: {
             year: this.form.year || 0,
@@ -141,12 +141,20 @@ export default {
             date_to: this.form.date_to || null,
             tipo_suspension: this.form.tipo_suspension
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.results = res.data.eResponse.data.result || [];
-          this.message = res.data.message || '';
+        const data = await response.json();
+        if (data.status === 'success') {
+          this.results = data.eResponse.data.result || [];
+          this.message = data.message || '';
         } else {
-          this.error = res.data.message || 'Error desconocido';
+          this.error = data.message || 'Error desconocido';
         }
       } catch (error) {
         this.error = 'Error de comunicación con el servidor';

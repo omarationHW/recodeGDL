@@ -136,7 +136,7 @@ export default {
       this.loading = true;
       try {
         // Buscar tramite
-        const resp = await fetch('/api/execute', {
+        const resp = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'get_tramite_by_id', params: { id_tramite: this.id_tramite } })
@@ -146,7 +146,7 @@ export default {
           this.tramite = data.eResponse.data.result[0];
           // Buscar giro
           if (this.tramite.id_giro) {
-            const respGiro = await fetch('/api/execute', {
+            const respGiro = await fetch('http://localhost:8000/api/generic', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'get_giro_by_id', params: { id_giro: this.tramite.id_giro } })
@@ -182,7 +182,7 @@ export default {
       }
       this.loading = true;
       try {
-        const resp = await fetch('/api/execute', {
+        const resp = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

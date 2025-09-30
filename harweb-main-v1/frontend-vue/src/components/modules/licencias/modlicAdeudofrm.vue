@@ -122,7 +122,7 @@ export default {
   methods: {
     async apiRequest(action, data = {}) {
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ eRequest: { action, data } })

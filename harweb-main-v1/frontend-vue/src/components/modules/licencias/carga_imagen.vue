@@ -79,7 +79,7 @@ export default {
   methods: {
     async fetchDocumentTypes() {
       this.loading = true;
-      const res = await fetch('/api/execute', {
+      const res = await fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'getDocumentTypes' })
@@ -90,7 +90,7 @@ export default {
     },
     async fetchDocs() {
       this.loading = true;
-      const res = await fetch('/api/execute', {
+      const res = await fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'getTramiteDocs', params: { tramite_id: this.tramiteId } })
@@ -110,7 +110,7 @@ export default {
       formData.append('params[document_type_id]', this.uploadForm.document_type_id);
       formData.append('file', this.uploadForm.file);
       this.loading = true;
-      const res = await fetch('/api/execute', {
+      const res = await fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         body: formData
       });
@@ -127,7 +127,7 @@ export default {
     },
     async viewImage(idImagen) {
       this.loading = true;
-      const res = await fetch('/api/execute', {
+      const res = await fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'getImages', params: { id_imagen: idImagen } })
@@ -144,7 +144,7 @@ export default {
     async deleteImage(idImagen) {
       if (!confirm('¿Está seguro de eliminar este documento?')) return;
       this.loading = true;
-      const res = await fetch('/api/execute', {
+      const res = await fetch('http://localhost:8000/api/generic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'deleteImage', params: { id_imagen: idImagen } })

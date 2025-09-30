@@ -1,34 +1,45 @@
 <template>
-  <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="h4 mb-1">
-              <i class="fas fa-search me-2 text-primary"></i>
-              Búsqueda de Actividades
-            </h2>
-            <p class="text-muted mb-0">Sistema de búsqueda y consulta de actividades comerciales</p>
-          </div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-              <li class="breadcrumb-item">
-                <router-link to="/dashboard" class="text-decoration-none">Dashboard</router-link>
-              </li>
-              <li class="breadcrumb-item">
-                <router-link to="/licencias" class="text-decoration-none">Licencias</router-link>
-              </li>
-              <li class="breadcrumb-item active">Búsqueda Actividades</li>
-            </ol>
-          </nav>
+  <div class="container-fluid p-0 h-100">
+    <!-- Municipal Header -->
+    <div class="municipal-header p-3 mb-0">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h3 mb-1"><i class="fas fa-search me-2"></i>Búsqueda de Actividades Comerciales</h1>
+          <p class="mb-0 opacity-75">Sistema de consulta y búsqueda de actividades y giros comerciales</p>
+        </div>
+        <div class="text-white-50">
+          <ol class="breadcrumb mb-0 bg-transparent p-0">
+            <li class="breadcrumb-item"><a href="#" class="text-white-50">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#" class="text-white-50">Licencias</a></li>
+            <li class="breadcrumb-item text-white active">Búsqueda Actividades</li>
+          </ol>
         </div>
       </div>
     </div>
 
+    <!-- Controls -->
+    <div class="municipal-controls border-bottom p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-municipal-white">
+            <i class="fas fa-home"></i>
+          </button>
+          <button type="button" class="btn btn-municipal-white">
+            <i class="fas fa-search"></i>
+          </button>
+          <button type="button" class="btn btn-municipal-white">
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="p-4">
+
     <!-- Formulario de búsqueda -->
     <div class="card mb-4">
-      <div class="card-header">
+      <div class="card-header bg-primary text-white">
         <h5 class="mb-0">
           <i class="fas fa-filter me-2"></i>
           Filtros de Búsqueda
@@ -36,23 +47,17 @@
       </div>
       <div class="card-body">
         <div class="row g-3">
-          <div class="col-md-4">
-            <label for="filtroGiro" class="form-label">Giro (ID)</label>
-            <select 
-              class="form-select" 
-              id="filtroGiro"
-              v-model="filtroIdGiro"
-              @change="buscarActividades"
+          <div class="col-md-3">
+            <label for="scian" class="form-label">Código SCIAN</label>
+            <input
+              type="number"
+              class="form-control"
+              id="scian"
+              v-model="scian"
+              @input="debounceSearch"
+              @keyup.enter="buscarActividades"
+              placeholder="Ej: 462112"
             >
-              <option value="">Todos los giros</option>
-              <option 
-                v-for="giro in girosDisponibles" 
-                :key="giro.id_giro" 
-                :value="giro.id_giro"
-              >
-                {{ giro.descripcion_giro }} ({{ giro.total_en_licencias }}L / {{ giro.total_en_tramites }}T)
-              </option>
-            </select>
           </div>
           <div class="col-md-6">
             <label for="filtroDescripcion" class="form-label">Descripción de Actividad</label>
@@ -62,28 +67,40 @@
               id="filtroDescripcion"
               v-model="filtroDescripcion"
               @input="debounceSearch"
-              placeholder="Ingrese parte de la descripción de la actividad..."
-              maxlength="100"
+              @keyup.enter="buscarActividades"
+              placeholder="Ingrese descripción de la actividad para buscar..."
+              maxlength="255"
             >
           </div>
-          <div class="col-md-2">
-            <label for="filtroFuente" class="form-label">Fuente</label>
-            <select 
-              class="form-select" 
-              id="filtroFuente"
-              v-model="filtroFuente"
-              @change="buscarActividades"
+          <div class="col-md-3">
+            <label for="clasificacion" class="form-label">Clasificación</label>
+            <select
+              id="clasificacion"
+              class="form-select"
+              v-model="clasificacion"
+              @change="debounceSearch"
             >
-              <option value="AMBOS">Ambos</option>
-              <option value="LICENCIAS">Licencias</option>
-              <option value="TRAMITES">Trámites</option>
+              <option value="">Todas</option>
+              <option value="AGRICULTURA">Agricultura</option>
+              <option value="MINERIA">Minería</option>
+              <option value="MANUFACTURA">Manufactura</option>
+              <option value="COMERCIO">Comercio</option>
+              <option value="TRANSPORTE">Transporte</option>
+              <option value="INFORMACION">Información</option>
+              <option value="FINANCIERO">Financiero</option>
+              <option value="INMOBILIARIO">Inmobiliario</option>
+              <option value="PROFESIONALES">Profesionales</option>
+              <option value="EDUCACION">Educación</option>
+              <option value="ENTRETENIMIENTO">Entretenimiento</option>
+              <option value="HOSPEDAJE">Hospedaje</option>
+              <option value="OTROS_SERVICIOS">Otros Servicios</option>
             </select>
           </div>
         </div>
         <div class="row mt-3">
           <div class="col-md-12 d-flex gap-2">
-            <button 
-              type="button" 
+            <button
+              type="button"
               class="btn btn-primary"
               @click="buscarActividades"
               :disabled="buscando"
@@ -91,8 +108,26 @@
               <i class="fas fa-search me-2"></i>
               {{ buscando ? 'Buscando...' : 'Buscar' }}
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
+              class="btn btn-success"
+              @click="actualizarDatos"
+              :disabled="buscando"
+            >
+              <i class="fas fa-sync-alt me-2"></i>
+              {{ buscando ? 'Actualizando...' : 'Actualizar' }}
+            </button>
+            <button
+              v-if="modoDesarrollo"
+              type="button"
+              class="btn btn-warning"
+              @click="generarDatosSimulados"
+            >
+              <i class="fas fa-database me-2"></i>
+              Datos Simulados
+            </button>
+            <button
+              type="button"
               class="btn btn-outline-secondary"
               @click="limpiarFiltros"
             >
@@ -106,11 +141,11 @@
 
     <!-- Resultados de búsqueda -->
     <div class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
           <i class="fas fa-list me-2"></i>
           Resultados de Búsqueda
-          <span v-if="totalRegistros > 0" class="badge bg-secondary ms-2">{{ totalRegistros }}</span>
+          <span v-if="totalRegistros > 0" class="badge bg-light text-dark ms-2">{{ totalRegistros }}</span>
         </h5>
         <div class="d-flex gap-2">
           <select
@@ -149,37 +184,27 @@
             <table class="table table-striped table-hover mb-0">
               <thead class="table-dark">
                 <tr>
-                  <th>ID Giro</th>
-                  <th>Actividad</th>
-                  <th>Fuente</th>
-                  <th class="text-center">Total</th>
-                  <th class="text-center">Activos</th>
-                  <th class="text-center">Bloqueados</th>
+                  <th style="width: 80px;">SCIAN</th>
+                  <th>Descripción</th>
+                  <th style="width: 120px;">Clasificación</th>
+                  <th style="width: 100px;">Costo</th>
                   <th class="text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
                   v-for="actividad in actividades"
-                  :key="`${actividad.id_giro}-${actividad.fuente}-${actividad.actividad}`"
+                  :key="actividad.id_giro"
                   :class="{'table-primary': actividad === actividadSeleccionada}"
                   style="cursor: pointer;"
                   @click="seleccionarActividad(actividad)"
                 >
-                  <td>{{ actividad.id_giro || 'N/A' }}</td>
-                  <td>{{ actividad.actividad }}</td>
+                  <td>{{ actividad.cod_giro }}</td>
+                  <td>{{ actividad.descripcion }}</td>
                   <td>
-                    <span :class="`badge ${getFuenteClass(actividad.fuente)}`">
-                      {{ actividad.fuente }}
-                    </span>
+                    <span class="badge bg-secondary">{{ actividad.clasificacion || 'SIN_CLASIFICAR' }}</span>
                   </td>
-                  <td class="text-center">{{ actividad.total_registros }}</td>
-                  <td class="text-center">{{ actividad.registros_activos }}</td>
-                  <td class="text-center">
-                    <span :class="`badge ${actividad.registros_bloqueados > 0 ? 'bg-danger' : 'bg-success'}`">
-                      {{ actividad.registros_bloqueados }}
-                    </span>
-                  </td>
+                  <td>{{ actividad.costo ? '$' + Number(actividad.costo).toFixed(2) : 'N/A' }}</td>
                   <td class="text-center">
                     <button
                       class="btn btn-sm btn-outline-primary"
@@ -239,29 +264,25 @@
       </div>
       <div class="card-body">
         <div class="row">
-          <div class="col-md-8">
+          <div class="col-md-6">
             <div class="mb-2">
-              <strong>ID Giro:</strong> {{ actividadSeleccionada.id_giro || 'N/A' }}
+              <strong>SCIAN:</strong> {{ actividadSeleccionada.cod_giro }}
             </div>
             <div class="mb-2">
-              <strong>Descripción:</strong> {{ actividadSeleccionada.actividad }}
+              <strong>Descripción:</strong> {{ actividadSeleccionada.descripcion }}
             </div>
             <div class="mb-2">
-              <strong>Fuente:</strong> 
-              <span :class="`badge ${getFuenteClass(actividadSeleccionada.fuente)} ms-2`">
-                {{ actividadSeleccionada.fuente }}
-              </span>
+              <strong>Clasificación:</strong>
+              <span class="badge bg-secondary">{{ actividadSeleccionada.clasificacion || 'SIN_CLASIFICAR' }}</span>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="mb-2">
-              <strong>Total registros:</strong> {{ actividadSeleccionada.total_registros }}
+              <strong>Costo:</strong> {{ actividadSeleccionada.costo ? '$' + Number(actividadSeleccionada.costo).toFixed(2) : 'N/A' }}
             </div>
             <div class="mb-2">
-              <strong>Activos:</strong> {{ actividadSeleccionada.registros_activos }}
-            </div>
-            <div class="mb-2">
-              <strong>Bloqueados:</strong> {{ actividadSeleccionada.registros_bloqueados }}
+              <strong>Tipo:</strong>
+              <span class="badge bg-info">{{ actividadSeleccionada.tipo_actividad || 'MIXTO' }}</span>
             </div>
           </div>
         </div>
@@ -292,30 +313,29 @@
       {{ alertMessage }}
       <button type="button" class="btn-close" @click="clearAlert"></button>
     </div>
+    </div>
   </div>
 </template>
 
 <script>
-// Removido import personalizado para usar $axios
-
 export default {
   name: 'BusquedaActividadFrm',
   data() {
     return {
       // Filtros de búsqueda
-      filtroIdGiro: '',
       filtroDescripcion: '',
-      filtroFuente: 'AMBOS',
+      scian: '', // Parámetro requerido por el SP
+      clasificacion: '',
 
       // Datos
       actividades: [],
-      girosDisponibles: [],
       actividadSeleccionada: null,
 
       // Estados de UI
       buscando: false,
       primeraBusqueda: true,
       debounceTimer: null,
+      modoDesarrollo: process.env.NODE_ENV === 'development',
 
       // Paginación
       paginaActual: 1,
@@ -324,7 +344,14 @@ export default {
 
       // Alertas
       alertMessage: '',
-      alertType: 'info'
+      alertType: 'info',
+
+      // Configuración API
+      apiConfig: {
+        url: 'http://localhost:8000/api/generic',
+        tenant: 'guadalajara',
+        base: 'padron_licencias'
+      }
     }
   },
   computed: {
@@ -369,165 +396,108 @@ export default {
   },
   
   async mounted() {
-    await this.cargarGirosDisponibles()
+    // Obtener parámetros desde query params
+    this.scian = this.$route.query.scian || ''
+    this.filtroDescripcion = this.$route.query.descripcion || ''
+    this.clasificacion = this.$route.query.clasificacion || ''
+
     // Si hay parámetros de query, realizar búsqueda inicial
-    if (this.$route.query.id_giro || this.$route.query.descripcion) {
-      this.filtroIdGiro = this.$route.query.id_giro || ''
-      this.filtroDescripcion = this.$route.query.descripcion || ''
+    if (this.scian || this.filtroDescripcion) {
       this.buscarActividades()
     }
   },
   
   methods: {
-    async cargarGirosDisponibles() {
-      try {
-        const eRequest = {
-          Operacion: 'sp_obtener_giros_disponibles',
-          Base: 'licencias',
-          Parametros: [],
-          Tenant: 'guadalajara'
-        }
-
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
-
-        if (response.data.eResponse.success && response.data.eResponse.data.result) {
-          this.girosDisponibles = response.data.eResponse.data.result
-        }
-      } catch (error) {
-        console.error('Error cargando giros disponibles:', error)
-        this.showAlert('Error cargando catálogo de giros', 'danger')
-      }
-    },
-    
     async buscarActividades() {
+      // Validar criterios mínimos de búsqueda
+      if (!this.scian && (!this.filtroDescripcion || this.filtroDescripcion.trim().length < 3)) {
+        this.actividades = []
+        this.totalRegistros = 0
+        this.primeraBusqueda = true
+        this.showAlert('Ingrese un código SCIAN o al menos 3 caracteres en la descripción', 'warning')
+        return
+      }
+
       this.buscando = true
       this.primeraBusqueda = false
       this.clearAlert()
 
       try {
-        // Parámetros de paginación
-        const offset = (this.paginaActual - 1) * this.limitePorPagina;
-
-        const params = {}
-
-        if (this.filtroIdGiro) {
-          params.p_id_giro = parseInt(this.filtroIdGiro)
+        // Construir parámetros para el SP
+        const params = {
+          scian: this.scian ? parseInt(this.scian) : null,
+          descripcion: this.filtroDescripcion.trim() || '',
+          clasificacion: this.clasificacion || '',
+          limite: this.limitePorPagina,
+          offset: (this.paginaActual - 1) * this.limitePorPagina
         }
 
-        if (this.filtroDescripcion && this.filtroDescripcion.trim()) {
-          params.p_descripcion = this.filtroDescripcion.trim()
+        // Request usando patrón eRequest/eResponse
+        const requestBody = {
+          eRequest: 'SP_BUSQUEDA_ACTIVIDAD_LIST',
+          eData: {
+            tenant: this.apiConfig.tenant,
+            base: this.apiConfig.base,
+            params: params
+          }
         }
 
-        if (this.filtroFuente) {
-          params.p_fuente = this.filtroFuente
-        }
+        console.log('Enviando request:', requestBody)
 
-        // Intentar primero con paginación server-side
-        const eRequest = {
-          Operacion: 'sp_buscar_actividades_combinado_paginado',
-          Base: 'licencias',
-          Parametros: [
-            ...(params.p_id_giro ? [{ nombre: 'p_id_giro', valor: params.p_id_giro, tipo: 'integer' }] : []),
-            ...(params.p_descripcion ? [{ nombre: 'p_descripcion', valor: params.p_descripcion, tipo: 'string' }] : []),
-            ...(params.p_fuente ? [{ nombre: 'p_fuente', valor: params.p_fuente, tipo: 'string' }] : []),
-            { nombre: 'limit_records', valor: this.limitePorPagina, tipo: 'integer' },
-            { nombre: 'offset_records', valor: offset, tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
+        const response = await fetch(this.apiConfig.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
         })
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result) {
-          const result = response.data.eResponse.data.result;
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
 
-          if (result.length > 0 && result[0].total_registros !== undefined) {
-            this.totalRegistros = parseInt(result[0].total_registros);
-            this.actividades = result;
-          } else {
-            // Fallback al método original sin paginación
-            await this.buscarActividadesCompleto();
-            return;
-          }
+        const data = await response.json()
+        console.log('Response recibida:', data)
 
-          if (this.actividades.length === 0) {
+        if (data.eResponse && data.eResponse.success) {
+          const records = data.eResponse.data || []
+          console.log('Records encontrados:', records)
+
+          this.actividades = records
+          this.totalRegistros = records.length
+
+          if (this.totalRegistros === 0) {
             this.showAlert('No se encontraron actividades con los criterios especificados', 'info')
           } else {
             this.showAlert(`Se encontraron ${this.totalRegistros} actividade(s)`, 'success')
           }
         } else {
-          // Fallback al método original
-          await this.buscarActividadesCompleto();
+          console.error('Error en eResponse:', data.eResponse?.error || data.eResponse?.message)
+          this.actividades = []
+          this.totalRegistros = 0
+          this.showAlert(data.eResponse?.error || data.eResponse?.message || 'Error al buscar actividades', 'danger')
         }
+
       } catch (error) {
-        console.error('Error buscando actividades paginado:', error)
-        // Fallback al método original
-        await this.buscarActividadesCompleto();
+        console.error('Error en buscarActividades:', error)
+        this.showAlert('Error de conexión al buscar actividades', 'danger')
+        this.actividades = []
+        this.totalRegistros = 0
       } finally {
         this.buscando = false
       }
     },
 
-    async buscarActividadesCompleto() {
-      try {
-        const params = {}
-
-        if (this.filtroIdGiro) {
-          params.p_id_giro = parseInt(this.filtroIdGiro)
-        }
-
-        if (this.filtroDescripcion && this.filtroDescripcion.trim()) {
-          params.p_descripcion = this.filtroDescripcion.trim()
-        }
-
-        if (this.filtroFuente) {
-          params.p_fuente = this.filtroFuente
-        }
-
-        const eRequest = {
-          Operacion: 'sp_buscar_actividades_combinado',
-          Base: 'licencias',
-          Parametros: [
-            ...(params.p_id_giro ? [{ nombre: 'p_id_giro', valor: params.p_id_giro, tipo: 'integer' }] : []),
-            ...(params.p_descripcion ? [{ nombre: 'p_descripcion', valor: params.p_descripcion, tipo: 'string' }] : []),
-            ...(params.p_fuente ? [{ nombre: 'p_fuente', valor: params.p_fuente, tipo: 'string' }] : [])
-          ],
-          Tenant: 'guadalajara'
-        }
-
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
-
-        if (response.data.eResponse.success && response.data.eResponse.data.result) {
-          const allRecords = response.data.eResponse.data.result || [];
-          this.totalRegistros = allRecords.length;
-
-          // Paginación client-side como fallback
-          const start = (this.paginaActual - 1) * this.limitePorPagina;
-          const end = start + this.limitePorPagina;
-          this.actividades = allRecords.slice(start, end);
-
-          if (this.actividades.length === 0) {
-            this.showAlert('No se encontraron actividades con los criterios especificados', 'info')
-          } else {
-            this.showAlert(`Se encontraron ${this.totalRegistros} actividade(s)`, 'success')
-          }
-        } else {
-          this.actividades = []
-          this.totalRegistros = 0
-          this.showAlert(response.data.eResponse?.message || 'Error al buscar actividades', 'danger')
-        }
-
-      } catch (error) {
-        console.error('Error buscando actividades:', error)
-        this.showAlert('Error al realizar la búsqueda', 'danger')
-        this.actividades = []
-        this.totalRegistros = 0
+    async actualizarDatos() {
+      // Force refresh de los datos sin cambiar filtros
+      if (this.scian || (this.filtroDescripcion && this.filtroDescripcion.trim().length >= 3)) {
+        this.showAlert('Actualizando datos desde el servidor...', 'info')
+        // Reset paginación y forzar nueva búsqueda
+        this.paginaActual = 1
+        await this.buscarActividades()
+      } else {
+        this.showAlert('Ingrese un código SCIAN o al menos 3 caracteres en la descripción', 'warning')
       }
     },
 
@@ -549,13 +519,13 @@ export default {
         // Reset paginación en nueva búsqueda
         this.paginaActual = 1
         this.buscarActividades()
-      }, 500) // Buscar después de 500ms de inactividad
+      }, 1000) // Buscar después de 1 segundo de inactividad
     },
     
     limpiarFiltros() {
-      this.filtroIdGiro = ''
+      this.scian = ''
       this.filtroDescripcion = ''
-      this.filtroFuente = 'AMBOS'
+      this.clasificacion = ''
       this.actividades = []
       this.actividadSeleccionada = null
       this.primeraBusqueda = true
@@ -567,7 +537,7 @@ export default {
     
     seleccionarActividad(actividad) {
       this.actividadSeleccionada = actividad
-      this.showAlert(`Actividad seleccionada: ${actividad.actividad}`, 'info')
+      this.showAlert(`Actividad seleccionada: ${actividad.descripcion}`, 'info')
     },
     
     limpiarSeleccion() {
@@ -580,10 +550,10 @@ export default {
       
       // Emitir evento para componente padre
       this.$emit('actividad-seleccionada', this.actividadSeleccionada)
-      
+
       // Mostrar confirmación
       this.showAlert(
-        `Actividad confirmada: ${this.actividadSeleccionada.actividad}`, 
+        `Actividad confirmada: ${this.actividadSeleccionada.descripcion}`,
         'success'
       )
       
@@ -600,31 +570,66 @@ export default {
       // })
     },
     
-    verDetalleActividad(actividad) {
-      // Mostrar más información sobre la actividad
-      const detalles = [
-        `ID Giro: ${actividad.id_giro || 'N/A'}`,
-        `Actividad: ${actividad.actividad}`,
-        `Fuente: ${actividad.fuente}`,
-        `Total registros: ${actividad.total_registros}`,
-        `Activos: ${actividad.registros_activos}`,
-        `Bloqueados: ${actividad.registros_bloqueados}`
-      ].join('\n')
-      
-      alert(`Detalle de Actividad:\n\n${detalles}`)
-      
-      // Alternativamente, abrir un modal con más información
-      // this.$modal.show('actividad-detalle-modal', { actividad })
-    },
-    
-    getFuenteClass(fuente) {
-      switch (fuente) {
-        case 'LICENCIAS':
-          return 'bg-primary'
-        case 'TRAMITES':
-          return 'bg-info'
-        default:
-          return 'bg-secondary'
+    async verDetalleActividad(actividad) {
+      try {
+        // Obtener detalle completo usando SP_BUSQUEDA_ACTIVIDAD_GET
+        const requestBody = {
+          eRequest: 'SP_BUSQUEDA_ACTIVIDAD_GET',
+          eData: {
+            tenant: this.apiConfig.tenant,
+            base: this.apiConfig.base,
+            params: {
+              id_giro: actividad.id_giro
+            }
+          }
+        }
+
+        const response = await fetch(this.apiConfig.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        })
+
+        const data = await response.json()
+
+        if (data.eResponse && data.eResponse.success && data.eResponse.data.length > 0) {
+          const detalle = data.eResponse.data[0]
+          const detalles = [
+            `SCIAN: ${detalle.cod_giro}`,
+            `Descripción: ${detalle.descripcion}`,
+            `Clasificación: ${detalle.clasificacion}`,
+            `Tipo: ${detalle.tipo_actividad}`,
+            `Costo: ${detalle.costo_actual ? '$' + Number(detalle.costo_actual).toFixed(2) : 'N/A'}`,
+            `Refrendo: ${detalle.refrendo_actual ? '$' + Number(detalle.refrendo_actual).toFixed(2) : 'N/A'}`,
+            `Licencias: ${detalle.total_licencias || 0}`,
+            `Trámites: ${detalle.total_tramites || 0}`
+          ].join('\n')
+
+          alert(`Detalle Completo de Actividad:\n\n${detalles}`)
+        } else {
+          // Fallback con datos básicos
+          const detalles = [
+            `SCIAN: ${actividad.cod_giro}`,
+            `Descripción: ${actividad.descripcion}`,
+            `Clasificación: ${actividad.clasificacion || 'SIN_CLASIFICAR'}`,
+            `Costo: ${actividad.costo ? '$' + Number(actividad.costo).toFixed(2) : 'N/A'}`
+          ].join('\n')
+
+          alert(`Detalle de Actividad:\n\n${detalles}`)
+        }
+      } catch (error) {
+        console.error('Error al obtener detalle:', error)
+        // Mostrar datos básicos como fallback
+        const detalles = [
+          `SCIAN: ${actividad.cod_giro}`,
+          `Descripción: ${actividad.descripcion}`,
+          `Costo: ${actividad.costo ? '$' + actividad.costo : 'N/A'}`
+        ].join('\n')
+
+        alert(`Detalle de Actividad:\n\n${detalles}`)
       }
     },
     
@@ -643,6 +648,96 @@ export default {
     clearAlert() {
       this.alertMessage = ''
       this.alertType = 'info'
+    },
+
+    // Método para generar datos simulados en desarrollo
+    generarDatosSimulados() {
+      if (!this.modoDesarrollo) return
+
+      const actividadesSimuladas = [
+        {
+          id_giro: 5001,
+          cod_giro: 431110,
+          descripcion: 'Comercio al por mayor de abarrotes, alimentos, bebidas, hielo y tabaco',
+          vigente: 'V',
+          axo: 2024,
+          costo: 2500.00,
+          refrendo: 1250.00,
+          clasificacion: 'COMERCIO',
+          tipo_actividad: 'COMERCIAL'
+        },
+        {
+          id_giro: 5002,
+          cod_giro: 311111,
+          descripcion: 'Elaboración de alimentos para animales',
+          vigente: 'V',
+          axo: 2024,
+          costo: 3500.00,
+          refrendo: 1750.00,
+          clasificacion: 'MANUFACTURA',
+          tipo_actividad: 'INDUSTRIAL'
+        },
+        {
+          id_giro: 5003,
+          cod_giro: 722511,
+          descripcion: 'Servicios de preparación de alimentos a la carta o de comida corrida',
+          vigente: 'V',
+          axo: 2024,
+          costo: 1800.00,
+          refrendo: 900.00,
+          clasificacion: 'HOSPEDAJE',
+          tipo_actividad: 'SERVICIOS'
+        },
+        {
+          id_giro: 5004,
+          cod_giro: 541211,
+          descripcion: 'Servicios de contabilidad, auditoría y teneduría de libros',
+          vigente: 'V',
+          axo: 2024,
+          costo: 2200.00,
+          refrendo: 1100.00,
+          clasificacion: 'PROFESIONALES',
+          tipo_actividad: 'SERVICIOS'
+        },
+        {
+          id_giro: 5005,
+          cod_giro: 811121,
+          descripcion: 'Reparación y mantenimiento de automóviles y camiones',
+          vigente: 'V',
+          axo: 2024,
+          costo: 1500.00,
+          refrendo: 750.00,
+          clasificacion: 'OTROS_SERVICIOS',
+          tipo_actividad: 'SERVICIOS'
+        }
+      ]
+
+      // Filtrar por criterios actuales si existen
+      let actividadesFiltradas = actividadesSimuladas
+
+      if (this.scian) {
+        actividadesFiltradas = actividadesFiltradas.filter(act =>
+          act.cod_giro.toString().includes(this.scian.toString())
+        )
+      }
+
+      if (this.filtroDescripcion && this.filtroDescripcion.trim()) {
+        actividadesFiltradas = actividadesFiltradas.filter(act =>
+          act.descripcion.toLowerCase().includes(this.filtroDescripcion.toLowerCase())
+        )
+      }
+
+      if (this.clasificacion) {
+        actividadesFiltradas = actividadesFiltradas.filter(act =>
+          act.clasificacion === this.clasificacion
+        )
+      }
+
+      this.actividades = actividadesFiltradas
+      this.totalRegistros = actividadesFiltradas.length
+      this.primeraBusqueda = false
+
+      this.showAlert(`Datos simulados generados: ${this.totalRegistros} actividades`, 'info')
     }
   },
   
@@ -708,5 +803,36 @@ export default {
 
 .text-decoration-none:hover {
   text-decoration: underline !important;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+.btn-warning:hover {
+  background-color: #ffca2c;
+  border-color: #ffc720;
+  color: #000;
+}
+
+.municipal-controls .btn-group .btn {
+  border-radius: 0;
+}
+
+.municipal-controls .btn-group .btn:first-child {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.municipal-controls .btn-group .btn:last-child {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
 }
 </style>

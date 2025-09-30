@@ -105,7 +105,7 @@ export default {
   methods: {
     async fetchLicencias() {
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ eRequest: 'getLicenciasReglamentadas' })
@@ -122,7 +122,7 @@ export default {
     },
     async createLicencia() {
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -153,7 +153,7 @@ export default {
     },
     async updateLicencia() {
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -181,7 +181,7 @@ export default {
     async deleteLicencia(id) {
       if (!confirm('¿Está seguro de eliminar esta licencia?')) return;
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

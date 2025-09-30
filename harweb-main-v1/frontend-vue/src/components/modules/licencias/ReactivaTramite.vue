@@ -132,14 +132,22 @@ export default {
       this.tramite = null;
       if (!this.idTramite) return;
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.get_tramite',
           payload: { id_tramite: this.idTramite }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success' && res.data.eResponse.data.result) {
-          this.tramite = res.data.eResponse.data.result;
+        const res = await response.json();
+        if (res.status === 'success' && res.eResponse.data.result) {
+          this.tramite = res.eResponse.data.result;
         } else {
-          this.mensaje = res.data.message || 'Trámite no encontrado';
+          this.mensaje = res.message || 'Trámite no encontrado';
           this.exito = false;
         }
       } catch (error) {
@@ -160,16 +168,24 @@ export default {
         return;
       }
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.reactivar_tramite',
           payload: {
             id_tramite: this.idTramite,
             motivo: this.motivo
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.mensaje = res.data.message;
-        this.exito = res.data.status === 'success';
-        if (res.data.status === 'success') {
+        const res = await response.json();
+        this.mensaje = res.message;
+        this.exito = res.status === 'success';
+        if (res.status === 'success') {
           this.buscarTramite();
         }
       } catch (error) {

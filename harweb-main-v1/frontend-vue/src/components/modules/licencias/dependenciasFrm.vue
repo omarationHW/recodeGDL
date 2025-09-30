@@ -1,24 +1,24 @@
 <template>
-  <div class="dependencias-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
-            <i class="fas fa-building-columns"></i>
+          <h3 class="mb-1">
+            <i class="fas fa-building-columns me-2"></i>
             Gestión de Dependencias
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-90">
             Administración de dependencias gubernamentales para el sistema de licencias
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-plus me-1"></i>
             Nueva Dependencia
           </button>
         </div>
@@ -26,39 +26,39 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-3">
-            <label class="form-label">Código</label>
+            <label class="municipal-form-label">Código</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.codigo"
               placeholder="Código de dependencia"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Nombre</label>
+            <label class="municipal-form-label">Nombre</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.nombre"
               placeholder="Nombre de la dependencia"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Descripción</label>
+            <label class="municipal-form-label">Descripción</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.descripcion"
               placeholder="Descripción"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Estado</label>
-            <select class="form-select" v-model="filters.activo">
+            <label class="municipal-form-label">Estado</label>
+            <select class="municipal-form-control" v-model="filters.activo">
               <option value="">Todos</option>
               <option value="S">Activos</option>
               <option value="N">Inactivos</option>
@@ -67,47 +67,49 @@
         </div>
         <div class="row mt-3">
           <div class="col-12">
-            <button
-              class="btn btn-outline-primary me-2"
-              @click="searchDependencias"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadDependencias"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
+            <div class="municipal-group-btn">
+              <button
+                class="btn-municipal-primary me-2"
+                @click="searchDependencias"
+                :disabled="loading"
+              >
+                <i class="fas fa-search me-1"></i>
+                Buscar
+              </button>
+              <button
+                class="btn-municipal-secondary me-2"
+                @click="clearFilters"
+                :disabled="loading"
+              >
+                <i class="fas fa-times me-1"></i>
+                Limpiar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="loadDependencias"
+                :disabled="loading"
+              >
+                <i class="fas fa-sync-alt me-1"></i>
+                Actualizar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h6 class="mb-0">
-          <i class="fas fa-list"></i>
+          <i class="fas fa-list me-2"></i>
           Dependencias Registradas
-          <span v-if="dependencias.length > 0" class="badge bg-primary ms-2">
+          <span v-if="dependencias.length > 0" class="municipal-badge municipal-badge-primary ms-2">
             {{ dependencias.length }} registros
           </span>
         </h6>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
@@ -121,8 +123,8 @@
           <h6 class="alert-heading">Error al cargar datos</h6>
           <p class="mb-0">{{ error }}</p>
           <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadDependencias">
-            <i class="fas fa-retry"></i>
+          <button class="btn-municipal-secondary btn-sm" @click="loadDependencias">
+            <i class="fas fa-retry me-1"></i>
             Reintentar
           </button>
         </div>
@@ -136,18 +138,18 @@
           </p>
           <button
             v-if="!hasActiveFilters"
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
           >
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-plus me-1"></i>
             Registrar primera dependencia
           </button>
         </div>
 
         <!-- Tabla con datos -->
         <div v-else class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>ID</th>
                 <th>Código</th>
@@ -166,36 +168,36 @@
                 <td>{{ dependencia.codigo }}</td>
                 <td>{{ dependencia.nombre }}</td>
                 <td>
-                  <span class="badge bg-info">{{ dependencia.abrevia || 'N/A' }}</span>
+                  <span class="municipal-badge municipal-badge-info">{{ dependencia.abrevia || 'N/A' }}</span>
                 </td>
                 <td>
-                  <span class="badge" :class="dependencia.activo === 'S' ? 'bg-success' : 'bg-secondary'">
+                  <span class="municipal-badge" :class="dependencia.activo === 'S' ? 'municipal-badge-success' : 'municipal-badge-secondary'">
                     {{ dependencia.activo === 'S' ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
                 <td>
-                  <span class="badge" :class="dependencia.licencias === 1 ? 'bg-primary' : 'bg-warning'">
+                  <span class="municipal-badge" :class="dependencia.licencias === 1 ? 'municipal-badge-primary' : 'municipal-badge-warning'">
                     {{ dependencia.licencias === 1 ? 'Sí' : 'No' }}
                   </span>
                 </td>
                 <td>
-                  <div class="btn-group btn-group-sm">
+                  <div class="municipal-group-btn btn-group-sm">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-secondary btn-sm"
                       @click="viewDependencia(dependencia)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-primary btn-sm"
                       @click="editDependencia(dependencia)"
                       title="Editar"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button
-                      class="btn btn-outline-danger"
+                      class="btn-municipal-secondary btn-sm"
                       @click="deleteDependencia(dependencia)"
                       title="Eliminar"
                     >
@@ -276,10 +278,10 @@
             <form @submit.prevent="saveDependencia">
               <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Código <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Código <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDependencia.codigo"
                     placeholder="Código único"
                     required
@@ -288,7 +290,7 @@
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Estado</label>
+                  <label class="municipal-form-label">Estado</label>
                   <select class="form-select" v-model="newDependencia.activo">
                     <option value="S">Activo</option>
                     <option value="N">Inactivo</option>
@@ -297,10 +299,10 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Nombre <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDependencia.nombre"
                     placeholder="Nombre completo de la dependencia"
                     required
@@ -310,9 +312,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Descripción</label>
+                  <label class="municipal-form-label">Descripción</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="3"
                     v-model="newDependencia.descripcion"
                     placeholder="Descripción detallada de la dependencia"
@@ -322,20 +324,20 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Responsable</label>
+                  <label class="municipal-form-label">Responsable</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDependencia.responsable"
                     placeholder="Nombre del responsable"
                     maxlength="100"
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Teléfono</label>
+                  <label class="municipal-form-label">Teléfono</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDependencia.telefono"
                     placeholder="Número telefónico"
                     maxlength="20"
@@ -344,20 +346,20 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Email</label>
+                  <label class="municipal-form-label">Email</label>
                   <input
                     type="email"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDependencia.email"
                     placeholder="correo@gobierno.mx"
                     maxlength="100"
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Extensión</label>
+                  <label class="municipal-form-label">Extensión</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDependencia.extension"
                     placeholder="Ext. telefónica"
                     maxlength="10"
@@ -366,9 +368,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Dirección</label>
+                  <label class="municipal-form-label">Dirección</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="2"
                     v-model="newDependencia.direccion"
                     placeholder="Dirección física de la dependencia"
@@ -378,9 +380,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Observaciones</label>
+                  <label class="municipal-form-label">Observaciones</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="2"
                     v-model="newDependencia.observaciones"
                     placeholder="Observaciones adicionales"
@@ -391,21 +393,22 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
+              <i class="fas fa-times me-1"></i>
               Cancelar
             </button>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn-municipal-primary"
               @click="saveDependencia"
               :disabled="creating || !newDependencia.codigo || !newDependencia.nombre"
             >
               <span v-if="creating">
-                <i class="fas fa-spinner fa-spin"></i>
+                <i class="fas fa-spinner fa-spin me-1"></i>
                 {{ editingDependencia ? 'Actualizando...' : 'Creando...' }}
               </span>
               <span v-else>
-                <i class="fas fa-save"></i>
+                <i class="fas fa-save me-1"></i>
                 {{ editingDependencia ? 'Actualizar Dependencia' : 'Crear Dependencia' }}
               </span>
             </button>
@@ -453,22 +456,22 @@
                 </div>
                 <div class="card-body">
                   <div class="form-group mb-3">
-                    <label class="form-label">Código:</label>
+                    <label class="municipal-form-label">Código:</label>
                     <p class="form-control-plaintext">{{ selectedDependencia.codigo }}</p>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Abreviación:</label>
+                    <label class="municipal-form-label">Abreviación:</label>
                     <p class="form-control-plaintext">{{ selectedDependencia.abrevia || 'N/A' }}</p>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Estado:</label>
-                    <span class="badge" :class="selectedDependencia.activo === 'S' ? 'bg-success' : 'bg-secondary'">
+                    <label class="municipal-form-label">Estado:</label>
+                    <span class="municipal-badge" :class="selectedDependencia.activo === 'S' ? 'municipal-badge-success' : 'municipal-badge-secondary'">
                       {{ selectedDependencia.activo === 'S' ? 'Activo' : 'Inactivo' }}
                     </span>
                   </div>
                   <div class="form-group mb-0">
-                    <label class="form-label">Maneja Licencias:</label>
-                    <span class="badge" :class="selectedDependencia.licencias === 1 ? 'bg-primary' : 'bg-warning'">
+                    <label class="municipal-form-label">Maneja Licencias:</label>
+                    <span class="municipal-badge" :class="selectedDependencia.licencias === 1 ? 'municipal-badge-primary' : 'municipal-badge-warning'">
                       {{ selectedDependencia.licencias === 1 ? 'Sí' : 'No' }}
                     </span>
                   </div>
@@ -486,19 +489,19 @@
                 </div>
                 <div class="card-body">
                   <div class="form-group mb-3">
-                    <label class="form-label">Responsable:</label>
+                    <label class="municipal-form-label">Responsable:</label>
                     <p class="form-control-plaintext">{{ selectedDependencia.responsable || 'N/A' }}</p>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Teléfono:</label>
+                    <label class="municipal-form-label">Teléfono:</label>
                     <p class="form-control-plaintext">{{ selectedDependencia.telefono || 'N/A' }}</p>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Email:</label>
+                    <label class="municipal-form-label">Email:</label>
                     <p class="form-control-plaintext">{{ selectedDependencia.email || 'N/A' }}</p>
                   </div>
                   <div class="form-group mb-0">
-                    <label class="form-label">Extensión:</label>
+                    <label class="municipal-form-label">Extensión:</label>
                     <p class="form-control-plaintext">{{ selectedDependencia.extension || 'N/A' }}</p>
                   </div>
                 </div>
@@ -539,12 +542,12 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary" @click="editDependencia(selectedDependencia)">
-            <i class="fas fa-edit"></i>
+          <button class="btn-municipal-primary" @click="editDependencia(selectedDependencia)">
+            <i class="fas fa-edit me-1"></i>
             Editar Dependencia
           </button>
-          <button class="btn btn-secondary" @click="showDetailsModal = false">
-            <i class="fas fa-times"></i>
+          <button class="btn-municipal-secondary" @click="showDetailsModal = false">
+            <i class="fas fa-times me-1"></i>
             Cerrar
           </button>
         </div>
@@ -564,7 +567,8 @@
         <h3 class="swal-title">{{ sweetAlert.title }}</h3>
         <p class="swal-text">{{ sweetAlert.text }}</p>
         <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
+          <button class="btn-municipal-primary" @click="closeSweetAlert">
+            <i class="fas fa-check me-1"></i>
             Aceptar
           </button>
         </div>
@@ -1019,273 +1023,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* Estilos específicos del módulo de dependencias */
-.dependencias-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #ff8c00 0%, #ff6347 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para dependencias */
-.table-hover tbody tr:hover {
-  background-color: rgba(255, 140, 0, 0.05);
-}
-
-/* Paginación con tema naranja para dependencias */
-.pagination .page-link {
-  color: #ff8c00;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #cc7000;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #ff8c00;
-  border-color: #ff8c00;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
-}
-
-/* Estilos específicos para iconos de tipo SweetAlert dependencias */
-.swal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.swal-modal {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  text-align: center;
-  max-width: 400px;
-  min-width: 300px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.swal-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.swal-icon.success {
-  color: #28a745;
-}
-
-.swal-icon.error {
-  color: #dc3545;
-}
-
-.swal-icon.warning {
-  color: #ffc107;
-}
-
-.swal-icon.info {
-  color: #17a2b8;
-}
-
-.swal-title {
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-  color: #333;
-}
-
-.swal-text {
-  margin-bottom: 2rem;
-  color: #666;
-}
-
-.swal-footer {
-  display: flex;
-  justify-content: center;
-}
-
-/* Estilos específicos para el modal de detalles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-}
-
-.modal-overlay .modal-content {
-  background: white;
-  border-radius: 8px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-overlay .modal-header {
-  background: linear-gradient(135deg, #ff8c00 0%, #ff6347 100%);
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 8px 8px 0 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-overlay .modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-}
-
-.modal-overlay .modal-body {
-  padding: 1.5rem;
-}
-
-.modal-overlay .modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #dee2e6;
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-.form-control-plaintext {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-weight: 500;
-  color: #495057;
-}
-
-.card.h-100 {
-  height: 100% !important;
-}
-
-/* Toast notifications */
-.toast-notification {
-  position: fixed;
-  right: 20px;
-  width: 350px;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  color: white;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-}
-
-.toast-notification.success {
-  background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.toast-notification.error {
-  background: linear-gradient(135deg, #dc3545, #e55353);
-}
-
-.toast-notification.warning {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-  color: #212529;
-}
-
-.toast-notification.info {
-  background: linear-gradient(135deg, #17a2b8, #20c997);
-}
-
-.toast-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.toast-close:hover {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.1);
-}
-
-/* Badge personalizado para dependencias */
-.badge.bg-primary { background-color: #007bff !important; }
-.badge.bg-success { background-color: #28a745 !important; }
-.badge.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
-.badge.bg-info { background-color: #17a2b8 !important; }
-.badge.bg-secondary { background-color: #6c757d !important; }
-.badge.bg-dark { background-color: #343a40 !important; }
-.badge.bg-light { background-color: #f8f9fa !important; color: #212529 !important; }
-</style>

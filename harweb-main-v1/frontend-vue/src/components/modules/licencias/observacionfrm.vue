@@ -87,19 +87,27 @@ export default {
       this.message = '';
       this.success = false;
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.save_observacion',
           payload: {
             observacion: this.observacion
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.message = res.data.message;
+        const res = await response.json();
+        if (res.status === 'success') {
+          this.message = res.message;
           this.success = true;
           this.observacion = '';
           this.loadObservaciones();
         } else {
-          this.message = res.data.message || 'Error desconocido.';
+          this.message = res.message || 'Error desconocido.';
           this.success = false;
         }
       } catch (error) {
@@ -109,12 +117,20 @@ export default {
     },
     async loadObservaciones() {
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.get_observaciones',
           payload: {}
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.observaciones = res.data.eResponse.data.result || [];
+        const res = await response.json();
+        if (res.status === 'success') {
+          this.observaciones = res.eResponse.data.result || [];
         } else {
           this.observaciones = [];
         }

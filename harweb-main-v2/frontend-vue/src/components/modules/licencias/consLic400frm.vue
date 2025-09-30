@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-4">
+  <div class="municipal-page">
     <router-view />
   </div>
 </template>
@@ -10,6 +10,15 @@ export default {
 };
 </script>
 
+<style scoped>
+.municipal-page {
+  background: white;
+  min-height: 100vh;
+  font-family: var(--font-municipal);
+  padding: 1.5rem;
+}
+</style>
+
 <!--
 Below are two separate Vue components for the two pages (Datos de la licencia y Pagos).
 Assume these are registered in the router as:
@@ -19,27 +28,81 @@ Assume these are registered in the router as:
 
 <!-- Lic400Datos.vue -->
 <template>
-  <div>
-    <nav aria-label="breadcrumb">
+  <div class="municipal-page">
+    <!-- Municipal Header -->
+    <div class="municipal-header">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2 class="municipal-title">
+            <i class="fas fa-file-contract"></i>
+            CONSULTA DE LICENCIAS DEL AS/400
+          </h2>
+          <p class="municipal-subtitle mb-0">
+            Sistema de consulta de licencias del mainframe AS/400
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <nav aria-label="breadcrumb" class="municipal-breadcrumb">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item"><router-link to="/" class="text-decoration-none">Inicio</router-link></li>
         <li class="breadcrumb-item active" aria-current="page">Consulta Licencia 400</li>
       </ol>
     </nav>
-    <h2 class="mb-4 text-center">CONSULTA DE LICENCIAS DEL AS/400</h2>
-    <form @submit.prevent="buscarLicencia" class="form-inline mb-3 justify-content-center">
-      <div class="form-group mr-2">
-        <label for="licencia" class="mr-2">Licencia</label>
-        <input type="number" v-model="licencia" id="licencia" class="form-control" required autofocus @keyup.enter="buscarLicencia" />
+    <!-- Municipal Search Form -->
+    <div class="municipal-card mb-4">
+      <div class="card-body">
+        <form @submit.prevent="buscarLicencia" class="municipal-form">
+          <div class="row justify-content-center align-items-end">
+            <div class="col-md-4">
+              <label for="licencia" class="form-label municipal-label">
+                <i class="fas fa-search"></i> Número de Licencia:
+              </label>
+              <input
+                type="number"
+                v-model="licencia"
+                id="licencia"
+                class="form-control municipal-input"
+                required
+                autofocus
+                @keyup.enter="buscarLicencia"
+                placeholder="Ingrese número de licencia"
+              />
+            </div>
+            <div class="col-md-3">
+              <div class="btn-group municipal-group-btn" role="group">
+                <button type="submit" class="btn btn-primary municipal-btn-primary" :disabled="loading">
+                  <i class="fas fa-search"></i>
+                  <span v-if="loading">Buscando...</span>
+                  <span v-else>Buscar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
-      <button type="submit" class="btn btn-primary">Buscar</button>
-    </form>
-    <div v-if="loading" class="text-center my-4">
-      <span class="spinner-border"></span> Cargando...
     </div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="licData">
-      <table class="table table-bordered table-sm">
+    <!-- Municipal Loading and Error States -->
+    <div v-if="loading" class="alert alert-info municipal-alert">
+      <i class="fas fa-spinner fa-spin"></i> Cargando datos de la licencia...
+    </div>
+
+    <div v-if="error" class="alert alert-danger municipal-alert">
+      <i class="fas fa-exclamation-triangle"></i> {{ error }}
+    </div>
+
+    <!-- Municipal Results -->
+    <div v-if="licData" class="municipal-card">
+      <div class="card-header municipal-table-header">
+        <h5 class="mb-0">
+          <i class="fas fa-file-contract"></i>
+          Datos de la Licencia {{ licData.numlic }}
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm municipal-table">
         <tbody>
           <tr><th>Recaud</th><td>{{ licData.ofna }}</td><th>Licencia</th><td>{{ licData.numlic }}</td><th>RFC</th><td>{{ licData.inirfc }}{{ licData.fnarfc }}</td><th>Homonimia</th><td>{{ licData.homono }}</td><th>Dighom</th><td>{{ licData.dighom }}</td></tr>
           <tr><th>Codgir</th><td>{{ licData.codgir }}</td><th>Ilgir1</th><td colspan="3">{{ licData.ilgir1 }}</td></tr>
@@ -52,10 +115,18 @@ Assume these are registered in the router as:
           <tr><th>Fecalt</th><td>{{ licData.fecalt }}</td><th>Fecbaj</th><td>{{ licData.fecbaj }}</td></tr>
           <tr><th>Tomesu</th><td>{{ licData.tomesu }}</td><th>Numanu</th><td>{{ licData.numanu }}</td><th>Nuayt</th><td>{{ licData.nuayt }}</td><th>Reint</th><td>{{ licData.reint }}</td><th>Reclt</th><td>{{ licData.reclt }}</td><th>Imlit</th><td>{{ licData.imlit }}</td></tr>
           <tr><th>Liimt</th><td>{{ licData.liimt }}</td><th>Vigenc</th><td>{{ licData.vigenc }}</td><th>Actgrl</th><td>{{ licData.actgrl }}</td><th>Grabo</th><td>{{ licData.grabo }}</td><th>Resta</th><td>{{ licData.resta }}</td><th>Fut1</th><td>{{ licData.fut1 }}</td><th>Fut2</th><td>{{ licData.fut2 }}</td></tr>
-        </tbody>
-      </table>
-      <router-link :to="'/lic400/pagos?numlic=' + licData.numlic" class="btn btn-secondary mt-2">Ver Pagos</router-link>
+          </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer municipal-card-footer">
+        <router-link :to="'/lic400/pagos?numlic=' + licData.numlic" class="btn btn-primary municipal-btn-primary">
+          <i class="fas fa-money-bill-wave"></i>
+          Ver Pagos
+        </router-link>
+      </div>
     </div>
+  </div>
   </div>
 </template>
 

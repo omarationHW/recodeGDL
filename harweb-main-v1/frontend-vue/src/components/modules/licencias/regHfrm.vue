@@ -91,14 +91,22 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.get_historic_records',
           payload: { cvecuenta: this.cvecuentaFilter }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.records = res.data.eResponse.data.result;
+        const res = await response.json();
+        if (res.status === 'success') {
+          this.records = res.eResponse.data.result;
         } else {
-          this.error = res.data.message || 'Error al cargar registros';
+          this.error = res.message || 'Error al cargar registros';
         }
       } catch (error) {
         this.error = error.message;
@@ -109,15 +117,23 @@ export default {
     async createRecord() {
       this.loading = true;
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.create_historic_record',
           payload: { ...this.form }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
+        const res = await response.json();
+        if (res.status === 'success') {
           this.showCreateForm = false;
           this.fetchRecords();
         } else {
-          this.error = res.data.message || 'Error al crear registro';
+          this.error = res.message || 'Error al crear registro';
         }
       } catch (error) {
         this.error = error.message;
@@ -137,15 +153,23 @@ export default {
     async updateRecord() {
       this.loading = true;
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.update_historic_record',
           payload: { ...this.form, ...this.editKey }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
+        const res = await response.json();
+        if (res.status === 'success') {
           this.showEditForm = false;
           this.fetchRecords();
         } else {
-          this.error = res.data.message || 'Error al actualizar registro';
+          this.error = res.message || 'Error al actualizar registro';
         }
       } catch (error) {
         this.error = error.message;
@@ -157,18 +181,26 @@ export default {
       if (!confirm('¿Está seguro de eliminar este registro?')) return;
       this.loading = true;
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.delete_historic_record',
           payload: {
             cvecuenta: row.cvecuenta,
             axocomp: row.axocomp,
             nocomp: row.nocomp
           }
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
+        const res = await response.json();
+        if (res.status === 'success') {
           this.fetchRecords();
         } else {
-          this.error = res.data.message || 'Error al eliminar registro';
+          this.error = res.message || 'Error al eliminar registro';
         }
       } catch (error) {
         this.error = error.message;

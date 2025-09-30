@@ -83,24 +83,31 @@ export default {
       this.message = '';
       this.success = false;
       try {
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'SP_fechaseg_create',
-            Parametros: [
-              { nombre: 'p_fecha', valor: this.form.fecha },
-              { nombre: 'p_oficio', valor: this.form.oficio }
-            ]
-          }
-        });
+        const eRequest = {
+          Operacion: 'SP_fechaseg_create',
+          Parametros: [
+            { nombre: 'p_fecha', valor: this.form.fecha },
+            { nombre: 'p_oficio', valor: this.form.oficio }
+          ]
+        };
 
-        if (response.data.eResponse.success) {
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+
+        if (data.eResponse.success) {
           this.message = 'Fecha de seguimiento registrada correctamente';
           this.success = true;
           this.form.fecha = '';
           this.form.oficio = '';
           this.loadRegistros();
         } else {
-          this.message = response.data.eResponse.message || 'Error al guardar';
+          this.message = data.eResponse.message || 'Error al guardar';
           this.success = false;
         }
       } catch (e) {
@@ -116,18 +123,25 @@ export default {
     },
     async loadRegistros() {
       try {
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'SP_fechaseg_list',
-            Parametros: [
-              { nombre: 'p_limite', valor: 50 },
-              { nombre: 'p_offset', valor: 0 }
-            ]
-          }
-        });
+        const eRequest = {
+          Operacion: 'SP_fechaseg_list',
+          Parametros: [
+            { nombre: 'p_limite', valor: 50 },
+            { nombre: 'p_offset', valor: 0 }
+          ]
+        };
 
-        if (response.data.eResponse.success) {
-          this.registros = response.data.eResponse.data || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+
+        if (data.eResponse.success) {
+          this.registros = data.eResponse.data || [];
         } else {
           this.registros = [];
         }

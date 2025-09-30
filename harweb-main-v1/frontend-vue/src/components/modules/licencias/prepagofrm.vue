@@ -136,27 +136,51 @@ export default {
       this.descuentos = [];
       this.ultimoReq = null;
       try {
-        let res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'getPrepagoData', params: { cvecuenta: this.cvecuenta } }
+        let eRequest = { action: 'getPrepagoData', params: { cvecuenta: this.cvecuenta } };
+        let response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.eResponse.error) throw res.data.eResponse.error;
-        this.cuenta = res.data.eResponse;
+        let res = await response.json();
+        if (res.eResponse.error) throw res.eResponse.error;
+        this.cuenta = res.eResponse;
         // Detalle
-        let det = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'liquidacionParcial', params: { cvecuenta: this.cvecuenta, asalf: new Date().getFullYear(), bsalf: 6 } }
+        eRequest = { action: 'liquidacionParcial', params: { cvecuenta: this.cvecuenta, asalf: new Date().getFullYear(), bsalf: 6 } };
+        response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.detalle = det.data.eResponse.detalle || [];
-        this.totales = det.data.eResponse.totales || {};
+        let det = await response.json();
+        this.detalle = det.eResponse.detalle || [];
+        this.totales = det.eResponse.totales || {};
         // Descuentos
-        let desc = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'getDescuentos', params: { cvecuenta: this.cvecuenta } }
+        eRequest = { action: 'getDescuentos', params: { cvecuenta: this.cvecuenta } };
+        response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.descuentos = desc.data.eResponse || [];
+        let desc = await response.json();
+        this.descuentos = desc.eResponse || [];
         // Último requerimiento
-        let req = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'getUltimoRequerimiento', params: { cvecuenta: this.cvecuenta } }
+        eRequest = { action: 'getUltimoRequerimiento', params: { cvecuenta: this.cvecuenta } };
+        response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.ultimoReq = req.data.eResponse;
+        let req = await response.json();
+        this.ultimoReq = req.eResponse;
       } catch (e) {
         this.error = e.toString();
       } finally {
@@ -166,47 +190,71 @@ export default {
     async liquidacionParcial() {
       this.liquidacionResult = null;
       try {
-        let res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'liquidacionParcial',
-            params: {
-              cvecuenta: this.cvecuenta,
-              asalf: this.liquidacion.asalf,
-              bsalf: this.liquidacion.bsalf
-            }
+        let eRequest = {
+          action: 'liquidacionParcial',
+          params: {
+            cvecuenta: this.cvecuenta,
+            asalf: this.liquidacion.asalf,
+            bsalf: this.liquidacion.bsalf
           }
+        };
+        let response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.liquidacionResult = res.data.eResponse;
+        let res = await response.json();
+        this.liquidacionResult = res.eResponse;
       } catch (e) {
         this.liquidacionResult = e.toString();
       }
     },
     async recalcularDPP() {
       try {
-        let res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'recalcularDPP', params: { cvecuenta: this.cvecuenta } }
+        let eRequest = { action: 'recalcularDPP', params: { cvecuenta: this.cvecuenta } };
+        let response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        alert('Recalculo DPP: ' + JSON.stringify(res.data.eResponse));
+        let res = await response.json();
+        alert('Recalculo DPP: ' + JSON.stringify(res.eResponse));
       } catch (e) {
         alert('Error: ' + e.toString());
       }
     },
     async eliminarDPP() {
       try {
-        let res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'eliminarDPP', params: { cvecuenta: this.cvecuenta } }
+        let eRequest = { action: 'eliminarDPP', params: { cvecuenta: this.cvecuenta } };
+        let response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        alert('Eliminación DPP: ' + JSON.stringify(res.data.eResponse));
+        let res = await response.json();
+        alert('Eliminación DPP: ' + JSON.stringify(res.eResponse));
       } catch (e) {
         alert('Error: ' + e.toString());
       }
     },
     async calcularDescuentoPredial() {
       try {
-        let res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'calcularDescuentoPredial', params: { cvecuenta: this.cvecuenta } }
+        let eRequest = { action: 'calcularDescuentoPredial', params: { cvecuenta: this.cvecuenta } };
+        let response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        alert('Cálculo Descuento Predial: ' + JSON.stringify(res.data.eResponse));
+        let res = await response.json();
+        alert('Cálculo Descuento Predial: ' + JSON.stringify(res.eResponse));
       } catch (e) {
         alert('Error: ' + e.toString());
       }

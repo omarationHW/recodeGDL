@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid px-4 py-3">
+  <div class="municipal-form-page">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
       <ol class="breadcrumb bg-light rounded p-3">
@@ -10,14 +10,14 @@
     </nav>
 
     <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="h3 mb-1"><i class="fas fa-user-lock text-primary me-2"></i>Autenticación de Usuarios</h2>
-            <p class="text-muted mb-0">Gestión de usuarios con autenticación PIN y control de sesiones</p>
-          </div>
-          <button class="btn btn-primary" @click="showModal = true; modalTitle = 'Nuevo Usuario'; currentItem = {};">
+    <div class="municipal-header">
+      <div class="row align-items-center">
+        <div class="col">
+          <h3 class="mb-0"><i class="fas fa-user-lock"></i> Autenticación de Usuarios</h3>
+          <p class="mb-0 opacity-75">Gestión de usuarios con autenticación PIN y control de sesiones</p>
+        </div>
+        <div class="col-auto">
+          <button class="btn-municipal-primary" @click="showModal = true; modalTitle = 'Nuevo Usuario'; currentItem = {};">
             <i class="fas fa-plus me-1"></i>Nuevo Usuario
           </button>
         </div>
@@ -25,31 +25,31 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label">Buscar usuario:</label>
-            <input v-model="filters.usuario" @input="loadUsuarios" type="text" class="form-control" placeholder="Usuario...">
+            <label class="municipal-form-label">Buscar usuario:</label>
+            <input v-model="filters.usuario" @input="loadUsuarios" type="text" class="municipal-form-control" placeholder="Usuario...">
           </div>
           <div class="col-md-3">
-            <label class="form-label">Estado:</label>
-            <select v-model="filters.estado" @change="loadUsuarios" class="form-select">
+            <label class="municipal-form-label">Estado:</label>
+            <select v-model="filters.estado" @change="loadUsuarios" class="municipal-form-control">
               <option value="">Todos</option>
               <option value="1">Activo</option>
               <option value="0">Inactivo</option>
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label">Sesión activa:</label>
-            <select v-model="filters.sesionActiva" @change="loadUsuarios" class="form-select">
+            <label class="municipal-form-label">Sesión activa:</label>
+            <select v-model="filters.sesionActiva" @change="loadUsuarios" class="municipal-form-control">
               <option value="">Todas</option>
               <option value="1">Con sesión</option>
               <option value="0">Sin sesión</option>
             </select>
           </div>
           <div class="col-md-2 d-flex align-items-end">
-            <button @click="resetFilters" class="btn btn-outline-secondary">
+            <button @click="resetFilters" class="btn-municipal-secondary">
               <i class="fas fa-eraser me-1"></i>Limpiar
             </button>
           </div>
@@ -58,11 +58,11 @@
     </div>
 
     <!-- Tabla de usuarios -->
-    <div class="card">
-      <div class="card-header bg-light">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h5 class="mb-0">Listado de Usuarios Autenticados</h5>
       </div>
-      <div class="card-body p-0">
+      <div class="municipal-card-body p-0">
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status"></div>
           <p class="mt-2 mb-0">Cargando usuarios...</p>
@@ -70,8 +70,8 @@
 
         <div v-else>
           <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
+            <table class="municipal-table municipal-table-hover mb-0">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>ID</th>
                   <th>Usuario</th>
@@ -93,11 +93,11 @@
                     </div>
                   </td>
                   <td>
-                    <span class="badge bg-secondary">{{ usuario.pin ? '****' : 'Sin PIN' }}</span>
+                    <span class="municipal-badge-secondary">{{ usuario.pin ? '****' : 'Sin PIN' }}</span>
                   </td>
                   <td>{{ formatDate(usuario.ultimo_acceso) }}</td>
                   <td>
-                    <span :class="usuario.sesion_activa ? 'badge bg-success' : 'badge bg-warning'">
+                    <span :class="usuario.sesion_activa ? 'municipal-badge-success' : 'municipal-badge-warning'">
                       <i :class="usuario.sesion_activa ? 'fas fa-check' : 'fas fa-times' "></i>
                       {{ usuario.sesion_activa ? 'Activa' : 'Inactiva' }}
                     </span>
@@ -108,21 +108,21 @@
                     </span>
                   </td>
                   <td>
-                    <span :class="usuario.estado == 1 ? 'badge bg-success' : 'badge bg-danger'">
+                    <span :class="usuario.estado == 1 ? 'municipal-badge-success' : 'municipal-badge-danger'">
                       {{ usuario.estado == 1 ? 'Activo' : 'Bloqueado' }}
                     </span>
                   </td>
                   <td>
-                    <button @click="editItem(usuario)" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                    <button @click="editItem(usuario)" class="btn-municipal-primary btn-sm me-1" title="Editar">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button @click="authenticateUser(usuario)" class="btn btn-sm btn-outline-info me-1" title="Autenticar">
+                    <button @click="authenticateUser(usuario)" class="btn-municipal-info btn-sm me-1" title="Autenticar">
                       <i class="fas fa-key"></i>
                     </button>
-                    <button @click="viewSessions(usuario)" class="btn btn-sm btn-outline-warning me-1" title="Ver Sesiones">
+                    <button @click="viewSessions(usuario)" class="btn-municipal-warning btn-sm me-1" title="Ver Sesiones">
                       <i class="fas fa-history"></i>
                     </button>
-                    <button @click="deleteItem(usuario)" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                    <button @click="deleteItem(usuario)" class="btn-municipal-danger btn-sm" title="Eliminar">
                       <i class="fas fa-trash"></i>
                     </button>
                   </td>
@@ -166,42 +166,42 @@
             <form @submit.prevent="saveItem">
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label">Usuario <span class="text-danger">*</span></label>
-                  <input v-model="currentItem.usuario" type="text" class="form-control" required>
+                  <label class="municipal-form-label">Usuario <span class="text-danger">*</span></label>
+                  <input v-model="currentItem.usuario" type="text" class="municipal-form-control" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">PIN <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">PIN <span class="text-danger">*</span></label>
                   <div class="input-group">
-                    <input v-model="currentItem.pin" :type="showPin ? 'text' : 'password'" class="form-control" required>
-                    <button type="button" class="btn btn-outline-secondary" @click="showPin = !showPin">
+                    <input v-model="currentItem.pin" :type="showPin ? 'text' : 'password'" class="municipal-form-control" required>
+                    <button type="button" class="btn-municipal-secondary" @click="showPin = !showPin">
                       <i :class="showPin ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                     </button>
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Estado</label>
-                  <select v-model="currentItem.estado" class="form-select">
+                  <label class="municipal-form-label">Estado</label>
+                  <select v-model="currentItem.estado" class="municipal-form-control">
                     <option value="1">Activo</option>
                     <option value="0">Bloqueado</option>
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Reiniciar intentos fallidos</label>
-                  <select v-model="currentItem.reset_intentos" class="form-select">
+                  <label class="municipal-form-label">Reiniciar intentos fallidos</label>
+                  <select v-model="currentItem.reset_intentos" class="municipal-form-control">
                     <option value="0">No</option>
                     <option value="1">Sí</option>
                   </select>
                 </div>
                 <div class="col-12">
-                  <label class="form-label">Observaciones</label>
-                  <textarea v-model="currentItem.observaciones" class="form-control" rows="2"></textarea>
+                  <label class="municipal-form-label">Observaciones</label>
+                  <textarea v-model="currentItem.observaciones" class="municipal-form-control" rows="2"></textarea>
                 </div>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-            <button type="button" class="btn btn-primary" @click="saveItem">
+            <button type="button" class="btn-municipal-secondary" @click="closeModal">Cancelar</button>
+            <button type="button" class="btn-municipal-primary" @click="saveItem">
               <i class="fas fa-save me-1"></i>Guardar
             </button>
           </div>
@@ -219,7 +219,7 @@
           </div>
           <div class="modal-body">
             <div class="table-responsive">
-              <table class="table table-striped">
+              <table class="municipal-table municipal-table-striped">
                 <thead>
                   <tr>
                     <th>ID Sesión</th>
@@ -238,7 +238,7 @@
                     <td>{{ sesion.ip_address }}</td>
                     <td class="text-truncate" style="max-width: 200px;" :title="sesion.user_agent">{{ sesion.user_agent }}</td>
                     <td>
-                      <span :class="sesion.fecha_fin ? 'badge bg-secondary' : 'badge bg-success'">
+                      <span :class="sesion.fecha_fin ? 'municipal-badge-secondary' : 'municipal-badge-success'">
                         {{ sesion.fecha_fin ? 'Cerrada' : 'Activa' }}
                       </span>
                     </td>
@@ -257,7 +257,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import Swal from 'sweetalert2'
 
 export default {
@@ -298,23 +297,29 @@ export default {
     async loadUsuarios() {
       this.loading = true
       try {
-        const response = await axios.post('http://localhost:8000/api/generic', {
-          eRequest: {
-            Operacion: 'sp_firmausuario_list',
-            Base: 'padron_licencias',
-            Parametros: [
-              { nombre: 'p_usuario', valor: this.filters.usuario || null },
-              { nombre: 'p_estado', valor: this.filters.estado || null },
-              { nombre: 'p_sesion_activa', valor: this.filters.sesionActiva || null },
-              { nombre: 'p_limite', valor: this.pagination.limit },
-              { nombre: 'p_offset', valor: (this.pagination.page - 1) * this.pagination.limit }
-            ],
-            Tenant: 'informix'
-          }
+        const eRequest = {
+          Operacion: 'sp_firmausuario_list',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_usuario', valor: this.filters.usuario || null },
+            { nombre: 'p_estado', valor: this.filters.estado || null },
+            { nombre: 'p_sesion_activa', valor: this.filters.sesionActiva || null },
+            { nombre: 'p_limite', valor: this.pagination.limit },
+            { nombre: 'p_offset', valor: (this.pagination.page - 1) * this.pagination.limit }
+          ],
+          Tenant: 'informix'
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
         })
+        const data = await response.json()
 
-        if (response.data && response.data.eResponse.success) {
-          this.usuarios = response.data.eResponse.data.result || []
+        if (data && data.eResponse.success) {
+          this.usuarios = data.eResponse.data.result || []
           this.pagination.total = this.usuarios.length > 0 ? this.usuarios[0].total_registros || 0 : 0
         }
       } catch (error) {
@@ -329,24 +334,30 @@ export default {
       try {
         const operation = this.currentItem.id ? 'U' : 'I'
 
-        const response = await axios.post('http://localhost:8000/api/generic', {
-          eRequest: {
-            Operacion: 'sp_firmausuario_mantener',
-            Base: 'padron_licencias',
-            Parametros: [
-              { nombre: 'p_operacion', valor: operation },
-              { nombre: 'p_id', valor: this.currentItem.id || null },
-              { nombre: 'p_usuario', valor: this.currentItem.usuario },
-              { nombre: 'p_pin', valor: this.currentItem.pin },
-              { nombre: 'p_estado', valor: this.currentItem.estado },
-              { nombre: 'p_reset_intentos', valor: this.currentItem.reset_intentos },
-              { nombre: 'p_observaciones', valor: this.currentItem.observaciones }
-            ],
-            Tenant: 'informix'
-          }
+        const eRequest = {
+          Operacion: 'sp_firmausuario_mantener',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_operacion', valor: operation },
+            { nombre: 'p_id', valor: this.currentItem.id || null },
+            { nombre: 'p_usuario', valor: this.currentItem.usuario },
+            { nombre: 'p_pin', valor: this.currentItem.pin },
+            { nombre: 'p_estado', valor: this.currentItem.estado },
+            { nombre: 'p_reset_intentos', valor: this.currentItem.reset_intentos },
+            { nombre: 'p_observaciones', valor: this.currentItem.observaciones }
+          ],
+          Tenant: 'informix'
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
         })
+        const data = await response.json()
 
-        if (response.data && response.data.eResponse.success) {
+        if (data && data.eResponse.success) {
           await Swal.fire({
             icon: 'success',
             title: 'Éxito',
@@ -358,7 +369,7 @@ export default {
           this.closeModal()
           this.loadUsuarios()
         } else {
-          throw new Error(response.data?.message || 'Error en la operación')
+          throw new Error(data?.message || 'Error en la operación')
         }
       } catch (error) {
         console.error('Error guardando usuario:', error)
@@ -393,19 +404,25 @@ export default {
         })
 
         if (pinInput) {
-          const response = await axios.post('http://localhost:8000/api/generic', {
-            eRequest: {
-              Operacion: 'sp_firmausuario_autenticar',
-              Base: 'padron_licencias',
-              Parametros: [
-                { nombre: 'p_usuario', valor: usuario.usuario },
-                { nombre: 'p_pin', valor: pinInput }
-              ],
-              Tenant: 'informix'
-            }
+          const eRequest = {
+            Operacion: 'sp_firmausuario_autenticar',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_usuario', valor: usuario.usuario },
+              { nombre: 'p_pin', valor: pinInput }
+            ],
+            Tenant: 'informix'
+          }
+          const response = await fetch('http://localhost:8000/api/generic', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ eRequest })
           })
+          const data = await response.json()
 
-          if (response.data?.success && response.data?.data?.[0]?.autenticado) {
+          if (data?.success && data?.data?.[0]?.autenticado) {
             await Swal.fire({
               icon: 'success',
               title: 'Autenticación Exitosa',
@@ -439,19 +456,25 @@ export default {
     async viewSessions(usuario) {
       try {
         this.selectedUser = usuario
-        const response = await axios.post('http://localhost:8000/api/generic', {
-          eRequest: {
-            Operacion: 'sp_firmausuario_sesiones',
-            Base: 'padron_licencias',
-            Parametros: [
-              { nombre: 'p_usuario', valor: usuario.usuario }
-            ],
-            Tenant: 'informix'
-          }
+        const eRequest = {
+          Operacion: 'sp_firmausuario_sesiones',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_usuario', valor: usuario.usuario }
+          ],
+          Tenant: 'informix'
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
         })
+        const data = await response.json()
 
-        if (response.data?.success) {
-          this.sesiones = response.data.eResponse.data.result || []
+        if (data?.success) {
+          this.sesiones = data.eResponse.data.result || []
           this.showSessionModal = true
         }
       } catch (error) {
@@ -474,19 +497,25 @@ export default {
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.post('http://localhost:8000/api/generic', {
-            eRequest: {
-              Operacion: 'sp_firmausuario_mantener',
-              Base: 'padron_licencias',
-              Parametros: [
-                { nombre: 'p_operacion', valor: 'D' },
-                { nombre: 'p_id', valor: usuario.id }
-              ],
-              Tenant: 'informix'
-            }
+          const eRequest = {
+            Operacion: 'sp_firmausuario_mantener',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_operacion', valor: 'D' },
+              { nombre: 'p_id', valor: usuario.id }
+            ],
+            Tenant: 'informix'
+          }
+          const response = await fetch('http://localhost:8000/api/generic', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ eRequest })
           })
+          const data = await response.json()
 
-          if (response.data?.success) {
+          if (data?.success) {
             await Swal.fire({
               icon: 'success',
               title: 'Eliminado',
@@ -555,9 +584,9 @@ export default {
     },
 
     getIntentosClass(intentos) {
-      if (!intentos) return 'badge bg-success'
-      if (intentos < 3) return 'badge bg-warning'
-      return 'badge bg-danger'
+      if (!intentos) return 'municipal-badge-success'
+      if (intentos < 3) return 'municipal-badge-warning'
+      return 'municipal-badge-danger'
     },
 
     formatDate(date) {
@@ -568,102 +597,3 @@ export default {
 }
 </script>
 
-<style scoped>
-.container-fluid {
-  background-color: #f8f9fa;
-  min-height: 100vh;
-}
-
-.breadcrumb {
-  background: none;
-  padding: 0.75rem 1rem;
-}
-
-.breadcrumb-item a {
-  text-decoration: none;
-  color: #6c757d;
-}
-
-.breadcrumb-item.active {
-  color: #495057;
-  font-weight: 500;
-}
-
-.card {
-  border: none;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border-radius: 0.5rem;
-}
-
-.card-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-  font-weight: 600;
-}
-
-.table th {
-  border-top: none;
-  font-weight: 600;
-  color: #495057;
-  background-color: #f8f9fa;
-}
-
-.table-hover tbody tr:hover {
-  background-color: rgba(0, 123, 255, 0.075);
-}
-
-.btn {
-  border-radius: 0.375rem;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-.badge {
-  font-size: 0.75em;
-}
-
-.modal-content {
-  border: none;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.form-label {
-  font-weight: 500;
-  color: #495057;
-}
-
-.text-danger {
-  color: #dc3545 !important;
-}
-
-.text-truncate {
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-@media (max-width: 768px) {
-  .container-fluid {
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-
-  .table-responsive {
-    border: none;
-  }
-
-  .btn-sm {
-    padding: 0.125rem 0.25rem;
-    font-size: 0.75rem;
-  }
-}
-</style>

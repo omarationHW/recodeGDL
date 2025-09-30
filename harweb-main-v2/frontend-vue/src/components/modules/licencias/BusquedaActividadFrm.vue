@@ -1,29 +1,32 @@
 <template>
-  <div class="busqueda-actividad-page">
+  <div class="municipal-form-page">
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
         <li class="breadcrumb-item active" aria-current="page">Búsqueda de Actividad</li>
       </ol>
     </nav>
-    <div class="card">
-      <div class="card-header text-center">
-        <h5>BÚSQUEDA DE ACTIVIDADES</h5>
-      </div>
-      <div class="card-body">
-        <form @submit.prevent>
-          <div class="row mb-3">
-            <div class="col-md-2">
-              <label for="actividad" class="form-label">Actividad</label>
+    <div class="municipal-header">
+      <i class="fas fa-search text-white me-2"></i>
+      <h2>BÚSQUEDA DE ACTIVIDADES</h2>
+    </div>
+    <div class="municipal-card">
+      <div class="municipal-card-body">
+        <form @submit.prevent class="mb-4">
+          <div class="row align-items-end">
+            <div class="col-md-3">
+              <label for="actividad" class="form-label">
+                <i class="fas fa-tags me-2"></i>Actividad
+              </label>
             </div>
-            <div class="col-md-10">
+            <div class="col-md-9">
               <input
                 id="actividad"
                 v-model="descripcion"
                 @input="buscarActividades"
                 class="form-control text-uppercase"
                 type="text"
-                placeholder="Ingrese descripción de la actividad"
+                placeholder="Ingrese descripción de la actividad..."
                 autocomplete="off"
                 maxlength="255"
               />
@@ -31,8 +34,8 @@
           </div>
         </form>
         <div class="table-responsive" style="max-height: 400px;">
-          <table class="table table-bordered table-hover">
-            <thead class="table-light">
+          <table class="table table-sm municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th style="width: 80px;">SCIAN</th>
                 <th>Descripción</th>
@@ -40,23 +43,30 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="actividad in actividades" :key="actividad.id_giro" @click="seleccionarActividad(actividad)" :class="{'table-active': actividad.id_giro === actividadSeleccionada?.id_giro}" style="cursor:pointer;">
-                <td>{{ actividad.cod_giro }}</td>
+              <tr v-for="actividad in actividades" :key="actividad.id_giro" @click="seleccionarActividad(actividad)" :class="{'municipal-selected': actividad.id_giro === actividadSeleccionada?.id_giro}" style="cursor:pointer;">
+                <td><span class="badge bg-secondary">{{ actividad.cod_giro }}</span></td>
                 <td>{{ actividad.descripcion }}</td>
-                <td>{{ actividad.costo ? '$' + actividad.costo : '' }}</td>
+                <td class="text-success fw-bold">{{ actividad.costo ? '$' + actividad.costo : '-' }}</td>
               </tr>
               <tr v-if="actividades.length === 0">
-                <td colspan="3" class="text-center">No se encontraron actividades.</td>
+                <td colspan="3" class="text-center text-muted py-4">
+                  <i class="fas fa-search me-2"></i>No se encontraron actividades.
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="d-flex justify-content-end mt-3">
-          <button class="btn btn-primary" :disabled="!actividadSeleccionada" @click="aceptar">Aceptar</button>
+        <div class="d-flex justify-content-end mt-4">
+          <div class="btn-group municipal-group-btn" role="group">
+            <button class="btn btn-outline-primary" :disabled="!actividadSeleccionada" @click="aceptar">
+              <i class="fas fa-check me-1"></i>Aceptar
+            </button>
+          </div>
         </div>
-        <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+        <div v-if="error" class="alert alert-danger mt-3">
+          <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+        </div>
       </div>
-    </div>
   </div>
 </template>
 
@@ -126,16 +136,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.busqueda-actividad-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 0;
-}
-.table-hover tbody tr:hover {
-  background-color: #f5f5f5;
-}
-.table-active {
-  background-color: #d0ebff !important;
-}
-</style>

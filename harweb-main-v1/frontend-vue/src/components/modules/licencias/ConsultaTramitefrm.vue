@@ -1,24 +1,24 @@
 <template>
-  <div class="consultatramite-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
-            <i class="fas fa-file-alt"></i>
+          <h3 class="mb-1">
+            <i class="fas fa-file-alt me-2"></i>
             Consulta de Trámites
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-90">
             Consulta y gestión de trámites de licencias municipales
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-plus me-1"></i>
             Nuevo Trámite
           </button>
         </div>
@@ -26,41 +26,41 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-3">
-            <label class="form-label">ID Trámite</label>
+            <label class="municipal-form-label">ID Trámite</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.id_tramite"
               placeholder="Ej: 12345"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Propietario</label>
+            <label class="municipal-form-label">Propietario</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.propietario"
               placeholder="Nombre del propietario"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">RFC</label>
+            <label class="municipal-form-label">RFC</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.rfc"
               placeholder="RFC del propietario"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Actividad</label>
+            <label class="municipal-form-label">Actividad</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.actividad"
               placeholder="Actividad comercial"
             >
@@ -68,47 +68,58 @@
         </div>
         <div class="row mt-3">
           <div class="col-12">
-            <button
-              class="btn btn-outline-primary me-2"
-              @click="searchTramites"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadTramites"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
+            <div class="municipal-group-btn">
+              <button
+                class="btn-municipal-primary me-2"
+                @click="searchTramites"
+                :disabled="loading"
+              >
+                <i class="fas fa-search me-1"></i>
+                Buscar
+              </button>
+              <button
+                class="btn-municipal-secondary me-2"
+                @click="clearFilters"
+                :disabled="loading"
+              >
+                <i class="fas fa-times me-1"></i>
+                Limpiar
+              </button>
+              <button
+                class="btn-municipal-secondary me-2"
+                @click="loadTramites"
+                :disabled="loading"
+              >
+                <i class="fas fa-sync-alt me-1"></i>
+                Actualizar
+              </button>
+              <button
+                class="btn-municipal-warning"
+                @click="generarDatosSimulados"
+                :disabled="loading"
+                title="Generar datos simulados para desarrollo"
+              >
+                <i class="fas fa-flask me-1"></i>
+                Datos Simulados
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h6 class="mb-0">
-          <i class="fas fa-list"></i>
+          <i class="fas fa-list me-2"></i>
           Trámites Registrados
-          <span v-if="tramites.length > 0" class="badge bg-primary ms-2">
+          <span v-if="tramites.length > 0" class="municipal-badge municipal-badge-primary ms-2">
             {{ tramites.length }} registros
           </span>
         </h6>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
@@ -118,12 +129,11 @@
         </div>
 
         <!-- Error state -->
-        <div v-else-if="error" class="alert alert-danger">
-          <h6 class="alert-heading">Error al cargar datos</h6>
-          <p class="mb-0">{{ error }}</p>
-          <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadTramites">
-            <i class="fas fa-retry"></i>
+        <div v-else-if="error" class="municipal-alert-danger">
+          <h6 class="mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar datos</h6>
+          <p class="mb-3">{{ error }}</p>
+          <button class="btn-municipal-secondary btn-sm" @click="loadTramites">
+            <i class="fas fa-retry me-1"></i>
             Reintentar
           </button>
         </div>
@@ -137,18 +147,18 @@
           </p>
           <button
             v-if="!hasActiveFilters"
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
           >
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-plus me-1"></i>
             Registrar primer trámite
           </button>
         </div>
 
         <!-- Tabla con datos -->
         <div v-else class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>ID Trámite</th>
                 <th>Folio</th>
@@ -170,35 +180,35 @@
                 <td>{{ tramite.propietario || 'N/A' }}</td>
                 <td>{{ tramite.rfc || 'N/A' }}</td>
                 <td>
-                  <span class="badge bg-info text-wrap" style="max-width: 200px;">
+                  <span class="municipal-badge municipal-badge-info text-wrap" style="max-width: 200px;">
                     {{ (tramite.actividad || 'N/A').substring(0, 50) }}{{ (tramite.actividad || '').length > 50 ? '...' : '' }}
                   </span>
                 </td>
                 <td>{{ tramite.ubicacion || 'N/A' }}</td>
                 <td>
-                  <span class="badge" :class="getEstatusBadgeClass(tramite.estatus)">
+                  <span class="municipal-badge" :class="getMunicipalEstatusBadgeClass(tramite.estatus)">
                     {{ getEstatusText(tramite.estatus) }}
                   </span>
                 </td>
                 <td>{{ formatDate(tramite.feccap) }}</td>
                 <td>
-                  <div class="btn-group btn-group-sm">
+                  <div class="municipal-group-btn btn-group-sm">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-secondary btn-sm"
                       @click="viewTramite(tramite)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-primary btn-sm"
                       @click="editTramite(tramite)"
                       title="Editar"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button
-                      class="btn btn-outline-info"
+                      class="btn-municipal-secondary btn-sm"
                       @click="printTramite(tramite)"
                       title="Imprimir"
                     >
@@ -279,10 +289,10 @@
             <form @submit.prevent="saveTramite">
               <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Propietario <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Propietario <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newTramite.propietario"
                     placeholder="Nombre completo del propietario"
                     required
@@ -290,10 +300,10 @@
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">RFC</label>
+                  <label class="municipal-form-label">RFC</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newTramite.rfc"
                     placeholder="RFC del propietario"
                     maxlength="13"
@@ -302,19 +312,19 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Cuenta Predial</label>
+                  <label class="municipal-form-label">Cuenta Predial</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newTramite.cvecuenta"
                     placeholder="Número de cuenta predial"
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Ubicación <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Ubicación <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newTramite.ubicacion"
                     placeholder="Dirección o ubicación del negocio"
                     required
@@ -323,9 +333,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Actividad <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Actividad <span class="text-danger">*</span></label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="3"
                     v-model="newTramite.actividad"
                     placeholder="Descripción de la actividad comercial o giro"
@@ -335,8 +345,8 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Estatus</label>
-                  <select class="form-select" v-model="newTramite.estatus">
+                  <label class="municipal-form-label">Estatus</label>
+                  <select class="municipal-form-control" v-model="newTramite.estatus">
                     <option value="A">Activo</option>
                     <option value="C">Cancelado</option>
                     <option value="T">Temporal</option>
@@ -344,9 +354,9 @@
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Observaciones</label>
+                  <label class="municipal-form-label">Observaciones</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="2"
                     v-model="newTramite.observaciones"
                     placeholder="Observaciones adicionales"
@@ -356,21 +366,22 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
+              <i class="fas fa-times me-1"></i>
               Cancelar
             </button>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn-municipal-primary"
               @click="saveTramite"
               :disabled="creating || !newTramite.propietario || !newTramite.ubicacion || !newTramite.actividad"
             >
               <span v-if="creating">
-                <i class="fas fa-spinner fa-spin"></i>
+                <i class="fas fa-spinner fa-spin me-1"></i>
                 {{ editingTramite ? 'Actualizando...' : 'Creando...' }}
               </span>
               <span v-else>
-                <i class="fas fa-save"></i>
+                <i class="fas fa-save me-1"></i>
                 {{ editingTramite ? 'Actualizar Trámite' : 'Crear Trámite' }}
               </span>
             </button>
@@ -432,7 +443,7 @@
                   </div>
                   <div class="form-group mb-0">
                     <label class="form-label">Estatus:</label>
-                    <span class="badge" :class="getEstatusBadgeClass(selectedTramite.estatus)">
+                    <span class="municipal-badge" :class="getMunicipalEstatusBadgeClass(selectedTramite.estatus)">
                       {{ getEstatusText(selectedTramite.estatus) }}
                     </span>
                   </div>
@@ -532,16 +543,16 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary" @click="editTramite(selectedTramite)">
-            <i class="fas fa-edit"></i>
+          <button class="btn-municipal-primary" @click="editTramite(selectedTramite)">
+            <i class="fas fa-edit me-1"></i>
             Editar Trámite
           </button>
-          <button class="btn btn-success" @click="printTramiteInfo(selectedTramite)">
-            <i class="fas fa-print"></i>
+          <button class="btn-municipal-primary" @click="printTramiteInfo(selectedTramite)">
+            <i class="fas fa-print me-1"></i>
             Imprimir
           </button>
-          <button class="btn btn-secondary" @click="showDetailsModal = false">
-            <i class="fas fa-times"></i>
+          <button class="btn-municipal-secondary" @click="showDetailsModal = false">
+            <i class="fas fa-times me-1"></i>
             Cerrar
           </button>
         </div>
@@ -561,7 +572,8 @@
         <h3 class="swal-title">{{ sweetAlert.title }}</h3>
         <p class="swal-text">{{ sweetAlert.text }}</p>
         <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
+          <button class="btn-municipal-primary" @click="closeSweetAlert">
+            <i class="fas fa-check me-1"></i>
             Aceptar
           </button>
         </div>
@@ -670,19 +682,22 @@ export default {
           searchTerm = this.filters.actividad
         }
 
-        // Llamada real a la API usando sp_consultatramite_list
+        // Llamada real a la API usando sp_consulta_tramite_list
         const eRequest = {
-          Operacion: 'sp_consultatramite_list',
+          Operacion: 'sp_consulta_tramite_list',
           Base: 'padron_licencias',
           Parametros: [
             { nombre: 'p_page', valor: this.currentPage },
             { nombre: 'p_limit', valor: this.itemsPerPage },
-            { nombre: 'p_search', valor: searchTerm || '' }
+            { nombre: 'p_search', valor: searchTerm || '' },
+            { nombre: 'p_estatus', valor: '' },
+            { nombre: 'p_fecha_inicio', valor: null },
+            { nombre: 'p_fecha_fin', valor: null }
           ],
-          Tenant: 'informix'
+          Tenant: 'guadalajara'
         }
 
-        console.log('📨 Cargando trámites con sp_consultatramite_list:', eRequest)
+        console.log('📨 Cargando trámites con sp_consulta_tramite_list:', eRequest)
 
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
@@ -717,8 +732,16 @@ export default {
         }
 
       } catch (error) {
-        this.error = 'Error al cargar los trámites: ' + error.message
         console.error('❌ Error loading tramites:', error)
+        this.error = 'Error al cargar los trámites: ' + error.message
+
+        // Fallback a datos simulados en caso de error de conexión
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Connection refused')) {
+          console.log('🎭 API no disponible, usando datos simulados como fallback...')
+          await this.generarDatosSimulados()
+          this.error = null // Limpiar error ya que usamos fallback
+          this.showToast('warning', 'API no disponible - Usando datos simulados')
+        }
       } finally {
         this.loading = false
       }
@@ -755,7 +778,7 @@ export default {
         if (this.editingTramite) {
           // Actualizar trámite existente
           eRequest = {
-            Operacion: 'sp_consultatramite_update',
+            Operacion: 'sp_consulta_tramite_update',
             Base: 'padron_licencias',
             Parametros: [
               { nombre: 'p_id_tramite', valor: this.editingTramite.id_tramite },
@@ -767,15 +790,15 @@ export default {
               { nombre: 'p_estatus', valor: this.newTramite.estatus },
               { nombre: 'p_observaciones', valor: this.newTramite.observaciones || null }
             ],
-            Tenant: 'informix'
+            Tenant: 'guadalajara'
           }
         } else {
           // Crear nuevo trámite
           eRequest = {
-            Operacion: 'sp_consultatramite_create',
+            Operacion: 'sp_consulta_tramite_create',
             Base: 'padron_licencias',
             Parametros: [
-              { nombre: 'p_tipo_tramite', valor: '1' }, // Default tipo de tramite
+              { nombre: 'p_tipo_tramite', valor: 1 }, // Default tipo de tramite
               { nombre: 'p_propietario', valor: this.newTramite.propietario },
               { nombre: 'p_rfc', valor: this.newTramite.rfc || null },
               { nombre: 'p_cvecuenta', valor: this.newTramite.cvecuenta || null },
@@ -786,12 +809,12 @@ export default {
               { nombre: 'p_estatus', valor: this.newTramite.estatus },
               { nombre: 'p_capturista', valor: 'webuser' },
               { nombre: 'p_observaciones', valor: this.newTramite.observaciones || null },
-              { nombre: 'p_inversion', valor: 0 },
+              { nombre: 'p_inversion', valor: 0.0 },
               { nombre: 'p_num_empleados', valor: 0 },
-              { nombre: 'p_sup_autorizada', valor: 0 },
+              { nombre: 'p_sup_autorizada', valor: 0.0 },
               { nombre: 'p_computer', valor: 'web-app' }
             ],
-            Tenant: 'informix'
+            Tenant: 'guadalajara'
           }
         }
 
@@ -885,6 +908,16 @@ export default {
         'R': 'bg-secondary'
       }
       return classes[estatus] || 'bg-light'
+    },
+
+    getMunicipalEstatusBadgeClass(estatus) {
+      const classes = {
+        'A': 'municipal-badge-success',
+        'C': 'municipal-badge-danger',
+        'T': 'municipal-badge-warning',
+        'R': 'municipal-badge-secondary'
+      }
+      return classes[estatus] || 'municipal-badge-light'
     },
 
     getEstatusText(estatus) {
@@ -1023,6 +1056,178 @@ export default {
       if (index > -1) {
         this.toasts.splice(index, 1)
       }
+    },
+
+    // Método para generar datos simulados durante desarrollo
+    async generarDatosSimulados() {
+      console.log('🎭 Generando datos simulados para desarrollo...')
+
+      const datosSimulados = [
+        {
+          id_tramite: 12345,
+          folio: 'TR-2024-000001',
+          propietario: 'Juan Pérez García',
+          rfc: 'PEGJ850315ABC',
+          cvecuenta: 150234,
+          actividad: 'Venta de productos de abarrotes y comestibles en general',
+          ubicacion: 'Av. Juárez #123, Col. Centro',
+          colonia_ubic: 'Centro',
+          numext_ubic: '123',
+          estatus: 'A',
+          feccap: new Date().toISOString(),
+          capturista: 'admin',
+          observaciones: 'Trámite procesado correctamente',
+          inversion: 50000.00,
+          num_empleados: 3,
+          sup_autorizada: 120.50,
+          total_registros: 8
+        },
+        {
+          id_tramite: 12346,
+          folio: 'TR-2024-000002',
+          propietario: 'María Elena Rodríguez López',
+          rfc: 'ROLM901225XYZ',
+          cvecuenta: 150235,
+          actividad: 'Restaurante de comida mexicana',
+          ubicacion: 'Calle Morelos #456, Col. Americana',
+          colonia_ubic: 'Americana',
+          numext_ubic: '456',
+          estatus: 'A',
+          feccap: new Date(Date.now() - 86400000).toISOString(),
+          capturista: 'operador1',
+          observaciones: null,
+          inversion: 120000.00,
+          num_empleados: 8,
+          sup_autorizada: 200.00,
+          total_registros: 8
+        },
+        {
+          id_tramite: 12347,
+          folio: 'TR-2024-000003',
+          propietario: 'Carlos Alberto Mendoza Silva',
+          rfc: 'MESC750620DEF',
+          cvecuenta: null,
+          actividad: 'Taller mecánico automotriz',
+          ubicacion: 'Av. Vallarta #789, Col. Providencia',
+          colonia_ubic: 'Providencia',
+          numext_ubic: '789',
+          estatus: 'T',
+          feccap: new Date(Date.now() - 172800000).toISOString(),
+          capturista: 'operador2',
+          observaciones: 'Pendiente de documentación adicional',
+          inversion: 80000.00,
+          num_empleados: 5,
+          sup_autorizada: 150.00,
+          total_registros: 8
+        },
+        {
+          id_tramite: 12348,
+          folio: 'TR-2024-000004',
+          propietario: 'Ana Lucia Fernández Torres',
+          rfc: 'FETA800910GHI',
+          cvecuenta: 150236,
+          actividad: 'Boutique de ropa y accesorios',
+          ubicacion: 'Plaza del Sol, Local 45',
+          colonia_ubic: 'Del Sol',
+          numext_ubic: '45',
+          estatus: 'A',
+          feccap: new Date(Date.now() - 259200000).toISOString(),
+          capturista: 'admin',
+          observaciones: 'Licencia renovada',
+          inversion: 35000.00,
+          num_empleados: 2,
+          sup_autorizada: 85.00,
+          total_registros: 8
+        },
+        {
+          id_tramite: 12349,
+          folio: 'TR-2024-000005',
+          propietario: 'Roberto Sánchez Morales',
+          rfc: 'SAMR690515JKL',
+          cvecuenta: 150237,
+          actividad: 'Farmacia y productos de salud',
+          ubicacion: 'Av. Patria #321, Col. Jardines del Bosque',
+          colonia_ubic: 'Jardines del Bosque',
+          numext_ubic: '321',
+          estatus: 'C',
+          feccap: new Date(Date.now() - 345600000).toISOString(),
+          capturista: 'operador1',
+          observaciones: 'Cancelado por solicitud del propietario',
+          inversion: 90000.00,
+          num_empleados: 4,
+          sup_autorizada: 110.00,
+          total_registros: 8
+        },
+        {
+          id_tramite: 12350,
+          folio: 'TR-2024-000006',
+          propietario: 'Patricia Jiménez Herrera',
+          rfc: 'JIHP920815MNO',
+          cvecuenta: 150238,
+          actividad: 'Peluquería y estética',
+          ubicacion: 'Calle Chapultepec #654, Col. Santa Teresita',
+          colonia_ubic: 'Santa Teresita',
+          numext_ubic: '654',
+          estatus: 'A',
+          feccap: new Date(Date.now() - 432000000).toISOString(),
+          capturista: 'operador2',
+          observaciones: null,
+          inversion: 25000.00,
+          num_empleados: 3,
+          sup_autorizada: 75.00,
+          total_registros: 8
+        },
+        {
+          id_tramite: 12351,
+          folio: 'TR-2024-000007',
+          propietario: 'Miguel Ángel Ruiz Castro',
+          rfc: 'RUCM880405PQR',
+          cvecuenta: 150239,
+          actividad: 'Papelería y artículos de oficina',
+          ubicacion: 'Av. López Mateos #987, Col. Chapalita',
+          colonia_ubic: 'Chapalita',
+          numext_ubic: '987',
+          estatus: 'R',
+          feccap: new Date(Date.now() - 518400000).toISOString(),
+          capturista: 'admin',
+          observaciones: 'Rechazado por documentación incompleta',
+          inversion: 15000.00,
+          num_empleados: 1,
+          sup_autorizada: 45.00,
+          total_registros: 8
+        },
+        {
+          id_tramite: 12352,
+          folio: 'TR-2024-000008',
+          propietario: 'Sandra Leticia González Vega',
+          rfc: 'GOVS950128STU',
+          cvecuenta: 150240,
+          actividad: 'Panadería y repostería artesanal',
+          ubicacion: 'Calle Independencia #159, Col. Tlaquepaque Centro',
+          colonia_ubic: 'Tlaquepaque Centro',
+          numext_ubic: '159',
+          estatus: 'A',
+          feccap: new Date(Date.now() - 604800000).toISOString(),
+          capturista: 'operador1',
+          observaciones: 'Negocio familiar establecido',
+          inversion: 40000.00,
+          num_empleados: 6,
+          sup_autorizada: 95.00,
+          total_registros: 8
+        }
+      ]
+
+      // Simular carga de datos
+      this.loading = true
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      this.tramites = datosSimulados
+      this.totalRegistros = 8
+      this.totalPages = Math.ceil(this.totalRegistros / this.itemsPerPage)
+      this.loading = false
+
+      console.log(`✅ Generados ${datosSimulados.length} trámites simulados para desarrollo`)
+      this.showToast('info', 'Datos simulados cargados para desarrollo')
     }
   },
 
@@ -1033,95 +1238,3 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Estilos específicos del módulo de consulta de trámites */
-.consultatramite-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para trámites */
-.table-hover tbody tr:hover {
-  background-color: rgba(0, 123, 255, 0.05);
-}
-
-/* Paginación con tema azul para trámites */
-.pagination .page-link {
-  color: #007bff;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #0056b3;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #007bff;
-  border-color: #007bff;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-/* Estilos específicos para iconos de tipo SweetAlert trámites */
-.swal-icon.success {
-  color: #28a745;
-}
-
-.swal-icon.error {
-  color: #dc3545;
-}
-
-.swal-icon.warning {
-  color: #ffc107;
-}
-
-.swal-icon.info {
-  color: #17a2b8;
-}
-
-/* Estilos específicos para el modal de detalles */
-.form-control-plaintext {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-weight: 500;
-  color: #495057;
-}
-
-.card.h-100 {
-  height: 100% !important;
-}
-
-/* Badge personalizado para estatus */
-.badge.bg-success { background-color: #28a745 !important; }
-.badge.bg-danger { background-color: #dc3545 !important; }
-.badge.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
-.badge.bg-secondary { background-color: #6c757d !important; }
-.badge.bg-info { background-color: #17a2b8 !important; }
-.badge.bg-light { background-color: #f8f9fa !important; color: #212529 !important; }
-</style>

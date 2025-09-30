@@ -419,8 +419,15 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        this.listado = response.data.eResponse?.Resultado || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        this.listado = data.eResponse?.Resultado || [];
       } catch (error) {
         console.error('Error al cargar certificaciones:', error);
         this.mostrarAlerta('error', 'Error al cargar certificaciones', 'fa-exclamation-circle');
@@ -491,14 +498,21 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse?.success) {
-          this.mostrarAlerta('success', response.data.eResponse.message, 'fa-check-circle');
+        if (data.eResponse?.success) {
+          this.mostrarAlerta('success', data.eResponse.message, 'fa-check-circle');
           this.closeForm();
           this.fetchListado();
         } else {
-          this.mostrarAlerta('error', response.data.eResponse?.message || 'Error al guardar', 'fa-exclamation-circle');
+          this.mostrarAlerta('error', data.eResponse?.message || 'Error al guardar', 'fa-exclamation-circle');
         }
       } catch (error) {
         console.error('Error al guardar certificación:', error);
@@ -532,14 +546,21 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse?.success) {
-          this.mostrarAlerta('success', response.data.eResponse.message, 'fa-check-circle');
+        if (data.eResponse?.success) {
+          this.mostrarAlerta('success', data.eResponse.message, 'fa-check-circle');
           this.closeCancel();
           this.fetchListado();
         } else {
-          this.mostrarAlerta('error', response.data.eResponse?.message || 'Error al cancelar', 'fa-exclamation-circle');
+          this.mostrarAlerta('error', data.eResponse?.message || 'Error al cancelar', 'fa-exclamation-circle');
         }
       } catch (error) {
         console.error('Error al cancelar certificación:', error);
@@ -575,8 +596,15 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        this.printData = JSON.stringify(response.data.eResponse, null, 2);
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        this.printData = JSON.stringify(data.eResponse, null, 2);
       } catch (error) {
         console.error('Error al generar vista previa:', error);
         this.printData = 'Error al generar vista previa de impresión';

@@ -1,24 +1,24 @@
 <template>
-  <div class="consultausuarios-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
-            <i class="fas fa-users"></i>
+          <h3 class="mb-1">
+            <i class="fas fa-users me-2"></i>
             Consulta de Usuarios del Sistema
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-90">
             Gestión completa de usuarios y permisos del sistema
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-plus me-1"></i>
             Nuevo Usuario
           </button>
         </div>
@@ -26,39 +26,39 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-3">
-            <label class="form-label">Usuario</label>
+            <label class="municipal-form-label">Usuario</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.usuario"
               placeholder="Nombre de usuario"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Nombre Completo</label>
+            <label class="municipal-form-label">Nombre Completo</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.nombres"
               placeholder="Nombre completo"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Departamento</label>
+            <label class="municipal-form-label">Departamento</label>
             <input
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.cvedepto"
               placeholder="Clave departamento"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Nivel</label>
-            <select class="form-control" v-model="filters.nivel">
+            <label class="municipal-form-label">Nivel</label>
+            <select class="municipal-form-control" v-model="filters.nivel">
               <option value="">Todos los niveles</option>
               <option value="1">Nivel 1 - Básico</option>
               <option value="5">Nivel 5 - Intermedio</option>
@@ -69,51 +69,53 @@
         </div>
         <div class="row mt-3">
           <div class="col-12">
-            <button
-              class="btn btn-outline-primary me-2"
-              @click="searchUsuarios"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadUsuarios"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
+            <div class="municipal-group-btn">
+              <button
+                class="btn-municipal-primary me-2"
+                @click="searchUsuarios"
+                :disabled="loading"
+              >
+                <i class="fas fa-search me-1"></i>
+                Buscar
+              </button>
+              <button
+                class="btn-municipal-secondary me-2"
+                @click="clearFilters"
+                :disabled="loading"
+              >
+                <i class="fas fa-times me-1"></i>
+                Limpiar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="loadUsuarios"
+                :disabled="loading"
+              >
+                <i class="fas fa-sync-alt me-1"></i>
+                Actualizar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="municipal-card">
+      <div class="municipal-card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
-          <i class="fas fa-list"></i>
+          <i class="fas fa-list me-2"></i>
           Resultados de Búsqueda
-          <span class="badge badge-info ms-2" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
+          <span class="municipal-badge municipal-badge-info ms-2" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
         <div v-if="loading" class="spinner-border spinner-border-sm text-primary" role="status">
           <span class="visually-hidden">Cargando...</span>
         </div>
       </div>
-      <div class="card-body p-0" v-if="!loading">
+      <div class="municipal-card-body p-0" v-if="!loading">
         <div class="table-responsive">
-          <table class="table table-striped table-hover mb-0">
-            <thead class="thead-dark">
+          <table class="municipal-table mb-0">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Usuario</th>
                 <th>Nombre</th>
@@ -132,19 +134,19 @@
                 <td>{{ usuario.nombres?.trim() || 'N/A' }}</td>
                 <td><code class="text-muted">{{ usuario.clave?.trim() || 'Sin clave' }}</code></td>
                 <td>
-                  <span class="badge badge-outline-secondary">
+                  <span class="municipal-badge municipal-badge-secondary">
                     {{ usuario.cvedepto || 'N/A' }}
                   </span>
                 </td>
                 <td>
-                  <span class="badge" :class="getLevelClass(usuario.nivel)">
-                    <i class="fas fa-user-shield"></i>
+                  <span class="municipal-badge" :class="getMunicipalLevelClass(usuario.nivel)">
+                    <i class="fas fa-user-shield me-1"></i>
                     Nivel {{ usuario.nivel || 'N/A' }}
                   </span>
                 </td>
                 <td>
                   <small class="text-muted">
-                    <i class="fas fa-calendar"></i>
+                    <i class="fas fa-calendar me-1"></i>
                     {{ formatDate(usuario.fecalt) }}
                   </small>
                 </td>
@@ -154,22 +156,22 @@
                   </small>
                 </td>
                 <td>
-                  <span :class="getStatusClass(usuario.fecbaj)">
-                    <i :class="getStatusIcon(usuario.fecbaj)"></i>
+                  <span class="municipal-badge" :class="getMunicipalStatusClass(usuario.fecbaj)">
+                    <i :class="getStatusIcon(usuario.fecbaj)" class="me-1"></i>
                     {{ getStatusText(usuario.fecbaj) }}
                   </span>
                 </td>
                 <td>
-                  <div class="btn-group btn-group-sm" role="group">
+                  <div class="municipal-group-btn btn-group-sm" role="group">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-secondary btn-sm"
                       @click="viewUsuario(usuario)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-primary btn-sm"
                       @click="editUsuario(usuario)"
                       title="Editar"
                     >
@@ -177,7 +179,7 @@
                     </button>
                     <button
                       v-if="!usuario.fecbaj"
-                      class="btn btn-outline-danger"
+                      class="btn-municipal-secondary btn-sm"
                       @click="confirmDeactivateUsuario(usuario)"
                       title="Dar de baja"
                     >
@@ -198,11 +200,11 @@
       </div>
 
       <!-- Paginación -->
-      <div class="card-footer" v-if="totalRecords > 0 && !loading">
+      <div class="municipal-card-footer" v-if="totalRecords > 0 && !loading">
         <div class="row align-items-center">
           <div class="col-md-6">
             <small class="text-muted">
-              <i class="fas fa-info-circle"></i>
+              <i class="fas fa-info-circle me-1"></i>
               Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
               a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
               de {{ totalRecords }} registros
@@ -241,8 +243,8 @@
     </div>
 
     <!-- Loading overlay para tabla vacía -->
-    <div v-if="loading && usuarios.length === 0" class="card">
-      <div class="card-body text-center py-5">
+    <div v-if="loading && usuarios.length === 0" class="municipal-card">
+      <div class="municipal-card-body text-center py-5">
         <div class="spinner-border text-primary mb-3" role="status">
           <span class="visually-hidden">Cargando...</span>
         </div>
@@ -271,10 +273,10 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="usuario">Usuario:</label>
+                    <label class="municipal-form-label" for="usuario">Usuario:</label>
                     <input
                       type="text"
-                      class="form-control"
+                      class="municipal-form-control"
                       id="usuario"
                       v-model="newUsuario.usuario"
                       maxlength="8"
@@ -284,10 +286,10 @@
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="clave">Clave:</label>
+                    <label class="municipal-form-label" for="clave">Clave:</label>
                     <input
                       type="text"
-                      class="form-control"
+                      class="municipal-form-control"
                       id="clave"
                       v-model="newUsuario.clave"
                       maxlength="8"
@@ -296,10 +298,10 @@
                 </div>
               </div>
               <div class="form-group">
-                <label for="nombres">Nombres:</label>
+                <label class="municipal-form-label" for="nombres">Nombres:</label>
                 <input
                   type="text"
-                  class="form-control"
+                  class="municipal-form-control"
                   id="nombres"
                   v-model="newUsuario.nombres"
                   maxlength="30"
@@ -309,10 +311,10 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="cvedepto">Departamento:</label>
+                    <label class="municipal-form-label" for="cvedepto">Departamento:</label>
                     <input
                       type="number"
-                      class="form-control"
+                      class="municipal-form-control"
                       id="cvedepto"
                       v-model="newUsuario.cvedepto"
                       required
@@ -321,8 +323,8 @@
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="nivel">Nivel:</label>
-                    <select class="form-control" id="nivel" v-model="newUsuario.nivel" required>
+                    <label class="municipal-form-label" for="nivel">Nivel:</label>
+                    <select class="municipal-form-control" id="nivel" v-model="newUsuario.nivel" required>
                       <option value="">Seleccionar...</option>
                       <option value="1">Nivel 1 - Básico</option>
                       <option value="5">Nivel 5 - Intermedio</option>
@@ -335,13 +337,13 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" @click="showCreateModal = false">
-              <i class="fas fa-times"></i>
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
+              <i class="fas fa-times me-1"></i>
               Cancelar
             </button>
-            <button type="button" class="btn btn-primary" @click="createUsuario" :disabled="creatingUsuario">
+            <button type="button" class="btn-municipal-primary" @click="createUsuario" :disabled="creatingUsuario">
               <span v-if="creatingUsuario" class="spinner-border spinner-border-sm me-2" role="status"></span>
-              <i v-else class="fas fa-save"></i>
+              <i v-else class="fas fa-save me-1"></i>
               {{ creatingUsuario ? 'Creando...' : 'Crear Usuario' }}
             </button>
           </div>
@@ -370,10 +372,10 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="form-group mb-3">
-                    <label class="form-label">Usuario (No editable):</label>
+                    <label class="municipal-form-label">Usuario (No editable):</label>
                     <input
                       type="text"
-                      class="form-control"
+                      class="municipal-form-control"
                       :value="editForm.usuario"
                       disabled
                     >
@@ -381,10 +383,10 @@
                 </div>
                 <div class="col-md-6">
                   <div class="form-group mb-3">
-                    <label class="form-label">Nueva Clave (opcional):</label>
+                    <label class="municipal-form-label">Nueva Clave (opcional):</label>
                     <input
                       type="password"
-                      class="form-control"
+                      class="municipal-form-control"
                       v-model="editForm.clave"
                       maxlength="8"
                       placeholder="Dejar vacío para mantener actual"
@@ -393,10 +395,10 @@
                 </div>
               </div>
               <div class="form-group mb-3">
-                <label class="form-label">Nombres Completos:</label>
+                <label class="municipal-form-label">Nombres Completos:</label>
                 <input
                   type="text"
-                  class="form-control"
+                  class="municipal-form-control"
                   v-model="editForm.nombres"
                   maxlength="30"
                   required
@@ -405,10 +407,10 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="form-group mb-3">
-                    <label class="form-label">Departamento:</label>
+                    <label class="municipal-form-label">Departamento:</label>
                     <input
                       type="number"
-                      class="form-control"
+                      class="municipal-form-control"
                       v-model="editForm.cvedepto"
                       required
                     >
@@ -416,8 +418,8 @@
                 </div>
                 <div class="col-md-6">
                   <div class="form-group mb-3">
-                    <label class="form-label">Nivel de Acceso:</label>
-                    <select class="form-control" v-model="editForm.nivel" required>
+                    <label class="municipal-form-label">Nivel de Acceso:</label>
+                    <select class="municipal-form-control" v-model="editForm.nivel" required>
                       <option value="1">Nivel 1 - Básico</option>
                       <option value="5">Nivel 5 - Intermedio</option>
                       <option value="9">Nivel 9 - Avanzado</option>
@@ -429,10 +431,10 @@
               <div class="row">
                 <div class="col-md-12">
                   <div class="form-group mb-3">
-                    <label class="form-label">Fecha de Baja (opcional):</label>
+                    <label class="municipal-form-label">Fecha de Baja (opcional):</label>
                     <input
                       type="date"
-                      class="form-control"
+                      class="municipal-form-control"
                       v-model="editForm.fecbaj"
                     >
                     <small class="form-text text-muted">
@@ -444,13 +446,13 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" @click="showEditModal = false">
-              <i class="fas fa-times"></i>
+            <button type="button" class="btn-municipal-secondary" @click="showEditModal = false">
+              <i class="fas fa-times me-1"></i>
               Cancelar
             </button>
-            <button type="button" class="btn btn-warning" @click="updateUsuario" :disabled="updatingUsuario">
+            <button type="button" class="btn-municipal-primary" @click="updateUsuario" :disabled="updatingUsuario">
               <span v-if="updatingUsuario" class="spinner-border spinner-border-sm me-2" role="status"></span>
-              <i v-else class="fas fa-save"></i>
+              <i v-else class="fas fa-save me-1"></i>
               {{ updatingUsuario ? 'Guardando...' : 'Guardar Cambios' }}
             </button>
           </div>
@@ -501,7 +503,7 @@
                           <tr>
                             <td class="fw-bold text-muted">Departamento:</td>
                             <td>
-                              <span class="badge badge-outline-secondary">
+                              <span class="municipal-badge municipal-badge-secondary">
                                 {{ selectedUsuario.cvedepto || 'N/A' }}
                               </span>
                             </td>
@@ -509,8 +511,8 @@
                           <tr>
                             <td class="fw-bold text-muted">Nivel:</td>
                             <td>
-                              <span class="badge" :class="getLevelClass(selectedUsuario.nivel)">
-                                <i class="fas fa-user-shield"></i>
+                              <span class="municipal-badge" :class="getMunicipalLevelClass(selectedUsuario.nivel)">
+                                <i class="fas fa-user-shield me-1"></i>
                                 Nivel {{ selectedUsuario.nivel || 'N/A' }}
                               </span>
                             </td>
@@ -551,8 +553,8 @@
                           <tr>
                             <td class="fw-bold text-muted">Estado:</td>
                             <td>
-                              <span :class="getStatusClass(selectedUsuario.fecbaj)">
-                                <i :class="getStatusIcon(selectedUsuario.fecbaj)"></i>
+                              <span class="municipal-badge" :class="getMunicipalStatusClass(selectedUsuario.fecbaj)">
+                                <i :class="getStatusIcon(selectedUsuario.fecbaj)" class="me-1"></i>
                                 {{ getStatusText(selectedUsuario.fecbaj) }}
                               </span>
                             </td>
@@ -566,12 +568,12 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" @click="showViewModal = false">
-              <i class="fas fa-times"></i>
+            <button type="button" class="btn-municipal-secondary" @click="showViewModal = false">
+              <i class="fas fa-times me-1"></i>
               Cerrar
             </button>
-            <button type="button" class="btn btn-warning" @click="editUsuario(selectedUsuario); showViewModal = false">
-              <i class="fas fa-edit"></i>
+            <button type="button" class="btn-municipal-primary" @click="editUsuario(selectedUsuario); showViewModal = false">
+              <i class="fas fa-edit me-1"></i>
               Editar Usuario
             </button>
           </div>
@@ -670,7 +672,13 @@ export default {
           body: JSON.stringify({
             eRequest: {
               Operacion: 'SP_CONSULTAUSUARIOS_LIST',
-              Parametros: [this.currentPage, this.itemsPerPage, searchTerm]
+              Base: 'padron_licencias',
+              Tenant: 'guadalajara',
+              Parametros: [
+                { nombre: 'p_page', valor: this.currentPage },
+                { nombre: 'p_limit', valor: this.itemsPerPage },
+                { nombre: 'p_search', valor: searchTerm || null }
+              ]
             }
           })
         })
@@ -766,13 +774,15 @@ export default {
           body: JSON.stringify({
             eRequest: {
               Operacion: 'SP_CONSULTAUSUARIOS_CREATE',
+              Base: 'padron_licencias',
+              Tenant: 'guadalajara',
               Parametros: [
-                this.newUsuario.usuario.trim().toUpperCase(),
-                this.newUsuario.cvedepto,
-                this.newUsuario.nombres.trim(),
-                this.newUsuario.clave?.trim() || '',
-                this.newUsuario.nivel,
-                'sistema'
+                { nombre: 'p_usuario', valor: this.newUsuario.usuario.trim().toUpperCase() },
+                { nombre: 'p_cvedepto', valor: this.newUsuario.cvedepto },
+                { nombre: 'p_nombres', valor: this.newUsuario.nombres.trim() },
+                { nombre: 'p_clave', valor: this.newUsuario.clave?.trim() || '' },
+                { nombre: 'p_nivel', valor: this.newUsuario.nivel },
+                { nombre: 'p_capturo', valor: 'sistema' }
               ]
             }
           })
@@ -857,14 +867,16 @@ export default {
           body: JSON.stringify({
             eRequest: {
               Operacion: 'SP_CONSULTAUSUARIOS_UPDATE',
+              Base: 'padron_licencias',
+              Tenant: 'guadalajara',
               Parametros: [
-                this.editForm.usuario,
-                this.editForm.cvedepto,
-                this.editForm.nombres.trim(),
-                this.editForm.clave?.trim() || '',
-                this.editForm.nivel,
-                this.editForm.fecbaj,
-                'sistema'
+                { nombre: 'p_usuario', valor: this.editForm.usuario },
+                { nombre: 'p_cvedepto', valor: this.editForm.cvedepto },
+                { nombre: 'p_nombres', valor: this.editForm.nombres.trim() },
+                { nombre: 'p_clave', valor: this.editForm.clave?.trim() || '' },
+                { nombre: 'p_nivel', valor: this.editForm.nivel },
+                { nombre: 'p_fecbaj', valor: this.editForm.fecbaj },
+                { nombre: 'p_capturo', valor: 'sistema' }
               ]
             }
           })
@@ -947,9 +959,11 @@ export default {
           body: JSON.stringify({
             eRequest: {
               Operacion: 'SP_CONSULTAUSUARIOS_DELETE',
+              Base: 'padron_licencias',
+              Tenant: 'guadalajara',
               Parametros: [
-                usuario.usuario?.trim(),
-                'sistema'
+                { nombre: 'p_usuario', valor: usuario.usuario?.trim() },
+                { nombre: 'p_capturo', valor: 'sistema' }
               ]
             }
           })
@@ -1033,8 +1047,22 @@ export default {
       return classes[nivel] || 'badge-secondary'
     },
 
+    getMunicipalLevelClass(nivel) {
+      const classes = {
+        1: 'municipal-badge-secondary',
+        5: 'municipal-badge-info',
+        9: 'municipal-badge-warning',
+        10: 'municipal-badge-primary'
+      }
+      return classes[nivel] || 'municipal-badge-secondary'
+    },
+
     getStatusClass(fecbaj) {
       return fecbaj ? 'badge badge-danger' : 'badge badge-success'
+    },
+
+    getMunicipalStatusClass(fecbaj) {
+      return fecbaj ? 'municipal-badge-danger' : 'municipal-badge-success'
     },
 
     getStatusText(fecbaj) {
@@ -1074,356 +1102,3 @@ export default {
 }
 </script>
 
-<style scoped>
-/* ==================================== */
-/* CONSULTAUSUARIOS - TEMA PÚPURA */
-/* ==================================== */
-
-.consultausuarios-module {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  min-height: 100vh;
-}
-
-/* Header del módulo */
-.module-header {
-  background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
-  color: white;
-  padding: 2rem;
-  border-radius: 15px;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 30px rgba(111, 66, 193, 0.3);
-}
-
-.module-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.module-title i {
-  margin-right: 1rem;
-  color: #ffd700;
-}
-
-.module-description {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  font-weight: 300;
-}
-
-/* Cards y contenedores */
-.card {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.card-header {
-  background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
-  color: white;
-  border-radius: 15px 15px 0 0 !important;
-  border-bottom: none;
-  padding: 1.5rem;
-  font-weight: 600;
-}
-
-.card-header h5 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.card-header .badge {
-  background-color: rgba(255,255,255,0.2);
-  color: white;
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-}
-
-/* Botones principales */
-.btn-primary {
-  background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
-  border: none;
-  border-radius: 10px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(111, 66, 193, 0.4);
-  background: linear-gradient(135deg, #5a359a 0%, #4a2c63 100%);
-}
-
-.btn-outline-primary {
-  color: #6f42c1;
-  border-color: #6f42c1;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.btn-outline-primary:hover {
-  background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
-  border-color: #6f42c1;
-  transform: translateY(-1px);
-}
-
-/* Tabla */
-.table {
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.table th {
-  background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border: none;
-  padding: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.table td {
-  font-size: 0.9rem;
-  vertical-align: middle;
-  padding: 1rem;
-  border-color: #dee2e6;
-}
-
-.table-row-hover:hover {
-  background-color: rgba(111, 66, 193, 0.05);
-  transition: all 0.2s ease;
-}
-
-/* Badges y estados */
-.badge {
-  font-size: 0.8rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: 600;
-}
-
-.badge-primary {
-  background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
-  color: white;
-}
-
-.badge-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-  color: white;
-}
-
-.badge-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-  color: #212529;
-}
-
-.badge-success {
-  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-  color: white;
-}
-
-.badge-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-}
-
-.badge-secondary {
-  background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
-  color: white;
-}
-
-.badge-outline-secondary {
-  background: rgba(108, 117, 125, 0.1);
-  color: #6c757d;
-  border: 1px solid #6c757d;
-}
-
-/* Botones de acción */
-.btn-group-sm .btn {
-  border-radius: 8px;
-  margin: 0 2px;
-  transition: all 0.2s ease;
-}
-
-.btn-outline-primary:hover {
-  background: #6f42c1;
-  border-color: #6f42c1;
-  transform: scale(1.05);
-}
-
-.btn-outline-warning:hover {
-  background: #ffc107;
-  border-color: #ffc107;
-  transform: scale(1.05);
-}
-
-.btn-outline-danger:hover {
-  background: #dc3545;
-  border-color: #dc3545;
-  transform: scale(1.05);
-}
-
-/* Formularios */
-.form-control {
-  border-radius: 10px;
-  border: 2px solid #e9ecef;
-  padding: 0.75rem 1rem;
-  transition: all 0.3s ease;
-}
-
-.form-control:focus {
-  border-color: #6f42c1;
-  box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
-}
-
-.form-label {
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.5rem;
-}
-
-/* Modales */
-.modal-content {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 10px 50px rgba(0,0,0,0.3);
-}
-
-.modal-header {
-  border-radius: 15px 15px 0 0;
-  border-bottom: none;
-  padding: 1.5rem 2rem;
-}
-
-.modal-body {
-  padding: 2rem;
-}
-
-.modal-footer {
-  border-top: none;
-  padding: 1.5rem 2rem;
-  border-radius: 0 0 15px 15px;
-}
-
-/* Paginación */
-.pagination {
-  gap: 0.5rem;
-}
-
-.page-link {
-  border: none;
-  border-radius: 8px;
-  color: #6f42c1;
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-  transition: all 0.2s ease;
-}
-
-.page-item.active .page-link {
-  background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);
-  color: white;
-  box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
-}
-
-.page-link:hover {
-  background: rgba(111, 66, 193, 0.1);
-  color: #6f42c1;
-  transform: translateY(-1px);
-}
-
-/* Spinner personalizado */
-.spinner-border {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.spinner-border-sm {
-  width: 1rem;
-  height: 1rem;
-}
-
-/* Código de texto */
-code {
-  background: rgba(111, 66, 193, 0.1);
-  color: #6f42c1;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-}
-
-/* Texto primario */
-.text-primary {
-  color: #6f42c1 !important;
-}
-
-/* Efectos de hover para filas */
-.table tbody tr:hover {
-  background-color: rgba(111, 66, 193, 0.05);
-}
-
-/* Animaciones */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.card {
-  animation: slideIn 0.3s ease-out;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .consultausuarios-module {
-    padding: 1rem;
-  }
-
-  .module-header {
-    padding: 1.5rem;
-  }
-
-  .module-title {
-    font-size: 1.5rem;
-  }
-
-  .table-responsive {
-    border-radius: 10px;
-  }
-}
-
-/* Estados de carga */
-.loading-overlay {
-  position: relative;
-}
-
-.loading-overlay::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
-  z-index: 10;
-  border-radius: 15px;
-}
-</style>

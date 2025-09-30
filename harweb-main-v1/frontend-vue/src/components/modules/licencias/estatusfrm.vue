@@ -1,20 +1,20 @@
 <template>
-  <div class="estatus-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
+          <h3 class="mb-0">
             <i class="fas fa-list-ul"></i>
             Gestión de Estatus
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-75">
             Administración del catálogo de estatus de trámites
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
@@ -26,40 +26,40 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-3">
-            <label class="form-label">Código</label>
+            <label class="municipal-form-label">Código</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.codigo"
               placeholder="Código del estatus"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Descripción</label>
+            <label class="municipal-form-label">Descripción</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.descripcion"
               placeholder="Descripción del estatus"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Estado</label>
-            <select class="form-select" v-model="filters.activo">
+            <label class="municipal-form-label">Estado</label>
+            <select class="municipal-form-control" v-model="filters.activo">
               <option value="">Todos</option>
               <option value="A">Activos</option>
               <option value="I">Inactivos</option>
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label">Color</label>
+            <label class="municipal-form-label">Color</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.color"
               placeholder="Color del estatus"
             >
@@ -68,7 +68,7 @@
         <div class="row mt-3">
           <div class="col-12">
             <button
-              class="btn btn-outline-primary me-2"
+              class="btn-municipal-primary me-2"
               @click="searchEstatus"
               :disabled="loading"
             >
@@ -76,7 +76,7 @@
               Buscar
             </button>
             <button
-              class="btn btn-outline-secondary me-2"
+              class="btn-municipal-secondary me-2"
               @click="clearFilters"
               :disabled="loading"
             >
@@ -84,7 +84,7 @@
               Limpiar
             </button>
             <button
-              class="btn btn-outline-success"
+              class="btn-municipal-success"
               @click="loadEstatus"
               :disabled="loading"
             >
@@ -97,17 +97,17 @@
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h6 class="mb-0">
           <i class="fas fa-list"></i>
           Estatus Registrados
-          <span v-if="estatus.length > 0" class="badge bg-primary ms-2">
+          <span v-if="estatus.length > 0" class="municipal-badge-primary ms-2">
             {{ estatus.length }} registros
           </span>
         </h6>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
@@ -117,11 +117,11 @@
         </div>
 
         <!-- Error state -->
-        <div v-else-if="error" class="alert alert-danger">
+        <div v-else-if="error" class="municipal-alert-danger">
           <h6 class="alert-heading">Error al cargar datos</h6>
           <p class="mb-0">{{ error }}</p>
           <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadEstatus">
+          <button class="btn-municipal-danger btn-sm" @click="loadEstatus">
             <i class="fas fa-retry"></i>
             Reintentar
           </button>
@@ -136,7 +136,7 @@
           </p>
           <button
             v-if="!hasActiveFilters"
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
           >
             <i class="fas fa-plus"></i>
@@ -146,8 +146,8 @@
 
         <!-- Tabla con datos -->
         <div v-else class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
+          <table class="municipal-table municipal-table-hover">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Código</th>
                 <th>Descripción</th>
@@ -174,7 +174,7 @@
                 </td>
                 <td>{{ item.orden }}</td>
                 <td>
-                  <span class="badge" :class="item.activo === 'A' ? 'bg-success' : 'bg-secondary'">
+                  <span class="municipal-badge" :class="item.activo === 'A' ? 'municipal-badge-success' : 'municipal-badge-secondary'">
                     {{ item.activo === 'A' ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
@@ -182,21 +182,21 @@
                 <td>
                   <div class="btn-group btn-group-sm">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-info btn-sm"
                       @click="viewEstatus(item)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-warning btn-sm"
                       @click="editEstatus(item)"
                       title="Editar"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button
-                      class="btn btn-outline-danger"
+                      class="btn-municipal-danger btn-sm"
                       @click="deleteEstatus(item)"
                       title="Eliminar"
                     >
@@ -277,10 +277,10 @@
             <form @submit.prevent="saveEstatus">
               <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Código <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Código <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newEstatus.codigo"
                     placeholder="Ej: PEN, APR, REC"
                     required
@@ -289,10 +289,10 @@
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Orden</label>
+                  <label class="municipal-form-label">Orden</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newEstatus.orden"
                     placeholder="1"
                     min="1"
@@ -302,10 +302,10 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Descripción <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Descripción <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newEstatus.descripcion"
                     placeholder="Descripción del estatus"
                     required
@@ -315,17 +315,17 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Color</label>
+                  <label class="municipal-form-label">Color</label>
                   <input
                     type="color"
-                    class="form-control form-control-color"
+                    class="municipal-form-control"
                     v-model="newEstatus.color"
                     title="Seleccionar color"
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Estado</label>
-                  <select class="form-select" v-model="newEstatus.activo">
+                  <label class="municipal-form-label">Estado</label>
+                  <select class="municipal-form-control" v-model="newEstatus.activo">
                     <option value="A">Activo</option>
                     <option value="I">Inactivo</option>
                   </select>
@@ -333,9 +333,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Observaciones</label>
+                  <label class="municipal-form-label">Observaciones</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="3"
                     v-model="newEstatus.observaciones"
                     placeholder="Observaciones adicionales"
@@ -345,12 +345,12 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
               Cancelar
             </button>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn-municipal-primary"
               @click="saveEstatus"
               :disabled="creating || !newEstatus.codigo || !newEstatus.descripcion"
             >
@@ -384,7 +384,7 @@
         <h3 class="swal-title">{{ sweetAlert.title }}</h3>
         <p class="swal-text">{{ sweetAlert.text }}</p>
         <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
+          <button class="btn-municipal-primary" @click="closeSweetAlert">
             Aceptar
           </button>
         </div>
@@ -797,155 +797,3 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Estilos específicos del módulo de estatus */
-.estatus-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #e83e8c 0%, #fd7e14 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para estatus */
-.table-hover tbody tr:hover {
-  background-color: rgba(232, 62, 140, 0.05);
-}
-
-/* Paginación con tema rosa para estatus */
-.pagination .page-link {
-  color: #e83e8c;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #c2185b;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #e83e8c;
-  border-color: #e83e8c;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(232, 62, 140, 0.25);
-}
-
-/* Estilo para el selector de color */
-.form-control-color {
-  width: 100%;
-  height: calc(2.25rem + 2px);
-}
-
-/* Estilos globales importados desde src/styles/global.css */
-.swal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.swal-modal {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  text-align: center;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.swal-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.swal-icon.success { color: #28a745; }
-.swal-icon.error { color: #dc3545; }
-.swal-icon.warning { color: #ffc107; }
-.swal-icon.info { color: #17a2b8; }
-
-.swal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.swal-text {
-  margin-bottom: 2rem;
-  color: #6c757d;
-}
-
-.toast-notification {
-  position: fixed;
-  right: 20px;
-  z-index: 9999;
-  min-width: 300px;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border-left: 4px solid;
-  animation: slideInRight 0.3s ease-out;
-}
-
-.toast-notification.success { border-left-color: #28a745; }
-.toast-notification.error { border-left-color: #dc3545; }
-.toast-notification.warning { border-left-color: #ffc107; }
-.toast-notification.info { border-left-color: #17a2b8; }
-
-.toast-icon {
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
-}
-
-.toast-notification.success .toast-icon { color: #28a745; }
-.toast-notification.error .toast-icon { color: #dc3545; }
-.toast-notification.warning .toast-icon { color: #ffc107; }
-.toast-notification.info .toast-icon { color: #17a2b8; }
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  color: #6c757d;
-  cursor: pointer;
-  margin-left: 0.75rem;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-</style>

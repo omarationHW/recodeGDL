@@ -139,32 +139,64 @@ export default {
       this.areaCarto = null;
       try {
         // 1. Datos principales
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest1 = {
           action: 'getCargadatos',
           params: { cvecatnva: this.form.cvecatnva }
+        };
+        const res = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest1)
         });
-        if (!res.data.eResponse.success) throw new Error(res.data.message);
-        this.data = res.data.eResponse.data.result;
+        const data1 = await res.json();
+        if (!data1.eResponse.success) throw new Error(data1.message);
+        this.data = data1.eResponse.data.result;
         // 2. Avalúos
-        const resAva = await this.$axios.post('/api/execute', {
+        const eRequest2 = {
           action: 'getAvaluos',
           params: { cvecatnva: this.form.cvecatnva, subpredio: 0 }
+        };
+        const resAva = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest2)
         });
-        this.avaluos = resAva.data.eResponse.data.result || [];
+        const dataAva = await resAva.json();
+        this.avaluos = dataAva.eResponse.data.result || [];
         // 3. Construcciones (del primer avalúo)
         if (this.avaluos.length > 0) {
-          const resCons = await this.$axios.post('/api/execute', {
+          const eRequest3 = {
             action: 'getConstrucciones',
             params: { cveavaluo: this.avaluos[0].cveavaluo }
+          };
+          const resCons = await fetch('http://localhost:8000/api/generic', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(eRequest3)
           });
-          this.construcciones = resCons.data.eResponse.data.result || [];
+          const dataCons = await resCons.json();
+          this.construcciones = dataCons.eResponse.data.result || [];
         }
         // 4. Área cartográfica
-        const resCarto = await this.$axios.post('/api/execute', {
+        const eRequest4 = {
           action: 'getAreaCarto',
           params: { cvecatnva: this.form.cvecatnva }
+        };
+        const resCarto = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest4)
         });
-        this.areaCarto = resCarto.data.eResponse.data.result;
+        const dataCarto = await resCarto.json();
+        this.areaCarto = dataCarto.eResponse.data.result;
       } catch (e) {
         this.error = e.message;
       } finally {

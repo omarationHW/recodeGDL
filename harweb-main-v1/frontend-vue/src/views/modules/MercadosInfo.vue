@@ -1,22 +1,22 @@
 <template>
-  <div class="min-vh-100 bg-light">
+  <div class="info-container">
     <!-- Header del Módulo -->
-    <div class="bg-white shadow-sm border-bottom">
-      <div class="container-fluid py-5">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center">
-            <div class="bg-secondary bg-gradient rounded-3 d-flex align-items-center justify-content-center shadow me-4" style="width: 64px; height: 64px;">
-              <i class="fas fa-store fa-2x text-white"></i>
+    <div class="module-header">
+      <div class="container-fluid">
+        <div class="header-content">
+          <div class="module-info">
+            <div class="module-icon-large">
+              <i class="fas fa-store-alt"></i>
             </div>
-            <div>
-              <h1 class="display-5 fw-bold text-dark mb-2">Módulo Mercados</h1>
-              <p class="fs-5 text-muted">Control y Administración Integral de Mercados Municipales</p>
+            <div class="module-details">
+              <h1 class="module-title">Módulo Mercados</h1>
+              <p class="module-subtitle">Sistema de Gestión Comercial Municipal</p>
             </div>
           </div>
           <div>
-            <router-link 
-              to="/" 
-              class="btn btn-outline-secondary d-flex align-items-center"
+            <router-link
+              to="/"
+              class="btn-back"
             >
               <i class="fas fa-arrow-left me-2"></i>
               Volver al Dashboard
@@ -27,350 +27,295 @@
     </div>
 
     <!-- Contenido Principal -->
-    <div class="container-fluid py-5">
-      
+    <div class="content-container">
+
+      <!-- Carrusel de Imágenes del Módulo -->
+      <div class="carousel-card">
+        <h2 class="section-title">Galería del Módulo</h2>
+        <div class="carousel-container">
+          <div class="carousel-wrapper" ref="carouselWrapper">
+            <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+              <div v-for="(image, index) in carouselImages" :key="index" class="carousel-slide">
+                <img :src="image.src" :alt="image.alt" class="carousel-image"/>
+                <div class="carousel-caption">
+                  <h3 class="carousel-title">{{ image.title }}</h3>
+                  <p class="carousel-description">{{ image.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Controles del carrusel -->
+          <button class="carousel-btn carousel-btn-prev" @click="prevSlide" :disabled="currentSlide === 0">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="carousel-btn carousel-btn-next" @click="nextSlide" :disabled="currentSlide === carouselImages.length - 1">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <!-- Indicadores -->
+          <div class="carousel-indicators">
+            <button v-for="(image, index) in carouselImages" :key="index" class="carousel-indicator" :class="{ 'active': currentSlide === index }" @click="goToSlide(index)"></button>
+          </div>
+        </div>
+      </div>
+
       <!-- Estadísticas del Módulo -->
-      <div class="row g-4 mb-5">
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                  <i class="fas fa-check-circle fa-lg text-secondary"></i>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Componentes</p>
-                  <p class="h2 fw-bold text-warning mb-0">109</p>
-                  <p class="small text-warning fw-bold mb-0">+2 NUEVOS</p>
-                </div>
-              </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+              <p class="stat-label">Formularios</p>
+              <p class="stat-value success">107</p>
+              <p class="stat-highlight">+8 NUEVOS</p>
             </div>
           </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                  <i class="fas fa-database fa-lg text-secondary"></i>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Stored Procedures</p>
-                  <p class="h2 fw-bold text-secondary mb-0">523</p>
-                </div>
-              </div>
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-cube"></i>
+            </div>
+            <div>
+              <p class="stat-label">Módulos</p>
+              <p class="stat-value">6</p>
             </div>
           </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                  <i class="fas fa-file-alt fa-lg text-secondary"></i>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Documentos</p>
-                  <p class="h2 fw-bold text-secondary mb-0">78</p>
-                </div>
-              </div>
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-database"></i>
+            </div>
+            <div>
+              <p class="stat-label">Stored Procedures</p>
+              <p class="stat-value">8</p>
             </div>
           </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-success bg-opacity-10 rounded-3 p-3 me-3">
-                  <div class="spinner-grow spinner-grow-sm text-success" role="status"></div>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Estado</p>
-                  <p class="h5 fw-bold text-success mb-0">Activo</p>
-                </div>
-              </div>
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper active">
+              <div class="status-indicator"></div>
+            </div>
+            <div>
+              <p class="stat-label">Estado</p>
+              <p class="stat-value success">Activo</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Descripción del Módulo -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body p-5">
-          <h2 class="h3 fw-bold text-dark mb-4">Descripción del Módulo</h2>
-          <p class="text-muted fs-6 lh-lg mb-3">
-            El <strong>Módulo de Mercados</strong> es un sistema especializado para el control y administración 
-            integral de mercados municipales, locales comerciales y servicios. Permite la gestión completa 
-            de arrendamientos, cobros, mantenimiento y control de espacios comerciales públicos.
-          </p>
-          <p class="text-muted fs-6 lh-lg">
-            Migrado completamente de Delphi a arquitectura moderna con Laravel + Vue.js + PostgreSQL, 
-            ofrece herramientas avanzadas para la optimización de servicios comerciales municipales.
-          </p>
-        </div>
+      <div class="description-card">
+        <h2 class="section-title">Descripción del Módulo</h2>
+        <p class="description-text">
+          El <strong>Módulo de Mercados</strong> es un sistema integral diseñado para la administración
+          completa de mercados municipales, locales comerciales, gestión de adeudos energéticos y
+          control de pagos especializados para el sector comercial municipal.
+        </p>
+        <p class="description-text">
+          Migrado completamente de Delphi a una arquitectura moderna con Laravel + Vue.js + PostgreSQL,
+          proporciona herramientas avanzadas para la gestión comercial y control administrativo
+          de espacios comerciales municipales.
+        </p>
       </div>
 
-      <!-- Características Principales -->
-      <div class="row g-4 mb-5">
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-5">
-              <h3 class="h4 fw-bold text-dark mb-4">Características Principales</h3>
-              <div class="d-flex flex-column gap-3">
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Gestión de Locales</h4>
-                    <p class="text-muted small mb-0">Administración completa de espacios comerciales</p>
-                  </div>
-                </div>
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Control de Arrendamientos</h4>
-                    <p class="text-muted small mb-0">Gestión de contratos y rentas</p>
-                  </div>
-                </div>
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Sistema de Cobros</h4>
-                    <p class="text-muted small mb-0">Facturación y control de pagos</p>
-                  </div>
-                </div>
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Mantenimiento</h4>
-                    <p class="text-muted small mb-0">Control de servicios y mantenimiento</p>
-                  </div>
-                </div>
+      <!-- Características y Arquitectura -->
+      <div class="features-grid">
+        <div class="features-card">
+          <h3 class="card-title">Características Principales</h3>
+          <div class="features-list">
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Administración de Locales</h4>
+                <p class="feature-description">Control completo de espacios comerciales municipales</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Gestión de Adeudos Energéticos</h4>
+                <p class="feature-description">Control y seguimiento de consumos y pagos de servicios</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Pagos Especializados</h4>
+                <p class="feature-description">Sistema de cobro y facturación para comerciantes</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Control Comercial</h4>
+                <p class="feature-description">Seguimiento de actividades y regulaciones comerciales</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-5">
-              <h3 class="h4 fw-bold text-dark mb-4">Arquitectura Técnica</h3>
-              <div class="d-flex flex-column gap-3">
-                <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                  <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                    <i class="fas fa-desktop text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Frontend</h4>
-                    <p class="text-muted small mb-0">Vue.js 3 con interfaz SPA moderna</p>
-                  </div>
-                </div>
-                
-                <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                  <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                    <i class="fas fa-server text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Backend</h4>
-                    <p class="text-muted small mb-0">Laravel API con endpoint unificado</p>
-                  </div>
-                </div>
-                
-                <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                  <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                    <i class="fas fa-database text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Base de Datos</h4>
-                    <p class="text-muted small mb-0">PostgreSQL con stored procedures</p>
-                  </div>
-                </div>
+        <div class="features-card">
+          <h3 class="card-title">Arquitectura Técnica</h3>
+          <div class="tech-stack">
+            <div class="tech-item">
+              <div class="tech-icon">
+                <i class="fas fa-desktop"></i>
+              </div>
+              <div>
+                <h4 class="tech-title">Frontend</h4>
+                <p class="tech-description">Vue.js 3 con interfaz SPA moderna</p>
+              </div>
+            </div>
+
+            <div class="tech-item">
+              <div class="tech-icon">
+                <i class="fas fa-server"></i>
+              </div>
+              <div>
+                <h4 class="tech-title">Backend</h4>
+                <p class="tech-description">Laravel API con endpoint unificado</p>
+              </div>
+            </div>
+
+            <div class="tech-item">
+              <div class="tech-icon">
+                <i class="fas fa-database"></i>
+              </div>
+              <div>
+                <h4 class="tech-title">Base de Datos</h4>
+                <p class="tech-description">PostgreSQL con stored procedures</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Módulos Principales -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body p-5">
-          <h3 class="h4 fw-bold text-dark mb-4">Módulos de Gestión</h3>
-          <div class="row g-3">
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Administración de Locales</h4>
-                <p class="text-muted small mb-0">Gestión de espacios comerciales</p>
-              </div>
+      <!-- Funcionalidades Principales -->
+      <div class="new-features-card">
+        <div class="new-features-header">
+          <h3 class="card-title">⭐ Funcionalidades Principales</h3>
+          <span class="badge-new">SISTEMA COMPLETO</span>
+        </div>
+        <div class="new-features-grid">
+          <router-link
+            to="/mercados/acceso"
+            class="new-feature-card feature-primary"
+          >
+            <span class="feature-badge">PRINCIPAL</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-store"></i>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Control de Arrendatarios</h4>
-                <p class="text-muted small mb-0">Gestión de inquilinos y contratos</p>
-              </div>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Gestión de Locales</h4>
+              <p class="feature-desc-new">Administración completa</p>
+              <p class="feature-desc-new">de espacios comerciales</p>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Facturación</h4>
-                <p class="text-muted small mb-0">Sistema de cobros y facturación</p>
-              </div>
+          </router-link>
+
+          <router-link
+            to="/mercados/adeudos"
+            class="new-feature-card feature-warning"
+          >
+            <span class="feature-badge">ADEUDOS</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-bolt"></i>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Consultas</h4>
-                <p class="text-muted small mb-0">Búsquedas y reportes especializados</p>
-              </div>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Adeudos Energéticos</h4>
+              <p class="feature-desc-new">Control de servicios</p>
+              <p class="feature-desc-new">y consumos</p>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Mantenimiento</h4>
-                <p class="text-muted small mb-0">Control de servicios y reparaciones</p>
-              </div>
+          </router-link>
+
+          <router-link
+            to="/mercados/pagos"
+            class="new-feature-card feature-info"
+          >
+            <span class="feature-badge">PAGOS</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-credit-card"></i>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Reportes</h4>
-                <p class="text-muted small mb-0">Informes estadísticos y de gestión</p>
-              </div>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Pagos Especializados</h4>
+              <p class="feature-desc-new">Facturación y cobro</p>
+              <p class="feature-desc-new">para comerciantes</p>
             </div>
-          </div>
+          </router-link>
+
+          <router-link
+            to="/mercados/reportes"
+            class="new-feature-card feature-success"
+          >
+            <span class="feature-badge">REPORTES</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Reportes y Análisis</h4>
+              <p class="feature-desc-new">Estadísticas comerciales</p>
+              <p class="feature-desc-new">y control de ingresos</p>
+            </div>
+          </router-link>
         </div>
       </div>
 
-      <!-- 🆕 NUEVAS FUNCIONALIDADES DE MODERNIZACIÓN - MERCADOS -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body p-5">
-          <div class="d-flex align-items-center mb-4">
-            <h3 class="h4 fw-bold text-warning mb-0 me-3">🆕 Modernización del Módulo Mercados</h3>
-            <span class="badge bg-warning text-dark">RECIÉN AGREGADAS</span>
-          </div>
+      <!-- Acciones Rápidas -->
+      <div class="quick-actions-card">
+        <h3 class="card-title">Acciones Rápidas del Sistema</h3>
+        <div class="quick-actions-grid">
+          <router-link
+            to="/mercados/busqueda"
+            class="quick-action-item"
+          >
+            <div class="quick-action-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <div>
+              <h4 class="quick-action-title">Búsqueda de Locales</h4>
+              <p class="quick-action-desc">Consultar información comercial</p>
+            </div>
+          </router-link>
 
-          <!-- Nuevos Componentes -->
-          <div class="row g-3 mb-4">
-            <div class="col-md-6">
-              <router-link
-                to="/mercados/sistemaconveniosmercados"
-                class="d-flex flex-column align-items-center p-4 bg-success bg-opacity-10 rounded-3 text-decoration-none hover-bg-success-subtle transition position-relative"
-              >
-                <span class="badge bg-success position-absolute top-0 end-0 translate-middle">NUEVO</span>
-                <div class="bg-success bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-store fa-2x text-success"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Sistema Convenios Integral</h4>
-                  <p class="text-muted small mb-0">ABC completo: Intereses, Convenios,</p>
-                  <p class="text-muted small mb-0">Parcialidades, Pagos y Reportes</p>
-                </div>
-              </router-link>
+          <router-link
+            to="/mercados/registro"
+            class="quick-action-item"
+          >
+            <div class="quick-action-icon">
+              <i class="fas fa-plus"></i>
             </div>
+            <div>
+              <h4 class="quick-action-title">Registrar Local</h4>
+              <p class="quick-action-desc">Agregar nuevo espacio comercial</p>
+            </div>
+          </router-link>
 
-            <div class="col-md-6">
-              <router-link
-                to="/mercados/funcionesexcluidas"
-                class="d-flex flex-column align-items-center p-4 bg-danger bg-opacity-10 rounded-3 text-decoration-none hover-bg-danger-subtle transition position-relative"
-              >
-                <span class="badge bg-danger position-absolute top-0 end-0 translate-middle">EXCLUSIONES</span>
-                <div class="bg-danger bg-opacity-25 rounded-3 p-3 mb-3">
-                  <i class="fas fa-times-circle fa-2x text-danger"></i>
-                </div>
-                <div class="text-center">
-                  <h4 class="fw-medium text-dark mb-1">Funciones Excluidas</h4>
-                  <p class="text-muted small mb-0">10 funciones obsoletas</p>
-                  <p class="text-muted small mb-0">identificadas para remoción</p>
-                </div>
-              </router-link>
+          <router-link
+            to="/mercados/control"
+            class="quick-action-item"
+          >
+            <div class="quick-action-icon">
+              <i class="fas fa-clipboard-check"></i>
             </div>
-          </div>
-
-          <!-- Resumen de Cambios -->
-          <div class="row g-3">
-            <div class="col-md-4">
-              <div class="card border-success">
-                <div class="card-body text-center">
-                  <h4 class="text-success">1</h4>
-                  <p class="mb-0 small">Sistema Nuevo</p>
-                </div>
-              </div>
+            <div>
+              <h4 class="quick-action-title">Control de Pagos</h4>
+              <p class="quick-action-desc">Verificar estado de cuentas</p>
             </div>
-            <div class="col-md-4">
-              <div class="card border-danger">
-                <div class="card-body text-center">
-                  <h4 class="text-danger">10</h4>
-                  <p class="mb-0 small">Funciones Excluidas</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card border-warning">
-                <div class="card-body text-center">
-                  <h4 class="text-warning">7</h4>
-                  <p class="mb-0 small">Módulos Nuevos</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Acciones Rápidas Existentes -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-5">
-          <h3 class="h4 fw-bold text-dark mb-4">Acciones Rápidas Existentes</h3>
-          <div class="row g-3">
-            <div class="col-md-4">
-              <router-link 
-                to="/mercados/locales" 
-                class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3 text-decoration-none hover-bg-secondary-subtle transition"
-              >
-                <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                  <i class="fas fa-store text-secondary"></i>
-                </div>
-                <div>
-                  <h4 class="fw-medium text-dark mb-1">Administrar Locales</h4>
-                  <p class="text-muted small mb-0">Gestión de espacios</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-4">
-              <router-link 
-                to="/mercados/arrendatarios" 
-                class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3 text-decoration-none hover-bg-secondary-subtle transition"
-              >
-                <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                  <i class="fas fa-users text-secondary"></i>
-                </div>
-                <div>
-                  <h4 class="fw-medium text-dark mb-1">Arrendatarios</h4>
-                  <p class="text-muted small mb-0">Control de inquilinos</p>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="col-md-4">
-              <router-link 
-                to="/mercados/facturacion" 
-                class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3 text-decoration-none hover-bg-secondary-subtle transition"
-              >
-                <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                  <i class="fas fa-file-invoice text-secondary"></i>
-                </div>
-                <div>
-                  <h4 class="fw-medium text-dark mb-1">Facturación</h4>
-                  <p class="text-muted small mb-0">Sistema de cobros</p>
-                </div>
-              </router-link>
-            </div>
-          </div>
+          </router-link>
         </div>
       </div>
 
@@ -383,18 +328,38 @@ export default {
   name: 'MercadosInfo',
   data() {
     return {
-      // Datos específicos del módulo de mercados
+      currentSlide: 0,
+      carouselImages: [
+        {
+          src: '/img/dashboard/mercados-municipales.svg',
+          alt: 'Mercados Municipales',
+          title: 'Mercados Municipales',
+          description: 'Administración y control de espacios comerciales en mercados públicos'
+        }
+      ]
+    }
+  },
+  methods: {
+    prevSlide() {
+      if (this.currentSlide > 0) {
+        this.currentSlide--
+      }
+    },
+    nextSlide() {
+      if (this.currentSlide < this.carouselImages.length - 1) {
+        this.currentSlide++
+      }
+    },
+    goToSlide(index) {
+      this.currentSlide = index
     }
   }
 }
 </script>
 
 <style scoped>
-.hover-bg-secondary-subtle:hover {
-  background-color: var(--bs-secondary-bg) !important;
-}
-
-.transition {
-  transition: all 0.2s ease;
+/* Estilos específicos del componente MercadosInfo */
+.container-fluid {
+  padding: 2rem 3rem;
 }
 </style>

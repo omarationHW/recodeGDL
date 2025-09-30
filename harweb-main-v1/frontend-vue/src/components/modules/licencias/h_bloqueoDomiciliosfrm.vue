@@ -75,52 +75,76 @@ export default {
   },
   methods: {
     async cargar() {
-      const res = await this.$axios.post('/api/execute', {
-        eRequest: {
-          action: 'listar',
-          params: { order: this.order }
-        }
+      const eRequest = {
+        action: 'listar',
+        params: { order: this.order }
+      };
+      const response = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eRequest)
       });
-      this.rows = res.data.eResponse.rows;
+      const res = await response.json();
+      this.rows = res.eResponse.rows;
     },
     async buscar() {
       if (!this.filtro) {
         this.cargar();
         return;
       }
-      const res = await this.$axios.post('/api/execute', {
-        eRequest: {
-          action: 'filtrar',
-          params: { campo: 'calle', valor: this.filtro, order: this.order }
-        }
+      const eRequest = {
+        action: 'filtrar',
+        params: { campo: 'calle', valor: this.filtro, order: this.order }
+      };
+      const response = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eRequest)
       });
-      this.rows = res.data.eResponse.rows;
+      const res = await response.json();
+      this.rows = res.eResponse.rows;
     },
     async ordenar(order) {
       this.order = order;
       await this.cargar();
     },
     async exportarExcel() {
-      const res = await this.$axios.post('/api/execute', {
-        eRequest: {
-          action: 'exportar',
-          params: { order: this.order }
-        }
+      const eRequest = {
+        action: 'exportar',
+        params: { order: this.order }
+      };
+      const response = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eRequest)
       });
-      // El frontend debe convertir res.data.eResponse.rows a Excel
+      const res = await response.json();
+      // El frontend debe convertir res.eResponse.rows a Excel
       // Ejemplo: usar SheetJS o similar
-      this.$emit('export-excel', res.data.eResponse.rows);
+      this.$emit('export-excel', res.eResponse.rows);
     },
     async imprimirPDF() {
-      const res = await this.$axios.post('/api/execute', {
-        eRequest: {
-          action: 'imprimir',
-          params: { order: this.order }
-        }
+      const eRequest = {
+        action: 'imprimir',
+        params: { order: this.order }
+      };
+      const response = await fetch('http://localhost:8000/api/generic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eRequest)
       });
-      // El frontend debe convertir res.data.eResponse.rows a PDF
+      const res = await response.json();
+      // El frontend debe convertir res.eResponse.rows a PDF
       // Ejemplo: usar jsPDF o similar
-      this.$emit('print-pdf', res.data.eResponse.rows);
+      this.$emit('print-pdf', res.eResponse.rows);
     },
     seleccionar(row) {
       this.selectedRow = row;

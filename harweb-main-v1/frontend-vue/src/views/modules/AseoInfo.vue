@@ -1,22 +1,22 @@
 <template>
-  <div class="min-vh-100 bg-light">
+  <div class="info-container">
     <!-- Header del Módulo -->
-    <div class="bg-white shadow-sm border-bottom">
-      <div class="container-fluid py-5">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center">
-            <div class="bg-secondary bg-gradient rounded-3 d-flex align-items-center justify-content-center shadow me-4" style="width: 64px; height: 64px;">
-              <i class="fas fa-trash fa-2x text-white"></i>
+    <div class="module-header">
+      <div class="container-fluid">
+        <div class="header-content">
+          <div class="module-info">
+            <div class="module-icon-large">
+              <i class="fas fa-trash"></i>
             </div>
-            <div>
-              <h1 class="display-5 fw-bold text-dark mb-2">Módulo Aseo</h1>
-              <p class="fs-5 text-muted">Sistema de Gestión de Servicios de Aseo Urbano</p>
+            <div class="module-details">
+              <h1 class="module-title">Módulo Aseo</h1>
+              <p class="module-subtitle">Sistema de Gestión de Servicios de Aseo Urbano</p>
             </div>
           </div>
           <div>
-            <router-link 
-              to="/" 
-              class="btn btn-outline-secondary d-flex align-items-center"
+            <router-link
+              to="/"
+              class="btn-back"
             >
               <i class="fas fa-arrow-left me-2"></i>
               Volver al Dashboard
@@ -27,475 +27,320 @@
     </div>
 
     <!-- Contenido Principal -->
-    <div class="container-fluid py-5">
-      
+    <div class="content-container">
+
+      <!-- Carrusel de Imágenes del Módulo -->
+      <div class="carousel-card">
+        <h2 class="section-title">Galería del Módulo</h2>
+        <div class="carousel-container">
+          <div class="carousel-wrapper" ref="carouselWrapper">
+            <div
+              class="carousel-track"
+              :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
+            >
+              <div
+                v-for="(image, index) in carouselImages"
+                :key="index"
+                class="carousel-slide"
+              >
+                <img
+                  :src="image.src"
+                  :alt="image.alt"
+                  class="carousel-image"
+                />
+                <div class="carousel-caption">
+                  <h3 class="carousel-title">{{ image.title }}</h3>
+                  <p class="carousel-description">{{ image.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controles del carrusel -->
+          <button
+            class="carousel-btn carousel-btn-prev"
+            @click="prevSlide"
+            :disabled="currentSlide === 0"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button
+            class="carousel-btn carousel-btn-next"
+            @click="nextSlide"
+            :disabled="currentSlide === carouselImages.length - 1"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+
+          <!-- Indicadores -->
+          <div class="carousel-indicators">
+            <button
+              v-for="(image, index) in carouselImages"
+              :key="index"
+              class="carousel-indicator"
+              :class="{ 'active': currentSlide === index }"
+              @click="goToSlide(index)"
+            ></button>
+          </div>
+        </div>
+      </div>
+
       <!-- Estadísticas del Módulo -->
-      <div class="row g-4 mb-5">
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                  <i class="fas fa-check-circle fa-lg text-secondary"></i>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Formularios</p>
-                  <p class="h2 fw-bold text-secondary mb-0">107</p>
-                </div>
-              </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+              <p class="stat-label">Formularios</p>
+              <p class="stat-value success">107</p>
             </div>
           </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                  <i class="fas fa-cube fa-lg text-secondary"></i>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Módulos</p>
-                  <p class="h2 fw-bold text-secondary mb-0">4</p>
-                </div>
-              </div>
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-cube"></i>
+            </div>
+            <div>
+              <p class="stat-label">Módulos</p>
+              <p class="stat-value">4</p>
             </div>
           </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-                  <i class="fas fa-database fa-lg text-secondary"></i>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Stored Procedures</p>
-                  <p class="h2 fw-bold text-secondary mb-0">11</p>
-                </div>
-              </div>
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-database"></i>
+            </div>
+            <div>
+              <p class="stat-label">Stored Procedures</p>
+              <p class="stat-value">11</p>
             </div>
           </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center">
-                <div class="bg-success bg-opacity-10 rounded-3 p-3 me-3">
-                  <div class="spinner-grow spinner-grow-sm text-success" role="status"></div>
-                </div>
-                <div>
-                  <p class="small text-muted mb-1">Estado</p>
-                  <p class="h5 fw-bold text-success mb-0">Activo</p>
-                </div>
-              </div>
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrapper active">
+              <div class="status-indicator"></div>
+            </div>
+            <div>
+              <p class="stat-label">Estado</p>
+              <p class="stat-value success">Activo</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Descripción del Módulo -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body p-5">
-          <h2 class="h3 fw-bold text-dark mb-4">Descripción del Módulo</h2>
-          <p class="text-muted fs-6 lh-lg mb-3">
-            El <strong>Módulo de Aseo</strong> es un sistema especializado para la gestión integral de servicios 
-            de aseo urbano y recolección de residuos. Permite la administración de empresas recolectoras, 
-            control de contratos de servicios, gestión de adeudos y cálculo de recargos operativos.
-          </p>
-          <p class="text-muted fs-6 lh-lg">
-            Migrado completamente de Delphi a arquitectura moderna con Laravel + Vue.js + PostgreSQL, 
-            ofrece herramientas avanzadas para la optimización de servicios públicos municipales.
-          </p>
-        </div>
+      <div class="description-card">
+        <h2 class="section-title">Descripción del Módulo</h2>
+        <p class="description-text">
+          El <strong>Módulo de Aseo</strong> es un sistema especializado para la gestión integral de servicios
+          de aseo urbano y recolección de residuos. Permite la administración de empresas recolectoras,
+          control de contratos de servicios, gestión de adeudos y cálculo de recargos operativos.
+        </p>
+        <p class="description-text">
+          Migrado completamente de Delphi a arquitectura moderna con Laravel + Vue.js + PostgreSQL,
+          ofrece herramientas avanzadas para la optimización de servicios públicos municipales.
+        </p>
       </div>
 
-      <!-- Características Principales -->
-      <div class="row g-4 mb-5">
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-5">
-              <h3 class="h4 fw-bold text-dark mb-4">Características Principales</h3>
-              <div class="d-flex flex-column gap-3">
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Gestión de Empresas</h4>
-                    <p class="text-muted small mb-0">Administración de empresas recolectoras y proveedores</p>
-                  </div>
-                </div>
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Control de Contratos</h4>
-                    <p class="text-muted small mb-0">Manejo de contratos de servicios y obligaciones</p>
-                  </div>
-                </div>
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Gestión de Adeudos</h4>
-                    <p class="text-muted small mb-0">Control de pagos y recuperación de cartera</p>
-                  </div>
-                </div>
-                <div class="d-flex align-items-start">
-                  <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3 mt-1">
-                    <i class="fas fa-check text-secondary small"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Recargos y Gastos</h4>
-                    <p class="text-muted small mb-0">Cálculo automático de recargos operativos</p>
-                  </div>
-                </div>
+      <!-- Características y Arquitectura -->
+      <div class="features-grid">
+        <div class="features-card">
+          <h3 class="card-title">Características Principales</h3>
+          <div class="features-list">
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Gestión de Empresas</h4>
+                <p class="feature-description">Administración de empresas recolectoras y proveedores</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Control de Contratos</h4>
+                <p class="feature-description">Manejo de contratos de servicios y obligaciones</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Gestión de Adeudos</h4>
+                <p class="feature-description">Control de pagos y recuperación de cartera</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div>
+                <h4 class="feature-title">Recargos y Gastos</h4>
+                <p class="feature-description">Cálculo automático de recargos operativos</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="col-lg-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-5">
-              <h3 class="h4 fw-bold text-dark mb-4">Funciones Especializadas</h3>
-              <div class="d-flex flex-column gap-3">
-                <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                  <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                    <i class="fas fa-search text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Consulta de Empresas</h4>
-                    <p class="text-muted small mb-0">Búsqueda avanzada por nombre o número</p>
-                  </div>
-                </div>
-                
-                <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                  <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                    <i class="fas fa-calendar text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Control de Pagos</h4>
-                    <p class="text-muted small mb-0">Gestión de pagos múltiples y parciales</p>
-                  </div>
-                </div>
-                
-                <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                  <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                    <i class="fas fa-chart-bar text-secondary"></i>
-                  </div>
-                  <div>
-                    <h4 class="fw-medium text-dark mb-1">Reportes Estadísticos</h4>
-                    <p class="text-muted small mb-0">Informes de gestión y estadísticas</p>
-                  </div>
-                </div>
+        <div class="features-card">
+          <h3 class="card-title">Arquitectura Técnica</h3>
+          <div class="tech-stack">
+            <div class="tech-item">
+              <div class="tech-icon">
+                <i class="fas fa-desktop"></i>
+              </div>
+              <div>
+                <h4 class="tech-title">Frontend</h4>
+                <p class="tech-description">Vue.js 3 con interfaz SPA moderna</p>
+              </div>
+            </div>
+
+            <div class="tech-item">
+              <div class="tech-icon">
+                <i class="fas fa-server"></i>
+              </div>
+              <div>
+                <h4 class="tech-title">Backend</h4>
+                <p class="tech-description">Laravel API con endpoint unificado</p>
+              </div>
+            </div>
+
+            <div class="tech-item">
+              <div class="tech-icon">
+                <i class="fas fa-database"></i>
+              </div>
+              <div>
+                <h4 class="tech-title">Base de Datos</h4>
+                <p class="tech-description">PostgreSQL con stored procedures</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Módulos Principales -->
-      <div class="card border-0 shadow-sm mb-5">
-        <div class="card-body p-5">
-          <h3 class="h4 fw-bold text-dark mb-4">Módulos de Gestión</h3>
-          <div class="row g-3">
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">ABC Empresas</h4>
-                <p class="text-muted small mb-0">Gestión integral de empresas recolectoras</p>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Contratos</h4>
-                <p class="text-muted small mb-0">Administración de contratos de servicio</p>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Adeudos</h4>
-                <p class="text-muted small mb-0">Control de adeudos y cartera vencida</p>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Gastos Operativos</h4>
-                <p class="text-muted small mb-0">Registro y control de gastos</p>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Tipos de Aseo</h4>
-                <p class="text-muted small mb-0">Catálogo de tipos de servicio</p>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                <h4 class="fw-medium text-dark mb-2">Zonas de Servicio</h4>
-                <p class="text-muted small mb-0">Gestión de zonas geográficas</p>
-              </div>
-            </div>
-          </div>
+      <!-- Nuevas Funcionalidades -->
+      <div class="new-features-card">
+        <div class="new-features-header">
+          <h3 class="card-title">🆕 Nuevas Funcionalidades de Modernización</h3>
+          <span class="badge-new">RECIÉN AGREGADAS</span>
         </div>
-      </div>
+        <div class="new-features-grid">
+          <router-link
+            to="/aseo/SistemaConveniosAseo"
+            class="new-feature-card feature-success"
+          >
+            <span class="feature-badge">NUEVO</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-handshake"></i>
+            </div>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Sistema de Convenios</h4>
+              <p class="feature-desc-new">Gestión integral por</p>
+              <p class="feature-desc-new">zona de servicio</p>
+            </div>
+          </router-link>
 
-      <!-- Arquitectura Técnica -->
-      <div class="row g-4 mb-5">
-        <div class="col-lg-12">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-5">
-              <h3 class="h4 fw-bold text-dark mb-4">Arquitectura Técnica</h3>
-              <div class="row g-3">
-                <div class="col-md-4">
-                  <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                    <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                      <i class="fas fa-desktop text-secondary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-medium text-dark mb-1">Frontend</h4>
-                      <p class="text-muted small mb-0">Vue.js 3 con interfaz SPA moderna</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="col-md-4">
-                  <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                    <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                      <i class="fas fa-server text-secondary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-medium text-dark mb-1">Backend</h4>
-                      <p class="text-muted small mb-0">Laravel API con endpoint unificado</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="col-md-4">
-                  <div class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3">
-                    <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                      <i class="fas fa-database text-secondary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-medium text-dark mb-1">Base de Datos</h4>
-                      <p class="text-muted small mb-0">PostgreSQL con stored procedures</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <router-link
+            to="/aseo/SistemaApremiosAseo"
+            class="new-feature-card feature-primary"
+          >
+            <span class="feature-badge">NUEVO</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-gavel"></i>
             </div>
-          </div>
-        </div>
-      </div>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Sistema de Apremios</h4>
+              <p class="feature-desc-new">Cobranza especializada</p>
+              <p class="feature-desc-new">en servicios de aseo</p>
+            </div>
+          </router-link>
 
-      <!-- 🆕 MODERNIZACIÓN DEL MÓDULO -->
-      <div class="card border-0 shadow-sm mb-5" style="border-left: 5px solid #6c757d !important;">
-        <div class="card-body p-5">
-          <div class="d-flex align-items-center mb-4">
-            <div class="bg-secondary bg-opacity-10 rounded-3 p-3 me-3">
-              <i class="fas fa-rocket fa-lg text-secondary"></i>
+          <router-link
+            to="/aseo/SistemaDescuentosAseo"
+            class="new-feature-card feature-warning"
+          >
+            <span class="feature-badge">NUEVO</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-percentage"></i>
             </div>
-            <div>
-              <h3 class="h4 fw-bold text-dark mb-1">🚀 Modernización del Módulo</h3>
-              <p class="text-muted small mb-0">Nuevas funcionalidades implementadas</p>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Descuentos y Conversión</h4>
+              <p class="feature-desc-new">Sistema automatizado</p>
+              <p class="feature-desc-new">para aseo urbano</p>
             </div>
-            <div class="ms-auto">
-              <span class="badge bg-secondary fs-6">+4 NUEVOS</span>
-            </div>
-          </div>
+          </router-link>
 
-          <div class="row g-4">
-            <div class="col-lg-3">
-              <div class="card border border-secondary border-opacity-25 h-100">
-                <div class="card-body p-4">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3">
-                      <i class="fas fa-handshake text-secondary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-bold text-dark mb-1">Sistema de Convenios</h4>
-                      <span class="badge bg-danger small">NUEVO</span>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3">Sistema completo de convenios de pago con gestión integral por zona de servicio.</p>
-                  <div class="d-flex align-items-center">
-                    <router-link
-                      to="/aseo/SistemaConveniosAseo"
-                      class="btn btn-secondary btn-sm"
-                    >
-                      <i class="fas fa-external-link-alt me-2"></i>Acceder
-                    </router-link>
-                  </div>
-                </div>
-              </div>
+          <router-link
+            to="/aseo/FuncionesExcluidasAseo"
+            class="new-feature-card feature-info"
+          >
+            <span class="feature-badge">NUEVO</span>
+            <div class="feature-icon-new">
+              <i class="fas fa-ban"></i>
             </div>
-
-            <div class="col-lg-3">
-              <div class="card border border-secondary border-opacity-25 h-100">
-                <div class="card-body p-4">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3">
-                      <i class="fas fa-gavel text-secondary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-bold text-dark mb-1">Sistema de Apremios</h4>
-                      <span class="badge bg-danger small">NUEVO</span>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3">Gestión integral de procedimientos de cobranza especializada en servicios de aseo.</p>
-                  <div class="d-flex align-items-center">
-                    <router-link
-                      to="/aseo/SistemaApremiosAseo"
-                      class="btn btn-secondary btn-sm"
-                    >
-                      <i class="fas fa-external-link-alt me-2"></i>Acceder
-                    </router-link>
-                  </div>
-                </div>
-              </div>
+            <div class="feature-content-new">
+              <h4 class="feature-title-new">Funciones Excluidas</h4>
+              <p class="feature-desc-new">Documentación de</p>
+              <p class="feature-desc-new">funciones removidas</p>
             </div>
-
-            <div class="col-lg-3">
-              <div class="card border border-secondary border-opacity-25 h-100">
-                <div class="card-body p-4">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3">
-                      <i class="fas fa-percentage text-secondary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-bold text-dark mb-1">Descuentos y Conversión</h4>
-                      <span class="badge bg-danger small">NUEVO</span>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3">Sistema automatizado de descuentos y conversión específico para aseo urbano.</p>
-                  <div class="d-flex align-items-center">
-                    <router-link
-                      to="/aseo/SistemaDescuentosAseo"
-                      class="btn btn-secondary btn-sm"
-                    >
-                      <i class="fas fa-external-link-alt me-2"></i>Acceder
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-3">
-              <div class="card border border-secondary border-opacity-25 h-100">
-                <div class="card-body p-4">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-secondary bg-opacity-10 rounded-3 p-2 me-3">
-                      <i class="fas fa-ban text-secondary"></i>
-                    </div>
-                    <div>
-                      <h4 class="fw-bold text-dark mb-1">Funciones Excluidas</h4>
-                      <span class="badge bg-danger small">NUEVO</span>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3">Documentación completa de funciones obsoletas removidas y sus reemplazos.</p>
-                  <div class="d-flex align-items-center">
-                    <router-link
-                      to="/aseo/FuncionesExcluidasAseo"
-                      class="btn btn-secondary btn-sm"
-                    >
-                      <i class="fas fa-external-link-alt me-2"></i>Acceder
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Características de la Modernización -->
-          <div class="mt-4 p-4 bg-secondary bg-opacity-10 rounded-3">
-            <h5 class="fw-bold text-secondary mb-3">
-              <i class="fas fa-star me-2"></i>Características de la Modernización
-            </h5>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-recycle text-secondary me-2"></i>
-                  <span class="small">Especialización en servicios de aseo</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-map-marker-alt text-secondary me-2"></i>
-                  <span class="small">Gestión por zona de recolección</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-trash text-secondary me-2"></i>
-                  <span class="small">Eliminación de funciones obsoletas</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="d-flex align-items-center">
-                  <i class="fas fa-sync-alt text-secondary me-2"></i>
-                  <span class="small">Conversión automática de procedimientos</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          </router-link>
         </div>
       </div>
 
       <!-- Acciones Rápidas -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-5">
-          <h3 class="h4 fw-bold text-dark mb-4">Acciones Rápidas</h3>
-          <div class="row g-3">
-            <div class="col-md-4">
-              <router-link 
-                to="/aseo/abc_empresas" 
-                class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3 text-decoration-none hover-bg-secondary-subtle transition"
-              >
-                <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                  <i class="fas fa-building text-secondary"></i>
-                </div>
-                <div>
-                  <h4 class="fw-medium text-dark mb-1">Gestión Empresas</h4>
-                  <p class="text-muted small mb-0">Administrar empresas</p>
-                </div>
-              </router-link>
+      <div class="quick-actions-card">
+        <h3 class="card-title">Acciones Rápidas Existentes</h3>
+        <div class="quick-actions-grid">
+          <router-link
+            to="/aseo/abc_empresas"
+            class="quick-action-item"
+          >
+            <div class="quick-action-icon">
+              <i class="fas fa-building"></i>
             </div>
+            <div>
+              <h4 class="quick-action-title">Gestión Empresas</h4>
+              <p class="quick-action-desc">Administrar empresas</p>
+            </div>
+          </router-link>
 
-            <div class="col-md-4">
-              <router-link 
-                to="/aseo/contratos" 
-                class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3 text-decoration-none hover-bg-secondary-subtle transition"
-              >
-                <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                  <i class="fas fa-file-contract text-secondary"></i>
-                </div>
-                <div>
-                  <h4 class="fw-medium text-dark mb-1">Control Contratos</h4>
-                  <p class="text-muted small mb-0">Gestionar contratos</p>
-                </div>
-              </router-link>
+          <router-link
+            to="/aseo/contratos"
+            class="quick-action-item"
+          >
+            <div class="quick-action-icon">
+              <i class="fas fa-file-contract"></i>
             </div>
+            <div>
+              <h4 class="quick-action-title">Control Contratos</h4>
+              <p class="quick-action-desc">Gestionar contratos</p>
+            </div>
+          </router-link>
 
-            <div class="col-md-4">
-              <router-link 
-                to="/aseo/adeudos" 
-                class="d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-3 text-decoration-none hover-bg-secondary-subtle transition"
-              >
-                <div class="bg-secondary bg-opacity-25 rounded-3 p-2 me-3">
-                  <i class="fas fa-money-bill text-secondary"></i>
-                </div>
-                <div>
-                  <h4 class="fw-medium text-dark mb-1">Gestión Adeudos</h4>
-                  <p class="text-muted small mb-0">Control de pagos</p>
-                </div>
-              </router-link>
+          <router-link
+            to="/aseo/adeudos"
+            class="quick-action-item"
+          >
+            <div class="quick-action-icon">
+              <i class="fas fa-money-bill"></i>
             </div>
-          </div>
+            <div>
+              <h4 class="quick-action-title">Gestión Adeudos</h4>
+              <p class="quick-action-desc">Control de pagos</p>
+            </div>
+          </router-link>
         </div>
       </div>
 
@@ -508,18 +353,50 @@ export default {
   name: 'AseoInfo',
   data() {
     return {
-      // Datos específicos del módulo de aseo
+      currentSlide: 0,
+      carouselImages: [
+        {
+          src: '/img/dashboard/limpieza-urbana.svg',
+          alt: 'Limpieza Urbana',
+          title: 'Limpieza Urbana',
+          description: 'Gestión integral de servicios de limpieza y mantenimiento urbano'
+        },
+        {
+          src: '/img/dashboard/recoleccion-residuos.svg',
+          alt: 'Recolección de Residuos',
+          title: 'Recolección de Residuos',
+          description: 'Sistema integral de recolección y tratamiento de residuos urbanos'
+        },
+        {
+          src: '/img/dashboard/mantenimiento-urbano.svg',
+          alt: 'Mantenimiento Urbano',
+          title: 'Mantenimiento Urbano',
+          description: 'Servicios especializados de mantenimiento de infraestructura urbana'
+        }
+      ]
+    }
+  },
+  methods: {
+    prevSlide() {
+      if (this.currentSlide > 0) {
+        this.currentSlide--
+      }
+    },
+    nextSlide() {
+      if (this.currentSlide < this.carouselImages.length - 1) {
+        this.currentSlide++
+      }
+    },
+    goToSlide(index) {
+      this.currentSlide = index
     }
   }
 }
 </script>
 
 <style scoped>
-.hover-bg-secondary-subtle:hover {
-  background-color: var(--bs-secondary-bg) !important;
-}
-
-.transition {
-  transition: all 0.2s ease;
+/* Estilos específicos del componente AseoInfo */
+.container-fluid {
+  padding: 2rem 3rem;
 }
 </style>

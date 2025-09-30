@@ -126,7 +126,7 @@ export default {
       this.error = '';
       this.reporte = [];
       try {
-        const res = await fetch('/api/execute', {
+        const res = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -158,7 +158,7 @@ export default {
       // Por ahora, solo muestra alerta
       alert('Funcionalidad de impresión no implementada.');
       // O bien, llamar a un endpoint que genere PDF
-      // await fetch('/api/execute', { ... });
+      // await fetch('http://localhost:8000/api/generic', { ... });
     }
   }
 };

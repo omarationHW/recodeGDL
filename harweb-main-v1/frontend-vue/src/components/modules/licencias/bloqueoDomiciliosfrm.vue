@@ -425,12 +425,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success) {
-          this.domicilios = response.data.eResponse.data.result || []
+        if (data.eResponse.success) {
+          this.domicilios = data.eResponse.data.result || []
           if (this.domicilios.length === 0) {
             this.mostrarMensaje('info', 'No se encontraron domicilios con los criterios especificados')
           }
@@ -514,17 +519,22 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
-          this.mostrarMensaje('success', response.data.eResponse.data.result[0].message)
+        if (data.eResponse.success && data.eResponse.data.result[0]?.success) {
+          this.mostrarMensaje('success', data.eResponse.data.result[0].message)
           this.cerrarModalBloqueo()
           this.domiciliosSeleccionados = []
           await this.buscarDomicilios()
         } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al bloquear domicilios')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al bloquear domicilios')
         }
       } catch (error) {
         console.error('Error bloqueando domicilios:', error)
@@ -550,17 +560,22 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
-          this.mostrarMensaje('success', response.data.eResponse.data.result[0].message)
+        if (data.eResponse.success && data.eResponse.data.result[0]?.success) {
+          this.mostrarMensaje('success', data.eResponse.data.result[0].message)
           this.cerrarModalDesbloqueo()
           this.domiciliosSeleccionados = []
           await this.buscarDomicilios()
         } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al desbloquear domicilios')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al desbloquear domicilios')
         }
       } catch (error) {
         console.error('Error desbloqueando domicilios:', error)

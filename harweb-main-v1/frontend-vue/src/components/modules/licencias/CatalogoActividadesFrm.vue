@@ -337,9 +337,16 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.giros = response.data.eResponse.data || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        if (data.eResponse && data.eResponse.success) {
+          this.giros = data.eResponse.data || [];
         }
       } catch (error) {
         console.error('Error al cargar giros:', error);
@@ -357,11 +364,18 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.actividades = response.data.eResponse.data || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        if (data.eResponse && data.eResponse.success) {
+          this.actividades = data.eResponse.data || [];
         } else {
-          this.mostrarMensaje('Error al cargar actividades: ' + (response.data.eResponse?.message || 'Error desconocido'), 'danger');
+          this.mostrarMensaje('Error al cargar actividades: ' + (data.eResponse?.message || 'Error desconocido'), 'danger');
         }
       } catch (error) {
         console.error('Error al cargar actividades:', error);
@@ -385,14 +399,21 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.actividades = response.data.eResponse.data || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        if (data.eResponse && data.eResponse.success) {
+          this.actividades = data.eResponse.data || [];
           if (this.actividades.length === 0) {
             this.mostrarMensaje('No se encontraron actividades con los criterios especificados', 'info');
           }
         } else {
-          this.mostrarMensaje('Error al buscar actividades: ' + (response.data.eResponse?.message || 'Error desconocido'), 'danger');
+          this.mostrarMensaje('Error al buscar actividades: ' + (data.eResponse?.message || 'Error desconocido'), 'danger');
         }
       } catch (error) {
         console.error('Error al buscar actividades:', error);
@@ -481,9 +502,16 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success) {
+        if (data.eResponse && data.eResponse.success) {
           this.mostrarMensaje(
             this.esEdicion ? 'Actividad actualizada exitosamente' : 'Actividad creada exitosamente',
             'success'
@@ -492,7 +520,7 @@ export default {
           bootstrap.Modal.getInstance(document.getElementById('modalFormulario')).hide();
         } else {
           this.mostrarMensaje(
-            'Error al guardar: ' + (response.data.eResponse?.message || 'Error desconocido'),
+            'Error al guardar: ' + (data.eResponse?.message || 'Error desconocido'),
             'danger'
           );
         }
@@ -526,14 +554,21 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success) {
+        if (data.eResponse && data.eResponse.success) {
           this.mostrarMensaje('Actividad eliminada exitosamente', 'success');
           this.buscarActividades();
         } else {
           this.mostrarMensaje(
-            'Error al eliminar: ' + (response.data.eResponse?.message || 'Error desconocido'),
+            'Error al eliminar: ' + (data.eResponse?.message || 'Error desconocido'),
             'danger'
           );
         }

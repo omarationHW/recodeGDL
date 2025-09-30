@@ -51,7 +51,7 @@ export default {
       this.cuenta = null;
       this.visorUrl = '';
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

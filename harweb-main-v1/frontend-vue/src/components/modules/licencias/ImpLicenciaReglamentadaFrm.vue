@@ -142,7 +142,7 @@ export default {
       }
       this.loading = true;
       try {
-        const resp = await fetch('/api/execute', {
+        const resp = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -181,7 +181,7 @@ export default {
       this.imprimirMensaje = '';
       try {
         // 1. Ejecutar cálculo de adeudo
-        const calcResp = await fetch('/api/execute', {
+        const calcResp = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -196,7 +196,7 @@ export default {
           return;
         }
         // 2. Obtener detalle de adeudo
-        const adeudoResp = await fetch('/api/execute', {
+        const adeudoResp = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

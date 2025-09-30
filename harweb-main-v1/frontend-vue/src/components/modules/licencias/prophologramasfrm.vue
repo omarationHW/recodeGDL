@@ -130,14 +130,22 @@ export default {
     async fetchRows() {
       this.error = '';
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.get_contribholog_list',
           payload: {}
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.rows = res.data.eResponse.data.result;
+        const res = await response.json();
+        if (res.status === 'success') {
+          this.rows = res.eResponse.data.result;
         } else {
-          this.error = res.data.message || 'Error al cargar datos';
+          this.error = res.message || 'Error al cargar datos';
         }
       } catch (error) {
         this.error = 'Error de conexión con el servidor';
@@ -173,15 +181,23 @@ export default {
       if (!this.selectedRow) return;
       if (confirm('¿Está seguro de borrar el registro?')) {
         try {
-          const res = await this.$axios.post('/api/execute', {
+          const eRequest = {
             action: 'licencias2.delete_contribholog',
             payload: { idcontrib: this.selectedRow.idcontrib }
+          };
+          const response = await fetch('http://localhost:8000/api/generic', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(eRequest)
           });
-          if (res.data.status === 'success') {
+          const res = await response.json();
+          if (res.status === 'success') {
             this.fetchRows();
             this.selectedRow = null;
           } else {
-            this.error = res.data.message || 'Error al borrar';
+            this.error = res.message || 'Error al borrar';
           }
         } catch (error) {
           this.error = 'Error de conexión con el servidor';
@@ -193,16 +209,24 @@ export default {
       const action = this.isEdit ? 'licencias2.update_contribholog' : 'licencias2.insert_contribholog';
       const payload = { ...this.form };
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: action,
           payload: payload
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
+        const res = await response.json();
+        if (res.status === 'success') {
           this.showForm = false;
           this.fetchRows();
           this.selectedRow = null;
         } else {
-          this.formError = res.data.message || 'Error al guardar';
+          this.formError = res.message || 'Error al guardar';
         }
       } catch (error) {
         this.formError = 'Error de conexión con el servidor';

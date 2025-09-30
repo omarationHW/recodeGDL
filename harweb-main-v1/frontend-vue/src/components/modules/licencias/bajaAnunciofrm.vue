@@ -313,13 +313,18 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
-        
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result && response.data.eResponse.data.result.length > 0) {
-          this.anuncioData = response.data.eResponse.data.result[0]
-          
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+
+        if (data.eResponse && data.eResponse.success && data.eResponse.data.result && data.eResponse.data.result.length > 0) {
+          this.anuncioData = data.eResponse.data.result[0]
+
           // Parsear adeudos si vienen como JSON string
           if (this.anuncioData.adeudos && typeof this.anuncioData.adeudos === 'string') {
             try {
@@ -383,17 +388,22 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest: eRequest
-        })
-        
-        if (response.data.eResponse && response.data.eResponse.success && response.data.eResponse.data.result) {
-          const result = response.data.eResponse.data.result[0]
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+
+        if (data.eResponse && data.eResponse.success && data.eResponse.data.result) {
+          const result = data.eResponse.data.result[0]
           this.resultadoBaja = {
             success: result.success || false,
             message: result.message || 'Operación completada'
           }
-          
+
           if (result.success) {
             // Refrescar datos del anuncio
             setTimeout(() => {

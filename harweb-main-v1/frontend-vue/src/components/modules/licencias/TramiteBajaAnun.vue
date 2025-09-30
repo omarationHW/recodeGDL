@@ -80,16 +80,28 @@ export default {
       this.licencia = null;
       this.saldos = [];
       try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'licencias2.buscarAnuncio',
-          payload: { anuncio: this.form.anuncio }
-        });
-        if (res.data.status === 'success') {
-          this.anuncio = res.data.eResponse.data.result.anuncio;
-          this.licencia = res.data.eResponse.data.result.licencia;
-          this.saldos = res.data.eResponse.data.result.saldos;
+        const eRequest = {
+          Operacion: 'sp_tramite_baja_anun_buscar',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_anuncio', valor: this.form.anuncio }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
+          this.anuncio = res.eResponse.data.result.anuncio;
+          this.licencia = res.eResponse.data.result.licencia;
+          this.saldos = res.eResponse.data.result.saldos;
         } else {
-          this.errorMessage = res.data.message || 'No se encontró el anuncio';
+          this.errorMessage = res.eResponse.message || 'No se encontró el anuncio';
         }
       } catch (error) {
         this.errorMessage = 'Error de conexión';
@@ -102,24 +114,34 @@ export default {
       this.resultMessage = '';
       this.errorMessage = '';
       try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'licencias2.tramitarBaja',
-          payload: {
-            anuncio: this.anuncio.anuncio,
-            motivo: this.form.motivo,
-            usuario: this.$store.state.usuario || 'usuario_demo',
-            axo_baja: new Date().getFullYear(),
-            folio_baja: 0 // Puede ser calculado por backend
-          }
-        });
-        if (res.data.status === 'success') {
+        const eRequest = {
+          Operacion: 'sp_tramite_baja_anun_tramitar',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_anuncio', valor: this.anuncio.anuncio },
+            { nombre: 'p_motivo', valor: this.form.motivo },
+            { nombre: 'p_usuario', valor: this.$store.state.usuario || 'usuario_demo' },
+            { nombre: 'p_axo_baja', valor: new Date().getFullYear() },
+            { nombre: 'p_folio_baja', valor: 0 }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
           this.resultMessage = 'Baja tramitada correctamente';
           this.anuncio = null;
           this.licencia = null;
           this.saldos = [];
           this.form.motivo = '';
         } else {
-          this.errorMessage = res.data.message || 'No se pudo tramitar la baja';
+          this.errorMessage = res.eResponse.message || 'No se pudo tramitar la baja';
         }
       } catch (error) {
         this.errorMessage = 'Error de conexión';

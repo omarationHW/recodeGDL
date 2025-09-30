@@ -42,24 +42,40 @@ export default {
   methods: {
     async fetchSplashData() {
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.get_splash_data',
           payload: {}
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.splashData = res.data.status === 'success' ? res.data.eResponse.data.result : {};
+        const res = await response.json();
+        this.splashData = res.status === 'success' ? res.eResponse.data.result : {};
       } catch (error) {
         this.splashData = {};
       }
     },
     async fetchVersion() {
       try {
-        const res = await this.$axios.post('/api/execute', {
+        const eRequest = {
           action: 'licencias2.get_version',
           payload: {}
+        };
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.status === 'success') {
-          this.version = res.data.eResponse.data.result.version || '1.0.0.0';
-          this.appName = res.data.eResponse.data.result.app_name || 'LICENCIAS';
+        const res = await response.json();
+        if (res.status === 'success') {
+          this.version = res.eResponse.data.result.version || '1.0.0.0';
+          this.appName = res.eResponse.data.result.app_name || 'LICENCIAS';
         } else {
           this.version = '1.0.0.0';
           this.appName = 'LICENCIAS';

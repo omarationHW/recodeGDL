@@ -56,14 +56,26 @@ export default {
       }
       // Call API to validate and get the URL (simulate navigation)
       try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'licencias2.navigate_url',
-          payload: { url: this.url }
-        });
-        if (res.data.status === 'success') {
-          this.iframeUrl = res.data.eResponse.data.result.url;
+        const eRequest = {
+          Operacion: 'sp_licencias_navigate_url',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_url', valor: this.url }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
+          this.iframeUrl = res.eResponse.data.result.url;
         } else {
-          this.error = res.data.message || 'Error al navegar.';
+          this.error = res.eResponse.message || 'Error al navegar.';
         }
       } catch (error) {
         this.error = 'Error de conexión con el servidor.';

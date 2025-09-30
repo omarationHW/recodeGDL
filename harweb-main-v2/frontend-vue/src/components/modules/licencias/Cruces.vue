@@ -1,5 +1,5 @@
 <template>
-  <div class="cruces-form-page">
+  <div class="municipal-form-page">
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -18,8 +18,8 @@
           placeholder="Localizar calle..."
           style="text-transform:uppercase"
         />
-        <div class="table-responsive mt-2" style="max-height: 150px; overflow-y: auto;">
-          <table class="table table-sm table-hover">
+        <div class="municipal-search-table mt-2">
+          <table class="table table-sm">
             <thead>
               <tr>
                 <th>CALLE</th>
@@ -29,9 +29,8 @@
               <tr
                 v-for="row in calle1Results"
                 :key="row.cvecalle"
-                :class="{ 'table-active': row.cvecalle === selectedCalle1 }"
+                :class="{ 'municipal-selected': row.cvecalle === selectedCalle1 }"
                 @click="selectCalle1(row.cvecalle)"
-                style="cursor:pointer"
               >
                 <td>{{ row.calle }}</td>
               </tr>
@@ -49,8 +48,8 @@
           placeholder="Localizar calle..."
           style="text-transform:uppercase"
         />
-        <div class="table-responsive mt-2" style="max-height: 150px; overflow-y: auto;">
-          <table class="table table-sm table-hover">
+        <div class="municipal-search-table mt-2">
+          <table class="table table-sm">
             <thead>
               <tr>
                 <th>CALLE</th>
@@ -60,9 +59,8 @@
               <tr
                 v-for="row in calle2Results"
                 :key="row.cvecalle"
-                :class="{ 'table-active': row.cvecalle === selectedCalle2 }"
+                :class="{ 'municipal-selected': row.cvecalle === selectedCalle2 }"
                 @click="selectCalle2(row.cvecalle)"
-                style="cursor:pointer"
               >
                 <td>{{ row.calle }}</td>
               </tr>
@@ -72,11 +70,11 @@
       </div>
     </div>
     <div class="d-flex justify-content-end">
-      <button class="btn btn-secondary me-2" @click="onCancel">Cancelar</button>
-      <button class="btn btn-primary" @click="onAccept">Aceptar</button>
+      <button class="btn-municipal-secondary me-2" @click="onCancel">Cancelar</button>
+      <button class="btn-municipal-primary" @click="onAccept">Aceptar</button>
     </div>
-    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
-    <div v-if="result" class="alert alert-success mt-3">
+    <div v-if="error" class="municipal-alert-danger mt-3">{{ error }}</div>
+    <div v-if="result" class="municipal-alert-success mt-3">
       <strong>Calles seleccionadas:</strong><br>
       Calle 1: {{ result.calle1 ? result.calle1.calle : 'N/A' }}<br>
       Calle 2: {{ result.calle2 ? result.calle2.calle : 'N/A' }}
@@ -176,16 +174,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.cruces-form-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-.table-active {
-  background-color: #e9ecef !important;
-}
-</style>

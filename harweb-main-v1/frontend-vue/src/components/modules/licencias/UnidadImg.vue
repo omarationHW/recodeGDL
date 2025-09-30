@@ -53,12 +53,22 @@ export default {
     },
     async cargarUnidadImg() {
       try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'licencias2.getUnidadImg',
-          payload: {}
-        });
-        if (res.data.status === 'success' && res.data.eResponse.data.result) {
-          this.unidadImg = res.data.eResponse.data.result;
+        const eRequest = {
+          Operacion: 'sp_licencias_get_unidad_img',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: []
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success && res.eResponse.data.result) {
+          this.unidadImg = res.eResponse.data.result;
         } else {
           this.unidadImg = 'N'; // valor por defecto
         }
@@ -69,14 +79,24 @@ export default {
     async guardarUnidadImg() {
       this.mensaje = '';
       try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'licencias2.setUnidadImg',
-          payload: {
-            unidad_img: this.unidadImg
-          }
-        });
-        this.exito = res.data.status === 'success';
-        this.mensaje = res.data.status === 'success' ? 'Unidad de imágenes guardada correctamente.' : (res.data.message || 'Error al guardar.');
+        const eRequest = {
+          Operacion: 'sp_licencias_set_unidad_img',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_unidad_img', valor: this.unidadImg }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        this.exito = res.eResponse.success;
+        this.mensaje = res.eResponse.success ? 'Unidad de imágenes guardada correctamente.' : (res.eResponse.message || 'Error al guardar.');
       } catch (error) {
         this.exito = false;
         this.mensaje = 'Error de comunicación con el servidor.';

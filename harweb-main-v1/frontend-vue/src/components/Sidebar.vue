@@ -20,15 +20,31 @@
         <img src="@/assets/logo/Gdl Logo blanco.png" alt="Guadalajara" class="brand-logo-small" />
       </div>
 
-      <!-- Search Simple -->
+      <!-- Search Mejorado -->
       <div class="search-box" v-if="!isCollapsed">
         <i class="fas fa-search search-icon"></i>
         <input
           type="text"
-          placeholder="Buscar..."
+          placeholder="Buscar componentes..."
           class="search-input"
           v-model="searchTerm"
+          @input="handleSearch"
         />
+
+        <!-- Search Status -->
+        <div v-if="searchTerm" class="search-status">
+          <div v-if="searchResults.length > 0" class="search-status-found">
+            <i class="fas fa-search"></i>
+            {{ searchResults.length }} resultado{{ searchResults.length !== 1 ? 's' : '' }}
+          </div>
+          <div v-else class="search-status-empty">
+            <i class="fas fa-search"></i>
+            Sin resultados
+          </div>
+          <button class="search-clear" @click="clearSearch">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -49,47 +65,60 @@
         </router-link>
       </div>
 
-      <!-- Modules -->
-      <div v-for="module in filteredModules" :key="module.name" class="nav-group">
-        <button
-          @click="toggleModule(module.name)"
-          class="module-button"
-          :class="{ 'module-expanded': expandedModules[module.name] }"
-          :title="isCollapsed ? module.displayName : ''"
-        >
-          <div class="module-icon">
-            <i v-if="module.name === 'estacionamientos'" class="fas fa-car-side"></i>
-            <i v-else-if="module.name === 'aseo'" class="fas fa-broom"></i>
-            <i v-else-if="module.name === 'licencias'" class="fas fa-file-contract"></i>
-            <i v-else-if="module.name === 'mercados'" class="fas fa-store-alt"></i>
-            <i v-else-if="module.name === 'recaudadora'" class="fas fa-coins"></i>
-            <i v-else-if="module.name === 'tramite-trunk'" class="fas fa-file-invoice"></i>
-            <i v-else-if="module.name === 'convenios'" class="fas fa-handshake"></i>
-            <i v-else-if="module.name === 'apremios'" class="fas fa-exclamation-triangle"></i>
-            <i v-else-if="module.name === 'cementerios'" class="fas fa-cross"></i>
-            <i v-else-if="module.name === 'otras-oblig'" class="fas fa-tasks"></i>
-            <i v-else class="fas fa-folder"></i>
-          </div>
-          <div class="module-content" v-if="!isCollapsed">
-            <span class="module-name">{{ module.displayName }}</span>
-            <span class="module-count">{{ module.routes.length }}</span>
-          </div>
-          <div class="module-arrow" v-if="!isCollapsed">
-            <i class="fas fa-chevron-right" :class="{ 'arrow-expanded': expandedModules[module.name] }"></i>
-          </div>
-        </button>
-
-        <!-- Submenu -->
-        <div class="submenu" v-if="expandedModules[module.name] && !isCollapsed">
-          <router-link
-            v-for="route in module.routes"
-            :key="route.path"
-            :to="route.path"
-            class="submenu-item"
-            active-class="submenu-item-active"
+      <!-- Modules Tree (always shown, but filtered) -->
+      <div class="modules-tree">
+        <div v-for="module in filteredModules" :key="module.name" class="nav-group">
+          <button
+            @click="toggleModule(module.name)"
+            class="module-button"
+            :class="{
+              'module-expanded': expandedModules[module.name] || (searchTerm && getFilteredRoutes(module).length > 0),
+              'module-has-matches': searchTerm && getFilteredRoutes(module).length > 0
+            }"
+            :title="isCollapsed ? module.displayName : ''"
           >
-            <span class="submenu-text">{{ route.name }}</span>
-          </router-link>
+            <div class="module-icon">
+              <i v-if="module.name === 'estacionamientos'" class="fas fa-car-side"></i>
+              <i v-else-if="module.name === 'aseo'" class="fas fa-broom"></i>
+              <i v-else-if="module.name === 'licencias'" class="fas fa-file-contract"></i>
+              <i v-else-if="module.name === 'mercados'" class="fas fa-store-alt"></i>
+              <i v-else-if="module.name === 'recaudadora'" class="fas fa-coins"></i>
+              <i v-else-if="module.name === 'tramite-trunk'" class="fas fa-file-invoice"></i>
+              <i v-else-if="module.name === 'convenios'" class="fas fa-handshake"></i>
+              <i v-else-if="module.name === 'apremios'" class="fas fa-exclamation-triangle"></i>
+              <i v-else-if="module.name === 'cementerios'" class="fas fa-cross"></i>
+              <i v-else-if="module.name === 'otras-oblig'" class="fas fa-tasks"></i>
+              <i v-else class="fas fa-folder"></i>
+            </div>
+            <div class="module-content" v-if="!isCollapsed">
+              <span class="module-name" :class="{ 'module-name-highlight': searchTerm && module.displayName.toLowerCase().includes(searchTerm.toLowerCase()) }">
+                {{ module.displayName }}
+              </span>
+              <span class="module-count" :class="{ 'module-count-search': searchTerm }">
+                {{ searchTerm ? getFilteredRoutes(module).length : module.routes.length }}
+              </span>
+            </div>
+            <div class="module-arrow" v-if="!isCollapsed">
+              <i class="fas fa-chevron-right" :class="{ 'arrow-expanded': expandedModules[module.name] || (searchTerm && getFilteredRoutes(module).length > 0) }"></i>
+            </div>
+          </button>
+
+          <!-- Submenu with filtered results -->
+          <div class="submenu" v-if="(expandedModules[module.name] || (searchTerm && getFilteredRoutes(module).length > 0)) && !isCollapsed && getFilteredRoutes(module).length > 0">
+            <router-link
+              v-for="route in getFilteredRoutes(module)"
+              :key="route.path"
+              :to="route.path"
+              class="submenu-item"
+              :class="{ 'submenu-highlight': searchTerm && isHighlighted(route) }"
+              active-class="submenu-item-active"
+            >
+              <span class="submenu-text">{{ route.displayName || route.name }}</span>
+              <span v-if="searchTerm && isHighlighted(route)" class="submenu-match-indicator">
+                <i class="fas fa-search"></i>
+              </span>
+            </router-link>
+          </div>
         </div>
       </div>
     </nav>
@@ -105,6 +134,7 @@ export default {
     return {
       isCollapsed: false,
       searchTerm: '',
+      searchResults: [],
       expandedModules: {},
       modules: [
         {
@@ -163,9 +193,12 @@ export default {
   computed: {
     filteredModules() {
       if (!this.searchTerm) return this.modules;
-      return this.modules.filter(module =>
-        module.displayName.toLowerCase().includes(this.searchTerm.toLowerCase())
-      );
+
+      // Si hay búsqueda, mostrar solo módulos que tengan rutas que coincidan
+      return this.modules.filter(module => {
+        return this.getFilteredRoutes(module).length > 0 ||
+               module.displayName.toLowerCase().includes(this.searchTerm.toLowerCase());
+      });
     }
   },
   methods: {
@@ -175,6 +208,96 @@ export default {
     },
     toggleModule(moduleName) {
       this.expandedModules[moduleName] = !this.expandedModules[moduleName];
+    },
+    handleSearch() {
+      console.log('🔍 BÚSQUEDA EN SIDEBAR INICIADA')
+      console.log('Query:', this.searchTerm)
+
+      if (!this.searchTerm || !this.searchTerm.trim()) {
+        this.searchResults = []
+        return
+      }
+
+      const query = this.searchTerm.toLowerCase().trim()
+      console.log('🎯 Buscando:', query)
+
+      this.searchResults = []
+
+      // Buscar en todos los módulos y sus rutas
+      this.modules.forEach(module => {
+        if (module.routes && module.routes.length > 0) {
+          module.routes.forEach(route => {
+            // Buscar en rutas directas
+            if (this.matchesSearch(route, query)) {
+              this.searchResults.push({
+                name: route.name,
+                displayName: route.displayName || route.name,
+                path: route.path,
+                module: module.displayName,
+                category: 'Principal'
+              })
+            }
+
+            // Buscar en children si existen
+            if (route.children && route.children.length > 0) {
+              route.children.forEach(child => {
+                if (this.matchesSearch(child, query)) {
+                  this.searchResults.push({
+                    name: child.name,
+                    displayName: child.displayName || child.name,
+                    path: child.path,
+                    module: module.displayName,
+                    category: route.displayName || route.name
+                  })
+                }
+              })
+            }
+          })
+        }
+      })
+
+      console.log('🎯 RESULTADOS ENCONTRADOS:', this.searchResults.length)
+      if (this.searchResults.length > 0) {
+        this.searchResults.forEach((r, index) => {
+          console.log(`   ${index + 1}. "${r.displayName}" - ${r.module} → ${r.category}`)
+        })
+      } else {
+        console.log('❌ NO SE ENCONTRARON RESULTADOS')
+      }
+    },
+    matchesSearch(item, query) {
+      const name = (item.name || '').toLowerCase()
+      const displayName = (item.displayName || '').toLowerCase()
+
+      return name.includes(query) || displayName.includes(query)
+    },
+    navigateToResult(result) {
+      console.log('🚀 Navegando a:', result.path)
+      this.$router.push(result.path)
+      this.clearSearch()
+    },
+    clearSearch() {
+      this.searchTerm = ''
+      this.searchResults = []
+      // Collapse all modules when clearing search
+      this.expandedModules = {}
+    },
+    getFilteredRoutes(module) {
+      if (!this.searchTerm) return module.routes;
+
+      const query = this.searchTerm.toLowerCase().trim();
+      return module.routes.filter(route => {
+        const name = (route.name || '').toLowerCase();
+        const displayName = (route.displayName || '').toLowerCase();
+        return name.includes(query) || displayName.includes(query);
+      });
+    },
+    isHighlighted(route) {
+      if (!this.searchTerm) return false;
+      const query = this.searchTerm.toLowerCase().trim();
+      const name = (route.name || '').toLowerCase();
+      const displayName = (route.displayName || '').toLowerCase();
+      return name.includes(query) || displayName.includes(query);
     }
   },
   mounted() {
@@ -186,6 +309,19 @@ export default {
   watch: {
     isCollapsed(newVal) {
       localStorage.setItem('sidebarCollapsed', JSON.stringify(newVal));
+    },
+    searchTerm(newVal, oldVal) {
+      if (newVal && newVal !== oldVal) {
+        // Auto-expand modules that have matching results when starting search
+        this.modules.forEach(module => {
+          if (this.getFilteredRoutes(module).length > 0) {
+            this.expandedModules[module.name] = true;
+          }
+        });
+      } else if (!newVal && oldVal) {
+        // Don't auto-collapse when clearing search - let user manage their state
+        // this.expandedModules = {}; // Comentado para preservar estado del usuario
+      }
     }
   }
 }
@@ -283,6 +419,12 @@ export default {
   font-size: 0.875rem;
 }
 
+.search-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .search-input::placeholder {
   color: rgba(255, 255, 255, 0.7);
 }
@@ -294,6 +436,86 @@ export default {
   transform: translateY(-50%);
   font-size: 0.875rem;
   opacity: 0.7;
+}
+
+/* Search Status */
+.search-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.search-status-found {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.search-status-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.search-clear {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+}
+
+.search-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Enhanced Module Buttons for Search */
+.module-has-matches {
+  background: rgba(234, 130, 21, 0.08);
+  border-left: 3px solid var(--municipal-primary);
+}
+
+.module-name-highlight {
+  background: rgba(255, 255, 0, 0.3);
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.module-count-search {
+  background: var(--municipal-primary);
+  color: white;
+  font-weight: 700;
+  animation: pulse 1s ease-in-out;
+}
+
+/* Modules Tree */
+.modules-tree {
+  /* Normal module tree styles */
+}
+
+/* Enhanced Submenu for Search */
+.submenu-highlight {
+  background: rgba(234, 130, 21, 0.08);
+  border-left: 2px solid var(--municipal-primary);
+}
+
+.submenu-match-indicator {
+  margin-left: auto;
+  color: var(--municipal-primary);
+  font-size: 0.75rem;
+  opacity: 0.8;
 }
 
 /* Navigation */

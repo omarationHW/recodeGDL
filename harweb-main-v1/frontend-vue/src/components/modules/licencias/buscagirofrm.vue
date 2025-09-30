@@ -299,9 +299,16 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.categorias = response.data.eResponse.data || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        if (data.eResponse && data.eResponse.success) {
+          this.categorias = data.eResponse.data || [];
         }
       } catch (error) {
         console.error('Error al cargar categorías:', error);
@@ -334,17 +341,24 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.giros = response.data.eResponse.data || [];
+        if (data.eResponse && data.eResponse.success) {
+          this.giros = data.eResponse.data || [];
           if (this.giros.length === 0) {
             this.mostrarMensaje('No se encontraron giros con los criterios especificados', 'info');
           } else {
             this.mostrarMensaje(`Se encontraron ${this.giros.length} giro(s)`, 'success');
           }
         } else {
-          this.mostrarMensaje('Error al buscar giros: ' + (response.data.eResponse?.message || 'Error desconocido'), 'danger');
+          this.mostrarMensaje('Error al buscar giros: ' + (data.eResponse?.message || 'Error desconocido'), 'danger');
         }
       } catch (error) {
         console.error('Error al buscar giros:', error);

@@ -120,16 +120,26 @@ export default {
       this.mensaje = '';
       this.licenciaData = null;
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'consultar',
-            params: { licencia: this.form.licencia }
-          }
-        });
-        if (res.data.eResponse.success) {
-          this.licenciaData = res.data.eResponse.data;
+        const eRequest = {
+          Operacion: 'sp_tramite_baja_lic_consultar',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_licencia', valor: this.form.licencia }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
+          this.licenciaData = res.eResponse.data;
         } else {
-          this.mensaje = res.data.eResponse.message;
+          this.mensaje = res.eResponse.message;
         }
       } catch (e) {
         this.mensaje = 'Error de comunicación con el servidor';
@@ -149,22 +159,30 @@ export default {
       }
       this.tramiteEnCurso = true;
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'tramitar_baja',
-            params: {
-              licencia: this.form.licencia,
-              motivo: this.form.motivo,
-              baja_admva: this.form.baja_admva,
-              usuario: this.$store.state.usuario
-            }
-          }
-        });
-        if (res.data.eResponse.success) {
+        const eRequest = {
+          Operacion: 'sp_tramite_baja_lic_tramitar',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_licencia', valor: this.form.licencia },
+            { nombre: 'p_motivo', valor: this.form.motivo },
+            { nombre: 'p_baja_admva', valor: this.form.baja_admva },
+            { nombre: 'p_usuario', valor: this.$store.state.usuario }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
           this.mensaje = 'Trámite de baja realizado correctamente';
           this.onBuscar();
         } else {
-          this.mensaje = res.data.eResponse.message;
+          this.mensaje = res.eResponse.message;
         }
       } catch (e) {
         this.mensaje = 'Error al tramitar baja';
@@ -174,17 +192,27 @@ export default {
     async onRecalcular() {
       this.mensaje = '';
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'recalcular',
-            params: { licencia: this.form.licencia }
-          }
-        });
-        if (res.data.eResponse.success) {
+        const eRequest = {
+          Operacion: 'sp_tramite_baja_lic_recalcular',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_licencia', valor: this.form.licencia }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
           this.mensaje = 'Recalculo realizado';
           this.onBuscar();
         } else {
-          this.mensaje = res.data.eResponse.message;
+          this.mensaje = res.eResponse.message;
         }
       } catch (e) {
         this.mensaje = 'Error al recalcular';
@@ -198,16 +226,26 @@ export default {
           this.mensaje = 'No hay folio para imprimir';
           return;
         }
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'imprimir_orden',
-            params: { folio }
-          }
-        });
-        if (res.data.eResponse.success) {
-          window.open(res.data.eResponse.pdf_url, '_blank');
+        const eRequest = {
+          Operacion: 'sp_tramite_baja_lic_imprimir',
+          Base: 'padron_licencias',
+          Tenant: 'guadalajara',
+          Parametros: [
+            { nombre: 'p_folio', valor: folio }
+          ]
+        }
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
+        })
+        const res = await response.json()
+        if (res.eResponse.success) {
+          window.open(res.eResponse.pdf_url, '_blank');
         } else {
-          this.mensaje = res.data.eResponse.message;
+          this.mensaje = res.eResponse.message;
         }
       } catch (e) {
         this.mensaje = 'Error al imprimir orden';

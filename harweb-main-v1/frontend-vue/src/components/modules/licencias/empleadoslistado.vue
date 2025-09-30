@@ -1,20 +1,20 @@
 <template>
-  <div class="empleados-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
+          <h3 class="mb-1">
             <i class="fas fa-users"></i>
             Gestión de Empleados
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-75">
             Administración del catálogo de empleados del sistema
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
@@ -26,30 +26,30 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-4">
-            <label class="form-label">Nombre</label>
+            <label class="municipal-form-label">Nombre</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.nombre"
               placeholder="Nombre del empleado"
             >
           </div>
           <div class="col-md-4">
-            <label class="form-label">Correo</label>
+            <label class="municipal-form-label">Correo</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.correo"
               placeholder="Correo electrónico"
             >
           </div>
           <div class="col-md-4">
-            <label class="form-label">Estado</label>
-            <select class="form-select" v-model="filters.activo">
+            <label class="municipal-form-label">Estado</label>
+            <select class="municipal-form-control" v-model="filters.activo">
               <option value="">Todos</option>
               <option value="S">Activos</option>
               <option value="N">Inactivos</option>
@@ -58,47 +58,49 @@
         </div>
         <div class="row mt-3">
           <div class="col-12">
-            <button
-              class="btn btn-outline-primary me-2"
-              @click="searchEmpleados"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadEmpleados"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
+            <div class="municipal-group-btn">
+              <button
+                class="btn-municipal-primary"
+                @click="searchEmpleados"
+                :disabled="loading"
+              >
+                <i class="fas fa-search"></i>
+                Buscar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="clearFilters"
+                :disabled="loading"
+              >
+                <i class="fas fa-times"></i>
+                Limpiar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="loadEmpleados"
+                :disabled="loading"
+              >
+                <i class="fas fa-sync-alt"></i>
+                Actualizar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h6 class="mb-0">
           <i class="fas fa-list"></i>
           Empleados Registrados
-          <span v-if="empleados.length > 0" class="badge bg-primary ms-2">
+          <span v-if="empleados.length > 0" class="municipal-badge municipal-badge-primary ms-2">
             {{ empleados.length }} registros
           </span>
         </h6>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
@@ -108,11 +110,11 @@
         </div>
 
         <!-- Error state -->
-        <div v-else-if="error" class="alert alert-danger">
+        <div v-else-if="error" class="municipal-alert-danger">
           <h6 class="alert-heading">Error al cargar datos</h6>
           <p class="mb-0">{{ error }}</p>
           <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadEmpleados">
+          <button class="btn-municipal-primary btn-sm" @click="loadEmpleados">
             <i class="fas fa-retry"></i>
             Reintentar
           </button>
@@ -127,7 +129,7 @@
           </p>
           <button
             v-if="!hasActiveFilters"
-            class="btn btn-primary"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
           >
             <i class="fas fa-plus"></i>
@@ -137,8 +139,8 @@
 
         <!-- Tabla con datos -->
         <div v-else class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>ID</th>
                 <th>Nombre</th>
@@ -157,28 +159,28 @@
                 <td>{{ empleado.correo }}</td>
                 <td>{{ formatDate(empleado.created_at) }}</td>
                 <td>
-                  <span class="badge" :class="empleado.activo === 'S' ? 'bg-success' : 'bg-secondary'">
+                  <span class="municipal-badge" :class="empleado.activo === 'S' ? 'municipal-badge-success' : 'municipal-badge-secondary'">
                     {{ empleado.activo === 'S' ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
                 <td>
-                  <div class="btn-group btn-group-sm">
+                  <div class="municipal-group-btn">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-secondary btn-sm"
                       @click="viewEmpleado(empleado)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-warning btn-sm"
                       @click="editEmpleado(empleado)"
                       title="Editar"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button
-                      class="btn btn-outline-danger"
+                      class="btn-municipal-danger btn-sm"
                       @click="deleteEmpleado(empleado)"
                       title="Eliminar"
                     >
@@ -259,10 +261,10 @@
             <form @submit.prevent="saveEmpleado">
               <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Nombre <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newEmpleado.nombre"
                     placeholder="Nombre completo"
                     required
@@ -270,10 +272,10 @@
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Correo <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Correo <span class="text-danger">*</span></label>
                   <input
                     type="email"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newEmpleado.correo"
                     placeholder="correo@ejemplo.com"
                     required
@@ -283,17 +285,17 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-6">
-                  <label class="form-label">Estado</label>
-                  <select class="form-select" v-model="newEmpleado.activo">
+                  <label class="municipal-form-label">Estado</label>
+                  <select class="municipal-form-control" v-model="newEmpleado.activo">
                     <option value="S">Activo</option>
                     <option value="N">Inactivo</option>
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Departamento</label>
+                  <label class="municipal-form-label">Departamento</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newEmpleado.departamento"
                     placeholder="Departamento"
                     maxlength="100"
@@ -302,9 +304,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Observaciones</label>
+                  <label class="municipal-form-label">Observaciones</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="3"
                     v-model="newEmpleado.observaciones"
                     placeholder="Observaciones adicionales sobre el empleado"
@@ -314,12 +316,12 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
               Cancelar
             </button>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn-municipal-primary"
               @click="saveEmpleado"
               :disabled="creating || !newEmpleado.nombre || !newEmpleado.correo"
             >
@@ -353,7 +355,7 @@
         <h3 class="swal-title">{{ sweetAlert.title }}</h3>
         <p class="swal-text">{{ sweetAlert.text }}</p>
         <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
+          <button class="btn-municipal-primary" @click="closeSweetAlert">
             Aceptar
           </button>
         </div>
@@ -759,149 +761,3 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Estilos específicos del módulo de empleados */
-.empleados-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para empleados */
-.table-hover tbody tr:hover {
-  background-color: rgba(23, 162, 184, 0.05);
-}
-
-/* Paginación con tema cyan para empleados */
-.pagination .page-link {
-  color: #17a2b8;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #117a8b;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
-}
-
-/* Estilos globales importados desde src/styles/global.css */
-.swal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.swal-modal {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  text-align: center;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.swal-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.swal-icon.success { color: #28a745; }
-.swal-icon.error { color: #dc3545; }
-.swal-icon.warning { color: #ffc107; }
-.swal-icon.info { color: #17a2b8; }
-
-.swal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.swal-text {
-  margin-bottom: 2rem;
-  color: #6c757d;
-}
-
-.toast-notification {
-  position: fixed;
-  right: 20px;
-  z-index: 9999;
-  min-width: 300px;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border-left: 4px solid;
-  animation: slideInRight 0.3s ease-out;
-}
-
-.toast-notification.success { border-left-color: #28a745; }
-.toast-notification.error { border-left-color: #dc3545; }
-.toast-notification.warning { border-left-color: #ffc107; }
-.toast-notification.info { border-left-color: #17a2b8; }
-
-.toast-icon {
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
-}
-
-.toast-notification.success .toast-icon { color: #28a745; }
-.toast-notification.error .toast-icon { color: #dc3545; }
-.toast-notification.warning .toast-icon { color: #ffc107; }
-.toast-notification.info .toast-icon { color: #17a2b8; }
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  color: #6c757d;
-  cursor: pointer;
-  margin-left: 0.75rem;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-</style>

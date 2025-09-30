@@ -82,19 +82,25 @@ export default {
       this.numerosOficiales = null;
       this.condominio = null;
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'getPredioByClaveCatastral',
-            params: {
-              cvecatnva: this.form.cvecatnva,
-              subpredio: this.form.subpredio
-            }
+        const eRequest = {
+          action: 'getPredioByClaveCatastral',
+          params: {
+            cvecatnva: this.form.cvecatnva,
+            subpredio: this.form.subpredio
           }
+        };
+        const res = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
         });
-        if (res.data.eResponse && !res.data.eResponse.error) {
-          this.predio = res.data.eResponse[0];
+        const data = await res.json();
+        if (data.eResponse && !data.eResponse.error) {
+          this.predio = data.eResponse[0];
         } else {
-          this.error = res.data.eResponse.error || 'No se encontró el predio.';
+          this.error = data.eResponse.error || 'No se encontró el predio.';
         }
       } catch (e) {
         this.error = e.message;
@@ -104,13 +110,19 @@ export default {
       if (!this.predio) return;
       this.cartografia = null;
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'getCartografia',
-            params: { cvecatnva: this.predio.cvecatnva }
-          }
+        const eRequest = {
+          action: 'getCartografia',
+          params: { cvecatnva: this.predio.cvecatnva }
+        };
+        const res = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
         });
-        this.cartografia = res.data.eResponse;
+        const data = await res.json();
+        this.cartografia = data.eResponse;
       } catch (e) {
         this.error = e.message;
       }
@@ -119,13 +131,19 @@ export default {
       if (!this.predio) return;
       this.numerosOficiales = null;
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'getNumerosOficiales',
-            params: { cvemanz: this.predio.cvecatnva.substr(0,8) }
-          }
+        const eRequest = {
+          action: 'getNumerosOficiales',
+          params: { cvemanz: this.predio.cvecatnva.substr(0,8) }
+        };
+        const res = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
         });
-        this.numerosOficiales = res.data.eResponse;
+        const data = await res.json();
+        this.numerosOficiales = data.eResponse;
       } catch (e) {
         this.error = e.message;
       }
@@ -134,13 +152,19 @@ export default {
       if (!this.predio) return;
       this.condominio = null;
       try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'getCondominio',
-            params: { cvecatnva: this.predio.cvecatnva }
-          }
+        const eRequest = {
+          action: 'getCondominio',
+          params: { cvecatnva: this.predio.cvecatnva }
+        };
+        const res = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ eRequest })
         });
-        this.condominio = res.data.eResponse;
+        const data = await res.json();
+        this.condominio = data.eResponse;
       } catch (e) {
         this.error = e.message;
       }

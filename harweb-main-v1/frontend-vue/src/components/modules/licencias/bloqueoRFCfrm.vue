@@ -352,12 +352,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success) {
-          this.bloqueos = response.data.eResponse.data.result || []
+        if (data.eResponse.success) {
+          this.bloqueos = data.eResponse.data.result || []
         } else {
           this.mostrarMensaje('error', 'Error al cargar los bloqueos')
         }
@@ -382,12 +387,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success) {
-          this.bloqueos = response.data.eResponse.data.result || []
+        if (data.eResponse.success) {
+          this.bloqueos = data.eResponse.data.result || []
           if (this.bloqueos.length === 0) {
             this.mostrarMensaje('info', 'No se encontraron bloqueos con los criterios especificados')
           }
@@ -415,12 +425,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result.length > 0) {
-          const tramite = response.data.eResponse.data.result[0]
+        if (data.eResponse.success && data.eResponse.data.result.length > 0) {
+          const tramite = data.eResponse.data.result[0]
           this.formulario.rfc = tramite.rfc || ''
           this.formulario.licencia = tramite.id_licencia || ''
           this.formulario.propietario = tramite.propietario || ''
@@ -501,16 +516,21 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
-          this.mostrarMensaje('success', response.data.eResponse.data.result[0].message)
+        if (data.eResponse.success && data.eResponse.data.result[0]?.success) {
+          this.mostrarMensaje('success', data.eResponse.data.result[0].message)
           this.cerrarModal()
           await this.cargarBloqueos()
         } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al guardar el bloqueo')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al guardar el bloqueo')
         }
       } catch (error) {
         console.error('Error guardando bloqueo:', error)
@@ -534,15 +554,20 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
-          this.mostrarMensaje('success', response.data.eResponse.data.result[0].message)
+        if (data.eResponse.success && data.eResponse.data.result[0]?.success) {
+          this.mostrarMensaje('success', data.eResponse.data.result[0].message)
           await this.cargarBloqueos()
         } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al desbloquear RFC')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al desbloquear RFC')
         }
       } catch (error) {
         console.error('Error desbloqueando RFC:', error)

@@ -373,12 +373,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success) {
-          this.giros = response.data.eResponse.data.result || []
+        if (data.eResponse.success) {
+          this.giros = data.eResponse.data.result || []
           this.filtrarGiros()
         } else {
           this.mostrarMensaje('error', 'Error al cargar los giros')
@@ -400,12 +405,17 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success) {
-          this.categorias = response.data.eResponse.data.result || []
+        if (data.eResponse.success) {
+          this.categorias = data.eResponse.data.result || []
         }
       } catch (error) {
         console.error('Error cargando categorías:', error)
@@ -511,16 +521,21 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
-          this.mostrarMensaje('success', response.data.eResponse.data.result[0].message)
+        if (data.eResponse.success && data.eResponse.data.result[0]?.success) {
+          this.mostrarMensaje('success', data.eResponse.data.result[0].message)
           this.cerrarModal()
           await this.cargarGiros()
         } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al guardar el giro')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al guardar el giro')
         }
       } catch (error) {
         console.error('Error guardando giro:', error)
@@ -545,15 +560,20 @@ export default {
           Tenant: 'guadalajara'
         }
 
-        const response = await this.$axios.post('/api/generic', {
-          eRequest
-        })
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse.success && response.data.eResponse.data.result[0]?.success) {
+        if (data.eResponse.success && data.eResponse.data.result[0]?.success) {
           this.mostrarMensaje('success', `Giro ${nuevoEstado === 'S' ? 'activado' : 'desactivado'} correctamente`)
           await this.cargarGiros()
         } else {
-          this.mostrarMensaje('error', response.data.eResponse.data.result[0]?.message || 'Error al cambiar estado')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al cambiar estado')
         }
       } catch (error) {
         console.error('Error cambiando estado:', error)

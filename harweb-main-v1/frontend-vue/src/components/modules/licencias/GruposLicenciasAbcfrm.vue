@@ -110,7 +110,7 @@ export default {
     async buscarGrupos() {
       this.cargando = true;
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -160,7 +160,7 @@ export default {
         params.id = this.formulario.id;
       }
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -185,7 +185,7 @@ export default {
     async eliminarGrupo(id) {
       if (!confirm('¿Está seguro de eliminar este grupo?')) return;
       try {
-        const response = await fetch('/api/execute', {
+        const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

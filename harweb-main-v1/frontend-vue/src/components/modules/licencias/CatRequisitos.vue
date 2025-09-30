@@ -306,11 +306,18 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.requisitos = response.data.eResponse.data || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        if (data.eResponse && data.eResponse.success) {
+          this.requisitos = data.eResponse.data || [];
         } else {
-          this.mostrarMensaje('Error al cargar requisitos: ' + (response.data.eResponse?.message || 'Error desconocido'), 'danger');
+          this.mostrarMensaje('Error al cargar requisitos: ' + (data.eResponse?.message || 'Error desconocido'), 'danger');
         }
       } catch (error) {
         console.error('Error al cargar requisitos:', error);
@@ -332,14 +339,21 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
-        if (response.data.eResponse && response.data.eResponse.success) {
-          this.requisitos = response.data.eResponse.data || [];
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
+        if (data.eResponse && data.eResponse.success) {
+          this.requisitos = data.eResponse.data || [];
           if (this.requisitos.length === 0) {
             this.mostrarMensaje('No se encontraron requisitos con los criterios especificados', 'info');
           }
         } else {
-          this.mostrarMensaje('Error al buscar requisitos: ' + (response.data.eResponse?.message || 'Error desconocido'), 'danger');
+          this.mostrarMensaje('Error al buscar requisitos: ' + (data.eResponse?.message || 'Error desconocido'), 'danger');
         }
       } catch (error) {
         console.error('Error al buscar requisitos:', error);
@@ -417,9 +431,16 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success) {
+        if (data.eResponse && data.eResponse.success) {
           this.mostrarMensaje(
             this.esEdicion ? 'Requisito actualizado exitosamente' : 'Requisito creado exitosamente',
             'success'
@@ -428,7 +449,7 @@ export default {
           bootstrap.Modal.getInstance(document.getElementById('modalFormulario')).hide();
         } else {
           this.mostrarMensaje(
-            'Error al guardar: ' + (response.data.eResponse?.message || 'Error desconocido'),
+            'Error al guardar: ' + (data.eResponse?.message || 'Error desconocido'),
             'danger'
           );
         }
@@ -461,14 +482,21 @@ export default {
           Tenant: 'guadalajara'
         };
 
-        const response = await this.$axios.post('/api/generic', { eRequest });
+        const response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
+        });
+        const data = await response.json();
 
-        if (response.data.eResponse && response.data.eResponse.success) {
+        if (data.eResponse && data.eResponse.success) {
           this.mostrarMensaje('Requisito eliminado exitosamente', 'success');
           this.cargarRequisitos();
         } else {
           this.mostrarMensaje(
-            'Error al eliminar: ' + (response.data.eResponse?.message || 'Error desconocido'),
+            'Error al eliminar: ' + (data.eResponse?.message || 'Error desconocido'),
             'danger'
           );
         }

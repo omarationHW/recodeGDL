@@ -136,11 +136,17 @@ export default {
       this.error = '';
       try {
         // 1. Datos de cuenta principal
-        let res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'list', params: { cvecuenta: this.cvecuenta } }
+        let eRequest = { action: 'list', params: { cvecuenta: this.cvecuenta } };
+        let response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        if (res.data.eResponse && res.data.eResponse.length > 0) {
-          this.cuenta = res.data.eResponse[0];
+        let res = await response.json();
+        if (res.eResponse && res.eResponse.length > 0) {
+          this.cuenta = res.eResponse[0];
         } else {
           this.cuenta = null;
           this.error = 'Cuenta no encontrada';
@@ -148,29 +154,53 @@ export default {
           return;
         }
         // 2. Régimen de propiedad
-        res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'regimen', params: { cvecuenta: this.cvecuenta } }
+        eRequest = { action: 'regimen', params: { cvecuenta: this.cvecuenta } };
+        response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.regimen = res.data.eResponse || [];
+        res = await response.json();
+        this.regimen = res.eResponse || [];
         // 3. Diferencias
-        res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'diferencias', params: { cvecuenta: this.cvecuenta } }
+        eRequest = { action: 'diferencias', params: { cvecuenta: this.cvecuenta } };
+        response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.diferencias = res.data.eResponse || [];
+        res = await response.json();
+        this.diferencias = res.eResponse || [];
         // 4. Observaciones AS-400
-        res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'obs400', params: {
-            recaud: this.cuenta.recaud,
-            urbrus: this.cuenta.urbrus,
-            cuenta: this.cuenta.cuenta
-          } }
+        eRequest = { action: 'obs400', params: {
+          recaud: this.cuenta.recaud,
+          urbrus: this.cuenta.urbrus,
+          cuenta: this.cuenta.cuenta
+        } };
+        response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.obs400 = res.data.eResponse || [];
+        res = await response.json();
+        this.obs400 = res.eResponse || [];
         // 5. Condominio
-        res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'condominio', params: { cvecatnva: this.cuenta.cvecatnva } }
+        eRequest = { action: 'condominio', params: { cvecatnva: this.cuenta.cvecatnva } };
+        response = await fetch('http://localhost:8000/api/generic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(eRequest)
         });
-        this.condominio = res.data.eResponse && res.data.eResponse[0] ? res.data.eResponse[0] : {};
+        res = await response.json();
+        this.condominio = res.eResponse && res.eResponse[0] ? res.eResponse[0] : {};
       } catch (e) {
         this.error = e.response && e.response.data && e.response.data.eResponse && e.response.data.eResponse.error ? e.response.data.eResponse.error : e.message;
       } finally {

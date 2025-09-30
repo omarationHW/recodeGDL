@@ -1,20 +1,20 @@
 <template>
-  <div class="dictamen-module">
+  <div class="municipal-form-page">
     <!-- Header del módulo -->
-    <div class="module-header">
+    <div class="municipal-header">
       <div class="row align-items-center">
         <div class="col">
-          <h3 class="module-title">
+          <h3 class="mb-1">
             <i class="fas fa-file-signature"></i>
             Dictámenes de Anuncios
           </h3>
-          <p class="module-description mb-0">
+          <p class="mb-0 opacity-75">
             Gestión y emisión de dictámenes para anuncios publicitarios
           </p>
         </div>
         <div class="col-auto">
           <button
-            class="btn btn-light"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
             :disabled="loading"
           >
@@ -26,41 +26,41 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-4">
-      <div class="card-body">
+    <div class="municipal-card mb-4">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-3">
-            <label class="form-label">Número de Anuncio</label>
+            <label class="municipal-form-label">Número de Anuncio</label>
             <input
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.anuncio"
               placeholder="Ej: 12345"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Propietario</label>
+            <label class="municipal-form-label">Propietario</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.propietario"
               placeholder="Nombre del propietario"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Clasificación</label>
+            <label class="municipal-form-label">Clasificación</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.clasificacion"
               placeholder="Tipo de anuncio"
             >
           </div>
           <div class="col-md-3">
-            <label class="form-label">Ubicación</label>
+            <label class="municipal-form-label">Ubicación</label>
             <input
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               v-model="filters.ubicacion"
               placeholder="Dirección del anuncio"
             >
@@ -68,47 +68,49 @@
         </div>
         <div class="row mt-3">
           <div class="col-12">
-            <button
-              class="btn btn-outline-danger me-2"
-              @click="searchDictamenes"
-              :disabled="loading"
-            >
-              <i class="fas fa-search"></i>
-              Buscar
-            </button>
-            <button
-              class="btn btn-outline-secondary me-2"
-              @click="clearFilters"
-              :disabled="loading"
-            >
-              <i class="fas fa-times"></i>
-              Limpiar
-            </button>
-            <button
-              class="btn btn-outline-success"
-              @click="loadDictamenes"
-              :disabled="loading"
-            >
-              <i class="fas fa-sync-alt"></i>
-              Actualizar
-            </button>
+            <div class="municipal-group-btn">
+              <button
+                class="btn-municipal-primary"
+                @click="searchDictamenes"
+                :disabled="loading"
+              >
+                <i class="fas fa-search"></i>
+                Buscar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="clearFilters"
+                :disabled="loading"
+              >
+                <i class="fas fa-times"></i>
+                Limpiar
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="loadDictamenes"
+                :disabled="loading"
+              >
+                <i class="fas fa-sync-alt"></i>
+                Actualizar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="card">
-      <div class="card-header">
+    <div class="municipal-card">
+      <div class="municipal-card-header">
         <h6 class="mb-0">
           <i class="fas fa-file-signature"></i>
           Dictámenes de Anuncios
-          <span v-if="dictamenes.length > 0" class="badge bg-danger ms-2">
+          <span v-if="dictamenes.length > 0" class="municipal-badge municipal-badge-primary ms-2">
             {{ dictamenes.length }} registros
           </span>
         </h6>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-4">
           <div class="spinner-border text-danger" role="status">
@@ -118,11 +120,11 @@
         </div>
 
         <!-- Error state -->
-        <div v-else-if="error" class="alert alert-danger">
+        <div v-else-if="error" class="municipal-alert-danger">
           <h6 class="alert-heading">Error al cargar datos</h6>
           <p class="mb-0">{{ error }}</p>
           <hr>
-          <button class="btn btn-outline-danger btn-sm" @click="loadDictamenes">
+          <button class="btn-municipal-primary btn-sm" @click="loadDictamenes">
             <i class="fas fa-retry"></i>
             Reintentar
           </button>
@@ -137,7 +139,7 @@
           </p>
           <button
             v-if="!hasActiveFilters"
-            class="btn btn-danger"
+            class="btn-municipal-primary"
             @click="showCreateModal = true"
           >
             <i class="fas fa-plus"></i>
@@ -147,8 +149,8 @@
 
         <!-- Tabla con datos -->
         <div v-else class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>No. Anuncio</th>
                 <th>Propietario</th>
@@ -167,36 +169,36 @@
                 </td>
                 <td>{{ dictamen.propietarionvo }}</td>
                 <td>
-                  <span class="badge bg-secondary">{{ dictamen.clasificacion || 'N/A' }}</span>
+                  <span class="municipal-badge municipal-badge-secondary">{{ dictamen.clasificacion || 'N/A' }}</span>
                 </td>
                 <td>{{ formatDireccion(dictamen) }}</td>
                 <td>{{ dictamen.medidas1 || 0 }} x {{ dictamen.medidas2 || 0 }} m</td>
                 <td>
-                  <span class="badge bg-info">{{ dictamen.area_anuncio || 0 }} m²</span>
+                  <span class="municipal-badge municipal-badge-info">{{ dictamen.area_anuncio || 0 }} m²</span>
                 </td>
                 <td>
-                  <span class="badge" :class="getEstadoBadgeClass(dictamen.vigente)">
+                  <span class="municipal-badge" :class="getMunicipalEstadoBadgeClass(dictamen.vigente)">
                     {{ dictamen.vigente === 'V' ? 'Vigente' : 'Inactivo' }}
                   </span>
                 </td>
                 <td>
-                  <div class="btn-group btn-group-sm">
+                  <div class="municipal-group-btn">
                     <button
-                      class="btn btn-outline-primary"
+                      class="btn-municipal-secondary btn-sm"
                       @click="viewDictamen(dictamen)"
                       title="Ver detalles"
                     >
                       <i class="fas fa-eye"></i>
                     </button>
                     <button
-                      class="btn btn-outline-warning"
+                      class="btn-municipal-warning btn-sm"
                       @click="editDictamen(dictamen)"
                       title="Editar"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button
-                      class="btn btn-outline-success"
+                      class="btn-municipal-success btn-sm"
                       @click="printDictamen(dictamen)"
                       title="Generar PDF"
                     >
@@ -275,10 +277,10 @@
             <form @submit.prevent="saveDictamen">
               <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Número de Anuncio <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Número de Anuncio <span class="text-danger">*</span></label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.anuncio"
                     placeholder="Ej: 12345"
                     required
@@ -286,10 +288,10 @@
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">ID Licencia</label>
+                  <label class="municipal-form-label">ID Licencia</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.id_licencia"
                     placeholder="ID de licencia relacionada"
                   >
@@ -297,20 +299,20 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-8">
-                  <label class="form-label">Ubicación <span class="text-danger">*</span></label>
+                  <label class="municipal-form-label">Ubicación <span class="text-danger">*</span></label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.ubicacion"
                     placeholder="Dirección completa del anuncio"
                     required
                   >
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label">Número Exterior</label>
+                  <label class="municipal-form-label">Número Exterior</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.numext_ubic"
                     placeholder="123"
                   >
@@ -318,30 +320,30 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-3">
-                  <label class="form-label">Letra Exterior</label>
+                  <label class="municipal-form-label">Letra Exterior</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.letraext_ubic"
                     placeholder="A"
                     maxlength="5"
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Colonia</label>
+                  <label class="municipal-form-label">Colonia</label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.colonia_ubic"
                     placeholder="Nombre de la colonia"
                     maxlength="100"
                   >
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label">Código Postal</label>
+                  <label class="municipal-form-label">Código Postal</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.cp"
                     placeholder="44100"
                   >
@@ -349,40 +351,40 @@
               </div>
               <div class="row mt-3">
                 <div class="col-md-3">
-                  <label class="form-label">Medida 1 (m)</label>
+                  <label class="municipal-form-label">Medida 1 (m)</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.medidas1"
                     placeholder="0.00"
                     step="0.01"
                   >
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label">Medida 2 (m)</label>
+                  <label class="municipal-form-label">Medida 2 (m)</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.medidas2"
                     placeholder="0.00"
                     step="0.01"
                   >
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label">Número de Caras</label>
+                  <label class="municipal-form-label">Número de Caras</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.num_caras"
                     placeholder="1"
                     min="1"
                   >
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label">ID Giro</label>
+                  <label class="municipal-form-label">ID Giro</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="municipal-form-control"
                     v-model="newDictamen.id_giro"
                     placeholder="ID del giro"
                   >
@@ -390,9 +392,9 @@
               </div>
               <div class="row mt-3">
                 <div class="col-12">
-                  <label class="form-label">Texto del Anuncio</label>
+                  <label class="municipal-form-label">Texto del Anuncio</label>
                   <textarea
-                    class="form-control"
+                    class="municipal-form-control"
                     rows="3"
                     v-model="newDictamen.texto_anuncio"
                     placeholder="Descripción del contenido del anuncio"
@@ -402,12 +404,12 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+            <button type="button" class="btn-municipal-secondary" @click="showCreateModal = false">
               Cancelar
             </button>
             <button
               type="button"
-              class="btn btn-danger"
+              class="btn-municipal-primary"
               @click="saveDictamen"
               :disabled="creating || !newDictamen.anuncio || !newDictamen.ubicacion"
             >
@@ -443,7 +445,7 @@
         <div class="modal-body" v-if="selectedDictamen">
           <div class="row">
             <div class="col-12 mb-4">
-              <div class="alert alert-danger">
+              <div class="municipal-alert-info">
                 <h5 class="alert-heading mb-2">
                   <i class="fas fa-file-signature"></i>
                   Anuncio Número: {{ selectedDictamen.anuncio }}
@@ -464,16 +466,16 @@
                 </div>
                 <div class="card-body">
                   <div class="form-group mb-3">
-                    <label class="form-label">Dirección:</label>
+                    <label class="municipal-form-label">Dirección:</label>
                     <p class="form-control-plaintext">{{ formatDireccion(selectedDictamen) }}</p>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Clasificación:</label>
-                    <span class="badge bg-secondary">{{ selectedDictamen.clasificacion || 'N/A' }}</span>
+                    <label class="municipal-form-label">Clasificación:</label>
+                    <span class="municipal-badge municipal-badge-secondary">{{ selectedDictamen.clasificacion || 'N/A' }}</span>
                   </div>
                   <div class="form-group mb-0">
-                    <label class="form-label">Estado:</label>
-                    <span class="badge" :class="getEstadoBadgeClass(selectedDictamen.vigente)">
+                    <label class="municipal-form-label">Estado:</label>
+                    <span class="municipal-badge" :class="getMunicipalEstadoBadgeClass(selectedDictamen.vigente)">
                       {{ selectedDictamen.vigente === 'V' ? 'Vigente' : 'Inactivo' }}
                     </span>
                   </div>
@@ -491,20 +493,20 @@
                 </div>
                 <div class="card-body">
                   <div class="form-group mb-3">
-                    <label class="form-label">Medidas:</label>
+                    <label class="municipal-form-label">Medidas:</label>
                     <p class="form-control-plaintext">
                       {{ selectedDictamen.medidas1 || 0 }} x {{ selectedDictamen.medidas2 || 0 }} metros
                     </p>
                   </div>
                   <div class="form-group mb-3">
-                    <label class="form-label">Área Total:</label>
+                    <label class="municipal-form-label">Área Total:</label>
                     <p class="form-control-plaintext text-info fw-bold">
                       {{ selectedDictamen.area_anuncio || 0 }} m²
                     </p>
                   </div>
                   <div class="form-group mb-0">
-                    <label class="form-label">Número de Caras:</label>
-                    <span class="badge bg-info">{{ selectedDictamen.num_caras || 1 }}</span>
+                    <label class="municipal-form-label">Número de Caras:</label>
+                    <span class="municipal-badge municipal-badge-info">{{ selectedDictamen.num_caras || 1 }}</span>
                   </div>
                 </div>
               </div>
@@ -528,15 +530,15 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-danger" @click="editDictamen(selectedDictamen)">
+          <button class="btn-municipal-primary" @click="editDictamen(selectedDictamen)">
             <i class="fas fa-edit"></i>
             Editar Dictamen
           </button>
-          <button class="btn btn-success" @click="printDictamenInfo(selectedDictamen)">
+          <button class="btn-municipal-success" @click="printDictamenInfo(selectedDictamen)">
             <i class="fas fa-print"></i>
             Imprimir
           </button>
-          <button class="btn btn-secondary" @click="showDetailsModal = false">
+          <button class="btn-municipal-secondary" @click="showDetailsModal = false">
             <i class="fas fa-times"></i>
             Cerrar
           </button>
@@ -557,7 +559,7 @@
         <h3 class="swal-title">{{ sweetAlert.title }}</h3>
         <p class="swal-text">{{ sweetAlert.text }}</p>
         <div class="swal-footer">
-          <button class="btn btn-primary" @click="closeSweetAlert">
+          <button class="btn-municipal-primary" @click="closeSweetAlert">
             Aceptar
           </button>
         </div>
@@ -658,20 +660,19 @@ export default {
       this.error = null
 
       try {
-        // Llamada real a la API usando SP_DICTAMEN_LIST
+        // Llamada real a la API usando sp_dictamen_list
         const eRequest = {
           Operacion: 'sp_dictamen_list',
           Base: 'padron_licencias',
+          Tenant: 'guadalajara',
           Parametros: [
-            { nombre: 'p_anuncio', valor: this.filters.anuncio ? parseInt(this.filters.anuncio) : null },
-            { nombre: 'p_propietario', valor: this.filters.propietario || null },
-            { nombre: 'p_clasificacion', valor: this.filters.clasificacion || null },
-            { nombre: 'p_ubicacion', valor: this.filters.ubicacion || null },
-            { nombre: 'p_vigente', valor: 'V' },
             { nombre: 'p_limite', valor: this.itemsPerPage },
-            { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage }
-          ],
-          Tenant: 'informix'
+            { nombre: 'p_offset', valor: (this.currentPage - 1) * this.itemsPerPage },
+            { nombre: 'p_anuncio', valor: this.filters.anuncio || '' },
+            { nombre: 'p_propietario', valor: this.filters.propietario || '' },
+            { nombre: 'p_clasificacion', valor: this.filters.clasificacion || '' },
+            { nombre: 'p_ubicacion', valor: this.filters.ubicacion || '' }
+          ]
         }
 
         console.log('📨 Cargando dictámenes con SP_DICTAMEN_LIST:', eRequest)
@@ -748,40 +749,40 @@ export default {
           eRequest = {
             Operacion: 'SP_DICTAMEN_UPDATE',
             Base: 'padron_licencias',
+            Tenant: 'guadalajara',
             Parametros: [
-              { nombre: 'p_id_anuncio', valor: this.editingDictamen.id },
+              { nombre: 'p_id_dictamen', valor: this.editingDictamen.id_dictamen },
+              { nombre: 'p_propietario', valor: this.newDictamen.propietario },
+              { nombre: 'p_clasificacion', valor: this.newDictamen.clasificacion },
               { nombre: 'p_ubicacion', valor: this.newDictamen.ubicacion },
-              { nombre: 'p_numext_ubic', valor: this.newDictamen.numext_ubic || null },
-              { nombre: 'p_letraext_ubic', valor: this.newDictamen.letraext_ubic || null },
-              { nombre: 'p_colonia_ubic', valor: this.newDictamen.colonia_ubic || null },
-              { nombre: 'p_medidas1', valor: this.newDictamen.medidas1 || null },
-              { nombre: 'p_medidas2', valor: this.newDictamen.medidas2 || null },
-              { nombre: 'p_num_caras', valor: this.newDictamen.num_caras || null },
-              { nombre: 'p_texto_anuncio', valor: this.newDictamen.texto_anuncio || null },
-              { nombre: 'p_cp', valor: this.newDictamen.cp || null }
-            ],
-            Tenant: 'informix'
+              { nombre: 'p_colonia', valor: this.newDictamen.colonia_ubic || null },
+              { nombre: 'p_cp', valor: this.newDictamen.cp || null },
+              { nombre: 'p_medidas', valor: `${this.newDictamen.medidas1 || 0} x ${this.newDictamen.medidas2 || 0}` },
+              { nombre: 'p_superficie', valor: (this.newDictamen.medidas1 || 0) * (this.newDictamen.medidas2 || 0) },
+              { nombre: 'p_observaciones', valor: this.newDictamen.texto_anuncio || null },
+              { nombre: 'p_usuario_responsable', valor: 'admin' }
+            ]
           }
         } else {
           // Crear nuevo dictamen
           eRequest = {
             Operacion: 'SP_DICTAMEN_CREATE',
             Base: 'padron_licencias',
+            Tenant: 'guadalajara',
             Parametros: [
-              { nombre: 'p_anuncio', valor: parseInt(this.newDictamen.anuncio) },
-              { nombre: 'p_id_licencia', valor: this.newDictamen.id_licencia || null },
-              { nombre: 'p_id_giro', valor: this.newDictamen.id_giro || 1 },
+              { nombre: 'p_numero_anuncio', valor: this.newDictamen.anuncio },
+              { nombre: 'p_propietario', valor: this.newDictamen.propietario || 'Sin especificar' },
+              { nombre: 'p_clasificacion', valor: this.newDictamen.clasificacion || 'General' },
               { nombre: 'p_ubicacion', valor: this.newDictamen.ubicacion },
-              { nombre: 'p_numext_ubic', valor: this.newDictamen.numext_ubic || null },
-              { nombre: 'p_letraext_ubic', valor: this.newDictamen.letraext_ubic || null },
-              { nombre: 'p_colonia_ubic', valor: this.newDictamen.colonia_ubic || null },
-              { nombre: 'p_medidas1', valor: this.newDictamen.medidas1 || null },
-              { nombre: 'p_medidas2', valor: this.newDictamen.medidas2 || null },
-              { nombre: 'p_num_caras', valor: this.newDictamen.num_caras || 1 },
-              { nombre: 'p_texto_anuncio', valor: this.newDictamen.texto_anuncio || null },
-              { nombre: 'p_cp', valor: this.newDictamen.cp || null }
+              { nombre: 'p_colonia', valor: this.newDictamen.colonia_ubic || null },
+              { nombre: 'p_cp', valor: this.newDictamen.cp || null },
+              { nombre: 'p_medidas', valor: `${this.newDictamen.medidas1 || 0} x ${this.newDictamen.medidas2 || 0}` },
+              { nombre: 'p_superficie', valor: (this.newDictamen.medidas1 || 0) * (this.newDictamen.medidas2 || 0) },
+              { nombre: 'p_vigencia_meses', valor: 12 },
+              { nombre: 'p_observaciones', valor: this.newDictamen.texto_anuncio || null },
+              { nombre: 'p_usuario_responsable', valor: 'admin' }
             ],
-            Tenant: 'informix'
+            Tenant: 'guadalajara'
           }
         }
 
@@ -891,6 +892,10 @@ export default {
 
     getEstadoBadgeClass(vigente) {
       return vigente === 'V' ? 'bg-success' : 'bg-secondary'
+    },
+
+    getMunicipalEstadoBadgeClass(vigente) {
+      return vigente === 'V' ? 'municipal-badge-success' : 'municipal-badge-secondary'
     },
 
     // Métodos de paginación
@@ -1016,309 +1021,3 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Estilos específicos del módulo de dictámenes */
-.dictamen-module {
-  padding: 1rem;
-}
-
-.module-header {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.module-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.module-description {
-  opacity: 0.9;
-  font-size: 0.95rem;
-}
-
-/* Hover específico para dictámenes */
-.table-hover tbody tr:hover {
-  background-color: rgba(220, 53, 69, 0.05);
-}
-
-/* Paginación con tema rojo para dictámenes */
-.pagination .page-link {
-  color: #dc3545;
-  border-color: #dee2e6;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination .page-link:hover {
-  color: #a71e2a;
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #dc3545;
-  border-color: #dc3545;
-  color: white;
-}
-
-.pagination .page-link:focus {
-  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-}
-
-/* SweetAlert Modal */
-.swal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.swal-modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  max-width: 450px;
-  width: 90%;
-  padding: 2rem;
-  text-align: center;
-}
-
-.swal-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  margin: 0 auto 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  color: white;
-}
-
-.swal-icon.success { background: #28a745; }
-.swal-icon.error { background: #dc3545; }
-.swal-icon.warning { background: #ffc107; color: #333 !important; }
-.swal-icon.info { background: #17a2b8; }
-
-.swal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.swal-text {
-  color: #666;
-  font-size: 1rem;
-  line-height: 1.5;
-  margin-bottom: 2rem;
-}
-
-/* Modal overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1050;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  max-width: 95%;
-  max-height: 90%;
-  overflow-y: auto;
-}
-
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #dee2e6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  border-radius: 12px 12px 0 0;
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #dee2e6;
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-/* Toast Notifications */
-.toast-notification {
-  position: fixed;
-  right: 20px;
-  min-width: 300px;
-  max-width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1500;
-  animation: slideIn 0.3s ease-out;
-  padding: 1rem;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.toast-notification.success {
-  background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.toast-notification.error {
-  background: linear-gradient(135deg, #dc3545, #c82333);
-}
-
-.toast-notification.warning {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-  color: #212529;
-}
-
-.toast-notification.info {
-  background: linear-gradient(135deg, #17a2b8, #007bff);
-}
-
-.toast-icon {
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.toast-message {
-  flex: 1;
-  font-weight: 500;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-  opacity: 0.8;
-}
-
-.toast-close:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  opacity: 1;
-}
-
-/* Estilos específicos para detalles */
-.form-control-plaintext {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-weight: 500;
-  color: #495057;
-}
-
-.card.h-100 {
-  height: 100% !important;
-}
-
-/* Badge personalizado */
-.badge.bg-success { background-color: #28a745 !important; }
-.badge.bg-secondary { background-color: #6c757d !important; }
-.badge.bg-danger { background-color: #dc3545 !important; }
-.badge.bg-info { background-color: #17a2b8 !important; }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .dictamen-module {
-    padding: 0.5rem;
-  }
-
-  .module-header {
-    padding: 1rem;
-  }
-
-  .card-body .row {
-    flex-direction: column;
-  }
-
-  .col-md-3, .col-md-6 {
-    margin-bottom: 1rem;
-  }
-
-  .table-responsive {
-    font-size: 0.875rem;
-  }
-
-  .toast-notification {
-    right: 10px;
-    left: 10px;
-    min-width: auto;
-  }
-}
-</style>

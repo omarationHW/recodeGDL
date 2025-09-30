@@ -50,7 +50,8 @@
       "Bash(then echo \"MAPEADO\")",
       "Bash(else echo \"NO MAPEADO\")",
       "Bash(fi)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []

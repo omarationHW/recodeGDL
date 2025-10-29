@@ -744,12 +744,12 @@ const createUsuario = async () => {
       'SP_CONSULTAUSUARIOS_CREATE',
       'padron_licencias',
       [
-        { nombre: 'p_usuario', valor: newUsuario.value.usuario.trim().toUpperCase() },
-        { nombre: 'p_cvedepto', valor: newUsuario.value.cvedepto },
-        { nombre: 'p_nombres', valor: newUsuario.value.nombres.trim() },
-        { nombre: 'p_clave', valor: newUsuario.value.clave?.trim() || '' },
-        { nombre: 'p_nivel', valor: newUsuario.value.nivel },
-        { nombre: 'p_capturo', valor: 'sistema' }
+        { nombre: 'p_usuario', valor: newUsuario.value.usuario.trim().toUpperCase(), tipo: 'string' },
+        { nombre: 'p_cvedepto', valor: parseInt(newUsuario.value.cvedepto), tipo: 'integer' },
+        { nombre: 'p_nombres', valor: newUsuario.value.nombres.trim(), tipo: 'string' },
+        { nombre: 'p_clave', valor: newUsuario.value.clave?.trim() || '', tipo: 'string' },
+        { nombre: 'p_nivel', valor: parseInt(newUsuario.value.nivel), tipo: 'integer' },
+        { nombre: 'p_capturo', valor: 'sistema', tipo: 'string' }
       ],
       'guadalajara'
     )

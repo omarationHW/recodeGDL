@@ -1,0 +1,2000 @@
+/* ====================================
+   🏛️ SISTEMA MUNICIPAL GUADALAJARA
+   Diseño profesional y conservador
+   MERGE: municipal-theme.css + global.css
+   ==================================== */
+
+:root {
+  /* 🎨 Colores Oficiales de Gobierno - Principales */
+  --gov-primary-gold: #cc9f52;     /* Pantone 7407 C - R: 204, G: 158, B: 82 */
+  --gov-primary-orange: #ea8215;   /* Pantone 151 C - R: 234, G: 130, B: 21 */
+
+  /* 🌈 Colores Complementarios de Gobierno */
+  --gov-yellow: #ffb700;           /* Pantone 7549 C - R: 255, G: 183, B: 0 */
+  --gov-peach: #ff9d6c;            /* Pantone 163 C - R: 255, G: 157, B: 108 */
+  --gov-pink: #e96cb0;             /* Pantone 218 C - R: 233, G: 108, B: 176 */
+  --gov-purple: #9264cc;           /* Pantone 265 C - R: 146, G: 100, B: 204 */
+  --gov-blue: #009ade;             /* Pantone 2925 C - R: 0, G: 154, B: 222 */
+  --gov-green: #6cca98;            /* Pantone 346 C - R: 108, G: 202, B: 152 */
+  --gov-gray: #808080;             /* Negro 50% - R: 128, G: 128, B: 128 */
+
+  /* 🏛️ Variables de Uso Municipal (basadas en colores oficiales) */
+  --municipal-primary: var(--gov-primary-orange);
+  --municipal-secondary: var(--gov-primary-gold);
+  --municipal-accent: var(--gov-blue);
+  --municipal-success: var(--gov-green);
+  --municipal-warning: var(--gov-yellow);
+  --municipal-info: var(--gov-blue);
+  --municipal-danger: var(--gov-pink);
+
+  /* Paleta de Grises Profesional */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+
+  /* Gradientes Municipales */
+  --gradient-municipal: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  --gradient-guadalajara: linear-gradient(135deg, var(--gov-primary-orange) 0%, var(--gov-primary-gold) 100%);
+
+  /* Sombras Sutiles */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* 📏 Espaciado */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* 🔤 Tipografía Oficial de Gobierno */
+  --font-municipal: 'Seravek', 'Segoe UI', 'Arial', sans-serif;
+  --font-heading: 'Seravek', 'Segoe UI', 'Arial', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Monaco', monospace;
+
+  /* Pesos tipográficos oficiales */
+  --font-weight-extralight: 200;  /* Seravek Extra Light */
+  --font-weight-regular: 400;     /* Seravek Regular */
+  --font-weight-bold: 700;        /* Seravek Bold */
+
+  /* 📐 Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ⏱️ Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+  --transition-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* =================================================================================
+   ESTILOS GLOBALES MUNICIPALES - Base del Sistema
+   ================================================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-regular);
+  background: linear-gradient(135deg, var(--slate-50) 0%, #ffffff 100%);
+  color: var(--slate-700);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* =================================================================================
+   LAYOUT Y ESTRUCTURA GENERAL
+   ================================================================================= */
+
+.container-fluid {
+  height: 120px; /*100vh; */
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* Solo aplicar flex-direction column en contextos específicos de módulos */
+.module-layout .flex-grow-1 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =================================================================================
+   NAVEGACIÓN Y BREADCRUMBS - Con tema municipal
+   ================================================================================= */
+
+.bg-primary {
+  background: var(--gradient-municipal) !important;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  color: var(--municipal-secondary);
+  font-weight: bold;
+}
+
+/* =================================================================================
+   BOTONES - Con colores municipales
+   ================================================================================= */
+
+.btn-group .btn {
+  margin-right: 0.25rem;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+.btn-primary {
+  background: var(--gradient-municipal);
+  border-color: var(--municipal-primary);
+  transition: var(--transition-normal);
+}
+
+.btn-primary:hover {
+  background: var(--municipal-secondary);
+  border-color: var(--municipal-secondary);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--municipal-secondary);
+  border-color: var(--municipal-secondary);
+}
+
+.btn-success {
+  background-color: var(--municipal-success);
+  border-color: var(--municipal-success);
+}
+
+.btn-warning {
+  background-color: var(--municipal-warning);
+  border-color: var(--municipal-warning);
+  color: var(--slate-800);
+}
+
+.btn-info {
+  background-color: var(--municipal-info);
+  border-color: var(--municipal-info);
+}
+
+.btn-danger {
+  background-color: var(--municipal-danger);
+  border-color: var(--municipal-danger);
+}
+
+/* =================================================================================
+   TABLAS - Con tema municipal
+   ================================================================================= */
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  background: var(--gradient-municipal);
+  color: white;
+  font-weight: var(--font-weight-bold);
+  border: none;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.9rem;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  font-family: var(--font-heading);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(234, 130, 21, 0.1);
+  cursor: pointer;
+}
+
+.table-primary {
+  background-color: rgba(234, 130, 21, 0.25) !important;
+}
+
+/* =================================================================================
+   CARDS Y CONTENEDORES - Con tema municipal
+   ================================================================================= */
+
+.card {
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.card-header {
+  background: linear-gradient(135deg, var(--slate-50) 0%, var(--slate-100) 100%);
+  border-bottom: 2px solid var(--municipal-primary);
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-700);
+}
+
+/* =================================================================================
+   PAGINACIÓN - Con tema municipal
+   ================================================================================= */
+
+.pagination .page-link {
+  color: var(--municipal-primary);
+  border-color: var(--slate-300);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--gradient-municipal);
+  border-color: var(--municipal-primary);
+}
+
+.pagination .page-item.disabled .page-link {
+  color: var(--slate-400);
+  pointer-events: none;
+}
+
+.pagination .page-link:hover {
+  background-color: var(--slate-100);
+  border-color: var(--municipal-secondary);
+}
+
+/* =================================================================================
+   BADGES Y ETIQUETAS - Con colores municipales
+   ================================================================================= */
+
+.badge {
+  font-size: 0.75em;
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-md);
+}
+
+.badge-primary {
+  background-color: var(--municipal-primary);
+}
+
+.badge-secondary {
+  background-color: var(--municipal-secondary);
+}
+
+.badge-success {
+  background-color: var(--municipal-success);
+}
+
+.badge-warning {
+  background-color: var(--municipal-warning);
+  color: var(--slate-800);
+}
+
+.badge-info {
+  background-color: var(--municipal-info);
+}
+
+.badge-danger {
+  background-color: var(--municipal-danger);
+}
+
+/* =================================================================================
+   MODALES Y OVERLAYS - Con tema municipal
+   ================================================================================= */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 2rem 3rem;
+}
+
+.modal-content {
+  background: white !important;
+  background-color: #ffffff !important;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideInUp 0.3s ease;
+  border: 1px solid var(--slate-200);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  border-bottom: 2px solid var(--municipal-primary);
+  background: var(--gradient-municipal);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  min-height: 70px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  font-family: var(--font-heading);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  color: white;
+  transition: var(--transition-normal);
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 2.5rem 3rem;
+  max-height: calc(90vh - 160px);
+  overflow-y: auto;
+  background: #fff;
+}
+
+.modal-footer {
+  padding: 1.25rem 2rem;
+  border-top: 2px solid var(--slate-200);
+  background: linear-gradient(135deg, var(--slate-50) 0%, var(--slate-100) 100%);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  min-height: 70px;
+  align-items: center;
+}
+
+/* =================================================================================
+   FORMULARIOS - Con tema municipal
+   ================================================================================= */
+
+.form-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  align-items: flex-start;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  flex-basis: 100%;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-700);
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  font-family: var(--font-heading);
+}
+
+.required {
+  color: var(--municipal-danger);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--slate-300);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  transition: var(--transition-normal);
+  background-color: #fff;
+  color: var(--slate-700);
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-municipal);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: 0;
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 0.25rem rgba(234, 130, 21, 0.1);
+  background-color: #fff;
+  transform: translateY(-1px);
+}
+
+.input-error {
+  border-color: var(--municipal-danger) !important;
+  box-shadow: 0 0 0 0.2rem rgba(233, 108, 176, 0.25) !important;
+}
+
+.field-error {
+  color: var(--municipal-danger);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* =================================================================================
+   NOTIFICACIONES TOAST - Con tema municipal
+   ================================================================================= */
+
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 400px;
+  color: white;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  animation: slideInRight 0.3s ease;
+}
+
+.toast-notification.success {
+  background: var(--gradient-municipal);
+  background-color: var(--municipal-success);
+}
+
+.toast-notification.error {
+  background-color: var(--municipal-danger);
+}
+
+.toast-notification.warning {
+  background-color: var(--municipal-warning);
+  color: var(--slate-800);
+}
+
+.toast-notification.info {
+  background-color: var(--municipal-info);
+}
+
+.toast-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-municipal);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  opacity: 0.8;
+  transition: var(--transition-fast);
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+/* =================================================================================
+   LOADING OVERLAY - Con tema municipal
+   ================================================================================= */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1999;
+}
+
+.loading-spinner {
+  background: white;
+  padding: 30px;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  min-width: 200px;
+  box-shadow: var(--shadow-lg);
+}
+
+.loading-spinner .spinner {
+  border: 4px solid var(--slate-200);
+  border-top: 4px solid var(--municipal-primary);
+  border-radius: var(--radius-full);
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+.loading-spinner p {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-700);
+  font-family: var(--font-municipal);
+}
+
+/* =================================================================================
+   SWEETALERT CUSTOM - Con tema municipal
+   ================================================================================= */
+
+.sweet-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2100;
+}
+
+.sweet-alert-container {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  min-width: 400px;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  animation: zoomIn 0.3s ease;
+}
+
+.sweet-alert-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.sweet-alert-icon.success {
+  background: rgba(108, 202, 152, 0.2);
+  color: var(--municipal-success);
+}
+
+.sweet-alert-icon.error {
+  background: rgba(233, 108, 176, 0.2);
+  color: var(--municipal-danger);
+}
+
+.sweet-alert-icon.warning {
+  background: rgba(255, 183, 0, 0.2);
+  color: var(--municipal-warning);
+}
+
+.sweet-alert-icon.info,
+.sweet-alert-icon.question {
+  background: rgba(0, 154, 222, 0.2);
+  color: var(--municipal-info);
+}
+
+.sweet-alert-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-700);
+  font-family: var(--font-heading);
+}
+
+.sweet-alert-text {
+  margin: 0 0 2rem 0;
+  color: var(--slate-600);
+  line-height: 1.5;
+  font-family: var(--font-municipal);
+}
+
+.sweet-alert-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.sweet-alert-buttons .btn {
+  min-width: 100px;
+}
+
+/* =================================================================================
+   EFECTOS ESPECIALES MUNICIPALES
+   ================================================================================= */
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+}
+
+.hover-lift {
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.glow-municipal {
+  box-shadow: 0 0 20px rgba(234, 130, 21, 0.5);
+}
+
+.glow-guadalajara {
+  box-shadow: 0 0 20px rgba(204, 159, 82, 0.5);
+}
+
+/* =================================================================================
+   CLASES UTILITARIAS MUNICIPALES
+   ================================================================================= */
+
+.gradient-municipal { background: var(--gradient-municipal); }
+.gradient-guadalajara { background: var(--gradient-guadalajara); }
+
+.shadow-municipal { box-shadow: var(--shadow-lg); }
+.shadow-guadalajara { box-shadow: var(--shadow-xl); }
+
+/* Texto truncado */
+.text-truncate-custom {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+/* Sombras sutiles */
+.shadow-subtle {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Estados de hover para filas */
+.row-hover:hover {
+  background-color: rgba(234, 130, 21, 0.05);
+  transition: background-color var(--transition-fast);
+}
+
+/* Indicadores de estado con colores municipales */
+.status-active {
+  color: var(--municipal-success);
+  font-weight: var(--font-weight-bold);
+}
+
+.status-inactive {
+  color: var(--municipal-danger);
+  font-weight: var(--font-weight-bold);
+}
+
+.status-pending {
+  color: var(--municipal-warning);
+  font-weight: var(--font-weight-bold);
+}
+
+/* =================================================================================
+   ANIMACIONES MUNICIPALES
+   ================================================================================= */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* =================================================================================
+   SCROLLBAR STYLING - Con tema municipal
+   ================================================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--slate-100);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-municipal);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-normal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-guadalajara);
+}
+
+/* =================================================================================
+   SELECTION STYLING - Con tema municipal
+   ================================================================================= */
+
+::selection {
+  background: var(--municipal-secondary);
+  color: white;
+}
+
+::-moz-selection {
+  background: var(--municipal-secondary);
+  color: white;
+}
+
+/* =================================================================================
+   SWEETALERT MODAL STYLES - Con tema municipal
+   ================================================================================= */
+
+.swal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.swal-modal {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+  animation: swalFadeIn 0.2s ease-out;
+}
+
+.swal-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.swal-title {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 0.5rem;
+  color: var(--slate-700);
+  font-family: var(--font-heading);
+}
+
+.swal-text {
+  font-size: 1rem;
+  color: var(--slate-600);
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+  font-family: var(--font-municipal);
+}
+
+.swal-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.swal-footer .btn {
+  min-width: 100px;
+  font-weight: var(--font-weight-bold);
+}
+
+@keyframes swalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* =================================================================================
+   RESPONSIVE DESIGN - Optimizado para dispositivos municipales
+   ================================================================================= */
+
+@media (max-width: 768px) {
+  :root {
+    --space-sm: 0.375rem;
+    --space-md: 0.75rem;
+    --space-lg: 1rem;
+    --space-xl: 1.5rem;
+    --space-2xl: 2rem;
+  }
+
+  .toast-notification {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    min-width: auto;
+  }
+
+  .sweet-alert-container {
+    min-width: 300px;
+    padding: 1.5rem;
+  }
+
+  .sweet-alert-buttons {
+    flex-direction: column;
+  }
+
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* =================================================================================
+   PÁGINAS DE INFORMACIÓN DE MÓDULOS - Estilos Globales
+   ================================================================================= */
+
+/* Contenedor Principal de Páginas de Información */
+.info-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Header del Módulo */
+.module-header {
+  background: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.module-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.module-icon-large {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #ea8215 0%, #cc9f52 100%);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.module-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #ea8215;
+  margin: 0 0 0.25rem 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.module-subtitle {
+  font-size: 1rem;
+  color: #475569;
+  margin: 0;
+  font-weight: 400;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 2px solid #cc9f52;
+  border-radius: 0.5rem;
+  color: #cc9f52;
+  text-decoration: none;
+  font-weight: 700;
+  transition: 0.25s ease;
+}
+
+.btn-back:hover {
+  background: #cc9f52;
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Contenido Principal */
+.content-container {
+  padding: 1.5rem 3rem;
+}
+
+/* Estadísticas */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon-wrapper {
+  width: 50px;
+  height: 50px;
+  background: rgba(234, 130, 21, 0.1);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea8215;
+  font-size: 1.25rem;
+}
+
+.stat-icon-wrapper.active {
+  background: rgba(108, 202, 152, 0.1);
+  color: #6cca98;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  background: #6cca98;
+  border-radius: 9999px;
+  animation: pulse 2s infinite;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 0.25rem 0;
+  font-weight: 400;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ea8215;
+  margin: 0;
+  line-height: 1;
+}
+
+.stat-value.success {
+  color: #6cca98;
+}
+
+.stat-highlight {
+  font-size: 0.75rem;
+  color: #6cca98;
+  font-weight: 700;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Descripción */
+.description-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ea8215;
+  margin: 0 0 1.5rem 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.description-text {
+  font-size: 1rem;
+  color: #475569;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.description-text:last-child {
+  margin-bottom: 0;
+}
+
+/* Características y Arquitectura */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.features-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ea8215;
+  margin: 0 0 1.5rem 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.feature-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(234, 130, 21, 0.1);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea8215;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.feature-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.feature-description {
+  font-size: 0.875rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* Stack Técnico */
+.tech-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tech-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(234, 130, 21, 0.05);
+  border-radius: 0.5rem;
+  gap: 1rem;
+}
+
+.tech-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(234, 130, 21, 0.1);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea8215;
+}
+
+.tech-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.tech-description {
+  font-size: 0.875rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* Nuevas Funcionalidades */
+.new-features-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 3rem;
+}
+
+.new-features-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.badge-new {
+  background: #6cca98;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.new-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.new-feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  transition: 0.25s ease;
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.new-feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.feature-primary {
+  background: rgba(234, 130, 21, 0.1);
+  border-color: #ea8215;
+}
+
+.feature-primary:hover {
+  background: rgba(234, 130, 21, 0.15);
+}
+
+.feature-warning {
+  background: rgba(255, 183, 0, 0.1);
+  border-color: #ffb700;
+}
+
+.feature-info {
+  background: rgba(0, 154, 222, 0.1);
+  border-color: #009ade;
+}
+
+.feature-success {
+  background: rgba(108, 202, 152, 0.1);
+  border-color: #6cca98;
+}
+
+.feature-badge {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background: #ea8215;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.feature-icon-new {
+  width: 50px;
+  height: 50px;
+  background: rgba(234, 130, 21, 0.2);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea8215;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.feature-content-new {
+  text-align: center;
+}
+
+.feature-title-new {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.feature-desc-new {
+  font-size: 0.875rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* Sección Actualizada */
+.updated-section {
+  padding-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+.updated-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.updated-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #ea8215;
+  margin: 0;
+}
+
+.badge-updated {
+  background: #ea8215;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.updated-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.updated-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(234, 130, 21, 0.1);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: 0.25s ease;
+  position: relative;
+  gap: 1rem;
+}
+
+.updated-card:hover {
+  background: rgba(234, 130, 21, 0.15);
+  transform: translateY(-1px);
+}
+
+.updated-badge {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background: #ea8215;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.updated-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(234, 130, 21, 0.2);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea8215;
+}
+
+.updated-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.updated-card-desc {
+  font-size: 0.875rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* Acciones Rápidas */
+.quick-actions-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.quick-action-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(234, 130, 21, 0.05);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: 0.25s ease;
+  gap: 1rem;
+}
+
+.quick-action-item:hover {
+  background: rgba(234, 130, 21, 0.1);
+  transform: translateY(-1px);
+}
+
+.quick-action-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(234, 130, 21, 0.2);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea8215;
+}
+
+.quick-action-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.quick-action-desc {
+  font-size: 0.875rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* Responsive Design para Páginas de Información */
+@media (max-width: 768px) {
+  .content-container {
+    padding: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .module-title {
+    font-size: 2rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .module-icon-large {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .module-title {
+    font-size: 1.75rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+}
+
+/* =================================================================================
+   CARRUSEL DE IMÁGENES - Estilos Globales
+   ================================================================================= */
+
+/* Contenedor principal del carrusel */
+.carousel-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+  border: 1px solid rgba(234, 130, 21, 0.1);
+}
+
+.carousel-container {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.carousel-wrapper {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.carousel-image {
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.carousel-image:hover {
+  transform: scale(1.02);
+}
+
+.carousel-caption {
+  text-align: center;
+  margin-top: 1.5rem;
+  max-width: 500px;
+}
+
+.carousel-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ea8215;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-description {
+  font-size: 1rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Botones de navegación */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #ea8215;
+  color: #ea8215;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.carousel-btn:hover:not(:disabled) {
+  background: #ea8215;
+  color: white;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 16px rgba(234, 130, 21, 0.3);
+}
+
+.carousel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #cbd5e1;
+  color: #94a3b8;
+}
+
+.carousel-btn-prev {
+  left: 1rem;
+}
+
+.carousel-btn-next {
+  right: 1rem;
+}
+
+/* Indicadores */
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.carousel-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.carousel-indicator:hover {
+  background: rgba(234, 130, 21, 0.6);
+  border-color: #ea8215;
+  transform: scale(1.2);
+}
+
+.carousel-indicator.active {
+  background: #ea8215;
+  border-color: white;
+  transform: scale(1.3);
+  box-shadow: 0 2px 8px rgba(234, 130, 21, 0.4);
+}
+
+/* Responsividad del carrusel */
+@media (max-width: 768px) {
+  .carousel-card {
+    padding: 1rem;
+    margin: 0 1rem 2rem;
+  }
+
+  .carousel-slide {
+    padding: 1rem;
+  }
+
+  .carousel-image {
+    height: 200px;
+  }
+
+  .carousel-title {
+    font-size: 1.25rem;
+  }
+
+  .carousel-description {
+    font-size: 0.9rem;
+  }
+
+  .carousel-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .carousel-btn-prev {
+    left: 0.5rem;
+  }
+
+  .carousel-btn-next {
+    right: 0.5rem;
+  }
+
+  .carousel-indicator {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-container {
+    border-radius: 8px;
+  }
+
+  .carousel-image {
+    height: 150px;
+  }
+
+  .carousel-title {
+    font-size: 1.1rem;
+  }
+
+  .carousel-description {
+    font-size: 0.85rem;
+  }
+}
+
+/* =================================================================================
+   MUNICIPAL COMPONENT CLASSES - Componentes específicos
+   ================================================================================= */
+
+/* Header Municipal */
+.municipal-header {
+  background: var(--gradient-municipal);
+  color: white;
+  border-bottom: 3px solid var(--municipal-secondary);
+  box-shadow: var(--shadow-lg);
+}
+
+.municipal-header h1,
+.municipal-header h2,
+.municipal-header h3 {
+  color: white;
+  margin: 0;
+}
+
+/* Controls Municipal */
+.municipal-controls {
+  background: white;
+  border-bottom: 1px solid var(--slate-200);
+}
+
+/* Cards Municipal */
+.municipal-card {
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.municipal-card-header {
+  background: var(--gradient-municipal);
+  color: white;
+  padding: 1rem;
+  border-bottom: 1px solid var(--slate-200);
+}
+
+.municipal-card-header h5,
+.municipal-card-header h6 {
+  color: white;
+  margin: 0;
+}
+
+.municipal-card-body {
+  padding: 1.5rem;
+}
+
+.municipal-card-footer {
+  background: var(--slate-50);
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--slate-200);
+}
+
+/* Form Controls Municipal */
+.municipal-form-control {
+  border: 2px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.municipal-form-control:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
+  outline: none;
+}
+
+.municipal-form-select {
+  border: 2px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.municipal-form-select:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
+  outline: none;
+}
+
+.municipal-form-plaintext {
+  padding: 0.75rem 0;
+  font-weight: 500;
+  color: var(--slate-700);
+  background: var(--slate-50);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+}
+
+/* Tables Municipal */
+.municipal-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.municipal-table-header {
+  background: var(--gradient-municipal);
+  color: white;
+}
+
+.municipal-table-header th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  border: none;
+}
+
+.municipal-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--slate-200);
+  vertical-align: top;
+}
+
+.municipal-table tbody tr:hover {
+  background: var(--slate-50);
+}
+
+/* Buttons Municipal */
+.btn-municipal-primary {
+  background: var(--gradient-municipal);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-municipal-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  opacity: 0.9;
+}
+
+.btn-municipal-secondary {
+  background: var(--municipal-secondary);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-municipal-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  opacity: 0.9;
+}
+
+.btn-municipal-white {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.btn-municipal-white:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-municipal-info {
+  background: var(--municipal-info);
+  border: none;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-municipal-info:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* =================================================================================
+   DARK MODE SUPPORT - Con tema municipal
+   ================================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --slate-50: #0f172a;
+    --slate-100: #1e293b;
+    --slate-200: #334155;
+  }
+
+  body {
+    background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
+    color: var(--slate-200);
+  }
+}

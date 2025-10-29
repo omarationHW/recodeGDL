@@ -20,7 +20,12 @@
       "Bash(do echo \"$file:\")",
       "Bash(python:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Proyecto RefactorX Guadalajara\n\n- Sistema de gestion municipal completo\n- Backend Laravel con APIs REST\n- Frontend Vue.js con componentes modulares\n- 8 modulos principales implementados\n- Documentacion de menus generada\n- Scripts de base de datos PostgreSQL\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

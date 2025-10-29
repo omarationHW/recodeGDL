@@ -1,0 +1,719 @@
+/* ====================================
+   🏛️ SISTEMA MUNICIPAL GUADALAJARA
+   Diseño profesional y conservador
+   ==================================== */
+
+:root {
+  /* 🎨 Colores Oficiales de Gobierno - Principales */
+  --gov-primary-gold: #cc9f52;     /* Pantone 7407 C - R: 204, G: 158, B: 82 */
+  --gov-primary-orange: #ea8215;   /* Pantone 151 C - R: 234, G: 130, B: 21 */
+  
+  /* 🌈 Colores Complementarios de Gobierno */
+  --gov-yellow: #ffb700;           /* Pantone 7549 C - R: 255, G: 183, B: 0 */
+  --gov-peach: #ff9d6c;            /* Pantone 163 C - R: 255, G: 157, B: 108 */
+  --gov-pink: #e96cb0;             /* Pantone 218 C - R: 233, G: 108, B: 176 */
+  --gov-purple: #9264cc;           /* Pantone 265 C - R: 146, G: 100, B: 204 */
+  --gov-blue: #009ade;             /* Pantone 2925 C - R: 0, G: 154, B: 222 */
+  --gov-green: #6cca98;            /* Pantone 346 C - R: 108, G: 202, B: 152 */
+  --gov-gray: #808080;             /* Negro 50% - R: 128, G: 128, B: 128 */
+  
+  /* 🏛️ Variables de Uso Municipal (basadas en colores oficiales) */
+  --municipal-primary: var(--gov-primary-orange);
+  --municipal-secondary: var(--gov-primary-gold);
+  --municipal-accent: var(--gov-blue);
+  --municipal-success: var(--gov-green);
+  --municipal-warning: var(--gov-yellow);
+  --municipal-info: var(--gov-blue);
+  --municipal-danger: var(--gov-pink)
+  
+  /* Paleta de Grises Profesional */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  
+  /* Gradientes Simples */
+  --gradient-municipal: linear-gradient(135deg, var(--municipal-blue) 0%, var(--municipal-blue-light) 100%);
+  --gradient-guadalajara: linear-gradient(135deg, var(--gdl-red) 0%, var(--gdl-gold) 100%);
+  
+  /* Sombras Sutiles */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* 📏 Espaciado */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  
+  /* 🔤 Tipografía Oficial de Gobierno */
+  --font-municipal: 'Seravek', 'Segoe UI', 'Arial', sans-serif;
+  --font-heading: 'Seravek', 'Segoe UI', 'Arial', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Monaco', monospace;
+  
+  /* Pesos tipográficos oficiales */
+  --font-weight-extralight: 200;  /* Seravek Extra Light */
+  --font-weight-regular: 400;     /* Seravek Regular */
+  --font-weight-bold: 700;        /* Seravek Bold */
+  
+  /* 📐 Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  /* ⏱️ Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+  --transition-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* 🌐 Global Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-municipal);
+  font-weight: var(--font-weight-regular);
+  background: linear-gradient(135deg, var(--slate-50) 0%, #ffffff 100%);
+  color: var(--slate-700);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* 🎨 Utilities Classes */
+.gradient-municipal { background: var(--gradient-municipal); }
+.gradient-guadalajara { background: var(--gradient-guadalajara); }
+.gradient-leon { background: var(--gradient-leon); }
+.gradient-success { background: var(--gradient-success); }
+.gradient-glass { background: var(--gradient-glass); }
+
+.shadow-municipal { box-shadow: var(--shadow-municipal); }
+.shadow-guadalajara { box-shadow: var(--shadow-guadalajara); }
+.shadow-glass { box-shadow: var(--shadow-glass); }
+.shadow-elevation { box-shadow: var(--shadow-elevation); }
+
+/* 🔥 Efectos Especiales */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+}
+
+.hover-lift {
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elevation);
+}
+
+.glow-municipal {
+  box-shadow: 0 0 20px rgba(0, 51, 102, 0.5);
+}
+
+.glow-guadalajara {
+  box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+}
+
+/* 🎯 Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* 🖱️ Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--slate-100);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-municipal);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-normal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-guadalajara);
+}
+
+/* 🔘 Selection Styling */
+::selection {
+  background: var(--gdl-gold);
+  color: var(--municipal-blue-dark);
+}
+
+::-moz-selection {
+  background: var(--gdl-gold);
+  color: var(--municipal-blue-dark);
+}
+
+/* 📱 Responsive Utilities */
+@media (max-width: 768px) {
+  :root {
+    --space-sm: 0.375rem;
+    --space-md: 0.75rem;
+    --space-lg: 1rem;
+    --space-xl: 1.5rem;
+    --space-2xl: 2rem;
+  }
+}
+
+/* 🌙 Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --slate-50: #0f172a;
+    --slate-100: #1e293b;
+    --slate-200: #334155;
+  }
+
+  body {
+    background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
+    color: var(--slate-200);
+  }
+}
+
+/* ====================================
+   🏛️ MUNICIPAL COMPONENT CLASSES
+   Global styles for all components
+   ==================================== */
+
+/* 📄 Municipal Forms */
+.municipal-form-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md);
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.municipal-form-container {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-xl);
+}
+
+/* 🎯 Municipal Headers */
+.municipal-header {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: #ffffff;
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  margin-bottom: var(--space-lg);
+  text-align: center;
+  font-weight: var(--font-weight-bold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.municipal-header h1,
+.municipal-header h2,
+.municipal-header h3 {
+  margin: 0;
+  color: inherit;
+}
+
+/* 🔘 Municipal Buttons */
+.btn-municipal-primary {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-lg);
+  font-weight: var(--font-weight-bold);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-municipal-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+  color: #ffffff;
+}
+
+.btn-municipal-secondary {
+  background: linear-gradient(135deg, var(--slate-500) 0%, var(--slate-600) 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-lg);
+  font-weight: var(--font-weight-bold);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-municipal-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.1);
+  color: #ffffff;
+}
+
+/* 👥 Municipal Button Groups */
+.municipal-group-btn {
+  display: inline-flex;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+}
+
+.municipal-group-btn .btn {
+  border-radius: 0;
+  border: none;
+  border-right: 1px solid var(--slate-200);
+  margin: 0;
+  background: #ffffff;
+  color: var(--slate-700);
+  transition: all var(--transition-normal);
+}
+
+.municipal-group-btn .btn:last-child {
+  border-right: none;
+}
+
+.municipal-group-btn .btn:hover {
+  background: var(--municipal-primary);
+  color: #ffffff;
+}
+
+.municipal-group-btn .btn.active {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: #ffffff;
+  font-weight: var(--font-weight-bold);
+}
+
+/* 📊 Municipal Tables */
+.municipal-table {
+  border: none;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+}
+
+.municipal-table-header {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: #ffffff;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.025em;
+}
+
+.municipal-table-header th {
+  border: none;
+  padding: var(--space-md) var(--space-lg);
+  text-align: center;
+}
+
+.municipal-table tbody tr {
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.municipal-table tbody tr:hover {
+  background-color: var(--slate-50);
+  transform: scale(1.005);
+}
+
+.municipal-table tbody td {
+  border: none;
+  padding: var(--space-md) var(--space-lg);
+  vertical-align: middle;
+}
+
+.municipal-selected {
+  background-color: rgba(234, 130, 21, 0.1) !important;
+  color: var(--municipal-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+/* 💳 Municipal Cards */
+.municipal-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: none;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.municipal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.municipal-card-header {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: #ffffff;
+  padding: var(--space-lg);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.municipal-card-body {
+  padding: var(--space-lg);
+}
+
+.municipal-card-footer {
+  background: var(--slate-50);
+  border-top: 1px solid var(--slate-200);
+  padding: var(--space-md) var(--space-lg);
+}
+
+/* 🏷️ Municipal Badges */
+.municipal-badge {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.municipal-badge-success {
+  background: linear-gradient(135deg, var(--municipal-success) 0%, #5fb471 100%);
+}
+
+.municipal-badge-warning {
+  background: linear-gradient(135deg, var(--municipal-warning) 0%, #e69d00 100%);
+}
+
+.municipal-badge-danger {
+  background: linear-gradient(135deg, var(--municipal-danger) 0%, #d4236a 100%);
+}
+
+.municipal-badge-info {
+  background: linear-gradient(135deg, var(--municipal-info) 0%, #007ab8 100%);
+}
+
+/* 📝 Municipal Forms */
+.municipal-form-control {
+  border: 2px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  transition: all var(--transition-normal);
+  background: #ffffff;
+  font-family: var(--font-municipal);
+}
+
+.municipal-form-control:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 0.2rem rgba(234, 130, 21, 0.25);
+  outline: none;
+}
+
+.municipal-form-label {
+  font-weight: var(--font-weight-bold);
+  color: var(--slate-700);
+  margin-bottom: var(--space-xs);
+}
+
+/* 🔍 Municipal Search Tables */
+.municipal-search-table {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+}
+
+.municipal-search-table .table {
+  margin: 0;
+  border: none;
+}
+
+.municipal-search-table .table thead th {
+  background: var(--slate-100);
+  color: var(--slate-700);
+  font-weight: var(--font-weight-bold);
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.municipal-search-table .table tbody tr {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.municipal-search-table .table tbody tr:hover {
+  background-color: var(--slate-50);
+}
+
+.municipal-search-table .table tbody td {
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* 🚨 Municipal Alerts */
+.municipal-alert-success {
+  background: linear-gradient(135deg, rgba(108, 202, 152, 0.1) 0%, rgba(95, 180, 113, 0.1) 100%);
+  border-left: 4px solid var(--municipal-success);
+  color: var(--slate-700);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.municipal-alert-danger {
+  background: linear-gradient(135deg, rgba(233, 108, 176, 0.1) 0%, rgba(212, 35, 106, 0.1) 100%);
+  border-left: 4px solid var(--municipal-danger);
+  color: var(--slate-700);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.municipal-alert-warning {
+  background: linear-gradient(135deg, rgba(255, 183, 0, 0.1) 0%, rgba(230, 157, 0, 0.1) 100%);
+  border-left: 4px solid var(--municipal-warning);
+  color: var(--slate-700);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.municipal-alert-info {
+  background: linear-gradient(135deg, rgba(0, 154, 222, 0.1) 0%, rgba(0, 122, 184, 0.1) 100%);
+  border-left: 4px solid var(--municipal-info);
+  color: var(--slate-700);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+/* 🌐 Municipal Navigation */
+.municipal-breadcrumb {
+  background: var(--slate-50);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.municipal-breadcrumb .breadcrumb-item a {
+  color: var(--municipal-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-regular);
+}
+
+.municipal-breadcrumb .breadcrumb-item a:hover {
+  color: var(--municipal-secondary);
+  text-decoration: underline;
+}
+
+.municipal-breadcrumb .breadcrumb-item.active {
+  color: var(--slate-600);
+  font-weight: var(--font-weight-bold);
+}
+
+/* 📱 Municipal Modal */
+.municipal-modal-header {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  color: #ffffff;
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.municipal-modal-header .modal-title {
+  font-weight: var(--font-weight-bold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.municipal-modal-header .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.municipal-modal-header .btn-close:hover {
+  opacity: 1;
+}
+
+.municipal-modal-body {
+  padding: var(--space-xl);
+}
+
+.municipal-modal-footer {
+  background: var(--slate-50);
+  border-top: 1px solid var(--slate-200);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-md) var(--space-xl);
+}
+
+/* ⏳ Municipal Loading */
+.municipal-loading {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--municipal-primary);
+}
+
+.municipal-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--slate-200);
+  border-top: 3px solid var(--municipal-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 📄 Municipal Pagination */
+.municipal-pagination .page-link {
+  color: var(--municipal-primary);
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  padding: var(--space-sm) var(--space-md);
+  transition: all var(--transition-normal);
+}
+
+.municipal-pagination .page-link:hover {
+  color: #ffffff;
+  background: var(--municipal-primary);
+  border-color: var(--municipal-primary);
+}
+
+.municipal-pagination .page-item.active .page-link {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, var(--municipal-secondary) 100%);
+  border-color: var(--municipal-primary);
+}
+
+/* 🎨 Municipal Layout Utilities */
+.municipal-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.municipal-section {
+  margin-bottom: var(--space-2xl);
+}
+
+.municipal-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--slate-200), transparent);
+  margin: var(--space-xl) 0;
+  border: none;
+}
+
+/* 📊 Municipal Data Visualization */
+.municipal-stat-card {
+  background: linear-gradient(135deg, var(--slate-50) 0%, #ffffff 100%);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+  transition: all var(--transition-normal);
+}
+
+.municipal-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--municipal-primary);
+}
+
+.municipal-stat-number {
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--municipal-primary);
+  line-height: 1;
+  margin-bottom: var(--space-xs);
+}
+
+.municipal-stat-label {
+  font-size: 0.875rem;
+  color: var(--slate-600);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  font-weight: var(--font-weight-bold);
+}

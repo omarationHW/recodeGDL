@@ -1,0 +1,454 @@
+<template>
+  <div class="module-view">
+    <!-- HEADER -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="tags" />
+      </div>
+      <div class="module-view-info">
+        <h1>Cat�logo de Categor�as de Locales</h1>
+        <p>Mercados - Gesti�n de categor�as para clasificaci�n de locales</p>
+      </div>
+      <button class="btn-help-icon" @click="mostrarAyuda" type="button">
+        <font-awesome-icon icon="question-circle" /> Ayuda
+      </button>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="municipal-card">
+      <div >
+        <div class="form-row">
+          <button
+            type="button"
+            class="btn-municipal-success"
+            @click="nuevaCategoria"
+            :disabled="cargando"
+          >
+            <font-awesome-icon icon="plus" /> Nueva Categor�a
+          </button>
+
+          <button
+            type="button"
+            class="btn-municipal-info"
+            @click="exportarExcel"
+            :disabled="cargando || categorias.length === 0"
+          >
+            <font-awesome-icon icon="file-excel" /> Exportar Excel
+          </button>
+
+          <button
+            type="button"
+            class="btn-municipal-primary"
+            @click="cargarDatos"
+            :disabled="cargando"
+          >
+            <font-awesome-icon icon="sync-alt" /> Actualizar
+          </button>
+        </div>
+        </div>
+    </div>
+
+    <!-- ESTAD�STICAS -->
+    <div v-if="categorias.length > 0" class="municipal-card">
+      <div class="stats-dashboard">
+        <div class="stat-item stat-primary">
+          <div class="stat-value">{{ categorias.length }}</div>
+          <div class="stat-label">Total Categor�as</div>
+          <div class="stat-sublabel">Registradas</div>
+        </div>
+
+        <div class="stat-item stat-success">
+          <div class="stat-value">{{ categoriasVigentes }}</div>
+          <div class="stat-label">Categor�as Vigentes</div>
+          <div class="stat-sublabel">Activas</div>
+        </div>
+
+        <div class="stat-item stat-danger">
+          <div class="stat-value">{{ categoriasBaja }}</div>
+          <div class="stat-label">Categor�as de Baja</div>
+          <div class="stat-sublabel">Inactivas</div>
+        </div>
+      </div>
+        </div>
+
+    <!-- TABLA DE CATEGOR�AS -->
+    <div v-if="categorias.length > 0" class="municipal-card">
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="table" /> Listado de Categor�as
+      </h5></div>
+
+      <div class="municipal-table">
+        <table class="municipal-table">
+          <thead>
+            <tr>
+              <th class="text-center">#</th>
+              <th class="text-center">Clave</th>
+              <th>Descripci�n</th>
+              <th class="text-center">Vigencia</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in categorias" :key="item.id_categoria">
+              <td class="text-center">{{ index + 1 }}</td>
+              <td class="text-center">
+                <span class="badge-info">{{ item.cve_categoria }}</span>
+              </td>
+              <td>{{ item.descripcion }}</td>
+              <td class="text-center">
+                <span class="badge" :class="item.vigencia === 'V' ? 'badge-success' : 'badge-danger'">
+                  {{ item.vigencia === 'V' ? 'Vigente' : 'Baja' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button
+                  type="button"
+                  class="btn-icon btn-warning"
+                  @click="editarCategoria(item)"
+                  title="Editar"
+                >
+                  <font-awesome-icon icon="edit" />
+                </button>
+                <button
+                  type="button"
+                  class="btn-icon btn-danger"
+                  @click="eliminarCategoria(item)"
+                  title="Eliminar"
+                >
+                  <font-awesome-icon icon="trash" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+        </div>
+
+    <!-- SIN DATOS -->
+    <div v-else-if="!cargando" class="municipal-card">
+      <div class="alert alert-info">
+        <font-awesome-icon icon="info-circle" />
+        No hay categor�as registradas en el sistema.
+      </div>
+        </div>
+
+    <!-- MODAL FORMULARIO -->
+    <div v-if="mostrarFormulario" class="modal-overlay" @click.self="cerrarFormulario">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>
+            <font-awesome-icon :icon="modoEdicion ? 'edit' : 'plus'" />
+            {{ modoEdicion ? 'Editar' : 'Nueva' }} Categor�a
+          </h2>
+          <button type="button" class="btn-close" @click="cerrarFormulario">&times;</button>
+        </div>
+
+        <form @submit.prevent="guardarCategoria" >
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cve-categoria" class="municipal-form-label required">Clave de Categor�a:</label>
+                <input
+                  type="number"
+                  v-model.number="formulario.cve_categoria"
+                  id="cve-categoria"
+                  class="municipal-form-control"
+                  required
+                  :disabled="guardando || modoEdicion"
+                  min="1"
+                  placeholder="Ej: 1"
+                />
+                <small v-if="modoEdicion" class="form-text text-muted">
+                  La clave no se puede modificar
+                </small>
+              </div>
+        </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="descripcion" class="municipal-form-label required">Descripci�n:</label>
+                <input
+                  type="text"
+                  v-model="formulario.descripcion"
+                  id="descripcion"
+                  class="municipal-form-control"
+                  required
+                  :disabled="guardando"
+                  maxlength="100"
+                  placeholder="Descripci�n de la categor�a"
+                />
+              </div>
+        </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="vigencia" class="municipal-form-label required">Vigencia:</label>
+                <select
+                  v-model="formulario.vigencia"
+                  id="vigencia"
+                  class="municipal-form-control"
+                  required
+                  :disabled="guardando"
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="V">Vigente</option>
+                  <option value="B">Baja</option>
+                </select>
+              </div>
+        </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-municipal-secondary"
+              @click="cerrarFormulario"
+              :disabled="guardando"
+            >
+              <font-awesome-icon icon="times" /> Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn-municipal-success"
+              :disabled="guardando"
+            >
+              <font-awesome-icon icon="save" /> Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+        </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from '@/composables/useToast'
+import Swal from 'sweetalert2'
+import * as XLSX from 'xlsx'
+
+const { execute } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
+
+// Estado
+const cargando = ref(false)
+const guardando = ref(false)
+const mostrarFormulario = ref(false)
+const modoEdicion = ref(false)
+const categorias = ref([])
+
+// Formulario
+const formulario = ref({
+  id_categoria: null,
+  cve_categoria: '',
+  descripcion: '',
+  vigencia: 'V'
+})
+
+// Computed
+const categoriasVigentes = computed(() => {
+  return categorias.value.filter(c => c.vigencia === 'V').length
+})
+
+const categoriasBaja = computed(() => {
+  return categorias.value.filter(c => c.vigencia === 'B').length
+})
+
+// Cargar datos al montar
+onMounted(() => {
+  cargarDatos()
+})
+
+// Cargar categor�as
+async function cargarDatos() {
+  try {
+    cargando.value = true
+    const response = await execute('SP_MERCADOS_CATEGORIAS_LIST', 'mercados', {})
+    categorias.value = response || []
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Nueva categor�a
+function nuevaCategoria() {
+  modoEdicion.value = false
+  formulario.value = {
+    id_categoria: null,
+    cve_categoria: '',
+    descripcion: '',
+    vigencia: 'V'
+  }
+  mostrarFormulario.value = true
+}
+
+// Editar categor�a
+function editarCategoria(categoria) {
+  modoEdicion.value = true
+  formulario.value = {
+    id_categoria: categoria.id_categoria,
+    cve_categoria: categoria.cve_categoria,
+    descripcion: categoria.descripcion,
+    vigencia: categoria.vigencia
+  }
+  mostrarFormulario.value = true
+}
+
+// Guardar categor�a
+async function guardarCategoria() {
+  try {
+    guardando.value = true
+
+    if (modoEdicion.value) {
+      await execute('SP_MERCADOS_CATEGORIAS_UPDATE', 'mercados', {
+        p_id_categoria: formulario.value.id_categoria,
+        p_descripcion: formulario.value.descripcion,
+        p_vigencia: formulario.value.vigencia
+      })
+      showToast('Categor�a actualizada correctamente', 'success')
+    } else {
+      await execute('SP_MERCADOS_CATEGORIAS_CREATE', 'mercados', {
+        p_cve_categoria: formulario.value.cve_categoria,
+        p_descripcion: formulario.value.descripcion,
+        p_vigencia: formulario.value.vigencia
+      })
+      showToast('Categor�a creada correctamente', 'success')
+    }
+
+    cerrarFormulario()
+    await cargarDatos()
+
+  } catch (error) {
+    handleError(error)
+  } finally {
+    guardando.value = false
+  }
+}
+
+// Eliminar categor�a
+async function eliminarCategoria(categoria) {
+  const result = await Swal.fire({
+    title: '�Eliminar categor�a?',
+    html: `�Est� seguro de eliminar la categor�a:<br>
+           <strong>${categoria.cve_categoria} - ${categoria.descripcion}</strong>?<br><br>
+           <small class="text-danger">Esta acci�n no se puede deshacer y fallar� si hay locales asociados.</small>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'S�, eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d33'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await execute('SP_MERCADOS_CATEGORIAS_DELETE', 'mercados', {
+        p_id_categoria: categoria.id_categoria
+      })
+      showToast('Categor�a eliminada correctamente', 'success')
+      await cargarDatos()
+    } catch (error) {
+      handleError(error)
+    }
+  }
+}
+
+// Cerrar formulario
+function cerrarFormulario() {
+  mostrarFormulario.value = false
+  modoEdicion.value = false
+}
+
+// Exportar a Excel
+function exportarExcel() {
+  try {
+    const datos = categorias.value.map((item, idx) => ({
+      '#': idx + 1,
+      'Clave': item.cve_categoria,
+      'Descripci�n': item.descripcion,
+      'Vigencia': item.vigencia === 'V' ? 'Vigente' : 'Baja'
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(datos)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Categor�as')
+
+    const nombreArchivo = `Categorias_Locales_${new Date().toISOString().split('T')[0]}.xlsx`
+
+    XLSX.writeFile(wb, nombreArchivo)
+    showToast('Archivo Excel generado correctamente', 'success')
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+// Mostrar ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Cat�logo de Categor�as',
+    html: `
+      <div class="help-content" style="text-align: left;">
+        <h3>Descripci�n</h3>
+        <p>Este m�dulo permite gestionar el cat�logo de categor�as para la clasificaci�n de locales en los mercados.</p>
+
+        <h3>�Qu� son las Categor�as?</h3>
+        <p>Las categor�as son clasificaciones que se asignan a los locales dentro de los mercados. Pueden basarse en:</p>
+        <ul>
+          <li>Tipo de giro comercial</li>
+          <li>Tama�o o dimensiones del local</li>
+          <li>Ubicaci�n dentro del mercado</li>
+          <li>Servicios disponibles</li>
+          <li>Nivel de cuotas aplicables</li>
+        </ul>
+
+        <h3>Gesti�n de Categor�as</h3>
+        <ul>
+          <li><strong>Nueva Categor�a:</strong> Permite registrar una nueva categor�a con clave �nica</li>
+          <li><strong>Editar:</strong> Modifica la descripci�n y vigencia de una categor�a existente</li>
+          <li><strong>Eliminar:</strong> Elimina una categor�a del sistema (solo si no tiene locales asociados)</li>
+          <li><strong>Actualizar:</strong> Recarga el listado desde la base de datos</li>
+          <li><strong>Exportar Excel:</strong> Descarga el cat�logo completo en formato Excel</li>
+        </ul>
+
+        <h3>Campos de la Categor�a</h3>
+        <ul>
+          <li><strong>Clave:</strong> N�mero �nico identificador de la categor�a (no modificable una vez creado)</li>
+          <li><strong>Descripci�n:</strong> Nombre descriptivo de la categor�a (m�ximo 100 caracteres)</li>
+          <li><strong>Vigencia:</strong> Estado de la categor�a (Vigente/Baja)</li>
+        </ul>
+
+        <h3>Validaciones</h3>
+        <ul>
+          <li>No se pueden crear dos categor�as con la misma clave</li>
+          <li>Al editar, la clave no se puede modificar</li>
+          <li>No se puede eliminar una categor�a que tenga locales asociados</li>
+          <li>La descripci�n es obligatoria</li>
+        </ul>
+
+        <h3>Estad�sticas</h3>
+        <ul>
+          <li><strong>Total Categor�as:</strong> Cantidad total de categor�as registradas</li>
+          <li><strong>Categor�as Vigentes:</strong> Cantidad de categor�as activas</li>
+          <li><strong>Categor�as de Baja:</strong> Cantidad de categor�as inactivas</li>
+        </ul>
+
+        <h3>Notas Importantes</h3>
+        <ul>
+          <li>Las categor�as son utilizadas por los locales para determinar cuotas aplicables</li>
+          <li>Dar de baja una categor�a no elimina los locales asociados, solo impide crear nuevos</li>
+          <li>Se recomienda no eliminar categor�as, sino marcarlas como "Baja"</li>
+        </ul>
+      </div>
+    `,
+    icon: 'info',
+    width: 800,
+    confirmButtonText: 'Entendido'
+  })
+}
+</script>
+
+

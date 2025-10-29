@@ -1,0 +1,598 @@
+<template>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="store" />
+      </div>
+      <div class="module-view-info">
+        <h1>Padrón de Locales</h1>
+        <p>Mercados - Consulta del padrón de locales comerciales por recaudadora</p>
+      </div>
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="mostrarAyuda = true"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+      </button>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="filter" /> Filtros de Búsqueda</h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Recaudadora / Oficina</label>
+              <select
+                class="municipal-form-control"
+                v-model="filtros.oficina"
+                :disabled="cargando"
+              >
+                <option value="">Seleccione una recaudadora...</option>
+                <option
+                  v-for="rec in recaudadoras"
+                  :key="rec.oficina"
+                  :value="rec.oficina"
+                >
+                  {{ rec.oficina }} - {{ rec.nombre_oficina }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado</label>
+              <select
+                class="municipal-form-control"
+                v-model="filtros.mercado"
+                :disabled="!filtros.oficina || cargando"
+              >
+                <option value="">Todos los mercados</option>
+                <option
+                  v-for="merc in mercadosFiltrados"
+                  :key="merc.num_mercado"
+                  :value="merc.num_mercado"
+                >
+                  {{ merc.num_mercado }} - {{ merc.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Búsqueda rápida</label>
+              <input
+                type="text"
+                class="municipal-form-control"
+                v-model="filtros.busqueda"
+                placeholder="Buscar por nombre, local..."
+                :disabled="cargando"
+                @keyup.enter="consultar"
+              />
+            </div>
+        </div>
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="consultar"
+              :disabled="!filtros.oficina || cargando"
+            >
+              <font-awesome-icon :icon="cargando ? 'spinner' : 'search'" :spin="cargando" />
+              Consultar
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="limpiarFiltros"
+              :disabled="cargando"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
+            </button>
+            <button
+              class="btn-municipal-info"
+              @click="exportar"
+              :disabled="locales.length === 0 || cargando"
+            >
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas -->
+      <div v-if="locales.length > 0" class="stats-dashboard mb-4">
+        <div class="stat-item stat-primary">
+          <div class="stat-icon-mini">
+            <font-awesome-icon icon="store" />
+          </div>
+          <div class="stat-details">
+            <div class="stat-value-mini">{{ localesFiltrados.length }}</div>
+            <div class="stat-label-mini">Total Locales</div>
+        </div>
+        </div>
+        <div class="stat-item stat-success">
+          <div class="stat-icon-mini">
+            <font-awesome-icon icon="dollar-sign" />
+          </div>
+          <div class="stat-details">
+            <div class="stat-value-mini">${{ formatCurrency(totalRenta) }}</div>
+            <div class="stat-label-mini">Renta Total Mensual</div>
+        </div>
+        </div>
+        <div class="stat-item stat-info">
+          <div class="stat-icon-mini">
+            <font-awesome-icon icon="calculator" />
+          </div>
+          <div class="stat-details">
+            <div class="stat-value-mini">${{ formatCurrency(promedioRenta) }}</div>
+            <div class="stat-label-mini">Promedio por Local</div>
+        </div>
+        </div>
+        <div class="stat-item stat-warning">
+          <div class="stat-icon-mini">
+            <font-awesome-icon icon="chart-area" />
+          </div>
+          <div class="stat-details">
+            <div class="stat-value-mini">{{ formatNumber(superficieTotal) }} m²</div>
+            <div class="stat-label-mini">Superficie Total</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de resultados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Padrón de Locales
+            <span class="badge bg-primary" v-if="localesFiltrados.length > 0">
+              {{ localesFiltrados.length }} registros
+            </span>
+          </h5>
+          <div v-if="cargando" class="spinner-border spinner-border-sm" role="status"></div>
+        </div>
+
+        <div class="municipal-card-body" v-if="!cargando">
+          <div v-if="localesFiltrados.length === 0" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" />
+            </div>
+            <h4>No hay locales registrados</h4>
+            <p>
+              {{ consultaRealizada
+                ? 'No se encontraron locales con los criterios especificados.'
+                : 'Seleccione una recaudadora y haga clic en Consultar para ver los locales.'
+              }}
+            </p>
+          </div>
+
+          <div v-else class="municipal-table">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Mercado</th>
+                  <th>Cat.</th>
+                  <th>Secc.</th>
+                  <th>Local</th>
+                  <th>Letra</th>
+                  <th>Bloque</th>
+                  <th>Comerciante</th>
+                  <th class="text-end">Superficie (m²)</th>
+                  <th>Cve. Cuota</th>
+                  <th class="text-end">Importe Cuota</th>
+                  <th class="text-end">Renta Mensual</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="local in localesFiltrados" :key="local.id_local" class="row-hover">
+                  <td><code class="text-muted">{{ local.id_local }}</code></td>
+                  <td>
+                    <strong>{{ local.num_mercado }}</strong><br>
+                    <small class="text-muted">{{ local.nombre_mercado }}</small>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge-secondary">{{ local.categoria }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge" :class="getBadgeSeccion(local.seccion)">
+                      {{ local.seccion }}
+                    </span>
+                  </td>
+                  <td class="text-center"><strong>{{ local.num_local }}</strong></td>
+                  <td class="text-center">{{ local.letra_local || '-' }}</td>
+                  <td class="text-center">{{ local.bloque || '-' }}</td>
+                  <td>{{ local.nombre_comerciante || 'Sin asignar' }}</td>
+                  <td class="text-end">{{ formatNumber(local.superficie) }}</td>
+                  <td class="text-center">
+                    <span class="badge-info">{{ local.clave_cuota }}</span><br>
+                    <small class="text-muted">{{ local.descripcion_cuota }}</small>
+                  </td>
+                  <td class="text-end">${{ formatCurrency(local.importe_cuota) }}</td>
+                  <td class="text-end">
+                    <strong class="text-success">${{ formatCurrency(local.renta) }}</strong>
+                    <br>
+                    <small v-if="local.seccion === 'PS'" class="badge bg-warning text-dark">
+                      Pago Semanal × 30
+                    </small>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge" :class="getBadgeVigencia(local.vigencia)">
+                      {{ local.vigencia === 'A' ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="btn-action btn-info"
+                      @click="verDetalle(local)"
+                      title="Ver detalle"
+                    >
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot v-if="localesFiltrados.length > 0">
+                <tr class="municipal-table">
+                  <th colspan="8" class="text-end">TOTALES:</th>
+                  <th class="text-end">{{ formatNumber(superficieTotal) }} m²</th>
+                  <th colspan="2"></th>
+                  <th class="text-end"><strong>${{ formatCurrency(totalRenta) }}</strong></th>
+                  <th colspan="2"></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div v-if="cargando" class="municipal-card-body text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-3">Cargando padrón de locales...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Detalle -->
+    <Modal
+      :show="mostrarDetalle"
+      @close="cerrarDetalle"
+      title="Detalle del Local"
+      size="large"
+    >
+      <div v-if="localSeleccionado" class="detalle-local">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="info-group">
+              <label>ID Local:</label>
+              <span>{{ localSeleccionado.id_local }}</span>
+            </div>
+            <div class="info-group">
+              <label>Oficina:</label>
+              <span>{{ localSeleccionado.oficina }}</span>
+            </div>
+            <div class="info-group">
+              <label>Mercado:</label>
+              <span>{{ localSeleccionado.num_mercado }} - {{ localSeleccionado.nombre_mercado }}</span>
+            </div>
+            <div class="info-group">
+              <label>Categoría:</label>
+              <span>{{ localSeleccionado.categoria }}</span>
+            </div>
+            <div class="info-group">
+              <label>Sección:</label>
+              <span class="badge" :class="getBadgeSeccion(localSeleccionado.seccion)">
+                {{ localSeleccionado.seccion }}
+              </span>
+            </div>
+            <div class="info-group">
+              <label>Local:</label>
+              <span>{{ localSeleccionado.num_local }} {{ localSeleccionado.letra_local }} {{ localSeleccionado.bloque }}</span>
+            </div>
+        </div>
+          <div class="col-md-6">
+            <div class="info-group">
+              <label>Comerciante:</label>
+              <span>{{ localSeleccionado.nombre_comerciante || 'Sin asignar' }}</span>
+            </div>
+            <div class="info-group">
+              <label>Superficie:</label>
+              <span>{{ formatNumber(localSeleccionado.superficie) }} m²</span>
+            </div>
+            <div class="info-group">
+              <label>Clave de Cuota:</label>
+              <span>{{ localSeleccionado.clave_cuota }} - {{ localSeleccionado.descripcion_cuota }}</span>
+            </div>
+            <div class="info-group">
+              <label>Importe de Cuota:</label>
+              <span>${{ formatCurrency(localSeleccionado.importe_cuota) }}</span>
+            </div>
+            <div class="info-group">
+              <label>Renta Mensual:</label>
+              <span class="text-success"><strong>${{ formatCurrency(localSeleccionado.renta) }}</strong></span>
+              <small v-if="localSeleccionado.seccion === 'PS'" class="d-block text-muted">
+                * Pago semanal × 30 días
+              </small>
+            </div>
+            <div class="info-group">
+              <label>Estado:</label>
+              <span class="badge" :class="getBadgeVigencia(localSeleccionado.vigencia)">
+                {{ localSeleccionado.vigencia === 'A' ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cálculo de Renta -->
+        <div class="alert alert-info mt-3">
+          <h6><font-awesome-icon icon="calculator" /> Cálculo de Renta</h6>
+          <p v-if="localSeleccionado.seccion === 'PS'">
+            <strong>Fórmula (Pago Semanal):</strong><br>
+            Renta = Superficie × Importe Cuota × 30<br>
+            Renta = {{ formatNumber(localSeleccionado.superficie) }} m² × ${{ formatCurrency(localSeleccionado.importe_cuota) }} × 30 = ${{ formatCurrency(localSeleccionado.renta) }}
+          </p>
+          <p v-else>
+            <strong>Fórmula:</strong><br>
+            Renta = Superficie × Importe Cuota<br>
+            Renta = {{ formatNumber(localSeleccionado.superficie) }} m² × ${{ formatCurrency(localSeleccionado.importe_cuota) }} = ${{ formatCurrency(localSeleccionado.renta) }}
+          </p>
+        </div>
+        </div>
+
+      <template #footer>
+        <button class="btn-municipal-secondary" @click="cerrarDetalle">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </template>
+    </Modal>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      v-if="mostrarAyuda"
+      :show="mostrarAyuda"
+      @close="mostrarAyuda = false"
+      title="Ayuda - Padrón de Locales"
+    >
+      <h6>Descripción</h6>
+      <p>
+        Este módulo permite consultar el padrón completo de locales comerciales registrados en los mercados municipales,
+        agrupados por recaudadora/oficina.
+      </p>
+
+      <h6>Información Incluida</h6>
+      <ul>
+        <li>Datos de ubicación: Mercado, categoría, sección, número de local</li>
+        <li>Datos del comerciante asignado</li>
+        <li>Superficie del local en metros cuadrados</li>
+        <li>Clave y descripción de la cuota aplicable</li>
+        <li>Cálculo automático de renta mensual</li>
+        <li>Estado actual del local (Activo/Inactivo)</li>
+      </ul>
+
+      <h6>Cálculo de Renta</h6>
+      <p>La renta mensual se calcula automáticamente según el tipo de sección:</p>
+      <ul>
+        <li><strong>Sección PS (Pago Semanal):</strong> Renta = Superficie × Importe Cuota × 30</li>
+        <li><strong>Otras Secciones:</strong> Renta = Superficie × Importe Cuota</li>
+      </ul>
+
+      <h6>Filtros Disponibles</h6>
+      <ul>
+        <li><strong>Recaudadora:</strong> Selección obligatoria para consultar locales</li>
+        <li><strong>Mercado:</strong> Filtro opcional por mercado específico</li>
+        <li><strong>Búsqueda Rápida:</strong> Busca en nombre de comerciante, número de local, etc.</li>
+      </ul>
+
+      <h6>Acciones</h6>
+      <ul>
+        <li><strong>Consultar:</strong> Ejecuta la búsqueda con los filtros seleccionados</li>
+        <li><strong>Limpiar:</strong> Reinicia todos los filtros</li>
+        <li><strong>Exportar:</strong> Genera archivo Excel con el padrón consultado</li>
+        <li><strong>Ver Detalle:</strong> Muestra información completa del local en modal</li>
+      </ul>
+
+      <h6>Estadísticas</h6>
+      <p>
+        El módulo muestra automáticamente estadísticas generales: total de locales, renta total mensual,
+        promedio de renta por local y superficie total registrada.
+      </p>
+    </DocumentationModal>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from '@/composables/useToast'
+
+const { execute } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
+
+// Estado
+const cargando = ref(false)
+const mostrarAyuda = ref(false)
+const mostrarDetalle = ref(false)
+const consultaRealizada = ref(false)
+
+// Datos
+const recaudadoras = ref([])
+const mercados = ref([])
+const locales = ref([])
+const localSeleccionado = ref(null)
+
+// Filtros
+const filtros = ref({
+  oficina: '',
+  mercado: '',
+  busqueda: ''
+})
+
+// Computed - Mercados filtrados por oficina
+const mercadosFiltrados = computed(() => {
+  if (!filtros.value.oficina) return []
+  return mercados.value.filter(m => m.oficina === filtros.value.oficina)
+})
+
+// Computed - Locales filtrados por búsqueda
+const localesFiltrados = computed(() => {
+  if (!filtros.value.busqueda) return locales.value
+
+  const busqueda = filtros.value.busqueda.toLowerCase()
+  return locales.value.filter(local =>
+    local.nombre_comerciante?.toLowerCase().includes(busqueda) ||
+    local.num_local?.toString().includes(busqueda) ||
+    local.letra_local?.toLowerCase().includes(busqueda) ||
+    local.nombre_mercado?.toLowerCase().includes(busqueda) ||
+    local.seccion?.toLowerCase().includes(busqueda)
+  )
+})
+
+// Computed - Estadísticas
+const superficieTotal = computed(() => {
+  return localesFiltrados.value.reduce((sum, local) => sum + (parseFloat(local.superficie) || 0), 0)
+})
+
+const totalRenta = computed(() => {
+  return localesFiltrados.value.reduce((sum, local) => sum + (parseFloat(local.renta) || 0), 0)
+})
+
+const promedioRenta = computed(() => {
+  return localesFiltrados.value.length > 0 ? totalRenta.value / localesFiltrados.value.length : 0
+})
+
+// Métodos - Cargar datos iniciales
+const cargarRecaudadoras = async () => {
+  try {
+    const response = await execute('SP_MERCADOS_RECAUDADORAS_LIST', 'mercados', {})
+    recaudadoras.value = response || []
+  } catch (error) {
+    handleError(error, 'Error al cargar recaudadoras')
+  }
+}
+
+const cargarMercados = async (oficina) => {
+  try {
+    const response = await execute('SP_MERCADOS_MERCADOS_LIST', 'mercados', {
+      p_oficina: oficina
+    })
+    mercados.value = response || []
+  } catch (error) {
+    handleError(error, 'Error al cargar mercados')
+  }
+}
+
+// Métodos - Consultar
+const consultar = async () => {
+  if (!filtros.value.oficina) {
+    showToast('Seleccione una recaudadora', 'warning')
+    return
+  }
+
+  cargando.value = true
+  consultaRealizada.value = false
+
+  try {
+    // Cargar mercados si no están cargados
+    if (mercados.value.length === 0) {
+      await cargarMercados(filtros.value.oficina)
+    }
+
+    // Consultar padrón
+    const response = await execute('SP_MERCADOS_PADRON_LOCALES_LIST', 'mercados', {
+      p_oficina: parseInt(filtros.value.oficina)
+    })
+
+    locales.value = response || []
+    consultaRealizada.value = true
+
+    // Filtrar por mercado si está seleccionado
+    if (filtros.value.mercado) {
+      locales.value = locales.value.filter(l => l.num_mercado === parseInt(filtros.value.mercado))
+    }
+
+    showToast(`Se encontraron ${locales.value.length} locales`, 'success')
+  } catch (error) {
+    handleError(error, 'Error al consultar padrón de locales')
+    locales.value = []
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Métodos - Limpiar filtros
+const limpiarFiltros = () => {
+  filtros.value = {
+    oficina: '',
+    mercado: '',
+    busqueda: ''
+  }
+  locales.value = []
+  mercados.value = []
+  consultaRealizada.value = false
+}
+
+// Métodos - Ver detalle
+const verDetalle = (local) => {
+  localSeleccionado.value = local
+  mostrarDetalle.value = true
+}
+
+const cerrarDetalle = () => {
+  mostrarDetalle.value = false
+  localSeleccionado.value = null
+}
+
+// Métodos - Exportar
+const exportar = () => {
+  showToast('Función de exportación en desarrollo', 'info')
+  // TODO: Implementar exportación a Excel
+}
+
+// Métodos - Formato
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value || 0)
+}
+
+const formatNumber = (value) => {
+  return new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value || 0)
+}
+
+const getBadgeSeccion = (seccion) => {
+  const badges = {
+    'PS': 'bg-warning text-dark',
+    'A': 'bg-primary',
+    'B': 'bg-info',
+    'C': 'bg-success'
+  }
+  return badges[seccion] || 'bg-secondary'
+}
+
+const getBadgeVigencia = (vigencia) => {
+  return vigencia === 'A' ? 'bg-success' : 'bg-danger'
+}
+
+// Lifecycle
+onMounted(async () => {
+  await cargarRecaudadoras()
+})
+</script>
+
+

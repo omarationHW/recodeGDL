@@ -1,0 +1,241 @@
+<template>
+    <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="database" />
+      </div>
+      <div class="module-view-info">
+        <h1>Detalle de Convenio</h1>
+        <p>M�dulo de Mercados</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+
+    <div v-if="loading" class="text-center p-4">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2">Cargando convenio...</p>
+    </div>
+
+    <div v-else-if="convenio">
+      <div class="municipal-card">
+        <div class="municipal-card-header bg-primary text-white d-flex justify-content-between">
+          <span><i class="fas fa-handshake"></i> Datos del Local Conveniado</span>
+          <button class="btn btn-sm btn-light" @click="$router.back()">
+            <i class="fas fa-arrow-left"></i> Volver
+          </button>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <div class="data-row">
+                <label class="municipal-form-label">Tipo:</label>
+                <span>{{ convenio.descripcion }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">SubTipo:</label>
+                <span>{{ convenio.desc_subtipo }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Nombre:</label>
+                <span>{{ convenio.nombre }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Calle:</label>
+                <span>{{ convenio.calle }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Num. Exterior:</label>
+                <span>{{ convenio.num_exterior }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Num. Interior:</label>
+                <span>{{ convenio.num_interior }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Inciso:</label>
+                <span>{{ convenio.inciso }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Convenio:</label>
+                <span>{{ convenio.convenio }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Vigencia:</label>
+                <span :class="convenio.estado === 'VIGENTE' ? 'text-success' : 'text-danger'">
+                  {{ convenio.estado }}
+                </span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Observaciones:</label>
+                <span>{{ convenio.observaciones }}</span>
+              </div>
+        </div>
+            <div class="form-group">
+              <div class="data-row">
+                <label class="municipal-form-label">Periodos:</label>
+                <span>{{ convenio.periodos }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Pago Total:</label>
+                <span>{{ formatCurrency(convenio.total) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Renta Convenio:</label>
+                <span>{{ formatCurrency(convenio.importe) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Pago Inicial:</label>
+                <span>{{ formatCurrency(convenio.cantidad_inicio) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Pago Parcial:</label>
+                <span>{{ formatCurrency(convenio.pago_parcial) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Pago Final:</label>
+                <span>{{ formatCurrency(convenio.pago_final) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Recargos:</label>
+                <span>{{ formatCurrency(convenio.recargos) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Gastos:</label>
+                <span>{{ formatCurrency(convenio.gastos) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Multa:</label>
+                <span>{{ formatCurrency(convenio.multa) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Pagos:</label>
+                <span>{{ formatCurrency(convenio.total_pagos) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Tipo Pago:</label>
+                <span>{{ convenio.tipodesc }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Fecha Inicio:</label>
+                <span>{{ formatDate(convenio.fecha_inicio) }}</span>
+              </div>
+              <div class="data-row">
+                <label class="municipal-form-label">Fecha Final:</label>
+                <span>{{ formatDate(convenio.fecha_venc) }}</span>
+              </div>
+        </div>
+    </div>
+        </div>
+      </div>
+
+      <div class="municipal-card">
+        <div class="municipal-card-header bg-success text-white">
+          <i class="fas fa-calendar-alt"></i> Parcialidades
+        </div>
+        <div class="municipal-card-body">
+          <div v-if="parciales.length > 0" class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Parcial</th>
+                  <th>Parcialidad</th>
+                  <th>Imp. Adeudo</th>
+                  <th>Periodos</th>
+                  <th>Fecha Pago</th>
+                  <th>Rec. de Pago</th>
+                  <th>Caja de Pago</th>
+                  <th>Oper. de Pago</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in parciales" :key="p.pago_parcial_1">
+                  <td>{{ p.pago_parcial_1 }}</td>
+                  <td>{{ p.descparc }}</td>
+                  <td class="text-end">{{ formatCurrency(p.importe) }}</td>
+                  <td>{{ p.peradeudos }}</td>
+                  <td>{{ formatDate(p.fecha_pago) }}</td>
+                  <td>{{ p.oficina_pago }}</td>
+                  <td>{{ p.caja_pago }}</td>
+                  <td>{{ p.operacion_pago }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="alert alert-info">
+            No hay parcialidades registradas
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="alert alert-warning">
+      No se encontr� el convenio
+    </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const route = useRoute()
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const convenio = ref(null)
+const parciales = ref([])
+const loading = ref(false)
+
+const loadConvenio = async () => {
+  const id_conv = route.params.id_conv || route.query.id_conv
+
+  if (!id_conv) {
+    toast.error('No se especific� el ID del convenio')
+    return
+  }
+
+  loading.value = true
+  try {
+    // Cargar datos generales
+    const result1 = await executeStoredProcedure('SP_MERCADOS_GET_CONVENIO_BY_ID', [id_conv])
+    if (result1 && result1.length > 0) {
+      convenio.value = result1[0]
+    }
+
+    // Cargar parcialidades
+    const result2 = await executeStoredProcedure('SP_MERCADOS_GET_CONVENIO_PARCIALES', [id_conv])
+    parciales.value = result2 || []
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al cargar convenio')
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatCurrency = (value) => {
+  if (value == null) return ''
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value)
+}
+
+const formatDate = (value) => {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('es-MX')
+}
+
+onMounted(() => {
+  loadConvenio()
+})
+</script>
+
+

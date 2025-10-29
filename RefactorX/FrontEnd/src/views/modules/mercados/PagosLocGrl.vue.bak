@@ -1,0 +1,117 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="file-invoice" /></div>
+      <div class="module-view-info"><h1>Pagos de Locales General</h1><p>Reporte de Pagos por Recaudadora y Mercado</p></div>
+        </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="filter" /> Filtros</h5></div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group"><label class="municipal-form-label">Recaudadora *</label>
+              <select class="municipal-form-control" v-model.number="filters.recaudadora" @change="loadMercados">
+                <option value="">Seleccione</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="municipal-form-label">Mercado *</label>
+              <select class="municipal-form-control" v-model.number="filters.mercado">
+                <option value="">Seleccione</option>
+                <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">{{ m.num_mercado_nvo }} - {{ m.descripcion }}</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="municipal-form-label">Fecha Desde *</label><input type="date" class="municipal-form-control" v-model="filters.fecha_desde" /></div>
+            <div class="form-group"><label class="municipal-form-label">Fecha Hasta *</label><input type="date" class="municipal-form-control" v-model="filters.fecha_hasta" /></div>
+          </div>
+          <div class="button-group">
+            <button class="btn-municipal-primary" @click="buscar" :disabled="loading"><font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Generar Reporte</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="municipal-card" v-if="pagos.length > 0">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="list" /> Pagos <span class="badge-info">{{ pagos.length }}</span></h5></div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr><th>Mercado</th><th>Secci�n</th><th>Local</th><th>Letra</th><th>A�o/Per</th><th>Fecha</th><th>Caja</th><th>Oper.</th><th class="text-end">Importe</th><th>Usuario</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="(pago, idx) in pagos" :key="idx" class="row-hover">
+                  <td>{{ pago.num_mercado }}</td>
+                  <td>{{ pago.seccion }}</td>
+                  <td>{{ pago.local }}</td>
+                  <td>{{ pago.letra_local }}</td>
+                  <td>{{ pago.axo }}/{{ pago.periodo }}</td>
+                  <td>{{ formatDate(pago.fecha_pago) }}</td>
+                  <td>{{ pago.caja_pago }}</td>
+                  <td>{{ pago.operacion_pago }}</td>
+                  <td class="text-end"><strong class="text-success">{{ formatCurrency(pago.importe_pago) }}</strong></td>
+                  <td><small>{{ pago.usuario }}</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const loading = ref(false)
+const recaudadoras = ref([])
+const mercados = ref([])
+const pagos = ref([])
+const filters = ref({ recaudadora: '', mercado: '', fecha_desde: '', fecha_hasta: '' })
+
+const formatCurrency = (value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
+const formatDate = (date) => date ? new Date(date).toLocaleDateString('es-MX') : 'N/A'
+
+const loadRecaudadoras = async () => {
+  const result = await executeStoredProcedure('get_recaudadoras', {})
+  if (result.success) recaudadoras.value = result.data || []
+}
+
+const loadMercados = async () => {
+  if (!filters.value.recaudadora) return
+  const result = await executeStoredProcedure('get_mercados_by_recaudadora', { rec_id: filters.value.recaudadora })
+  if (result.success) mercados.value = result.data || []
+}
+
+const buscar = async () => {
+  try {
+    loading.value = true
+    const result = await executeStoredProcedure('get_pagos_loc_grl', {
+      rec_id: filters.value.recaudadora,
+      mercado_id: filters.value.mercado,
+      fecha_desde: filters.value.fecha_desde,
+      fecha_hasta: filters.value.fecha_hasta
+    })
+    if (result.success) {
+      pagos.value = result.data || []
+      toast.success(`${pagos.value.length} pagos encontrados`)
+    } else handleError(result)
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => loadRecaudadoras())
+</script>
+

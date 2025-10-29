@@ -1,0 +1,45 @@
+import { ref } from 'vue'
+import apiService from '@/services/apiService'
+
+export function useApi() {
+  const loading = ref(false)
+  const error = ref(null)
+  const data = ref(null)
+
+  const execute = async (operacion, base, parametros = [], tenant = '') => {
+    loading.value = true
+    error.value = null
+    data.value = null
+
+    try {
+      const response = await apiService.execute(operacion, base, parametros, tenant)
+
+      if (response.success) {
+        data.value = response.data
+        return response.data
+      } else {
+        error.value = response.message
+        throw new Error(response.message)
+      }
+    } catch (err) {
+      error.value = err.message || 'Error desconocido'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const reset = () => {
+    loading.value = false
+    error.value = null
+    data.value = null
+  }
+
+  return {
+    loading,
+    error,
+    data,
+    execute,
+    reset
+  }
+}

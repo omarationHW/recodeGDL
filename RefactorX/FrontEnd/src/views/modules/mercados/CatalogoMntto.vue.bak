@@ -1,0 +1,315 @@
+<template>
+    <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="list" />
+      </div>
+      <div class="module-view-info">
+        <h1>Catálogo de Mercados</h1>
+        <p>Módulo de Mercados</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+
+    <div class="municipal-card">
+      <div class="municipal-card-header">
+        <i class="fas fa-store"></i> {{ editMode ? 'Modificar Mercado' : 'Agregar Mercado' }}
+      </div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="onSubmit">
+          <div class="row g-3">
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina *</label>
+              <select v-model.number="form.oficina" class="municipal-form-control" required :disabled="editMode">
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado *</label>
+              <input type="number" v-model.number="form.num_mercado_nvo" class="municipal-form-control" required :readonly="editMode" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Categoría *</label>
+              <select v-model.number="form.categoria" class="municipal-form-control" required>
+                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                  {{ cat.categoria }} - {{ cat.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Nombre *</label>
+              <input type="text" v-model="form.descripcion" class="municipal-form-control" maxlength="100" required />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Zona *</label>
+              <select v-model="form.zona" class="municipal-form-control" required>
+                <option v-for="zona in zonas" :key="zona.id_zona" :value="zona.id_zona">
+                  {{ zona.id_zona }} - {{ zona.zona }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Cuenta Ingreso *</label>
+              <select v-model="form.cuenta_ingreso" class="municipal-form-control" required>
+                <option v-for="cta in cuentas" :key="cta.cta_aplicacion" :value="cta.cta_aplicacion">
+                  {{ cta.cta_aplicacion }} - {{ cta.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Tipo de Emisión *</label>
+              <select v-model="form.emision" class="municipal-form-control" required>
+                <option value="M">Masiva</option>
+                <option value="D">Diskette</option>
+                <option value="B">Baja</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">¿Cobra Energía Eléctrica? *</label>
+              <select v-model="form.pregunta" class="municipal-form-control" required>
+                <option value="S">Sí</option>
+                <option value="N">No</option>
+              </select>
+            </div>
+            <div class="col-md-6" v-if="form.pregunta === 'S'">
+              <label class="municipal-form-label">Cuenta Energía</label>
+              <select v-model="form.cuenta_energia" class="municipal-form-control">
+                <option v-for="cta in cuentas" :key="cta.cta_aplicacion" :value="cta.cta_aplicacion">
+                  {{ cta.cta_aplicacion }} - {{ cta.descripcion }}
+                </option>
+              </select>
+            </div>
+        </div>
+          <div class="mt-3">
+            <button type="submit" class="btn-municipal-success" :disabled="saving">
+              <i class="fas fa-save"></i> {{ editMode ? 'Actualizar' : 'Agregar' }}
+            </button>
+            <button type="button" class="btn-municipal-secondary ms-2" @click="resetForm">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+        </div>
+
+    <div class="municipal-card">
+      <div class="municipal-card-header d-flex justify-content-between align-items-center">
+        <span>
+          <i class="fas fa-list"></i> Lista de Mercados
+          <span class="badge badge-info ml-2">{{ catalogo.length }} registros</span>
+        </span>
+      </div>
+      <div class="municipal-card-body">
+        <div v-if="loading" class="text-center p-4">
+          <div class="spinner-border text-primary"></div>
+          <p class="mt-2">Cargando catálogo...</p>
+        </div>
+        <div v-else class="municipal-table">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>Oficina</th>
+                <th>Mercado</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Zona</th>
+                <th>Cta. Ingreso</th>
+                <th>Cta. Energía</th>
+                <th>Emisión</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in catalogo" :key="`${item.oficina}-${item.num_mercado_nvo}`">
+                <td>{{ item.oficina }}</td>
+                <td>{{ item.num_mercado_nvo }}</td>
+                <td>{{ item.descripcion }}</td>
+                <td>{{ item.categoria }}</td>
+                <td>{{ item.id_zona }}</td>
+                <td>{{ item.cuenta_ingreso }}</td>
+                <td>{{ item.cuenta_energia || '-' }}</td>
+                <td>{{ emisionLabel(item.tipo_emision) }}</td>
+                <td>
+                  <button class="btn-action btn-info" @click="editItem(item)">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="catalogo.length === 0">
+                <td colspan="9" class="text-center text-muted">
+                  No hay mercados registrados
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+    </div>
+        </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const catalogo = ref([])
+const recaudadoras = ref([])
+const categorias = ref([])
+const zonas = ref([])
+const cuentas = ref([])
+const loading = ref(false)
+const saving = ref(false)
+const editMode = ref(false)
+
+const form = ref({
+  oficina: '',
+  num_mercado_nvo: '',
+  categoria: '',
+  descripcion: '',
+  cuenta_ingreso: '',
+  pregunta: 'N',
+  cuenta_energia: '',
+  zona: '',
+  emision: 'M'
+})
+
+const loadCatalogo = async () => {
+  loading.value = true
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_CATALOGO_LIST', [])
+    catalogo.value = result || []
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al cargar catálogo')
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadRecaudadoras = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_RECAUDADORAS', [])
+    recaudadoras.value = result || []
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+const loadCategorias = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_CATEGORIAS', [])
+    categorias.value = result || []
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+const loadZonas = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_ZONAS', [])
+    zonas.value = result || []
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+const loadCuentas = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_CUENTAS', [])
+    cuentas.value = result || []
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+const onSubmit = async () => {
+  saving.value = true
+  try {
+    const params = [
+      form.value.oficina,
+      form.value.num_mercado_nvo,
+      form.value.categoria,
+      form.value.descripcion,
+      form.value.cuenta_ingreso,
+      form.value.pregunta === 'S' ? form.value.cuenta_energia : null,
+      form.value.zona,
+      form.value.emision
+    ]
+
+    if (editMode.value) {
+      await executeStoredProcedure('SP_MERCADOS_CATALOGO_UPDATE', params)
+      toast.success('Mercado actualizado correctamente')
+    } else {
+      await executeStoredProcedure('SP_MERCADOS_CATALOGO_INSERT', params)
+      toast.success('Mercado agregado correctamente')
+    }
+
+    resetForm()
+    await loadCatalogo()
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al guardar el mercado')
+  } finally {
+    saving.value = false
+  }
+}
+
+const editItem = (item) => {
+  editMode.value = true
+  form.value = {
+    oficina: item.oficina,
+    num_mercado_nvo: item.num_mercado_nvo,
+    categoria: item.categoria,
+    descripcion: item.descripcion,
+    cuenta_ingreso: item.cuenta_ingreso,
+    pregunta: item.cuenta_energia ? 'S' : 'N',
+    cuenta_energia: item.cuenta_energia || '',
+    zona: item.id_zona,
+    emision: item.tipo_emision
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const resetForm = () => {
+  editMode.value = false
+  form.value = {
+    oficina: '',
+    num_mercado_nvo: '',
+    categoria: '',
+    descripcion: '',
+    cuenta_ingreso: '',
+    pregunta: 'N',
+    cuenta_energia: '',
+    zona: '',
+    emision: 'M'
+  }
+}
+
+const emisionLabel = (val) => {
+  if (val === 'M') return 'Masiva'
+  if (val === 'D') return 'Diskette'
+  if (val === 'B') return 'Baja'
+  return val
+}
+
+onMounted(() => {
+  loadCatalogo()
+  loadRecaudadoras()
+  loadCategorias()
+  loadZonas()
+  loadCuentas()
+})
+</script>
+
+

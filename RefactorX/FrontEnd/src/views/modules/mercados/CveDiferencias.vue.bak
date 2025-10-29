@@ -1,0 +1,367 @@
+<template>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="balance-scale" />
+      </div>
+      <div class="module-view-info">
+        <h1>Claves de Diferencias</h1>
+        <p>Catálogo de Claves de Diferencias y Cuentas de Ingreso</p>
+      </div>
+      <div class="module-view-actions">
+        <button
+          class="btn-municipal-primary"
+          @click="openCreateModal"
+          :disabled="loading"
+        >
+          <font-awesome-icon icon="plus" />
+          Agregar Clave
+        </button>
+        <button
+          class="btn-municipal-secondary"
+          @click="loadDiferencias"
+          :disabled="loading"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <!-- Tabla de claves de diferencias -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Catálogo de Diferencias
+            <span class="badge-info" v-if="diferencias.length > 0">{{ diferencias.length }} registros</span>
+          </h5>
+          <div v-if="loading" class="spinner-border spinner-border-sm" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Clave</th>
+                  <th>Descripción</th>
+                  <th>Cuenta Ingreso</th>
+                  <th>Usuario</th>
+                  <th>Fecha Actual</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="dif in diferencias"
+                  :key="dif.clave_diferencia"
+                  class="row-hover"
+                  :class="{ 'table-active': selectedRow && selectedRow.clave_diferencia === dif.clave_diferencia }"
+                  @click="selectRow(dif)"
+                >
+                  <td>
+                    <span class="badge-primary">{{ dif.clave_diferencia }}</span>
+                  </td>
+                  <td><strong>{{ dif.descripcion }}</strong></td>
+                  <td>
+                    <code class="text-muted">{{ dif.cuenta_ingreso }}</code>
+                  </td>
+                  <td>
+                    <div class="user-info">
+                      <small class="text-muted">{{ dif.usuario }}</small>
+                      <br />
+                      <small>{{ dif.nombre }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <small class="text-muted">{{ formatDateTime(dif.fecha_actual) }}</small>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn-action-edit"
+                        @click.stop="openEditModal(dif)"
+                        title="Modificar"
+                      >
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="!loading && diferencias.length === 0" class="text-center py-5">
+            <font-awesome-icon icon="inbox" size="3x" class="text-muted mb-3" />
+            <p class="text-muted">No hay claves de diferencias registradas</p>
+          </div>
+        </div>
+      </div>
+        </div>
+
+    <!-- Modal para crear/editar -->
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5>{{ isEditMode ? 'Modificar Clave de Diferencia' : 'Agregar Clave de Diferencia' }}</h5>
+          <button class="btn-close" @click="closeModal">
+            <font-awesome-icon icon="times" />
+          </button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="saveDiferencia">
+            <div class="form-group" v-if="isEditMode">
+              <label class="municipal-form-label">Clave Diferencia</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="form.clave_diferencia"
+                readonly
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Descripción *</label>
+              <input
+                type="text"
+                class="municipal-form-control text-uppercase"
+                v-model="form.descripcion"
+                maxlength="60"
+                required
+                placeholder="Ingrese la descripción"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Cuenta de Ingreso *</label>
+              <div class="input-with-table">
+                <input
+                  type="number"
+                  class="municipal-form-control"
+                  v-model.number="form.cuenta_ingreso"
+                  @input="filterCuentas"
+                  required
+                  placeholder="Busque o seleccione una cuenta"
+                />
+                <!-- Mini tabla de selección de cuentas -->
+                <div class="cuentas-selector" v-if="filteredCuentas.length > 0">
+                  <table class="municipal-table">
+                    <thead>
+                      <tr>
+                        <th>Cuenta</th>
+                        <th>Descripción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="cuenta in filteredCuentas.slice(0, 10)"
+                        :key="cuenta.cta_aplicacion"
+                        @click="selectCuenta(cuenta)"
+                        class="cursor-pointer"
+                      >
+                        <td><code>{{ cuenta.cta_aplicacion }}</code></td>
+                        <td><small>{{ cuenta.descripcion }}</small></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Descripción de la cuenta seleccionada -->
+                <small v-if="selectedCuenta" class="text-muted mt-2 d-block">
+                  <strong>Cuenta seleccionada:</strong> {{ selectedCuenta.descripcion }}
+                </small>
+              </div>
+        </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn-municipal-primary" :disabled="saving">
+                <font-awesome-icon :icon="saving ? 'spinner' : 'save'" :spin="saving" />
+                {{ saving ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button type="button" class="btn-municipal-secondary" @click="closeModal" :disabled="saving">
+                <font-awesome-icon icon="times" />
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+        </div>
+    </div>
+        </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+// State
+const loading = ref(false)
+const saving = ref(false)
+const showModal = ref(false)
+const isEditMode = ref(false)
+const diferencias = ref([])
+const cuentasIngreso = ref([])
+const selectedRow = ref(null)
+const selectedCuenta = ref(null)
+
+const form = ref({
+  clave_diferencia: '',
+  descripcion: '',
+  cuenta_ingreso: '',
+  id_usuario: 1 // TODO: Obtener del usuario logueado
+})
+
+// Computed
+const filteredCuentas = computed(() => {
+  if (!form.value.cuenta_ingreso) return cuentasIngreso.value
+  const searchValue = String(form.value.cuenta_ingreso)
+  return cuentasIngreso.value.filter(cuenta =>
+    String(cuenta.cta_aplicacion).includes(searchValue)
+  )
+})
+
+// Methods
+const formatDateTime = (date) => {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleString('es-MX')
+}
+
+const loadDiferencias = async () => {
+  try {
+    loading.value = true
+    const result = await executeStoredProcedure('sp_get_cve_diferencias', {})
+    if (result.success) {
+      diferencias.value = result.data || []
+    } else {
+      handleError(result)
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadCuentasIngreso = async () => {
+  try {
+    const result = await executeStoredProcedure('sp_get_cuentas_ingreso', {})
+    if (result.success) {
+      cuentasIngreso.value = result.data || []
+    } else {
+      handleError(result)
+    }
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+const selectRow = (dif) => {
+  selectedRow.value = dif
+}
+
+const filterCuentas = () => {
+  const cuenta = cuentasIngreso.value.find(c => c.cta_aplicacion === form.value.cuenta_ingreso)
+  selectedCuenta.value = cuenta || null
+}
+
+const selectCuenta = (cuenta) => {
+  form.value.cuenta_ingreso = cuenta.cta_aplicacion
+  selectedCuenta.value = cuenta
+}
+
+const openCreateModal = () => {
+  isEditMode.value = false
+  // Calcular la siguiente clave automáticamente
+  const nextClave = diferencias.value.length > 0
+    ? Math.max(...diferencias.value.map(d => d.clave_diferencia)) + 1
+    : 1
+  form.value = {
+    clave_diferencia: nextClave,
+    descripcion: '',
+    cuenta_ingreso: '',
+    id_usuario: 1
+  }
+  selectedCuenta.value = null
+  showModal.value = true
+}
+
+const openEditModal = (dif) => {
+  isEditMode.value = true
+  selectedRow.value = dif
+  form.value = {
+    clave_diferencia: dif.clave_diferencia,
+    descripcion: dif.descripcion,
+    cuenta_ingreso: dif.cuenta_ingreso,
+    id_usuario: 1
+  }
+  // Buscar la cuenta seleccionada
+  const cuenta = cuentasIngreso.value.find(c => c.cta_aplicacion === dif.cuenta_ingreso)
+  selectedCuenta.value = cuenta || null
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  selectedCuenta.value = null
+  form.value = {
+    clave_diferencia: '',
+    descripcion: '',
+    cuenta_ingreso: '',
+    id_usuario: 1
+  }
+}
+
+const saveDiferencia = async () => {
+  if (!form.value.descripcion || form.value.descripcion.trim() === '') {
+    toast.warning('La descripción no puede estar vacía')
+    return
+  }
+
+  if (!form.value.cuenta_ingreso) {
+    toast.warning('Debe seleccionar una cuenta de ingreso')
+    return
+  }
+
+  try {
+    saving.value = true
+    const sp = isEditMode.value ? 'sp_update_cve_diferencia' : 'sp_add_cve_diferencia'
+    const params = {
+      p_descripcion: form.value.descripcion.trim().toUpperCase(),
+      p_cuenta_ingreso: form.value.cuenta_ingreso,
+      p_id_usuario: form.value.id_usuario
+    }
+
+    if (isEditMode.value) {
+      params.p_clave_diferencia = form.value.clave_diferencia
+    }
+
+    const result = await executeStoredProcedure(sp, params)
+    if (result.success) {
+      toast.success(isEditMode.value ? 'Clave de diferencia actualizada correctamente' : 'Clave de diferencia creada correctamente')
+      closeModal()
+      loadDiferencias()
+    } else {
+      handleError(result)
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    saving.value = false
+  }
+}
+
+// Lifecycle
+onMounted(async () => {
+  await loadCuentasIngreso()
+  await loadDiferencias()
+})
+</script>
+
+

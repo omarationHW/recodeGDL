@@ -1,0 +1,314 @@
+<template>
+    <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="cash-register" />
+      </div>
+      <div class="module-view-info">
+        <h1>Alta de Pagos de Energía</h1>
+        <p>Módulo de Mercados</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+
+    <div class="municipal-card">
+      <div class="municipal-card-header">
+        <i class="fas fa-bolt"></i> Alta de Pagos de Energía Eléctrica
+      </div>
+      <div class="municipal-card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">ID Servicio de Energía</label>
+            <input
+              type="number"
+              v-model.number="searchIdEnergia"
+              class="municipal-form-control"
+              placeholder="Ingrese ID de energía"
+            />
+          </div>
+          <div class="form-group">
+            <button class="btn-municipal-primary" @click="loadPagos">
+              <i class="fas fa-search"></i> Buscar
+            </button>
+          </div>
+        </div>
+
+        <div v-if="searchIdEnergia" class="alert alert-info">
+          <strong>ID Servicio:</strong> {{ searchIdEnergia }}
+        </div>
+
+        <button
+          v-if="searchIdEnergia"
+          class="btn-municipal-success mb-3"
+          @click="showModal = true"
+        >
+          <i class="fas fa-plus"></i> Agregar Pago
+        </button>
+
+        <div v-if="loading" class="text-center p-4">
+          <div class="spinner-border text-primary"></div>
+          <p class="mt-2">Cargando pagos...</p>
+        </div>
+
+        <div v-else-if="pagos.length > 0" class="municipal-table">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>ID</th>
+                <th>Año</th>
+                <th>Mes</th>
+                <th>Fecha Pago</th>
+                <th>Oficina</th>
+                <th>Caja</th>
+                <th>Operación</th>
+                <th>Importe</th>
+                <th>Partida</th>
+                <th>Fecha Mod.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="pago in pagos" :key="pago.id_pago_energ">
+                <td>{{ pago.id_pago_energ }}</td>
+                <td>{{ pago.axo }}</td>
+                <td>{{ pago.periodo }}</td>
+                <td>{{ formatDate(pago.fecha_pago) }}</td>
+                <td>{{ pago.oficina_pago }}</td>
+                <td>{{ pago.caja_pago }}</td>
+                <td>{{ pago.operacion_pago }}</td>
+                <td class="text-end">{{ formatCurrency(pago.importe_pago) }}</td>
+                <td>{{ pago.folio }}</td>
+                <td>{{ formatDateTime(pago.fecha_modificacion_1) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else-if="searchIdEnergia" class="alert alert-warning">
+          No hay pagos registrados para este servicio de energía
+        </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar pago -->
+    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5><i class="fas fa-plus-circle"></i> Agregar Pago de Energía</h5>
+          <button class="close-btn" @click="showModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Año *</label>
+              <input
+                type="number"
+                v-model.number="formPago.axo"
+                class="municipal-form-control"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Mes *</label>
+              <input
+                type="number"
+                v-model.number="formPago.periodo"
+                class="municipal-form-control"
+                min="1"
+                max="12"
+                required
+              />
+            </div>
+        </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha de Pago *</label>
+              <input
+                type="date"
+                v-model="formPago.fecha_pago"
+                class="municipal-form-control"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Importe *</label>
+              <input
+                type="number"
+                v-model.number="formPago.importe_pago"
+                class="municipal-form-control"
+                step="0.01"
+                required
+              />
+            </div>
+        </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina Pago *</label>
+              <input
+                type="number"
+                v-model.number="formPago.oficina_pago"
+                class="municipal-form-control"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Caja Pago *</label>
+              <input
+                type="number"
+                v-model.number="formPago.caja_pago"
+                class="municipal-form-control"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Operación *</label>
+              <input
+                type="number"
+                v-model.number="formPago.operacion_pago"
+                class="municipal-form-control"
+                required
+              />
+            </div>
+        </div>
+          <div class="mb-3">
+            <label class="municipal-form-label">Partida/Folio</label>
+            <input
+              type="text"
+              v-model="formPago.folio"
+              class="municipal-form-control"
+              maxlength="20"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-municipal-secondary" @click="showModal = false">
+            Cancelar
+          </button>
+          <button class="btn-municipal-success" @click="savePago" :disabled="saving">
+            <i class="fas fa-save"></i> Guardar
+          </button>
+        </div>
+        </div>
+    </div>
+        </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const searchIdEnergia = ref(null)
+const pagos = ref([])
+const loading = ref(false)
+const showModal = ref(false)
+const saving = ref(false)
+
+const now = new Date()
+const formPago = ref({
+  axo: now.getFullYear(),
+  periodo: now.getMonth() + 1,
+  fecha_pago: now.toISOString().split('T')[0],
+  oficina_pago: 1,
+  caja_pago: 1,
+  operacion_pago: 1,
+  importe_pago: 0,
+  folio: '',
+  id_usuario: 1
+})
+
+const loadPagos = async () => {
+  if (!searchIdEnergia.value) {
+    toast.warning('Ingrese un ID de servicio de energía')
+    return
+  }
+
+  loading.value = true
+  try {
+    const result = await executeStoredProcedure(
+      'SP_MERCADOS_ENERGIA_LIST_PAGOS',
+      [searchIdEnergia.value]
+    )
+    pagos.value = result || []
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al cargar los pagos')
+  } finally {
+    loading.value = false
+  }
+}
+
+const savePago = async () => {
+  if (!searchIdEnergia.value) {
+    toast.error('No se ha seleccionado un servicio de energía')
+    return
+  }
+
+  saving.value = true
+  try {
+    await executeStoredProcedure('SP_MERCADOS_ENERGIA_CREATE_PAGO', [
+      searchIdEnergia.value,
+      formPago.value.axo,
+      formPago.value.periodo,
+      formPago.value.fecha_pago,
+      formPago.value.oficina_pago,
+      formPago.value.caja_pago,
+      formPago.value.operacion_pago,
+      formPago.value.importe_pago,
+      formPago.value.folio,
+      formPago.value.id_usuario
+    ])
+
+    toast.success('Pago registrado correctamente')
+    showModal.value = false
+    resetForm()
+    await loadPagos()
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al guardar el pago')
+  } finally {
+    saving.value = false
+  }
+}
+
+const resetForm = () => {
+  const now = new Date()
+  formPago.value = {
+    axo: now.getFullYear(),
+    periodo: now.getMonth() + 1,
+    fecha_pago: now.toISOString().split('T')[0],
+    oficina_pago: 1,
+    caja_pago: 1,
+    operacion_pago: 1,
+    importe_pago: 0,
+    folio: '',
+    id_usuario: 1
+  }
+}
+
+const formatCurrency = (value) => {
+  if (value == null) return ''
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value)
+}
+
+const formatDate = (value) => {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('es-MX')
+}
+
+const formatDateTime = (value) => {
+  if (!value) return ''
+  return new Date(value).toLocaleString('es-MX')
+}
+</script>
+
+

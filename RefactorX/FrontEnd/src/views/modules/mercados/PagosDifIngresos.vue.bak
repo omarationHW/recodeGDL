@@ -1,0 +1,130 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="exclamation-triangle" /></div>
+      <div class="module-view-info">
+        <h1>Pagos con Diferencias en Ingresos</h1>
+        <p>Detección de Pagos con Datos Erróneos o Renta Incorrecta</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="filter" /> Parámetros de Consulta</h5></div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group"><label class="municipal-form-label">Recaudadora *</label><input type="number" class="municipal-form-control" v-model.number="filters.recaudadora" /></div>
+            <div class="form-group"><label class="municipal-form-label">Fecha Desde *</label><input type="date" class="municipal-form-control" v-model="filters.fecha_desde" /></div>
+            <div class="form-group"><label class="municipal-form-label">Fecha Hasta *</label><input type="date" class="municipal-form-control" v-model="filters.fecha_hasta" /></div>
+        </div>
+          <div class="button-group">
+            <button class="btn-municipal-primary" @click="consultarDifPagos" :disabled="loading"><font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Diferencias en Pagos</button>
+            <button class="btn-municipal-secondary" @click="consultarDifRenta" :disabled="loading"><font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Diferencias en Renta</button>
+          </div>
+        </div>
+
+      <div class="municipal-card" v-if="difPagos.length > 0">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="exclamation-circle" /> Pagos con Datos Erróneos <span class="badge-danger">{{ difPagos.length }} errores</span></h5></div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr><th>ID Pago</th><th>Local</th><th>Año</th><th>Periodo</th><th>Fecha Pago</th><th>Oficina</th><th>Caja</th><th>Operación</th><th class="text-end">Importe</th><th>Usuario</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="pago in difPagos" :key="pago.id_pago_local" class="row-hover">
+                  <td><span class="badge-danger">{{ pago.id_pago_local }}</span></td>
+                  <td>{{ pago.id_local }}</td>
+                  <td>{{ pago.axo }}</td>
+                  <td>{{ pago.periodo }}</td>
+                  <td>{{ formatDate(pago.fecha_pago) }}</td>
+                  <td>{{ pago.oficina_pago }}</td>
+                  <td>{{ pago.caja_pago }}</td>
+                  <td>{{ pago.operacion_pago }}</td>
+                  <td class="text-end">{{ formatCurrency(pago.importe_pago) }}</td>
+                  <td><small>{{ pago.usuario }}</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <div class="municipal-card" v-if="difRenta.length > 0">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="money-bill-wave" /> Pagos con Renta Errónea <span class="badge-warning">{{ difRenta.length }} inconsistencias</span></h5></div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr><th>ID Pago</th><th>Local</th><th>Año/Per</th><th>Fecha Pago</th><th class="text-end">Importe Pagado</th><th class="text-end">Renta Esperada</th><th class="text-end">Diferencia</th><th>Usuario</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="pago in difRenta" :key="pago.id_pago_local" class="row-hover">
+                  <td><span class="badge-warning">{{ pago.id_pago_local }}</span></td>
+                  <td>{{ pago.id_local }}</td>
+                  <td>{{ pago.axo }}/{{ pago.periodo }}</td>
+                  <td>{{ formatDate(pago.fecha_pago) }}</td>
+                  <td class="text-end">{{ formatCurrency(pago.importe_pago) }}</td>
+                  <td class="text-end"><strong class="text-info">{{ formatCurrency(pago.renta_esperada) }}</strong></td>
+                  <td class="text-end"><strong class="text-danger">{{ formatCurrency(parseFloat(pago.importe_pago) - parseFloat(pago.renta_esperada)) }}</strong></td>
+                  <td><small>{{ pago.usuario }}</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+        </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const loading = ref(false)
+const difPagos = ref([])
+const difRenta = ref([])
+const filters = ref({ recaudadora: null, fecha_desde: '', fecha_hasta: '' })
+
+const formatCurrency = (value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
+const formatDate = (date) => date ? new Date(date).toLocaleDateString('es-MX') : 'N/A'
+
+const consultarDifPagos = async () => {
+  try {
+    loading.value = true
+    difRenta.value = []
+    const result = await executeStoredProcedure('spd_11_dif_pagos', { parm_rec: filters.value.recaudadora, parm_fpadsd: filters.value.fecha_desde, parm_fpahst: filters.value.fecha_hasta })
+    if (result.success) {
+      difPagos.value = result.data || []
+      toast.info(`Se encontraron ${difPagos.value.length} pagos con datos erróneos`)
+    } else handleError(result)
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const consultarDifRenta = async () => {
+  try {
+    loading.value = true
+    difPagos.value = []
+    const result = await executeStoredProcedure('spd_11_dif_renta', { parm_rec: filters.value.recaudadora, parm_fpadsd: filters.value.fecha_desde, parm_fpahst: filters.value.fecha_hasta })
+    if (result.success) {
+      difRenta.value = result.data || []
+      toast.info(`Se encontraron ${difRenta.value.length} pagos con renta errónea`)
+    } else handleError(result)
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+

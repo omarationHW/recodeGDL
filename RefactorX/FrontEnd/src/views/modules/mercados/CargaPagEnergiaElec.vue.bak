@@ -1,0 +1,490 @@
+<template>
+    <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Carga de Pagos de Energía Eléctrica (Rango)</h1>
+        <p>Módulo de Mercados</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+
+    <div class="municipal-card">
+      <div class="municipal-card-header"><i class="fas fa-filter"></i> Filtros de Búsqueda</div>
+      <div class="municipal-card-body">
+        <div class="row g-3">
+          <div class="form-group">
+            <label class="municipal-form-label">Oficina *</label>
+            <select v-model="filtros.oficina" class="municipal-form-control" @change="onOficinaChange">
+              <option value="">Seleccione...</option>
+              <option v-for="ofi in oficinas" :key="ofi.oficina" :value="ofi.oficina">
+                {{ ofi.oficina }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Mercado *</label>
+            <select v-model="filtros.mercado" class="municipal-form-control" @change="onMercadoChange">
+              <option value="">Seleccione...</option>
+              <option v-for="mer in mercados" :key="mer.mercado" :value="mer.mercado">
+                {{ mer.mercado }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Categoría *</label>
+            <select v-model="filtros.categoria" class="municipal-form-control" @change="onCategoriaChange">
+              <option value="">Seleccione...</option>
+              <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                {{ cat.categoria }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Sección *</label>
+            <select v-model="filtros.seccion" class="municipal-form-control">
+              <option value="">Seleccione...</option>
+              <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">
+                {{ sec.seccion }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Local Desde *</label>
+            <input type="text" v-model="filtros.local_desde" class="municipal-form-control" placeholder="Desde" />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Local Hasta *</label>
+            <input type="text" v-model="filtros.local_hasta" class="municipal-form-control" placeholder="Hasta" />
+          </div>
+        </div>
+        <div class="row g-3 mt-1">
+          <div class="col-12">
+            <button class="btn-municipal-primary me-2" @click="buscarAdeudos" :disabled="!filtrosValidos || loading">
+              <i class="fas fa-search"></i> Buscar
+            </button>
+            <button class="btn-municipal-secondary" @click="limpiarFiltros">
+              <i class="fas fa-eraser"></i> Limpiar Filtros
+            </button>
+          </div>
+        </div>
+      </div>
+        </div>
+
+    <div v-if="adeudos.length > 0" class="municipal-card">
+      <div class="municipal-card-header bg-info">
+        <i class="fas fa-list"></i> Adeudos de Energía Encontrados ({{ adeudos.length }})
+      </div>
+      <div class="municipal-card-body">
+        <div class="municipal-table">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>MERCADO</th>
+                <th>CAT</th>
+                <th>SEC</th>
+                <th>LOCAL</th>
+                <th>TITULAR</th>
+                <th>AÑO</th>
+                <th>MES</th>
+                <th class="text-end">IMPORTE</th>
+                <th>VENCIMIENTO</th>
+                <th>PARTIDA *</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, idx) in adeudos" :key="idx">
+                <td>{{ row.mercado }}</td>
+                <td>{{ row.categoria }}</td>
+                <td>{{ row.seccion }}</td>
+                <td>{{ row.local_num }} {{ row.letra }}</td>
+                <td>{{ row.nombre_titular }}</td>
+                <td>{{ row.anio }}</td>
+                <td>{{ row.mes }}</td>
+                <td class="text-end">{{ formatCurrency(row.importe) }}</td>
+                <td>{{ formatDate(row.fecha_vencimiento) }}</td>
+                <td>
+                  <input
+                    type="text"
+                    v-model="pagos[idx].partida"
+                    class="municipal-form-control form-control-sm"
+                    maxlength="20"
+                    placeholder="Partida"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-info mt-3 mb-0">
+          <i class="fas fa-info-circle"></i>
+          <strong>Nota:</strong> Solo se grabarán los pagos con número de partida distinto de vacío o cero.
+        </div>
+        </div>
+    </div>
+
+    <div v-if="adeudos.length > 0" class="municipal-card">
+      <div class="municipal-card-header bg-success">
+        <i class="fas fa-money-bill-wave"></i> Datos del Pago
+      </div>
+      <div class="municipal-card-body">
+        <div class="row g-3">
+          <div class="form-group">
+            <label class="municipal-form-label">Fecha de Pago *</label>
+            <input type="date" v-model="datosPago.fecha_pago" class="municipal-form-control" />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Oficina de Pago *</label>
+            <select v-model="datosPago.oficina_pago" class="municipal-form-control" @change="onOficinaPagoChange">
+              <option value="">Seleccione...</option>
+              <option v-for="ofi in oficinas" :key="ofi.oficina" :value="ofi.oficina">
+                {{ ofi.oficina }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Caja de Pago *</label>
+            <select v-model="datosPago.caja_pago" class="municipal-form-control">
+              <option value="">Seleccione...</option>
+              <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">
+                {{ caja.caja }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Operación *</label>
+            <input type="text" v-model="datosPago.operacion_pago" class="municipal-form-control" maxlength="20" />
+          </div>
+          <div class="form-group">
+            <button class="btn-municipal-success" @click="cargarPagos" :disabled="!formValido || loading">
+              <i class="fas fa-save"></i> Grabar Pagos
+            </button>
+            <button class="btn-municipal-secondary" @click="$router.push('/mercados')">
+              <i class="fas fa-arrow-left"></i> Salir
+            </button>
+          </div>
+        </div>
+      </div>
+        </div>
+
+    <div v-if="loading" class="text-center p-5">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2">Procesando...</p>
+    </div>
+
+    <div v-if="error" class="alert alert-danger alert-dismissible fade show">
+      <i class="fas fa-exclamation-triangle"></i> {{ error }}
+      <button type="button" class="btn-close" @click="error = ''"></button>
+    </div>
+
+    <div v-if="successMsg" class="alert alert-success alert-dismissible fade show">
+      <i class="fas fa-check-circle"></i> {{ successMsg }}
+      <button type="button" class="btn-close" @click="successMsg = ''"></button>
+    </div>
+
+    <div v-if="!loading && adeudos.length === 0 && searched" class="alert alert-info">
+      <i class="fas fa-info-circle"></i> No se encontraron adeudos de energía en el rango especificado
+    </div>
+        </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+import Swal from 'sweetalert2'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const filtros = ref({
+  oficina: '',
+  mercado: '',
+  categoria: '',
+  seccion: '',
+  local_desde: '',
+  local_hasta: ''
+})
+
+const datosPago = ref({
+  fecha_pago: new Date().toISOString().split('T')[0],
+  oficina_pago: '',
+  caja_pago: '',
+  operacion_pago: ''
+})
+
+const oficinas = ref([])
+const mercados = ref([])
+const categorias = ref([])
+const secciones = ref([])
+const cajas = ref([])
+const adeudos = ref([])
+const pagos = ref([])
+const loading = ref(false)
+const searched = ref(false)
+const error = ref('')
+const successMsg = ref('')
+
+const filtrosValidos = computed(() => {
+  return filtros.value.oficina &&
+         filtros.value.mercado &&
+         filtros.value.categoria &&
+         filtros.value.seccion &&
+         filtros.value.local_desde &&
+         filtros.value.local_hasta
+})
+
+const pagosValidos = computed(() => {
+  return pagos.value.filter(p => p.partida && p.partida !== '0')
+})
+
+const formValido = computed(() => {
+  return datosPago.value.fecha_pago &&
+         datosPago.value.oficina_pago &&
+         datosPago.value.caja_pago &&
+         datosPago.value.operacion_pago &&
+         pagosValidos.value.length > 0
+})
+
+const onOficinaChange = async () => {
+  mercados.value = []
+  categorias.value = []
+  secciones.value = []
+  filtros.value.mercado = ''
+  filtros.value.categoria = ''
+  filtros.value.seccion = ''
+
+  if (filtros.value.oficina) {
+    await cargarMercados()
+  }
+}
+
+const onMercadoChange = async () => {
+  categorias.value = []
+  secciones.value = []
+  filtros.value.categoria = ''
+  filtros.value.seccion = ''
+
+  if (filtros.value.mercado) {
+    await cargarCategorias()
+  }
+}
+
+const onCategoriaChange = async () => {
+  secciones.value = []
+  filtros.value.seccion = ''
+
+  if (filtros.value.categoria) {
+    await cargarSecciones()
+  }
+}
+
+const onOficinaPagoChange = async () => {
+  cajas.value = []
+  datosPago.value.caja_pago = ''
+
+  if (datosPago.value.oficina_pago) {
+    await cargarCajas()
+  }
+}
+
+const cargarOficinas = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_OFICINAS', [])
+    if (result && result.length > 0) {
+      oficinas.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const cargarMercados = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_MERCADOS_BY_OFICINA', [filtros.value.oficina])
+    if (result && result.length > 0) {
+      mercados.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const cargarCategorias = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_CATEGORIAS_BY_MERCADO', [filtros.value.mercado])
+    if (result && result.length > 0) {
+      categorias.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const cargarSecciones = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_SECCIONES', [filtros.value.mercado, filtros.value.categoria])
+    if (result && result.length > 0) {
+      secciones.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const cargarCajas = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_CAJAS_BY_OFICINA', [datosPago.value.oficina_pago])
+    if (result && result.length > 0) {
+      cajas.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const buscarAdeudos = async () => {
+  loading.value = true
+  searched.value = true
+  error.value = ''
+  successMsg.value = ''
+  adeudos.value = []
+  pagos.value = []
+
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_ADEUDOS_ENERGIA_RANGO', [
+      filtros.value.oficina,
+      filtros.value.mercado,
+      filtros.value.categoria,
+      filtros.value.seccion,
+      filtros.value.local_desde,
+      filtros.value.local_hasta
+    ])
+
+    if (result && result.length > 0) {
+      adeudos.value = result
+      pagos.value = result.map(() => ({ partida: '' }))
+      toast.success(`Se encontraron ${result.length} adeudos de energía`)
+    } else {
+      toast.info('No se encontraron adeudos en el rango especificado')
+    }
+  } catch (err) {
+    handleError(err)
+    error.value = 'Error al buscar adeudos de energía'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const cargarPagos = async () => {
+  const validos = []
+  adeudos.value.forEach((row, idx) => {
+    const partida = pagos.value[idx].partida
+    if (partida && partida !== '0') {
+      validos.push({
+        id_adeudo_energia: row.id_adeudo_energia,
+        partida: partida
+      })
+    }
+  })
+
+  if (validos.length === 0) {
+    error.value = 'Debe ingresar al menos un número de partida válido'
+    toast.warning(error.value)
+    return
+  }
+
+  const result = await Swal.fire({
+    title: '¿Confirmar Carga de Pagos?',
+    text: `Se cargarán ${validos.length} pagos de energía con sus partidas correspondientes.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, cargar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!result.isConfirmed) return
+
+  loading.value = true
+  error.value = ''
+  successMsg.value = ''
+
+  try {
+    let cargadosOk = 0
+    let errores = 0
+
+    for (const pago of validos) {
+      try {
+        const resultado = await executeStoredProcedure('SP_MERCADOS_CARGAR_PAGO_ENERGIA_CON_PARTIDA', [
+          pago.id_adeudo_energia,
+          pago.partida,
+          datosPago.value.fecha_pago,
+          datosPago.value.oficina_pago,
+          datosPago.value.caja_pago,
+          datosPago.value.operacion_pago,
+          1 // id_usuario - debería venir del contexto del usuario
+        ])
+
+        if (resultado && resultado[0] && resultado[0].resultado === 1) {
+          cargadosOk++
+        } else {
+          errores++
+        }
+      } catch (err) {
+        errores++
+      }
+    }
+
+    if (errores === 0) {
+      successMsg.value = `Todos los pagos (${cargadosOk}) se cargaron correctamente.`
+      toast.success(successMsg.value)
+      await Swal.fire('Éxito', successMsg.value, 'success')
+      limpiarFiltros()
+    } else {
+      error.value = `Se cargaron ${cargadosOk} pagos correctamente, pero ${errores} tuvieron errores.`
+      toast.warning(error.value)
+      await Swal.fire('Atención', error.value, 'warning')
+      await buscarAdeudos()
+    }
+  } catch (err) {
+    handleError(err)
+    error.value = 'Error al cargar pagos de energía'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const limpiarFiltros = () => {
+  adeudos.value = []
+  pagos.value = []
+  searched.value = false
+  error.value = ''
+  successMsg.value = ''
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('es-MX')
+}
+
+const formatCurrency = (value) => {
+  if (value == null) return ''
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
+}
+
+onMounted(async () => {
+  await cargarOficinas()
+})
+</script>
+
+

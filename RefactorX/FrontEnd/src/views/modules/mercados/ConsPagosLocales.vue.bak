@@ -1,0 +1,494 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="receipt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta de Pagos de Locales</h1>
+        <p>MÃ³dulo de Mercados - Consulta de pagos de locales</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <!-- Card de Búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h4 class="mb-0">
+          <i class="fas fa-store me-2"></i>
+          Consulta de Pagos de Locales
+        </h4>
+        </div>
+        <div class="municipal-card-body">
+        <!-- Selector de Tipo de Búsqueda -->
+        <div class="search-type-selector mb-4">
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              id="searchByLocal"
+              value="L"
+              v-model="searchType"
+              @change="onSearchTypeChange"
+            />
+            <label class="form-check-label" for="searchByLocal">
+              <i class="fas fa-map-marker-alt me-1"></i>
+              Por Local
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              id="searchByFecha"
+              value="F"
+              v-model="searchType"
+              @change="onSearchTypeChange"
+            />
+            <label class="form-check-label" for="searchByFecha">
+              <i class="fas fa-calendar-alt me-1"></i>
+              Por Fecha de Pago
+            </label>
+          </div>
+        </div>
+
+        <!-- Formulario: Por Local -->
+        <div v-if="searchType === 'L'" class="search-form">
+          <div class="row g-3">
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina</label>
+              <select v-model="formLocal.oficina" class="municipal-form-control" @change="onOficinaChange">
+                <option value="">Seleccione...</option>
+                <option v-for="ofi in oficinas" :key="ofi.oficina" :value="ofi.oficina">
+                  {{ ofi.oficina }} - {{ ofi.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado</label>
+              <select v-model="formLocal.num_mercado" class="municipal-form-control" @change="onMercadoChange">
+                <option value="">Seleccione...</option>
+                <option v-for="merc in mercados" :key="merc.num_mercado" :value="merc.num_mercado">
+                  {{ merc.num_mercado }} - {{ merc.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Categoría</label>
+              <input
+                v-model.number="formLocal.categoria"
+                type="number"
+                class="municipal-form-control"
+                min="1"
+                max="12"
+                placeholder="1-12"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Sección</label>
+              <select v-model="formLocal.seccion" class="municipal-form-control">
+                <option value="">Todas</option>
+                <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">
+                  {{ sec.seccion }} - {{ sec.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Local</label>
+              <input
+                v-model.number="formLocal.local"
+                type="number"
+                class="municipal-form-control"
+                placeholder="Local"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Letra</label>
+              <input
+                v-model="formLocal.letra_local"
+                type="text"
+                class="municipal-form-control text-uppercase"
+                maxlength="1"
+                placeholder="A"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Bloque</label>
+              <input
+                v-model="formLocal.bloque"
+                type="text"
+                class="municipal-form-control text-uppercase"
+                maxlength="1"
+                placeholder="1"
+              />
+            </div>
+        </div>
+        </div>
+
+        <!-- Formulario: Por Fecha de Pago -->
+        <div v-if="searchType === 'F'" class="search-form">
+          <div class="row g-3">
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha de Pago <span class="text-danger">*</span></label>
+              <input
+                v-model="formFechaPago.fecha_pago"
+                type="date"
+                class="municipal-form-control"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina de Pago</label>
+              <select
+                v-model="formFechaPago.oficina_pago"
+                class="municipal-form-control"
+                @change="loadCajas"
+              >
+                <option value="">Todas</option>
+                <option v-for="ofi in oficinas" :key="ofi.oficina" :value="ofi.oficina">
+                  {{ ofi.oficina }} - {{ ofi.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Caja</label>
+              <select v-model="formFechaPago.caja_pago" class="municipal-form-control">
+                <option value="">Todas</option>
+                <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">
+                  {{ caja.caja }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Operación</label>
+              <input
+                v-model.number="formFechaPago.operacion_pago"
+                type="number"
+                class="municipal-form-control"
+                placeholder="Número"
+              />
+            </div>
+        </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="d-flex gap-2 mt-4">
+          <button @click="buscar" class="btn-municipal-primary" :disabled="loading">
+            <span v-if="loading">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Buscando...
+            </span>
+            <span v-else>
+              <i class="fas fa-search me-2"></i>
+              Buscar
+            </span>
+          </button>
+          <button @click="limpiar" class="btn-municipal-secondary">
+            <i class="fas fa-eraser me-2"></i>
+            Limpiar
+          </button>
+        </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div v-if="pagos.length > 0" class="municipal-card">
+      <div class="municipal-card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>
+            Resultados: {{ pagos.length }} pago(s) encontrado(s)
+          </h5>
+          <h5 class="mb-0">
+            <i class="fas fa-dollar-sign me-2"></i>
+            Total: {{ formatCurrency(totalImporte) }}
+          </h5>
+        </div>
+        </div>
+
+      <div class="municipal-card-body p-0">
+        <div class="municipal-table">
+          <table class="municipal-table">
+            <thead class="municipal-table">
+              <tr>
+                <th>ID Local</th>
+                <th>Oficina</th>
+                <th>Mercado</th>
+                <th>Cat</th>
+                <th>Sec</th>
+                <th>Local</th>
+                <th>L</th>
+                <th>B</th>
+                <th>Fecha Desde</th>
+                <th>Fecha Hasta</th>
+                <th>Fecha Pago</th>
+                <th>Importe</th>
+                <th>Ofi. Pago</th>
+                <th>Caja</th>
+                <th>Operación</th>
+                <th>Usuario</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="pago in pagos" :key="pago.id_pago_local">
+                <td class="fw-bold">{{ pago.id_local }}</td>
+                <td>{{ pago.oficina }}</td>
+                <td>{{ pago.num_mercado }}</td>
+                <td>{{ pago.categoria }}</td>
+                <td>{{ pago.seccion }}</td>
+                <td>{{ pago.local }}</td>
+                <td>{{ pago.letra_local || '-' }}</td>
+                <td>{{ pago.bloque || '-' }}</td>
+                <td>{{ formatDate(pago.fecha_desde) }}</td>
+                <td>{{ formatDate(pago.fecha_hasta) }}</td>
+                <td>{{ formatDate(pago.fecha_pago) }}</td>
+                <td class="text-end fw-bold text-primary">{{ formatCurrency(pago.importe_pago) }}</td>
+                <td>{{ pago.oficina_pago }}</td>
+                <td>{{ pago.caja_pago }}</td>
+                <td>{{ pago.operacion_pago }}</td>
+                <td class="small">{{ pago.usuario_registro }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="searchPerformed && !loading" class="municipal-card">
+      <div class="municipal-card-body text-center py-5">
+        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+        <h5 class="text-muted">No se encontraron pagos de locales</h5>
+        <p class="text-muted mb-0">Intente con otros criterios de búsqueda</p>
+      </div>
+        </div>
+      </div>
+        </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+// State
+const loading = ref(false)
+const searchPerformed = ref(false)
+const searchType = ref('')
+const oficinas = ref([])
+const mercados = ref([])
+const secciones = ref([])
+const cajas = ref([])
+const pagos = ref([])
+
+const formLocal = ref({
+  oficina: '',
+  num_mercado: '',
+  categoria: null,
+  seccion: '',
+  local: null,
+  letra_local: '',
+  bloque: ''
+})
+
+const formFechaPago = ref({
+  fecha_pago: '',
+  oficina_pago: '',
+  caja_pago: '',
+  operacion_pago: null
+})
+
+// Computed
+const totalImporte = computed(() => {
+  return pagos.value.reduce((sum, pago) => sum + (parseFloat(pago.importe_pago) || 0), 0)
+})
+
+// Methods
+const loadOficinas = async () => {
+  try {
+    const response = await executeStoredProcedure('SP_MERCADOS_GET_OFICINAS', {})
+    if (response.success && response.data) {
+      oficinas.value = response.data
+    }
+  } catch (error) {
+    handleError(error, 'Error al cargar oficinas')
+  }
+}
+
+const loadSecciones = async () => {
+  try {
+    const response = await executeStoredProcedure('SP_MERCADOS_GET_SECCIONES', {})
+    if (response.success && response.data) {
+      secciones.value = response.data
+    }
+  } catch (error) {
+    handleError(error, 'Error al cargar secciones')
+  }
+}
+
+const onOficinaChange = async () => {
+  mercados.value = []
+  formLocal.value.num_mercado = ''
+  formLocal.value.categoria = null
+
+  if (!formLocal.value.oficina) return
+
+  try {
+    const response = await executeStoredProcedure('SP_MERCADOS_GET_MERCADOS_BY_OFICINA', {
+      p_oficina: formLocal.value.oficina
+    })
+    if (response.success && response.data) {
+      mercados.value = response.data
+    }
+  } catch (error) {
+    handleError(error, 'Error al cargar mercados')
+  }
+}
+
+const onMercadoChange = () => {
+  const selected = mercados.value.find(m => m.num_mercado === formLocal.value.num_mercado)
+  if (selected) {
+    formLocal.value.categoria = selected.categoria
+  }
+}
+
+const loadCajas = async () => {
+  cajas.value = []
+  formFechaPago.value.caja_pago = ''
+
+  if (!formFechaPago.value.oficina_pago) return
+
+  try {
+    const response = await executeStoredProcedure('SP_MERCADOS_GET_CAJAS_BY_OFICINA', {
+      p_oficina: formFechaPago.value.oficina_pago
+    })
+    if (response.success && response.data) {
+      cajas.value = response.data
+    }
+  } catch (error) {
+    handleError(error, 'Error al cargar cajas')
+  }
+}
+
+const onSearchTypeChange = () => {
+  pagos.value = []
+  searchPerformed.value = false
+}
+
+const buscar = async () => {
+  // Validaciones
+  if (!searchType.value) {
+    toast.error('Seleccione un tipo de búsqueda')
+    return
+  }
+
+  if (searchType.value === 'L') {
+    if (!formLocal.value.oficina || !formLocal.value.num_mercado || !formLocal.value.categoria ||
+        !formLocal.value.seccion || !formLocal.value.local) {
+      toast.error('Complete todos los campos requeridos para búsqueda por local')
+      return
+    }
+  } else {
+    if (!formFechaPago.value.fecha_pago) {
+      toast.error('La fecha de pago es requerida')
+      return
+    }
+  }
+
+  loading.value = true
+  searchPerformed.value = true
+  pagos.value = []
+
+  try {
+    let spName = ''
+    let params = {}
+
+    if (searchType.value === 'L') {
+      spName = 'SP_MERCADOS_GET_PAGOS_LOCALES_BY_LOCAL'
+      params = {
+        p_oficina: formLocal.value.oficina,
+        p_num_mercado: formLocal.value.num_mercado,
+        p_categoria: formLocal.value.categoria,
+        p_seccion: formLocal.value.seccion,
+        p_local: formLocal.value.local,
+        p_letra_local: formLocal.value.letra_local || null,
+        p_bloque: formLocal.value.bloque || null
+      }
+    } else {
+      spName = 'SP_MERCADOS_GET_PAGOS_LOCALES_BY_FECHA'
+      params = {
+        p_fecha_pago: formFechaPago.value.fecha_pago,
+        p_oficina_pago: formFechaPago.value.oficina_pago || null,
+        p_caja_pago: formFechaPago.value.caja_pago || null,
+        p_operacion_pago: formFechaPago.value.operacion_pago || null
+      }
+    }
+
+    const response = await executeStoredProcedure(spName, params)
+
+    if (response.success && response.data) {
+      pagos.value = response.data
+      if (pagos.value.length === 0) {
+        toast.info('No se encontraron pagos con los criterios especificados')
+      } else {
+        toast.success(`${pagos.value.length} pago(s) encontrado(s)`)
+      }
+    }
+  } catch (error) {
+    handleError(error, 'Error al buscar pagos de locales')
+  } finally {
+    loading.value = false
+  }
+}
+
+const limpiar = () => {
+  pagos.value = []
+  searchPerformed.value = false
+  searchType.value = ''
+  formLocal.value = {
+    oficina: '',
+    num_mercado: '',
+    categoria: null,
+    seccion: '',
+    local: null,
+    letra_local: '',
+    bloque: ''
+  }
+  formFechaPago.value = {
+    fecha_pago: '',
+    oficina_pago: '',
+    caja_pago: '',
+    operacion_pago: null
+  }
+  mercados.value = []
+  cajas.value = []
+  toast.info('Formulario limpiado')
+}
+
+const formatCurrency = (value) => {
+  if (!value) return '$0.00'
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value)
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('es-MX')
+}
+
+// Lifecycle
+onMounted(() => {
+  loadOficinas()
+  loadSecciones()
+})
+</script>
+
+

@@ -1,0 +1,255 @@
+<template>
+    <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-invoice-dollar" />
+      </div>
+      <div class="module-view-info">
+        <h1>Adeudos Generales del Mercado</h1>
+        <p>Módulo de Mercados</p>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+
+    <div class="municipal-card">
+      <div class="municipal-card-header"><i class="fas fa-search"></i> Filtros de Búsqueda - Adeudos de Locales</div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="buscar" class="row g-3">
+          <div class="form-group">
+            <label class="municipal-form-label">Oficina *</label>
+            <select v-model.number="filtros.id_rec" class="municipal-form-control" required @change="onRecChange">
+              <option value="" disabled>Seleccione...</option>
+              <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                {{ rec.id_rec }} - {{ rec.recaudadora }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Mercado</label>
+            <select v-model.number="filtros.num_mercado" class="municipal-form-control" :disabled="!filtros.id_rec">
+              <option value="">000 - TODOS LOS MERCADOS</option>
+              <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
+                {{ m.num_mercado_nvo }} - {{ m.descripcion }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Año *</label>
+            <input v-model.number="filtros.axo" type="number" class="municipal-form-control" :min="1995" :max="2999" required />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Mes *</label>
+            <input v-model.number="filtros.mes" type="number" class="municipal-form-control" :min="1" :max="12" required />
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn-municipal-primary w-100"><i class="fas fa-search"></i> Buscar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div v-if="adeudos.length > 0" class="municipal-card">
+      <div class="municipal-card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-exclamation-triangle text-danger"></i> Adeudos de Locales ({{ adeudos.length }})</span>
+        <button class="btn-action btn-success" @click="exportarExcel">
+          <i class="fas fa-file-excel"></i> Exportar Excel
+        </button>
+      </div>
+      <div class="municipal-card-body">
+        <div class="municipal-table">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>Oficina</th>
+                <th>Mercado</th>
+                <th>Cat.</th>
+                <th>Sección</th>
+                <th>Local</th>
+                <th>Letra</th>
+                <th>Bloque</th>
+                <th>Nombre</th>
+                <th class="text-end">Superficie</th>
+                <th>Cve. Cuota</th>
+                <th class="text-end">Adeudo</th>
+                <th>Recaudadora</th>
+                <th>Descripción</th>
+                <th class="text-end">Meses</th>
+                <th class="text-end">Renta</th>
+                <th>Folios Req.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in adeudos" :key="`${row.id_local}-${row.oficina}`">
+                <td>{{ row.oficina }}</td>
+                <td>{{ row.num_mercado }}</td>
+                <td>{{ row.categoria }}</td>
+                <td>{{ row.seccion }}</td>
+                <td>{{ row.local }}</td>
+                <td>{{ row.letra_local }}</td>
+                <td>{{ row.bloque }}</td>
+                <td>{{ row.nombre }}</td>
+                <td class="text-end">{{ row.superficie }}</td>
+                <td>{{ row.clave_cuota }}</td>
+                <td class="text-right font-weight-bold text-danger">{{ formatCurrency(row.adeudo) }}</td>
+                <td><small>{{ row.recaudadora }}</small></td>
+                <td><small>{{ row.descripcion }}</small></td>
+                <td class="text-end">{{ row.meses }}</td>
+                <td class="text-end">{{ formatCurrency(row.renta) }}</td>
+                <td><small>{{ row.folios }}</small></td>
+              </tr>
+            </tbody>
+            <tfoot class="bg-light font-weight-bold">
+              <tr>
+                <td colspan="10" class="text-end">TOTAL ADEUDO:</td>
+                <td class="text-right text-danger">{{ formatCurrency(totalAdeudo) }}</td>
+                <td colspan="5"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="!loading && adeudos.length === 0 && searched" class="alert alert-info">
+      <i class="fas fa-info-circle"></i> No se encontraron adeudos para los filtros seleccionados
+    </div>
+
+    <div v-if="loading" class="text-center p-5">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2">Cargando información...</p>
+    </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+import * as XLSX from 'xlsx'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const currentYear = new Date().getFullYear()
+
+const filtros = ref({
+  id_rec: '',
+  num_mercado: '',
+  axo: currentYear,
+  mes: new Date().getMonth() + 1
+})
+
+const recaudadoras = ref([])
+const mercados = ref([])
+const adeudos = ref([])
+const loading = ref(false)
+const searched = ref(false)
+
+const totalAdeudo = computed(() => {
+  return adeudos.value.reduce((sum, row) => sum + (row.adeudo || 0), 0)
+})
+
+const cargarRecaudadoras = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_RECAUDADORAS', [])
+    recaudadoras.value = result || []
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+const onRecChange = async () => {
+  filtros.value.num_mercado = ''
+  mercados.value = []
+
+  if (!filtros.value.id_rec) return
+
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_MERCADOS_BY_RECAUDADORA', [filtros.value.id_rec])
+    mercados.value = result || []
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al cargar mercados')
+  }
+}
+
+const buscar = async () => {
+  if (!filtros.value.id_rec) {
+    toast.warning('Debe seleccionar una recaudadora')
+    return
+  }
+
+  loading.value = true
+  searched.value = true
+  adeudos.value = []
+
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_ADEUDOS_LOCALES_GRL', [
+      filtros.value.id_rec,
+      filtros.value.num_mercado || null,
+      filtros.value.axo,
+      filtros.value.mes
+    ])
+
+    adeudos.value = result || []
+
+    if (adeudos.value.length === 0) {
+      toast.info('No se encontraron adeudos de locales')
+    } else {
+      toast.success(`Se encontraron ${adeudos.value.length} adeudos de locales`)
+    }
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al consultar adeudos')
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatCurrency = (value) => {
+  if (value == null) return ''
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
+}
+
+const exportarExcel = () => {
+  try {
+    const data = adeudos.value.map(row => ({
+      'Oficina': row.oficina,
+      'Mercado': row.num_mercado,
+      'Categoría': row.categoria,
+      'Sección': row.seccion,
+      'Local': row.local,
+      'Letra': row.letra_local,
+      'Bloque': row.bloque,
+      'Nombre': row.nombre,
+      'Superficie': row.superficie,
+      'Clave Cuota': row.clave_cuota,
+      'Adeudo': row.adeudo,
+      'Recaudadora': row.recaudadora,
+      'Descripción': row.descripcion,
+      'Meses': row.meses,
+      'Renta': row.renta,
+      'Folios': row.folios
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Adeudos Locales')
+    XLSX.writeFile(wb, `adeudos_locales_${filtros.value.id_rec}_${filtros.value.num_mercado || 'todos'}_${filtros.value.axo}_${filtros.value.mes}.xlsx`)
+    toast.success('Archivo Excel generado correctamente')
+  } catch (error) {
+    toast.error('Error al generar Excel')
+  }
+}
+
+onMounted(() => {
+  cargarRecaudadoras()
+})
+</script>
+
+

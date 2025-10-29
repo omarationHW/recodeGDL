@@ -1,0 +1,172 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="edit" /></div>
+      <div class="module-view-info">
+        <h1>Modificaci�n de Locales</h1>
+        <p>Actualizaci�n de Datos de Locales con Registro de Movimientos</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="search" /> B�squeda de Local</h5></div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group"><label class="municipal-form-label">Oficina *</label><input type="number" class="municipal-form-control" v-model.number="search.oficina" /></div>
+            <div class="form-group"><label class="municipal-form-label">Mercado *</label><input type="number" class="municipal-form-control" v-model.number="search.num_mercado" /></div>
+            <div class="form-group"><label class="municipal-form-label">Categor�a *</label><input type="number" class="municipal-form-control" v-model.number="search.categoria" /></div>
+            <div class="form-group"><label class="municipal-form-label">Secci�n *</label><input type="text" class="municipal-form-control text-uppercase" v-model="search.seccion" maxlength="2" /></div>
+            <div class="form-group"><label class="municipal-form-label">Local *</label><input type="number" class="municipal-form-control" v-model.number="search.local" /></div>
+            <div class="form-group"><label class="municipal-form-label">Letra</label><input type="text" class="municipal-form-control text-uppercase" v-model="search.letra_local" maxlength="1" /></div>
+            <div class="form-group"><label class="municipal-form-label">Bloque</label><input type="text" class="municipal-form-control text-uppercase" v-model="search.bloque" maxlength="1" /></div>
+        </div>
+          <div class="button-group">
+            <button class="btn-municipal-primary" @click="buscar" :disabled="loading"><font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Buscar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="municipal-card" v-if="local">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="edit" /> Modificar Local</h5></div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="modificar">
+            <div class="form-row">
+              <div class="form-group"><label class="municipal-form-label">Tipo Movimiento *</label>
+                <select class="municipal-form-control" v-model.number="form.tipo_movimiento" required>
+                  <option :value="1">1 - Alta</option>
+                  <option :value="2">2 - Baja</option>
+                  <option :value="3">3 - Modificaci�n</option>
+                  <option :value="12">12 - Bloqueo</option>
+                  <option :value="13">13 - Desbloqueo</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="municipal-form-label">Nombre *</label><input type="text" class="municipal-form-control" v-model="form.nombre" maxlength="60" required /></div>
+              <div class="form-group"><label class="municipal-form-label">Domicilio</label><input type="text" class="municipal-form-control" v-model="form.domicilio" maxlength="60" /></div>
+              <div class="form-group"><label class="municipal-form-label">Sector</label><input type="text" class="municipal-form-control" v-model="form.sector" maxlength="10" /></div>
+              <div class="form-group"><label class="municipal-form-label">Zona</label><input type="number" class="municipal-form-control" v-model.number="form.zona" /></div>
+              <div class="form-group"><label class="municipal-form-label">Descripci�n</label><input type="text" class="municipal-form-control" v-model="form.descripcion_local" maxlength="50" /></div>
+              <div class="form-group"><label class="municipal-form-label">Superficie *</label><input type="number" step="0.01" class="municipal-form-control" v-model.number="form.superficie" required /></div>
+              <div class="form-group"><label class="municipal-form-label">Giro</label><input type="number" class="municipal-form-control" v-model.number="form.giro" /></div>
+              <div class="form-group"><label class="municipal-form-label">Fecha Alta *</label><input type="date" class="municipal-form-control" v-model="form.fecha_alta" required /></div>
+              <div class="form-group"><label class="municipal-form-label">Fecha Baja</label><input type="date" class="municipal-form-control" v-model="form.fecha_baja" /></div>
+              <div class="form-group"><label class="municipal-form-label">Vigencia *</label>
+                <select class="municipal-form-control" v-model="form.vigencia" required>
+                  <option value="A">A - Activo</option>
+                  <option value="B">B - Baja</option>
+                  <option value="C">C - Baja por Acuerdo</option>
+                  <option value="D">D - Baja Administrativa</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="municipal-form-label">Clave Cuota *</label><input type="number" class="municipal-form-control" v-model.number="form.clave_cuota" required /></div>
+        </div>
+            <div class="button-group">
+              <button type="submit" class="btn-municipal-primary" :disabled="saving"><font-awesome-icon :icon="saving ? 'spinner' : 'save'" :spin="saving" /> Guardar</button>
+              <button type="button" class="btn-municipal-secondary" @click="resetForm"><font-awesome-icon icon="times" /> Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const loading = ref(false)
+const saving = ref(false)
+const search = ref({ oficina: null, num_mercado: null, categoria: null, seccion: '', local: null, letra_local: '', bloque: '' })
+const local = ref(null)
+const form = ref({ tipo_movimiento: 3, nombre: '', domicilio: '', sector: '', zona: null, descripcion_local: '', superficie: 0, giro: null, fecha_alta: '', fecha_baja: '', vigencia: 'A', clave_cuota: null })
+
+const buscar = async () => {
+  try {
+    loading.value = true
+    const result = await executeStoredProcedure('sp_localesmodif_buscar_local', {
+      p_oficina: search.value.oficina,
+      p_num_mercado: search.value.num_mercado,
+      p_categoria: search.value.categoria,
+      p_seccion: search.value.seccion,
+      p_local: search.value.local,
+      p_letra_local: search.value.letra_local || null,
+      p_bloque: search.value.bloque || null
+    })
+    if (result.success && result.data?.length > 0) {
+      local.value = result.data[0]
+      form.value = {
+        tipo_movimiento: 3,
+        nombre: local.value.nombre || '',
+        domicilio: local.value.domicilio || '',
+        sector: local.value.sector || '',
+        zona: local.value.zona,
+        descripcion_local: local.value.descripcion_local || '',
+        superficie: local.value.superficie,
+        giro: local.value.giro,
+        fecha_alta: local.value.fecha_alta ? local.value.fecha_alta.substring(0, 10) : '',
+        fecha_baja: local.value.fecha_baja ? local.value.fecha_baja.substring(0, 10) : '',
+        vigencia: local.value.vigencia,
+        clave_cuota: local.value.clave_cuota
+      }
+      toast.success('Local encontrado')
+    } else {
+      local.value = null
+      toast.error('Local no encontrado')
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const modificar = async () => {
+  try {
+    saving.value = true
+    const result = await executeStoredProcedure('sp_localesmodif_modificar_local', {
+      p_id_local: local.value.id_local,
+      p_nombre: form.value.nombre,
+      p_domicilio: form.value.domicilio,
+      p_sector: form.value.sector,
+      p_zona: form.value.zona,
+      p_descripcion_local: form.value.descripcion_local,
+      p_superficie: form.value.superficie,
+      p_giro: form.value.giro,
+      p_fecha_alta: form.value.fecha_alta,
+      p_fecha_baja: form.value.fecha_baja || null,
+      p_vigencia: form.value.vigencia,
+      p_clave_cuota: form.value.clave_cuota,
+      p_tipo_movimiento: form.value.tipo_movimiento,
+      p_bloqueo: local.value.bloqueo || 0,
+      p_cve_bloqueo: null,
+      p_fecha_inicio_bloqueo: null,
+      p_fecha_final_bloqueo: null,
+      p_observacion: null,
+      p_id_usuario: 1,
+      p_fecha_actual: new Date().toISOString()
+    })
+    if (result.success) {
+      toast.success('Local modificado correctamente')
+      resetForm()
+    } else handleError(result)
+  } catch (error) {
+    handleError(error)
+  } finally {
+    saving.value = false
+  }
+}
+
+const resetForm = () => {
+  local.value = null
+  form.value = { tipo_movimiento: 3, nombre: '', domicilio: '', sector: '', zona: null, descripcion_local: '', superficie: 0, giro: null, fecha_alta: '', fecha_baja: '', vigencia: 'A', clave_cuota: null }
+}
+</script>
+
+

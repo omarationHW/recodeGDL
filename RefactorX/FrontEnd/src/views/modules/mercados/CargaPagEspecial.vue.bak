@@ -1,0 +1,436 @@
+<template>
+    <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="upload" />
+      </div>
+      <div class="module-view-info">
+        <h1>Carga Especial de Pagos (Años Anteriores)</h1>
+        <p>Módulo de Mercados</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+
+    <div class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle"></i>
+      <strong>Atención:</strong> Este módulo es para cargar pagos de años anteriores que NO tienen fecha de ingreso registrada.
+      Los importes pueden ser modificados antes de grabar.
+    </div>
+
+    <div class="municipal-card">
+      <div class="municipal-card-header"><i class="fas fa-search"></i> Búsqueda de Adeudos Especiales</div>
+      <div class="municipal-card-body">
+        <div class="row g-3">
+          <div class="form-group">
+            <label class="municipal-form-label">Mercado *</label>
+            <select v-model="filtros.mercado" class="municipal-form-control">
+              <option value="">Seleccione mercado...</option>
+              <option v-for="mer in mercados" :key="mer.mercado" :value="mer.mercado">
+                {{ mer.mercado }} - {{ mer.descripcion }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Local (Opcional)</label>
+            <input type="text" v-model="filtros.local" class="municipal-form-control" placeholder="Número de local" />
+          </div>
+          <div class="form-group">
+            <button class="btn-municipal-primary" @click="buscarAdeudos" :disabled="!filtros.mercado || loading">
+              <i class="fas fa-search"></i> Buscar
+            </button>
+            <button class="btn-municipal-secondary" @click="$router.push('/mercados')">
+              <i class="fas fa-arrow-left"></i> Salir
+            </button>
+          </div>
+        </div>
+      </div>
+        </div>
+
+    <div v-if="adeudos.length > 0" class="municipal-card">
+      <div class="municipal-card-header bg-warning">
+        <i class="fas fa-exclamation-circle"></i> Adeudos Especiales Encontrados ({{ adeudos.length }})
+      </div>
+      <div class="municipal-card-body">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i>
+          <strong>Instrucciones:</strong>
+          <ul class="mb-0">
+            <li>Todos los adeudos están preseleccionados por defecto</li>
+            <li>Puede modificar el importe en la columna correspondiente</li>
+            <li>Ingrese el número de partida para cada adeudo a cargar</li>
+            <li>Solo se grabarán adeudos con partida válida (distinta de vacío o cero)</li>
+          </ul>
+        </div>
+
+        <div class="municipal-table">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>
+                  <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" />
+                </th>
+                <th>MERCADO</th>
+                <th>CAT</th>
+                <th>SEC</th>
+                <th>LOCAL</th>
+                <th>TITULAR</th>
+                <th>AÑO</th>
+                <th>PERIODO</th>
+                <th>CONCEPTO</th>
+                <th>IMPORTE *</th>
+                <th>PARTIDA *</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, idx) in adeudos" :key="idx">
+                <td><input type="checkbox" v-model="row.selected" /></td>
+                <td>{{ row.mercado }}</td>
+                <td>{{ row.categoria }}</td>
+                <td>{{ row.seccion }}</td>
+                <td>{{ row.local_num }}</td>
+                <td>{{ row.nombre_titular }}</td>
+                <td>{{ row.anio }}</td>
+                <td>{{ row.periodo }}</td>
+                <td>{{ row.concepto }}</td>
+                <td>
+                  <input
+                    type="number"
+                    v-model.number="pagos[idx].importe"
+                    class="municipal-form-control form-control-sm text-right"
+                    step="0.01"
+                    min="0"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    v-model="pagos[idx].partida"
+                    class="municipal-form-control form-control-sm"
+                    maxlength="20"
+                    placeholder="Partida"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+    </div>
+
+    <div v-if="adeudos.length > 0" class="municipal-card">
+      <div class="municipal-card-header bg-success">
+        <i class="fas fa-money-bill-wave"></i> Datos del Pago Especial
+      </div>
+      <div class="municipal-card-body">
+        <div class="row g-3">
+          <div class="form-group">
+            <label class="municipal-form-label">Fecha de Pago *</label>
+            <input type="date" v-model="datosPago.fecha_pago" class="municipal-form-control" />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Oficina de Pago *</label>
+            <select v-model="datosPago.oficina_pago" class="municipal-form-control" @change="onOficinaPagoChange">
+              <option value="">Seleccione...</option>
+              <option v-for="ofi in oficinas" :key="ofi.oficina" :value="ofi.oficina">
+                {{ ofi.oficina }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Caja de Pago *</label>
+            <select v-model="datosPago.caja_pago" class="municipal-form-control">
+              <option value="">Seleccione...</option>
+              <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">
+                {{ caja.caja }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Operación *</label>
+            <input type="text" v-model="datosPago.operacion_pago" class="municipal-form-control" maxlength="20" />
+          </div>
+          <div class="form-group">
+            <button class="btn-municipal-success w-100" @click="cargarPagos" :disabled="!formValido || loading">
+              <i class="fas fa-save"></i> Grabar Pagos Especiales
+            </button>
+          </div>
+        </div>
+
+        <div v-if="resumen.total > 0" class="alert alert-info mt-3 mb-0">
+          <strong>Resumen:</strong>
+          Seleccionados: {{ resumen.seleccionados }} | Con Partida: {{ resumen.con_partida }} | Importe Total: {{ formatCurrency(resumen.importe_total) }}
+        </div>
+        </div>
+    </div>
+
+    <div v-if="loading" class="text-center p-5">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2">Procesando...</p>
+    </div>
+
+    <div v-if="error" class="alert alert-danger alert-dismissible fade show">
+      <i class="fas fa-exclamation-triangle"></i> {{ error }}
+      <button type="button" class="btn-close" @click="error = ''"></button>
+    </div>
+
+    <div v-if="successMsg" class="alert alert-success alert-dismissible fade show">
+      <i class="fas fa-check-circle"></i> {{ successMsg }}
+      <button type="button" class="btn-close" @click="successMsg = ''"></button>
+    </div>
+
+    <div v-if="!loading && adeudos.length === 0 && searched" class="alert alert-info">
+      <i class="fas fa-info-circle"></i> No se encontraron adeudos especiales (años anteriores sin fecha de ingreso) para el mercado seleccionado
+    </div>
+        </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+import Swal from 'sweetalert2'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const filtros = ref({
+  mercado: '',
+  local: ''
+})
+
+const datosPago = ref({
+  fecha_pago: new Date().toISOString().split('T')[0],
+  oficina_pago: '',
+  caja_pago: '',
+  operacion_pago: ''
+})
+
+const mercados = ref([])
+const oficinas = ref([])
+const cajas = ref([])
+const adeudos = ref([])
+const pagos = ref([])
+const selectAll = ref(true)
+const loading = ref(false)
+const searched = ref(false)
+const error = ref('')
+const successMsg = ref('')
+
+const resumen = computed(() => {
+  const seleccionados = adeudos.value.filter(a => a.selected)
+  const conPartida = seleccionados.filter((a, idx) => {
+    const p = pagos.value[idx]
+    return p && p.partida && p.partida !== '0'
+  })
+  const importeTotal = conPartida.reduce((sum, a, idx) => {
+    const p = pagos.value[idx]
+    return sum + (p?.importe || 0)
+  }, 0)
+
+  return {
+    total: adeudos.value.length,
+    seleccionados: seleccionados.length,
+    con_partida: conPartida.length,
+    importe_total: importeTotal
+  }
+})
+
+const formValido = computed(() => {
+  return datosPago.value.fecha_pago &&
+         datosPago.value.oficina_pago &&
+         datosPago.value.caja_pago &&
+         datosPago.value.operacion_pago &&
+         resumen.value.con_partida > 0
+})
+
+const toggleSelectAll = () => {
+  adeudos.value.forEach(a => a.selected = selectAll.value)
+}
+
+const onOficinaPagoChange = async () => {
+  cajas.value = []
+  datosPago.value.caja_pago = ''
+
+  if (datosPago.value.oficina_pago) {
+    await cargarCajas()
+  }
+}
+
+const cargarMercados = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_MERCADOS', [])
+    if (result && result.length > 0) {
+      mercados.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const cargarOficinas = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_OFICINAS', [])
+    if (result && result.length > 0) {
+      oficinas.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const cargarCajas = async () => {
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_CAJAS_BY_OFICINA', [datosPago.value.oficina_pago])
+    if (result && result.length > 0) {
+      cajas.value = result
+    }
+  } catch (err) {
+    handleError(err)
+  }
+}
+
+const buscarAdeudos = async () => {
+  if (!filtros.value.mercado) {
+    toast.warning('Debe seleccionar un mercado')
+    return
+  }
+
+  loading.value = true
+  searched.value = true
+  error.value = ''
+  successMsg.value = ''
+  adeudos.value = []
+  pagos.value = []
+  selectAll.value = true
+
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_ADEUDOS_ESPECIALES', [
+      filtros.value.mercado,
+      filtros.value.local
+    ])
+
+    if (result && result.length > 0) {
+      adeudos.value = result.map(a => ({ ...a, selected: true }))
+      pagos.value = result.map(a => ({ importe: a.importe, partida: '' }))
+      toast.success(`Se encontraron ${result.length} adeudos especiales`)
+    } else {
+      toast.info('No se encontraron adeudos especiales')
+    }
+  } catch (err) {
+    handleError(err)
+    error.value = 'Error al buscar adeudos especiales'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const cargarPagos = async () => {
+  const validos = []
+  adeudos.value.forEach((row, idx) => {
+    if (row.selected) {
+      const pago = pagos.value[idx]
+      if (pago && pago.partida && pago.partida !== '0') {
+        validos.push({
+          id_adeudo_local: row.id_adeudo_local,
+          importe: pago.importe,
+          partida: pago.partida
+        })
+      }
+    }
+  })
+
+  if (validos.length === 0) {
+    error.value = 'Debe seleccionar al menos un adeudo con partida válida'
+    toast.warning(error.value)
+    return
+  }
+
+  const result = await Swal.fire({
+    title: '¿Confirmar Carga Especial?',
+    html: `Se cargarán <strong>${validos.length}</strong> pagos especiales de años anteriores.<br>Importe total: <strong>${formatCurrency(resumen.value.importe_total)}</strong><br><br>Esta acción registrará la fecha de ingreso en los adeudos.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, cargar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#28a745'
+  })
+
+  if (!result.isConfirmed) return
+
+  loading.value = true
+  error.value = ''
+  successMsg.value = ''
+
+  try {
+    let cargadosOk = 0
+    let errores = 0
+
+    for (const pago of validos) {
+      try {
+        const resultado = await executeStoredProcedure('SP_MERCADOS_CARGAR_PAGO_ESPECIAL', [
+          pago.id_adeudo_local,
+          pago.importe,
+          pago.partida,
+          datosPago.value.fecha_pago,
+          datosPago.value.oficina_pago,
+          datosPago.value.caja_pago,
+          datosPago.value.operacion_pago,
+          1 // id_usuario - debería venir del contexto del usuario
+        ])
+
+        if (resultado && resultado[0] && resultado[0].resultado === 1) {
+          cargadosOk++
+        } else {
+          errores++
+        }
+      } catch (err) {
+        errores++
+      }
+    }
+
+    if (errores === 0) {
+      successMsg.value = `Todos los pagos especiales (${cargadosOk}) se cargaron correctamente.`
+      toast.success(successMsg.value)
+      await Swal.fire('Éxito', successMsg.value, 'success')
+      // Limpiar y volver a buscar
+      adeudos.value = []
+      pagos.value = []
+      searched.value = false
+    } else {
+      error.value = `Se cargaron ${cargadosOk} pagos correctamente, pero ${errores} tuvieron errores.`
+      toast.warning(error.value)
+      await Swal.fire('Atención', error.value, 'warning')
+      await buscarAdeudos()
+    }
+  } catch (err) {
+    handleError(err)
+    error.value = 'Error al cargar pagos especiales'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('es-MX')
+}
+
+const formatCurrency = (value) => {
+  if (value == null) return ''
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
+}
+
+onMounted(async () => {
+  await Promise.all([cargarMercados(), cargarOficinas()])
+})
+</script>
+
+

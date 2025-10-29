@@ -1,0 +1,380 @@
+<template>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="chart-bar" />
+      </div>
+      <div class="module-view-info">
+        <h1>Cuenta Pública</h1>
+        <p>Estadísticas de Adeudos por Recaudadora, Año y Período</p>
+      </div>
+      <div class="module-view-actions">
+        <button
+          class="btn-municipal-secondary"
+          @click="imprimir"
+          :disabled="loading || estadAdeudo.length === 0"
+        >
+          <font-awesome-icon icon="print" />
+          Imprimir Reporte
+        </button>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <!-- Filtros de consulta -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Parámetros de Consulta
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Recaudadora</label>
+              <select
+                class="municipal-form-control"
+                v-model="filters.oficina"
+                :disabled="loading"
+              >
+                <option value="">Seleccione una recaudadora</option>
+                <option
+                  v-for="rec in recaudadoras"
+                  :key="rec.id_rec"
+                  :value="rec.id_rec"
+                >
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Año</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="filters.axo"
+                min="1992"
+                max="2999"
+                :disabled="loading"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Período (Mes)</label>
+              <select
+                class="municipal-form-control"
+                v-model.number="filters.periodo"
+                :disabled="loading"
+              >
+                <option :value="1">1 - Enero</option>
+                <option :value="2">2 - Febrero</option>
+                <option :value="3">3 - Marzo</option>
+                <option :value="4">4 - Abril</option>
+                <option :value="5">5 - Mayo</option>
+                <option :value="6">6 - Junio</option>
+                <option :value="7">7 - Julio</option>
+                <option :value="8">8 - Agosto</option>
+                <option :value="9">9 - Septiembre</option>
+                <option :value="10">10 - Octubre</option>
+                <option :value="11">11 - Noviembre</option>
+                <option :value="12">12 - Diciembre</option>
+              </select>
+            </div>
+        </div>
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="consultar"
+              :disabled="loading || !filters.oficina"
+            >
+              <font-awesome-icon icon="search" />
+              Consultar
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="clearFilters"
+              :disabled="loading"
+            >
+              <font-awesome-icon icon="times" />
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas resumidas -->
+      <div class="municipal-card" v-if="estadAdeudo.length > 0">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="calculator" />
+            Resumen Estadístico
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="stats-grid">
+            <div class="stat-card stat-card-info">
+              <div class="stat-icon">
+                <font-awesome-icon icon="calendar-alt" />
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Meses de Adeudo</div>
+                <div class="stat-value">{{ totalMeses.toLocaleString() }}</div>
+        </div>
+            </div>
+            <div class="stat-card stat-card-success">
+              <div class="stat-icon">
+                <font-awesome-icon icon="dollar-sign" />
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Importe Total Adeudo</div>
+                <div class="stat-value">{{ formatCurrency(totalImporte) }}</div>
+        </div>
+            </div>
+        </div>
+        </div>
+        </div>
+
+      <!-- Tabla de estadísticas por mercado y mes -->
+      <div class="municipal-card" v-if="estadAdeudo.length > 0">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Total por Mercado y Mes
+            <span class="badge-info">{{ estadAdeudo.length }} registros</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Oficina</th>
+                  <th>Mercado</th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th class="text-end">Total</th>
+                  <th class="text-end">Importe Adeudo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in estadAdeudo" :key="`${row.oficina}-${row.num_mercado}-${row.axo}-${row.periodo}`" class="row-hover">
+                  <td><span class="badge-secondary">{{ row.oficina }}</span></td>
+                  <td><strong>{{ row.num_mercado }}</strong></td>
+                  <td>{{ row.axo }}</td>
+                  <td>{{ row.periodo }}</td>
+                  <td class="text-end">{{ row.total }}</td>
+                  <td class="text-end"><strong class="text-success">{{ formatCurrency(row.adeudo) }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de totales por recaudadora y mes -->
+      <div class="municipal-card" v-if="totalAdeudo.length > 0">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="chart-pie" />
+            Total Recaudadora y Mes
+            <span class="badge-info">{{ totalAdeudo.length }} registros</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Oficina</th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th class="text-end">Total</th>
+                  <th class="text-end">Importe Adeudo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in totalAdeudo" :key="`${row.oficina}-${row.axo}-${row.periodo}`" class="row-hover">
+                  <td><span class="badge-secondary">{{ row.oficina }}</span></td>
+                  <td>{{ row.axo }}</td>
+                  <td>{{ row.periodo }}</td>
+                  <td class="text-end">{{ row.total }}</td>
+                  <td class="text-end"><strong class="text-success">{{ formatCurrency(row.adeudo) }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading spinner -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando datos...</p>
+      </div>
+
+      <!-- No hay datos -->
+      <div v-if="!loading && estadAdeudo.length === 0 && consulted" class="municipal-card">
+        <div class="municipal-card-body text-center py-5">
+          <font-awesome-icon icon="inbox" size="3x" class="text-muted mb-3" />
+          <p class="text-muted">No se encontraron registros con los criterios de búsqueda especificados.</p>
+        </div>
+        </div>
+    </div>
+        </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+// State
+const loading = ref(false)
+const consulted = ref(false)
+const recaudadoras = ref([])
+const estadAdeudo = ref([])
+const totalAdeudo = ref([])
+
+const now = new Date()
+const filters = ref({
+  oficina: '',
+  axo: now.getFullYear(),
+  periodo: now.getMonth() + 1
+})
+
+// Computed
+const totalMeses = computed(() => {
+  return estadAdeudo.value.reduce((acc, row) => acc + Number(row.total || 0), 0)
+})
+
+const totalImporte = computed(() => {
+  return estadAdeudo.value.reduce((acc, row) => acc + Number(row.adeudo || 0), 0)
+})
+
+// Methods
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value || 0)
+}
+
+const loadRecaudadoras = async () => {
+  try {
+    loading.value = true
+    const result = await executeStoredProcedure('sp_get_recaudadoras', {})
+    if (result.success) {
+      recaudadoras.value = result.data || []
+      if (recaudadoras.value.length > 0 && !filters.value.oficina) {
+        filters.value.oficina = recaudadoras.value[0].id_rec
+      }
+    } else {
+      handleError(result)
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const consultar = async () => {
+  if (!filters.value.oficina) {
+    toast.warning('Debe seleccionar una recaudadora')
+    return
+  }
+
+  try {
+    loading.value = true
+    consulted.value = true
+
+    const [estadResult, totalResult] = await Promise.all([
+      executeStoredProcedure('sp_cuenta_publica_estad_adeudo', {
+        p_oficina: filters.value.oficina,
+        p_axo: filters.value.axo,
+        p_periodo: filters.value.periodo
+      }),
+      executeStoredProcedure('sp_cuenta_publica_total_adeudo', {
+        p_oficina: filters.value.oficina,
+        p_axo: filters.value.axo,
+        p_periodo: filters.value.periodo
+      })
+    ])
+
+    if (estadResult.success) {
+      estadAdeudo.value = estadResult.data || []
+    } else {
+      handleError(estadResult)
+      estadAdeudo.value = []
+    }
+
+    if (totalResult.success) {
+      totalAdeudo.value = totalResult.data || []
+    } else {
+      handleError(totalResult)
+      totalAdeudo.value = []
+    }
+
+    if (estadAdeudo.value.length === 0) {
+      toast.info('No se encontraron registros')
+    } else {
+      toast.success(`Se encontraron ${estadAdeudo.value.length} registros`)
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const imprimir = async () => {
+  try {
+    loading.value = true
+    const result = await executeStoredProcedure('sp_cuenta_publica_reporte', {
+      p_axo: filters.value.axo,
+      p_oficina: filters.value.oficina
+    })
+
+    if (result.success) {
+      toast.success('Reporte generado correctamente')
+      // Aquí se podría implementar la exportación a PDF/Excel
+      console.log('Datos del reporte:', result.data)
+    } else {
+      handleError(result)
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const clearFilters = () => {
+  const now = new Date()
+  filters.value = {
+    oficina: recaudadoras.value.length > 0 ? recaudadoras.value[0].id_rec : '',
+    axo: now.getFullYear(),
+    periodo: now.getMonth() + 1
+  }
+  estadAdeudo.value = []
+  totalAdeudo.value = []
+  consulted.value = false
+}
+
+// Lifecycle
+onMounted(() => {
+  loadRecaudadoras()
+})
+</script>
+
+

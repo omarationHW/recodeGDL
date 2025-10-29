@@ -1,0 +1,468 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="file-signature" /></div>
+      <div class="module-view-info">
+        <h1>Prescripci�n de Adeudos de Energ�a</h1>
+        <p>Prescripci�n y Condonaci�n de Adeudos de Energ�a El�ctrica</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <!-- Panel de B�squeda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="search" /> B�squeda de Local</h5></div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado *</label>
+              <select class="municipal-form-control" v-model="filters.mercado">
+                <option value="">Seleccione</option>
+                <option v-for="m in mercados" :key="m.key" :value="m.key">{{ m.label }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Secci�n *</label>
+              <select class="municipal-form-control" v-model="filters.seccion">
+                <option value="">Seleccione</option>
+                <option v-for="s in secciones" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Local *</label>
+              <input type="number" class="municipal-form-control" v-model.number="filters.local" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Letra</label>
+              <input type="text" class="municipal-form-control" v-model="filters.letra" maxlength="1" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Bloque</label>
+              <input type="text" class="municipal-form-control" v-model="filters.bloque" maxlength="1" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Movimiento *</label>
+              <select class="municipal-form-control" v-model="tipoMovimiento" @change="updateLabel">
+                <option value="">Seleccione</option>
+                <option value="P">Prescripci�n</option>
+                <option value="C">Condonaci�n</option>
+              </select>
+            </div>
+          </div>
+          <div class="button-group">
+            <button class="btn-municipal-primary" @click="buscar" :disabled="loading || !tipoMovimiento">
+              <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos del Local y Acciones -->
+      <div class="municipal-card" v-if="localEncontrado">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="home" /> Datos del Local -
+            <span class="badge-primary">{{ labelMovimiento }}</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">ID Energ�a</label>
+              <input type="text" class="municipal-form-control" :value="localData.id_energia" readonly />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Nombre</label>
+              <input type="text" class="municipal-form-control" :value="localData.nombre" readonly />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Local Adicional</label>
+              <input type="text" class="municipal-form-control" :value="localData.local_adicional" readonly />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">N�mero de Oficio *</label>
+              <input type="text" class="municipal-form-control" v-model="numeroOficio" placeholder="000/0000/0000" />
+            </div>
+          </div>
+          <div class="button-group">
+            <button class="btn-municipal-success" @click="prescribir" :disabled="loading || !numeroOficio || selectedAdeudos.length === 0">
+              <font-awesome-icon icon="check-circle" /> {{ tipoMovimiento === 'P' ? 'Prescribir' : 'Condonar' }} Seleccionados
+            </button>
+            <button class="btn-municipal-warning" @click="quitarPrescripcion" :disabled="loading || selectedPrescritos.length === 0">
+              <font-awesome-icon icon="undo" /> Quitar {{ tipoMovimiento === 'P' ? 'Prescripci�n' : 'Condonaci�n' }}
+            </button>
+            <button class="btn-municipal-secondary" @click="nuevo">
+              <font-awesome-icon icon="file" /> Nuevo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paneles de Adeudos -->
+      <div class="dual-panel" v-if="localEncontrado">
+        <!-- Adeudos Actuales -->
+        <div class="municipal-card">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="exclamation-circle" /> Adeudos de Energ�a <span class="badge-danger">{{ adeudos.length }}</span></h5>
+            <small>Seleccione los adeudos a {{ tipoMovimiento === 'P' ? 'prescribir' : 'condonar' }}</small>
+          </div>
+          <div class="municipal-card-body table-container">
+            <div v-if="adeudos.length === 0" class="empty-message">
+              <font-awesome-icon icon="check-circle" size="2x" />
+              <p>El local no tiene adeudos de energ�a</p>
+            </div>
+            <div v-else class="municipal-table">
+              <table class="municipal-table selectable-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th width="40">
+                      <input type="checkbox" @change="toggleAllAdeudos" :checked="allAdeudosSelected" />
+                    </th>
+                    <th>A�o</th>
+                    <th>Periodo</th>
+                    <th>Consumo</th>
+                    <th class="text-end">Cantidad</th>
+                    <th class="text-end">Importe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="adeudo in adeudos" :key="adeudo.id_adeudo_energia"
+                      :class="{'selected-row': selectedAdeudos.includes(adeudo.id_adeudo_energia)}"
+                      @click="toggleAdeudo(adeudo.id_adeudo_energia)">
+                    <td>
+                      <input type="checkbox" :checked="selectedAdeudos.includes(adeudo.id_adeudo_energia)" />
+                    </td>
+                    <td>{{ adeudo.axo }}</td>
+                    <td>{{ adeudo.periodo }}</td>
+                    <td>{{ adeudo.cve_consumo }}</td>
+                    <td class="text-end">{{ adeudo.cantidad }}</td>
+                    <td class="text-end"><strong class="text-danger">{{ formatCurrency(adeudo.importe) }}</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Adeudos Prescritos/Condonados -->
+        <div class="municipal-card">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="file-signature" /> Adeudos {{ tipoMovimiento === 'P' ? 'Prescritos' : 'Condonados' }} <span class="badge-info">{{ prescritos.length }}</span></h5>
+            <small>Seleccione para quitar {{ tipoMovimiento === 'P' ? 'prescripci�n' : 'condonaci�n' }}</small>
+          </div>
+          <div class="municipal-card-body table-container">
+            <div v-if="prescritos.length === 0" class="empty-message">
+              <font-awesome-icon icon="info-circle" size="2x" />
+              <p>No hay adeudos {{ tipoMovimiento === 'P' ? 'prescritos' : 'condonados' }}</p>
+            </div>
+            <div v-else class="municipal-table">
+              <table class="municipal-table selectable-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th width="40">
+                      <input type="checkbox" @change="toggleAllPrescritos" :checked="allPrescritosSelected" />
+                    </th>
+                    <th>A�o</th>
+                    <th>Periodo</th>
+                    <th>Consumo</th>
+                    <th class="text-end">Cantidad</th>
+                    <th class="text-end">Importe</th>
+                    <th>Observaci�n</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="pres in prescritos" :key="pres.id_cancelacion"
+                      :class="{'selected-row': selectedPrescritos.includes(pres.id_cancelacion)}"
+                      @click="togglePrescrito(pres.id_cancelacion)">
+                    <td>
+                      <input type="checkbox" :checked="selectedPrescritos.includes(pres.id_cancelacion)" />
+                    </td>
+                    <td>{{ pres.axo }}</td>
+                    <td>{{ pres.periodo }}</td>
+                    <td>{{ pres.cve_consumo }}</td>
+                    <td class="text-end">{{ pres.cantidad }}</td>
+                    <td class="text-end"><strong class="text-success">{{ formatCurrency(pres.importe) }}</strong></td>
+                    <td><small>{{ pres.observacion }}</small></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+import Swal from 'sweetalert2'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const loading = ref(false)
+const mercados = ref([])
+const secciones = ref([])
+const filters = ref({
+  mercado: '',
+  seccion: '',
+  local: null,
+  letra: '',
+  bloque: ''
+})
+const tipoMovimiento = ref('')
+const labelMovimiento = ref('')
+const numeroOficio = ref('')
+const localEncontrado = ref(false)
+const localData = ref({})
+const adeudos = ref([])
+const prescritos = ref([])
+const selectedAdeudos = ref([])
+const selectedPrescritos = ref([])
+
+const allAdeudosSelected = computed(() => adeudos.value.length > 0 && selectedAdeudos.value.length === adeudos.value.length)
+const allPrescritosSelected = computed(() => prescritos.value.length > 0 && selectedPrescritos.value.length === prescritos.value.length)
+
+const formatCurrency = (value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
+
+const updateLabel = () => {
+  labelMovimiento.value = tipoMovimiento.value === 'P' ? 'PRESCRIPCI�N' : 'CONDONACI�N'
+}
+
+const loadMercados = async () => {
+  const result = await executeStoredProcedure('get_mercados_list', {})
+  if (result.success) {
+    mercados.value = (result.data || []).map(m => ({
+      key: `${m.oficina}-${m.num_mercado_nvo}-${m.categoria}`,
+      label: `${m.oficina} - ${m.num_mercado_nvo} - ${m.categoria} - ${m.descripcion}`,
+      oficina: m.oficina,
+      mercado: m.num_mercado_nvo,
+      categoria: m.categoria
+    }))
+  }
+}
+
+const loadSecciones = async () => {
+  const result = await executeStoredProcedure('get_secciones_list', {})
+  if (result.success) {
+    secciones.value = (result.data || []).map(s => s.seccion)
+  }
+}
+
+const buscar = async () => {
+  if (!tipoMovimiento.value) {
+    toast.error('Debe seleccionar el tipo de movimiento')
+    return
+  }
+
+  try {
+    loading.value = true
+    const mercadoParts = filters.value.mercado.split('-')
+
+    const result = await executeStoredProcedure('sp_prescripcion_buscar_local', {
+      p_oficina: parseInt(mercadoParts[0]),
+      p_mercado: parseInt(mercadoParts[1]),
+      p_categoria: parseInt(mercadoParts[2]),
+      p_seccion: filters.value.seccion,
+      p_local: filters.value.local,
+      p_letra: filters.value.letra || null,
+      p_bloque: filters.value.bloque || null
+    })
+
+    if (result.success && result.data && result.data.length > 0) {
+      localData.value = result.data[0]
+      localEncontrado.value = true
+      await cargarAdeudos()
+      await cargarPrescritos()
+
+      if (adeudos.value.length === 0) {
+        toast.info('El local no tiene adeudos de energ�a')
+      }
+    } else {
+      localEncontrado.value = false
+      toast.error('No existe el local o est� dado de baja')
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const cargarAdeudos = async () => {
+  const result = await executeStoredProcedure('sp_get_adeudos_energia', {
+    p_id_energia: localData.value.id_energia
+  })
+  if (result.success) {
+    adeudos.value = result.data || []
+    selectedAdeudos.value = []
+  }
+}
+
+const cargarPrescritos = async () => {
+  const result = await executeStoredProcedure('sp_get_adeudos_prescritos', {
+    p_id_energia: localData.value.id_energia
+  })
+  if (result.success) {
+    prescritos.value = result.data || []
+    selectedPrescritos.value = []
+  }
+}
+
+const toggleAllAdeudos = (event) => {
+  if (event.target.checked) {
+    selectedAdeudos.value = adeudos.value.map(a => a.id_adeudo_energia)
+  } else {
+    selectedAdeudos.value = []
+  }
+}
+
+const toggleAllPrescritos = (event) => {
+  if (event.target.checked) {
+    selectedPrescritos.value = prescritos.value.map(p => p.id_cancelacion)
+  } else {
+    selectedPrescritos.value = []
+  }
+}
+
+const toggleAdeudo = (id) => {
+  const index = selectedAdeudos.value.indexOf(id)
+  if (index > -1) {
+    selectedAdeudos.value.splice(index, 1)
+  } else {
+    selectedAdeudos.value.push(id)
+  }
+}
+
+const togglePrescrito = (id) => {
+  const index = selectedPrescritos.value.indexOf(id)
+  if (index > -1) {
+    selectedPrescritos.value.splice(index, 1)
+  } else {
+    selectedPrescritos.value.push(id)
+  }
+}
+
+const prescribir = async () => {
+  if (!numeroOficio.value.trim()) {
+    toast.error('Debe ingresar el n�mero de oficio')
+    return
+  }
+
+  const confirm = await Swal.fire({
+    title: `�${tipoMovimiento.value === 'P' ? 'Prescribir' : 'Condonar'} adeudos?`,
+    text: `Se ${tipoMovimiento.value === 'P' ? 'prescribir�n' : 'condonar�n'} ${selectedAdeudos.value.length} adeudos`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirm.isConfirmed) return
+
+  try {
+    loading.value = true
+    let procesados = 0
+
+    for (const idAdeudo of selectedAdeudos.value) {
+      const adeudo = adeudos.value.find(a => a.id_adeudo_energia === idAdeudo)
+      if (adeudo) {
+        const observacion = `${tipoMovimiento.value === 'P' ? 'PRESCRIPCION' : 'CONDONACION'} DE ADEUDO OFICIO ${numeroOficio.value}`
+
+        await executeStoredProcedure('sp_prescribir_adeudo', {
+          p_id_energia: adeudo.id_energia,
+          p_axo: adeudo.axo,
+          p_periodo: adeudo.periodo,
+          p_cve_consumo: adeudo.cve_consumo,
+          p_cantidad: adeudo.cantidad,
+          p_importe: adeudo.importe,
+          p_clave_canc: tipoMovimiento.value,
+          p_observacion: observacion,
+          p_id_usuario: 1
+        })
+        procesados++
+      }
+    }
+
+    toast.success(`${procesados} adeudos ${tipoMovimiento.value === 'P' ? 'prescritos' : 'condonados'} correctamente`)
+    numeroOficio.value = ''
+    await buscar()
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const quitarPrescripcion = async () => {
+  const confirm = await Swal.fire({
+    title: `�Quitar ${tipoMovimiento.value === 'P' ? 'prescripci�n' : 'condonaci�n'}?`,
+    text: `Se restaurar�n ${selectedPrescritos.value.length} adeudos`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirm.isConfirmed) return
+
+  try {
+    loading.value = true
+    let procesados = 0
+
+    for (const idCancelacion of selectedPrescritos.value) {
+      const prescrito = prescritos.value.find(p => p.id_cancelacion === idCancelacion)
+      if (prescrito) {
+        await executeStoredProcedure('sp_quitar_prescripcion', {
+          p_id_energia: prescrito.id_energia,
+          p_axo: prescrito.axo,
+          p_periodo: prescrito.periodo,
+          p_cve_consumo: prescrito.cve_consumo,
+          p_cantidad: prescrito.cantidad,
+          p_importe: prescrito.importe,
+          p_id_usuario: 1,
+          p_id_cancelacion: idCancelacion
+        })
+        procesados++
+      }
+    }
+
+    toast.success(`${procesados} adeudos restaurados correctamente`)
+    await buscar()
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const nuevo = () => {
+  localEncontrado.value = false
+  localData.value = {}
+  adeudos.value = []
+  prescritos.value = []
+  selectedAdeudos.value = []
+  selectedPrescritos.value = []
+  numeroOficio.value = ''
+  filters.value = {
+    mercado: '',
+    seccion: '',
+    local: null,
+    letra: '',
+    bloque: ''
+  }
+}
+
+onMounted(() => {
+  loadMercados()
+  loadSecciones()
+})
+</script>
+
+

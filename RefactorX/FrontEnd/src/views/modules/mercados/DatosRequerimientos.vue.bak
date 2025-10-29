@@ -1,0 +1,315 @@
+<template>
+  <div class="module-view">
+    <!-- Header del m�dulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-alt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Datos de Requerimientos</h1>
+        <p>Consulta Individual de Requerimientos por Folio</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <!-- B�squeda de requerimiento -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            B�squeda de Requerimiento
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="buscarRequerimiento">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label">ID Local *</label>
+                <input
+                  type="number"
+                  class="municipal-form-control"
+                  v-model.number="form.id_local"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">M�dulo *</label>
+                <input
+                  type="number"
+                  class="municipal-form-control"
+                  v-model.number="form.modulo"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Folio *</label>
+                <input
+                  type="number"
+                  class="municipal-form-control"
+                  v-model.number="form.folio"
+                  required
+                />
+              </div>
+        </div>
+            <div class="button-group">
+              <button type="submit" class="btn-municipal-primary" :disabled="loading">
+                <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" />
+                Buscar
+              </button>
+            </div>
+          </form>
+        </div>
+        </div>
+
+      <!-- Datos del Local y Mercado -->
+      <div class="row" v-if="local && mercado">
+        <div class="form-group">
+          <div class="municipal-card">
+            <div class="municipal-card-header">
+              <h5>
+                <font-awesome-icon icon="store" />
+                Datos del Local
+              </h5>
+            </div>
+            <div class="municipal-card-body">
+              <table class="detail-table">
+                <tr><th>ID Local:</th><td>{{ local.id_local }}</td></tr>
+                <tr><th>Oficina:</th><td>{{ local.oficina }}</td></tr>
+                <tr><th>Num. Mercado:</th><td>{{ local.num_mercado }}</td></tr>
+                <tr><th>Categor�a:</th><td>{{ local.categoria }}</td></tr>
+                <tr><th>Secci�n:</th><td>{{ local.seccion }}</td></tr>
+                <tr><th>Letra Local:</th><td>{{ local.letra_local }}</td></tr>
+                <tr><th>Bloque:</th><td>{{ local.bloque }}</td></tr>
+                <tr><th>Nombre:</th><td><strong>{{ local.nombre }}</strong></td></tr>
+                <tr><th>Descripci�n:</th><td>{{ local.descripcion_local }}</td></tr>
+              </table>
+            </div>
+        </div>
+        <div class="form-group">
+          <div class="municipal-card">
+            <div class="municipal-card-header">
+              <h5>
+                <font-awesome-icon icon="building" />
+                Datos del Mercado
+              </h5>
+            </div>
+            <div class="municipal-card-body">
+              <table class="detail-table">
+                <tr><th>Descripci�n:</th><td><strong>{{ mercado.descripcion }}</strong></td></tr>
+                <tr><th>Cuenta Ingreso:</th><td><code>{{ mercado.cuenta_ingreso }}</code></td></tr>
+                <tr><th>Cuenta Energ�a:</th><td><code>{{ mercado.cuenta_energia }}</code></td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos del Requerimiento -->
+      <div class="municipal-card" v-if="requerimiento">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="clipboard-list" />
+            Datos del Requerimiento
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <table class="detail-table">
+                <tr><th>Folio:</th><td><span class="badge-primary">{{ requerimiento.folio }}</span></td></tr>
+                <tr><th>Diligencia:</th><td>{{ requerimiento.diligencia }}</td></tr>
+                <tr><th>Importe Global:</th><td class="text-success"><strong>{{ formatCurrency(requerimiento.importe_global) }}</strong></td></tr>
+                <tr><th>Importe Multa:</th><td>{{ formatCurrency(requerimiento.importe_multa) }}</td></tr>
+                <tr><th>Importe Recargo:</th><td>{{ formatCurrency(requerimiento.importe_recargo) }}</td></tr>
+                <tr><th>Importe Gastos:</th><td>{{ formatCurrency(requerimiento.importe_gastos) }}</td></tr>
+                <tr><th>Fecha Emisi�n:</th><td>{{ formatDate(requerimiento.fecha_emision) }}</td></tr>
+                <tr><th>Clave Practicado:</th><td>{{ requerimiento.clave_practicado }}</td></tr>
+                <tr><th>Vigencia:</th><td><span :class="getVigenciaClass(requerimiento.vigencia)">{{ requerimiento.vigencia }}</span></td></tr>
+                <tr><th>Usuario:</th><td>{{ requerimiento.usuario_1 }} - {{ requerimiento.nombre }}</td></tr>
+              </table>
+            </div>
+            <div class="form-group">
+              <table class="detail-table">
+                <tr><th>Estado:</th><td>{{ requerimiento.estado }}</td></tr>
+                <tr><th>Zona:</th><td>{{ requerimiento.zona }}</td></tr>
+                <tr><th>Zona Apremio:</th><td>{{ requerimiento.zona_apremio }}</td></tr>
+                <tr><th>Fecha Practicado:</th><td>{{ formatDate(requerimiento.fecha_practicado) }}</td></tr>
+                <tr><th>Fecha Entrega 1:</th><td>{{ formatDate(requerimiento.fecha_entrega1) }}</td></tr>
+                <tr><th>Fecha Entrega 2:</th><td>{{ formatDate(requerimiento.fecha_entrega2) }}</td></tr>
+                <tr><th>Fecha Citatorio:</th><td>{{ formatDate(requerimiento.fecha_citatorio) }}</td></tr>
+                <tr><th>Observaciones:</th><td>{{ requerimiento.observaciones || 'N/A' }}</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Periodos Requeridos -->
+      <div class="municipal-card" v-if="periodos.length > 0">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="calendar-alt" />
+            Periodos Requeridos
+            <span class="badge-info">{{ periodos.length }} periodos</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>A�o</th>
+                  <th>Periodo</th>
+                  <th class="text-end">Importe</th>
+                  <th class="text-end">Recargos</th>
+                  <th class="text-end">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in periodos" :key="p.id_control" class="row-hover">
+                  <td><strong>{{ p.ayo }}</strong></td>
+                  <td>{{ p.periodo }}</td>
+                  <td class="text-end">{{ formatCurrency(p.importe) }}</td>
+                  <td class="text-end">{{ formatCurrency(p.recargos) }}</td>
+                  <td class="text-end">
+                    <strong class="text-success">{{ formatCurrency(parseFloat(p.importe) + parseFloat(p.recargos)) }}</strong>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="municipal-table">
+                  <th colspan="2">TOTAL</th>
+                  <th class="text-end">{{ formatCurrency(totalImporte) }}</th>
+                  <th class="text-end">{{ formatCurrency(totalRecargos) }}</th>
+                  <th class="text-end"><strong>{{ formatCurrency(totalImporte + totalRecargos) }}</strong></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- No hay datos -->
+      <div v-if="!loading && searched && !requerimiento" class="municipal-card">
+        <div class="municipal-card-body text-center py-5">
+          <font-awesome-icon icon="inbox" size="3x" class="text-muted mb-3" />
+          <p class="text-muted">No se encontr� el requerimiento especificado</p>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, computed } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+// State
+const loading = ref(false)
+const searched = ref(false)
+const form = ref({
+  id_local: null,
+  modulo: null,
+  folio: null
+})
+const local = ref(null)
+const mercado = ref(null)
+const requerimiento = ref(null)
+const periodos = ref([])
+
+// Computed
+const totalImporte = computed(() => {
+  return periodos.value.reduce((acc, p) => acc + parseFloat(p.importe || 0), 0)
+})
+
+const totalRecargos = computed(() => {
+  return periodos.value.reduce((acc, p) => acc + parseFloat(p.recargos || 0), 0)
+})
+
+// Methods
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value || 0)
+}
+
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('es-MX')
+}
+
+const getVigenciaClass = (vigencia) => {
+  return vigencia === 'A' ? 'badge-success' : 'badge-danger'
+}
+
+const buscarRequerimiento = async () => {
+  try {
+    loading.value = true
+    searched.value = true
+    local.value = null
+    mercado.value = null
+    requerimiento.value = null
+    periodos.value = []
+
+    // 1. Obtener local
+    const localResult = await executeStoredProcedure('sp_get_locales', {
+      p_id_local: form.value.id_local
+    })
+
+    if (!localResult.success || !localResult.data || localResult.data.length === 0) {
+      toast.error('Local no encontrado')
+      return
+    }
+    local.value = localResult.data[0]
+
+    // 2. Obtener mercado
+    const mercadoResult = await executeStoredProcedure('sp_get_mercado', {
+      p_oficina: local.value.oficina,
+      p_num_mercado: local.value.num_mercado
+    })
+
+    if (mercadoResult.success && mercadoResult.data && mercadoResult.data.length > 0) {
+      mercado.value = mercadoResult.data[0]
+    }
+
+    // 3. Obtener requerimiento
+    const reqResult = await executeStoredProcedure('sp_get_requerimientos', {
+      p_modulo: form.value.modulo,
+      p_folio: form.value.folio,
+      p_control_otr: form.value.id_local
+    })
+
+    if (!reqResult.success || !reqResult.data || reqResult.data.length === 0) {
+      toast.error('Requerimiento no encontrado')
+      return
+    }
+    requerimiento.value = reqResult.data[0]
+
+    // 4. Obtener periodos
+    const periodosResult = await executeStoredProcedure('sp_get_periodos', {
+      p_control_otr: form.value.id_local
+    })
+
+    if (periodosResult.success) {
+      periodos.value = periodosResult.data || []
+    }
+
+    toast.success('Datos cargados correctamente')
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+
+

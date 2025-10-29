@@ -1,0 +1,700 @@
+<template>
+  <div class="module-view">
+    <!-- HEADER -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-import" />
+      </div>
+      <div class="module-view-info">
+        <h1>Carga de Pagos de Locales</h1>
+        <p>Mercados - Registro masivo de pagos por operación de caja</p>
+      </div>
+      <button class="btn-help-icon" @click="mostrarAyuda" type="button">
+        <font-awesome-icon icon="question-circle" /> Ayuda
+      </button>
+    </div>
+
+    <!-- PARÁMETROS DE OPERACIÓN -->
+    <div class="municipal-card">
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="cash-register" /> Parámetros de Operación
+      </h5></div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="validarOperacion" >
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fecha_pago" class="municipal-form-label required">Fecha Pago:</label>
+            <input
+              type="date"
+              v-model="operacion.fecha_pago"
+              id="fecha_pago"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="oficina" class="municipal-form-label required">Recaudadora:</label>
+            <select
+              v-model.number="operacion.oficina"
+              id="oficina"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+              @change="cargarCajas"
+            >
+              <option value="">Seleccione...</option>
+              <option v-for="rec in recaudadoras" :key="rec.oficina" :value="rec.oficina">
+                {{ rec.recaudadora }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="caja" class="municipal-form-label required">Caja:</label>
+            <select
+              v-model="operacion.caja"
+              id="caja"
+              class="municipal-form-control"
+              required
+              :disabled="cargando || !operacion.oficina"
+            >
+              <option value="">Seleccione...</option>
+              <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">
+                {{ caja.caja }} - {{ caja.descripcion }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="operacion_num" class="municipal-form-label required">Operación:</label>
+            <input
+              type="number"
+              v-model.number="operacion.operacion"
+              id="operacion_num"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+              min="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="mercado" class="municipal-form-label required">Mercado:</label>
+            <select
+              v-model.number="operacion.mercado"
+              id="mercado"
+              class="municipal-form-control"
+              required
+              :disabled="cargando || !operacion.oficina"
+              @change="cargarMercados"
+            >
+              <option value="">Seleccione...</option>
+              <option v-for="mer in mercados" :key="mer.num_mercado_nvo" :value="mer.num_mercado_nvo">
+                {{ mer.num_mercado_nvo }} - {{ mer.descripcion }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <button
+            type="submit"
+            class="btn-municipal-primary"
+            :disabled="cargando || operacionValidada"
+          >
+            <font-awesome-icon icon="check-circle" /> Validar Operación
+          </button>
+
+          <button
+            v-if="operacionValidada"
+            type="button"
+            class="btn-municipal-warning"
+            @click="resetearOperacion"
+          >
+            <font-awesome-icon icon="redo" /> Cambiar Operación
+          </button>
+        </div>
+      </form>
+      </div>
+
+      <!-- Resumen de validación -->
+      <div v-if="operacionValidada" class="alert alert-success mt-3">
+        <div class="stats-dashboard-mini">
+          <div class="stat-item-mini stat-success">
+            <div class="stat-label-mini">Ingreso en Caja</div>
+            <div class="stat-value-mini">${{ formatCurrency(ingresoTotal) }}</div>
+          </div>
+          <div class="stat-item-mini stat-info">
+            <div class="stat-label-mini">Capturado Actual</div>
+            <div class="stat-value-mini">${{ formatCurrency(capturadoTotal) }}</div>
+          </div>
+          <div class="stat-item-mini stat-warning">
+            <div class="stat-label-mini">Disponible</div>
+            <div class="stat-value-mini">${{ formatCurrency(disponible) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BÚSQUEDA DE LOCAL -->
+    <div v-if="operacionValidada" class="municipal-card">
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="search" /> Buscar Local
+      </h5></div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="buscarLocal" >
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoria" class="municipal-form-label required">Categoría:</label>
+            <input
+              type="number"
+              v-model.number="busqueda.categoria"
+              id="categoria"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="seccion" class="municipal-form-label required">Sección:</label>
+            <input
+              type="text"
+              v-model="busqueda.seccion"
+              id="seccion"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+              maxlength="2"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="local" class="municipal-form-label required">Local:</label>
+            <input
+              type="number"
+              v-model.number="busqueda.local"
+              id="local"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <button
+            type="submit"
+            class="btn-municipal-primary"
+            :disabled="cargando"
+          >
+            <font-awesome-icon icon="search" /> Buscar Adeudos
+          </button>
+        </div>
+      </form>
+      </div>
+      </div>
+    </div>
+
+    <!-- ADEUDOS PENDIENTES -->
+    <div v-if="adeudos.length > 0" class="municipal-card">
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="file-invoice-dollar" /> Adeudos Pendientes
+      </h5></div>
+      <div class="municipal-card-body">
+      <div class="municipal-table">
+        <table class="municipal-table">
+          <thead>
+            <tr>
+              <th class="text-center">Año</th>
+              <th class="text-center">Periodo</th>
+              <th class="text-end">Importe</th>
+              <th>Folio/Partida</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(adeudo, index) in adeudos" :key="`${adeudo.id_adeudo_local}-${index}`">
+              <td class="text-center">{{ adeudo.axo }}</td>
+              <td class="text-center">{{ getNombreMes(adeudo.periodo) }}</td>
+              <td class="text-end">
+                <strong class="text-danger">${{ formatCurrency(adeudo.importe) }}</strong>
+              </td>
+              <td>
+                <input
+                  type="text"
+                  v-model="adeudo.folio"
+                  class="municipal-form-control"
+                  placeholder="Ingrese folio/partida"
+                  maxlength="20"
+                  :disabled="cargando"
+                />
+              </td>
+              <td class="text-center">
+                <button
+                  class="btn-municipal-success btn-sm"
+                  @click="registrarPago(adeudo)"
+                  :disabled="cargando || !adeudo.folio || disponible < adeudo.importe"
+                  title="Registrar pago"
+                >
+                  <font-awesome-icon icon="check" />
+                </button>
+                <button
+                  class="btn-municipal-danger btn-sm"
+                  @click="eliminarAdeudo(adeudo)"
+                  :disabled="cargando"
+                  title="Eliminar adeudo sin pago"
+                >
+                  <font-awesome-icon icon="trash" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="municipal-table">
+              <td colspan="2" class="text-end"><strong>TOTAL:</strong></td>
+              <td class="text-end">
+                <strong class="text-danger">${{ formatCurrency(totalAdeudos) }}</strong>
+              </td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="form-row mt-3">
+        <button
+          class="btn-municipal-success"
+          @click="registrarTodos"
+          :disabled="cargando || !todosTienenFolio || disponible < totalAdeudos"
+        >
+          <font-awesome-icon icon="save" /> Registrar Todos los Pagos
+        </button>
+      </div>
+
+      <div v-if="disponible < totalAdeudos" class="alert alert-danger mt-3">
+        <font-awesome-icon icon="exclamation-triangle" />
+        El total de adeudos (${{ formatCurrency(totalAdeudos) }}) excede el disponible en caja (${{ formatCurrency(disponible) }})
+      </div>
+      </div>
+    </div>
+
+    <!-- MENSAJE SIN ADEUDOS -->
+    <div v-else-if="localBuscado && !cargando" class="municipal-card">
+      <div class="alert alert-info">
+        <font-awesome-icon icon="info-circle" />
+        No se encontraron adeudos pendientes para el local especificado.
+      </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from '@/composables/useToast'
+import Swal from 'sweetalert2'
+
+const { execute } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
+
+// Estado
+const cargando = ref(false)
+const operacionValidada = ref(false)
+const localBuscado = ref(false)
+
+// Catálogos
+const recaudadoras = ref([])
+const mercados = ref([])
+const cajas = ref([])
+
+// Parámetros de operación
+const operacion = ref({
+  fecha_pago: obtenerFechaHoy(),
+  oficina: '',
+  caja: '',
+  operacion: '',
+  mercado: ''
+})
+
+// Búsqueda de local
+const busqueda = ref({
+  categoria: '',
+  seccion: '',
+  local: ''
+})
+
+// Datos de validación
+const ingresoTotal = ref(0)
+const capturadoTotal = ref(0)
+
+// Adeudos del local
+const adeudos = ref([])
+
+// Computed
+const disponible = computed(() => {
+  return ingresoTotal.value - capturadoTotal.value
+})
+
+const totalAdeudos = computed(() => {
+  return adeudos.value.reduce((sum, ade) => sum + (ade.importe || 0), 0)
+})
+
+const todosTienenFolio = computed(() => {
+  return adeudos.value.length > 0 && adeudos.value.every(ade => ade.folio && ade.folio.trim() !== '')
+})
+
+// Funciones auxiliares
+function obtenerFechaHoy() {
+  const hoy = new Date()
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+}
+
+function formatCurrency(valor) {
+  if (!valor && valor !== 0) return '0.00'
+  return parseFloat(valor).toLocaleString('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
+function getNombreMes(periodo) {
+  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  return meses[periodo - 1] || periodo
+}
+
+// Cargar catálogos iniciales
+onMounted(async () => {
+  try {
+    cargando.value = true
+    const response = await execute('SP_MERCADOS_RECAUDADORAS_LIST', 'mercados', {})
+    recaudadoras.value = response || []
+
+    if (recaudadoras.value.length > 0) {
+      operacion.value.oficina = recaudadoras.value[0].oficina
+      await cargarCajas()
+      await cargarMercados()
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+})
+
+// Cargar cajas de la oficina
+async function cargarCajas() {
+  if (!operacion.value.oficina) return
+
+  try {
+    const response = await execute('SP_MERCADOS_CAJAS_LIST', 'mercados', {
+      p_oficina: parseInt(operacion.value.oficina)
+    })
+    cajas.value = response || []
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+// Cargar mercados de la oficina
+async function cargarMercados() {
+  if (!operacion.value.oficina) return
+
+  try {
+    const response = await execute('SP_MERCADOS_MERCADOS_LIST', 'mercados', {
+      p_oficina: parseInt(operacion.value.oficina)
+    })
+    mercados.value = response || []
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+// Validar operación de caja
+async function validarOperacion() {
+  try {
+    cargando.value = true
+
+    // Validar ingreso de la operación
+    const ingreso = await execute('SP_MERCADOS_CARGA_INGRESO_OPERACION', 'mercados', {
+      p_fecha_ingreso: operacion.value.fecha_pago,
+      p_oficina: parseInt(operacion.value.oficina),
+      p_caja: operacion.value.caja,
+      p_operacion: parseInt(operacion.value.operacion),
+      p_oficina_mercado: parseInt(operacion.value.oficina),
+      p_mercado: parseInt(operacion.value.mercado)
+    })
+
+    if (!ingreso || ingreso.length === 0) {
+      showToast('No se encontró ingreso para esta operación de caja', 'error')
+      return
+    }
+
+    // Calcular total de ingreso
+    ingresoTotal.value = ingreso.reduce((sum, ing) => sum + (ing.ingreso || 0), 0)
+
+    // Obtener captura actual
+    const captura = await execute('SP_MERCADOS_CARGA_CAPTURA_OPERACION', 'mercados', {
+      p_fecha_pago: operacion.value.fecha_pago,
+      p_oficina: parseInt(operacion.value.oficina),
+      p_caja: operacion.value.caja,
+      p_operacion: parseInt(operacion.value.operacion),
+      p_mercado: parseInt(operacion.value.mercado)
+    })
+
+    capturadoTotal.value = (captura && captura[0]) ? captura[0].capturado : 0
+
+    operacionValidada.value = true
+    showToast('Operación validada correctamente', 'success')
+
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Resetear operación
+function resetearOperacion() {
+  operacionValidada.value = false
+  localBuscado.value = false
+  adeudos.value = []
+  ingresoTotal.value = 0
+  capturadoTotal.value = 0
+  busqueda.value = {
+    categoria: '',
+    seccion: '',
+    local: ''
+  }
+}
+
+// Buscar adeudos del local
+async function buscarLocal() {
+  try {
+    cargando.value = true
+    localBuscado.value = true
+
+    const response = await execute('SP_MERCADOS_CARGA_ADEUDOS_LOCAL', 'mercados', {
+      p_oficina: parseInt(operacion.value.oficina),
+      p_mercado: parseInt(operacion.value.mercado),
+      p_categoria: parseInt(busqueda.value.categoria),
+      p_seccion: busqueda.value.seccion.toUpperCase(),
+      p_local: parseInt(busqueda.value.local)
+    })
+
+    adeudos.value = (response || []).map(ade => ({
+      ...ade,
+      folio: '' // Inicializar campo de folio
+    }))
+
+    if (adeudos.value.length === 0) {
+      showToast('No se encontraron adeudos para este local', 'info')
+    } else {
+      showToast(`Se encontraron ${adeudos.value.length} adeudos pendientes`, 'success')
+    }
+
+  } catch (error) {
+    handleError(error)
+    adeudos.value = []
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Registrar un pago individual
+async function registrarPago(adeudo) {
+  if (!adeudo.folio || adeudo.folio.trim() === '') {
+    showToast('Debe ingresar un folio/partida', 'error')
+    return
+  }
+
+  if (disponible.value < adeudo.importe) {
+    showToast('Saldo disponible insuficiente', 'error')
+    return
+  }
+
+  try {
+    cargando.value = true
+
+    await execute('SP_MERCADOS_CARGA_INSERTAR_PAGO', 'mercados', {
+      p_id_local: adeudo.id_local,
+      p_axo: adeudo.axo,
+      p_periodo: adeudo.periodo,
+      p_fecha_pago: operacion.value.fecha_pago,
+      p_oficina: parseInt(operacion.value.oficina),
+      p_caja: operacion.value.caja,
+      p_operacion: parseInt(operacion.value.operacion),
+      p_importe: adeudo.importe,
+      p_folio: adeudo.folio,
+      p_id_usuario: 1 // TODO: obtener de sesión
+    })
+
+    // Actualizar capturado
+    capturadoTotal.value += adeudo.importe
+
+    // Eliminar de la lista
+    const index = adeudos.value.findIndex(a =>
+      a.id_local === adeudo.id_local &&
+      a.axo === adeudo.axo &&
+      a.periodo === adeudo.periodo
+    )
+    if (index > -1) {
+      adeudos.value.splice(index, 1)
+    }
+
+    showToast('Pago registrado correctamente', 'success')
+
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Registrar todos los pagos
+async function registrarTodos() {
+  const result = await Swal.fire({
+    title: '¿Confirmar Carga de Pagos?',
+    html: `Se registrarán <strong>${adeudos.value.length} pagos</strong> por un total de <strong>$${formatCurrency(totalAdeudos.value)}</strong>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, registrar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!result.isConfirmed) return
+
+  let exitos = 0
+  let errores = 0
+
+  cargando.value = true
+
+  for (const adeudo of adeudos.value) {
+    try {
+      await execute('SP_MERCADOS_CARGA_INSERTAR_PAGO', 'mercados', {
+        p_id_local: adeudo.id_local,
+        p_axo: adeudo.axo,
+        p_periodo: adeudo.periodo,
+        p_fecha_pago: operacion.value.fecha_pago,
+        p_oficina: parseInt(operacion.value.oficina),
+        p_caja: operacion.value.caja,
+        p_operacion: parseInt(operacion.value.operacion),
+        p_importe: adeudo.importe,
+        p_folio: adeudo.folio,
+        p_id_usuario: 1 // TODO: obtener de sesión
+      })
+
+      capturadoTotal.value += adeudo.importe
+      exitos++
+
+    } catch (error) {
+      errores++
+      console.error('Error al registrar pago:', error)
+    }
+  }
+
+  cargando.value = false
+
+  // Limpiar adeudos
+  adeudos.value = []
+  localBuscado.value = false
+
+  await Swal.fire({
+    title: 'Carga Completada',
+    html: `
+      <strong>Exitosos:</strong> ${exitos}<br>
+      <strong>Errores:</strong> ${errores}<br>
+      <strong>Total Capturado:</strong> $${formatCurrency(capturadoTotal.value)}
+    `,
+    icon: exitos > 0 ? 'success' : 'error'
+  })
+}
+
+// Eliminar adeudo sin pago
+async function eliminarAdeudo(adeudo) {
+  const result = await Swal.fire({
+    title: '¿Eliminar Adeudo?',
+    text: `Se eliminará el adeudo de $${formatCurrency(adeudo.importe)} sin registrar pago`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d33'
+  })
+
+  if (!result.isConfirmed) return
+
+  try {
+    cargando.value = true
+
+    await execute('SP_MERCADOS_CARGA_ELIMINAR_ADEUDO', 'mercados', {
+      p_id_local: adeudo.id_local,
+      p_axo: adeudo.axo,
+      p_periodo: adeudo.periodo
+    })
+
+    // Eliminar de la lista
+    const index = adeudos.value.findIndex(a =>
+      a.id_local === adeudo.id_local &&
+      a.axo === adeudo.axo &&
+      a.periodo === adeudo.periodo
+    )
+    if (index > -1) {
+      adeudos.value.splice(index, 1)
+    }
+
+    showToast('Adeudo eliminado correctamente', 'success')
+
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Mostrar ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Carga de Pagos de Locales',
+    html: `
+      <div class="help-content" style="text-align: left;">
+        <h3>Descripción</h3>
+        <p>Este módulo permite registrar pagos de forma masiva para locales comerciales, asociados a una operación de caja específica.</p>
+
+        <h3>Proceso de Carga</h3>
+        <ol>
+          <li><strong>Validar Operación:</strong> Ingrese los datos de la operación de caja (fecha, oficina, caja, número de operación, mercado)</li>
+          <li><strong>Verificar Saldos:</strong> El sistema valida el ingreso en caja y calcula el disponible</li>
+          <li><strong>Buscar Local:</strong> Ingrese la ubicación del local (categoría, sección, número)</li>
+          <li><strong>Visualizar Adeudos:</strong> Se muestran todos los adeudos pendientes del local</li>
+          <li><strong>Ingresar Folios:</strong> Capture el folio/partida para cada adeudo a pagar</li>
+          <li><strong>Registrar Pagos:</strong> Puede registrar individualmente o todos a la vez</li>
+        </ol>
+
+        <h3>Validaciones</h3>
+        <ul>
+          <li>El total de pagos no puede exceder el saldo disponible en caja</li>
+          <li>Todos los folios/partidas son obligatorios</li>
+          <li>Al registrar un pago, se elimina automáticamente el adeudo correspondiente</li>
+        </ul>
+
+        <h3>Notas Importantes</h3>
+        <ul>
+          <li>El <strong>ingreso</strong> se obtiene de la tabla de importes de caja</li>
+          <li>El <strong>capturado</strong> se actualiza con cada pago registrado</li>
+          <li>El <strong>disponible</strong> = Ingreso - Capturado</li>
+          <li>Puede eliminar adeudos sin pago si es necesario</li>
+        </ul>
+      </div>
+    `,
+    icon: 'info',
+    width: 800,
+    confirmButtonText: 'Entendido'
+  })
+}
+</script>
+
+

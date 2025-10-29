@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell:*)",
+      "Bash(python check_imports.py:*)",
+      "Bash(test:*)",
+      "Bash(python check_all_imports.py:*)",
+      "Bash(if exist \"node_modules\\.vite\" rmdir /s /q \"node_modules\\.vite\")",
+      "Read(//c/Sistemas/RefactorX/Base/otras_obligaciones/**)",
+      "Read(//c/Sistemas/RefactorX/**)",
+      "Bash(dir /s /b \"C:\\Sistemas\\RefactorX\\Base\\otras_obligaciones\\database\\*.sql\")",
+      "Bash(findstr /i \"adeudos\")",
+      "Bash(dir /b \"C:\\Sistemas\\RefactorX\\Base\\otras_obligaciones\\database\\ok\\*.sql\")",
+      "Read(//c/**)",
+      "Bash(for file in RAdeudos.vue RBaja.vue RConsulta.vue RFacturacion.vue RNuevos.vue RPagados.vue RRep_Padron.vue Rubros.vue)",
+      "Bash(do sed -i \"/import.*@element-plus\\/icons-vue/d\" \"$file\")",
+      "Bash(done)",
+      "mcp__ide__getDiagnostics",
+      "Bash(for file in RAdeudos.vue RBaja.vue RConsulta.vue RFacturacion.vue RNuevos.vue RPagados.vue RRep_Padron.vue)",
+      "Bash(do echo \"$file:\")",
+      "Bash(python:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,494 @@
+<template>
+  <div class="module-view">
+    <!-- HEADER -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="chart-bar" />
+      </div>
+      <div class="module-view-info">
+        <h1>Estadística de Pagos y Adeudos</h1>
+        <p>Mercados - Consulta consolidada de pagos, capturas y adeudos por mercado</p>
+      </div>
+      <button class="btn-help-icon" @click="mostrarAyuda" type="button">
+        <font-awesome-icon icon="question-circle" /> Ayuda
+      </button>
+    </div>
+
+    <!-- FORMULARIO DE PARÁMETROS -->
+    <div class="municipal-card">
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="filter" /> Parámetros de Consulta
+      </h5></div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="consultar" >
+        <div class="form-row">
+          <div class="form-group">
+            <label for="oficina" class="municipal-form-label required">Recaudadora:</label>
+            <select
+              v-model.number="parametros.oficina"
+              id="oficina"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            >
+              <option value="">Seleccione una recaudadora</option>
+              <option v-for="rec in recaudadoras" :key="rec.oficina" :value="rec.oficina">
+                {{ rec.recaudadora }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="axo" class="municipal-form-label required">Año:</label>
+            <input
+              type="number"
+              v-model.number="parametros.axo"
+              id="axo"
+              class="municipal-form-control"
+              min="1995"
+              max="2100"
+              required
+              :disabled="cargando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="periodo" class="municipal-form-label required">Periodo:</label>
+            <select
+              v-model.number="parametros.periodo"
+              id="periodo"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            >
+              <option value="">Mes</option>
+              <option value="1">Enero</option>
+              <option value="2">Febrero</option>
+              <option value="3">Marzo</option>
+              <option value="4">Abril</option>
+              <option value="5">Mayo</option>
+              <option value="6">Junio</option>
+              <option value="7">Julio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fecha_desde" class="municipal-form-label required">Fecha Desde:</label>
+            <input
+              type="date"
+              v-model="parametros.fecha_desde"
+              id="fecha_desde"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="fecha_hasta" class="municipal-form-label required">Fecha Hasta:</label>
+            <input
+              type="date"
+              v-model="parametros.fecha_hasta"
+              id="fecha_hasta"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <button
+            type="submit"
+            class="btn-municipal-primary"
+            :disabled="cargando"
+          >
+            <font-awesome-icon icon="search" /> Consultar
+          </button>
+
+          <button
+            type="button"
+            class="btn-municipal-success"
+            @click="exportarExcel"
+            :disabled="cargando || estadisticas.length === 0"
+          >
+            <font-awesome-icon icon="file-excel" /> Exportar a Excel
+          </button>
+        </div>
+      </form>
+      </div>
+      </div>
+    </div>
+
+    <!-- ESTADÍSTICAS DASHBOARD -->
+    <div v-if="estadisticas.length > 0" class="municipal-card">
+      <div class="stats-dashboard mb-3">
+        <div class="stat-item stat-primary">
+          <div class="stat-value">${{ formatCurrency(totales.importe_pagado) }}</div>
+          <div class="stat-label">Total Pagado</div>
+          <div class="stat-sublabel">{{ totales.periodos_pagados }} periodos</div>
+        </div>
+
+        <div class="stat-item stat-info">
+          <div class="stat-value">${{ formatCurrency(totales.importe_capturado) }}</div>
+          <div class="stat-label">Total Capturado</div>
+          <div class="stat-sublabel">{{ totales.periodos_capturados }} periodos</div>
+        </div>
+
+        <div class="stat-item stat-danger">
+          <div class="stat-value">${{ formatCurrency(totales.importe_adeudo) }}</div>
+          <div class="stat-label">Total Adeudo</div>
+          <div class="stat-sublabel">{{ totales.periodos_adeudo }} periodos</div>
+        </div>
+
+        <div class="stat-item stat-warning">
+          <div class="stat-value">{{ estadisticas.length }}</div>
+          <div class="stat-label">Mercados</div>
+          <div class="stat-sublabel">En consulta</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA DE RESULTADOS -->
+    <div v-if="estadisticas.length > 0" class="municipal-card">
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="table" /> Resultados por Mercado
+      </h5></div>
+      <div class="municipal-card-body">
+      <div class="municipal-table">
+        <table class="municipal-table">
+          <thead>
+            <tr>
+              <th rowspan="2" class="text-center">#</th>
+              <th rowspan="2">Mercado</th>
+              <th colspan="3" class="text-center bg-primary-light">Pagados</th>
+              <th colspan="3" class="text-center bg-info-light">Capturados</th>
+              <th colspan="3" class="text-center bg-danger-light">Adeudos</th>
+            </tr>
+            <tr>
+              <!-- Pagados -->
+              <th class="text-center">Locales</th>
+              <th class="text-end">Importe</th>
+              <th class="text-center">Periodos</th>
+              <!-- Capturados -->
+              <th class="text-center">Locales</th>
+              <th class="text-end">Importe</th>
+              <th class="text-center">Periodos</th>
+              <!-- Adeudos -->
+              <th class="text-center">Locales</th>
+              <th class="text-end">Importe</th>
+              <th class="text-center">Periodos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(est, index) in estadisticas" :key="est.num_mercado">
+              <td class="text-center">{{ index + 1 }}</td>
+              <td><strong>{{ est.descripcion }}</strong></td>
+
+              <!-- Pagados -->
+              <td class="text-center">{{ est.locales_pagados }}</td>
+              <td class="text-end">
+                <strong class="text-primary">${{ formatCurrency(est.importe_pagado) }}</strong>
+              </td>
+              <td class="text-center">{{ est.periodos_pagados }}</td>
+
+              <!-- Capturados -->
+              <td class="text-center">{{ est.locales_capturados }}</td>
+              <td class="text-end">
+                <strong class="text-info">${{ formatCurrency(est.importe_capturado) }}</strong>
+              </td>
+              <td class="text-center">{{ est.periodos_capturados }}</td>
+
+              <!-- Adeudos -->
+              <td class="text-center">{{ est.locales_adeudo }}</td>
+              <td class="text-end">
+                <strong class="text-danger">${{ formatCurrency(est.importe_adeudo) }}</strong>
+              </td>
+              <td class="text-center">{{ est.periodos_adeudo }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="municipal-table">
+              <td colspan="2" class="text-end"><strong>TOTALES:</strong></td>
+
+              <!-- Totales Pagados -->
+              <td class="text-center"><strong>{{ totales.locales_pagados }}</strong></td>
+              <td class="text-end">
+                <strong class="text-primary">${{ formatCurrency(totales.importe_pagado) }}</strong>
+              </td>
+              <td class="text-center"><strong>{{ totales.periodos_pagados }}</strong></td>
+
+              <!-- Totales Capturados -->
+              <td class="text-center"><strong>{{ totales.locales_capturados }}</strong></td>
+              <td class="text-end">
+                <strong class="text-info">${{ formatCurrency(totales.importe_capturado) }}</strong>
+              </td>
+              <td class="text-center"><strong>{{ totales.periodos_capturados }}</strong></td>
+
+              <!-- Totales Adeudos -->
+              <td class="text-center"><strong>{{ totales.locales_adeudo }}</strong></td>
+              <td class="text-end">
+                <strong class="text-danger">${{ formatCurrency(totales.importe_adeudo) }}</strong>
+              </td>
+              <td class="text-center"><strong>{{ totales.periodos_adeudo }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      </div>
+    </div>
+
+    <!-- MENSAJE CUANDO NO HAY DATOS -->
+    <div v-else-if="!cargando && consultaRealizada" class="municipal-card">
+      <div class="alert alert-info">
+        <font-awesome-icon icon="info-circle" />
+        No se encontraron datos para los parámetros especificados.
+      </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from '@/composables/useToast'
+import Swal from 'sweetalert2'
+import * as XLSX from 'xlsx'
+
+const { execute } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
+
+// Estado
+const cargando = ref(false)
+const consultaRealizada = ref(false)
+const recaudadoras = ref([])
+const estadisticas = ref([])
+
+// Parámetros de consulta
+const parametros = ref({
+  oficina: '',
+  axo: new Date().getFullYear(),
+  periodo: new Date().getMonth() + 1,
+  fecha_desde: obtenerPrimerDiaMes(),
+  fecha_hasta: obtenerUltimoDiaMes()
+})
+
+// Totales calculados
+const totales = computed(() => {
+  if (estadisticas.value.length === 0) {
+    return {
+      locales_pagados: 0,
+      importe_pagado: 0,
+      periodos_pagados: 0,
+      locales_capturados: 0,
+      importe_capturado: 0,
+      periodos_capturados: 0,
+      locales_adeudo: 0,
+      importe_adeudo: 0,
+      periodos_adeudo: 0
+    }
+  }
+
+  return estadisticas.value.reduce((acc, est) => {
+    return {
+      locales_pagados: acc.locales_pagados + (est.locales_pagados || 0),
+      importe_pagado: acc.importe_pagado + (est.importe_pagado || 0),
+      periodos_pagados: acc.periodos_pagados + (est.periodos_pagados || 0),
+      locales_capturados: acc.locales_capturados + (est.locales_capturados || 0),
+      importe_capturado: acc.importe_capturado + (est.importe_capturado || 0),
+      periodos_capturados: acc.periodos_capturados + (est.periodos_capturados || 0),
+      locales_adeudo: acc.locales_adeudo + (est.locales_adeudo || 0),
+      importe_adeudo: acc.importe_adeudo + (est.importe_adeudo || 0),
+      periodos_adeudo: acc.periodos_adeudo + (est.periodos_adeudo || 0)
+    }
+  }, {
+    locales_pagados: 0,
+    importe_pagado: 0,
+    periodos_pagados: 0,
+    locales_capturados: 0,
+    importe_capturado: 0,
+    periodos_capturados: 0,
+    locales_adeudo: 0,
+    importe_adeudo: 0,
+    periodos_adeudo: 0
+  })
+})
+
+// Funciones auxiliares
+function obtenerPrimerDiaMes() {
+  const fecha = new Date()
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-01`
+}
+
+function obtenerUltimoDiaMes() {
+  const fecha = new Date()
+  const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate()
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`
+}
+
+function formatCurrency(valor) {
+  if (!valor && valor !== 0) return '0.00'
+  return parseFloat(valor).toLocaleString('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
+// Cargar recaudadoras al montar
+onMounted(async () => {
+  try {
+    cargando.value = true
+    const response = await execute('SP_MERCADOS_RECAUDADORAS_LIST', 'mercados', {})
+    recaudadoras.value = response || []
+
+    if (recaudadoras.value.length > 0) {
+      parametros.value.oficina = recaudadoras.value[0].oficina
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+})
+
+// Consultar estadísticas
+async function consultar() {
+  try {
+    // Validar fechas
+    if (parametros.value.fecha_desde > parametros.value.fecha_hasta) {
+      showToast('La fecha desde debe ser menor o igual a la fecha hasta', 'error')
+      return
+    }
+
+    cargando.value = true
+    consultaRealizada.value = true
+
+    const response = await execute('SP_MERCADOS_ESTAD_ESTADISTICA_PAGOS_ADEUDOS', 'mercados', {
+      p_oficina: parseInt(parametros.value.oficina),
+      p_axo: parametros.value.axo,
+      p_periodo: parametros.value.periodo,
+      p_fecha_desde: parametros.value.fecha_desde,
+      p_fecha_hasta: parametros.value.fecha_hasta
+    })
+
+    estadisticas.value = response || []
+
+    if (estadisticas.value.length === 0) {
+      showToast('No se encontraron datos para los parámetros especificados', 'info')
+    } else {
+      showToast(`Se encontraron ${estadisticas.value.length} mercados con estadísticas`, 'success')
+    }
+
+  } catch (error) {
+    handleError(error)
+    estadisticas.value = []
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Exportar a Excel
+function exportarExcel() {
+  try {
+    // Preparar datos para Excel
+    const datosExcel = estadisticas.value.map((est, index) => ({
+      '#': index + 1,
+      'Mercado': est.descripcion,
+      'Locales Pagados': est.locales_pagados || 0,
+      'Importe Pagado': est.importe_pagado || 0,
+      'Periodos Pagados': est.periodos_pagados || 0,
+      'Locales Capturados': est.locales_capturados || 0,
+      'Importe Capturado': est.importe_capturado || 0,
+      'Periodos Capturados': est.periodos_capturados || 0,
+      'Locales Adeudo': est.locales_adeudo || 0,
+      'Importe Adeudo': est.importe_adeudo || 0,
+      'Periodos Adeudo': est.periodos_adeudo || 0
+    }))
+
+    // Agregar fila de totales
+    datosExcel.push({
+      '#': '',
+      'Mercado': 'TOTALES',
+      'Locales Pagados': totales.value.locales_pagados,
+      'Importe Pagado': totales.value.importe_pagado,
+      'Periodos Pagados': totales.value.periodos_pagados,
+      'Locales Capturados': totales.value.locales_capturados,
+      'Importe Capturado': totales.value.importe_capturado,
+      'Periodos Capturados': totales.value.periodos_capturados,
+      'Locales Adeudo': totales.value.locales_adeudo,
+      'Importe Adeudo': totales.value.importe_adeudo,
+      'Periodos Adeudo': totales.value.periodos_adeudo
+    })
+
+    // Crear libro de Excel
+    const ws = XLSX.utils.json_to_sheet(datosExcel)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Estadísticas')
+
+    // Descargar archivo
+    const recaudadoraNombre = recaudadoras.value.find(r => r.oficina === parametros.value.oficina)?.recaudadora || 'Recaudadora'
+    const nombreArchivo = `Estadisticas_Pagos_Adeudos_${recaudadoraNombre}_${parametros.value.axo}_${parametros.value.periodo}.xlsx`
+
+    XLSX.writeFile(wb, nombreArchivo)
+    showToast('Archivo Excel generado correctamente', 'success')
+  } catch (error) {
+    handleError(error)
+  }
+}
+
+// Mostrar ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Estadística de Pagos y Adeudos',
+    html: `
+      <div class="help-content" style="text-align: left;">
+        <h3>Descripción</h3>
+        <p>Este módulo permite consultar las estadísticas consolidadas de pagos, capturas y adeudos de locales comerciales en mercados, agrupadas por mercado y para un periodo específico.</p>
+
+        <h3>Parámetros de Consulta</h3>
+        <ul>
+          <li><strong>Recaudadora:</strong> Seleccione la oficina recaudadora</li>
+          <li><strong>Año:</strong> Año fiscal para el cálculo de adeudos</li>
+          <li><strong>Periodo:</strong> Mes hasta el cual se calcularán los adeudos</li>
+          <li><strong>Fecha Desde/Hasta:</strong> Rango de fechas para filtrar pagos y capturas</li>
+        </ul>
+
+        <h3>Columnas de Resultados</h3>
+        <ul>
+          <li><strong>Pagados:</strong> Locales con pagos en el rango de fechas (por fecha_pago)</li>
+          <li><strong>Capturados:</strong> Locales con pagos capturados en el rango (por fecha_modificacion)</li>
+          <li><strong>Adeudos:</strong> Locales con adeudos pendientes hasta el año/periodo especificado</li>
+        </ul>
+
+        <h3>Funcionalidades</h3>
+        <ul>
+          <li><strong>Consultar:</strong> Genera el reporte con los parámetros seleccionados</li>
+          <li><strong>Exportar a Excel:</strong> Descarga los resultados en formato Excel</li>
+          <li><strong>Dashboard:</strong> Muestra totales consolidados de todas las categorías</li>
+        </ul>
+
+        <h3>Notas Importantes</h3>
+        <ul>
+          <li>Los <strong>pagados</strong> se filtran por la fecha en que se realizó el pago</li>
+          <li>Los <strong>capturados</strong> se filtran por la fecha de modificación del registro</li>
+          <li>Los <strong>adeudos</strong> incluyen todos los periodos hasta el año/mes especificado</li>
+          <li>La tabla muestra totales por mercado y un gran total al final</li>
+        </ul>
+      </div>
+    `,
+    icon: 'info',
+    width: 800,
+    confirmButtonText: 'Entendido'
+  })
+}
+</script>
+
+

@@ -1,0 +1,510 @@
+<template>
+  <div class="module-view">
+    <!-- HEADER -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="plus-circle" />
+      </div>
+      <div class="module-view-info">
+        <h1>Alta de Locales para Energía Eléctrica</h1>
+        <p>Mercados - Registro de nuevos servicios de energía</p>
+      </div>
+      <button class="btn-help-icon" @click="mostrarAyuda" type="button">
+        <font-awesome-icon icon="question-circle" /> Ayuda
+      </button>
+    </div>
+
+    <!-- BÚSQUEDA DE LOCAL -->
+    <div class="municipal-card">
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="search" /> Buscar Local
+      </h5></div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="buscarLocal" >
+        <div class="form-row">
+          <div class="form-group">
+            <label for="recaudadora" class="municipal-form-label required">Recaudadora:</label>
+            <select
+              v-model.number="busqueda.oficina"
+              id="recaudadora"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+              @change="onRecaudadoraChange"
+            >
+              <option value="">Seleccione...</option>
+              <option v-for="rec in recaudadoras" :key="rec.oficina" :value="rec.oficina">
+                {{ rec.oficina }} - {{ rec.recaudadora }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="mercado" class="municipal-form-label required">Mercado:</label>
+            <select
+              v-model.number="busqueda.num_mercado"
+              id="mercado"
+              class="municipal-form-control"
+              required
+              :disabled="cargando || !busqueda.oficina"
+            >
+              <option value="">Seleccione...</option>
+              <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="categoria" class="municipal-form-label required">Categoría:</label>
+            <input
+              type="number"
+              v-model.number="busqueda.categoria"
+              id="categoria"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+              min="1"
+              max="9"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="seccion" class="municipal-form-label required">Sección:</label>
+            <select
+              v-model="busqueda.seccion"
+              id="seccion"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            >
+              <option value="">Seleccione...</option>
+              <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">
+                {{ sec.seccion }} - {{ sec.descripcion }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="local" class="municipal-form-label required">Local:</label>
+            <input
+              type="number"
+              v-model.number="busqueda.local"
+              id="local"
+              class="municipal-form-control"
+              required
+              :disabled="cargando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="letra" class="municipal-form-label">Letra:</label>
+            <input
+              type="text"
+              v-model="busqueda.letra_local"
+              id="letra"
+              class="municipal-form-control"
+              maxlength="1"
+              :disabled="cargando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="bloque" class="municipal-form-label">Bloque:</label>
+            <input
+              type="text"
+              v-model="busqueda.bloque"
+              id="bloque"
+              class="municipal-form-control"
+              maxlength="1"
+              :disabled="cargando"
+            />
+          </div>
+
+          <div class="form-group">
+            <button type="submit" class="btn-municipal-primary" :disabled="cargando" style="margin-top: 1.5rem;">
+              <font-awesome-icon icon="search" /> Buscar Local
+            </button>
+          </div>
+        </div>
+      </form>
+      </div>
+      </div>
+    </div>
+
+    <!-- DATOS DEL LOCAL ENCONTRADO -->
+    <div v-if="localEncontrado" class="municipal-card">
+      <div class="alert alert-success">
+        <font-awesome-icon icon="check-circle" />
+        <strong>Local encontrado:</strong> {{ localEncontrado.categoria }}-{{ localEncontrado.seccion }}-{{ localEncontrado.local }} {{ localEncontrado.letra_local }} {{ localEncontrado.bloque }} - {{ localEncontrado.nombre }}
+      </div>
+
+      <div class="municipal-card-header"><h5>
+        <font-awesome-icon icon="bolt" /> Datos de Energía Eléctrica
+      </h5></div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="guardarEnergia" >
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cve_consumo" class="municipal-form-label required">Tipo Consumo:</label>
+            <select
+              v-model="energia.cve_consumo"
+              id="cve_consumo"
+              class="municipal-form-control"
+              required
+              :disabled="guardando"
+            >
+              <option value="K">Kilowatts</option>
+              <option value="C">Cuota Fija</option>
+              <option value="M">Mixto</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion" class="municipal-form-label required">Locales Adicionales:</label>
+            <input
+              type="text"
+              v-model="energia.descripcion"
+              id="descripcion"
+              class="municipal-form-control"
+              maxlength="50"
+              required
+              :disabled="guardando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="cantidad" class="municipal-form-label required">Cantidad/Mes:</label>
+            <input
+              type="number"
+              v-model.number="energia.cantidad"
+              id="cantidad"
+              class="municipal-form-control"
+              step="0.01"
+              min="0"
+              required
+              :disabled="guardando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="vigencia" class="municipal-form-label required">Vigencia:</label>
+            <select
+              v-model="energia.vigencia"
+              id="vigencia"
+              class="municipal-form-control"
+              required
+              :disabled="guardando"
+            >
+              <option value="V">Vigente</option>
+              <option value="E">Vigente para Emisión</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fecha_alta" class="municipal-form-label required">Fecha Alta:</label>
+            <input
+              type="date"
+              v-model="energia.fecha_alta"
+              id="fecha_alta"
+              class="municipal-form-control"
+              required
+              :disabled="guardando"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="axo" class="municipal-form-label required">Año Oficio:</label>
+            <input
+              type="number"
+              v-model.number="energia.axo"
+              id="axo"
+              class="municipal-form-control"
+              required
+              :disabled="guardando"
+              min="1990"
+              :max="new Date().getFullYear()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="numero" class="municipal-form-label required">Número Oficio:</label>
+            <input
+              type="text"
+              v-model="energia.numero"
+              id="numero"
+              class="municipal-form-control"
+              maxlength="20"
+              required
+              :disabled="guardando"
+            />
+          </div>
+
+          <div class="form-group">
+            <button type="submit" class="btn-municipal-success" :disabled="guardando" style="margin-top: 1.5rem;">
+              <font-awesome-icon icon="save" /> Guardar Energía
+            </button>
+          </div>
+        </div>
+      </form>
+      </div>
+      </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from '@/composables/useToast'
+import Swal from 'sweetalert2'
+
+const { execute } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
+
+// Estado
+const cargando = ref(false)
+const guardando = ref(false)
+const recaudadoras = ref([])
+const mercados = ref([])
+const secciones = ref([])
+const localEncontrado = ref(null)
+
+// Búsqueda
+const busqueda = ref({
+  oficina: '',
+  num_mercado: '',
+  categoria: '',
+  seccion: '',
+  local: '',
+  letra_local: '',
+  bloque: ''
+})
+
+// Datos de energía
+const energia = ref({
+  cve_consumo: 'K',
+  descripcion: '',
+  cantidad: 0,
+  vigencia: 'V',
+  fecha_alta: obtenerFechaActual(),
+  axo: new Date().getFullYear(),
+  numero: ''
+})
+
+// Funciones auxiliares
+function obtenerFechaActual() {
+  const fecha = new Date()
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
+}
+
+// Cargar catálogos al montar
+onMounted(async () => {
+  try {
+    cargando.value = true
+
+    // Cargar recaudadoras
+    const recResponse = await execute('SP_MERCADOS_RECAUDADORAS_LIST', 'mercados', {})
+    recaudadoras.value = recResponse || []
+
+    // Cargar secciones
+    const secResponse = await execute('SP_MERCADOS_SECCIONES_LIST', 'mercados', {})
+    secciones.value = secResponse || []
+
+    if (recaudadoras.value.length > 0) {
+      busqueda.value.oficina = recaudadoras.value[0].oficina
+      await onRecaudadoraChange()
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+})
+
+// Cambio de recaudadora
+async function onRecaudadoraChange() {
+  busqueda.value.num_mercado = ''
+  mercados.value = []
+  localEncontrado.value = null
+
+  if (!busqueda.value.oficina) return
+
+  try {
+    cargando.value = true
+    const response = await execute('SP_MERCADOS_MERCADOS_BY_RECAUDADORA', 'mercados', {
+      p_id_rec: busqueda.value.oficina
+    })
+    mercados.value = response || []
+
+    if (mercados.value.length > 0) {
+      busqueda.value.num_mercado = mercados.value[0].num_mercado_nvo
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Buscar local
+async function buscarLocal() {
+  try {
+    cargando.value = true
+    localEncontrado.value = null
+
+    const response = await execute('SP_MERCADOS_BUSCAR_LOCAL_ENERGIA', 'mercados', {
+      p_oficina: busqueda.value.oficina,
+      p_num_mercado: busqueda.value.num_mercado,
+      p_categoria: busqueda.value.categoria,
+      p_seccion: busqueda.value.seccion,
+      p_local: busqueda.value.local,
+      p_letra_local: busqueda.value.letra_local || null,
+      p_bloque: busqueda.value.bloque || null
+    })
+
+    if (response && response.length > 0) {
+      localEncontrado.value = response[0]
+      showToast('Local encontrado correctamente. Puede proceder a registrar la energía.', 'success')
+    } else {
+      showToast('Local no encontrado o ya tiene energía registrada', 'warning')
+    }
+
+  } catch (error) {
+    handleError(error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Guardar energía
+async function guardarEnergia() {
+  try {
+    // Confirmar acción
+    const result = await Swal.fire({
+      title: '¿Registrar energía?',
+      html: `Se registrará la energía eléctrica para el local:<br><strong>${localEncontrado.value.categoria}-${localEncontrado.value.seccion}-${localEncontrado.value.local}</strong><br><br>Se generarán adeudos desde la fecha de alta hasta la fecha actual.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, registrar',
+      cancelButtonText: 'Cancelar'
+    })
+
+    if (!result.isConfirmed) return
+
+    guardando.value = true
+
+    await execute('SP_MERCADOS_ALTA_ENERGIA', 'mercados', {
+      p_id_local: localEncontrado.value.id_local,
+      p_cve_consumo: energia.value.cve_consumo,
+      p_descripcion: energia.value.descripcion,
+      p_cantidad: energia.value.cantidad,
+      p_vigencia: energia.value.vigencia,
+      p_fecha_alta: energia.value.fecha_alta,
+      p_axo: energia.value.axo,
+      p_numero: energia.value.numero,
+      p_id_usuario: 1 // TODO: Obtener del contexto de usuario
+    })
+
+    showToast('Energía eléctrica registrada correctamente', 'success')
+
+    // Limpiar formulario
+    localEncontrado.value = null
+    energia.value = {
+      cve_consumo: 'K',
+      descripcion: '',
+      cantidad: 0,
+      vigencia: 'V',
+      fecha_alta: obtenerFechaActual(),
+      axo: new Date().getFullYear(),
+      numero: ''
+    }
+    busqueda.value.categoria = ''
+    busqueda.value.seccion = ''
+    busqueda.value.local = ''
+    busqueda.value.letra_local = ''
+    busqueda.value.bloque = ''
+
+  } catch (error) {
+    handleError(error)
+  } finally {
+    guardando.value = false
+  }
+}
+
+// Mostrar ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Alta de Energía Eléctrica',
+    html: `
+      <div class="help-content" style="text-align: left;">
+        <h3>Descripción</h3>
+        <p>Este módulo permite dar de alta registros de energía eléctrica para locales comerciales que no cuentan con el servicio.</p>
+
+        <h3>Proceso</h3>
+        <ol>
+          <li><strong>Búsqueda de Local:</strong> Seleccione la recaudadora, mercado y ubicación del local</li>
+          <li><strong>Verificación:</strong> El sistema verifica que el local exista y NO tenga energía registrada</li>
+          <li><strong>Registro de Datos:</strong> Capture la información del servicio de energía</li>
+          <li><strong>Generación Automática:</strong> El sistema genera adeudos desde la fecha de alta hasta la fecha actual</li>
+        </ol>
+
+        <h3>Datos del Local</h3>
+        <ul>
+          <li><strong>Recaudadora:</strong> Oficina responsable del local</li>
+          <li><strong>Mercado:</strong> Solo se muestran mercados con cuenta de energía</li>
+          <li><strong>Categoría:</strong> Clasificación del local (1-9)</li>
+          <li><strong>Sección:</strong> Sección dentro del mercado</li>
+          <li><strong>Local:</strong> Número de local</li>
+          <li><strong>Letra/Bloque:</strong> Complementos opcionales de ubicación</li>
+        </ul>
+
+        <h3>Datos de Energía</h3>
+        <ul>
+          <li><strong>Tipo Consumo:</strong>
+            <ul>
+              <li>K (Kilowatts): Cobro por consumo de kilowatts</li>
+              <li>C (Cuota Fija): Cobro de cuota fija mensual</li>
+              <li>M (Mixto): Combinación de kilowatts y cuota</li>
+            </ul>
+          </li>
+          <li><strong>Locales Adicionales:</strong> Descripción de locales asociados</li>
+          <li><strong>Cantidad/Mes:</strong> Kilowatts o cuota mensual</li>
+          <li><strong>Vigencia:</strong>
+            <ul>
+              <li>V (Vigente): Local activo</li>
+              <li>E (Vigente para Emisión): Vigente solo para emisión</li>
+            </ul>
+          </li>
+          <li><strong>Fecha Alta:</strong> Fecha de inicio del servicio</li>
+          <li><strong>Año/Número Oficio:</strong> Datos del oficio autorizante</li>
+        </ul>
+
+        <h3>Generación Automática de Adeudos</h3>
+        <ul>
+          <li>Se generan adeudos desde la fecha de alta hasta la fecha actual</li>
+          <li>Para años <= 2002: Adeudos bimestrales (cantidad x 2)</li>
+          <li>Para años > 2002: Adeudos mensuales (cantidad x 1)</li>
+          <li>Se registra historial de movimientos</li>
+        </ul>
+
+        <h3>Validaciones</h3>
+        <ul>
+          <li>El local debe existir en el sistema</li>
+          <li>El local NO debe tener energía registrada previamente</li>
+          <li>Todos los campos requeridos deben estar completos</li>
+        </ul>
+      </div>
+    `,
+    icon: 'info',
+    width: 900,
+    confirmButtonText: 'Entendido'
+  })
+}
+</script>
+
+

@@ -1,0 +1,104 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="exchange-alt" /></div>
+      <div class="module-view-info"><h1>Paso de Adeudos - Tianguis</h1><p>Generación de Adeudos para Locales del Mercado 214</p></div>
+        </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="calendar" /> Parámetros</h5></div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group"><label class="municipal-form-label">Año *</label><input type="number" class="municipal-form-control" v-model.number="filters.ano" min="1992" max="2999" /></div>
+            <div class="form-group"><label class="municipal-form-label">Periodo *</label><input type="number" class="municipal-form-control" v-model.number="filters.periodo" min="1" max="12" /></div>
+        </div>
+          <div class="button-group">
+            <button class="btn-municipal-primary" @click="cargarLocales" :disabled="loading"><font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Cargar Locales</button>
+            <button class="btn-municipal-success" @click="procesar" :disabled="loading || locales.length === 0"><font-awesome-icon icon="check" /> Procesar Adeudos</button>
+          </div>
+        </div>
+
+      <div class="municipal-card" v-if="locales.length > 0">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="list" /> Locales del Tianguis (Mercado 214) <span class="badge-info">{{ locales.length }}</span></h5></div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr><th>ID</th><th>Local</th><th>Nombre</th><th>Sector</th><th>Superficie</th><th>Clave Cuota</th><th class="text-end">Importe Cuota</th><th>Vigencia</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="local in locales" :key="local.id_local" class="row-hover">
+                  <td>{{ local.id_local }}</td>
+                  <td>{{ local.local }}{{ local.letra_local }}{{ local.bloque }}</td>
+                  <td><strong>{{ local.nombre }}</strong></td>
+                  <td>{{ local.sector }}</td>
+                  <td class="text-end">{{ local.superficie }}</td>
+                  <td>{{ local.clave_cuota }}</td>
+                  <td class="text-end">{{ formatCurrency(local.importe_cuota) }}</td>
+                  <td><span :class="local.vigencia === 'A' ? 'badge-success' : 'badge-danger'">{{ local.vigencia }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+        </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const loading = ref(false)
+const locales = ref([])
+const filters = ref({ ano: new Date().getFullYear(), periodo: new Date().getMonth() + 1 })
+
+const formatCurrency = (value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
+
+const cargarLocales = async () => {
+  try {
+    loading.value = true
+    const result = await executeStoredProcedure('sp_get_tianguis_locales', { p_ano: filters.value.ano })
+    if (result.success) {
+      locales.value = result.data || []
+      toast.success(`${locales.value.length} locales cargados`)
+    } else handleError(result)
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const procesar = async () => {
+  try {
+    loading.value = true
+    let insertados = 0
+    for (const local of locales.value) {
+      await executeStoredProcedure('sp_insertar_adeudo_local', {
+        p_id_local: local.id_local,
+        p_ano: filters.value.ano,
+        p_periodo: filters.value.periodo,
+        p_importe: local.importe_cuota,
+        p_actualizacion: new Date().toISOString(),
+        p_id_usuario: 1
+      })
+      insertados++
+    }
+    toast.success(`${insertados} adeudos procesados correctamente`)
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+

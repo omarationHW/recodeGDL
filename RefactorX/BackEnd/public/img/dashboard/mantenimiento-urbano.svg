@@ -1,0 +1,121 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradientAseo3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#047857;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGradientAseo3)"/>
+
+  <!-- City park maintenance -->
+  <g transform="translate(100, 200)">
+    <!-- Trees -->
+    <circle cx="0" cy="0" r="25" fill="#22c55e"/>
+    <rect x="-3" y="0" width="6" height="30" fill="#8b4513"/>
+
+    <circle cx="80" cy="-10" r="30" fill="#16a34a"/>
+    <rect x="77" y="-10" width="6" height="35" fill="#8b4513"/>
+
+    <!-- Park bench -->
+    <rect x="30" y="15" width="40" height="8" fill="#8b4513" rx="2"/>
+    <rect x="33" y="8" width="6" height="15" fill="#6b7280"/>
+    <rect x="61" y="8" width="6" height="15" fill="#6b7280"/>
+
+    <!-- Trash can -->
+    <rect x="20" y="5" width="15" height="25" fill="#374151" rx="2"/>
+    <rect x="22" y="2" width="11" height="3" fill="#6b7280" rx="1"/>
+  </g>
+
+  <!-- Street maintenance -->
+  <g transform="translate(300, 280)">
+    <!-- Road -->
+    <rect x="0" y="0" width="200" height="40" fill="#4b5563" rx="3"/>
+
+    <!-- Lane markings -->
+    <rect x="20" y="18" width="15" height="4" fill="white"/>
+    <rect x="45" y="18" width="15" height="4" fill="white"/>
+    <rect x="70" y="18" width="15" height="4" fill="white"/>
+    <rect x="95" y="18" width="15" height="4" fill="white"/>
+    <rect x="120" y="18" width="15" height="4" fill="white"/>
+    <rect x="145" y="18" width="15" height="4" fill="white"/>
+    <rect x="170" y="18" width="15" height="4" fill="white"/>
+
+    <!-- Maintenance vehicle -->
+    <rect x="220" y="-20" width="80" height="40" fill="#f59e0b" stroke="#d97706" stroke-width="2" rx="5"/>
+
+    <!-- Vehicle wheels -->
+    <circle cx="235" cy="25" r="10" fill="#374151"/>
+    <circle cx="285" cy="25" r="10" fill="#374151"/>
+
+    <!-- Vehicle details -->
+    <rect x="230" y="-10" width="60" height="20" fill="#fbbf24" rx="3"/>
+    <text x="260" y="3" text-anchor="middle" fill="#92400e" font-size="8" font-weight="bold">MANT.</text>
+
+    <!-- Traffic cones -->
+    <polygon points="310,40 320,10 330,40" fill="#f97316"/>
+    <rect x="318" y="35" width="4" height="8" fill="#f97316"/>
+
+    <polygon points="350,40 360,10 370,40" fill="#f97316"/>
+    <rect x="358" y="35" width="4" height="8" fill="#f97316"/>
+  </g>
+
+  <!-- Street light maintenance -->
+  <g transform="translate(600, 150)">
+    <!-- Light post -->
+    <rect x="48" y="100" width="4" height="100" fill="#6b7280"/>
+
+    <!-- Light fixture -->
+    <ellipse cx="50" cy="90" rx="15" ry="8" fill="#fbbf24"/>
+    <circle cx="50" cy="90" r="8" fill="#fef3c7" opacity="0.8"/>
+
+    <!-- Maintenance ladder -->
+    <rect x="30" y="120" width="3" height="60" fill="#8b4513"/>
+    <rect x="40" y="120" width="3" height="60" fill="#8b4513"/>
+
+    <!-- Ladder rungs -->
+    <rect x="30" y="130" width="13" height="2" fill="#8b4513"/>
+    <rect x="30" y="140" width="13" height="2" fill="#8b4513"/>
+    <rect x="30" y="150" width="13" height="2" fill="#8b4513"/>
+    <rect x="30" y="160" width="13" height="2" fill="#8b4513"/>
+    <rect x="30" y="170" width="13" height="2" fill="#8b4513"/>
+
+    <!-- Worker -->
+    <circle cx="50" cy="110" r="8" fill="#fbbf24"/>
+    <rect x="45" y="118" width="10" height="20" fill="#10b981" rx="2"/>
+    <rect x="40" y="123" width="8" height="4" fill="#10b981" rx="1"/>
+    <rect x="52" y="123" width="8" height="4" fill="#10b981" rx="1"/>
+    <rect x="47" y="138" width="3" height="12" fill="#1f2937"/>
+    <rect x="52" y="138" width="3" height="12" fill="#1f2937"/>
+  </g>
+
+  <!-- Title -->
+  <text x="400" y="50" text-anchor="middle" fill="white" font-size="32" font-weight="bold" font-family="Arial, sans-serif">
+    Mantenimiento Urbano
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="370" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif" opacity="0.9">
+    Servicios especializados de mantenimiento de infraestructura urbana
+  </text>
+
+  <!-- Decorative elements -->
+  <circle cx="150" cy="80" r="3" fill="white" opacity="0.6"/>
+  <circle cx="650" cy="100" r="4" fill="white" opacity="0.5"/>
+  <polygon points="250,60 260,50 270,60" fill="white" opacity="0.6"/>
+  <polygon points="550,70 560,60 570,70" fill="white" opacity="0.5"/>
+
+  <!-- Tool icons -->
+  <g transform="translate(50, 100)" fill="white" opacity="0.7">
+    <rect x="0" y="0" width="2" height="20" fill="white"/>
+    <rect x="-3" y="-3" width="8" height="6" fill="white" rx="1"/>
+  </g>
+
+  <g transform="translate(700, 250)" fill="white" opacity="0.7">
+    <circle cx="0" cy="0" r="8" fill="none" stroke="white" stroke-width="2"/>
+    <rect x="-6" y="-1" width="12" height="2" fill="white"/>
+    <rect x="-1" y="-6" width="2" height="12" fill="white"/>
+  </g>
+</svg>

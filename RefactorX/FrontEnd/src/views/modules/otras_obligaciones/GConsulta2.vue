@@ -1,0 +1,759 @@
+<template>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header" style="position: relative;">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="search-plus" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta 2 - Búsqueda Avanzada</h1>
+        <p>{{ tituloTabla }}</p>
+      </div>
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="openDocumentation"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+      </button>
+      <div class="module-view-actions">
+        <button
+          class="btn-municipal-secondary"
+          @click="goBack"
+          :disabled="loading"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Salir
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Tarjeta de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            {{ etiquetaBusqueda }}
+          </h5>
+        </div>
+
+        <div class="municipal-card-body">
+          <form @submit.prevent="buscarCoincidencias">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label">
+                  Criterio de Búsqueda <span class="required">*</span>
+                </label>
+                <select
+                  class="municipal-form-control"
+                  v-model.number="criterioBusqueda"
+                  required
+                >
+                  <option :value="1">{{ etiquetas.etiq_control || 'Control/Etiqueta' }}</option>
+                  <option :value="2">{{ etiquetas.concesionario || 'Concesionario' }}</option>
+                  <option :value="3">{{ etiquetas.ubicacion || 'Ubicación' }}</option>
+                  <option :value="4">{{ etiquetas.nombre_comercial || 'Nombre Comercial' }}</option>
+                  <option :value="5">{{ etiquetas.lugar || 'Lugar' }}</option>
+                  <option :value="6">{{ etiquetas.obs || 'Observaciones' }}</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="municipal-form-label">
+                  Dato a Buscar <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="municipal-form-control"
+                  v-model="datoBusqueda"
+                  placeholder="Escriba el dato a buscar..."
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button
+                type="submit"
+                class="btn-municipal-primary"
+                :disabled="loading"
+              >
+                <font-awesome-icon icon="search" />
+                {{ loading ? 'Buscando...' : 'Buscar Coincidencias' }}
+              </button>
+              <button
+                type="button"
+                class="btn-municipal-secondary"
+                @click="limpiarFormulario"
+                :disabled="loading"
+              >
+                <font-awesome-icon icon="eraser" />
+                Limpiar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tarjeta de resultados de búsqueda (coincidencias) -->
+      <div class="municipal-card" v-if="coincidencias.length > 0">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Controles Encontrados ({{ coincidencias.length }} coincidencias)
+          </h5>
+        </div>
+
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Control</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(item, index) in coincidencias"
+                  :key="index"
+                  class="row-hover"
+                  :class="{ 'selected-row': controlSeleccionado === item.control }"
+                >
+                  <td>{{ item.control }}</td>
+                  <td class="text-center">
+                    <button
+                      class="btn-municipal-primary btn-sm"
+                      @click="seleccionarControl(item.control)"
+                      :disabled="loading"
+                    >
+                      <font-awesome-icon icon="eye" />
+                      Ver Detalle
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Navegador de coincidencias -->
+          <div class="d-flex justify-content-center align-items-center mt-3" v-if="coincidencias.length > 0">
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="navegarCoincidencia(-1)"
+              :disabled="coincidenciaActualIndex === 0 || loading"
+            >
+              <font-awesome-icon icon="chevron-left" />
+              Anterior
+            </button>
+            <span style="margin: 0 15px; font-weight: bold;">
+              {{ coincidenciaActualIndex + 1 }} de {{ coincidencias.length }}
+            </span>
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="navegarCoincidencia(1)"
+              :disabled="coincidenciaActualIndex === coincidencias.length - 1 || loading"
+            >
+              Siguiente
+              <font-awesome-icon icon="chevron-right" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de información del contrato -->
+      <div class="municipal-card" v-if="datosContrato && !statusNoExiste">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="info-circle" />
+            Información del Control: {{ datosContrato.control }}
+          </h5>
+        </div>
+
+        <div class="municipal-card-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <label>{{ etiquetas.concesionario || 'Concesionario' }}:</label>
+              <span>{{ datosContrato.concesionario }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.ubicacion || 'Ubicación' }}:</label>
+              <span>{{ datosContrato.ubicacion }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.nombre_comercial || 'Nombre Comercial' }}:</label>
+              <span>{{ datosContrato.nomcomercial }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.lugar || 'Lugar' }}:</label>
+              <span>{{ datosContrato.lugar }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.obs || 'Observaciones' }}:</label>
+              <span>{{ datosContrato.obs }}</span>
+            </div>
+            <div class="info-item" v-if="tipoTabla !== '5'">
+              <label>{{ etiquetas.superficie || 'Superficie' }}:</label>
+              <span>{{ datosContrato.superficie }} m²</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.fecha_inicio || 'Fecha Inicio' }}:</label>
+              <span>{{ formatDate(datosContrato.fechainicio) }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.recaudadora || 'Oficina' }}:</label>
+              <span>{{ datosContrato.recaudadora }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.sector || 'Sector' }}:</label>
+              <span>{{ datosContrato.sector }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.zona || 'Zona' }}:</label>
+              <span>{{ datosContrato.zona }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.licencia || 'Licencia' }}:</label>
+              <span>{{ datosContrato.licencia }}</span>
+            </div>
+            <div class="info-item">
+              <label>{{ etiquetas.unidad || 'Unidades' }}:</label>
+              <span>{{ datosContrato.unidades }}</span>
+            </div>
+            <div class="info-item" style="grid-column: 1 / -1;">
+              <label>Status:</label>
+              <span :class="statusClass">{{ datosContrato.statusregistro }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de totales de adeudos -->
+      <div class="municipal-card" v-if="adeudosTotales.length > 0">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="calculator" />
+            Totales de Adeudos por Concepto
+          </h5>
+        </div>
+
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Concepto</th>
+                  <th class="text-center">Periodos</th>
+                  <th class="text-right">Importe Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(total, index) in adeudosTotales" :key="index" class="row-hover">
+                  <td>{{ total.concepto }}</td>
+                  <td class="text-center">{{ total.cuenta }}</td>
+                  <td class="text-right font-weight-bold">{{ formatCurrency(total.importe) }}</td>
+                </tr>
+              </tbody>
+              <tfoot class="municipal-table-footer">
+                <tr>
+                  <td class="font-weight-bold" colspan="2">TOTAL A PAGAR:</td>
+                  <td class="text-right font-weight-bold" style="font-size: 1.2rem;">
+                    {{ formatCurrency(totalAPagar) }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Mensaje si hay Gastos o Multas -->
+          <div v-if="tieneGastosOMultas" class="alert-warning" style="margin-top: 15px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107;">
+            <p style="margin: 0;">
+              <font-awesome-icon icon="exclamation-triangle" />
+              <strong>Nota:</strong> Existen conceptos de Gastos o Multas. Pueden consultarse en el módulo de Apremios.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de detalle de adeudos -->
+      <div class="municipal-card" v-if="adeudosDetalle.length > 0">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="calendar-alt" />
+            Detalle de Adeudos por Periodo
+          </h5>
+        </div>
+
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Concepto</th>
+                  <th class="text-center">Año</th>
+                  <th class="text-center">Mes</th>
+                  <th class="text-right">Importe</th>
+                  <th class="text-right">Recargos</th>
+                  <th class="text-right">Dscto. Importe</th>
+                  <th class="text-right">Dscto. Recargos</th>
+                  <th class="text-right">Actualización</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(detalle, index) in adeudosDetalle" :key="index" class="row-hover">
+                  <td>{{ detalle.concepto }}</td>
+                  <td class="text-center">{{ detalle.axo }}</td>
+                  <td class="text-center">{{ getNombreMes(detalle.mes) }}</td>
+                  <td class="text-right">{{ formatCurrency(detalle.importe_pagar) }}</td>
+                  <td class="text-right">{{ formatCurrency(detalle.recargos_pagar) }}</td>
+                  <td class="text-right">{{ formatCurrency(detalle.dscto_importe) }}</td>
+                  <td class="text-right">{{ formatCurrency(detalle.dscto_recargos) }}</td>
+                  <td class="text-right">{{ formatCurrency(detalle.actualizacion_pagar) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción adicionales -->
+      <div class="municipal-card" v-if="datosContrato && !statusNoExiste">
+        <div class="municipal-card-body">
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="verPagados"
+              :disabled="loading || !tienePagados"
+            >
+              <font-awesome-icon icon="file-invoice-dollar" />
+              Ver Pagados
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="verHistorico"
+              :disabled="loading"
+            >
+              <font-awesome-icon icon="history" />
+              Ver Histórico
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="verApremios"
+              :disabled="loading || !tieneGastosOMultas"
+            >
+              <font-awesome-icon icon="gavel" />
+              Ver Apremios
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading overlay -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>{{ loadingMessage }}</p>
+        </div>
+      </div>
+    </div>
+    <!-- /module-view-content -->
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+  </div>
+  <!-- /module-view -->
+
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'GConsulta2'"
+    :moduleName="'otras_obligaciones'"
+    @close="closeDocumentation"
+  />
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import Swal from 'sweetalert2'
+
+// Router
+const route = useRoute()
+const router = useRouter()
+
+// Composables
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+
+const { execute } = useApi()
+const {
+  loading,
+  setLoading,
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
+// Estado
+const tipoTabla = ref(route.params.tabla || route.query.tabla || '1')
+const etiquetas = ref({})
+const infoTabla = ref({})
+const criterioBusqueda = ref(1)
+const datoBusqueda = ref('')
+const coincidencias = ref([])
+const coincidenciaActualIndex = ref(0)
+const controlSeleccionado = ref('')
+const datosContrato = ref(null)
+const statusNoExiste = ref(false)
+const adeudosTotales = ref([])
+const adeudosDetalle = ref([])
+const tienePagados = ref(false)
+const loadingMessage = ref('Cargando...')
+
+// Computed
+const tituloTabla = computed(() => {
+  if (infoTabla.value.nombre) {
+    return `Consulta Avanzada de: ${infoTabla.value.nombre}`
+  }
+  return 'Otras Obligaciones - Consulta 2'
+})
+
+const etiquetaBusqueda = computed(() => {
+  return etiquetas.value.etiq_control || 'Búsqueda Avanzada por Criterio'
+})
+
+const totalAPagar = computed(() => {
+  return adeudosTotales.value.reduce((sum, item) => sum + (item.importe || 0), 0)
+})
+
+const tieneGastosOMultas = computed(() => {
+  return adeudosTotales.value.some(item =>
+    item.concepto && (
+      item.concepto.toLowerCase().includes('gastos') ||
+      item.concepto.toLowerCase().includes('multas')
+    )
+  )
+})
+
+const statusClass = computed(() => {
+  if (!datosContrato.value) return ''
+  const status = datosContrato.value.statusregistro
+  if (status === 'VIGENTE') return 'badge-success'
+  if (status === 'CANCELADO') return 'badge-danger'
+  if (status === 'SUSPENSION') return 'badge-warning'
+  return 'badge-secondary'
+})
+
+// Métodos
+const cargarConfiguracion = async () => {
+  setLoading(true, 'Cargando configuración...')
+
+  try {
+    // Cargar etiquetas
+    const responseEtiq = await execute(
+      'SP_GADEUDOS_ETIQUETAS_GET',
+      'otras_obligaciones',
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
+      'guadalajara'
+    )
+
+    if (responseEtiq && responseEtiq.result && responseEtiq.result.length > 0) {
+      etiquetas.value = responseEtiq.result[0]
+    }
+
+    // Cargar información de la tabla
+    const responseTabla = await execute(
+      'SP_GADEUDOS_TABLAS_GET',
+      'otras_obligaciones',
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
+      'guadalajara'
+    )
+
+    if (responseTabla && responseTabla.result && responseTabla.result.length > 0) {
+      infoTabla.value = responseTabla.result[0]
+    }
+
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    setLoading(false)
+  }
+}
+
+const buscarCoincidencias = async () => {
+  if (!datoBusqueda.value.trim()) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campo requerido',
+      text: 'Debe ingresar un dato para buscar',
+      confirmButtonColor: '#ea8215'
+    })
+    return
+  }
+
+  setLoading(true, 'Buscando coincidencias...')
+
+  try {
+    const response = await execute(
+      'SP_GCONSULTA2_BUSCAR_COINCIDENCIAS',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
+        { nombre: 'par_criterio', valor: criterioBusqueda.value, tipo: 'integer' },
+        { nombre: 'par_datos', valor: datoBusqueda.value, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      coincidencias.value = response.result
+      coincidenciaActualIndex.value = 0
+      controlSeleccionado.value = ''
+
+      // Si solo hay una coincidencia, seleccionarla automáticamente
+      if (coincidencias.value.length === 1) {
+        await seleccionarControl(coincidencias.value[0].control)
+      } else {
+        showToast('success', `Se encontraron ${coincidencias.value.length} coincidencias`)
+      }
+    } else {
+      coincidencias.value = []
+      await Swal.fire({
+        icon: 'info',
+        title: 'Sin resultados',
+        text: 'No se encontraron registros que coincidan con el criterio de búsqueda',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+
+  } catch (error) {
+    handleApiError(error)
+    coincidencias.value = []
+  } finally {
+    setLoading(false)
+  }
+}
+
+const navegarCoincidencia = async (direccion) => {
+  const nuevoIndex = coincidenciaActualIndex.value + direccion
+  if (nuevoIndex >= 0 && nuevoIndex < coincidencias.value.length) {
+    coincidenciaActualIndex.value = nuevoIndex
+    await seleccionarControl(coincidencias.value[nuevoIndex].control)
+  }
+}
+
+const seleccionarControl = async (control) => {
+  controlSeleccionado.value = control
+  setLoading(true, 'Cargando datos del control...')
+
+  try {
+    // Buscar datos del contrato
+    const responseDatos = await execute(
+      'SP_GCONSULTA2_DATOS_GET',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
+        { nombre: 'par_control', valor: control, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
+
+    if (!responseDatos || !responseDatos.result || responseDatos.result[0]?.status === 1) {
+      statusNoExiste.value = true
+      datosContrato.value = null
+      await Swal.fire({
+        icon: 'error',
+        title: 'No encontrado',
+        text: 'No existe REGISTRO ALGUNO con este dato, inténtalo de nuevo',
+        confirmButtonColor: '#ea8215'
+      })
+      return
+    }
+
+    statusNoExiste.value = false
+    datosContrato.value = responseDatos.result[0]
+
+    // Verificar status del registro
+    if (datosContrato.value.statusregistro !== 'VIGENTE') {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Advertencia',
+        text: 'LOCAL EN SUSPENSION O CANCELADO, inténtalo de nuevo',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+
+    // Cargar adeudos
+    await cargarAdeudos()
+
+  } catch (error) {
+    handleApiError(error)
+    statusNoExiste.value = true
+    datosContrato.value = null
+    adeudosTotales.value = []
+    adeudosDetalle.value = []
+  } finally {
+    setLoading(false)
+  }
+}
+
+const cargarAdeudos = async () => {
+  if (!datosContrato.value) return
+
+  const now = new Date()
+  const anoActual = now.getFullYear()
+  const mesActual = 12 // Diciembre como en el código Delphi
+
+  try {
+    // Cargar totales
+    const responseTotales = await execute(
+      'SP_GCONSULTA2_ADEUDOS_TOTALES',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tabla', valor: tipoTabla.value, tipo: 'string' },
+        { nombre: 'par_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' },
+        { nombre: 'par_aso', valor: anoActual, tipo: 'integer' },
+        { nombre: 'par_mes', valor: mesActual, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    if (responseTotales && responseTotales.result) {
+      adeudosTotales.value = responseTotales.result.filter(r => r.concepto)
+    } else {
+      adeudosTotales.value = []
+    }
+
+    // Cargar detalle
+    const responseDetalle = await execute(
+      'SP_GCONSULTA2_ADEUDOS_DETALLE',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tabla', valor: tipoTabla.value, tipo: 'string' },
+        { nombre: 'par_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' },
+        { nombre: 'par_aso', valor: anoActual, tipo: 'integer' },
+        { nombre: 'par_mes', valor: mesActual, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    if (responseDetalle && responseDetalle.result) {
+      adeudosDetalle.value = responseDetalle.result.filter(r => r.concepto)
+    } else {
+      adeudosDetalle.value = []
+    }
+
+    // Verificar si hay pagados
+    const responsePagados = await execute(
+      'SP_GCONSULTA2_PAGADOS_GET',
+      'otras_obligaciones',
+      [{ nombre: 'par_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
+      'guadalajara'
+    )
+
+    tienePagados.value = responsePagados && responsePagados.result && responsePagados.result.length > 0
+
+  } catch (error) {
+    console.error('Error al cargar adeudos:', error)
+    adeudosTotales.value = []
+    adeudosDetalle.value = []
+  }
+}
+
+const verPagados = async () => {
+  await Swal.fire({
+    icon: 'info',
+    title: 'Funcionalidad en desarrollo',
+    text: 'El módulo de Pagados estará disponible próximamente',
+    confirmButtonColor: '#ea8215'
+  })
+}
+
+const verHistorico = async () => {
+  await Swal.fire({
+    icon: 'info',
+    title: 'Funcionalidad en desarrollo',
+    text: 'El módulo de Histórico estará disponible próximamente',
+    confirmButtonColor: '#ea8215'
+  })
+}
+
+const verApremios = async () => {
+  await Swal.fire({
+    icon: 'info',
+    title: 'Funcionalidad en desarrollo',
+    text: 'El módulo de Apremios estará disponible próximamente',
+    confirmButtonColor: '#ea8215'
+  })
+}
+
+const limpiarFormulario = () => {
+  datoBusqueda.value = ''
+  coincidencias.value = []
+  coincidenciaActualIndex.value = 0
+  controlSeleccionado.value = ''
+  datosContrato.value = null
+  statusNoExiste.value = false
+  adeudosTotales.value = []
+  adeudosDetalle.value = []
+  tienePagados.value = false
+}
+
+const goBack = () => {
+  router.push('/otras_obligaciones')
+}
+
+// Utilidades
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch (error) {
+    return dateString
+  }
+}
+
+const formatCurrency = (value) => {
+  if (!value && value !== 0) return '$0.00'
+  try {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(value)
+  } catch (error) {
+    return `$${value}`
+  }
+}
+
+const getNombreMes = (mes) => {
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ]
+  return meses[mes - 1] || mes
+}
+
+// Lifecycle
+onMounted(() => {
+  cargarConfiguracion()
+})
+</script>

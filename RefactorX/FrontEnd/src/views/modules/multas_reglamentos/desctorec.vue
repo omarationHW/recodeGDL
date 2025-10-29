@@ -1,0 +1,14 @@
+<template>
+  <div class="module-view module-layout"><div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="percent" /></div><div class="module-view-info"><h1>Descuento Recargos</h1></div></div>
+    <div class="module-view-content"><div class="municipal-card"><div class="municipal-card-body">
+      <div class="form-row"><div class="form-group"><label class="municipal-form-label">Cuenta</label><input class="municipal-form-control" v-model="filters.cuenta"/></div></div>
+      <div class="button-group"><button class="btn-municipal-primary" :disabled="loading" @click="aplicar"><font-awesome-icon icon="check"/> Aplicar</button></div>
+    </div></div>
+  </div>
+</template>
+<script setup>
+import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
+const { loading, execute } = useApi(); const BASE_DB='INFORMIX'; const OP='RECAUDADORA_DESCTOREC'; const filters=ref({ cuenta:'' })
+async function aplicar(){ try{ await execute(OP, BASE_DB, [ { name:'clave_cuenta', type:'C', value:String(filters.value.cuenta||'') } ]) }catch(e){} }
+</script>
+

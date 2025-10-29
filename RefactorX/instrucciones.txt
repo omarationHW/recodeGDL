@@ -1,0 +1,47 @@
+
+Hola necesito que vayas a las rutas y formes un menú de árbol, debes de encontrar los elementos comunes de menú, JvLook, JvLookOutMenu, etc. y de para ir navegando en la aplicación, debes de ir buscando en cada componente y de ahí ir buscando en los demás componentes hasta tener todo el árbol de navegación completo, debes dejar un archivo único anteponiendo el nombre del sistema y después su contenido de menú el arhcivo debe estar en C:\Tmp\Doc\menu1.md, por ejemplo:
+
+#Sistema
+-Archivo
+--Abrir
+--Salir
+-Procesos
+--Proceso 1
+--Procesos 2
+---Proceso 2.1
+---Proceso 2.2
+--Proceso 3
+-Reportes
+--Reportes 1
+---Reportes 1.1
+---Reportes 1.2
+--Reportes 2
+---Reportes 2.1
+---Reportes 2.2
+--Reportes 3
+-Catálogos
+--Catalos 1
+…
+-Salir
+
+
+Rutas
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\cementerios
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\Ingresos\ApremiosSVN
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\aseo
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\estacionamientos
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\catastro\Recaudadora
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\catastro\Licencias2
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\17\Aplicaciones\mercados
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\OTRAS OBLIG
+
+Relaciones
+Sistema	         detino postgre
+aseo	            aseo_contratado
+cementerios	      cementerio
+ApremiosSVN	      estacionamiento_exclusivo
+estacionamientos	estacionamiento_publico
+mercados	         mercados
+Recaudadora	      multas_reglamentos
+OTRAS OBLIG       otras_obligaciones
+Licencias2	      padron_licencias

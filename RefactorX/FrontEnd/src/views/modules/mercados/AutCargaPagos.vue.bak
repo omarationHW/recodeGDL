@@ -1,0 +1,253 @@
+<template>
+    <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="dollar-sign" />
+      </div>
+      <div class="module-view-info">
+        <h1>Autorizar Carga de Pagos</h1>
+        <p>Módulo de Mercados</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+
+    <div class="municipal-card">
+      <div class="municipal-card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-lock"></i> Autorizaciones de Carga de Pagos</span>
+        <div class="btn-group">
+          <button class="btn-action btn-primary" @click="openAdd" :disabled="loading">
+            <i class="fas fa-plus"></i> Agregar
+          </button>
+          <button class="btn-action btn-warning" @click="openEdit" :disabled="!selectedRow || loading">
+            <i class="fas fa-edit"></i> Modificar
+          </button>
+          <button class="btn-action btn-secondary" @click="cargarAutorizaciones" :disabled="loading">
+            <i class="fas fa-sync"></i> Refrescar
+          </button>
+        </div>
+        </div>
+      <div class="municipal-card-body">
+        <div v-if="loading" class="text-center p-3">
+          <div class="spinner-border text-primary"></div>
+          <p>Cargando...</p>
+        </div>
+        <div v-else class="municipal-table">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>Fecha Ingreso</th>
+                <th>Autorizar</th>
+                <th>Fecha Límite</th>
+                <th>Usuario Permiso</th>
+                <th>Usuario</th>
+                <th>Actualización</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in autorizaciones"
+                  :key="`${row.fecha_ingreso}-${row.oficina}`"
+                  :class="{ 'table-active': isSelected(row) }"
+                  @click="selectRow(row)"
+                  style="cursor: pointer;">
+                <td>{{ formatDate(row.fecha_ingreso) }}</td>
+                <td>
+                  <span :class="row.autorizar === 'S' ? 'badge bg-success' : 'badge bg-danger'">
+                    {{ row.autorizar === 'S' ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td>{{ formatDate(row.fecha_limite) }}</td>
+                <td>{{ row.nombre }}</td>
+                <td>{{ row.usuario }}</td>
+                <td><small>{{ formatDateTime(row.actualizacion) }}</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div v-if="selectedRow" class="mt-3">
+          <label class="municipal-form-label"><strong>Comentarios:</strong></label>
+          <textarea class="municipal-form-control" rows="3" :value="selectedRow.comentarios" readonly></textarea>
+        </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar/Modificar -->
+    <div v-if="showModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {{ modalMode === 'add' ? 'Agregar Autorización' : 'Modificar Autorización' }}
+            </h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="submitForm">
+              <div class="mb-3">
+                <label class="municipal-form-label">Fecha Ingreso *</label>
+                <input type="date" v-model="form.fecha_ingreso" class="municipal-form-control" required :disabled="modalMode === 'edit'" />
+              </div>
+              <div class="mb-3">
+                <label class="municipal-form-label">Oficina *</label>
+                <input type="number" v-model.number="form.oficina" class="municipal-form-control" required :disabled="modalMode === 'edit'" />
+              </div>
+              <div class="mb-3">
+                <label class="municipal-form-label">Autorizar *</label>
+                <select v-model="form.autorizar" class="municipal-form-control" required>
+                  <option value="S">Sí - Autorizar</option>
+                  <option value="N">No - Bloquear</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="municipal-form-label">Fecha Límite *</label>
+                <input type="date" v-model="form.fecha_limite" class="municipal-form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="municipal-form-label">Usuario Permiso (ID) *</label>
+                <input type="number" v-model.number="form.id_usupermiso" class="municipal-form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="municipal-form-label">Comentarios</label>
+                <textarea v-model="form.comentarios" class="municipal-form-control" rows="3"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loadingForm">
+              <i class="fas fa-save"></i> Guardar
+            </button>
+            <button type="button" class="btn-municipal-secondary" @click="closeModal">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+        </div>
+      </div>
+        </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const autorizaciones = ref([])
+const selectedRow = ref(null)
+const loading = ref(false)
+const loadingForm = ref(false)
+const showModal = ref(false)
+const modalMode = ref('add')
+
+const form = ref({
+  fecha_ingreso: '',
+  oficina: 1,
+  autorizar: 'S',
+  fecha_limite: '',
+  id_usupermiso: '',
+  comentarios: ''
+})
+
+const cargarAutorizaciones = async () => {
+  loading.value = true
+  try {
+    const result = await executeStoredProcedure('SP_MERCADOS_GET_AUT_CARGA_PAGOS', [])
+    autorizaciones.value = result || []
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al cargar autorizaciones')
+  } finally {
+    loading.value = false
+  }
+}
+
+const selectRow = (row) => {
+  selectedRow.value = row
+}
+
+const isSelected = (row) => {
+  return selectedRow.value &&
+         selectedRow.value.fecha_ingreso === row.fecha_ingreso &&
+         selectedRow.value.oficina === row.oficina
+}
+
+const openAdd = () => {
+  modalMode.value = 'add'
+  form.value = {
+    fecha_ingreso: '',
+    oficina: 1,
+    autorizar: 'S',
+    fecha_limite: '',
+    id_usupermiso: '',
+    comentarios: ''
+  }
+  showModal.value = true
+}
+
+const openEdit = () => {
+  if (!selectedRow.value) return
+  modalMode.value = 'edit'
+  form.value = { ...selectedRow.value }
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+}
+
+const submitForm = async () => {
+  loadingForm.value = true
+  try {
+    const spName = modalMode.value === 'add'
+      ? 'SP_MERCADOS_INSERT_AUT_CARGA_PAGOS'
+      : 'SP_MERCADOS_UPDATE_AUT_CARGA_PAGOS'
+
+    const result = await executeStoredProcedure(spName, [
+      form.value.fecha_ingreso,
+      form.value.oficina,
+      form.value.autorizar,
+      form.value.fecha_limite,
+      form.value.id_usupermiso,
+      form.value.comentarios
+    ])
+
+    if (result && result[0] && result[0].resultado === 1) {
+      toast.success(modalMode.value === 'add' ? 'Autorización agregada' : 'Autorización modificada')
+      closeModal()
+      await cargarAutorizaciones()
+    } else {
+      toast.error('Error al guardar autorización')
+    }
+  } catch (error) {
+    handleError(error)
+    toast.error('Error al guardar')
+  } finally {
+    loadingForm.value = false
+  }
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('es-MX')
+}
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleString('es-MX')
+}
+
+onMounted(() => {
+  cargarAutorizaciones()
+})
+</script>
+
+

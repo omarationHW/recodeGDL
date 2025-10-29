@@ -1,0 +1,116 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="cash-register" /></div>
+      <div class="module-view-info">
+        <h1>Ingreso de Captura</h1>
+        <p>Resumen de Pagos Capturados por Fecha, Caja y Operaci�n</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="filter" /> Par�metros de B�squeda</h5></div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado *</label>
+              <input type="number" class="municipal-form-control" v-model.number="filters.num_mercado" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Pago *</label>
+              <input type="date" class="municipal-form-control" v-model="filters.fecha_pago" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina Pago *</label>
+              <input type="number" class="municipal-form-control" v-model.number="filters.oficina_pago" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Caja *</label>
+              <input type="text" class="municipal-form-control" v-model="filters.caja_pago" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Operaci�n *</label>
+              <input type="number" class="municipal-form-control" v-model.number="filters.operacion_pago" />
+            </div>
+          </div>
+          <div class="button-group">
+            <button class="btn-municipal-primary" @click="buscar" :disabled="loading">
+              <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" />
+              Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="municipal-card" v-if="pagos.length > 0">
+        <div class="municipal-card-header"><h5><font-awesome-icon icon="list" /> Resultados <span class="badge-info">{{ pagos.length }} registros</span></h5></div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Fecha Pago</th>
+                  <th>Caja</th>
+                  <th>Operaci�n</th>
+                  <th class="text-end">Pagos</th>
+                  <th class="text-end">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(pago, idx) in pagos" :key="idx" class="row-hover">
+                  <td>{{ formatDate(pago.fecha_pago) }}</td>
+                  <td>{{ pago.caja_pago }}</td>
+                  <td>{{ pago.operacion_pago }}</td>
+                  <td class="text-end">{{ pago.pagos }}</td>
+                  <td class="text-end"><strong class="text-success">{{ formatCurrency(pago.importe) }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const loading = ref(false)
+const pagos = ref([])
+const filters = ref({ num_mercado: null, fecha_pago: '', oficina_pago: null, caja_pago: '', operacion_pago: null })
+
+const formatCurrency = (value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
+const formatDate = (date) => date ? new Date(date).toLocaleDateString('es-MX') : 'N/A'
+
+const buscar = async () => {
+  try {
+    loading.value = true
+    const result = await executeStoredProcedure('sp_get_ingreso_captura', {
+      p_num_mercado: filters.value.num_mercado,
+      p_fecha_pago: filters.value.fecha_pago,
+      p_oficina_pago: filters.value.oficina_pago,
+      p_caja_pago: filters.value.caja_pago,
+      p_operacion_pago: filters.value.operacion_pago
+    })
+    if (result.success) {
+      pagos.value = result.data || []
+      toast.success(`Se encontraron ${pagos.value.length} registros`)
+    } else handleError(result)
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+

@@ -1,0 +1,215 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "RefactorX API Genérica",
+        "description": "API genérica para ejecutar stored procedures en múltiples módulos",
+        "contact": {
+            "email": "soporte@refactorx.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "Servidor de desarrollo"
+        }
+    ],
+    "paths": {
+        "/api/generic": {
+            "post": {
+                "tags": [
+                    "Generic API"
+                ],
+                "summary": "Ejecutar stored procedure genérico",
+                "description": "Endpoint genérico para ejecutar stored procedures en diferentes módulos y bases de datos",
+                "operationId": "f358d061b6dcf405a3c171c9b0d28f4c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "eRequest"
+                                ],
+                                "properties": {
+                                    "eRequest": {
+                                        "$ref": "#/components/schemas/eRequest"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/eResponseSuccess"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Petición inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/eResponseError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/eResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Parametro": {
+                "required": [
+                    "nombre",
+                    "valor"
+                ],
+                "properties": {
+                    "nombre": {
+                        "type": "string",
+                        "example": "id_licencia"
+                    },
+                    "valor": {
+                        "type": "string",
+                        "example": "12345"
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "string",
+                            "integer",
+                            "numeric",
+                            "boolean",
+                            "json"
+                        ],
+                        "example": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "eRequest": {
+                "required": [
+                    "Operacion",
+                    "Base"
+                ],
+                "properties": {
+                    "Operacion": {
+                        "description": "Nombre del stored procedure a ejecutar",
+                        "type": "string",
+                        "example": "sp_consultar_licencia"
+                    },
+                    "Base": {
+                        "description": "Módulo o base de datos (licencias, aseo, cementerios, convenios, etc.)",
+                        "type": "string",
+                        "example": "licencias"
+                    },
+                    "Parametros": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Parametro"
+                        }
+                    },
+                    "Tenant": {
+                        "description": "Identificador del tenant (opcional)",
+                        "type": "string",
+                        "example": ""
+                    }
+                },
+                "type": "object"
+            },
+            "eResponseSuccess": {
+                "properties": {
+                    "eResponse": {
+                        "properties": {
+                            "success": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "message": {
+                                "type": "string",
+                                "example": "Operación completada exitosamente"
+                            },
+                            "data": {
+                                "properties": {
+                                    "result": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "count": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "debug": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "eResponseError": {
+                "properties": {
+                    "eResponse": {
+                        "properties": {
+                            "success": {
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "message": {
+                                "type": "string",
+                                "example": "Mensaje de error"
+                            },
+                            "data": {
+                                "type": "null"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "debug_error": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Generic API",
+            "description": "Generic API"
+        }
+    ]
+}

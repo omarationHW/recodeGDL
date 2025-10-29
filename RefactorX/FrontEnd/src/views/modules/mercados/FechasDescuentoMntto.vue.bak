@@ -1,0 +1,139 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="calendar" />
+      </div>
+      <div class="module-view-info">
+        <h1>Mantenimiento de Fechas de Descuento</h1>
+        <p>Edici�n de Fechas de Descuento y Recargos Mensuales</p>
+      </div>
+        </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="calendar-alt" /> Configuraci�n Mensual</h5>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="municipal-table">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Mes</th>
+                  <th>Fecha Descuento</th>
+                  <th>Fecha Recargos</th>
+                  <th>Usuario</th>
+                  <th>Fecha Modificaci�n</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="fecha in fechas" :key="fecha.mes" class="row-hover">
+                  <td><strong>{{ fecha.mes }} - {{ getMesNombre(fecha.mes) }}</strong></td>
+                  <td>{{ formatDate(fecha.fecha_descuento) }}</td>
+                  <td>{{ formatDate(fecha.fecha_recargos) }}</td>
+                  <td><small>{{ fecha.usuario }}</small></td>
+                  <td><small class="text-muted">{{ formatDateTime(fecha.fecha_alta) }}</small></td>
+                  <td>
+                    <button class="btn-action-edit" @click="openModal(fecha)">
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container modal-sm">
+        <div class="modal-header">
+          <h5>Editar Mes de {{ getMesNombre(form.mes) }}</h5>
+          <button class="btn-close" @click="closeModal"><font-awesome-icon icon="times" /></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="save">
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Descuento *</label>
+              <input type="date" class="municipal-form-control" v-model="form.fecha_descuento" required />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Recargos *</label>
+              <input type="date" class="municipal-form-control" v-model="form.fecha_recargos" required />
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn-municipal-primary" :disabled="saving">
+                <font-awesome-icon :icon="saving ? 'spinner' : 'save'" :spin="saving" />
+                Guardar
+              </button>
+              <button type="button" class="btn-municipal-secondary" @click="closeModal">
+                <font-awesome-icon icon="times" />
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from 'vue-toastification'
+
+const { executeStoredProcedure } = useApi()
+const { handleError } = useLicenciasErrorHandler()
+const toast = useToast()
+
+const fechas = ref([])
+const showModal = ref(false)
+const saving = ref(false)
+const form = ref({ mes: null, fecha_descuento: '', fecha_recargos: '' })
+
+const formatDate = (date) => date ? new Date(date).toLocaleDateString('es-MX') : 'N/A'
+const formatDateTime = (date) => date ? new Date(date).toLocaleString('es-MX') : 'N/A'
+const getMesNombre = (m) => ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'][m - 1] || ''
+
+const load = async () => {
+  const result = await executeStoredProcedure('fechas_descuento_get_all', {})
+  if (result.success) fechas.value = result.data || []
+  else handleError(result)
+}
+
+const openModal = (fecha) => {
+  form.value = { mes: fecha.mes, fecha_descuento: fecha.fecha_descuento?.substring(0, 10) || '', fecha_recargos: fecha.fecha_recargos?.substring(0, 10) || '' }
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  form.value = { mes: null, fecha_descuento: '', fecha_recargos: '' }
+}
+
+const save = async () => {
+  try {
+    saving.value = true
+    const result = await executeStoredProcedure('fechas_descuento_update', { p_mes: form.value.mes, p_fecha_descuento: form.value.fecha_descuento, p_fecha_recargos: form.value.fecha_recargos, p_id_usuario: 1 })
+    if (result.success && result.data?.[0]?.success) {
+      toast.success(result.data[0].message)
+      closeModal()
+      load()
+    } else toast.error(result.data?.[0]?.message || 'Error al actualizar')
+  } catch (error) {
+    handleError(error)
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(() => load())
+</script>
+
+

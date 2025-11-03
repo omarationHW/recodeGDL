@@ -81,24 +81,44 @@ class GenericController
      *             required={"eRequest"},
      *             @OA\Property(
      *                 property="eRequest",
-     *                 ref="#/components/schemas/eRequest"
+     *                 type="object",
+     *                 @OA\Property(property="Operacion", type="string", example="select"),
+     *                 @OA\Property(property="Base", type="string", example="padron_licencias"),
+     *                 @OA\Property(property="StoredProcedure", type="string", example="sp_consulta"),
+     *                 @OA\Property(property="Parametros", type="object")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Operación exitosa",
-     *         @OA\JsonContent(ref="#/components/schemas/eResponseSuccess")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="eResponse", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=true),
+     *                 @OA\Property(property="message", type="string"),
+     *                 @OA\Property(property="data", type="object")
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=400,
      *         description="Petición inválida",
-     *         @OA\JsonContent(ref="#/components/schemas/eResponseError")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="eResponse", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=false),
+     *                 @OA\Property(property="message", type="string")
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
      *         description="Error del servidor",
-     *         @OA\JsonContent(ref="#/components/schemas/eResponseError")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="eResponse", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=false),
+     *                 @OA\Property(property="message", type="string")
+     *             )
+     *         )
      *     )
      * )
      */

@@ -1,0 +1,694 @@
+{
+  "version": "1.0",
+  "descripcion": "Ejemplos de Request y Response para todas las funciones del API de Odoo",
+  "endpoint": "POST /api/odoo",
+  "autenticacion": {
+    "tipo": "Token Bearer",
+    "header": "Authorization: Bearer {token}",
+    "campo_request": "eRequest.Token"
+  },
+  "servicios": {
+    "1_Consulta": {
+      "descripcion": "Consulta datos generales de una cuenta por referencia de pago",
+      "request": {
+        "eRequest": {
+          "Funcion": "Consulta",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idinterfaz": 8,
+            "cta_01": "12345678",
+            "cta_02": "",
+            "cta_03": "",
+            "cta_04": "",
+            "cta_05": "",
+            "cta_06": "",
+            "referencia_pago": "REF123456789"
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "nombre": "JUAN PEREZ GARCIA",
+            "domicilio": "AV REVOLUCION 123",
+            "no_ext": "123",
+            "no_int": "A",
+            "colonia": "CENTRO",
+            "municipio": "GUADALAJARA",
+            "estado": "JALISCO",
+            "rfc": "PEGJ800101XXX",
+            "curp": "PEGJ800101HJCRNS01",
+            "observacion": "Cuenta activa",
+            "estatus": 0,
+            "mensaje_est": "OK"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "response_error": {
+        "eResponse": {
+          "success": false,
+          "message": "Cuenta no encontrada",
+          "data": {
+            "estatus": 1001,
+            "mensaje_est": "CUENTA NO ENCONTRADA"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idinterfaz: requerido, integer",
+        "cta_01: opcional, string",
+        "referencia_pago: opcional, string"
+      ]
+    },
+    "2_DatosVarios": {
+      "descripcion": "Obtiene datos complementarios de la cuenta",
+      "request": {
+        "eRequest": {
+          "Funcion": "DatosVarios",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idinterfaz": 8,
+            "cta_01": "12345678",
+            "cta_02": "",
+            "referencia_pago": "REF123456789"
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "campo": "tipo_predio",
+              "valor": "CASA HABITACION"
+            },
+            {
+              "campo": "metros_construccion",
+              "valor": "150"
+            },
+            {
+              "campo": "metros_terreno",
+              "valor": "200"
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "3_AdeudoDetalle": {
+      "descripcion": "Detalle de adeudos por concepto de cobro",
+      "request": {
+        "eRequest": {
+          "Funcion": "AdeudoDetalle",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idinterfaz": 8,
+            "cta_01": "12345678",
+            "referencia_pago": "REF123456789"
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "cta_aplicacion": 1,
+              "referencia_pago": "REF123456789",
+              "descripcion": "IMPUESTO PREDIAL 2024",
+              "importe": 5000.50,
+              "acumulado": 5000.50
+            },
+            {
+              "cta_aplicacion": 2,
+              "referencia_pago": "REF123456789",
+              "descripcion": "RECARGOS",
+              "importe": 250.25,
+              "acumulado": 5250.75
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "4_AdeudoDetalleInmovilizadores": {
+      "descripcion": "Detalle de adeudos para infracciones de movilidad (inmovilizadores)",
+      "request": {
+        "eRequest": {
+          "Funcion": "AdeudoDetalleInmovilizadores",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idinterfaz": 16,
+            "cta_01": "ABC123XYZ",
+            "referencia_pago": "INF987654"
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "cta_aplicacion": 1,
+              "referencia_pago": "INF987654",
+              "descripcion": "INFRACCION ESTACIONAMIENTO",
+              "importe": 1500.00,
+              "acumulado": 1500.00
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idinterfaz: requerido, debe ser 16 (Movilidad)",
+        "cta_01: requerido, string (placas o folio)",
+        "referencia_pago: opcional, string"
+      ]
+    },
+    "5_Pago": {
+      "descripcion": "Registra un pago realizado al cliente pagador",
+      "request": {
+        "eRequest": {
+          "Funcion": "Pago",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idinterfaz": 8,
+            "cta_01": "12345678",
+            "cta_02": "",
+            "cta_03": "",
+            "cta_04": "",
+            "cta_05": "",
+            "cta_06": "",
+            "referencia_pago": "REF123456789",
+            "pago_tarjeta": "1234567890123456",
+            "monto_certificado": 5250.75,
+            "monto_cartera": 5250.75,
+            "monto_redondeo": 0.25,
+            "id_cobro": 123456,
+            "folio_recibo": "REC-2025-001234",
+            "fecha_pago": "2025-02-11",
+            "recaudadora": 1,
+            "centro": 1,
+            "caja": "CAJA01",
+            "cc_lugar_pago": "GUADALAJARA",
+            "cc_fecha_pago": "2025-02-11 10:30:00",
+            "cc_referencia": "REF-BANCO-001",
+            "cc_forma_pago": "EFECTIVO",
+            "adicional_1": ""
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "codigo": 0,
+            "mensaje": "PAGO REGISTRADO EXITOSAMENTE"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "response_error": {
+        "eResponse": {
+          "success": false,
+          "message": "Error al registrar pago",
+          "data": {
+            "codigo": 1001,
+            "mensaje": "REFERENCIA INVALIDA O YA PAGADA"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idinterfaz: requerido, integer",
+        "referencia_pago: requerido, string",
+        "monto_certificado: requerido, numeric",
+        "monto_cartera: requerido, numeric",
+        "id_cobro: requerido, integer",
+        "folio_recibo: requerido, string",
+        "fecha_pago: requerido, string (YYYY-MM-DD)",
+        "recaudadora: requerido, integer",
+        "centro: requerido, integer",
+        "caja: requerido, string"
+      ]
+    },
+    "6_Cancelacion": {
+      "descripcion": "Cancela un pago previamente registrado",
+      "request": {
+        "eRequest": {
+          "Funcion": "Cancelacion",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idinterfaz": 8,
+            "id_cobro": 123456,
+            "folio_recibo": "REC-2025-001234"
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "codigo": 0,
+            "mensaje": "PAGO CANCELADO EXITOSAMENTE"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "response_error": {
+        "eResponse": {
+          "success": false,
+          "message": "Error al cancelar pago",
+          "data": {
+            "codigo": 1001,
+            "mensaje": "PAGO NO ENCONTRADO O YA CANCELADO"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idinterfaz: requerido, integer",
+        "id_cobro: requerido, integer",
+        "folio_recibo: requerido, string"
+      ]
+    },
+    "7_ConsCuenta": {
+      "descripcion": "Consulta una cuenta predial por su ID y retorna recaudadora, tipo y cuenta",
+      "request": {
+        "eRequest": {
+          "Funcion": "ConsCuenta",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idcuenta": 123456
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "recaudadora": 1,
+            "tipo": "P",
+            "cuenta": 12345678
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idcuenta: requerido, integer"
+      ]
+    },
+    "8_CatDescuentos": {
+      "descripcion": "Obtiene el catálogo de descuentos disponibles para una cuenta",
+      "request": {
+        "eRequest": {
+          "Funcion": "CatDescuentos",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idcuenta": 123456
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "IdDescuento": 1,
+              "descripcion": "DESCUENTO ADULTO MAYOR",
+              "porcentaje": "50"
+            },
+            {
+              "IdDescuento": 2,
+              "descripcion": "DESCUENTO PERSONAS CON DISCAPACIDAD",
+              "porcentaje": "100"
+            },
+            {
+              "IdDescuento": 3,
+              "descripcion": "DESCUENTO PRONTO PAGO",
+              "porcentaje": "15"
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idcuenta: requerido, integer"
+      ]
+    },
+    "9_ListDescuentos": {
+      "descripcion": "Lista los descuentos de ley aplicados a una cuenta",
+      "request": {
+        "eRequest": {
+          "Funcion": "ListDescuentos",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idcuenta": 123456
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "IdDescuento": 1,
+              "descripcion": "DESCUENTO ADULTO MAYOR",
+              "bimini": "2024-01",
+              "bimfin": "2024-06",
+              "fechaAlta": "2024-01-15",
+              "captura": "USUARIO01",
+              "propietario": "JUAN PEREZ GARCIA",
+              "solicitante": "JUAN PEREZ GARCIA",
+              "recaudadora": "1",
+              "folioDescto": "DCTO-2024-001",
+              "identificacion": "INE123456789",
+              "fechaNacimiento": "1950-05-20"
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idcuenta: requerido, integer"
+      ]
+    },
+    "10_AltaDescuentos": {
+      "descripcion": "Registra un nuevo descuento de ley para una cuenta",
+      "request": {
+        "eRequest": {
+          "Funcion": "AltaDescuentos",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idcuenta": 123456,
+            "IdDescuento": 1,
+            "bimini": "2025-01",
+            "bimfin": "2025-06",
+            "propietario": "JUAN PEREZ GARCIA",
+            "solicitante": "JUAN PEREZ GARCIA",
+            "recaudadora": "1",
+            "folioDescto": "DCTO-2025-001",
+            "identificacion": "INE123456789",
+            "fechaNacimiento": "1950-05-20"
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "codigo": 0,
+            "mensaje": "DESCUENTO REGISTRADO EXITOSAMENTE"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "response_error": {
+        "eResponse": {
+          "success": false,
+          "message": "Error al registrar descuento",
+          "data": {
+            "codigo": 1001,
+            "mensaje": "DESCUENTO YA EXISTE PARA ESTE PERIODO"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      },
+      "validaciones": [
+        "Idcuenta: requerido, integer",
+        "IdDescuento: requerido, integer",
+        "bimini: requerido, string (YYYY-MM)",
+        "bimfin: requerido, string (YYYY-MM)",
+        "propietario: opcional, string",
+        "solicitante: opcional, string",
+        "recaudadora: opcional, string",
+        "folioDescto: opcional, string",
+        "identificacion: opcional, string",
+        "fechaNacimiento: opcional, string (YYYY-MM-DD)"
+      ]
+    },
+    "11_CancelDescuentos": {
+      "descripcion": "Cancela un descuento de ley aplicado a una cuenta",
+      "request": {
+        "eRequest": {
+          "Funcion": "CancelDescuentos",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Idcuenta": 123456,
+            "IdDescuento": 1
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "codigo": 0,
+            "mensaje": "DESCUENTO CANCELADO EXITOSAMENTE"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "12_ConsDesctoTablet": {
+      "descripcion": "Consulta descuentos para dispositivos tablet",
+      "request": {
+        "eRequest": {
+          "Funcion": "ConsDesctoTablet",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "recaudadora": 1,
+            "tipo": "P",
+            "cuenta": 12345678
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "IdDescuento": 1,
+            "descripcion": "DESCUENTO ADULTO MAYOR",
+            "Idcuenta": 123456,
+            "rfc": "PEGJ800101XXX",
+            "curp": "PEGJ800101HJCRNS01",
+            "id_descto_act": 100,
+            "codigo": 0,
+            "mensaje": "OK"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "13_AltaDesctoTablet": {
+      "descripcion": "Registra un descuento desde dispositivo tablet",
+      "request": {
+        "eRequest": {
+          "Funcion": "AltaDesctoTablet",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "Id_descto_actual": 100,
+            "Idcuenta": 123456,
+            "IdDescto_Nvo": 2,
+            "rfc": "PEGJ800101XXX",
+            "curp": "PEGJ800101HJCRNS01",
+            "usuario": "USUARIO01",
+            "reca": 1
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "codigo": 0,
+            "mensaje": "DESCUENTO ACTUALIZADO DESDE TABLET"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "14_FechasPendientesEl": {
+      "descripcion": "Obtiene fechas con pagos pendientes de integrar a Odoo",
+      "request": {
+        "eRequest": {
+          "Funcion": "FechasPendientesEl",
+          "Token": "odoo-token-2025",
+          "Parametros": {}
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "fecha": "2025-02-10",
+              "tipoCartera": "PREDIAL",
+              "modulo": 1,
+              "lugarPago": "CENTRO",
+              "idLugarPago": 1,
+              "registros": 150
+            },
+            {
+              "fecha": "2025-02-09",
+              "tipoCartera": "INFRACCIONES",
+              "modulo": 2,
+              "lugarPago": "ZAPOPAN",
+              "idLugarPago": 2,
+              "registros": 75
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "15_PendientesXIntegrar": {
+      "descripcion": "Lista los recibos pendientes de integrar a Odoo para una fecha específica",
+      "request": {
+        "eRequest": {
+          "Funcion": "PendientesXIntegrar",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "fecha": "2025-02-10",
+            "lugarPago": 1,
+            "modulo": 1
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "idRegistro": 1001,
+              "operacion": 1,
+              "importe": 5250.75,
+              "interfase": 8,
+              "nombre": "JUAN PEREZ GARCIA",
+              "domicilio": "AV REVOLUCION 123",
+              "concepto": "PREDIAL",
+              "descripcion": 1,
+              "axodesde": 2024,
+              "mes_bim_desde": 1,
+              "axoHasta": 2024,
+              "mes_bim_hasta": 6
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "16_DetallesXIntegrar": {
+      "descripcion": "Obtiene los detalles de un recibo pendiente de integrar",
+      "request": {
+        "eRequest": {
+          "Funcion": "DetallesXIntegrar",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "idRegistro": 1001
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": [
+            {
+              "concepto": "IMPUESTO PREDIAL",
+              "cuenta": 1,
+              "importe": 5000.50
+            },
+            {
+              "concepto": "RECARGOS",
+              "cuenta": 2,
+              "importe": 250.25
+            }
+          ],
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "17_ActualizarPendientes": {
+      "descripcion": "Actualiza el estado de un recibo pendiente después de integrarlo a Odoo",
+      "request": {
+        "eRequest": {
+          "Funcion": "ActualizarPendientes",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "idRegistro": 1001,
+            "operacion": 1,
+            "folio_recibo": "REC-2025-001234"
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "codigo": 0,
+            "mensaje": "REGISTRO ACTUALIZADO EXITOSAMENTE"
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    },
+    "18_LicenciaVisor": {
+      "descripcion": "Obtiene una licencia codificada para el visor urbano",
+      "request": {
+        "eRequest": {
+          "Funcion": "LicenciaVisor",
+          "Token": "odoo-token-2025",
+          "Parametros": {
+            "licencia": 123456
+          }
+        }
+      },
+      "response_exitoso": {
+        "eResponse": {
+          "success": true,
+          "message": "Operación completada exitosamente",
+          "data": {
+            "licencia_codificada": "TElDRU5DSUEtQ09ESUZJQ0FEQS0xMjM0NTY="
+          },
+          "timestamp": "2025-02-11T10:30:00Z"
+        }
+      }
+    }
+  },
+  "notas_importantes": [
+    "Todos los requests deben incluir el token de autenticación",
+    "El formato de fecha es YYYY-MM-DD",
+    "Los montos deben ser numéricos (int o float)",
+    "Las interfaces válidas son: 8-15, 16, 17, 18-19, 22-23, 25, 30, 32, 88",
+    "Las interfaces 8-15, 18-19, 22-23, 25, 30 se normalizan a interfaz 8 (Informix)",
+    "El timestamp del response siempre está en formato ISO 8601",
+    "Todos los response tienen la misma estructura base: eResponse con success, message, data, timestamp"
+  ],
+  "codigos_error_comunes": {
+    "0": "Operación exitosa",
+    "400": "Petición inválida - Parámetros faltantes o inválidos",
+    "401": "Token inválido o expirado",
+    "500": "Error interno del servidor",
+    "1001": "Error de negocio - Referencia inválida, cuenta no encontrada, etc."
+  }
+}

@@ -1,7 +1,9 @@
 # 📋 Plan Ejecutivo - 2 Desarrolladores Frontend
 ## 5 Días - 9 Sistemas - 598 Archivos Vue.js
 
-**📄 Referencia:** Ver `INVENTARIO_COMPLETO_VUE.md` para lista detallada de todos los archivos
+**📄 Referencias:**
+- `INVENTARIO_COMPLETO_VUE.md` - Lista detallada de todos los archivos
+- `PROCESO_RECODIFICACION_6_AGENTES.md` - Proceso detallado de recodificación
 
 ---
 
@@ -9,38 +11,193 @@
 
 | Aspecto | Detalle |
 |---------|---------|
-| **Duración** | 5 días (Lunes-Viernes), 12 hrs/día |
-| **Equipo** | 2 Devs + Claude Code |
+| **Duración** | 5 días (Lunes-Viernes), 8 hrs/día |
+| **Equipo** | 2 Devs + Claude Code (6 Agentes) |
 | **Backend** | ✅ Laravel completo y funcional |
-| **Base de Datos** | Scripts SQL en carpeta `base/` |
-| **Stack** | Vue 3, Pinia, Axios, PrimeVue |
+| **API** | Servicio genérico único para todos los sistemas |
+| **Base de Datos** | 9 BD individuales + 1 BD común |
+| **Stack** | Vue 3, Bootstrap, Axios, municipal-theme.css |
 | **Total Archivos** | 598 archivos Vue existentes |
 | **Inventario** | INVENTARIO_COMPLETO_VUE.md |
+| **Proceso** | 6 Agentes por componente |
+
+---
+
+## 🗄️ Arquitectura de Base de Datos
+
+### Bases de Datos por Sistema (Esquema: public)
+| Sistema | Base de Datos | Esquema |
+|---------|---------------|---------|
+| Distribución | distribucion_db | public |
+| Cementerios | cementerios_db | public |
+| Aseo Contratado | aseo_contratado_db | public |
+| Mercados | mercados_db | public |
+| Otras Obligaciones | otras_obligaciones_db | public |
+| Padrón Licencias | padron_licencias_db | public |
+| Multas y Reglamentos | multas_reglamentos_db | public |
+| Estacionamiento Exclusivo | estacionamiento_exclusivo_db | public |
+| Estacionamiento Público | estacionamiento_publico_db | public |
+
+### Base de Datos Común
+- **Base de datos:** `padron_licencias`
+- **Esquema:** `comun`
+- **Propósito:** Catálogos, configuraciones y datos compartidos
+
+---
+
+## 🔄 Proceso de 6 Agentes (Por cada componente Vue)
+
+| Agente | Responsabilidad | Salida |
+|--------|-----------------|--------|
+| 1. Orquestador | Administrar flujo y dependencias | Orden de ejecución |
+| 2. SP (Stored Procedures) | Migrar SP a INFORMIX | SP funcionales en BD |
+| 3. Vue (Integración) | Implementar SP en componente | Componente funcional |
+| 4. Bootstrap/UX | Aplicar estilos y UX | UI completa |
+| 5. Validador Global | Revisar todo el trabajo | Componente validado |
+| 6. Limpieza | Limpiar y documentar | Componente completo ✅ |
+
+**📄 Ver detalles completos en:** `PROCESO_RECODIFICACION_6_AGENTES.md`
+
+---
+
+## 📁 Estructura de Archivos (NO MOVER NI BORRAR)
+
+### Template Base (NO TOCAR)
+```
+RefactorX/Base/[modulo]/
+├── database/ok/              → SPs originales
+├── docs/
+│   └── CONTROL_IMPLEMENTACION_VUE.md
+└── *.vue                     → Archivos Vue origen
+```
+
+### Archivos Destino
+```
+RefactorX/FrontEnd/src/views/modules/[modulo]/
+└── [archivo].vue             → Componentes finales
+```
+
+### Archivos Originales Delphi
+```
+C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\[modulo]/
+├── *.pas   → Lógica de negocio
+├── *.dfm   → Diseño de formularios
+└── *.dcu   → Unidades compiladas
+```
+
+---
+
+## 🔌 Servicio API Genérico (Único para todos los sistemas)
+
+### services/api.service.js
+```javascript
+import axios from 'axios'
+
+const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8000/api'
+
+export const apiService = {
+  /**
+   * Ejecutar Stored Procedure genérico
+   * @param {string} database - Nombre de la base de datos
+   * @param {string} schema - Esquema (public o comun)
+   * @param {string} spName - Nombre del SP
+   * @param {object} params - Parámetros del SP
+   */
+  async callSP(database, schema, spName, params = {}) {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/sp/execute`, {
+        database,
+        schema,
+        sp_name: spName,
+        params
+      })
+      return response.data
+    } catch (error) {
+      console.error(`Error calling SP ${spName}:`, error)
+      throw error
+    }
+  },
+
+  /**
+   * Ejecutar SP de un sistema específico (esquema public)
+   * @param {string} systemName - Nombre del sistema
+   * @param {string} spName - Nombre del SP
+   * @param {object} params - Parámetros
+   */
+  async executeSystemSP(systemName, spName, params = {}) {
+    const database = `${systemName}_db`
+    const schema = 'public'
+    return this.callSP(database, schema, spName, params)
+  },
+
+  /**
+   * Ejecutar SP de datos comunes (esquema comun)
+   * @param {string} spName - Nombre del SP
+   * @param {object} params - Parámetros
+   */
+  async executeCommonSP(spName, params = {}) {
+    const database = 'padron_licencias'
+    const schema = 'comun'
+    return this.callSP(database, schema, spName, params)
+  }
+}
+```
+
+### Uso en componentes Vue:
+```vue
+<script setup>
+import { apiService } from '@/services/api.service'
+
+// Llamar SP del sistema específico
+async function loadData() {
+  const result = await apiService.executeSystemSP(
+    'estacionamiento_publico',
+    'sp_get_folios',
+    { fecha_inicio: '2025-01-01', fecha_fin: '2025-12-31' }
+  )
+}
+
+// Llamar SP de datos comunes
+async function loadCatalogos() {
+  const result = await apiService.executeCommonSP(
+    'sp_get_catalogos',
+    { tipo: 'estados' }
+  )
+}
+</script>
+```
 
 ---
 
 ## 🎯 Distribución de Trabajo
 
-### Developer 1 - Sistemas Simples/Medios (135 forms)
-| Día | Sistema | Forms | Tiempo |
-|-----|---------|-------|--------|
-| Lunes AM | Distribución | 15 | 8-12 PM |
-| Lunes PM | Cementerios | 20 | 1-4 PM |
-| Lunes PM | Aseo Contratado | 25 | 4-8 PM |
-| Martes AM | Mercados | 35 | 8-1 PM |
-| Martes PM | Otras Obligaciones | 40 | 1-8 PM |
+**Proceso:** Cada componente Vue pasa por los 6 agentes (ver `PROCESO_RECODIFICACION_6_AGENTES.md`)
 
-### Developer 2 - Sistemas Complejos (335 forms)
-| Día | Sistema | Forms | Tiempo |
-|-----|---------|-------|--------|
-| Miércoles | Padrón Licencias | 60 | 8-8 PM |
-| Jueves AM | Multas y Reglamentos (parte 1) | 45 | 8-1 PM |
-| Jueves PM | Multas y Reglamentos (parte 2) | 45 | 1-5 PM |
-| Jueves PM | Estacionamiento Exclusivo | 65 | 5-8 PM |
-| Viernes AM | Estacionamiento Público | 120 | 8-1 PM |
-| Viernes PM | Testing + Deploy | - | 1-8 PM |
+### Developer 1 - Sistemas Simples/Medios (308 archivos)
+| Día | Sistema | Archivos | Proceso 6 Agentes | Tiempo |
+|-----|---------|----------|-------------------|--------|
+| Lunes AM | Distribución | 15 (crear) | Orq→SP→Vue→UX→Val→Limp | 8-12h |
+| Lunes PM | Cementerios | 36 | Lotes de 5 archivos | 13-18h |
+| Martes | Aseo Contratado | 103 | Lotes de 5 archivos | 8-18h |
+| Miércoles AM | Mercados (parte 1) | 54 | Lotes de 5 archivos | 8-13h |
+| Miércoles PM | Mercados (parte 2) | 53 | Lotes de 5 archivos | 14-18h |
+| Jueves | Otras Obligaciones | 27 | Lotes de 5 archivos | 8-18h |
+| Viernes | Est. Público (50%) | 30 | Apoyo Dev2 | 8-18h |
 
-**NOTA:** Dev1 apoya a Dev2 desde Miércoles
+### Developer 2 - Sistemas Complejos (295 archivos)
+| Día | Sistema | Archivos | Proceso 6 Agentes | Tiempo |
+|-----|---------|----------|-------------------|--------|
+| Miércoles | Padrón Licencias | 97 | Lotes de 5 archivos | 8-18h |
+| Jueves AM | Multas (parte 1) | 53 | Lotes de 5 archivos | 8-13h |
+| Jueves PM | Multas (parte 2) | 53 | Lotes de 5 archivos | 14-18h |
+| Jueves Noche | Est. Exclusivo | 61 | Lotes de 5 archivos | 19-22h (extra) |
+| Viernes | Est. Público (50%) | 31 | Con Dev1 | 8-18h |
+
+**NOTA:**
+- Procesar en lotes de 5 archivos .vue por iteración
+- Dev1 apoya a Dev2 desde Miércoles PM
+- Cada archivo pasa por los 6 agentes: Orquestador → SP → Vue → UX → Validador → Limpieza
+- Control de avance en `CONTROL_IMPLEMENTACION_VUE.md` de cada módulo
 
 ---
 
@@ -69,35 +226,56 @@ npm run dev  # Debe abrir http://localhost:5173
 
 ## 8:30-9:30 AM | Preparación
 
-### Dev1: Base de Datos
+### Dev1: Verificar Bases de Datos
 ```bash
-cd RefactorX\Base
-psql -U postgres -d guadalajara_db
+# Verificar conectividad a las 9 BD individuales + 1 común
+psql -U postgres -l | grep "_db"
 
-# Ejecutar scripts SQL en orden:
-\i 01_tablas_base.sql
-\i 02_stored_procedures.sql
-\i 03_datos_iniciales.sql
-\i 04_catalogos.sql
+# Debería mostrar:
+# - distribucion_db
+# - cementerios_db
+# - aseo_contratado_db
+# - mercados_db
+# - otras_obligaciones_db
+# - padron_licencias_db (sistema)
+# - multas_reglamentos_db
+# - estacionamiento_exclusivo_db
+# - estacionamiento_publico_db
+# - padron_licencias (común - esquema: comun)
+
+# Verificar esquemas
+psql -U postgres -d padron_licencias
+\dn  # Debe mostrar esquemas: public y comun
 ```
 
-### Dev2: Estructura Frontend
+### Dev2: Crear Servicio API Genérico
 ```bash
-cd frontend/src
-mkdir -p modules/{distribucion,cementerios,aseo_contratado,mercados,otras_obligaciones,padron_licencias,multas_reglamentos,estacionamiento_exclusivo,estacionamiento_publico}
-mkdir -p components/common services stores
+cd RefactorX/FrontEnd/src
+mkdir -p services
+
+# Crear archivo services/api.service.js
 ```
 
-**Claude Code Prompt:**
+**Claude Code Prompt para Dev2:**
 ```
-Crea componentes Vue 3 base reutilizables:
-1. FormBase.vue - Layout formulario estándar
-2. TableBase.vue - Tabla con paginación
-3. SearchBar.vue - Búsqueda con debounce
-4. ModalBase.vue - Modal genérico
-5. LoadingSpinner.vue - Indicador carga
+Crea el servicio API genérico en services/api.service.js según la especificación
+del PLAN_EJECUTIVO_2_DEVS_FRONTEND.md sección "Servicio API Genérico".
 
-Composition API, PrimeVue, TypeScript, responsive
+El servicio debe tener 3 métodos:
+1. callSP(database, schema, spName, params) - Genérico
+2. executeSystemSP(systemName, spName, params) - Para sistemas (esquema public)
+3. executeCommonSP(spName, params) - Para datos comunes (esquema comun)
+
+Usa axios y manejo de errores completo.
+```
+
+### Ambos: Leer Documentación
+```bash
+# Leer procesos completos
+- INVENTARIO_COMPLETO_VUE.md
+- PROCESO_RECODIFICACION_6_AGENTES.md
+- PLAN_EJECUTIVO_2_DEVS_FRONTEND.md
+```
 ```
 
 ---

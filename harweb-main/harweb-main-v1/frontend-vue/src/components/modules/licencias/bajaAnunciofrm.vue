@@ -300,25 +300,25 @@ export default {
       this.hasSearched = true
 
       try {
-        const eRequest = {
-          Operacion: 'sp_baja_anuncio_buscar',
-          Base: 'licencias',
-          Parametros: [
-            {
-              nombre: 'p_anuncio',
-              valor: parseInt(this.filtros.anuncio),
-              tipo: 'integer'
-            }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_baja_anuncio_buscar',
+              Base: 'padron_licencias',
+              Parametros: [
+                {
+                  nombre: 'p_anuncio',
+                  valor: parseInt(this.filtros.anuncio),
+                  tipo: 'integer'
+                }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 
@@ -355,45 +355,45 @@ export default {
       this.resultadoBaja = null
 
       try {
-        const eRequest = {
-          Operacion: 'sp_baja_anuncio_procesar',
-          Base: 'licencias',
-          Parametros: [
-            {
-              nombre: 'p_anuncio',
-              valor: parseInt(this.filtros.anuncio),
-              tipo: 'integer'
-            },
-            {
-              nombre: 'p_motivo',
-              valor: this.formBaja.motivo,
-              tipo: 'string'
-            },
-            {
-              nombre: 'p_axo_baja',
-              valor: this.formBaja.baja_error || this.formBaja.baja_tiempo ? null : parseInt(this.formBaja.axo_baja),
-              tipo: 'integer'
-            },
-            {
-              nombre: 'p_folio_baja',
-              valor: this.formBaja.baja_error || this.formBaja.baja_tiempo ? null : parseInt(this.formBaja.folio_baja),
-              tipo: 'integer'
-            },
-            {
-              nombre: 'p_fecha_baja',
-              valor: new Date().toISOString().split('T')[0],
-              tipo: 'date'
-            }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_baja_anuncio_procesar',
+              Base: 'padron_licencias',
+              Parametros: [
+                {
+                  nombre: 'p_anuncio',
+                  valor: parseInt(this.filtros.anuncio),
+                  tipo: 'integer'
+                },
+                {
+                  nombre: 'p_motivo',
+                  valor: this.formBaja.motivo,
+                  tipo: 'string'
+                },
+                {
+                  nombre: 'p_axo_baja',
+                  valor: this.formBaja.baja_error || this.formBaja.baja_tiempo ? null : parseInt(this.formBaja.axo_baja),
+                  tipo: 'integer'
+                },
+                {
+                  nombre: 'p_folio_baja',
+                  valor: this.formBaja.baja_error || this.formBaja.baja_tiempo ? null : parseInt(this.formBaja.folio_baja),
+                  tipo: 'integer'
+                },
+                {
+                  nombre: 'p_fecha_baja',
+                  valor: new Date().toISOString().split('T')[0],
+                  tipo: 'date'
+                }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 

@@ -489,6 +489,34 @@ SELECT COALESCE(MAX(folio), 0) FROM licencias.constancias;
   - Stored procedures no existían
 - **Estado**: ⭐ **COMPLETADO Y MARCADO EN MENÚ CON ASTERISCO**
 
+#### 11. BAJAANUNCIOFRM (COMPLETADO - 3 NOV 2025)
+- **Componente**: `frontend-vue/src/components/modules/licencias/bajaAnunciofrm.vue`
+- **SPs Creados**:
+  - `sp_baja_anuncio_buscar(p_anuncio INTEGER)` - Busca anuncio por número y retorna información completa
+  - `sp_baja_anuncio_procesar(...)` - Procesa la baja de anuncio y cancela adeudos
+- **Configuración**:
+  - Base de datos: `padron_licencias` (PostgreSQL 16.10)
+  - Esquema: `public` (stored procedures)
+  - Esquema: `comun` (tablas: anuncios, licencias, detsal_lic)
+  - Backend: PHP 8.2.12 (XAMPP) en http://localhost:8000
+  - Frontend: Vue.js en http://localhost:5180
+- **Funcionalidades Probadas**:
+  - ✅ Búsqueda de anuncio por número
+  - ✅ Visualización de información completa (anuncio, licencia, propietario)
+  - ✅ Conteo de adeudos pendientes
+  - ✅ Validación de estado vigente
+  - ✅ Procesamiento de baja (cambio a estado 'C')
+  - ✅ Cancelación automática de adeudos
+- **Problemas Resueltos**:
+  - Error "Invalid eRequest" (estructura incorrecta de petición)
+  - Base incorrecta ('licencias' → 'padron_licencias')
+  - Stored procedures no existían en la base de datos
+  - Error "Ambiguous column: id_anuncio" (conflicto de nombres de columnas)
+- **Datos de Prueba Identificados**:
+  - Sin adeudos: Anuncios #3, #4, #25
+  - Con adeudos: Anuncio #16 (18 adeudos)
+- **Estado**: ⭐ **COMPLETADO Y MARCADO EN MENÚ CON ASTERISCO**
+
 ---
 
 ## NOTAS IMPORTANTES
@@ -503,4 +531,4 @@ SELECT COALESCE(MAX(folio), 0) FROM licencias.constancias;
 
 **Última actualización**: 3 de noviembre de 2025
 **Responsable**: Claude Code
-**Estado**: Agendavisitasfrm completado y funcional
+**Estado**: Agendavisitasfrm y bajaAnunciofrm completados y funcionales

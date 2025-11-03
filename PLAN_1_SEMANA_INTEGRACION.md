@@ -1,10 +1,13 @@
 # ⚡ Plan de Integración Ultra Acelerado - 1 Semana
-## 2 Desarrolladores + Claude Code = 9 Sistemas Integrados
+## 2 Desarrolladores + Claude Code = 9 Sistemas Frontend Integrados
 
 **Duración:** 5 días hábiles (Lunes a Viernes)
 **Equipo:** 2 desarrolladores full-time + Claude Code
-**Objetivo:** Integración funcional básica de 9 sistemas
+**Objetivo:** Integración frontend Vue.js con backend existente
 **Horario:** 8:00 AM - 8:00 PM (12 horas/día con descansos)
+
+**✅ BACKEND YA ESTÁ COMPLETO Y FUNCIONAL**
+**🎯 ENFOQUE: Solo Frontend Vue.js + Integración BD**
 
 ---
 
@@ -12,484 +15,714 @@
 
 ### Principios de Trabajo
 
-1. **NO desarrollar desde cero** - Integrar archivos base existentes
-2. **Claude Code hace el trabajo pesado** - Generación automática de código
-3. **Integración básica funcional** - No perfección, sino funcionalidad
+1. **Backend ya existe** - Solo conectar frontend con APIs existentes
+2. **Claude Code hace el trabajo pesado** - Conversión Delphi → Vue automática
+3. **SQL en carpeta base/** - Usar scripts SQL existentes para BD
 4. **Trabajo en paralelo** - Dev1 y Dev2 en sistemas diferentes
-5. **Reutilizar patrones** - Copiar/adaptar código entre sistemas similares
-6. **Testing mínimo viable** - Validar que funcione, no todo perfecto
+5. **Reutilizar patrones** - Copiar/adaptar componentes Vue entre sistemas
+6. **Testing mínimo viable** - Validar que UI funcione con backend
 
 ### División de Responsabilidades
 
-**Developer 1 (Backend Focus):**
-- Laravel APIs
-- Integración de stored procedures
-- Migraciones de base de datos
-- Endpoints REST
+**Developer 1 (DB + Frontend):**
+- Ejecutar scripts SQL de carpeta base/
+- Verificar integridad de base de datos
+- Componentes Vue (sistemas 1-4)
+- Integración con APIs existentes
 
-**Developer 2 (Frontend Focus):**
-- Componentes Vue
-- Integración con APIs
+**Developer 2 (Frontend + Testing):**
+- Componentes Vue (sistemas 5-9)
 - Rutas y navegación
 - Formularios y validaciones
+- Testing de integración
 
 **Claude Code (Asistente IA):**
-- Generación automática de código
-- Conversión Delphi → Vue
-- Documentación
-- Testing básico
+- Conversión MASIVA Delphi → Vue
+- Generación automática de componentes
+- Documentación de vistas
 - Corrección de bugs
+- Adaptación de formularios
 
 ---
 
 ## 📅 Cronograma Día por Día
 
-### 🔵 LUNES - DÍA 1: Setup + Sistemas Simples (3 sistemas)
+### 🔵 LUNES - DÍA 1: Setup + Base de Datos + 3 Sistemas Simples
 
-**Objetivo:** Configuración inicial + 3 sistemas pequeños funcionando
+**Objetivo:** Configuración inicial + BD completa + 3 sistemas frontend funcionando
 
 #### Mañana (8:00 - 12:00) - 4 horas
 **Ambos devs juntos:**
 
-**8:00 - 9:00** | Setup Inicial
+**8:00 - 9:30** | Setup Inicial + Base de Datos
 ```bash
-□ Clonar repositorio
-□ Configurar .env con BD
-□ Instalar dependencias (npm install, composer install)
-□ Verificar conexión a BD PostgreSQL
+□ Clonar repositorio completo
+□ Configurar .env con BD existente
+□ npm install (frontend Vue)
+□ Verificar backend Laravel funcionando
 □ Configurar Claude Code en ambas máquinas
-□ Crear branch: feature/integracion-semana-1
+□ Crear branch: feature/frontend-integracion-semana-1
+
+DEV1 - Base de Datos:
+□ Navegar a carpeta base/
+□ Revisar scripts SQL disponibles
+□ Ejecutar scripts SQL en orden correcto:
+  1. Tablas base
+  2. Stored procedures
+  3. Datos iniciales/catálogos
+□ Verificar todas las tablas creadas
+□ Documentar estructura BD
 ```
 
-**9:00 - 10:30** | Definir Estructura Base con Claude Code
+**9:30 - 11:00** | Estructura Frontend Vue Base
 ```bash
-□ Crear estructura de carpetas Vue para 9 módulos
-□ Definir componentes base compartidos (FormBase, TableBase, etc.)
-□ Crear servicios API base (apiService.js)
-□ Configurar rutas principales en Vue Router
-□ Generar controladores Laravel base
+□ Crear estructura de carpetas Vue para 9 módulos:
+  src/
+    modules/
+      distribucion/
+      cementerios/
+      aseo_contratado/
+      mercados/
+      otras_obligaciones/
+      padron_licencias/
+      multas_reglamentos/
+      estacionamiento_exclusivo/
+      estacionamiento_publico/
+
+□ Componentes base compartidos (usar Claude Code):
+  components/
+    common/
+      FormBase.vue
+      TableBase.vue
+      SearchBar.vue
+      Pagination.vue
+      ModalBase.vue
+
+□ Crear servicios API base:
+  services/
+    api.js (axios con token JWT)
+    auth.service.js
+    [modulo].service.js para cada sistema
+
+□ Configurar Vue Router para 9 módulos
+□ Verificar conexión con backend existente
 ```
 
-**10:30 - 12:00** | Sistema 1: DISTRIBUCIÓN (15 formularios)
+**11:00 - 12:00** | Sistema 1: DISTRIBUCIÓN (15 formularios) - INICIO
 ```bash
-Dev1: Backend
-  □ Analizar archivos .pas/.dfm con Claude Code
-  □ Generar migración BD (ask Claude: "analiza estos archivos y genera la migración")
-  □ Crear DistribucionController con endpoints CRUD
-  □ Probar endpoints con Postman
+Dev1: Base de Datos + Frontend (Distribución)
+  □ Verificar tablas de distribución en BD
+  □ Analizar archivos Delphi en RefactorX/Base/distribucion/
+  □ Usar Claude Code: "Analiza estos archivos .pas/.dfm y lista todos los formularios"
+  □ Iniciar conversión del primer formulario principal
 
-Dev2: Frontend
-  □ Generar componentes Vue (ask Claude: "convierte estos forms a Vue")
-  □ Crear vistas principales (lista, formulario)
-  □ Conectar con API
-  □ Probar navegación
+Dev2: Frontend Base + Distribución
+  □ Crear estructura base en src/modules/distribucion/
+  □ Generar rutas para distribución
+  □ Crear servicio API: distribucion.service.js
+  □ Probar conexión con backend existente
+  □ Crear componente de menú principal
+```
+
+**Prompt Claude Code para conversión:**
+```
+Convierte este formulario Delphi a Vue 3 Composition API:
+
+[PEGAR CONTENIDO .PAS Y .DFM]
+
+Requisitos:
+1. <script setup> con Composition API
+2. Usar Pinia para estado si necesario
+3. Axios para llamadas API al backend Laravel existente
+4. Validaciones con VeeValidate
+5. UI con PrimeVue o Vuetify
+6. Responsive design
+7. Comentar endpoints que debe consumir del backend
+
+Genera el componente completo .vue
 ```
 
 #### Tarde (13:00 - 20:00) - 7 horas
 
-**13:00 - 16:00** | Sistema 2: CEMENTERIOS (20 formularios)
+**13:00 - 16:00** | Sistema 1: DISTRIBUCIÓN - COMPLETAR
 ```bash
-Dev1: Backend
-  □ Migración BD cementerios
-  □ CementeriosController + servicios
-  □ Endpoints para gestión de lotes/nichos
-  □ Testing con Postman
+Dev1: Formularios 1-8 de Distribución
+  □ Convertir con Claude Code formularios principales
+  □ Integrar con APIs backend existentes
+  □ Validar datos con BD
+  □ Testing básico de CRUD
 
-Dev2: Frontend
-  □ Componentes Vue para cementerios
-  □ Formularios de registro
+Dev2: Formularios 9-15 de Distribución
+  □ Convertir formularios secundarios
+  □ Crear componentes de reportes
+  □ Integración completa
+  □ Navegación entre vistas
+
+**CHECKPOINT 16:00:** Distribución 100% funcional
+```
+
+**16:00 - 18:00** | Sistema 2: CEMENTERIOS (20 formularios)
+```bash
+Dev1: Formularios 1-10 Cementerios
+  □ Analizar estructura Delphi
+  □ Conversión masiva con Claude Code
+  □ Formularios de gestión de lotes/nichos
+  □ Integración con backend
+
+Dev2: Formularios 11-20 Cementerios
+  □ Formularios de servicios/contratos
+  □ Componentes de búsqueda
+  □ Reportes básicos
+  □ Testing integración
   □ Listados y búsquedas
   □ Integración API
 ```
 
-**16:00 - 19:00** | Sistema 3: ASEO CONTRATADO (25 formularios)
+**18:00 - 19:30** | Sistema 3: ASEO CONTRATADO (25 formularios)
 ```bash
-Dev1: Backend
-  □ Migración BD aseo
-  □ AseoController con endpoints
-  □ Lógica de cobranza y pagos
-  □ Validaciones
+Dev1: Formularios 1-13 Aseo
+  □ Convertir formularios principales con Claude Code
+  □ Componentes de contratos y cobranza
+  □ Integrar con backend existente
+  □ Validaciones frontend
 
-Dev2: Frontend
-  □ Componentes Vue aseo
-  □ Formularios de contratos
-  □ Reportes básicos
-  □ Testing funcional
+Dev2: Formularios 14-25 Aseo
+  □ Componentes de pagos y reportes
+  □ Búsquedas y filtros
+  □ Listados y tablas
+  □ Testing funcional con backend
+
+**CHECKPOINT 19:30:** Aseo Contratado 100% funcional
 ```
 
-**19:00 - 20:00** | Testing y Commit
+**19:30 - 20:00** | Testing y Commit
 ```bash
-□ Testing conjunto de los 3 sistemas
-□ Commit: "Add: Integración Distribución, Cementerios, Aseo"
+□ Testing integral de los 3 sistemas con backend
+□ Verificar todas las llamadas API funcionando
+□ Commit: "Add: Frontend Distribución, Cementerios, Aseo integrado con backend"
 □ Push a feature branch
-□ Documentar issues encontrados
+□ Documentar issues encontrados para día siguiente
 ```
 
-**Resultado Día 1:** ✅ 3 sistemas integrados (60 formularios)
+**Resultado Día 1:** ✅ 3 sistemas frontend completos (60 formularios) + BD configurada
 
 ---
 
 ### 🟢 MARTES - DÍA 2: Sistemas Medios (2 sistemas)
 
-**Objetivo:** Integrar 2 sistemas de complejidad media
+**Objetivo:** Frontend de 2 sistemas medios integrados con backend
 
 #### Mañana (8:00 - 13:00) - 5 horas
 
 **8:00 - 13:00** | Sistema 4: MERCADOS (35 formularios)
 ```bash
-Dev1: Backend (Con Claude Code)
-  □ Prompt: "Analiza estos archivos Delphi de Mercados y genera:
-     1. Migración completa de BD
-     2. Modelos Eloquent
-     3. Controller con CRUD
-     4. Servicios para lógica de negocio"
-  □ Ajustar código generado
-  □ Crear endpoints REST
-  □ Testing
+Dev1: Formularios 1-18 Mercados (Con Claude Code)
+  □ Prompt masivo: "Convierte estos formularios Delphi de Mercados a Vue 3:
+     [PEGAR ARCHIVOS .PAS/.DFM de carpeta RefactorX/Base/mercados/]
 
-Dev2: Frontend (Con Claude Code)
-  □ Prompt: "Convierte estos formularios Delphi a Vue 3:
-     - Lista de puestos
+     Genera componentes para:
+     - Lista de puestos y locales
      - Registro de comerciantes
-     - Cobranza
-     - Reportes"
-  □ Ajustar componentes generados
-  □ Conectar con API
-  □ Validaciones frontend
+     - Asignación de espacios
+     - Control de pagos
+     - Módulo de cobranza"
+  □ Revisar componentes generados
+  □ Integrar con endpoints backend existentes
+  □ Testing de funcionalidad
+
+Dev2: Formularios 19-35 Mercados (Con Claude Code)
+  □ Prompt: "Convierte formularios secundarios de Mercados:
+     - Reportes de ocupación
+     - Consultas y búsquedas
+     - Catálogos
+     - Estadísticas"
+  □ Componentes de visualización
+  □ Integrar con API backend
+  □ Validaciones y pruebas
+
+**CHECKPOINT 13:00:** Mercados 100% funcional
 ```
 
 #### Tarde (14:00 - 20:00) - 6 horas
 
-**14:00 - 20:00** | Sistema 5: OTRAS OBLIGACIONES (40 formularios)
+**14:00 - 19:30** | Sistema 5: OTRAS OBLIGACIONES (40 formularios)
 ```bash
-Dev1: Backend (Con Claude Code)
-  □ Prompt: "Genera backend Laravel completo para módulo Otras Obligaciones:
-     - Migraciones BD (giros, rubros, padrones)
-     - Controllers para cada entidad
-     - Servicios de cálculo de adeudos
-     - Endpoints REST documentados"
-  □ Revisar y ajustar stored procedures
-  □ Testing endpoints
-  □ Documentación Swagger
+Dev1: Formularios 1-20 Otras Obligaciones (Con Claude Code)
+  □ Prompt masivo: "Convierte módulo Otras Obligaciones (Giros y Rubros) a Vue 3:
+     [PEGAR ARCHIVOS de RefactorX/Base/otras_obligaciones/]
 
-Dev2: Frontend (Con Claude Code)
-  □ Prompt: "Convierte sistema Otras Obligaciones a Vue 3:
-     - Módulo Giros (consulta, alta, baja)
-     - Módulo Rubros (gestión)
+     Componentes necesarios:
+     - Módulo Giros (G*): GNuevos, GConsulta, GActualiza, GBaja, GAdeudos
+     - Gestión de padrón giros
      - Cálculo de adeudos
-     - Facturación"
-  □ Implementar store Pinia para estado
-  □ Componentes complejos (tablas, forms)
-  □ Testing E2E básico
+     - Facturación giros"
+  □ Implementar store Pinia para estado compartido
+  □ Integrar con backend existente
+  □ Testing de flujos CRUD
+
+Dev2: Formularios 21-40 Otras Obligaciones (Con Claude Code)
+  □ Prompt: "Convierte módulo Rubros (R*) a Vue 3:
+     - RNuevos, RConsulta, RActualiza, RBaja, RAdeudos
+     - Gestión de padrón rubros
+     - Reportes y consultas
+     - Apremios y notificaciones"
+  □ Componentes complejos de tablas
+  □ Integración API completa
+  □ Testing funcional
+
+**CHECKPOINT 19:30:** Otras Obligaciones 100% funcional
 ```
 
-**19:00 - 20:00** | Testing y Commit
+**19:30 - 20:00** | Testing y Commit
 ```bash
-□ Testing conjunto Mercados + Otras Obligaciones
-□ Commit: "Add: Integración Mercados y Otras Obligaciones"
-□ Resolver conflictos si hay
+□ Testing integral Mercados + Otras Obligaciones con backend
+□ Verificar todas las llamadas API funcionan correctamente
+□ Commit: "Add: Frontend Mercados y Otras Obligaciones integrado"
+□ Resolver merge conflicts si existen
 □ Push a feature branch
+□ Preparar documentación de APIs consumidas
 ```
 
-**Resultado Día 2:** ✅ 5 sistemas integrados (135 formularios acumulados)
+**Resultado Día 2:** ✅ 5 sistemas frontend completos (135 formularios acumulados)
 
 ---
 
 ### 🟡 MIÉRCOLES - DÍA 3: Sistema Grande 1 (1 sistema)
 
-**Objetivo:** Integrar Padrón de Licencias (sistema complejo)
+**Objetivo:** Frontend completo de Padrón de Licencias (sistema complejo)
 
 #### Todo el Día (8:00 - 20:00) - 12 horas
 
-**8:00 - 10:00** | Análisis y Planificación
+**8:00 - 9:30** | Análisis y Planificación
 ```bash
 Ambos devs con Claude Code:
-  □ Prompt: "Analiza el módulo completo de Padrón de Licencias (60 formularios):
-     - Identifica las entidades principales
-     - Mapea las relaciones de BD
-     - Lista los flujos críticos
-     - Propón arquitectura de componentes"
+  □ Verificar que backend de Padrón Licencias está funcionando
+  □ Probar endpoints existentes con Postman
+  □ Prompt: "Analiza archivos Delphi de Padrón de Licencias (60 formularios):
+     [PEGAR ARCHIVOS de RefactorX/Base/padron_licencias/]
+
+     Identifica:
+     - Formularios principales y secundarios
+     - Flujos de trabajo (trámites, licencias, anuncios)
+     - Componentes reutilizables necesarios
+     - Propón arquitectura de componentes Vue"
   □ Revisar análisis generado
-  □ Dividir trabajo en submódulos
+  □ Dividir trabajo en submódulos (30 forms cada dev)
 ```
 
-**10:00 - 20:00** | Implementación Paralela
+**9:30 - 20:00** | Implementación Paralela Frontend
 
-**Dev1: Backend - Módulos Backend**
+**Dev1: Frontend - Módulos Licencias y Trámites (Forms 1-30)**
 ```bash
-□ 10:00-11:30: Migración BD completa
-  - Prompt: "Genera migraciones para todas las tablas de licencias"
-
-□ 11:30-13:00: Controllers principales
-  - LicenciasController
-  - AnunciosController
-  - TramitesController
-
-□ 14:00-16:00: Lógica de negocio
-  - Servicios de cálculo
-  - Validaciones complejas
-  - Integración stored procedures
-
-□ 16:00-18:00: Endpoints secundarios
-  - CatalogosController
-  - ReportesController
-  - DescuentosController
-
-□ 18:00-20:00: Testing y ajustes
-```
-
-**Dev2: Frontend - Módulos Frontend**
-```bash
-□ 10:00-12:00: Componentes base
-  - Prompt: "Genera componentes Vue para licencias municipales"
+□ 9:30-11:00: Componentes base licencias
+  - Prompt: "Convierte formularios principales de Licencias:
+    * Registro de licencias (alta, consulta, modificación)
+    * Búsqueda y filtros
+    * Gestión de giros"
   - LicenciaForm.vue, LicenciaList.vue
-  - AnuncioForm.vue, AnuncioList.vue
+  - LicenciaSearch.vue
+  - Integrar con backend existente
 
-□ 13:00-15:00: Módulo de Trámites
-  - TramiteWizard.vue (wizard paso a paso)
-  - DocumentosUpload.vue
+□ 11:00-13:00: Módulo de Trámites
+  - Prompt: "Convierte módulo de Trámites a Vue 3"
+  - TramiteWizard.vue (wizard multi-paso)
+  - TramitesList.vue
+  - TramiteDetalle.vue
+  - Integración con API de trámites
+
+□ 14:00-16:00: Módulo de Anuncios
+  - Prompt: "Convierte gestión de Anuncios publicitarios"
+  - AnuncioForm.vue (registro anuncios)
+  - AnuncioList.vue (listado con filtros)
+  - AnuncioZonas.vue (asignación de zonas)
+  - Conectar con endpoints backend
+
+□ 16:00-18:00: Catálogos y configuración
+  - GirosCatalogo.vue
+  - ActividadesScian.vue
+  - RequisitosList.vue
+  - ZonasAnuncios.vue
+
+□ 18:00-20:00: Validaciones y testing
+  - Validaciones frontend con VeeValidate
+  - Testing de todos los flujos
+  - Corrección de bugs
+```
+
+**Dev2: Frontend - Módulos Consultas y Reportes (Forms 31-60)**
+```bash
+□ 9:30-11:00: Consultas y búsquedas
+  - Prompt: "Convierte módulos de consulta de Padrón Licencias"
+  - ConsultaLicencias.vue (búsqueda avanzada)
+  - ConsultaAnuncios.vue
+  - HistorialTramites.vue
+  - Integrar con API de consultas
+
+□ 11:00-13:00: Módulo de pagos y facturación
+  - PagosLicencias.vue
+  - FacturacionForm.vue
+  - AdeudosConsulta.vue
+  - DescuentosForm.vue (aplicar descuentos)
   - PagosForm.vue
 
-□ 15:00-17:00: Módulos de consulta
-  - BusquedaLicencias.vue
-  - ConsultaEstatus.vue
-  - HistorialTramites.vue
+□ 14:00-16:00: Módulo de reportes
+  - Prompt: "Convierte módulo de reportes de Licencias"
+  - ReportesLicencias.vue
+  - EstadisticasGiros.vue
+  - ReporteAnuncios.vue
+  - DashboardLicencias.vue (estadísticas visuales)
+  - Integrar con endpoints de reportes
 
-□ 17:00-19:00: Módulos administrativos
-  - Catálogos (giros, zonas, tipos)
-  - Reportes estadísticos
-  - Dashboard
+□ 16:00-18:00: Módulos administrativos y catálogos
+  - CatalogosGiros.vue
+  - ZonasAnuncios.vue
+  - TiposLicencias.vue
+  - UsuariosPermisos.vue (gestión de accesos)
 
-□ 19:00-20:00: Integración y testing
+□ 18:00-19:30: Integración final y testing
+  - Conectar todos los componentes
+  - Testing de flujos completos
+  - Validar con backend
+  - Corrección de bugs
 ```
 
-**19:30 - 20:00** | Commit
+**19:30 - 20:00** | Commit y documentación
 ```bash
-□ Testing funcional básico
-□ Commit: "Add: Integración completa Padrón de Licencias"
+□ Testing funcional completo de Padrón Licencias
+□ Verificar todos los endpoints consumidos correctamente
+□ Commit: "Add: Frontend completo Padrón de Licencias integrado con backend"
 □ Push a feature branch
+□ Documentar componentes creados
 ```
 
-**Resultado Día 3:** ✅ 6 sistemas integrados (195 formularios acumulados)
+**Resultado Día 3:** ✅ 6 sistemas frontend completos (195 formularios acumulados)
 
 ---
 
 ### 🔴 JUEVES - DÍA 4: Sistemas Grandes 2 y 3 (2 sistemas)
 
-**Objetivo:** Integrar Multas y Estacionamiento Exclusivo
+**Objetivo:** Frontend de Multas (90 forms) y Estacionamiento Exclusivo (65 forms)
 
 #### Mañana (8:00 - 14:00) - 6 horas
 
 **8:00 - 14:00** | Sistema 7: MULTAS Y REGLAMENTOS (90 formularios)
 ```bash
-Dev1: Backend (Ultra velocidad con Claude)
-  □ Prompt masivo: "Genera backend completo Laravel para sistema de Multas:
-     - Migración de 20+ tablas relacionadas
-     - Controllers: MultasController, RequerimientosController,
-       DescuentosController, PagosController
-     - Servicios de cálculo de multas, recargos, descuentos
-     - Endpoints REST completos
-     - Validaciones complejas"
+Dev1: Frontend Forms 1-45 Multas (Ultra velocidad con Claude)
+  □ Verificar backend de Multas funcionando
+  □ Prompt masivo: "Convierte sistema completo de Multas a Vue 3:
+     [PEGAR ARCHIVOS de RefactorX/Base/multas_reglamentos/]
 
-  □ 8:00-10:00: Revisar código generado, ajustar
-  □ 10:00-11:30: Integrar stored procedures existentes
-  □ 11:30-13:00: Testing endpoints críticos
-  □ 13:00-14:00: Documentación Swagger
+     Componentes principales:
+     - Módulo de Captura de Multas (multasfrm.vue, multas400frm.vue)
+     - Módulo de Requerimientos (Req.vue, ReqFrm.vue, RequerimientosDM.vue)
+     - Módulo de Descuentos (Otorgadescto.vue, autdescto.vue)
+     - Módulo de Ejecutores (Ejecutores.vue, FrmEje.vue)
+     - Workflow de requerimientos (estados, notificaciones)"
 
-Dev2: Frontend (Velocidad máxima con Claude)
-  □ Prompt masivo: "Convierte sistema de Multas a Vue 3:
-     - Módulo de Captura de Multas (forms complejos)
-     - Módulo de Requerimientos (workflow)
-     - Módulo de Pagos (integración bancaria)
-     - Módulo de Descuentos (cálculos)
-     - Módulo de Reportes (tablas y gráficos)"
+  □ 8:00-10:00: Revisar y ajustar componentes generados
+  □ 10:00-12:00: Implementar flujos complejos (workflow multas)
+  □ 12:00-13:30: Integración con API backend existente
+  □ 13:30-14:00: Testing funcional básico
 
-  □ 8:00-10:00: Revisar componentes generados
-  □ 10:00-12:00: Implementar flujos complejos
-  □ 12:00-13:30: Integración API
-  □ 13:30-14:00: Testing funcional
+Dev2: Frontend Forms 46-90 Multas (Velocidad máxima con Claude)
+  □ Prompt masivo: "Convierte módulos secundarios de Multas:
+     - Módulo de Pagos (pagosmultfrm.vue, prepagofrm.vue)
+     - Módulo de Descuentos especiales (descmultampalfrm.vue)
+     - Módulo de Reportes (repavance.vue, RepOper.vue)
+     - Consultas (consdesc.vue, consmulpagos.vue)
+     - Listados y estadísticas"
+
+  □ 8:00-10:00: Generar y revisar componentes
+  □ 10:00-12:00: Implementar tablas complejas y reportes
+  □ 12:00-13:30: Conectar con endpoints backend
+  □ 13:30-14:00: Testing de integración
+
+**CHECKPOINT 14:00:** Multas y Reglamentos 100% funcional
 ```
 
 #### Tarde (15:00 - 20:00) - 5 horas
 
-**15:00 - 20:00** | Sistema 8: ESTACIONAMIENTO EXCLUSIVO (65 formularios)
+**15:00 - 19:30** | Sistema 8: ESTACIONAMIENTO EXCLUSIVO (65 formularios)
 ```bash
-Dev1: Backend
-  □ Prompt: "Genera backend para Estacionamiento Exclusivo:
-     - Gestión de ejecutores
-     - Notificaciones masivas
-     - Cálculo de adeudos
-     - Prenóminas"
-  □ 15:00-17:00: Backend completo
-  □ 17:00-18:30: Integración con sistema de cobros
-  □ 18:30-20:00: Testing
+Dev1: Frontend Forms 1-33 Est. Exclusivo
+  □ Verificar backend de Est. Exclusivo funcionando
+  □ Prompt masivo: "Convierte Estacionamiento Exclusivo a Vue 3:
+     [PEGAR ARCHIVOS de RefactorX/Base/estacionamiento_exclusivo/vue/]
 
-Dev2: Frontend
-  □ Prompt: "Convierte Estacionamiento Exclusivo a Vue:
-     - ABM ejecutores
-     - Generación de notificaciones
-     - Consulta de adeudos
-     - Reportes ejecutores"
-  □ 15:00-17:30: Componentes Vue
-  □ 17:30-19:30: Integración y testing
-  □ 19:30-20:00: Ajustes finales
+     Componentes principales:
+     - ABM Ejecutores (Ejecutores.vue, ABCEjec.vue, Lista_Eje.vue)
+     - Generación de notificaciones (Notificaciones.vue, NotificacionesMes.vue)
+     - Módulo de Folios (Individual.vue, Individual_Folio.vue)
+     - Consultas y estados (ConsultaReg.vue, Cons_his.vue, EstadxFolio.vue)"
+
+  □ 15:00-16:30: Revisar componentes generados
+  □ 16:30-18:00: Implementar gestión de ejecutores
+  □ 18:00-19:00: Integrar con backend existente
+  □ 19:00-19:30: Testing básico
+
+Dev2: Frontend Forms 34-65 Est. Exclusivo
+  □ Prompt: "Convierte módulos secundarios de Est. Exclusivo:
+     - Módulo de Requerimientos (Requerimientos.vue)
+     - Módulo de Pagos y adeudos (Recuperacion.vue)
+     - Reportes ejecutores (RprtList_Eje.vue, RprtEstadxfolio.vue)
+     - Prenóminas (Prenomina.vue, RptPrenomina.vue)
+     - Listados (Listados.vue, Listados_Ade.vue)"
+
+  □ 15:00-17:00: Generar componentes
+  □ 17:00-18:30: Integración con API
+  □ 18:30-19:30: Testing y validaciones
+
+**CHECKPOINT 19:30:** Est. Exclusivo 100% funcional
 ```
 
-**19:30 - 20:00** | Commit
+**19:30 - 20:00** | Commit y documentación
 ```bash
-□ Commit: "Add: Integración Multas y Est. Exclusivo"
-□ Push
+□ Testing integral Multas + Est. Exclusivo con backend
+□ Verificar todos los endpoints funcionando
+□ Commit: "Add: Frontend Multas y Est. Exclusivo integrado con backend"
+□ Push a feature branch
+□ Documentar componentes críticos
 ```
 
-**Resultado Día 4:** ✅ 8 sistemas integrados (350 formularios acumulados)
+**Resultado Día 4:** ✅ 8 sistemas frontend completos (350 formularios acumulados)
 
 ---
 
-### 🟣 VIERNES - DÍA 5: Sistema Final + Testing + Deploy (1 sistema)
+### 🟣 VIERNES - DÍA 5: Sistema Final + Testing + Deploy
 
-**Objetivo:** Completar último sistema + testing general + documentación
+**Objetivo:** Frontend Est. Público (120 forms) + testing general + documentación
 
 #### Mañana (8:00 - 13:00) - 5 horas
 
 **8:00 - 13:00** | Sistema 9: ESTACIONAMIENTO PÚBLICO (120 formularios)
 ```bash
-ATENCIÓN: Sistema más grande - Trabajo intensivo
+ATENCIÓN: Sistema más grande y complejo - Trabajo intensivo en paralelo
 
-Dev1: Backend (Full throttle)
-  □ Prompt: "Genera backend completo Estacionamiento Público:
-     - Sistema de folios (alta, consulta, modificación)
-     - Integración Banorte (pagos)
-     - Conciliación bancaria
-     - Reportes de recaudación
-     - Módulo de exclusivos/públicos"
+Dev1: Frontend Forms 1-60 Est. Público (Full speed)
+  □ Verificar backend de Est. Público funcionando
+  □ Prompt masivo: "Convierte Estacionamiento Público a Vue 3 (primera mitad):
+     [PEGAR ARCHIVOS de RefactorX/Base/estacionamiento_publico/vue/]
 
-  □ 8:00-10:00: Generación y revisión código
-  □ 10:00-11:30: Stored procedures complejos
-  □ 11:30-13:00: Testing crítico
+     Componentes principales:
+     - Módulo de Folios (sfolios_alta.vue, sfrm_modif_folios.vue, sFrm_consulta_folios.vue)
+     - Módulo de Propietarios (sfrm_abc_propietario.vue, sfrm_prop_exclusivo.vue)
+     - Módulo de Pagos (sfrm_up_pagos.vue, sfrm_report_pagos.vue)
+     - Gestión de ubicaciones (sfrm_alta_ubicaciones.vue)
+     - Consultas y búsquedas (sfrm_consultapublicos.vue)"
 
-Dev2: Frontend (Full speed)
-  □ Prompt: "Convierte Est. Público a Vue (120 formularios):
-     - Módulo de Folios (CRUD completo)
-     - Módulo de Pagos (múltiples formas)
-     - Módulo de Conciliación
-     - Reportes operativos y estadísticos
-     - Dashboard ejecutivo"
+  □ 8:00-10:00: Generar y revisar componentes
+  □ 10:00-11:30: Implementar CRUD de folios
+  □ 11:30-13:00: Integrar con backend existente
 
-  □ 8:00-10:30: Generación componentes
-  □ 10:30-12:30: Integración API
-  □ 12:30-13:00: Testing básico
+Dev2: Frontend Forms 61-120 Est. Público (Full throttle)
+  □ Prompt masivo: "Convierte Estacionamiento Público (segunda mitad):
+     - Módulo de Generación archivos (Gen_Individual.vue, Gen_ArcDiario.vue, Gen_ArcAltas.vue)
+     - Módulo Banorte (Gen_PgosBanorte.vue, srfrm_conci_banorte.vue)
+     - Módulo de Conciliación bancaria (Cga_ArcEdoEx.vue)
+     - Reportes ejecutivos (spubreports.vue, sqrp_publicos.vue)
+     - Dashboard y estadísticas (SFRM_REPORTES_EXEC.vue)
+     - Módulo de Bajas (Bja_Multiple.vue, Bja_Multiple_Ind.vue)"
+
+  □ 8:00-10:00: Generación masiva de componentes
+  □ 10:00-12:00: Implementar módulos de pagos y conciliación
+  □ 12:00-13:00: Integración API completa
+
+**CHECKPOINT 13:00:** Est. Público 100% funcional con backend
 ```
 
 #### Tarde (14:00 - 20:00) - 6 horas
 
-**14:00 - 17:00** | Testing Global y Correcciones
+**14:00 - 16:30** | Testing Global y Correcciones
+```bash
+Ambos devs en paralelo:
+  □ 14:00-14:45: Testing Est. Público completo
+  □ 14:45-15:30: Testing sistema por sistema (9 sistemas)
+     - Verificar cada módulo funciona con backend
+     - Probar flujos críticos de cada sistema
+  □ 15:30-16:30: Corrección de bugs críticos encontrados
+     - Priorizar bugs bloqueantes
+     - Usar Claude Code para fixes rápidos
+```
+
+**16:30 - 18:30** | Testing de Integración y Refinamiento
 ```bash
 Ambos devs:
-  □ 14:00-15:00: Testing sistema por sistema
-  □ 15:00-16:00: Corrección de bugs críticos
-  □ 16:00-17:00: Testing de integración entre sistemas
+  □ 16:30-17:30: Testing de integración entre sistemas
+     - Navegación entre módulos
+     - Datos compartidos entre sistemas
+     - Autenticación y permisos
+  □ 17:30-18:30: Refinamiento UI/UX
+     - Ajustes de diseño responsive
+     - Validaciones frontend
+     - Mensajes de usuario
 ```
 
-**17:00 - 19:00** | Documentación y Preparación
+**18:30 - 19:30** | Documentación
 ```bash
 Con ayuda de Claude Code:
-  □ Prompt: "Genera documentación técnica para los 9 sistemas integrados:
-     - README.md de cada módulo
-     - Documentación de API
-     - Guía de instalación
+  □ Prompt: "Genera documentación frontend para los 9 sistemas:
+     - README.md de cada módulo Vue
+     - Guía de componentes creados
+     - Endpoints consumidos de backend
+     - Guía de desarrollo
      - Troubleshooting común"
 
-  □ 17:00-18:00: Generar documentación
-  □ 18:00-19:00: Revisar y ajustar
+  □ 18:30-19:00: Generar documentación con Claude
+  □ 19:00-19:30: Revisar y ajustar documentación
 ```
 
-**19:00 - 20:00** | Deploy y Cierre
+**19:30 - 20:00** | Deploy y Cierre
 ```bash
-□ 19:00-19:30: Merge a main/master
-  - git merge feature/integracion-semana-1
-  - Resolver conflictos
-  - Push
+□ 19:30-19:40: Merge final
+  - git merge feature/frontend-integracion-semana-1
+  - Resolver conflictos si existen
+  - Push a main
 
-□ 19:30-19:45: Deploy a staging
-  - php artisan migrate
-  - npm run build
-  - Verificar funcionamiento
+□ 19:40-19:50: Build y deploy a staging
+  - npm run build (compilar Vue)
+  - Verificar dist/ generado correctamente
+  - Deploy frontend a servidor
 
-□ 19:45-20:00: Cierre
+□ 19:50-20:00: Cierre y documentación
   - Documentar issues conocidos
-  - Lista de mejoras futuras
-  - Celebrar 🎉
+  - Lista de mejoras futuras (v2)
+  - Crear backlog de refinamientos
+  - CELEBRAR 🎉 - 9 SISTEMAS FRONTEND COMPLETOS!
 ```
 
-**Resultado Día 5:** ✅ 9 sistemas integrados (470 formularios) + Testing + Deploy
+**Resultado Día 5:** ✅ 9 sistemas frontend completos (470 formularios) + Testing + Deploy
 
 ---
 
 ## 🤖 Uso Estratégico de Claude Code
 
-### Prompts Clave para Máxima Eficiencia
+### Prompts Clave para Máxima Eficiencia Frontend
 
-#### 1. Análisis de Código Legacy
+**IMPORTANTE:** El backend ya está completo. Solo usar Claude Code para frontend Vue.js
+
+#### 1. Análisis de Código Legacy Delphi
 ```
 Prompt: "Analiza estos archivos Delphi (.pas, .dfm) del módulo [NOMBRE]:
-1. Identifica todas las tablas de base de datos usadas
-2. Lista todos los formularios y sus campos
-3. Mapea las relaciones entre entidades
-4. Identifica stored procedures llamados
-5. Resume la lógica de negocio principal
-6. Sugiere arquitectura Vue + Laravel equivalente"
-```
+[PEGAR CONTENIDO de RefactorX/Base/[modulo]/]
 
-#### 2. Generación de Backend
-```
-Prompt: "Genera backend Laravel completo para [MÓDULO]:
-1. Migración de BD con todas las tablas identificadas
-2. Modelos Eloquent con relaciones
-3. Controllers REST con métodos CRUD
-4. Servicios para lógica de negocio compleja
-5. Validaciones FormRequest
-6. Documentación Swagger en los controllers
-7. Tests unitarios básicos
-
-Usa estos stored procedures existentes: [LISTA]
-Mantén compatibilidad con BD existente."
-```
-
-#### 3. Conversión a Vue
-```
-Prompt: "Convierte estos formularios Delphi a Vue 3 Composition API:
-[PEGAR CÓDIGO .DFM]
+Identifica:
+1. Todos los formularios (.dfm) y sus componentes visuales
+2. Campos de entrada, botones, grids, reportes
+3. Eventos y acciones de usuario
+4. Validaciones de datos
+5. Flujos de trabajo (wizards, pasos múltiples)
+6. Tablas de base de datos referenciadas
 
 Genera:
-1. Componentes .vue con <script setup>
-2. Formularios con validaciones Vuelidate
-3. Tablas con paginación
-4. Integración con API REST
-5. Store Pinia para estado global
-6. Composables reutilizables
-7. Tipos TypeScript si es posible
-
-Usa Vuetify como UI framework."
+7. Lista priorizada de componentes Vue a crear
+8. Propuesta de arquitectura de componentes reutilizables
+9. Endpoints del backend existente que necesitaré consumir"
 ```
 
-#### 4. Testing Automático
+#### 2. Conversión Masiva Delphi → Vue 3
 ```
-Prompt: "Genera suite de tests para el módulo [NOMBRE]:
-1. Tests unitarios backend (PHPUnit)
-2. Tests de integración API
-3. Tests E2E frontend (Cypress básico)
-4. Casos de prueba mínimos viables
-5. Scripts para ejecutar todos los tests"
+Prompt: "Convierte estos formularios Delphi a Vue 3 Composition API:
+[PEGAR ARCHIVOS .PAS y .DFM]
+
+CONTEXTO IMPORTANTE:
+- Backend Laravel YA EXISTE y está funcionando
+- Solo necesito componentes Vue que consuman el backend existente
+- Base de datos ya está configurada con los SQL de carpeta base/
+
+Genera para cada formulario:
+1. Componente .vue con <script setup> (Composition API)
+2. Template con estructura similar al original Delphi
+3. Formularios reactivos con validaciones VeeValidate
+4. Tablas/grids con paginación y ordenamiento
+5. Integración con API backend usando axios
+6. Store Pinia solo si hay estado complejo compartido
+7. Composables para lógica reutilizable
+8. Usar PrimeVue o Vuetify para UI
+
+IMPORTANTE:
+- Comentar qué endpoint del backend debe consumir cada función
+- Mantener la misma lógica de negocio del original
+- Responsive design (mobile-friendly)
+- Mensajes de error y validación claros"
 ```
 
-#### 5. Documentación Rápida
+#### 3. Componentes Base Reutilizables
 ```
-Prompt: "Genera documentación completa para [MÓDULO]:
-1. README.md con instalación y uso
-2. Documentación de API (endpoints, params, responses)
-3. Guía de usuario básica
-4. Diagramas de flujo (Mermaid)
-5. FAQ de troubleshooting común"
+Prompt: "Crea componentes Vue base reutilizables para [MÓDULO]:
+
+Componentes necesarios:
+1. FormBase.vue - Formulario con layout estándar
+2. TableBase.vue - Tabla con paginación, búsqueda, ordenamiento
+3. SearchBar.vue - Barra de búsqueda con filtros
+4. ModalBase.vue - Modal genérico para confirmaciones
+5. Pagination.vue - Paginación personalizada
+6. LoadingSpinner.vue - Indicador de carga
+
+Requisitos:
+- Props bien definidos con TypeScript
+- Emisión de eventos personalizados
+- Slots para contenido flexible
+- Documentación de uso en comentarios"
+```
+
+#### 4. Integración con API Backend Existente
+```
+Prompt: "Crea servicio de integración con backend Laravel para [MÓDULO]:
+
+Backend endpoints disponibles (verificados con Postman):
+[LISTAR ENDPOINTS EXISTENTES]
+
+Genera:
+1. [modulo].service.js con todas las llamadas API
+2. Uso de axios con interceptors para:
+   - Token JWT automático
+   - Manejo de errores global
+   - Loading states
+3. Funciones asíncronas para cada endpoint
+4. Manejo de respuestas y errores
+5. Comentarios con ejemplos de uso
+
+Ejemplo de estructura:
+export const getItems = async (filters) => { ... }
+export const createItem = async (data) => { ... }
+export const updateItem = async (id, data) => { ... }
+export const deleteItem = async (id) => { ... }"
+```
+
+#### 5. Testing Frontend
+```
+Prompt: "Genera suite de tests para componentes Vue de [MÓDULO]:
+
+Genera:
+1. Tests unitarios (Vitest) para componentes principales
+2. Tests de integración con mock de API
+3. Tests E2E básicos (Cypress) para flujos críticos
+4. Casos de prueba mínimos viables:
+   - Renderizado correcto
+   - Validaciones de formularios
+   - Llamadas API correctas
+   - Manejo de errores
+5. Scripts package.json para ejecutar tests"
+```
+
+#### 6. Documentación Frontend
+```
+Prompt: "Genera documentación frontend completa para [MÓDULO]:
+
+Genera:
+1. README.md del módulo con:
+   - Descripción general
+   - Estructura de componentes
+   - Cómo ejecutar en desarrollo
+2. Documentación de componentes:
+   - Props, events, slots
+   - Ejemplos de uso
+3. Guía de integración con backend:
+   - Endpoints consumidos
+   - Formato de datos esperados
+4. Diagramas de flujo (Mermaid) de procesos principales
+5. FAQ de troubleshooting común
+6. Mejoras futuras sugeridas"
 ```
 
 ---
@@ -499,20 +732,23 @@ Prompt: "Genera documentación completa para [MÓDULO]:
 ### Checklist Pre-Día (15 min antes)
 ```
 □ Claude Code activo y funcionando
-□ Git pull de últimos cambios
-□ Base de datos limpia y respaldada
-□ Entorno de desarrollo funcionando
+□ Git pull de últimos cambios del frontend
+□ Backend Laravel funcionando (verificar con curl/Postman)
+□ Base de datos con scripts SQL de base/ ejecutados
+□ npm run dev funcionando (Vite dev server)
+□ Conexión a backend verificada (API health check)
 □ Cafetería preparada ☕
-□ Plan del día impreso
+□ Plan del día impreso/abierto
 ```
 
 ### Checklist Fin de Día (último 30 min)
 ```
-□ Código commiteado y pusheado
-□ Tests básicos pasando
-□ Documentar issues encontrados
-□ Sync entre Dev1 y Dev2
-□ Backup de BD con datos de prueba
+□ Código frontend commiteado y pusheado
+□ npm run build funciona sin errores
+□ Tests frontend pasando (si hay tiempo)
+□ Documentar issues/bugs encontrados
+□ Sync entre Dev1 y Dev2 (merge de branches si es necesario)
+□ Verificar que componentes Vue consumen API correctamente
 □ Revisar plan del día siguiente
 ```
 
@@ -524,85 +760,105 @@ Prompt: "Genera documentación completa para [MÓDULO]:
 ```json
 // .claude/settings.json
 {
-  "projectContext": "Migración Delphi -> Vue+Laravel",
+  "projectContext": "Frontend Vue.js - Migración Delphi -> Vue 3",
+  "backendStatus": "Backend Laravel ya existe y funciona",
+  "databaseStatus": "Scripts SQL en carpeta base/ listos para ejecutar",
   "preferredPatterns": [
-    "Vue 3 Composition API",
-    "Laravel 10 REST API",
-    "PostgreSQL stored procedures"
+    "Vue 3 Composition API con <script setup>",
+    "Pinia para estado global",
+    "Axios para llamadas API",
+    "PrimeVue o Vuetify para UI",
+    "VeeValidate para validaciones"
   ],
   "autoGenerate": {
-    "migrations": true,
-    "models": true,
-    "controllers": true,
     "components": true,
+    "services": true,
+    "stores": true,
+    "routes": true,
     "tests": false
   }
 }
 ```
 
-### 2. Snippets y Templates
+### 2. Snippets y Templates Frontend
 Crear templates reutilizables para:
-- Controller base Laravel
-- Componente Vue base
-- Servicio API base
-- Form validator base
+- Componente Vue base (.vue con setup)
+- Servicio API base (axios wrapper)
+- Store Pinia base
+- Form base con validaciones
+- Tabla base con paginación
 
-### 3. Scripts de Automatización
+### 3. Scripts de Automatización Frontend
 ```bash
-# script/new-module.sh
+# script/new-vue-module.sh
 #!/bin/bash
 MODULE_NAME=$1
-php artisan make:controller ${MODULE_NAME}Controller --resource
-php artisan make:model ${MODULE_NAME} --migration
-mkdir -p resources/js/views/${MODULE_NAME}
-# Etc...
+mkdir -p src/modules/${MODULE_NAME}
+mkdir -p src/modules/${MODULE_NAME}/components
+mkdir -p src/modules/${MODULE_NAME}/views
+touch src/modules/${MODULE_NAME}/routes.js
+touch src/modules/${MODULE_NAME}/${MODULE_NAME}.service.js
+echo "// Module ${MODULE_NAME} created!" >> src/modules/${MODULE_NAME}/index.js
 ```
 
 ### 4. Trabajo en Ramas Paralelas
 ```bash
 # Dev1
-git checkout -b feature/backend-batch-1
+git checkout -b feature/frontend-sistemas-1-4
 
 # Dev2
-git checkout -b feature/frontend-batch-1
+git checkout -b feature/frontend-sistemas-5-9
 
 # Merge frecuente para evitar conflictos grandes
+git fetch && git merge origin/main --no-edit
+```
+
+### 5. Verificación Rápida de Backend
+```bash
+# Verificar que backend funciona antes de empezar
+curl http://localhost:8000/api/health
+curl http://localhost:8000/api/auth/generate-token -X POST
 ```
 
 ---
 
 ## 🎯 Priorización de Funcionalidades
 
-### Implementar (MVP - Mínimo Viable):
-- ✅ CRUD básico de todas las entidades
-- ✅ Validaciones esenciales
-- ✅ Búsquedas y filtros básicos
-- ✅ Reportes más críticos
-- ✅ Integración con BD existente
+### Implementar en Frontend (MVP - Mínimo Viable):
+- ✅ Componentes Vue para CRUD básico de todas las entidades
+- ✅ Validaciones esenciales frontend
+- ✅ Búsquedas y filtros básicos con UI
+- ✅ Reportes más críticos (tablas con datos del backend)
+- ✅ Integración con API backend existente
+- ✅ Navegación entre módulos
+- ✅ Formularios funcionales que llamen a los endpoints
 
-### NO Implementar (Post-Integración):
-- ❌ Reportes avanzados con gráficos complejos
-- ❌ Exportación a múltiples formatos
-- ❌ Notificaciones por email/SMS
-- ❌ Auditoría completa de cambios
-- ❌ Permisos granulares por usuario
-- ❌ Optimizaciones de performance
-- ❌ UI/UX pulida y perfecta
+### NO Implementar en Frontend (Post-Integración):
+- ❌ Reportes avanzados con gráficos complejos (Chart.js, etc.)
+- ❌ Exportación frontend a PDF/Excel (usar backend)
+- ❌ Animaciones y transiciones elaboradas
+- ❌ Optimizaciones de performance avanzadas (lazy loading, code splitting)
+- ❌ PWA features (offline, push notifications)
+- ❌ UI/UX pulida y perfecta (focus en funcionalidad)
+- ❌ Temas personalizables / dark mode
+- ❌ i18n / Múltiples idiomas
 
 **Filosofía:** "Que funcione primero, que sea bonito después"
 
 ---
 
-## 📊 Métricas de Éxito (Fin de Semana)
+## 📊 Métricas de Éxito Frontend (Fin de Semana)
 
 | Métrica | Objetivo Mínimo | Objetivo Ideal |
 |---------|-----------------|----------------|
-| Sistemas integrados | 8/9 (89%) | 9/9 (100%) |
-| Formularios funcionando | 400/470 (85%) | 470/470 (100%) |
-| Tests pasando | >70% | >80% |
-| Bugs críticos | <10 | <5 |
-| Documentación | Básica | Completa |
-| Deploy exitoso | Staging | Staging + Prod |
+| Módulos Vue integrados | 8/9 (89%) | 9/9 (100%) |
+| Componentes Vue funcionando | 400/470 (85%) | 470/470 (100%) |
+| Integración con backend | 100% endpoints consumidos | 100% + manejo errores |
+| Tests frontend | >50% (opcional) | >70% |
+| Bugs críticos UI | <10 | <5 |
+| Documentación | README básico | Completa |
+| Build exitoso | npm run build sin errores | Deploy a staging |
+| Responsive design | Solo desktop | Desktop + mobile |
 
 ---
 
@@ -612,15 +868,19 @@ git checkout -b feature/frontend-batch-1
 ```
 Opción A: Trabajar sábado (6 horas extra)
 Opción B: Reducir alcance del sistema más grande (Est. Público)
-Opción C: Implementar solo 80% de formularios por sistema
+  - Implementar solo 80-100 de los 120 formularios
+  - Diferir componentes de reportes complejos
+Opción C: Simplificar UI de sistemas secundarios
+  - Tablas básicas sin paginación sofisticada
+  - Forms sin validaciones avanzadas
 ```
 
-### Si hay bugs críticos (Día 5):
+### Si hay bugs críticos frontend (Día 5):
 ```
-Prioridad 1: Sistema de Licencias (más importante)
-Prioridad 2: Sistema de Multas
-Prioridad 3: Estacionamientos
-Resto: Documentar como "known issues"
+Prioridad 1: Sistema de Licencias (más importante) - FIX OBLIGATORIO
+Prioridad 2: Sistema de Multas - FIX OBLIGATORIO
+Prioridad 3: Estacionamientos - FIX SI HAY TIEMPO
+Resto: Documentar como "known issues" para v2
 ```
 
 ---
@@ -661,13 +921,16 @@ Resto: Documentar como "known issues"
 
 ## ✅ Entregables Finales (Viernes 8 PM)
 
-### Código
-- ✅ 9 módulos integrados en repositorio
-- ✅ Backend Laravel funcional
-- ✅ Frontend Vue funcional
-- ✅ Migraciones de BD ejecutadas
+### Código Frontend
+- ✅ 9 módulos Vue integrados en repositorio
+- ✅ Componentes Vue funcionales (470 formularios)
+- ✅ Servicios de integración con API backend
+- ✅ Rutas Vue Router configuradas
+- ✅ Build de producción generado (dist/)
+- ✅ Conexión con backend Laravel existente verificada
+- ✅ Base de datos con scripts SQL ejecutados
 
-### Documentación
+### Documentación Frontend
 - ✅ README.md general
 - ✅ README.md por módulo
 - ✅ API documentation (Swagger)

@@ -37,8 +37,6 @@ RefactorX/FrontEnd/src/modules/distribucion/
 │   └── DistribucionCard.vue
 ├── stores/
 │   └── distribucion.store.js
-├── services/
-│   └── distribucion.service.js
 ├── router/
 │   └── index.js
 ├── utils/
@@ -49,7 +47,10 @@ RefactorX/FrontEnd/src/modules/distribucion/
     └── useDistribucionFilters.js
 ```
 
-**Nota:** Este módulo debe crearse completamente desde cero siguiendo los estándares Vue 3 + Composition API.
+**IMPORTANTE:**
+- ❌ NO crear servicios individuales (distribucion.service.js)
+- ✅ Usar SOLO el servicio API genérico: `@/services/api.service.js`
+- ✅ Todos los componentes Vue llaman directamente a `apiService.executeSystemSP('distribucion', 'sp_nombre', params)`
 
 ---
 

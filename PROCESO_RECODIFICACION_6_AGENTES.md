@@ -175,7 +175,13 @@ $$;
 5. Mantener TODAS las funcionalidades del original
 6. Guardar en `RefactorX/FrontEnd/src/views/modules/[modulo]/`
 
-**Servicio API Genérico:**
+**Servicio API Genérico (ÚNICO PARA TODOS LOS SISTEMAS):**
+
+**⚠️ REGLA CRÍTICA:**
+- ❌ NO crear servicios individuales por sistema (distribucion.service.js, cementerios.service.js, etc.)
+- ✅ SOLO existe UN servicio: `services/api.service.js`
+- ✅ TODOS los componentes Vue importan: `import { apiService } from '@/services/api.service'`
+
 ```javascript
 // services/api.service.js (único para todos los sistemas)
 import axios from 'axios'
@@ -199,14 +205,14 @@ export const apiService = {
     }
   },
 
-  // Método específico para sistemas
+  // Método específico para sistemas (esquema public)
   async executeSystemSP(systemName, spName, params = {}) {
     const database = `${systemName}_db`
     const schema = 'public'
     return this.callSP(database, schema, spName, params)
   },
 
-  // Método para datos comunes
+  // Método para datos comunes (esquema comun)
   async executeCommonSP(spName, params = {}) {
     const database = 'padron_licencias'
     const schema = 'comun'

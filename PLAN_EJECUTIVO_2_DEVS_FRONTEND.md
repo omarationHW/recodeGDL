@@ -11,15 +11,22 @@
 
 | Aspecto | Detalle |
 |---------|---------|
-| **Duración** | 5 días (Lunes-Viernes), 8 hrs/día |
+| **Duración** | 5 días (Mar 4 Nov - Lun 10 Nov 2025), 8 hrs/día |
+| **Fecha Inicio** | Martes 4 de Noviembre 2025 |
+| **Fecha Fin** | Lunes 10 de Noviembre 2025 |
 | **Equipo** | 2 Devs + Claude Code (6 Agentes) |
 | **Backend** | ✅ Laravel completo y funcional |
-| **API** | Servicio genérico único para todos los sistemas |
+| **API** | ✅ Servicio genérico ÚNICO: api.service.js |
 | **Base de Datos** | 9 BD individuales + 1 BD común |
 | **Stack** | Vue 3, Bootstrap, Axios, municipal-theme.css |
 | **Total Archivos** | 598 archivos Vue existentes |
 | **Inventario** | INVENTARIO_COMPLETO_VUE.md |
 | **Proceso** | 6 Agentes por componente |
+
+**⚠️ IMPORTANTE:**
+- ❌ NO crear servicios individuales por sistema (distribucion.service.js, cementerios.service.js, etc.)
+- ✅ SOLO usar el servicio API genérico: `services/api.service.js`
+- ✅ Todos los componentes Vue importan: `import { apiService } from '@/services/api.service'`
 
 ---
 
@@ -174,34 +181,34 @@ async function loadCatalogos() {
 **Proceso:** Cada componente Vue pasa por los 6 agentes (ver `PROCESO_RECODIFICACION_6_AGENTES.md`)
 
 ### Developer 1 - Sistemas Simples/Medios (308 archivos)
-| Día | Sistema | Archivos | Proceso 6 Agentes | Tiempo |
-|-----|---------|----------|-------------------|--------|
-| Lunes AM | Distribución | 15 (crear) | Orq→SP→Vue→UX→Val→Limp | 8-12h |
-| Lunes PM | Cementerios | 36 | Lotes de 5 archivos | 13-18h |
-| Martes | Aseo Contratado | 103 | Lotes de 5 archivos | 8-18h |
-| Miércoles AM | Mercados (parte 1) | 54 | Lotes de 5 archivos | 8-13h |
-| Miércoles PM | Mercados (parte 2) | 53 | Lotes de 5 archivos | 14-18h |
-| Jueves | Otras Obligaciones | 27 | Lotes de 5 archivos | 8-18h |
-| Viernes | Est. Público (50%) | 30 | Apoyo Dev2 | 8-18h |
+| Día | Fecha | Sistema | Archivos | Proceso 6 Agentes | Tiempo |
+|-----|-------|---------|----------|-------------------|--------|
+| Día 1 | Mar 4 Nov AM | Distribución | 15 (crear) | Orq→SP→Vue→UX→Val→Limp | 8-12h |
+| Día 1 | Mar 4 Nov PM | Cementerios | 36 | Lotes de 5 archivos | 13-18h |
+| Día 2 | Mié 5 Nov | Aseo Contratado | 103 | Lotes de 5 archivos | 8-18h |
+| Día 3 | Jue 6 Nov AM | Mercados (parte 1) | 54 | Lotes de 5 archivos | 8-13h |
+| Día 3 | Jue 6 Nov PM | Mercados (parte 2) | 53 | Lotes de 5 archivos | 14-18h |
+| Día 4 | Vie 7 Nov | Otras Obligaciones | 27 | Lotes de 5 archivos | 8-18h |
+| Día 5 | Lun 10 Nov | Est. Público (50%) | 30 | Apoyo Dev2 | 8-18h |
 
 ### Developer 2 - Sistemas Complejos (295 archivos)
-| Día | Sistema | Archivos | Proceso 6 Agentes | Tiempo |
-|-----|---------|----------|-------------------|--------|
-| Miércoles | Padrón Licencias | 97 | Lotes de 5 archivos | 8-18h |
-| Jueves AM | Multas (parte 1) | 53 | Lotes de 5 archivos | 8-13h |
-| Jueves PM | Multas (parte 2) | 53 | Lotes de 5 archivos | 14-18h |
-| Jueves Noche | Est. Exclusivo | 61 | Lotes de 5 archivos | 19-22h (extra) |
-| Viernes | Est. Público (50%) | 31 | Con Dev1 | 8-18h |
+| Día | Fecha | Sistema | Archivos | Proceso 6 Agentes | Tiempo |
+|-----|-------|---------|----------|-------------------|--------|
+| Día 3 | Jue 6 Nov | Padrón Licencias | 97 | Lotes de 5 archivos | 8-18h |
+| Día 4 | Vie 7 Nov AM | Multas (parte 1) | 53 | Lotes de 5 archivos | 8-13h |
+| Día 4 | Vie 7 Nov PM | Multas (parte 2) | 53 | Lotes de 5 archivos | 14-18h |
+| Día 4 | Vie 7 Nov Noche | Est. Exclusivo | 61 | Lotes de 5 archivos | 19-22h (extra) |
+| Día 5 | Lun 10 Nov | Est. Público (50%) | 31 | Con Dev1 | 8-18h |
 
 **NOTA:**
 - Procesar en lotes de 5 archivos .vue por iteración
-- Dev1 apoya a Dev2 desde Miércoles PM
+- Dev1 apoya a Dev2 desde Jueves 6 Nov PM
 - Cada archivo pasa por los 6 agentes: Orquestador → SP → Vue → UX → Validador → Limpieza
 - Control de avance en `CONTROL_IMPLEMENTACION_VUE.md` de cada módulo
 
 ---
 
-# 📅 DÍA 1 - LUNES
+# 📅 DÍA 1 - MARTES 4 NOVIEMBRE 2025
 
 ## 8:00-8:30 AM | Setup Inicial (Ambos)
 

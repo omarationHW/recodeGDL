@@ -652,7 +652,7 @@ export const licenciasRoutes = [
   { name: "PermisosProvisionales", path: "/licencias/permisosprovisionales", displayName: "🆕 Permisos Provisionales", isNew: false },
   { name: "SistemaConvenios", path: "/licencias/sistemaconvenios", displayName: "🆕 Sistema Convenios", isNew: false },
   // Componentes existentes
-  { name: "Agendavisitasfrm", path: "/licencias/agendavisitasfrm", displayName: "Agenda Visitas" },
+  { name: "Agendavisitasfrm", path: "/licencias/agendavisitasfrm", displayName: "* Agenda Visitas" },
   { name: "bajaAnunciofrm", path: "/licencias/bajaanunciofrm", displayName: "Baja Anuncios" },
   { name: "bajalicenciafrm", path: "/licencias/bajalicenciafrm", displayName: "Baja Licencias" },
   { name: "BloquearAnunciorm", path: "/licencias/BloquearAnunciorm", displayName: "* Bloquear Anuncios" },

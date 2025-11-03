@@ -78,9 +78,13 @@ if ($path === '/api/generic' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Mapeo de módulos a bases de datos y esquemas
         $moduleDbConfig = [
+            'padron_licencias' => [
+                'database' => 'padron_licencias',
+                'schema' => 'public'
+            ],
             'licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'catastro_gdl'
+                'schema' => 'public'
             ],
             'aseo' => [
                 'database' => 'padron_aseo', 

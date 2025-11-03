@@ -462,6 +462,35 @@ SELECT COALESCE(MAX(folio), 0) FROM licencias.constancias;
 
 ---
 
+### ✅ MÓDULOS COMPLETADOS Y FUNCIONALES
+
+#### 07. AGENDAVISITASFRM (COMPLETADO - 3 NOV 2025)
+- **Archivo SP**: `modules/licencias/database/database/Agendavisitasfrm_all_procedures.sql`
+- **Componente**: `frontend-vue/src/components/modules/licencias/Agendavisitasfrm.vue`
+- **SPs Creados**:
+  - `fn_dialetra(p_dia INTEGER)` - Convierte día numérico a texto
+  - `SP_DEPENDENCIAS_LIST()` - Lista dependencias disponibles
+  - `SP_AGENDA_VISITAS_LIST(...)` - Lista visitas agendadas con filtros
+- **Configuración**:
+  - Base de datos: `padron_licencias` (PostgreSQL 16.10)
+  - Esquema: `public`
+  - Backend: PHP 8.2.12 (XAMPP) en http://localhost:8000
+  - Frontend: Vue.js en http://localhost:5180
+- **Funcionalidades Probadas**:
+  - ✅ Carga de catálogo de dependencias
+  - ✅ Búsqueda de visitas por fecha y dependencia
+  - ✅ Exportación a Excel (CSV)
+  - ✅ Impresión de reportes
+  - ✅ Navegación y breadcrumbs
+- **Problemas Resueltos**:
+  - Error "could not find driver" (extensión pdo_pgsql)
+  - Mapeo incorrecto de módulo/base de datos
+  - Esquema vacío (catastro_gdl → public)
+  - Stored procedures no existían
+- **Estado**: ⭐ **COMPLETADO Y MARCADO EN MENÚ CON ASTERISCO**
+
+---
+
 ## NOTAS IMPORTANTES
 
 - ⚠️ **No implementar componente Vue hasta que el SP esté completamente funcional**
@@ -472,6 +501,6 @@ SELECT COALESCE(MAX(folio), 0) FROM licencias.constancias;
 
 ---
 
-**Última actualización**: 9 de septiembre de 2025
+**Última actualización**: 3 de noviembre de 2025
 **Responsable**: Claude Code
-**Estado**: Documento inicial creado
+**Estado**: Agendavisitasfrm completado y funcional

@@ -653,8 +653,8 @@ export const licenciasRoutes = [
   { name: "SistemaConvenios", path: "/licencias/sistemaconvenios", displayName: "🆕 Sistema Convenios", isNew: false },
   // Componentes existentes
   { name: "Agendavisitasfrm", path: "/licencias/agendavisitasfrm", displayName: "* Agenda Visitas" },
-  { name: "bajaAnunciofrm", path: "/licencias/bajaanunciofrm", displayName: "Baja Anuncios" },
-  { name: "bajalicenciafrm", path: "/licencias/bajalicenciafrm", displayName: "Baja Licencias" },
+  { name: "bajaAnunciofrm", path: "/licencias/bajaanunciofrm", displayName: "* Baja Anuncios" },
+  { name: "bajalicenciafrm", path: "/licencias/bajalicenciafrm", displayName: "* Baja Licencias" },
   { name: "BloquearAnunciorm", path: "/licencias/BloquearAnunciorm", displayName: "* Bloquear Anuncios" },
   { name: "bloqueoDomiciliosfrm", path: "/licencias/bloqueoDomiciliosfrm", displayName: "Bloqueo Domicilios" },
   { name: "bloqueoRFCfrm", path: "/licencias/bloqueoRFCfrm", displayName: "Bloqueo RFC" },

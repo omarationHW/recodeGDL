@@ -43,3 +43,172 @@
 ## Errores y Mensajes
 - Todos los errores se devuelven en el campo `errors` de la respuesta.
 - El frontend muestra los mensajes de error o éxito según corresponda.
+
+---
+
+## ESTADO DE COMPLETITUD
+
+### Fecha de Finalización
+**2025-11-03**
+
+### Status
+✅ **MÓDULO COMPLETADO Y FUNCIONAL**
+
+El módulo Baja de Anuncios ha sido completamente implementado, probado y está operativo sin errores.
+
+### Problemas Resueltos
+
+#### 1. Error "Invalid eRequest"
+**Problema**: Al hacer clic en el botón "Buscar", la aplicación devolvía:
+```json
+{"eResponse":{"success":false,"message":"Invalid eRequest"}}
+```
+
+**Causa**: El componente enviaba el objeto `eRequest` directamente en el body en lugar de envolverlo correctamente.
+
+**Solución**: Se corrigió la estructura de la petición en ambos métodos del componente:
+
+**Método `buscarAnuncio` (líneas 302-322)**:
+```javascript
+// ANTES (INCORRECTO)
+const eRequest = {
+  Operacion: 'sp_baja_anuncio_buscar',
+  Base: 'licencias',
+  Parametros: [...]
+}
+body: JSON.stringify(eRequest)
+
+// DESPUÉS (CORRECTO)
+body: JSON.stringify({
+  eRequest: {
+    Operacion: 'sp_baja_anuncio_buscar',
+    Base: 'padron_licencias',
+    Parametros: [...],
+    Tenant: 'guadalajara'
+  }
+})
+```
+
+**Método `procesarBaja` (líneas 357-397)**:
+Se aplicó la misma corrección de estructura.
+
+#### 2. Stored Procedures Inexistentes
+**Problema**: Los stored procedures `sp_baja_anuncio_buscar` y `sp_baja_anuncio_procesar` no existían en la base de datos.
+
+**Solución**: Se crearon ambos stored procedures en el schema `public`:
+
+**`sp_baja_anuncio_buscar`**:
+- Busca anuncio por número
+- Obtiene información de licencia y propietario
+- Cuenta adeudos pendientes
+- Retorna datos en formato JSONB
+
+**`sp_baja_anuncio_procesar`**:
+- Valida que el anuncio exista y esté vigente
+- Verifica que no tenga adeudos pendientes
+- Actualiza el estado del anuncio a 'C' (Cancelado)
+- Cancela los adeudos relacionados
+- Registra fecha de baja y motivo
+
+#### 3. Error "Ambiguous column: id_anuncio"
+**Problema**: Al ejecutar `sp_baja_anuncio_buscar`, PostgreSQL devolvía:
+```
+SQLSTATE[42702]: Ambiguous column: 7 ERROR: column reference "id_anuncio" is ambiguous
+LINE 4: id_anuncio,
+```
+
+**Causa**: El SP usaba `id_anuncio` tanto como nombre de columna de retorno como en cláusulas WHERE, causando ambigüedad en el contexto de la función.
+
+**Solución**: Se reestructuró el SP usando variables locales con prefijo `v_`:
+```sql
+DECLARE
+  v_id_anuncio INTEGER;
+  v_id_licencia INTEGER;
+  v_texto_anuncio TEXT;
+  -- ... más variables
+BEGIN
+  -- Asignar valores a variables locales primero
+  SELECT a.id_anuncio, a.id_licencia, a.texto_anuncio, ...
+  INTO v_id_anuncio, v_id_licencia, v_texto_anuncio, ...
+  FROM comun.anuncios a
+  LEFT JOIN comun.licencias l ON l.id_licencia = a.id_licencia
+  WHERE a.anuncio = p_anuncio;
+
+  -- Luego asignar a columnas de retorno
+  id_anuncio := v_id_anuncio;
+  id_licencia := v_id_licencia;
+  -- ...
+END;
+```
+
+#### 4. Base de Datos Incorrecta
+**Problema**: El componente enviaba `Base: 'licencias'` pero el backend esperaba `padron_licencias`.
+
+**Solución**: Se cambió la propiedad Base en ambos métodos (buscar y procesar) a `'padron_licencias'`.
+
+### Configuración Final
+
+**Backend (index.php)**:
+```php
+'padron_licencias' => [
+    'database' => 'padron_licencias',
+    'schema' => 'public'
+],
+```
+
+**Database**:
+- Schema: `public` (stored procedures)
+- Schema: `comun` (tablas: anuncios, licencias, detsal_lic)
+- Host: 192.168.6.146:5432
+- Database: padron_licencias
+
+**Frontend**:
+- Puerto: 5180
+- Base URL API: http://localhost:8000/api/execute
+
+### Funcionalidades Verificadas
+
+✅ **Búsqueda de Anuncio**
+- Búsqueda por número de anuncio
+- Visualización de información completa
+- Datos de licencia y propietario
+- Conteo de adeudos pendientes
+
+✅ **Validaciones**
+- Anuncio debe existir
+- Anuncio debe estar vigente (V)
+- No debe tener adeudos pendientes
+- Mensajes de error claros y descriptivos
+
+✅ **Procesamiento de Baja**
+- Actualización de estado a 'C' (Cancelado)
+- Cancelación de adeudos relacionados
+- Registro de fecha y motivo de baja
+- Confirmación exitosa
+
+✅ **Interfaz de Usuario**
+- Formulario de búsqueda responsivo
+- Campos deshabilitados hasta búsqueda exitosa
+- Botones habilitados según estado del anuncio
+- Mensajes de éxito y error claros
+
+### Datos de Prueba
+
+**Anuncios sin adeudos (para probar baja exitosa)**:
+- Anuncio #3 (ID: 3, Licencia: 190221, Propietario: ESTEVEZ ALVAREZ CARLOS)
+- Anuncio #4 (ID: 4, Licencia: 190221, Propietario: ESTEVEZ ALVAREZ CARLOS)
+- Anuncio #25 (ID: 40, Licencia: 116518, Propietario: REFACCIONARIA LA 68, S. A. DE)
+
+**Anuncio con adeudos (para probar validación)**:
+- Anuncio #16 (ID: 31, Licencia: 190259, 18 adeudos pendientes)
+
+### Conclusión
+
+El módulo Baja de Anuncios está completamente funcional y cumple con todos los requisitos:
+- Comunicación correcta con el backend mediante patrón eRequest/eResponse
+- Stored procedures creados y operativos
+- Validaciones de negocio implementadas
+- Interfaz de usuario intuitiva y responsive
+- Manejo adecuado de errores y mensajes
+
+**Marcado en el menú con asterisco (*)** para indicar su estado de completitud.

@@ -278,21 +278,21 @@ export default {
       this.anuncios = []
 
       try {
-        const eRequest = {
-          Operacion: 'sp_licencia_buscar',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_numero_licencia', valor: this.form.licencia, tipo: 'varchar' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_licencia_buscar',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_numero_licencia', valor: this.form.licencia, tipo: 'varchar' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 
@@ -313,21 +313,21 @@ export default {
 
     async cargarAdeudos() {
       try {
-        const eRequest = {
-          Operacion: 'sp_licencia_adeudos',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_licencia_adeudos',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 
@@ -341,21 +341,21 @@ export default {
 
     async cargarAnuncios() {
       try {
-        const eRequest = {
-          Operacion: 'sp_licencia_anuncios',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_licencia_anuncios',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 
@@ -373,25 +373,25 @@ export default {
       this.mensaje = ''
 
       try {
-        const eRequest = {
-          Operacion: 'sp_licencia_baja',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' },
-            { nombre: 'p_motivo', valor: this.form.motivo, tipo: 'varchar' },
-            { nombre: 'p_anio', valor: this.bajaError ? null : this.form.anio, tipo: 'integer' },
-            { nombre: 'p_folio', valor: this.bajaError ? null : this.form.folio, tipo: 'integer' },
-            { nombre: 'p_baja_error', valor: this.bajaError ? 'S' : 'N', tipo: 'varchar' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_licencia_baja',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_id_licencia', valor: this.licencia.id, tipo: 'integer' },
+                { nombre: 'p_motivo', valor: this.form.motivo, tipo: 'varchar' },
+                { nombre: 'p_anio', valor: this.bajaError ? null : this.form.anio, tipo: 'integer' },
+                { nombre: 'p_folio', valor: this.bajaError ? null : this.form.folio, tipo: 'integer' },
+                { nombre: 'p_baja_error', valor: this.bajaError ? 'S' : 'N', tipo: 'varchar' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 

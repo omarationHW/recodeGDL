@@ -517,6 +517,47 @@ SELECT COALESCE(MAX(folio), 0) FROM licencias.constancias;
   - Con adeudos: Anuncio #16 (18 adeudos)
 - **Estado**: ⭐ **COMPLETADO Y MARCADO EN MENÚ CON ASTERISCO**
 
+#### 12. BAJALICENCIAFRM (COMPLETADO - 4 NOV 2025)
+- **Archivo SQL**: `modules/licencias/database/database/bajaLicenciafrm_missing_procedures.sql`
+- **Componente**: `frontend-vue/src/components/modules/licencias/bajaLicenciafrm.vue`
+- **SPs Creados**:
+  - `sp_licencia_buscar(p_numero_licencia VARCHAR)` - Busca licencia por número y retorna información completa
+  - `sp_licencia_adeudos(p_id_licencia INTEGER)` - Lista adeudos pendientes desglosados por concepto
+  - `sp_licencia_anuncios(p_id_licencia INTEGER)` - Lista anuncios vinculados con conteo de adeudos
+  - `sp_licencia_baja(...)` - Procesa la baja completa (licencia + anuncios + adeudos)
+- **Configuración**:
+  - Base de datos: `padron_licencias` (PostgreSQL 16.10)
+  - Esquema: `public` (stored procedures)
+  - Esquema: `comun` (tablas: licencias, anuncios, detsal_lic)
+  - Backend: PHP 8.2.12 (XAMPP) en http://localhost:8000
+  - Frontend: Vue.js en http://localhost:5180
+- **Funcionalidades Probadas**:
+  - ✅ Búsqueda de licencia por número
+  - ✅ Visualización de información completa (propietario, actividad, estado)
+  - ✅ Carga de adeudos desglosados (Derechos, Recargos, Formas, Actualización)
+  - ✅ Lista de anuncios vinculados con conteo de adeudos
+  - ✅ Validaciones (licencia vigente, no bloqueada, anuncios no bloqueados)
+  - ✅ Procesamiento de baja (cambio a estado 'C', cancelación de adeudos)
+  - ✅ Actualización de anuncios vinculados
+- **Problemas Resueltos**:
+  - Error "Invalid eRequest" (estructura incorrecta de petición en 4 métodos)
+  - Base incorrecta ('licencias' → 'padron_licencias')
+  - Stored procedures no existían en la base de datos
+  - Error columna `giro` no existe (usar `actividad` character(130))
+  - Error tipo de dato `bloqueado` (INTEGER → SMALLINT)
+  - Error columna `concepto` no existe (implementar UNION ALL para conceptos virtuales)
+  - Error tipo de dato `ejercicio` (INTEGER → SMALLINT, columna `axo`)
+  - Error tipo de dato `texto_anuncio` (TEXT → VARCHAR con conversión ::VARCHAR)
+- **Datos de Prueba Identificados**:
+  - Licencia "0" (ID: 260002 - BANCA CREMI S.N.C.) - 6 anuncios vigentes
+  - Licencia "0" (ID: 260005 - BANCO B.C.H.S.N.C.) - Sin anuncios vigentes
+  - Licencia "0" (ID: 260050 - NUEVA WAL MART) - Licencia bloqueada
+- **Estructura de Datos Documentada**:
+  - Tabla comun.licencias: 47 columnas (licencia, actividad, bloqueado, vigente)
+  - Tabla comun.detsal_lic: 13 columnas (axo, derechos, recargos, forma, actualizacion, cvepago)
+  - Tabla comun.anuncios: 30 columnas (anuncio, texto_anuncio, vigente, bloqueado)
+- **Estado**: ⭐ **COMPLETADO Y MARCADO EN MENÚ CON ASTERISCO**
+
 ---
 
 ## NOTAS IMPORTANTES
@@ -529,6 +570,6 @@ SELECT COALESCE(MAX(folio), 0) FROM licencias.constancias;
 
 ---
 
-**Última actualización**: 3 de noviembre de 2025
+**Última actualización**: 4 de noviembre de 2025
 **Responsable**: Claude Code
-**Estado**: Agendavisitasfrm y bajaAnunciofrm completados y funcionales
+**Estado**: Agendavisitasfrm, bajaAnunciofrm y bajaLicenciafrm completados y funcionales

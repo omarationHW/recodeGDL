@@ -2,7 +2,7 @@
 ## Sistema Municipal Digital - Gobierno de Guadalajara
 
 **Fecha de Creación**: 2025-01-23
-**Última Actualización**: 2025-01-23
+**Última Actualización**: 2025-11-04
 **Estado General**: En Proceso de Implementación
 
 ---
@@ -26,7 +26,7 @@
 ## 📂 ESTADO POR MÓDULO
 
 ### 🔷 **1. MÓDULO LICENCIAS**
-**📊 Progreso: 30/30 componentes (100%) ✅** ⭐ **MÓDULO COMPLETADO 2025-09-30** 🎉🏆
+**📊 Progreso: 33/33 componentes (100%) ✅** ⭐ **MÓDULO COMPLETADO 2025-11-04** 🎉🏆
 
 ---
 
@@ -187,6 +187,33 @@
   - **SP**: buscar_tramite_completo, bloquear_tramite_validado, desbloquear_tramite_validado, consultar_historial_tramite, consultar_historial_tramite_paginado, estadisticas_bloqueos_tramite, tipos_bloqueo_tramite, reporte_bloqueos_tramite
   - **Estado**: 7 tipos de bloqueo específicos, sistema de notificaciones automáticas, reportes descargables, auditoría completa ✅
 
+---
+
+## 🏆 **LOTE 5 COMPLETADO** ⭐ **2025-11-04** 🎉
+### ✅ **3 COMPONENTES DE GESTIÓN Y BLOQUEO IMPLEMENTADOS CON ÉXITO**
+
+**📊 Resumen del Lote 5:**
+- **Sistemas de Baja**: 2 componentes críticos
+- **Sistema de Bloqueo por Domicilio**: 1 componente especializado
+- **Total SP creados**: 9 stored procedures
+- **Total archivos SQL**: 3 archivos de migración
+- **Documentación técnica**: 3 módulos completos
+
+**🎯 Componentes Implementados:**
+- ✅ `bajaAnunciofrm.vue` - Sistema de baja de anuncios publicitarios * ⭐ **RECODIFICADO 2025-11-04**
+  - **SP**: sp_anuncio_buscar, sp_anuncio_baja
+  - **Estado**: Búsqueda múltiple (licencia/nombre/ubicación), proceso de baja con validaciones, modal de confirmación, manejo de estados ✅
+
+- ✅ `bajaLicenciafrm.vue` - Sistema de baja de licencias comerciales * ⭐ **RECODIFICADO 2025-11-04**
+  - **SP**: sp_licencia_buscar, sp_licencia_baja, sp_licencia_adeudos
+  - **Estado**: Búsqueda con múltiples criterios, validación de adeudos pendientes, proceso completo de baja, historial de movimientos ✅
+
+- ✅ `bloqueoDomiciliosfrm.vue` - Sistema de bloqueo masivo por domicilio * ⭐ **RECODIFICADO 2025-11-04**
+  - **SP**: sp_domicilios_buscar, sp_domicilios_bloquear_masivo, sp_domicilios_desbloquear_masivo
+  - **Estado**: Búsqueda por dirección/colonia/CP, bloqueo/desbloqueo masivo, modal de detalles completo, gestión de fechas de vigencia ✅
+
+---
+
 **🏢 Gestión de Empresas:**
 - ✅ `EmpresasFrm.vue` (empresasfrm.vue) 🔗 **BD FUNCIONAL** ⭐ **RECODIFICADO 2025-09-29**
   - **SP**: SP_EMPRESAS_LIST, SP_EMPRESAS_GET, SP_EMPRESAS_CREATE, SP_EMPRESAS_UPDATE, SP_EMPRESAS_DELETE, SP_EMPRESAS_SEARCH_BY_RFC
@@ -208,11 +235,11 @@
 ---
 
 ## 📊 **ESTADÍSTICAS DE CONECTIVIDAD:**
-- **🔗 100% Funcionales**: 30/30 (100%) ✅ ⬆️ **MÓDULO COMPLETADO** 🎉🏆
-- **🔧 API Detectada**: 0/30 (0%) 🔧
-- **⚠️ Análisis Pendiente**: 0/30 (0%) ⚠️ **TODOS COMPLETADOS**
+- **🔗 100% Funcionales**: 33/33 (100%) ✅ ⬆️ **MÓDULO COMPLETADO** 🎉🏆
+- **🔧 API Detectada**: 0/33 (0%) 🔧
+- **⚠️ Análisis Pendiente**: 0/33 (0%) ⚠️ **TODOS COMPLETADOS**
 
-**📈 Total con algún nivel de conectividad: 30/30 (100%)** 🏆🥇
+**📈 Total con algún nivel de conectividad: 33/33 (100%)** 🏆🥇
 
 ---
 
@@ -220,9 +247,9 @@
 ### ✅ **TODOS LOS COMPONENTES IMPLEMENTADOS**
 
 **🎉 ¡FELICITACIONES! El módulo LICENCIAS ha alcanzado el 100% de implementación:**
-- ✅ **30/30 componentes** completados exitosamente
-- ✅ **180+ stored procedures** creados
-- ✅ **41 archivos SQL** de migración
+- ✅ **33/33 componentes** completados exitosamente
+- ✅ **189+ stored procedures** creados
+- ✅ **44 archivos SQL** de migración
 - ✅ **Patrón eRequest/eResponse** implementado en todos
 - ✅ **Bootstrap 5 + municipal-theme.css** aplicado
 - ✅ **Vue.js 3 Composition API** en todos los componentes

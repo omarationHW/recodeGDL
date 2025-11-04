@@ -1,15 +1,15 @@
 <template>
   <div class="module-page">
-    
+
     <!-- Mostrar loading mientras se carga el componente -->
     <div v-if="loadingComponent" class="text-center py-4">
       <div class="spinner-border text-primary"></div>
       <p class="mt-2">Cargando componente...</p>
     </div>
-    
+
     <!-- Cargar componente específico si existe y está cargado -->
     <component v-else-if="loadedComponent" :is="loadedComponent" />
-    
+
     <!-- Mostrar interfaz genérica para módulos sin implementación específica -->
     <div v-else class="generic-interface">
       <div class="container-fluid">
@@ -93,6 +93,8 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
+
 export default {
   name: 'LicenciasGeneric',
   data() {
@@ -311,8 +313,9 @@ export default {
         console.log(`✅ Component default:`, component.default)
 
         if (component.default) {
-          this.loadedComponent = component.default
-          console.log(`✅ loadedComponent set successfully`)
+          // Usar markRaw para evitar que Vue haga el componente reactivo
+          this.loadedComponent = markRaw(component.default)
+          console.log(`✅ loadedComponent set successfully with markRaw`)
         } else {
           console.error(`❌ component.default is null/undefined`)
           this.loadedComponent = null

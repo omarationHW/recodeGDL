@@ -1,28 +1,29 @@
 <template>
-  <div class="container-fluid">
+  <div class="container-fluid" style="background: #f8f9fa; color: #212529; padding: 20px; min-height: 100vh;">
+
     <!-- Header -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="h4 mb-1">
-              <i class="fas fa-map-marked-alt me-2 text-warning"></i>
-              Bloqueo de Domicilios
-            </h2>
-            <p class="text-muted mb-0">Gestión de bloqueos por domicilio para licencias y trámites</p>
-          </div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-              <li class="breadcrumb-item">
-                <router-link to="/dashboard" class="text-decoration-none">Dashboard</router-link>
-              </li>
-              <li class="breadcrumb-item">
-                <router-link to="/licencias" class="text-decoration-none">Licencias</router-link>
-              </li>
-              <li class="breadcrumb-item active">Bloqueo Domicilios</li>
-            </ol>
-          </nav>
+    <div style="margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div>
+          <h2 style="color: #212529; font-size: 1.5rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-map-marked-alt" style="color: #ffc107; margin-right: 0.5rem;"></i>
+            Bloqueo de Domicilios
+          </h2>
+          <p style="color: #6c757d; margin-bottom: 0;">Gestión de bloqueos por domicilio para licencias y trámites</p>
         </div>
+        <nav aria-label="breadcrumb">
+          <ol style="list-style: none; display: flex; margin: 0; padding: 0; background: transparent;">
+            <li style="margin-right: 0.5rem;">
+              <router-link to="/dashboard" style="color: #007bff; text-decoration: none;">Dashboard</router-link>
+              <span style="margin-left: 0.5rem; color: #6c757d;">/</span>
+            </li>
+            <li style="margin-right: 0.5rem;">
+              <router-link to="/licencias" style="color: #007bff; text-decoration: none;">Licencias</router-link>
+              <span style="margin-left: 0.5rem; color: #6c757d;">/</span>
+            </li>
+            <li style="color: #6c757d;">Bloqueo Domicilios</li>
+          </ol>
+        </nav>
       </div>
     </div>
 
@@ -354,8 +355,114 @@
       </div>
     </div>
 
+    <!-- Modal de detalle de domicilio -->
+    <div v-if="showModalDetalle" class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-info-circle me-2"></i>
+              Detalle del Domicilio
+            </h5>
+            <button type="button" class="btn-close btn-close-white" @click="cerrarModalDetalle"></button>
+          </div>
+          <div class="modal-body">
+            <div v-if="domicilioDetalle">
+              <!-- Información del domicilio -->
+              <div class="mb-4">
+                <h6 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                  Información del Domicilio
+                </h6>
+                <div class="row">
+                  <div class="col-md-12 mb-3">
+                    <strong>Dirección Completa:</strong>
+                    <p class="mb-0">{{ domicilioDetalle.direccion_completa }}</p>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <strong>Colonia:</strong>
+                    <p class="mb-0">{{ domicilioDetalle.colonia || 'N/A' }}</p>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <strong>Código Postal:</strong>
+                    <p class="mb-0">{{ domicilioDetalle.codigo_postal || 'N/A' }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Información de la licencia -->
+              <div class="mb-4">
+                <h6 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-id-card me-2 text-success"></i>
+                  Información de la Licencia
+                </h6>
+                <div class="row">
+                  <div class="col-md-6 mb-2">
+                    <strong>Número de Licencia:</strong>
+                    <p class="mb-0">{{ domicilioDetalle.licencia }}</p>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <strong>Propietario:</strong>
+                    <p class="mb-0">{{ domicilioDetalle.propietario }}</p>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <strong>Estado:</strong>
+                    <span class="badge" :class="domicilioDetalle.bloqueado === 'S' ? 'bg-danger' : 'bg-success'">
+                      {{ domicilioDetalle.bloqueado === 'S' ? 'Bloqueado' : 'Activo' }}
+                    </span>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <strong>Licencias Afectadas:</strong>
+                    <span class="badge bg-info">{{ domicilioDetalle.licencias_afectadas || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Información del bloqueo (si está bloqueado) -->
+              <div v-if="domicilioDetalle.bloqueado === 'S'" class="mb-4">
+                <h6 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-lock me-2 text-danger"></i>
+                  Información del Bloqueo
+                </h6>
+                <div class="row">
+                  <div class="col-md-6 mb-2">
+                    <strong>Fecha de Bloqueo:</strong>
+                    <p class="mb-0">{{ formatearFecha(domicilioDetalle.fecha_bloqueo) }}</p>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <strong>Usuario:</strong>
+                    <p class="mb-0">{{ domicilioDetalle.usuario_bloqueo || 'N/A' }}</p>
+                  </div>
+                  <div class="col-md-12 mb-2">
+                    <strong>Motivo:</strong>
+                    <p class="mb-0">{{ domicilioDetalle.motivo_bloqueo || 'Sin motivo especificado' }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nota informativa -->
+              <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Nota:</strong> Esta información corresponde al estado actual del domicilio en el sistema.
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="cerrarModalDetalle"
+            >
+              <i class="fas fa-times me-2"></i>
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal backdrop -->
-    <div v-if="showModalBloqueo || showModalDesbloqueo" class="modal-backdrop fade show"></div>
+    <div v-if="showModalBloqueo || showModalDesbloqueo || showModalDetalle" class="modal-backdrop fade show"></div>
 
     <!-- Alertas -->
     <div v-if="mensaje" class="position-fixed top-0 end-0 p-3" style="z-index: 1060">
@@ -380,6 +487,7 @@ export default {
     return {
       domicilios: [],
       domiciliosSeleccionados: [],
+      domicilioDetalle: null,
       filtros: {
         calle: '',
         numeroExterior: '',
@@ -395,6 +503,7 @@ export default {
       procesando: false,
       showModalBloqueo: false,
       showModalDesbloqueo: false,
+      showModalDetalle: false,
       mensaje: null
     }
   },
@@ -412,25 +521,25 @@ export default {
       this.domiciliosSeleccionados = []
 
       try {
-        const eRequest = {
-          Operacion: 'sp_domicilios_buscar',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_calle', valor: this.filtros.calle || null, tipo: 'varchar' },
-            { nombre: 'p_numero_exterior', valor: this.filtros.numeroExterior || null, tipo: 'varchar' },
-            { nombre: 'p_colonia', valor: this.filtros.colonia || null, tipo: 'varchar' },
-            { nombre: 'p_codigo_postal', valor: this.filtros.codigoPostal || null, tipo: 'varchar' },
-            { nombre: 'p_estado_bloqueo', valor: this.filtros.estadoBloqueo || null, tipo: 'char' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_domicilios_buscar',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_calle', valor: this.filtros.calle || null, tipo: 'varchar' },
+                { nombre: 'p_numero_exterior', valor: this.filtros.numeroExterior || null, tipo: 'varchar' },
+                { nombre: 'p_colonia', valor: this.filtros.colonia || null, tipo: 'varchar' },
+                { nombre: 'p_codigo_postal', valor: this.filtros.codigoPostal || null, tipo: 'varchar' },
+                { nombre: 'p_estado_bloqueo', valor: this.filtros.estadoBloqueo || null, tipo: 'char' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 
@@ -440,7 +549,7 @@ export default {
             this.mostrarMensaje('info', 'No se encontraron domicilios con los criterios especificados')
           }
         } else {
-          this.mostrarMensaje('error', 'Error al buscar domicilios')
+          this.mostrarMensaje('error', data.eResponse.message || 'Error al buscar domicilios')
         }
       } catch (error) {
         console.error('Error buscando domicilios:', error)
@@ -502,29 +611,34 @@ export default {
       }
     },
 
+    cerrarModalDetalle() {
+      this.showModalDetalle = false
+      this.domicilioDetalle = null
+    },
+
     async confirmarBloqueoMasivo() {
       if (!this.formulario.motivo) return
 
       this.procesando = true
       try {
-        const eRequest = {
-          Operacion: 'sp_domicilios_bloquear_masivo',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_ids_domicilios', valor: this.domiciliosSeleccionados.join(','), tipo: 'varchar' },
-            { nombre: 'p_motivo', valor: this.formulario.motivo, tipo: 'varchar' },
-            { nombre: 'p_fecha_vigencia', valor: this.formulario.fechaVigencia || null, tipo: 'date' },
-            { nombre: 'p_usuario', valor: 'admin', tipo: 'varchar' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_domicilios_bloquear_masivo',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_ids_domicilios', valor: this.domiciliosSeleccionados.join(','), tipo: 'varchar' },
+                { nombre: 'p_motivo', valor: this.formulario.motivo, tipo: 'varchar' },
+                { nombre: 'p_fecha_vigencia', valor: this.formulario.fechaVigencia || null, tipo: 'date' },
+                { nombre: 'p_usuario', valor: 'admin', tipo: 'varchar' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 
@@ -534,7 +648,7 @@ export default {
           this.domiciliosSeleccionados = []
           await this.buscarDomicilios()
         } else {
-          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al bloquear domicilios')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || data.eResponse.message || 'Error al bloquear domicilios')
         }
       } catch (error) {
         console.error('Error bloqueando domicilios:', error)
@@ -549,23 +663,23 @@ export default {
 
       this.procesando = true
       try {
-        const eRequest = {
-          Operacion: 'sp_domicilios_desbloquear_masivo',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_ids_domicilios', valor: this.domiciliosSeleccionados.join(','), tipo: 'varchar' },
-            { nombre: 'p_motivo', valor: this.formulario.motivo, tipo: 'varchar' },
-            { nombre: 'p_usuario', valor: 'admin', tipo: 'varchar' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_domicilios_desbloquear_masivo',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_ids_domicilios', valor: this.domiciliosSeleccionados.join(','), tipo: 'varchar' },
+                { nombre: 'p_motivo', valor: this.formulario.motivo, tipo: 'varchar' },
+                { nombre: 'p_usuario', valor: 'admin', tipo: 'varchar' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         });
         const data = await response.json();
 
@@ -575,7 +689,7 @@ export default {
           this.domiciliosSeleccionados = []
           await this.buscarDomicilios()
         } else {
-          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || 'Error al desbloquear domicilios')
+          this.mostrarMensaje('error', data.eResponse.data.result[0]?.message || data.eResponse.message || 'Error al desbloquear domicilios')
         }
       } catch (error) {
         console.error('Error desbloqueando domicilios:', error)
@@ -598,8 +712,8 @@ export default {
     },
 
     verDetalle(domicilio) {
-      // TODO: Implementar modal de detalle con historial
-      this.mostrarMensaje('info', `Detalle de domicilio: ${domicilio.direccion_completa}`)
+      this.domicilioDetalle = domicilio
+      this.showModalDetalle = true
     },
 
     formatearFecha(fecha) {
@@ -618,8 +732,165 @@ export default {
 </script>
 
 <style scoped>
-.toast {
-  min-width: 300px;
+/* Forzar colores visibles en todo el componente */
+.container-fluid {
+  background: #f8f9fa !important;
+  color: #212529 !important;
+}
+
+.card {
+  background: white !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 0.25rem !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  color: #212529 !important;
+}
+
+.card-header {
+  background: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6 !important;
+  padding: 0.75rem 1.25rem !important;
+  color: #212529 !important;
+}
+
+.card-body {
+  padding: 1.25rem !important;
+  background: white !important;
+  color: #212529 !important;
+}
+
+.form-label {
+  color: #212529 !important;
+  margin-bottom: 0.5rem !important;
+  display: inline-block !important;
+}
+
+.form-control, .form-select {
+  display: block !important;
+  width: 100% !important;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  color: #212529 !important;
+  background-color: #fff !important;
+  border: 1px solid #ced4da !important;
+  border-radius: 0.25rem !important;
+}
+
+.btn {
+  display: inline-block !important;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  border-radius: 0.25rem !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+}
+
+.btn-primary {
+  color: #fff !important;
+  background-color: #007bff !important;
+  border-color: #007bff !important;
+}
+
+.btn-secondary {
+  color: #fff !important;
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+.btn-success {
+  color: #fff !important;
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}
+
+.btn-danger {
+  color: #fff !important;
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+
+.btn-warning {
+  color: #212529 !important;
+  background-color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+
+.btn-outline-secondary {
+  color: #6c757d !important;
+  background-color: transparent !important;
+  border-color: #6c757d !important;
+}
+
+.btn-outline-info {
+  color: #17a2b8 !important;
+  background-color: transparent !important;
+  border-color: #17a2b8 !important;
+}
+
+.table {
+  width: 100% !important;
+  color: #212529 !important;
+  background-color: white !important;
+}
+
+.table th {
+  border-top: none;
+  background-color: #343a40 !important;
+  color: white !important;
+  padding: 0.75rem !important;
+}
+
+.table td {
+  padding: 0.75rem !important;
+  border-top: 1px solid #dee2e6 !important;
+}
+
+.badge {
+  display: inline-block !important;
+  padding: 0.25em 0.4em !important;
+  font-size: 75% !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  vertical-align: baseline !important;
+  border-radius: 0.25rem !important;
+}
+
+.bg-danger {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+.bg-success {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.bg-info {
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+
+.alert {
+  padding: 0.75rem 1.25rem !important;
+  margin-bottom: 1rem !important;
+  border: 1px solid transparent !important;
+  border-radius: 0.25rem !important;
+}
+
+.alert-warning {
+  color: #856404 !important;
+  background-color: #fff3cd !important;
+  border-color: #ffeaa7 !important;
+}
+
+.alert-info {
+  color: #0c5460 !important;
+  background-color: #d1ecf1 !important;
+  border-color: #bee5eb !important;
 }
 
 .modal.show {
@@ -637,12 +908,56 @@ export default {
   opacity: 0.5;
 }
 
-.table th {
-  border-top: none;
+.modal-dialog {
+  position: relative;
+  width: auto;
+  max-width: 500px;
+  margin: 1.75rem auto;
+}
+
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff !important;
+  border: 1px solid rgba(0,0,0,.2);
+  border-radius: 0.3rem;
+  color: #212529 !important;
+}
+
+.modal-header {
+  padding: 1rem !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+.modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  padding: 1rem !important;
+  background: white !important;
+  color: #212529 !important;
+}
+
+.modal-footer {
+  padding: 1rem !important;
+  border-top: 1px solid #dee2e6 !important;
+  background: white !important;
+}
+
+.toast {
+  min-width: 300px;
 }
 
 .btn-group-sm > .btn {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-muted {
+  color: #6c757d !important;
 }
 </style>

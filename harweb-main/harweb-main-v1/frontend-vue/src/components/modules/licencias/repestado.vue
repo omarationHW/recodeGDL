@@ -73,7 +73,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const data = await response.json();
         if (data.eResponse.success && data.eResponse.data.length > 0) {
@@ -100,7 +100,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const data = await response.json();
         if (data.eResponse.success) {

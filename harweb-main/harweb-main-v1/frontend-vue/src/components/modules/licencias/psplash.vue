@@ -51,7 +51,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const res = await response.json();
         this.splashData = res.status === 'success' ? res.eResponse.data.result : {};
@@ -70,7 +70,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const res = await response.json();
         if (res.status === 'success') {

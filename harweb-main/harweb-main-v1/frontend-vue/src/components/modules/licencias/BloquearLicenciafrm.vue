@@ -6,7 +6,7 @@
         <div class="header-content">
           <h1 class="h2 mb-2 text-white fw-bold">
             <i class="fas fa-shield-alt me-3 text-warning"></i>
-            Sistema de Bloqueo de Licencias
+            Sistema de Bloqueo de Licencias *
           </h1>
           <p class="mb-0 text-white-75 fs-6">
             <i class="fas fa-info-circle me-2"></i>
@@ -878,21 +878,21 @@ export default {
       resetearEstado()
 
       try {
-        const eRequest = {
-          Operacion: 'buscar_licencia',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'numero_licencia', valor: parseInt(numeroLicencia.value), tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'buscar_licencia',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'numero_licencia', valor: parseInt(numeroLicencia.value), tipo: 'integer' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         })
 
         const data = await response.json()
@@ -928,19 +928,19 @@ export default {
       cargandoTipos.value = true
 
       try {
-        const eRequest = {
-          Operacion: 'sp_tipobloqueo_list',
-          Base: 'licencias',
-          Parametros: [],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_tipobloqueo_list',
+              Base: 'padron_licencias',
+              Parametros: [],
+              Tenant: 'guadalajara'
+            }
+          })
         })
 
         const data = await response.json()
@@ -963,23 +963,23 @@ export default {
       try {
         const accion = licenciaEncontrada.value.bloqueado === 0 ? 'BLOQUEAR' : 'DESBLOQUEAR'
 
-        const eRequest = {
-          Operacion: 'sp_validar_bloqueo_licencia',
-          Base: 'licencias',
-          Parametros: [
-            { nombre: 'p_id_licencia', valor: licenciaEncontrada.value.id_licencia, tipo: 'integer' },
-            { nombre: 'p_accion', valor: accion, tipo: 'string' },
-            { nombre: 'p_tipo_bloqueo', valor: parseInt(tipoBloqueoSeleccionado.value), tipo: 'integer' }
-          ],
-          Tenant: 'guadalajara'
-        }
-
         const response = await fetch('http://localhost:8000/api/generic', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({
+            eRequest: {
+              Operacion: 'sp_validar_bloqueo_licencia',
+              Base: 'padron_licencias',
+              Parametros: [
+                { nombre: 'p_id_licencia', valor: licenciaEncontrada.value.id_licencia, tipo: 'integer' },
+                { nombre: 'p_accion', valor: accion, tipo: 'string' },
+                { nombre: 'p_tipo_bloqueo', valor: parseInt(tipoBloqueoSeleccionado.value), tipo: 'integer' }
+              ],
+              Tenant: 'guadalajara'
+            }
+          })
         })
 
         const data = await response.json()
@@ -1021,7 +1021,7 @@ export default {
       try {
         const eRequest = {
           Operacion: 'sp_bloquear_licencia',
-          Base: 'licencias',
+          Base: 'padron_licencias',
           Parametros: [
             { nombre: 'p_id_licencia', valor: licenciaEncontrada.value.id_licencia, tipo: 'integer' },
             { nombre: 'p_tipo_bloqueo', valor: parseInt(tipoBloqueoSeleccionado.value), tipo: 'integer' },
@@ -1036,7 +1036,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest: eRequest })
         })
 
         const data = await response.json()
@@ -1065,7 +1065,7 @@ export default {
       try {
         const eRequest = {
           Operacion: 'sp_desbloquear_licencia',
-          Base: 'licencias',
+          Base: 'padron_licencias',
           Parametros: [
             { nombre: 'p_id_licencia', valor: licenciaEncontrada.value.id_licencia, tipo: 'integer' },
             { nombre: 'p_tipo_bloqueo', valor: parseInt(tipoBloqueoSeleccionado.value), tipo: 'integer' },
@@ -1080,7 +1080,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest: eRequest })
         })
 
         const data = await response.json()
@@ -1114,7 +1114,7 @@ export default {
         // Optimización: Intentar primero el endpoint paginado, luego fallback
         const eRequestPaginado = {
           Operacion: 'sp_consultar_historial_licencia_paginado',
-          Base: 'licencias',
+          Base: 'padron_licencias',
           Parametros: [
             { nombre: 'p_id_licencia', valor: licenciaEncontrada.value.id_licencia, tipo: 'integer' },
             { nombre: 'limit_records', valor: limitePorPagina.value, tipo: 'integer' },
@@ -1158,7 +1158,7 @@ export default {
       try {
         const eRequest = {
           Operacion: 'sp_consultar_historial_licencia',
-          Base: 'licencias',
+          Base: 'padron_licencias',
           Parametros: [
             { nombre: 'p_id_licencia', valor: licenciaEncontrada.value.id_licencia, tipo: 'integer' }
           ],
@@ -1170,7 +1170,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest: eRequest })
         })
 
         const data = await response.json()
@@ -1197,7 +1197,7 @@ export default {
       try {
         const eRequest = {
           Operacion: 'sp_estadisticas_bloqueos',
-          Base: 'licencias',
+          Base: 'padron_licencias',
           Parametros: [],
           Tenant: 'guadalajara'
         }
@@ -1207,7 +1207,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest: eRequest })
         })
 
         const data = await response.json()

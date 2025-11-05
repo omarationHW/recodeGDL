@@ -75,7 +75,7 @@ export default {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(eRequest)
+        body: JSON.stringify({ eRequest })
       });
       const data = await response.json();
       this.giros = data.eResponse.data;

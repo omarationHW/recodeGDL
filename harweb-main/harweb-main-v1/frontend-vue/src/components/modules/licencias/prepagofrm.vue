@@ -142,7 +142,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let res = await response.json();
         if (res.eResponse.error) throw res.eResponse.error;
@@ -154,7 +154,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let det = await response.json();
         this.detalle = det.eResponse.detalle || [];
@@ -166,7 +166,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let desc = await response.json();
         this.descuentos = desc.eResponse || [];
@@ -177,7 +177,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let req = await response.json();
         this.ultimoReq = req.eResponse;
@@ -203,7 +203,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let res = await response.json();
         this.liquidacionResult = res.eResponse;
@@ -219,7 +219,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let res = await response.json();
         alert('Recalculo DPP: ' + JSON.stringify(res.eResponse));
@@ -235,7 +235,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let res = await response.json();
         alert('Eliminación DPP: ' + JSON.stringify(res.eResponse));
@@ -251,7 +251,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let res = await response.json();
         alert('Cálculo Descuento Predial: ' + JSON.stringify(res.eResponse));

@@ -142,7 +142,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         let res = await response.json();
         if (res.eResponse && res.eResponse.length > 0) {
@@ -160,7 +160,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         res = await response.json();
         this.regimen = res.eResponse || [];
@@ -171,7 +171,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         res = await response.json();
         this.diferencias = res.eResponse || [];
@@ -186,7 +186,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         res = await response.json();
         this.obs400 = res.eResponse || [];
@@ -197,7 +197,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         res = await response.json();
         this.condominio = res.eResponse && res.eResponse[0] ? res.eResponse[0] : {};

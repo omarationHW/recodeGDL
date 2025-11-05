@@ -1201,7 +1201,7 @@ export default {
     const apiConfig = {
       url: 'http://localhost:8000/api/generic',
       tenant: 'guadalajara',
-      base: 'licencias'
+      base: 'padron_licencias'
     }
     // ============================================
     // MÉTODOS PRINCIPALES - COMPOSITION API

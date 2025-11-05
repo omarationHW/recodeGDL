@@ -889,7 +889,7 @@ export default {
       apiConfig: {
         url: '/api/generic',
         tenant: 'guadalajara',
-        base: 'licencias'
+        base: 'padron_licencias'
       },
 
       // Estados de UI
@@ -999,7 +999,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         })
 
         if (!response.ok) {

@@ -100,7 +100,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const res = await response.json();
         if (res.status === 'success') {
@@ -126,7 +126,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const res = await response.json();
         if (res.status === 'success') {
@@ -162,7 +162,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const res = await response.json();
         if (res.status === 'success') {
@@ -194,7 +194,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequest)
+          body: JSON.stringify({ eRequest })
         });
         const res = await response.json();
         if (res.status === 'success') {

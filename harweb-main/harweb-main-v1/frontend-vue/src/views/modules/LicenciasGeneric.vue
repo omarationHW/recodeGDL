@@ -133,7 +133,7 @@ export default {
         'bajaanunciofrm': '* Administración de baja de anuncios publicitarios',
         'bajalicenciafrm': '* Gestión de baja de licencias comerciales',
         'bloquearanunciorm': 'Bloqueo y control de anuncios publicitarios',
-        'bloquearlicenciafrm': 'Bloqueo temporal de licencias',
+        'bloquearlicenciafrm': '* Bloqueo temporal de licencias',
         'bloqueartramitefrm': 'Control de bloqueo de trámites',
         'bloqueodomiciliosfrm': '* Sistema de bloqueo masivo por domicilio',
         'bloqueorfcfrm': '* Gestión de bloqueos por RFC',

@@ -1,13 +1,14 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-signature" />
       </div>
       <div class="module-view-info">
         <h1>Registro de Solicitud</h1>
-        <p>Padrón de Licencias - Registro de Nuevas Solicitudes de Trámites</p></div>
+        <p>Padrón de Licencias - Registro de Nuevas Solicitudes de Trámites</p>
+      </div>
       <button
         type="button"
         class="btn-help-icon"
@@ -20,22 +21,51 @@
 
     <div class="module-view-content">
 
+    <!-- Wizard Stepper -->
+    <div class="wizard-container">
+      <div class="wizard-steps">
+        <div
+          v-for="(step, index) in steps"
+          :key="index"
+          class="wizard-step"
+          :class="{
+            'active': currentStep === index + 1,
+            'completed': currentStep > index + 1
+          }"
+          @click="goToStep(index + 1)"
+        >
+          <div class="step-number">
+            <font-awesome-icon
+              v-if="currentStep > index + 1"
+              icon="check"
+              class="step-icon-check"
+            />
+            <span v-else>{{ index + 1 }}</span>
+          </div>
+          <div class="step-info">
+            <div class="step-title">{{ step.title }}</div>
+            <div class="step-subtitle">{{ step.subtitle }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Formulario de Registro de Solicitud -->
     <div class="municipal-card">
       <div class="municipal-card-header">
         <h5>
-          <font-awesome-icon icon="file-alt" />
-          Datos de la Solicitud
+          <font-awesome-icon :icon="steps[currentStep - 1].icon" />
+          {{ steps[currentStep - 1].title }}
         </h5>
+        <span class="badge-purple">
+          Paso {{ currentStep }} de {{ steps.length }}
+        </span>
       </div>
       <div class="municipal-card-body">
-        <form @submit.prevent="registrarSolicitud">
-          <!-- Información del Trámite -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <font-awesome-icon icon="clipboard-list" />
-              Información del Trámite
-            </h6>
+        <form @submit.prevent>
+
+          <!-- Paso 1: Información del Trámite -->
+          <div v-show="currentStep === 1" class="wizard-step-content">
             <div class="form-row">
               <div class="form-group">
                 <label class="municipal-form-label">Tipo de Trámite: <span class="required">*</span></label>
@@ -63,20 +93,17 @@
               <textarea
                 class="municipal-form-control"
                 v-model="formData.actividad"
-                rows="2"
+                rows="4"
                 maxlength="500"
                 required
-                placeholder="Describa la actividad económica"
+                placeholder="Describa detalladamente la actividad económica que se realizará en el establecimiento"
               ></textarea>
+              <small class="form-text">{{ formData.actividad.length }} / 500 caracteres</small>
             </div>
           </div>
 
-          <!-- Información del Propietario -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <font-awesome-icon icon="user" />
-              Información del Propietario
-            </h6>
+          <!-- Paso 2: Información del Propietario -->
+          <div v-show="currentStep === 2" class="wizard-step-content">
             <div class="form-row">
               <div class="form-group">
                 <label class="municipal-form-label">Nombre Completo: <span class="required">*</span></label>
@@ -120,6 +147,7 @@
                   v-model="formData.rfc"
                   maxlength="13"
                   placeholder="RFC a 12 o 13 posiciones"
+                  @input="formData.rfc = formData.rfc.toUpperCase()"
                 >
               </div>
             </div>
@@ -131,16 +159,13 @@
                 v-model="formData.curp"
                 maxlength="18"
                 placeholder="CURP a 18 posiciones"
+                @input="formData.curp = formData.curp.toUpperCase()"
               >
             </div>
           </div>
 
-          <!-- Ubicación del Establecimiento -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <font-awesome-icon icon="map-marker-alt" />
-              Ubicación del Establecimiento
-            </h6>
+          <!-- Paso 3: Ubicación del Establecimiento -->
+          <div v-show="currentStep === 3" class="wizard-step-content">
             <div class="form-row">
               <div class="form-group">
                 <label class="municipal-form-label">Calle: <span class="required">*</span></label>
@@ -184,6 +209,7 @@
                   v-model="formData.letraext"
                   maxlength="5"
                   placeholder="Letra"
+                  @input="formData.letraext = formData.letraext.toUpperCase()"
                 >
               </div>
               <div class="form-group">
@@ -204,6 +230,7 @@
                   v-model="formData.letraint"
                   maxlength="5"
                   placeholder="Letra"
+                  @input="formData.letraint = formData.letraint.toUpperCase()"
                 >
               </div>
             </div>
@@ -239,102 +266,159 @@
             </div>
           </div>
 
-          <!-- Datos Técnicos -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <font-awesome-icon icon="tools" />
-              Datos Técnicos del Establecimiento
-            </h6>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Superficie Construida (m²):</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  class="municipal-form-control"
-                  v-model="formData.sup_const"
-                  placeholder="Metros cuadrados"
-                >
+          <!-- Paso 4: Datos Técnicos -->
+          <div v-show="currentStep === 4" class="wizard-step-content">
+            <div class="form-section">
+              <h6 class="section-title">
+                <font-awesome-icon icon="tools" />
+                Datos Técnicos del Establecimiento
+              </h6>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="municipal-form-label">Superficie Construida (m²):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    class="municipal-form-control"
+                    v-model="formData.sup_const"
+                    placeholder="Metros cuadrados"
+                  >
+                </div>
+                <div class="form-group">
+                  <label class="municipal-form-label">Superficie Autorizada (m²):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    class="municipal-form-control"
+                    v-model="formData.sup_autorizada"
+                    placeholder="Metros cuadrados"
+                  >
+                </div>
               </div>
-              <div class="form-group">
-                <label class="municipal-form-label">Superficie Autorizada (m²):</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  class="municipal-form-control"
-                  v-model="formData.sup_autorizada"
-                  placeholder="Metros cuadrados"
-                >
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="municipal-form-label">Número de Cajones:</label>
+                  <input
+                    type="number"
+                    class="municipal-form-control"
+                    v-model="formData.num_cajones"
+                    placeholder="Cajones de estacionamiento"
+                  >
+                </div>
+                <div class="form-group">
+                  <label class="municipal-form-label">Número de Empleados:</label>
+                  <input
+                    type="number"
+                    class="municipal-form-control"
+                    v-model="formData.num_empleados"
+                    placeholder="Empleados"
+                  >
+                </div>
+                <div class="form-group">
+                  <label class="municipal-form-label">Inversión ($):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    class="municipal-form-control"
+                    v-model="formData.inversion"
+                    placeholder="Monto de inversión"
+                  >
+                </div>
               </div>
             </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Número de Cajones:</label>
-                <input
-                  type="number"
+
+            <div class="form-section">
+              <h6 class="section-title">
+                <font-awesome-icon icon="info-circle" />
+                Especificaciones Adicionales
+              </h6>
+              <div class="form-group full-width">
+                <label class="municipal-form-label">Observaciones y Especificaciones:</label>
+                <textarea
                   class="municipal-form-control"
-                  v-model="formData.num_cajones"
-                  placeholder="Cajones de estacionamiento"
-                >
+                  v-model="formData.especificaciones"
+                  rows="4"
+                  maxlength="1000"
+                  placeholder="Observaciones adicionales, especificaciones o comentarios relevantes"
+                ></textarea>
+                <small class="form-text">{{ formData.especificaciones.length }} / 1000 caracteres</small>
               </div>
-              <div class="form-group">
-                <label class="municipal-form-label">Número de Empleados:</label>
-                <input
-                  type="number"
-                  class="municipal-form-control"
-                  v-model="formData.num_empleados"
-                  placeholder="Empleados"
-                >
-              </div>
-              <div class="form-group">
-                <label class="municipal-form-label">Inversión ($):</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  class="municipal-form-control"
-                  v-model="formData.inversion"
-                  placeholder="Monto de inversión"
-                >
+            </div>
+
+            <!-- Resumen de la solicitud -->
+            <div class="solicitud-resumen">
+              <h6 class="section-title">
+                <font-awesome-icon icon="clipboard-check" />
+                Resumen de la Solicitud
+              </h6>
+              <div class="resumen-grid">
+                <div class="resumen-item">
+                  <strong>Tipo de Trámite:</strong>
+                  <span>{{ getTipoTramiteLabel(formData.tipo_tramite) }}</span>
+                </div>
+                <div class="resumen-item">
+                  <strong>Giro:</strong>
+                  <span>{{ formData.id_giro }}</span>
+                </div>
+                <div class="resumen-item">
+                  <strong>Propietario:</strong>
+                  <span>{{ formData.propietario }}</span>
+                </div>
+                <div class="resumen-item">
+                  <strong>Teléfono:</strong>
+                  <span>{{ formData.telefono }}</span>
+                </div>
+                <div class="resumen-item">
+                  <strong>Ubicación:</strong>
+                  <span>{{ formData.calle }}, {{ formData.colonia }}</span>
+                </div>
+                <div class="resumen-item">
+                  <strong>Actividad:</strong>
+                  <span class="text-truncate">{{ formData.actividad }}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Especificaciones -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <font-awesome-icon icon="info-circle" />
-              Especificaciones Adicionales
-            </h6>
-            <div class="form-group full-width">
-              <label class="municipal-form-label">Observaciones y Especificaciones:</label>
-              <textarea
-                class="municipal-form-control"
-                v-model="formData.especificaciones"
-                rows="4"
-                maxlength="1000"
-                placeholder="Observaciones adicionales, especificaciones o comentarios relevantes"
-              ></textarea>
-            </div>
-          </div>
-
-          <!-- Botones de acción -->
-          <div class="button-group">
+          <!-- Botones de navegación del wizard -->
+          <div class="wizard-navigation">
             <button
-              type="submit"
-              class="btn-municipal-primary"
-              :disabled="loading || creandoSolicitud"
+              v-if="currentStep > 1"
+              type="button"
+              class="btn-municipal-secondary"
+              @click="previousStep"
             >
-              <font-awesome-icon icon="save" />
-              {{ creandoSolicitud ? 'Registrando...' : 'Registrar Solicitud' }}
+              <font-awesome-icon icon="arrow-left" />
+              Anterior
             </button>
+
             <button
               type="button"
               class="btn-municipal-secondary"
-              @click="limpiarFormulario"
-              :disabled="loading || creandoSolicitud"
+              @click="cancelarWizard"
             >
-              <font-awesome-icon icon="eraser" />
-              Limpiar Formulario
+              <font-awesome-icon icon="times" />
+              Cancelar
+            </button>
+
+            <button
+              v-if="currentStep < steps.length"
+              type="button"
+              class="btn-municipal-primary"
+              @click="handleNextStep"
+            >
+              Siguiente
+              <font-awesome-icon icon="arrow-right" />
+            </button>
+
+            <button
+              v-if="currentStep === steps.length"
+              type="button"
+              class="btn-municipal-success"
+              @click="registrarSolicitud"
+            >
+              <font-awesome-icon icon="check" />
+              Registrar Solicitud
             </button>
           </div>
         </form>
@@ -380,14 +464,6 @@
             Agregar Documentos
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando solicitud...</p>
       </div>
     </div>
 
@@ -440,14 +516,19 @@
       </form>
     </Modal>
 
-    <!-- Toast Notification -->
     </div>
     <!-- /module-view-content -->
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -466,10 +547,10 @@
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 import { ref, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
@@ -480,8 +561,6 @@ const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -489,8 +568,34 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Wizard steps
+const currentStep = ref(1)
+const steps = [
+  {
+    title: 'Información del Trámite',
+    subtitle: 'Tipo y actividad',
+    icon: 'clipboard-list'
+  },
+  {
+    title: 'Datos del Propietario',
+    subtitle: 'Información de contacto',
+    icon: 'user'
+  },
+  {
+    title: 'Ubicación',
+    subtitle: 'Dirección del establecimiento',
+    icon: 'map-marker-alt'
+  },
+  {
+    title: 'Datos Técnicos',
+    subtitle: 'Especificaciones y confirmación',
+    icon: 'tools'
+  }
+]
+
 // Estado
-const creandoSolicitud = ref(false)
 const agregandoDocumento = ref(false)
 const ultimaSolicitud = ref(null)
 const showDocumentoModal = ref(false)
@@ -527,6 +632,90 @@ const documentoForm = ref({
   ruta: ''
 })
 
+// Métodos de navegación del wizard
+const goToStep = (step) => {
+  if (step <= currentStep.value || step === currentStep.value + 1) {
+    currentStep.value = step
+  }
+}
+
+const nextStep = () => {
+  if (currentStep.value < steps.length) {
+    currentStep.value++
+  }
+}
+
+const previousStep = () => {
+  if (currentStep.value > 1) {
+    currentStep.value--
+  }
+}
+
+const handleNextStep = (event) => {
+  // Prevenir el submit por defecto
+  if (event) {
+    event.preventDefault()
+  }
+
+  // Validar el paso actual antes de continuar
+  if (validateCurrentStep()) {
+    nextStep()
+  }
+}
+
+const validateCurrentStep = () => {
+  switch (currentStep.value) {
+    case 1:
+      if (!formData.value.tipo_tramite || !formData.value.id_giro || !formData.value.actividad?.trim()) {
+        showToast('warning', 'Por favor complete todos los campos requeridos: Tipo de Trámite, Giro y Actividad')
+        return false
+      }
+      break
+    case 2:
+      if (!formData.value.propietario?.trim() || !formData.value.telefono?.trim()) {
+        showToast('warning', 'Por favor complete todos los campos requeridos: Nombre Completo y Teléfono')
+        return false
+      }
+      break
+    case 3:
+      if (!formData.value.calle?.trim() || !formData.value.colonia?.trim()) {
+        showToast('warning', 'Por favor complete todos los campos requeridos: Calle y Colonia')
+        return false
+      }
+      break
+  }
+  return true
+}
+
+const cancelarWizard = async () => {
+  const result = await Swal.fire({
+    icon: 'question',
+    title: '¿Cancelar registro?',
+    text: 'Se perderán todos los datos capturados',
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, cancelar',
+    cancelButtonText: 'No, continuar'
+  })
+
+  if (result.isConfirmed) {
+    limpiarFormulario()
+    currentStep.value = 1
+    showToast('info', 'Registro cancelado')
+  }
+}
+
+const getTipoTramiteLabel = (tipo) => {
+  const tipos = {
+    '1': 'Licencia de Funcionamiento',
+    '2': 'Licencia de Anuncio',
+    '3': 'Constancia de Uso de Suelo',
+    '4': 'Renovación de Licencia'
+  }
+  return tipos[tipo] || 'No especificado'
+}
+
 // Métodos
 const registrarSolicitud = async () => {
   if (!formData.value.tipo_tramite || !formData.value.id_giro || !formData.value.actividad ||
@@ -547,8 +736,9 @@ const registrarSolicitud = async () => {
       <div style="text-align: left; padding: 0 20px;">
         <p style="margin-bottom: 10px;">Se registrará una nueva solicitud con los siguientes datos:</p>
         <ul style="list-style: none; padding: 0;">
+          <li style="margin: 5px 0;"><strong>Tipo:</strong> ${getTipoTramiteLabel(formData.value.tipo_tramite)}</li>
           <li style="margin: 5px 0;"><strong>Propietario:</strong> ${formData.value.propietario}</li>
-          <li style="margin: 5px 0;"><strong>Actividad:</strong> ${formData.value.actividad}</li>
+          <li style="margin: 5px 0;"><strong>Actividad:</strong> ${formData.value.actividad.substring(0, 50)}...</li>
           <li style="margin: 5px 0;"><strong>Ubicación:</strong> ${formData.value.calle}, ${formData.value.colonia}</li>
         </ul>
       </div>
@@ -564,12 +754,12 @@ const registrarSolicitud = async () => {
     return
   }
 
-  creandoSolicitud.value = true
-  setLoading(true, 'Registrando solicitud...')
+  const startTime = performance.now()
+  showLoading('Registrando solicitud...', 'Procesando datos del trámite')
 
   try {
     const response = await execute(
-      'SP_REGISTRO_SOLICITUD',
+      'sp_registro_solicitud',
       'padron_licencias',
       [
         { nombre: 'p_tipo_tramite', valor: parseInt(formData.value.tipo_tramite), tipo: 'integer' },
@@ -577,14 +767,14 @@ const registrarSolicitud = async () => {
         { nombre: 'p_actividad', valor: formData.value.actividad.trim(), tipo: 'string' },
         { nombre: 'p_propietario', valor: formData.value.propietario.trim(), tipo: 'string' },
         { nombre: 'p_telefono', valor: formData.value.telefono.trim(), tipo: 'string' },
-        { nombre: 'p_email', valor: formData.value.email?.trim() || '', tipo: 'string' },
+        { nombre: 'p_email', valor: formData.value.email?.trim() || null, tipo: 'string' },
         { nombre: 'p_calle', valor: formData.value.calle.trim(), tipo: 'string' },
         { nombre: 'p_colonia', valor: formData.value.colonia.trim(), tipo: 'string' },
-        { nombre: 'p_cp', valor: formData.value.cp?.trim() || '', tipo: 'string' },
-        { nombre: 'p_numext', valor: formData.value.numext?.trim() || '', tipo: 'string' },
-        { nombre: 'p_numint', valor: formData.value.numint?.trim() || '', tipo: 'string' },
-        { nombre: 'p_letraext', valor: formData.value.letraext?.trim() || '', tipo: 'string' },
-        { nombre: 'p_letraint', valor: formData.value.letraint?.trim() || '', tipo: 'string' },
+        { nombre: 'p_cp', valor: formData.value.cp?.trim() || null, tipo: 'string' },
+        { nombre: 'p_numext', valor: formData.value.numext?.trim() || null, tipo: 'string' },
+        { nombre: 'p_numint', valor: formData.value.numint?.trim() || null, tipo: 'string' },
+        { nombre: 'p_letraext', valor: formData.value.letraext?.trim() || null, tipo: 'string' },
+        { nombre: 'p_letraint', valor: formData.value.letraint?.trim() || null, tipo: 'string' },
         { nombre: 'p_zona', valor: formData.value.zona || null, tipo: 'integer' },
         { nombre: 'p_subzona', valor: formData.value.subzona || null, tipo: 'integer' },
         { nombre: 'p_sup_const', valor: formData.value.sup_const || null, tipo: 'numeric' },
@@ -592,13 +782,19 @@ const registrarSolicitud = async () => {
         { nombre: 'p_num_cajones', valor: formData.value.num_cajones || null, tipo: 'integer' },
         { nombre: 'p_num_empleados', valor: formData.value.num_empleados || null, tipo: 'integer' },
         { nombre: 'p_inversion', valor: formData.value.inversion || null, tipo: 'numeric' },
-        { nombre: 'p_rfc', valor: formData.value.rfc?.trim() || '', tipo: 'string' },
-        { nombre: 'p_curp', valor: formData.value.curp?.trim() || '', tipo: 'string' },
-        { nombre: 'p_especificaciones', valor: formData.value.especificaciones?.trim() || '', tipo: 'string' },
+        { nombre: 'p_rfc', valor: formData.value.rfc?.trim() || null, tipo: 'string' },
+        { nombre: 'p_curp', valor: formData.value.curp?.trim() || null, tipo: 'string' },
+        { nombre: 'p_especificaciones', valor: formData.value.especificaciones?.trim() || null, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      '', // tenant
+      null, // pagination
+      'comun' // esquema correcto
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]) {
       ultimaSolicitud.value = response.result[0]
@@ -616,8 +812,9 @@ const registrarSolicitud = async () => {
         confirmButtonColor: '#ea8215'
       })
 
-      showToast('success', 'Solicitud registrada exitosamente')
+      showToast('success', 'Solicitud registrada exitosamente', timeMessage)
       limpiarFormulario()
+      currentStep.value = 1
     } else {
       await Swal.fire({
         icon: 'error',
@@ -627,16 +824,35 @@ const registrarSolicitud = async () => {
       })
     }
   } catch (error) {
-    handleApiError(error)
+    console.error('Error al registrar solicitud:', error)
+
+    // Cerrar loading ANTES de mostrar el mensaje
+    hideLoading()
+
+    // Determinar el mensaje de error
+    let errorMessage = 'No se pudo registrar la solicitud'
+    let errorTitle = 'Error de conexión'
+
+    if (error.response?.data?.eResponse?.message) {
+      const apiMessage = error.response.data.eResponse.message
+
+      // Detectar si es error de SP no existente
+      if (apiMessage.includes('no existe')) {
+        errorTitle = 'Stored Procedure no encontrado'
+        errorMessage = 'El sistema aún no tiene configurado el procedimiento de registro. Por favor contacte al administrador del sistema.'
+      } else {
+        errorMessage = apiMessage
+      }
+    }
+
+    handleApiError(error, 'Error al registrar solicitud')
+
     await Swal.fire({
       icon: 'error',
-      title: 'Error de conexión',
-      text: 'No se pudo registrar la solicitud',
+      title: errorTitle,
+      text: errorMessage,
       confirmButtonColor: '#ea8215'
     })
-  } finally {
-    creandoSolicitud.value = false
-    setLoading(false)
   }
 }
 
@@ -691,7 +907,7 @@ const guardarDocumento = async () => {
 
   try {
     const response = await execute(
-      'SP_AGREGAR_DOCUMENTO',
+      'sp_agregar_documento',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: ultimaSolicitud.value.id_tramite, tipo: 'integer' },
@@ -699,7 +915,7 @@ const guardarDocumento = async () => {
         { nombre: 'p_ruta', valor: documentoForm.value.ruta.trim(), tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      ''
     )
 
     if (response && response.result && response.result[0]) {
@@ -716,7 +932,7 @@ const guardarDocumento = async () => {
       showToast('success', 'Documento agregado exitosamente')
     }
   } catch (error) {
-    handleApiError(error)
+    handleApiError(error, 'Error al agregar documento')
   } finally {
     agregandoDocumento.value = false
   }
@@ -736,49 +952,3 @@ onBeforeUnmount(() => {
   showDocumentoModal.value = false
 })
 </script>
-
-<style scoped>
-.form-section {
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.form-section:last-child {
-  border-bottom: none;
-}
-
-.section-title {
-  color: #ea8215;
-  font-size: 1.1rem;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.solicitud-info {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.info-item {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.form-text {
-  display: block;
-  margin-top: 5px;
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-</style>

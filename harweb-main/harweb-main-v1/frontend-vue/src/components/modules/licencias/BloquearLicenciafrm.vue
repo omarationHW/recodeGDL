@@ -885,10 +885,10 @@ export default {
           },
           body: JSON.stringify({
             eRequest: {
-              Operacion: 'buscar_licencia',
+              Operacion: 'sp_buscar_licencia',
               Base: 'padron_licencias',
               Parametros: [
-                { nombre: 'numero_licencia', valor: parseInt(numeroLicencia.value), tipo: 'integer' }
+                { nombre: 'p_numero_licencia', valor: parseInt(numeroLicencia.value), tipo: 'integer' }
               ],
               Tenant: 'guadalajara'
             }
@@ -898,7 +898,18 @@ export default {
         const data = await response.json()
 
         if (data.eResponse.success && data.eResponse.data.result.length > 0) {
-          licenciaEncontrada.value = data.eResponse.data.result[0]
+          const licenciaData = data.eResponse.data.result[0]
+
+          // Mapear campos del SP a lo que espera el frontend
+          licenciaEncontrada.value = {
+            ...licenciaData,
+            licencia: licenciaData.numero_licencia || licenciaData.licencia,
+            // Calcular días de vigencia
+            dias_vigencia: licenciaData.vigencia_hasta
+              ? Math.ceil((new Date(licenciaData.vigencia_hasta) - new Date()) / (1000 * 60 * 60 * 24))
+              : null
+          }
+
           ultimaBusqueda.value = new Date().toLocaleTimeString('es-MX')
           mostrarMensaje('success', `Licencia ${numeroLicencia.value} encontrada`)
 
@@ -1128,7 +1139,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(eRequestPaginado)
+          body: JSON.stringify({ eRequest: eRequestPaginado })
         })
 
         const data = await response.json()

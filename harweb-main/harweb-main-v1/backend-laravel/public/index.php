@@ -80,11 +80,11 @@ if ($path === '/api/generic' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $moduleDbConfig = [
             'padron_licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public'
+                'schema' => 'catastro_gdl'
             ],
             'licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public'
+                'schema' => 'catastro_gdl'
             ],
             'aseo' => [
                 'database' => 'padron_aseo', 

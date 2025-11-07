@@ -3927,15 +3927,35 @@ body.modal-open {
 
 /* Wizard Container */
 .wizard-container {
-  margin-bottom: 30px;
+  margin: 20px 0 30px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .wizard-steps {
+  flex: 1;
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 0;
   position: relative;
+  padding-right: 20px;
+}
+
+.wizard-progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  padding: 10px 20px;
+  margin-right: 20px;
+}
+
+.wizard-progress-indicator .badge-purple {
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .wizard-steps::before {
@@ -4389,6 +4409,275 @@ body.modal-open {
   }
 }
 
+/* =================================================================================
+   MODALES - Estilos para formularios en modales
+   ================================================================================= */
+
+.giro-modal-content {
+  padding: 0.5rem;
+}
+
+.modal-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.section-icon {
+  font-size: 1.25rem;
+  color: #9363CD;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.modal-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.modal-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.form-group-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label-modal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+  margin-bottom: 0.25rem;
+}
+
+.label-icon {
+  font-size: 0.875rem;
+  color: #9363CD;
+}
+
+.form-input-modal {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.form-input-modal:focus {
+  outline: none;
+  border-color: #9363CD;
+  box-shadow: 0 0 0 0.2rem rgba(147, 99, 205, 0.15);
+}
+
+.form-input-modal:disabled,
+.form-input-modal[readonly] {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.form-select-modal {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  background-color: white;
+  cursor: pointer;
+}
+
+.form-select-modal:focus {
+  outline: none;
+  border-color: #9363CD;
+  box-shadow: 0 0 0 0.2rem rgba(147, 99, 205, 0.15);
+}
+
+.form-select-modal:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.form-hint {
+  font-size: 0.8125rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.info-item {
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.info-label {
+  font-size: 0.8125rem;
+  color: #6c757d;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 0.9375rem;
+  color: #212529;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-grid-2,
+  .modal-grid-3,
+  .modal-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =================================================================================
+   BOTONES DE ACCIÓN EN TABLAS - Estilos para botones de Ver/Editar/Eliminar
+   ================================================================================= */
+
+.btn-group-actions {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.btn-table {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-table:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-table:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-table:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Botón Info (Ver) - Azul */
+.btn-table-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  color: white;
+}
+
+.btn-table-info:hover {
+  background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+}
+
+/* Botón Primary (Editar) - Morado */
+.btn-table-primary {
+  background: linear-gradient(135deg, #9363CD 0%, #7B4FB8 100%);
+  color: white;
+}
+
+.btn-table-primary:hover {
+  background: linear-gradient(135deg, #7B4FB8 0%, #6A3FA0 100%);
+}
+
+/* Botón Danger (Eliminar) - Rojo */
+.btn-table-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.btn-table-danger:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+}
+
+/* Botón Success - Verde */
+.btn-table-success {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: white;
+}
+
+.btn-table-success:hover {
+  background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+}
+
+/* Botón Warning - Amarillo */
+.btn-table-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  color: #1a1a1a;
+}
+
+.btn-table-warning:hover {
+  background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+}
+
 /* Detail Section - Full Width */
 .detail-section.full-width {
   grid-column: 1 / -1;
@@ -4454,6 +4743,55 @@ body.modal-open {
 /* Tramite Details */
 .tramite-details {
   padding: 0;
+}
+
+.tramite-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.tramite-detail-section {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.tramite-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--slate-700);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--municipal-primary);
+}
+
+.tramite-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--slate-200);
+}
+
+.tramite-detail-row:last-child {
+  border-bottom: none;
+}
+
+.tramite-detail-label {
+  font-weight: 500;
+  color: var(--slate-600);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  margin-right: 1rem;
+}
+
+.tramite-detail-value {
+  color: var(--slate-900);
+  font-size: 0.875rem;
+  text-align: right;
+  word-break: break-word;
 }
 
 /* =================================================================================
@@ -8645,3 +8983,21 @@ div[class*="modal-usuario"] .modal-content {
   opacity: 0.85;
 }
 
+
+/* ============================================================
+   ESTILOS ESPECÍFICOS: AGENDA DE VISITAS
+   ============================================================ */
+
+.zona-info {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.domicilio-text {
+  display: block;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

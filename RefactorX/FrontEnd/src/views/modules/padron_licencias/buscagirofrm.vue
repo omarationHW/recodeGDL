@@ -297,9 +297,36 @@ const seleccionarGiro = (giro) => {
 
 const confirmarSeleccion = () => {
   if (selectedGiro.value) {
-    showToast('success', `Giro confirmado: ${selectedGiro.value.descripcion}`)
-    // Aquí puedes emitir un evento o guardar en store
-    // this.$emit('giro-seleccionado', selectedGiro.value)
+    // 1. Guardar en localStorage para uso en otros formularios
+    const giroData = {
+      id: selectedGiro.value.id,
+      codigo: selectedGiro.value.codigo,
+      descripcion: selectedGiro.value.descripcion,
+      categoria: selectedGiro.value.categoria_nombre || selectedGiro.value.categoria,
+      tipo: selectedGiro.value.tipo,
+      costo: selectedGiro.value.costo,
+      timestamp: new Date().toISOString()
+    }
+    localStorage.setItem('giroSeleccionado', JSON.stringify(giroData))
+
+    // 2. Copiar descripción al portapapeles
+    const textoParaCopiar = `${selectedGiro.value.codigo} - ${selectedGiro.value.descripcion}`
+    navigator.clipboard.writeText(textoParaCopiar).then(() => {
+      // 3. Mostrar mensaje de éxito
+      showToast(
+        'success',
+        `Giro confirmado: "${selectedGiro.value.descripcion}". Se copió al portapapeles y está disponible para otros formularios.`
+      )
+    }).catch(err => {
+      // Si falla el portapapeles, aún guardar en localStorage
+      console.warn('No se pudo copiar al portapapeles:', err)
+      showToast(
+        'success',
+        `Giro confirmado y guardado: "${selectedGiro.value.descripcion}".`
+      )
+    })
+  } else {
+    showToast('error', 'Por favor selecciona un giro primero')
   }
 }
 

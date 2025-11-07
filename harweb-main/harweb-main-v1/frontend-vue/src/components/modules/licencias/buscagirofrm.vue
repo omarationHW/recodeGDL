@@ -262,6 +262,8 @@
 </template>
 
 <script>
+import * as bootstrap from 'bootstrap';
+
 export default {
   name: 'BuscagiroPage',
   data() {
@@ -308,7 +310,7 @@ export default {
         });
         const data = await response.json();
         if (data.eResponse && data.eResponse.success) {
-          this.categorias = data.eResponse.data || [];
+          this.categorias = data.eResponse.data.result || [];
         }
       } catch (error) {
         console.error('Error al cargar categorías:', error);
@@ -351,7 +353,7 @@ export default {
         const data = await response.json();
 
         if (data.eResponse && data.eResponse.success) {
-          this.giros = data.eResponse.data || [];
+          this.giros = data.eResponse.data.result || [];
           if (this.giros.length === 0) {
             this.mostrarMensaje('No se encontraron giros con los criterios especificados', 'info');
           } else {
@@ -402,9 +404,47 @@ export default {
 
     confirmarSeleccion() {
       if (this.giroSeleccionado) {
-        // Emitir evento para componente padre o guardar en store
-        this.$emit('giro-seleccionado', this.giroSeleccionado);
-        this.mostrarMensaje(`Giro "${this.giroSeleccionado.descripcion}" confirmado para uso`, 'success');
+        // 1. Guardar en localStorage para uso en otros formularios
+        const giroData = {
+          id: this.giroSeleccionado.id,
+          codigo: this.giroSeleccionado.codigo,
+          descripcion: this.giroSeleccionado.descripcion,
+          categoria: this.giroSeleccionado.categoria_nombre,
+          tipo: this.giroSeleccionado.tipo,
+          costo: this.giroSeleccionado.costo,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('giroSeleccionado', JSON.stringify(giroData));
+
+        // 2. Copiar descripción al portapapeles
+        const textoParaCopiar = `${this.giroSeleccionado.codigo} - ${this.giroSeleccionado.descripcion}`;
+        navigator.clipboard.writeText(textoParaCopiar).then(() => {
+          // 3. Mostrar mensaje de éxito
+          this.mostrarMensaje(
+            `Giro confirmado: "${this.giroSeleccionado.descripcion}". Se copió al portapapeles y está disponible para otros formularios.`,
+            'success'
+          );
+
+          // 4. Emitir evento (por si en el futuro se usa como componente hijo)
+          this.$emit('giro-seleccionado', this.giroSeleccionado);
+
+          // 5. Cerrar el modal de detalles
+          if (this.modalDetalle) {
+            this.modalDetalle.hide();
+          }
+        }).catch(err => {
+          // Si falla el portapapeles, aún guardar en localStorage
+          console.warn('No se pudo copiar al portapapeles:', err);
+          this.mostrarMensaje(
+            `Giro confirmado y guardado: "${this.giroSeleccionado.descripcion}".`,
+            'success'
+          );
+          if (this.modalDetalle) {
+            this.modalDetalle.hide();
+          }
+        });
+      } else {
+        this.mostrarMensaje('Por favor selecciona un giro primero', 'error');
       }
     },
 

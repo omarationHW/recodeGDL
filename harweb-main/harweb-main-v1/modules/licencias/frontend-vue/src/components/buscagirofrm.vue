@@ -114,9 +114,31 @@ export default {
       }
     },
     async seleccionarGiro(giro) {
-      // Puede emitir evento o guardar en store global
       this.selectedGiro = giro;
-      // Ejemplo: this.$emit('giro-seleccionado', giro);
+
+      // Guardar en localStorage para uso en otros formularios
+      const giroData = {
+        id: giro.id_giro,
+        codigo: giro.cod_giro || giro.codigo,
+        descripcion: giro.descripcion,
+        tipo: giro.tipo,
+        costo: giro.costo,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('giroSeleccionado', JSON.stringify(giroData));
+
+      // Copiar descripción al portapapeles
+      const textoParaCopiar = `${giroData.codigo} - ${giroData.descripcion}`;
+      try {
+        await navigator.clipboard.writeText(textoParaCopiar);
+        alert(`Giro seleccionado y copiado al portapapeles:\n${giroData.descripcion}`);
+      } catch (err) {
+        console.warn('No se pudo copiar al portapapeles:', err);
+        alert(`Giro seleccionado y guardado:\n${giroData.descripcion}`);
+      }
+
+      // Emitir evento para componente padre
+      this.$emit('giro-seleccionado', giro);
     }
   }
 };

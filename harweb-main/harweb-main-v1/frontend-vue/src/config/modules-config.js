@@ -660,7 +660,7 @@ export const licenciasRoutes = [
   { name: "bloqueoRFCfrm", path: "/licencias/bloqueoRFCfrm", displayName: "* Bloqueo RFC" },
   { name: "bloquearlicenciafrm", path: "/licencias/bloquearlicenciafrm", displayName: "* Bloquear Licencias" },
   { name: "BloquearTramitefrm", path: "/licencias/BloquearTramitefrm", displayName: "* Bloquear Trámites" },
-  { name: "buscagirofrm", path: "/licencias/buscagirofrm", displayName: "Buscar Giros" },
+  { name: "buscagirofrm", path: "/licencias/buscagirofrm", displayName: "* Buscar Giros" },
   { name: "busque", path: "/licencias/busque", displayName: "Búsqueda General" },
   { name: "BusquedaActividadFrm", path: "/licencias/BusquedaActividadFrm", displayName: "* Búsqueda Actividades" },
   { name: "BusquedaScianFrm", path: "/licencias/BusquedaScianFrm", displayName: "* Búsqueda SCIAN" },

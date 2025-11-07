@@ -8,11 +8,29 @@
 - ✅ Registrado en modules-config.js
 - ✅ Listo para pruebas
 
+✅ **BUSCAGIROFRM.VUE** - COMPLETADO Y FUNCIONAL
+- ✅ Tabla `categorias_giros` creada en esquema `catastro_gdl`
+- ✅ SP implementados: `sp_categorias_giros_listar`, `sp_giros_buscar`
+- ✅ Componente Vue con búsqueda avanzada de giros (7 filtros)
+- ✅ Modal de detalles con Bootstrap 5
+- ✅ Funcionalidad de selección con localStorage y portapapeles
+- ✅ Registrado en modules-config.js con asterisco (*)
+- ✅ 4 versiones actualizadas en main-v1, main-v2 y RefactorX
+- ✅ Listo para pruebas
+
+**Características implementadas:**
+- Búsqueda por descripción, código, categoría, tipo, estado, autoevaluación y pacto
+- Visualización de giros con información completa (categoría, tipo, costo)
+- Modal de detalles con toda la información del giro
+- Botón "Confirmar selección" que guarda en localStorage y copia al portapapeles
+- Compatible con otros formularios para recuperar giro seleccionado
+- Integración con tablas: `c_giros`, `categorias_giros`, `c_girosautoev`, `c_valoreslic`
+
 ---
 
 ## 🏗️ COMPONENTES IDENTIFICADOS (97 TOTAL)
 
-### **FASE 1: ALTA PRIORIDAD** ✅ 3/4
+### **FASE 1: ALTA PRIORIDAD** ✅ 4/5
 *Componentes críticos con SP directos migrados*
 
 | No. | Componente Vue | SP Correspondiente | Estado | Prioridad |
@@ -20,7 +38,8 @@
 | 1 | **constanciafrm.vue** | `SP_CONSTANCIA_*` | ✅ **COMPLETADO** | 🔴 ALTA |
 | 2 | **consLic400frm.vue** | `sp_get_lic_400, sp_get_pago_lic_400` | ✅ **COMPLETADO** | 🔴 ALTA |
 | 3 | **bajaAnunciofrm.vue** | `sp_baja_anuncio_buscar, sp_baja_anuncio_procesar, sp_baja_anuncio_verificar_permisos` | ✅ **COMPLETADO** | 🔴 ALTA |
-| 4 | **Agendavisitasfrm.vue** | `SP_AGENDAVISITAS_*` | ⏳ Pendiente | 🔴 ALTA |
+| 4 | **buscagirofrm.vue** | `sp_categorias_giros_listar, sp_giros_buscar` | ✅ **COMPLETADO** | 🔴 ALTA |
+| 5 | **Agendavisitasfrm.vue** | `SP_AGENDAVISITAS_*` | ⏳ Pendiente | 🔴 ALTA |
 
 ### **FASE 2: PRIORIDAD MEDIA** ⏳ 0/93
 *Componentes con funcionalidad importante*
@@ -149,5 +168,5 @@ cat modules/licencias/database/ok/03_SP_CONSULTALICENCIA_all_procedures.sql
 
 ---
 
-**ESTADO**: ✅ **3/97 COMPLETADOS - CONSTANCIAFRM, CONSLIC400FRM Y BAJAANUNCIOFRM LISTOS**
+**ESTADO**: ✅ **4/97 COMPLETADOS - CONSTANCIAFRM, CONSLIC400FRM, BAJAANUNCIOFRM Y BUSCAGIROFRM LISTOS**
 **PRÓXIMA ACCIÓN**: Implementar **Agendavisitasfrm.vue**

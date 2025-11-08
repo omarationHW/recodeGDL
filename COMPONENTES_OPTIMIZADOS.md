@@ -1477,6 +1477,88 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 36/598 componentes (6.02%)**
-**Última actualización:** 2025-11-07
+### 37. ✅ **busqueda-actividad** (BusquedaActividadFrm.vue) - P3 PRIORIDAD MEDIA
+- **Ruta:** `/padron-licencias/busqueda-actividad`
+- **Fecha:** 2025-11-08
+- **Estado:** ✅ COMPLETADO
+- **Tipo:** Búsqueda - Actividades Económicas (SCIAN)
+- **Optimizaciones aplicadas:**
+  - ✅ Sin inline styles (removido style="position: relative;" y styles de SweetAlert)
+  - ✅ Badge púrpura (cambio de badge-info a badge-purple)
+  - ✅ Toast con tiempo de consulta (performance.now() + formato ms/s)
+  - ✅ Header consistente con otros componentes
+  - ✅ Filtros colapsables con clickable-header
+  - ✅ Campo SCIAN agregado (requerido por SPs)
+  - ✅ Validación de criterios de búsqueda
+  - ✅ Mostrar costos y refrendo formateados
+  - ✅ Modal de detalle con información completa
+  - ✅ Panel de actividad seleccionada
+  - ✅ Clase clickable-row en tabla
+  - ✅ Empty state cuando no hay resultados
+  - ✅ SweetAlert con clases CSS (swal-selection-content, swal-selection-list)
+
+- **SPs Utilizados (2):** Existentes en esquema `public`
+  - ✅ `buscar_actividades(p_scian, p_descripcion)` - Búsqueda por SCIAN y descripción
+  - ✅ `buscar_actividad_por_id(p_id_giro)` - Búsqueda por ID de giro
+
+- **Módulo API:** 'padron_licencias'
+- **Tablas consultadas:**
+  - public.c_giros - Catálogo de giros comerciales
+  - public.c_valoreslic - Valores de licencias (costos y refrendos)
+
+- **Lógica de Búsqueda:**
+  - Si hay ID Giro: usa `buscar_actividad_por_id(p_id_giro)`
+  - Si hay SCIAN: usa `buscar_actividades(p_scian, p_descripcion)`
+  - Solo descripción: requiere SCIAN (validación con SweetAlert)
+  - Filtros: id_giro >= 5000, vigente = 'V', id_giro <> cod_giro
+  - JOIN con c_valoreslic para año actual
+
+- **Patrón de Código:**
+  ```javascript
+  // Búsqueda por ID
+  execute(
+    'buscar_actividad_por_id',
+    'padron_licencias',
+    [{ nombre: 'p_id_giro', valor: parseInt(id_giro), tipo: 'integer' }],
+    'guadalajara'
+  )
+
+  // Búsqueda por SCIAN
+  execute(
+    'buscar_actividades',
+    'padron_licencias',
+    [
+      { nombre: 'p_scian', valor: parseInt(scian), tipo: 'integer' },
+      { nombre: 'p_descripcion', valor: descripcion, tipo: 'string' }
+    ],
+    'guadalajara'
+  )
+  ```
+
+- **Campos Mostrados:**
+  - ID Giro, Código SCIAN, Descripción, Vigente
+  - Año, Costo, Refrendo (formateados como moneda MXN)
+  - Botones: Ver detalles, Seleccionar
+
+- **Validaciones Implementadas:**
+  - Al menos un criterio de búsqueda requerido
+  - SCIAN requerido si se busca por descripción
+  - Formateo de moneda con Intl.NumberFormat
+  - Trim de descripciones
+  - Badge de estado (Vigente/No Vigente)
+
+- **Ubicación SPs:** `RefactorX/Base/padron_licencias/database/database/BusquedaActividad_all_procedures.sql`
+
+- **Notas Técnicas:**
+  - Componente de búsqueda puro (no CRUD)
+  - NO recarga datos automáticamente al entrar
+  - Filtros pueden combinarse (SCIAN + descripción)
+  - Muestra año fiscal actual en costos
+  - Selección de actividad guarda en estado local
+  - Performance: medición con performance.now()
+
+---
+
+**PROGRESO TOTAL: 37/598 componentes (6.19%)**
+**Última actualización:** 2025-11-08
 

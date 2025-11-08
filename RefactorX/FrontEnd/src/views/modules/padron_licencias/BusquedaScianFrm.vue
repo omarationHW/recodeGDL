@@ -1,34 +1,46 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="search" />
       </div>
       <div class="module-view-info">
         <h1>Búsqueda SCIAN</h1>
-        <p>Padrón de Licencias - Búsqueda de Códigos SCIAN</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Búsqueda de Códigos SCIAN</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          v-if="scianes.length > 0"
+          class="btn-municipal-secondary"
+          @click="clearFilters"
+          title="Limpiar filtros y resultados"
+        >
+          <font-awesome-icon icon="eraser" />
+          Limpiar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
 
     <!-- Filtros de búsqueda -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header clickable-header" @click="toggleFilters">
         <h5>
           <font-awesome-icon icon="filter" />
           Criterios de Búsqueda
+          <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
         </h5>
       </div>
-      <div class="municipal-card-body">
+      <div class="municipal-card-body" v-show="showFilters">
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Código SCIAN</label>
@@ -38,7 +50,7 @@
               v-model="filters.codigo"
               placeholder="Buscar por código"
               @keyup.enter="searchScian"
-            >
+            />
           </div>
           <div class="form-group">
             <label class="municipal-form-label">Descripción</label>
@@ -48,7 +60,7 @@
               v-model="filters.descripcion"
               placeholder="Buscar por descripción"
               @keyup.enter="searchScian"
-            >
+            />
           </div>
         </div>
         <div class="button-group">
@@ -74,14 +86,18 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
-          <span class="badge-info" v-if="scianes.length > 0">{{ scianes.length }} registros</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="scianes.length > 0">
+            {{ scianes.length }} registros
+          </span>
+          <div v-if="loading" class="spinner-border spinner-sm" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
         </div>
       </div>
 
@@ -92,32 +108,40 @@
               <tr>
                 <th>Código</th>
                 <th>Descripción</th>
-                <th>Nivel</th>
+                <th>Tipo</th>
+                <th>Microgenerador</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="scian in scianes" :key="scian.codigo" class="row-hover">
-                <td><strong class="text-primary"><code>{{ scian.codigo }}</code></strong></td>
+              <tr v-for="scian in scianes" :key="scian.codigo_scian" class="clickable-row" @click="viewScian(scian)">
+                <td><strong class="text-primary"><code>{{ scian.codigo_scian }}</code></strong></td>
                 <td>{{ scian.descripcion?.trim() || 'N/A' }}</td>
                 <td>
-                  <span class="badge" :class="getNivelBadgeClass(scian.nivel)">
-                    <font-awesome-icon icon="layer-group" />
-                    Nivel {{ scian.nivel || 'N/A' }}
+                  <span :class="getTipoBadgeClass(scian.tipo)">
+                    {{ getTipoLabel(scian.tipo) }}
+                  </span>
+                </td>
+                <td>
+                  <span v-if="scian.es_microgenerador === 'S'" class="badge-success">
+                    <font-awesome-icon icon="check" /> Sí
+                  </span>
+                  <span v-else class="badge-secondary">
+                    <font-awesome-icon icon="times" /> No
                   </span>
                 </td>
                 <td>
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewScian(scian)"
+                      @click.stop="viewScian(scian)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                     <button
                       class="btn-municipal-primary btn-sm"
-                      @click="selectScian(scian)"
+                      @click.stop="selectScian(scian)"
                       title="Seleccionar código SCIAN"
                     >
                       <font-awesome-icon icon="check" />
@@ -127,7 +151,7 @@
                 </td>
               </tr>
               <tr v-if="scianes.length === 0 && !loading">
-                <td colspan="4" class="text-center text-muted">
+                <td colspan="5" class="text-center text-muted empty-state">
                   <font-awesome-icon icon="search" size="2x" class="empty-icon" />
                   <p>No se encontraron códigos SCIAN. Use los filtros para buscar.</p>
                 </td>
@@ -151,18 +175,28 @@
           <div class="selected-item-info">
             <div class="info-row">
               <span class="info-label">Código:</span>
-              <span class="info-value"><code>{{ scianSeleccionado.codigo }}</code></span>
+              <span class="info-value"><code>{{ scianSeleccionado.codigo_scian }}</code></span>
             </div>
             <div class="info-row">
               <span class="info-label">Descripción:</span>
               <span class="info-value">{{ scianSeleccionado.descripcion?.trim() }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Nivel:</span>
+              <span class="info-label">Tipo:</span>
               <span class="info-value">
-                <span class="badge" :class="getNivelBadgeClass(scianSeleccionado.nivel)">
-                  <font-awesome-icon icon="layer-group" />
-                  Nivel {{ scianSeleccionado.nivel }}
+                <span :class="getTipoBadgeClass(scianSeleccionado.tipo)">
+                  {{ getTipoLabel(scianSeleccionado.tipo) }}
+                </span>
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Microgenerador:</span>
+              <span class="info-value">
+                <span v-if="scianSeleccionado.es_microgenerador === 'S'" class="badge-success">
+                  <font-awesome-icon icon="check" /> Sí
+                </span>
+                <span v-else class="badge-secondary">
+                  <font-awesome-icon icon="times" /> No
                 </span>
               </span>
             </div>
@@ -191,7 +225,7 @@
     <!-- Modal de visualización -->
     <Modal
       :show="showViewModal"
-      :title="`Detalles del Código SCIAN: ${selectedScian?.codigo}`"
+      :title="`Detalles del Código SCIAN: ${selectedScian?.codigo_scian}`"
       size="lg"
       @close="showViewModal = false"
       :showDefaultFooter="false"
@@ -206,18 +240,47 @@
             <table class="detail-table">
               <tr>
                 <td class="label">Código:</td>
-                <td><code>{{ selectedScian.codigo }}</code></td>
+                <td><code>{{ selectedScian.codigo_scian }}</code></td>
               </tr>
               <tr>
                 <td class="label">Descripción:</td>
                 <td>{{ selectedScian.descripcion?.trim() || 'N/A' }}</td>
               </tr>
               <tr>
-                <td class="label">Nivel:</td>
+                <td class="label">Tipo:</td>
                 <td>
-                  <span class="badge" :class="getNivelBadgeClass(selectedScian.nivel)">
-                    <font-awesome-icon icon="layer-group" />
-                    Nivel {{ selectedScian.nivel || 'N/A' }}
+                  <span :class="getTipoBadgeClass(selectedScian.tipo)">
+                    {{ getTipoLabel(selectedScian.tipo) }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Microgenerador:</td>
+                <td>
+                  <span v-if="selectedScian.es_microgenerador === 'S'" class="badge-success">
+                    <font-awesome-icon icon="check" /> Sí
+                  </span>
+                  <span v-else class="badge-secondary">
+                    <font-awesome-icon icon="times" /> No
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="selectedScian.es_microgenerador === 'S'">
+                <td class="label">Categorías Microgenerador:</td>
+                <td>
+                  <div class="badge-group">
+                    <span v-if="selectedScian.microgenerador_a === 'S'" class="badge-info">A</span>
+                    <span v-if="selectedScian.microgenerador_b === 'S'" class="badge-info">B</span>
+                    <span v-if="selectedScian.microgenerador_c === 'S'" class="badge-info">C</span>
+                    <span v-if="selectedScian.microgenerador_d === 'S'" class="badge-info">D</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Vigente:</td>
+                <td>
+                  <span :class="selectedScian.vigente === 'V' ? 'badge-success' : 'badge-danger'">
+                    {{ selectedScian.vigente === 'V' ? 'Vigente' : 'No Vigente' }}
                   </span>
                 </td>
               </tr>
@@ -239,8 +302,11 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -289,6 +355,7 @@ const scianes = ref([])
 const scianSeleccionado = ref(null)
 const selectedScian = ref(null)
 const showViewModal = ref(false)
+const showFilters = ref(true)
 
 // Filtros
 const filters = ref({
@@ -297,7 +364,12 @@ const filters = ref({
 })
 
 // Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
 const searchScian = async () => {
+  // Validar que al menos un criterio esté lleno
   if (!filters.value.codigo && !filters.value.descripcion) {
     await Swal.fire({
       icon: 'warning',
@@ -310,28 +382,35 @@ const searchScian = async () => {
 
   setLoading(true, 'Buscando códigos SCIAN...')
 
-  try {
-    // Si hay código, buscar por código específico, sino buscar por descripción
-    const operacion = filters.value.codigo ? 'CATALOGO_SCIAN_GET_BY_ID' : 'CATALOGO_SCIAN_BUSQUEDA'
-    const parametros = []
+  // Medir tiempo de ejecución
+  const startTime = performance.now()
 
-    if (filters.value.codigo) {
-      parametros.push({ nombre: 'p_codigo', valor: filters.value.codigo, tipo: 'string' })
-    }
-    if (filters.value.descripcion) {
-      parametros.push({ nombre: 'p_descripcion', valor: filters.value.descripcion, tipo: 'string' })
-    }
+  try {
+    // Combinar código y descripción en un solo parámetro de búsqueda
+    const searchTerm = filters.value.codigo || filters.value.descripcion
 
     const response = await execute(
-      operacion,
+      'catalogo_scian_busqueda',
       'padron_licencias',
-      parametros,
+      [
+        { nombre: 'p_descripcion', valor: searchTerm, tipo: 'string' }
+      ],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2) // Convertir a segundos
+
     if (response && response.result) {
       scianes.value = response.result
+
+      // Formatear mensaje de duración
+      const durationText = duration < 1
+        ? `${((endTime - startTime)).toFixed(0)}ms`
+        : `${duration}s`
+
       if (scianes.value.length > 0) {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${scianes.value.length} códigos SCIAN`)
       } else {
         showToast('info', 'No se encontraron códigos SCIAN con los criterios especificados')
@@ -354,6 +433,8 @@ const clearFilters = () => {
     descripcion: ''
   }
   scianes.value = []
+  scianSeleccionado.value = null
+  showToast('info', 'Filtros limpiados')
 }
 
 const viewScian = (scian) => {
@@ -368,12 +449,12 @@ const selectScian = async (scian) => {
     icon: 'success',
     title: 'Código SCIAN Seleccionado',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Ha seleccionado el siguiente código SCIAN:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Código:</strong> ${scian.codigo}</li>
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${scian.descripcion?.trim()}</li>
-          <li style="margin: 5px 0;"><strong>Nivel:</strong> ${scian.nivel}</li>
+      <div class="swal-selection-content">
+        <p class="swal-selection-text">Ha seleccionado el siguiente código SCIAN:</p>
+        <ul class="swal-selection-list">
+          <li><strong>Código:</strong> ${scian.codigo_scian}</li>
+          <li><strong>Descripción:</strong> ${scian.descripcion?.trim()}</li>
+          <li><strong>Tipo:</strong> ${getTipoLabel(scian.tipo)}</li>
         </ul>
       </div>
     `,
@@ -390,15 +471,26 @@ const clearSelection = () => {
 }
 
 // Utilidades
-const getNivelBadgeClass = (nivel) => {
+const getTipoBadgeClass = (tipo) => {
   const classes = {
-    1: 'badge-primary',
-    2: 'badge-info',
-    3: 'badge-success',
-    4: 'badge-warning',
-    5: 'badge-secondary'
+    'S': 'badge-primary',  // Sector
+    'R': 'badge-info',     // Rama
+    'C': 'badge-success',  // Clase
+    'A': 'badge-warning',  // Actividad
+    'E': 'badge-secondary' // Específica
   }
-  return classes[nivel] || 'badge-secondary'
+  return classes[tipo] || 'badge-secondary'
+}
+
+const getTipoLabel = (tipo) => {
+  const labels = {
+    'S': 'Sector',
+    'R': 'Rama',
+    'C': 'Clase',
+    'A': 'Actividad',
+    'E': 'Específica'
+  }
+  return labels[tipo] || 'N/A'
 }
 
 // Lifecycle
@@ -410,3 +502,5 @@ onBeforeUnmount(() => {
   showViewModal.value = false
 })
 </script>
+
+<!-- NO inline styles - All styles in municipal-theme.css -->

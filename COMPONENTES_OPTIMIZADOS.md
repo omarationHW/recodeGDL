@@ -1559,6 +1559,83 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 37/598 componentes (6.19%)**
+### 38. ✅ **busqueda-scian** (BusquedaScianFrm.vue) - P3 PRIORIDAD MEDIA
+- **Ruta:** `/padron-licencias/busqueda-scian`
+- **Fecha:** 2025-11-08
+- **Estado:** ✅ COMPLETADO
+- **Tipo:** Búsqueda - Códigos SCIAN (Sistema de Clasificación Industrial)
+- **Optimizaciones aplicadas:**
+  - ✅ Sin inline styles (removido style="position: relative;" y styles de SweetAlert)
+  - ✅ Badge púrpura (cambio de badge-info a badge-purple)
+  - ✅ Toast con tiempo de consulta (performance.now() + formato ms/s)
+  - ✅ Header consistente con otros componentes
+  - ✅ Filtros colapsables con clickable-header
+  - ✅ Clase clickable-row en tabla
+  - ✅ Empty state cuando no hay resultados
+  - ✅ Badges dinámicos por tipo de SCIAN (Sector, Rama, Clase, Actividad, Específica)
+  - ✅ Mostrar categorías de microgenerador (A, B, C, D)
+  - ✅ Modal de detalle con información completa
+  - ✅ Panel de SCIAN seleccionado
+  - ✅ SweetAlert con clases CSS (swal-selection-content, swal-selection-list)
+
+- **SPs Utilizados (1):** Existente en esquema `public`
+  - ✅ `catalogo_scian_busqueda(p_descripcion)` - Búsqueda por código o descripción
+
+- **Módulo API:** 'padron_licencias'
+- **Tabla consultada:**
+  - public.c_scian - Catálogo de códigos SCIAN
+
+- **Lógica de Búsqueda:**
+  - Acepta código o descripción como parámetro
+  - Búsqueda por código: usa CAST(codigo_scian AS VARCHAR) LIKE
+  - Búsqueda por descripción: usa UPPER(descripcion) LIKE
+  - Filtro automático: vigente = 'V' (solo vigentes)
+  - Ordenamiento: por descripción ASC
+
+- **Patrón de Código:**
+  ```javascript
+  // Búsqueda unificada por código o descripción
+  const searchTerm = filters.value.codigo || filters.value.descripcion
+
+  execute(
+    'catalogo_scian_busqueda',
+    'padron_licencias',
+    [{ nombre: 'p_descripcion', valor: searchTerm, tipo: 'string' }],
+    'guadalajara'
+  )
+  ```
+
+- **Campos Mostrados:**
+  - Código SCIAN, Descripción, Tipo, Microgenerador
+  - Botones: Ver detalles, Seleccionar
+  - En modal: Categorías microgenerador (A, B, C, D), Vigencia
+
+- **Tipos de SCIAN (badges dinámicos):**
+  - S (Sector) - badge-primary (azul)
+  - R (Rama) - badge-info (cian)
+  - C (Clase) - badge-success (verde)
+  - A (Actividad) - badge-warning (amarillo)
+  - E (Específica) - badge-secondary (gris)
+
+- **Validaciones Implementadas:**
+  - Al menos un criterio de búsqueda requerido
+  - Trim de descripciones
+  - Badge de microgenerador (Sí/No con iconos)
+  - Mostrar categorías solo si es microgenerador
+
+- **Ubicación SPs:** `RefactorX/Base/padron_licencias/database/database/BusquedaScian_all_procedures.sql`
+
+- **Notas Técnicas:**
+  - Componente de búsqueda puro (no CRUD)
+  - NO recarga datos automáticamente al entrar
+  - Búsqueda flexible: código o descripción en un solo campo
+  - El SP busca en ambos campos (codigo_scian y descripcion)
+  - Selección de SCIAN guarda en estado local
+  - Performance: medición con performance.now()
+  - Información detallada de microgeneradores
+
+---
+
+**PROGRESO TOTAL: 38/598 componentes (6.35%)**
 **Última actualización:** 2025-11-08
 

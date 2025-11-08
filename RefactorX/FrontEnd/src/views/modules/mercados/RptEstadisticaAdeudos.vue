@@ -1,38 +1,35 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="exclamation-triangle" /></div>
-      <div class="module-view-info">
-        <h1>Estadística de Adeudos</h1>
-        <p>Mercados - Estadística de Adeudos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-estadistica-adeudos-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Estadística de Adeudos</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Estadística Global de Adeudos Vencidos</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row">
         <div class="col-md-2">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input type="number" v-model.number="form.axo" id="axo" class="municipal-form-control" required min="2000" max="2100">
+          <label for="axo" class="form-label">Año</label>
+          <input type="number" v-model.number="form.axo" id="axo" class="form-control" required min="2000" max="2100">
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label" for="periodo">Periodo</label>
-          <input type="number" v-model.number="form.periodo" id="periodo" class="municipal-form-control" required min="1" max="12">
+          <label for="periodo" class="form-label">Periodo</label>
+          <input type="number" v-model.number="form.periodo" id="periodo" class="form-control" required min="1" max="12">
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="importe">Importe mínimo (opcional)</label>
-          <input type="number" v-model.number="form.importe" id="importe" class="municipal-form-control" step="0.01" min="0">
+          <label for="importe" class="form-label">Importe mínimo (opcional)</label>
+          <input type="number" v-model.number="form.importe" id="importe" class="form-control" step="0.01" min="0">
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="opc">Tipo de Reporte</label>
+          <label for="opc" class="form-label">Tipo de Reporte</label>
           <select v-model.number="form.opc" id="opc" class="form-select">
             <option :value="1">Global</option>
             <option :value="2">Sólo mayores o iguales a importe</option>
           </select>
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn btn-municipal-primary w-100">Consultar</button>
+          <button type="submit" class="btn btn-primary w-100">Consultar</button>
         </div>
       </div>
     </form>
@@ -45,7 +42,7 @@
         </strong>
       </div>
       <div class="table-responsive">
-        <table class="-bordered municipal-table-striped">
+        <table class="table table-bordered table-striped">
           <thead>
             <tr>
               <th>Oficina</th>
@@ -75,9 +72,6 @@
       <div class="alert alert-warning">No se encontraron resultados para los criterios seleccionados.</div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

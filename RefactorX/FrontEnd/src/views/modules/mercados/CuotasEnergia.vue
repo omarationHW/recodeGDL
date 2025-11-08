@@ -1,118 +1,80 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
-      </div>
-      <div class="module-view-info">
-        <h1>Cuotas Energia</h1>
-        <p>Mercados - Gestión de Energía</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+  <div class="cuotas-energia-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Cuotas de Energía Eléctrica</li>
+      </ol>
+    </nav>
+    <h1>Cuotas de Energía Eléctrica</h1>
+    <div class="mb-3">
+      <button class="btn btn-primary" @click="showCreate = true">Agregar Cuota</button>
     </div>
-
-    <div class="module-view-content">
-      <div class="cuotas-energia-page">
-          <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-              <li class="breadcrumb-item active" aria-current="page">Cuotas de Energía Eléctrica</li>
-            </ol>
-          </nav>
-          <h1>Cuotas de Energía Eléctrica</h1>
-          <div class="mb-3">
-            <button class="btn-municipal-primary" @click="showCreate = true">Agregar Cuota</button>
-          </div>
-          <div v-if="showCreate || editRow" class="municipal-card">
-            <div class="municipal-card">
-              <h5 v-if="!editRow">Agregar Nueva Cuota</h5>
-              <h5 v-else>Modificar Cuota</h5>
-              <form @submit.prevent="editRow ? updateCuota() : createCuota()">
-                <div class="row">
-                  <div class="col-md-3">
-                    <label>Año</label>
-                    <input type="number" v-model.number="form.axo" class="municipal-form-control" required min="2000" max="2100">
-                  </div>
-                  <div class="col-md-3">
-                    <label>Periodo</label>
-                    <input type="number" v-model.number="form.periodo" class="municipal-form-control" required min="1" max="12">
-                  </div>
-                  <div class="col-md-3">
-                    <label>Importe</label>
-                    <input type="number" v-model.number="form.importe" class="municipal-form-control" step="0.000001" min="0.000001" required>
-                  </div>
-                </div>
-                <div class="mt-3">
-                  <button type="submit" class="btn btn-success">{{ editRow ? 'Guardar Cambios' : 'Agregar' }}</button>
-                  <button type="button" class="btn-municipal-secondary" @click="cancelForm">Cancelar</button>
-                </div>
-              </form>
+    <div v-if="showCreate || editRow" class="card mb-4">
+      <div class="card-body">
+        <h5 v-if="!editRow">Agregar Nueva Cuota</h5>
+        <h5 v-else>Modificar Cuota</h5>
+        <form @submit.prevent="editRow ? updateCuota() : createCuota()">
+          <div class="row">
+            <div class="col-md-3">
+              <label>Año</label>
+              <input type="number" v-model.number="form.axo" class="form-control" required min="2000" max="2100">
+            </div>
+            <div class="col-md-3">
+              <label>Periodo</label>
+              <input type="number" v-model.number="form.periodo" class="form-control" required min="1" max="12">
+            </div>
+            <div class="col-md-3">
+              <label>Importe</label>
+              <input type="number" v-model.number="form.importe" class="form-control" step="0.000001" min="0.000001" required>
             </div>
           </div>
-          <div class="municipal-table">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr class="row-hover">
-                  <th>Control</th>
-                  <th>Año</th>
-                  <th>Periodo</th>
-                  <th>Importe</th>
-                  <th>Fecha de Alta</th>
-                  <th>Usuario</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in cuotas" :key="row.id_kilowhatts" class="row-hover">
-                  <td>{{ row.id_kilowhatts }}</td>
-                  <td>{{ row.axo }}</td>
-                  <td>{{ row.periodo }}</td>
-                  <td>{{ row.importe | currency }}</td>
-                  <td>{{ row.fecha_alta | datetime }}</td>
-                  <td>{{ row.usuario }}</td>
-                  <td>
-                    <button class="btn-municipal-info" @click="editCuota(row)">Editar</button>
-                    <button class="btn btn-sm btn-danger" @click="deleteCuota(row)">Eliminar</button>
-                  </td>
-                </tr>
-                <tr v-if="cuotas.length === 0" class="row-hover">
-                  <td colspan="7" class="text-center">No hay cuotas registradas.</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="mt-3">
+            <button type="submit" class="btn btn-success">{{ editRow ? 'Guardar Cambios' : 'Agregar' }}</button>
+            <button type="button" class="btn btn-secondary" @click="cancelForm">Cancelar</button>
           </div>
-          <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
-          <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
-        </div>
+        </form>
+      </div>
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'CuotasEnergia'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Control</th>
+            <th>Año</th>
+            <th>Periodo</th>
+            <th>Importe</th>
+            <th>Fecha de Alta</th>
+            <th>Usuario</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in cuotas" :key="row.id_kilowhatts">
+            <td>{{ row.id_kilowhatts }}</td>
+            <td>{{ row.axo }}</td>
+            <td>{{ row.periodo }}</td>
+            <td>{{ row.importe | currency }}</td>
+            <td>{{ row.fecha_alta | datetime }}</td>
+            <td>{{ row.usuario }}</td>
+            <td>
+              <button class="btn btn-sm btn-info" @click="editCuota(row)">Editar</button>
+              <button class="btn btn-sm btn-danger" @click="deleteCuota(row)">Eliminar</button>
+            </td>
+          </tr>
+          <tr v-if="cuotas.length === 0">
+            <td colspan="7" class="text-center">No hay cuotas registradas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+    <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'CuotasEnergiaPage',
   data() {
     return {
@@ -122,13 +84,8 @@ export default {
       form: {
         axo: new Date().getFullYear(),
         periodo: 1,
-        importe: null,
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        importe: null
+      },
       error: '',
       success: ''
     };
@@ -137,35 +94,10 @@ export default {
     this.fetchCuotas();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async fetchCuotas() {
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'list',
           params: {},
           module: 'cuotas_energia'
@@ -183,10 +115,7 @@ export default {
       this.error = '';
       this.success = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'create',
           params: this.form,
           module: 'cuotas_energia'
@@ -219,10 +148,7 @@ export default {
       this.error = '';
       this.success = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'update',
           params: this.form,
           module: 'cuotas_energia'
@@ -244,10 +170,7 @@ export default {
       this.error = '';
       this.success = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'delete',
           params: { id_kilowhatts: row.id_kilowhatts },
           module: 'cuotas_energia'
@@ -288,8 +211,14 @@ export default {
 };
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.cuotas-energia-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+.card {
+  border: 1px solid #e3e3e3;
+  border-radius: 6px;
+}
 </style>

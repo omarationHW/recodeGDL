@@ -256,14 +256,6 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
     </div>
     <!-- /module-view-content -->
 
@@ -293,6 +285,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Composables
@@ -301,6 +294,7 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
   loading,
   setLoading,
@@ -350,7 +344,7 @@ const buscarLicencia = async () => {
     return
   }
 
-  setLoading(true, 'Buscando licencia...')
+  showLoading('Buscando licencia...', 'Consultando base de datos')
 
   try {
     // Buscar información de la licencia
@@ -358,22 +352,28 @@ const buscarLicencia = async () => {
       'TramiteBajaLic_sp_tramite_baja_lic_consulta',
       'padron_licencias',
       [
-        { nombre: 'p_num_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' }
+        { nombre: 'p_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
     if (licenciaResponse && licenciaResponse.result && licenciaResponse.result.length > 0) {
       licencia.value = licenciaResponse.result[0]
 
       // Buscar adeudos de la licencia
+      const id_licencia = licencia.value.id_licencia
       const adeudosResponse = await execute(
         'TramiteBajaLic_spget_lic_adeudos',
         'padron_licencias',
         [
-          { nombre: 'p_num_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' }
+          { nombre: 'v_id', valor: id_licencia, tipo: 'integer' },
+          { nombre: 'v_tipo', valor: 'L', tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+        null,
+        'comun'
       )
 
       if (adeudosResponse && adeudosResponse.result && adeudosResponse.result.length > 0) {
@@ -396,7 +396,7 @@ const buscarLicencia = async () => {
     licencia.value = null
     adeudos.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -444,21 +444,26 @@ const tramitarBaja = async () => {
     return
   }
 
-  setLoading(true, 'Tramitando baja de licencia...')
+  showLoading('Tramitando baja...', 'Procesando baja de licencia y recalculando saldos')
 
   try {
+    // Fecha de baja administrativa
+    const fechaBaja = new Date()
+    const fechaBajaStr = fechaBaja.toISOString().split('T')[0]
+
     // Paso 1: Tramitar la baja
     const tramiteResponse = await execute(
       'TramiteBajaLic_sp_tramite_baja_lic_tramitar',
       'padron_licencias',
       [
-        { nombre: 'p_num_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' },
-        { nombre: 'p_anio', valor: bajaForm.value.anio, tipo: 'integer' },
-        { nombre: 'p_folio', valor: bajaForm.value.folio, tipo: 'integer' },
-        { nombre: 'p_tipo_baja', valor: bajaForm.value.tipoBaja, tipo: 'string' },
-        { nombre: 'p_motivo', valor: bajaForm.value.motivo.trim(), tipo: 'string' }
+        { nombre: 'p_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' },
+        { nombre: 'p_motivo', valor: `${bajaForm.value.tipoBaja} - ${bajaForm.value.motivo.trim()}`, tipo: 'string' },
+        { nombre: 'p_baja_admva', valor: fechaBajaStr, tipo: 'date' },
+        { nombre: 'p_usuario', valor: 'SISTEMA', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
     if (tramiteResponse && tramiteResponse.result && tramiteResponse.result[0]?.success) {
@@ -467,20 +472,23 @@ const tramitarBaja = async () => {
         'TramiteBajaLic_sp_recalcula_proporcional_baja',
         'padron_licencias',
         [
-          { nombre: 'p_num_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' },
-          { nombre: 'p_anio', valor: bajaForm.value.anio, tipo: 'integer' }
+          { nombre: 'p_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+        null,
+        'comun'
       )
 
-      // Paso 3: Recalcular adeudos
+      // Paso 3: Recalcular adeudos (NO-OP)
       await execute(
         'TramiteBajaLic_sp_tramite_baja_lic_recalcula',
         'padron_licencias',
         [
-          { nombre: 'p_num_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' }
+          { nombre: 'p_licencia', valor: searchForm.value.numLicencia, tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+        null,
+        'comun'
       )
 
       limpiarTodo()
@@ -488,9 +496,13 @@ const tramitarBaja = async () => {
       await Swal.fire({
         icon: 'success',
         title: '¡Baja tramitada!',
-        text: 'La baja de la licencia ha sido procesada exitosamente',
+        html: `
+          <p>La baja de la licencia ha sido procesada exitosamente</p>
+          <p style="margin-top: 10px;"><strong>Folio:</strong> ${tramiteResponse.result[0].folio}</p>
+          <p><strong>Total:</strong> $${tramiteResponse.result[0].total}</p>
+        `,
         confirmButtonColor: '#ea8215',
-        timer: 3000
+        timer: 4000
       })
 
       showToast('success', 'Baja de licencia tramitada exitosamente')
@@ -511,7 +523,7 @@ const tramitarBaja = async () => {
       confirmButtonColor: '#ea8215'
     })
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -574,90 +586,3 @@ onMounted(() => {
   bajaForm.value.anio = currentYear
 })
 </script>
-
-<style scoped>
-.instructions-box {
-  background: #fff3cd;
-  border-left: 4px solid #ffc107;
-  padding: 16px;
-  border-radius: 4px;
-}
-
-.instructions-box ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.instructions-box li {
-  margin: 8px 0;
-  color: #495057;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.detail-section {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.section-title {
-  color: #495057;
-  font-weight: 600;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.detail-table tr {
-  border-bottom: 1px solid #e9ecef;
-}
-
-.detail-table tr:last-child {
-  border-bottom: none;
-}
-
-.detail-table td {
-  padding: 8px 0;
-}
-
-.detail-table td.label {
-  font-weight: 500;
-  color: #6c757d;
-  width: 45%;
-}
-
-.form-section {
-  background: #e7f3ff;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #b3d9ff;
-  margin-top: 20px;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.full-width {
-  grid-column: 1 / -1;
-}
-
-.form-text {
-  display: block;
-  margin-top: 4px;
-  color: #6c757d;
-  font-size: 0.875em;
-}
-</style>

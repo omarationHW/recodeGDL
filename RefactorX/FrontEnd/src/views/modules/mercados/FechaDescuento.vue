@@ -1,23 +1,20 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Fechas de Descuento</h1>
-        <p>Mercados - Fechas de Descuento</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="fecha-descuento-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Fechas de Descuento</li>
+      </ol>
+    </nav>
     <h1>Fechas de Descuento</h1>
     <div class="alert alert-info mb-3">
       Días de Vencimiento para los Descuentos del Año Actual
     </div>
     <div class="mb-3">
-      <button class="btn-municipal-primary" :disabled="!selectedRow" @click="openEditModal">Modificar</button>
-      <button class="btn btn-municipal-secondary float-end" @click="$router.push('/')">Salir</button>
+      <button class="btn btn-primary" :disabled="!selectedRow" @click="openEditModal">Modificar</button>
+      <button class="btn btn-secondary float-end" @click="$router.push('/')">Salir</button>
     </div>
-    <table class="-striped municipal-table-hover">
+    <table class="table table-striped table-hover">
       <thead>
         <tr>
           <th>Mes</th>
@@ -49,24 +46,24 @@
           <div class="modal-body">
             <form @submit.prevent="save">
               <div class="mb-3">
-                <label class="municipal-form-label">Mes</label>
-                <input type="number" class="municipal-form-control" v-model.number="editForm.mes" min="1" max="12" readonly />
+                <label class="form-label">Mes</label>
+                <input type="number" class="form-control" v-model.number="editForm.mes" min="1" max="12" readonly />
               </div>
               <div class="mb-3">
-                <label class="municipal-form-label">Fecha Descuento</label>
-                <input type="date" class="municipal-form-control" v-model="editForm.fecha_descuento" required />
+                <label class="form-label">Fecha Descuento</label>
+                <input type="date" class="form-control" v-model="editForm.fecha_descuento" required />
               </div>
               <div class="mb-3">
-                <label class="municipal-form-label">Fecha Recargos</label>
-                <input type="date" class="municipal-form-control" v-model="editForm.fecha_recargos" required />
+                <label class="form-label">Fecha Recargos</label>
+                <input type="date" class="form-control" v-model="editForm.fecha_recargos" required />
               </div>
               <div class="mb-3">
-                <label class="municipal-form-label">Usuario</label>
-                <input type="text" class="municipal-form-control" :value="userName" readonly />
+                <label class="form-label">Usuario</label>
+                <input type="text" class="form-control" :value="userName" readonly />
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn-municipal-success">Guardar</button>
-                <button type="button" class="btn-municipal-secondary" @click="closeModal">Cancelar</button>
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
               </div>
             </form>
           </div>
@@ -76,9 +73,6 @@
     <div v-if="loading" class="loading-overlay"><span>Cargando...</span></div>
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -122,7 +116,7 @@ export default {
           })
         });
         const data = await res.json();
-        if (data.eResponse.status === 'ok') {
+        if (data.eResponse.success) {
           this.rows = data.eResponse.data;
         } else {
           this.error = data.eResponse.message || 'Error al cargar datos';
@@ -170,7 +164,7 @@ export default {
           })
         });
         const data = await res.json();
-        if (data.eResponse.status === 'ok') {
+        if (data.eResponse.success) {
           this.showModal = false;
           this.fetchRows();
         } else {

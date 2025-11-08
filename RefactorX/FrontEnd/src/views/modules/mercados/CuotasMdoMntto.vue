@@ -1,36 +1,33 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="money-bill-wave" /></div>
-      <div class="module-view-info">
-        <h1>Cuotas de Mercado por Año</h1>
-        <p>Mercados - Cuotas de Mercado por Año</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="cuotas-mdo-mntto-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Cuotas de Mercado por Año</li>
+      </ol>
+    </nav>
     <h2>Mantenimiento a Cuotas de Mercados por Año</h2>
     <form @submit.prevent="onSubmit" class="mb-4">
       <div class="row">
         <div class="col-md-2">
-          <label class="municipal-form-label" for="control">Control</label>
-          <input v-model="form.id_cuotas" type="number" class="municipal-form-control" id="control" :readonly="mode==='edit'" />
+          <label for="control">Control</label>
+          <input v-model="form.id_cuotas" type="number" class="form-control" id="control" :readonly="mode==='edit'" />
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input v-model="form.axo" type="number" class="municipal-form-control" id="axo" min="1992" max="2999" required />
+          <label for="axo">Año</label>
+          <input v-model="form.axo" type="number" class="form-control" id="axo" min="1992" max="2999" required />
         </div>
         <div class="col-md-4">
-          <label class="municipal-form-label" for="categoria">Categoría</label>
-          <select v-model="form.categoria" class="municipal-form-control" id="categoria" required>
+          <label for="categoria">Categoría</label>
+          <select v-model="form.categoria" class="form-control" id="categoria" required>
             <option v-for="cat in catalogs.categorias" :key="cat.categoria" :value="cat.categoria">
               {{ cat.categoria }} - {{ cat.descripcion }}
             </option>
           </select>
         </div>
         <div class="col-md-4">
-          <label class="municipal-form-label" for="seccion">Sección</label>
-          <select v-model="form.seccion" class="municipal-form-control" id="seccion" required>
+          <label for="seccion">Sección</label>
+          <select v-model="form.seccion" class="form-control" id="seccion" required>
             <option v-for="sec in catalogs.secciones" :key="sec.seccion" :value="sec.seccion">
               {{ sec.seccion }} - {{ sec.descripcion }}
             </option>
@@ -39,27 +36,27 @@
       </div>
       <div class="row mt-3">
         <div class="col-md-6">
-          <label class="municipal-form-label" for="clave_cuota">Clave de Cuota</label>
-          <select v-model="form.clave_cuota" class="municipal-form-control" id="clave_cuota" required>
+          <label for="clave_cuota">Clave de Cuota</label>
+          <select v-model="form.clave_cuota" class="form-control" id="clave_cuota" required>
             <option v-for="cve in catalogs.claves" :key="cve.clave_cuota" :value="cve.clave_cuota">
               {{ cve.clave_cuota }} - {{ cve.descripcion }}
             </option>
           </select>
         </div>
         <div class="col-md-6">
-          <label class="municipal-form-label" for="importe">Cuota</label>
-          <input v-model.number="form.importe" type="number" step="0.01" min="0.01" class="municipal-form-control" id="importe" required />
+          <label for="importe">Cuota</label>
+          <input v-model.number="form.importe" type="number" step="0.01" min="0.01" class="form-control" id="importe" required />
         </div>
       </div>
       <div class="mt-4">
-        <button type="submit" class="btn btn-municipal-primary me-2">{{ mode==='edit' ? 'Actualizar' : 'Crear' }}</button>
-        <button type="button" class="btn-municipal-secondary" @click="resetForm">Cancelar</button>
+        <button type="submit" class="btn btn-primary me-2">{{ mode==='edit' ? 'Actualizar' : 'Crear' }}</button>
+        <button type="button" class="btn btn-secondary" @click="resetForm">Cancelar</button>
       </div>
       <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
       <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
     </form>
     <h3>Listado de Cuotas</h3>
-    <table class="municipal-table">
+    <table class="table table-striped">
       <thead>
         <tr>
           <th>Control</th>
@@ -84,16 +81,13 @@
           <td>{{ row.fecha_alta ? (row.fecha_alta.substr(0,10)) : '' }}</td>
           <td>{{ row.id_usuario }}</td>
           <td>
-            <button class="btn btn-sm btn-municipal-info me-1" @click="editRow(row)">Editar</button>
-            <button class="btn-icon btn-municipal-danger" @click="deleteRow(row)">Eliminar</button>
+            <button class="btn btn-sm btn-info me-1" @click="editRow(row)">Editar</button>
+            <button class="btn btn-sm btn-danger" @click="deleteRow(row)">Eliminar</button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

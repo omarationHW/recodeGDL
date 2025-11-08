@@ -1,53 +1,50 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="bolt" /></div>
-      <div class="module-view-info">
-        <h1>Alta de Locales para Energía Eléctrica</h1>
-        <p>Mercados - Alta de Locales para Energía Eléctrica</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="energia-mtto-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Alta de Locales para Energía Eléctrica</li>
+      </ol>
+    </nav>
     <h2>Alta de Locales para Energía Eléctrica</h2>
     <form @submit.prevent="onBuscarLocal">
       <div class="row">
         <div class="col-md-2">
           <label>Recaudadora</label>
-          <select v-model="form.oficina" class="municipal-form-control" required>
+          <select v-model="form.oficina" class="form-control" required>
             <option v-for="rec in catalogs.recaudadoras" :key="rec.id" :value="rec.id">{{ rec.nombre }}</option>
           </select>
         </div>
         <div class="col-md-2">
           <label>Mercado</label>
-          <select v-model="form.num_mercado" class="municipal-form-control" required>
+          <select v-model="form.num_mercado" class="form-control" required>
             <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.descripcion }}</option>
           </select>
         </div>
         <div class="col-md-1">
           <label>Cat.</label>
-          <input v-model="form.categoria" class="municipal-form-control" required maxlength="1" />
+          <input v-model="form.categoria" class="form-control" required maxlength="1" />
         </div>
         <div class="col-md-2">
           <label>Sección</label>
-          <select v-model="form.seccion" class="municipal-form-control" required>
+          <select v-model="form.seccion" class="form-control" required>
             <option v-for="sec in catalogs.secciones" :key="sec.id" :value="sec.id">{{ sec.descripcion }}</option>
           </select>
         </div>
         <div class="col-md-1">
           <label>Local</label>
-          <input v-model="form.local" class="municipal-form-control" required />
+          <input v-model="form.local" class="form-control" required />
         </div>
         <div class="col-md-1">
           <label>Letra</label>
-          <input v-model="form.letra_local" class="municipal-form-control" maxlength="1" />
+          <input v-model="form.letra_local" class="form-control" maxlength="1" />
         </div>
         <div class="col-md-1">
           <label>Bloque</label>
-          <input v-model="form.bloque" class="municipal-form-control" maxlength="1" />
+          <input v-model="form.bloque" class="form-control" maxlength="1" />
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <button class="btn-municipal-primary" type="submit">Buscar Local</button>
+          <button class="btn btn-primary" type="submit">Buscar Local</button>
         </div>
       </div>
     </form>
@@ -57,41 +54,41 @@
         <div class="row mt-4">
           <div class="col-md-2">
             <label>Clave Consumo</label>
-            <select v-model="form.cve_consumo" class="municipal-form-control" required>
+            <select v-model="form.cve_consumo" class="form-control" required>
               <option v-for="c in catalogs.consumos" :key="c.value" :value="c.value">{{ c.label }}</option>
             </select>
           </div>
           <div class="col-md-3">
             <label>Descripción Local</label>
-            <input v-model="form.descripcion" class="municipal-form-control" maxlength="50" required />
+            <input v-model="form.descripcion" class="form-control" maxlength="50" required />
           </div>
           <div class="col-md-2">
             <label>Cantidad Mes</label>
-            <input v-model="form.cantidad" class="municipal-form-control" type="number" min="0" step="0.01" required />
+            <input v-model="form.cantidad" class="form-control" type="number" min="0" step="0.01" required />
           </div>
           <div class="col-md-2">
             <label>Vigencia</label>
-            <select v-model="form.vigencia" class="municipal-form-control" required>
+            <select v-model="form.vigencia" class="form-control" required>
               <option value="A">Vigente</option>
               <option value="E">Vigente para Emisión</option>
             </select>
           </div>
           <div class="col-md-2">
             <label>Fecha Alta</label>
-            <input v-model="form.fecha_alta" class="municipal-form-control" type="date" required />
+            <input v-model="form.fecha_alta" class="form-control" type="date" required />
           </div>
         </div>
         <div class="row mt-3">
           <div class="col-md-2">
             <label>Año</label>
-            <input v-model="form.axo" class="municipal-form-control" type="number" required />
+            <input v-model="form.axo" class="form-control" type="number" required />
           </div>
           <div class="col-md-2">
             <label>Número Oficio</label>
-            <input v-model="form.numero" class="municipal-form-control" required />
+            <input v-model="form.numero" class="form-control" required />
           </div>
           <div class="col-md-2 d-flex align-items-end">
-            <button class="btn-municipal-success" type="submit">Grabar</button>
+            <button class="btn btn-success" type="submit">Grabar</button>
           </div>
         </div>
       </form>
@@ -101,9 +98,6 @@
       {{ alert.message }}
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -153,22 +147,16 @@ export default {
     async loadCatalogs() {
       const res = await axios.post('/api/execute', {
         eRequest: { action: 'get_catalogs' }
-      }
-          )
-        });
-        const resData = await res.json();
-      if (resData.eResponse.status === 'ok') {
+      });
+      if (res.data.eResponse.success) {
         this.catalogs = res.data.eResponse.data;
       }
     },
     async loadMercados(oficina) {
       const res = await axios.post('/api/execute', {
         eRequest: { action: 'catalog_mercados', params: { oficina } }
-      }
-          )
-        });
-        const resData = await res.json();
-      if (resData.eResponse.status === 'ok') {
+      });
+      if (res.data.eResponse.success) {
         this.mercados = res.data.eResponse.data;
       }
     },
@@ -185,11 +173,8 @@ export default {
       };
       const res = await axios.post('/api/execute', {
         eRequest: { action: 'buscar_local', params }
-      }
-          )
-        });
-        const resData = await res.json();
-      if (resData.eResponse.status === 'ok' && res.data.eResponse.data.length > 0) {
+      });
+      if (res.data.eResponse.success && res.data.eResponse.data.length > 0) {
         this.localEncontrado = true;
         // Prellenar datos si es necesario
         this.form.id_local = res.data.eResponse.data[0].id_local;
@@ -217,11 +202,8 @@ export default {
       };
       const res = await axios.post('/api/execute', {
         eRequest: { action: 'alta_energia_mtto', params }
-      }
-          )
-        });
-        const resData = await res.json();
-      if (resData.eResponse.status === 'ok') {
+      });
+      if (res.data.eResponse.success) {
         this.alert = { message: 'Se grabó correctamente el registro de Energía Eléctrica.', success: true };
         this.localEncontrado = false;
       } else {

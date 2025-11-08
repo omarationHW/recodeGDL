@@ -1,33 +1,53 @@
 <template>
   <div class="module-view">
+    <!-- Navigation Header -->
+    <div class="navigation-header">
+      <button
+        type="button"
+        class="btn-nav-back"
+        @click="router.push({ name: 'ConsultaTramitefrm' })"
+        title="Regresar a Consulta de Trámites"
+      >
+        <font-awesome-icon icon="arrow-left" />
+        <span>Regresar a Consulta</span>
+      </button>
+      <button
+        type="button"
+        class="btn-nav-help"
+        @click="openDocumentation"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+        <span>Ayuda</span>
+      </button>
+    </div>
+
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="redo" />
       </div>
       <div class="module-view-info">
         <h1>Reactivar Trámite</h1>
-        <p>Padrón de Licencias - Reactivación de trámites cancelados</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Reactivación de trámites cancelados</p>
+      </div>
     </div>
 
     <div class="module-view-content">
-      <!-- Búsqueda de Trámite -->
+      <!-- Búsqueda de Trámite (Collapsible) -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div
+          class="accordion-header"
+          :class="{ 'collapsed': !searchPanelExpanded }"
+          @click="searchPanelExpanded = !searchPanelExpanded"
+        >
           <h5 class="municipal-card-title">
             <font-awesome-icon icon="search" />
             Buscar Trámite Cancelado
           </h5>
+          <font-awesome-icon :icon="searchPanelExpanded ? 'chevron-up' : 'chevron-down'" />
         </div>
-        <div class="municipal-card-body">
+        <div v-show="searchPanelExpanded" class="municipal-card-body">
           <form @submit.prevent="buscarTramite">
             <div class="form-row">
               <div class="form-group col-md-6">
@@ -43,15 +63,33 @@
                   <button
                     type="submit"
                     class="btn-municipal-primary"
-                    :disabled="loading || !searchTramite"
+                    :disabled="!searchTramite"
                   >
                     <font-awesome-icon icon="search" /> Buscar
                   </button>
                 </div>
               </div>
+              <div class="form-group col-md-6">
+                <label class="municipal-form-label">Giro:</label>
+                <input
+                  type="text"
+                  class="municipal-form-control"
+                  :value="giroDescripcion"
+                  disabled
+                />
+              </div>
             </div>
           </form>
         </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="!tramiteData" class="empty-state-card">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="search" />
+        </div>
+        <h3>Busque un trámite cancelado</h3>
+        <p>Ingrese el ID del trámite que desea reactivar</p>
       </div>
 
       <!-- Información del Trámite -->
@@ -63,72 +101,101 @@
           </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="details-grid">
-            <div class="detail-section">
-              <h6 class="section-title">
-                <font-awesome-icon icon="info-circle" />
-                Datos del Trámite
+          <div class="tramite-details-grid">
+            <!-- Sección 1: Datos Generales -->
+            <div class="tramite-detail-section">
+              <h6 class="tramite-section-title">
+                <font-awesome-icon icon="info-circle" /> Datos Generales
               </h6>
-              <table class="detail-table">
-                <tr>
-                  <td class="label">ID Trámite:</td>
-                  <td><strong>{{ tramiteData.id_tramite }}</strong></td>
-                </tr>
-                <tr>
-                  <td class="label">Licencia:</td>
-                  <td><code>{{ tramiteData.licencia }}</code></td>
-                </tr>
-                <tr>
-                  <td class="label">Tipo:</td>
-                  <td>{{ tramiteData.tipo_tramite }}</td>
-                </tr>
-                <tr>
-                  <td class="label">Fecha:</td>
-                  <td>{{ formatDate(tramiteData.fecha) }}</td>
-                </tr>
-                <tr>
-                  <td class="label">Estado Actual:</td>
-                  <td>
-                    <span :class="getEstadoBadgeClass(tramiteData.estatus)" class="badge">
-                      <font-awesome-icon :icon="getEstadoIcon(tramiteData.estatus)" />
-                      {{ getEstadoText(tramiteData.estatus) }}
-                    </span>
-                  </td>
-                </tr>
-              </table>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">ID Trámite:</span>
+                <span class="tramite-detail-value"><strong>{{ tramiteData.id_tramite }}</strong></span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Folio:</span>
+                <span class="tramite-detail-value">{{ tramiteData.licencia || 'S/F' }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Tipo Trámite:</span>
+                <span class="tramite-detail-value">{{ tramiteData.tipo_tramite || 'N/A' }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Fecha Captura:</span>
+                <span class="tramite-detail-value">{{ formatDate(tramiteData.feccap) }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Estado Actual:</span>
+                <span class="tramite-detail-value">
+                  <span :class="getEstadoBadgeClass(tramiteData.estatus)" class="badge">
+                    <font-awesome-icon :icon="getEstadoIcon(tramiteData.estatus)" />
+                    {{ getEstadoText(tramiteData.estatus) }}
+                  </span>
+                </span>
+              </div>
             </div>
 
-            <div class="detail-section">
-              <h6 class="section-title">
-                <font-awesome-icon icon="user" />
-                Información Adicional
+            <!-- Sección 2: Giro y Actividad -->
+            <div class="tramite-detail-section">
+              <h6 class="tramite-section-title">
+                <font-awesome-icon icon="briefcase" /> Giro y Actividad
               </h6>
-              <table class="detail-table">
-                <tr>
-                  <td class="label">Solicitante:</td>
-                  <td>{{ tramiteData.solicitante || 'N/A' }}</td>
-                </tr>
-                <tr>
-                  <td class="label">RFC:</td>
-                  <td><code>{{ tramiteData.rfc || 'N/A' }}</code></td>
-                </tr>
-                <tr>
-                  <td class="label">Domicilio:</td>
-                  <td>{{ tramiteData.domicilio || 'N/A' }}</td>
-                </tr>
-                <tr>
-                  <td class="label">Usuario Captura:</td>
-                  <td><code>{{ tramiteData.usuario_captura }}</code></td>
-                </tr>
-                <tr>
-                  <td class="label">Fecha Cancelación:</td>
-                  <td>{{ formatDate(tramiteData.fecha_cancelacion) }}</td>
-                </tr>
-                <tr>
-                  <td class="label">Motivo Cancelación:</td>
-                  <td>{{ tramiteData.motivo_cancelacion || 'Sin motivo registrado' }}</td>
-                </tr>
-              </table>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Giro:</span>
+                <span class="tramite-detail-value">{{ giroDescripcion || tramiteData.id_giro || 'N/A' }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Actividad:</span>
+                <span class="tramite-detail-value">{{ tramiteData.actividad || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Sección 3: Información del Solicitante -->
+            <div class="tramite-detail-section">
+              <h6 class="tramite-section-title">
+                <font-awesome-icon icon="user" /> Información del Solicitante
+              </h6>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Propietario:</span>
+                <span class="tramite-detail-value">{{ tramiteData.propietario || 'N/A' }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">RFC:</span>
+                <span class="tramite-detail-value">{{ tramiteData.rfc || 'N/A' }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">CURP:</span>
+                <span class="tramite-detail-value">{{ tramiteData.curp || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Sección 4: Ubicación -->
+            <div class="tramite-detail-section">
+              <h6 class="tramite-section-title">
+                <font-awesome-icon icon="map-marker-alt" /> Ubicación
+              </h6>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Domicilio:</span>
+                <span class="tramite-detail-value">{{ tramiteData.ubicacion || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Sección 5: Información de Cancelación -->
+            <div class="tramite-detail-section">
+              <h6 class="tramite-section-title">
+                <font-awesome-icon icon="times-circle" /> Información de Cancelación
+              </h6>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Fecha Cancelación:</span>
+                <span class="tramite-detail-value">{{ formatDate(tramiteData.fec_cancel) }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Motivo Cancelación:</span>
+                <span class="tramite-detail-value">{{ tramiteData.observaciones || 'Sin motivo registrado' }}</span>
+              </div>
+              <div class="tramite-detail-row">
+                <span class="tramite-detail-label">Usuario Captura:</span>
+                <span class="tramite-detail-value">{{ tramiteData.capturista || 'N/A' }}</span>
+              </div>
             </div>
           </div>
 
@@ -153,18 +220,19 @@
                     class="municipal-form-control"
                     v-model="reactivacionForm.motivo"
                     rows="4"
+                    maxlength="500"
                     placeholder="Ingrese el motivo detallado de la reactivación del trámite"
                     required
                   ></textarea>
                   <small class="form-text text-muted">
-                    Explique claramente por qué se debe reactivar este trámite cancelado
+                    {{ reactivacionForm.motivo.length }}/500 caracteres - Explique claramente por qué se debe reactivar este trámite cancelado
                   </small>
                 </div>
               </div>
 
               <div class="alert alert-info">
                 <font-awesome-icon icon="info-circle" />
-                <strong>Información:</strong> Al reactivar el trámite, su estado cambiará de <strong>CANCELADO</strong> a <strong>ACTIVO</strong> y podrá continuar con el proceso normal.
+                <strong>Información:</strong> Al reactivar el trámite, su estado cambiará de <strong>CANCELADO (C)</strong> a <strong>EN PROCESO (T)</strong> y podrá continuar con el flujo normal.
               </div>
 
               <div class="form-row">
@@ -172,7 +240,6 @@
                   <button
                     type="submit"
                     class="btn-municipal-success"
-                    :disabled="loading"
                   >
                     <font-awesome-icon icon="redo" /> Reactivar Trámite
                   </button>
@@ -191,24 +258,6 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
-  </div>
-
     <!-- Modal de Ayuda -->
     <DocumentationModal
       :show="showDocumentation"
@@ -216,14 +265,20 @@
       :moduleName="'padron_licencias'"
       @close="closeDocumentation"
     />
-  </template>
+  </div>
+</template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
+
+// Router
+const router = useRouter()
 
 // Composables
 const showDocumentation = ref(false)
@@ -231,47 +286,66 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const {
-  loading,
-  loadingMessage,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+
+// UI State
+const searchPanelExpanded = ref(true)
 
 // Estado
 const searchTramite = ref(null)
 const tramiteData = ref(null)
+const giroDescripcion = ref('')
 
 const reactivacionForm = ref({
   motivo: ''
+})
+
+// Restore state on mount
+onMounted(() => {
+  const savedSearch = localStorage.getItem('reactivatramite_search')
+  if (savedSearch) {
+    searchTramite.value = parseInt(savedSearch)
+    buscarTramite()
+  }
 })
 
 // Métodos
 const buscarTramite = async () => {
   if (!searchTramite.value) return
 
-  setLoading(true, 'Buscando trámite...')
+  // Save search to localStorage
+  localStorage.setItem('reactivatramite_search', searchTramite.value.toString())
+
+  const startTime = Date.now()
+  showLoading('Buscando trámite...', 'Consultando base de datos')
+
   try {
     const response = await execute(
-      'GET_TRAMITE_BY_ID',
+      'sp_get_tramite_by_id',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: searchTramite.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
+
+    hideLoading()
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result.length > 0) {
       tramiteData.value = response.result[0]
+      searchPanelExpanded.value = false // Collapse search panel after successful search
+
+      // Cargar descripción del giro
+      await cargarGiroDescripcion()
 
       if (tramiteData.value.estatus === 'C') {
-        showToast('success', 'Trámite cancelado encontrado - Puede reactivarlo')
+        showToast('success', `Trámite cancelado encontrado (${duration}s) - Puede reactivarlo`, 3000, 'bottom-right')
       } else {
-        showToast('warning', 'Trámite encontrado pero no está cancelado')
+        showToast('warning', `Trámite encontrado (${duration}s) pero no está cancelado`, 3000, 'bottom-right')
       }
     } else {
       await Swal.fire({
@@ -281,12 +355,37 @@ const buscarTramite = async () => {
         confirmButtonColor: '#ea8215'
       })
       tramiteData.value = null
+      giroDescripcion.value = ''
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
     tramiteData.value = null
-  } finally {
-    setLoading(false)
+    giroDescripcion.value = ''
+  }
+}
+
+const cargarGiroDescripcion = async () => {
+  if (!tramiteData.value?.id_giro) return
+
+  try {
+    const response = await execute(
+      'sp_get_giro_by_id',
+      'padron_licencias',
+      [
+        { nombre: 'p_id_giro', valor: tramiteData.value.id_giro, tipo: 'integer' }
+      ],
+      'guadalajara',
+      null,
+      'comun'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      giroDescripcion.value = response.result[0].descripcion
+    }
+  } catch (error) {
+    console.error('Error al cargar descripción del giro:', error)
+    giroDescripcion.value = tramiteData.value.id_giro?.toString() || ''
   }
 }
 
@@ -312,69 +411,74 @@ const confirmarReactivacion = async () => {
     return
   }
 
-  // Primera confirmación
-  const firstConfirm = await Swal.fire({
+  // Confirmación única
+  const confirm = await Swal.fire({
     icon: 'question',
     title: '¿Reactivar trámite?',
     html: `
-      <p>¿Está seguro de reactivar el trámite <strong>#${tramiteData.value.id_tramite}</strong>?</p>
-      <p><strong>Motivo:</strong> ${reactivacionForm.value.motivo}</p>
-      <p class="text-muted">El trámite pasará de estado <strong class="text-danger">CANCELADO</strong> a <strong class="text-success">ACTIVO</strong></p>
+      <div style="text-align: left;">
+        <p><strong>Trámite:</strong> #${tramiteData.value.id_tramite}</p>
+        <p><strong>Folio:</strong> ${tramiteData.value.licencia || 'S/F'}</p>
+        <p><strong>Estado actual:</strong> <span class="badge badge-danger">CANCELADO</span></p>
+        <p><strong>Nuevo estado:</strong> <span class="badge badge-purple">EN PROCESO</span></p>
+        <hr>
+        <p><strong>Motivo de reactivación:</strong></p>
+        <p style="background: #f8f9fa; padding: 10px; border-left: 3px solid #ea8215;">${reactivacionForm.value.motivo}</p>
+      </div>
     `,
     showCancelButton: true,
     confirmButtonColor: '#28a745',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Continuar',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: '<i class="fas fa-redo"></i> Sí, reactivar',
+    cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+    customClass: {
+      popup: 'swal-wide'
+    }
   })
 
-  if (!firstConfirm.isConfirmed) return
+  if (!confirm.isConfirmed) return
 
-  // Segunda confirmación
-  const secondConfirm = await Swal.fire({
-    icon: 'warning',
-    title: 'Confirmación final',
-    html: `
-      <p><strong>Esta acción reactivará el trámite cancelado</strong></p>
-      <p class="text-info">Se restaurará el flujo normal del trámite</p>
-      <p>¿Desea continuar?</p>
-    `,
-    showCancelButton: true,
-    confirmButtonColor: '#28a745',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, reactivar',
-    cancelButtonText: 'Cancelar'
-  })
+  const startTime = Date.now()
+  showLoading('Reactivando trámite...', 'Procesando reactivación')
 
-  if (!secondConfirm.isConfirmed) return
-
-  setLoading(true, 'Reactivando trámite...')
   try {
     const response = await execute(
-      'REACTIVAR_TRAMITE',
+      'sp_reactivar_tramite',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: searchTramite.value, tipo: 'integer' },
         { nombre: 'p_motivo', valor: reactivacionForm.value.motivo, tipo: 'string' },
-        { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
+        { nombre: 'p_usuario', valor: localStorage.getItem('usuario') || 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
+    hideLoading()
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+
     if (response && response.result && response.result[0]?.success) {
+      // Actualizar el estatus localmente
+      if (tramiteData.value) {
+        tramiteData.value.estatus = 'T'
+      }
+
       await Swal.fire({
         icon: 'success',
         title: 'Trámite reactivado',
         html: `
           <p>${response.result[0].message}</p>
-          <p class="text-success"><strong>El trámite ahora está ACTIVO</strong></p>
+          <p class="text-success"><strong>El trámite ahora está EN PROCESO (T)</strong></p>
+          <p class="text-muted">Tiempo de operación: ${duration}s</p>
         `,
-        confirmButtonColor: '#ea8215',
-        timer: 3000
+        confirmButtonColor: '#ea8215'
       })
 
-      limpiarFormulario()
-      showToast('success', 'Trámite reactivado exitosamente')
+      showToast('success', `Trámite reactivado exitosamente (${duration}s)`, 3000, 'bottom-right')
+
+      // Limpiar formulario pero mantener los datos del trámite para que vea el cambio
+      reactivacionForm.value.motivo = ''
     } else {
       await Swal.fire({
         icon: 'error',
@@ -384,18 +488,20 @@ const confirmarReactivacion = async () => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
 const limpiarFormulario = () => {
   searchTramite.value = null
   tramiteData.value = null
+  giroDescripcion.value = ''
   reactivacionForm.value = {
     motivo: ''
   }
+  searchPanelExpanded.value = true
+  localStorage.removeItem('reactivatramite_search')
 }
 
 const getEstadoBadgeClass = (estatus) => {
@@ -403,17 +509,19 @@ const getEstadoBadgeClass = (estatus) => {
     'A': 'badge-success',
     'P': 'badge-warning',
     'C': 'badge-danger',
-    'T': 'badge-info'
+    'T': 'badge-purple',
+    'R': 'badge-secondary'
   }
   return classes[estatus] || 'badge-secondary'
 }
 
 const getEstadoText = (estatus) => {
   const estados = {
-    'A': 'Activo',
+    'A': 'Autorizado',
     'P': 'Pendiente',
     'C': 'Cancelado',
-    'T': 'Terminado'
+    'T': 'En Proceso',
+    'R': 'Rechazado'
   }
   return estados[estatus] || 'Desconocido'
 }
@@ -423,7 +531,8 @@ const getEstadoIcon = (estatus) => {
     'A': 'check-circle',
     'P': 'clock',
     'C': 'times-circle',
-    'T': 'flag-checkered'
+    'T': 'spinner',
+    'R': 'ban'
   }
   return icons[estatus] || 'question-circle'
 }
@@ -444,3 +553,4 @@ const formatDate = (dateString) => {
   }
 }
 </script>
+

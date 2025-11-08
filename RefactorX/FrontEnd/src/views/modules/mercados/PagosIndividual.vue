@@ -1,5 +1,5 @@
 <template>
-  <div class="module-view">
+  <div class="pagos-individual-page">
     <nav class="breadcrumb">
       <router-link to="/">Inicio</router-link> /
       <span>Consulta Individual de Pagos del Local</span>
@@ -7,11 +7,11 @@
     <h1>Consulta Individual de Pagos del Local</h1>
     <form @submit.prevent="buscarPago">
       <div class="form-row">
-        <label class="municipal-form-label" for="id_local">ID Local:</label>
+        <label for="id_local">ID Local:</label>
         <input v-model.number="form.id_local" type="number" required />
-        <label class="municipal-form-label" for="axo">Año:</label>
+        <label for="axo">Año:</label>
         <input v-model.number="form.axo" type="number" required />
-        <label class="municipal-form-label" for="periodo">Mes:</label>
+        <label for="periodo">Mes:</label>
         <input v-model.number="form.periodo" type="number" min="1" max="12" required />
         <button type="submit">Buscar</button>
       </div>
@@ -20,7 +20,7 @@
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="pago">
       <h2>Datos del Mercado</h2>
-      <table class="info-municipal-table">
+      <table class="info-table">
         <tr><th>Oficina</th><td>{{ pago.oficina }}</td></tr>
         <tr><th>Mercado</th><td>{{ pago.num_mercado }}</td></tr>
         <tr><th>Categoría</th><td>{{ pago.categoria }}</td></tr>
@@ -31,7 +31,7 @@
         <tr><th>Descripción</th><td>{{ pago.descripcion_local }}</td></tr>
       </table>
       <h2>Datos del Pago</h2>
-      <table class="info-municipal-table">
+      <table class="info-table">
         <tr><th>Control</th><td>{{ pago.id_local }}</td></tr>
         <tr><th>Año</th><td>{{ pago.axo }}</td></tr>
         <tr><th>Mes</th><td>{{ pago.periodo }}</td></tr>
@@ -46,7 +46,6 @@
       </table>
     </div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>

@@ -1,30 +1,27 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="bolt" /></div>
-      <div class="module-view-info">
-        <h1>Reporte de Adeudos de Energía</h1>
-        <p>Mercados - Reporte de Adeudos de Energía</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-adeudos-energia-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Reporte de Adeudos de Energía</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Listado de Adeudos de Energía Eléctrica</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input type="number" v-model="form.axo" id="axo" class="municipal-form-control" required min="2000" max="2100">
+          <label for="axo" class="form-label">Año</label>
+          <input type="number" v-model="form.axo" id="axo" class="form-control" required min="2000" max="2100">
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="oficina">Oficina</label>
-          <select v-model="form.oficina" id="oficina" class="municipal-form-control" required>
+          <label for="oficina" class="form-label">Oficina</label>
+          <select v-model="form.oficina" id="oficina" class="form-control" required>
             <option value="">Seleccione...</option>
             <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
           </select>
         </div>
         <div class="col-md-3 align-self-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -35,8 +32,8 @@
         <strong>Oficina Recaudadora:</strong>
         <span>{{ oficinaRecaudadora }}</span>
       </div>
-      <table class="-bordered -sm municipal-table-hover">
-        <thead class="table-light municipal-table-header">
+      <table class="table table-bordered table-sm table-hover">
+        <thead class="table-light">
           <tr>
             <th>Datos del Local</th>
             <th>Nombre Locatario</th>
@@ -69,9 +66,6 @@
       </table>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -123,7 +117,7 @@ export default {
           })
         });
         const data = await response.json();
-        if (data.eResponse && data.eResponse.status === 'ok') {
+        if (data.eResponse && data.eResponse.success) {
           this.report = data.eResponse.data;
           if (this.report.length > 0) {
             // Set recaudadora label

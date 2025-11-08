@@ -616,6 +616,8 @@ const router = createRouter({
       name: 'mercados',
       component: () => import('@/views/modules/mercados/index.vue')
     },
+    // RUTAS DE MERCADOS COMENTADAS - Archivos no existen
+    /*
     {
       path: '/mercados/padron-locales',
       name: 'mercados-padron-locales',
@@ -1215,6 +1217,8 @@ const router = createRouter({
       name: 'mercados-menu',
       component: () => import('@/views/modules/mercados/Menu.vue')
     },
+    */
+    // Fin de rutas de mercados comentadas
 
     {
       path: '/multas-reglamentos',
@@ -1659,6 +1663,16 @@ const router = createRouter({
       path: '/padron-licencias/modificacion-licencias',
       name: 'modificacion-licencias',
       component: () => import('@/views/modules/padron_licencias/modlicfrm.vue')
+    },
+    {
+      path: '/padron-licencias/detalle-licencia',
+      name: 'detalle-licencia',
+      component: () => import('@/views/modules/padron_licencias/DetalleLicencia.vue')
+    },
+    {
+      path: '/padron-licencias/detalle-anuncio',
+      name: 'detalle-anuncio',
+      component: () => import('@/views/modules/padron_licencias/DetalleAnuncio.vue')
     },
     {
       path: '/padron-licencias/modificacion-tramites/:id?',

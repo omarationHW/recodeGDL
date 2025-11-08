@@ -1,110 +1,72 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
-      </div>
-      <div class="module-view-info">
-        <h1>Cons Captura Fecha Energia</h1>
-        <p>Mercados - Gestión de Energía</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+  <div class="cons-captura-fecha-energia">
+    <div class="breadcrumb">
+      <router-link to="/">Inicio</router-link> / Consulta de Pagos Capturados de Energía Eléctrica
     </div>
-
-    <div class="module-view-content">
-      <div class="cons-captura-fecha-energia">
-          <div class="breadcrumb">
-            <router-link to="/">Inicio</router-link> / Consulta de Pagos Capturados de Energía Eléctrica
-          </div>
-          <h1>Detalle de Pagos Capturados de Energía Eléctrica</h1>
-          <div class="form-row">
-            <label>Fecha de Pago:</label>
-            <input type="date" v-model="filters.fecha_pago" />
-            <label>Oficina:</label>
-            <select v-model="filters.oficina_pago">
-              <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">{{ of.id_rec }} - {{ of.recaudadora }}</option>
-            </select>
-            <label>Caja:</label>
-            <select v-model="filters.caja_pago">
-              <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">{{ caja.caja }}</option>
-            </select>
-            <label>Operación:</label>
-            <input type="number" v-model="filters.operacion_pago" />
-            <button @click="buscarPagos">Buscar</button>
-          </div>
-          <div class="municipal-table">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr class="row-hover">
-                  <th><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" /></th>
-                  <th>Control</th>
-                  <th>Datos Local</th>
-                  <th>Año</th>
-                  <th>Mes</th>
-                  <th>Fecha</th>
-                  <th>Rec</th>
-                  <th>Caja</th>
-                  <th>Oper.</th>
-                  <th>Cuota Energía</th>
-                  <th>Partida</th>
-                  <th>Actualización</th>
-                  <th>Usuario</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="pago in pagos" :key="pago.id_pago_energia" class="row-hover">
-                  <td><input type="checkbox" v-model="selected" :value="pago.id_pago_energia" /></td>
-                  <td>{{ pago.id_energia }}</td>
-                  <td>{{ pago.datoslocal }}</td>
-                  <td>{{ pago.axo }}</td>
-                  <td>{{ pago.periodo }}</td>
-                  <td>{{ pago.fecha_pago }}</td>
-                  <td>{{ pago.oficina_pago }}</td>
-                  <td>{{ pago.caja_pago }}</td>
-                  <td>{{ pago.operacion_pago }}</td>
-                  <td>{{ pago.importe_pago }}</td>
-                  <td>{{ pago.folio }}</td>
-                  <td>{{ pago.fecha_modificacion }}</td>
-                  <td>{{ pago.usuario }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="actions">
-            <button @click="borrarPagos" :disabled="selected.length === 0">Borrar Pago(s)</button>
-            <button @click="$router.push('/')">Salir</button>
-          </div>
-          <div v-if="message" class="alert" :class="{'alert-success': success, 'alert-danger': !success}">{{ message }}</div>
-        </div>
+    <h1>Detalle de Pagos Capturados de Energía Eléctrica</h1>
+    <div class="form-row">
+      <label>Fecha de Pago:</label>
+      <input type="date" v-model="filters.fecha_pago" />
+      <label>Oficina:</label>
+      <select v-model="filters.oficina_pago">
+        <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">{{ of.id_rec }} - {{ of.recaudadora }}</option>
+      </select>
+      <label>Caja:</label>
+      <select v-model="filters.caja_pago">
+        <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">{{ caja.caja }}</option>
+      </select>
+      <label>Operación:</label>
+      <input type="number" v-model="filters.operacion_pago" />
+      <button @click="buscarPagos">Buscar</button>
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'ConsCapturaFechaEnergia'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" /></th>
+            <th>Control</th>
+            <th>Datos Local</th>
+            <th>Año</th>
+            <th>Mes</th>
+            <th>Fecha</th>
+            <th>Rec</th>
+            <th>Caja</th>
+            <th>Oper.</th>
+            <th>Cuota Energía</th>
+            <th>Partida</th>
+            <th>Actualización</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="pago in pagos" :key="pago.id_pago_energia">
+            <td><input type="checkbox" v-model="selected" :value="pago.id_pago_energia" /></td>
+            <td>{{ pago.id_energia }}</td>
+            <td>{{ pago.datoslocal }}</td>
+            <td>{{ pago.axo }}</td>
+            <td>{{ pago.periodo }}</td>
+            <td>{{ pago.fecha_pago }}</td>
+            <td>{{ pago.oficina_pago }}</td>
+            <td>{{ pago.caja_pago }}</td>
+            <td>{{ pago.operacion_pago }}</td>
+            <td>{{ pago.importe_pago }}</td>
+            <td>{{ pago.folio }}</td>
+            <td>{{ pago.fecha_modificacion }}</td>
+            <td>{{ pago.usuario }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button @click="borrarPagos" :disabled="selected.length === 0">Borrar Pago(s)</button>
+      <button @click="$router.push('/')">Salir</button>
+    </div>
+    <div v-if="message" class="alert" :class="{'alert-success': success, 'alert-danger': !success}">{{ message }}</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'ConsCapturaFechaEnergia',
   data() {
     return {
@@ -112,13 +74,8 @@ export default {
         fecha_pago: '',
         oficina_pago: '',
         caja_pago: '',
-        operacion_pago: '',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        operacion_pago: ''
+      },
       oficinas: [],
       cajas: [],
       pagos: [],
@@ -137,28 +94,6 @@ export default {
     this.loadOficinas();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async loadOficinas() {
       const res = await fetch('/api/execute', {
         method: 'POST',
@@ -235,8 +170,41 @@ export default {
 };
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.cons-captura-fecha-energia {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.breadcrumb {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.table-responsive {
+  overflow-x: auto;
+}
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+.alert {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+.alert-success {
+  background: #e6ffed;
+  color: #1a7f37;
+}
+.alert-danger {
+  background: #ffeaea;
+  color: #a94442;
+}
 </style>

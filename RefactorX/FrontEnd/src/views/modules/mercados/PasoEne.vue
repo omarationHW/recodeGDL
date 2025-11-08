@@ -1,17 +1,17 @@
 <template>
-  <div class="module-view">
+  <div class="pasoene-page">
     <h1>Paso Pagos Energía</h1>
     <div class="breadcrumb">
       <router-link to="/">Inicio</router-link> / Paso Pagos Energía
     </div>
-    <div class="municipal-card">
-      <div class="municipal-card-body">
+    <div class="card">
+      <div class="card-body">
         <form @submit.prevent="onFileUpload">
           <div class="form-group">
             <label for="file">Archivo de Pagos de Energía (.txt)</label>
             <input type="file" id="file" ref="fileInput" @change="handleFile" accept=".txt" required />
           </div>
-          <button type="submit" class="btn-municipal-primary" :disabled="loading">Cargar y Previsualizar</button>
+          <button type="submit" class="btn btn-primary" :disabled="loading">Cargar y Previsualizar</button>
         </form>
         <div v-if="parseErrors.length" class="alert alert-danger mt-2">
           <ul>
@@ -23,7 +23,7 @@
     <div v-if="rows.length" class="mt-4">
       <h3>Previsualización de Pagos</h3>
       <div class="table-responsive" style="max-height: 400px; overflow:auto;">
-        <table class="municipal-table">
+        <table class="table table-sm table-bordered">
           <thead>
             <tr>
               <th>#</th>
@@ -85,7 +85,6 @@
       <span class="spinner-border spinner-border-sm"></span> Procesando...
     </div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>

@@ -1,87 +1,44 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
-      </div>
-      <div class="module-view-info">
-        <h1>Acceso</h1>
-        <p>Mercados - Módulo de Mercados</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+  <div class="acceso-page">
+    <div class="breadcrumb">
+      <span>Inicio</span> &gt; <span>Acceso</span>
     </div>
-
-    <div class="module-view-content">
-      <div class="acceso-page">
-          <div class="breadcrumb">
-            <span>Inicio</span> &gt; <span>Acceso</span>
-          </div>
-          <div class="acceso-form-container">
-            <h2>Acceso al Sistema</h2>
-            <form @submit.prevent="onSubmit">
-              <div class="form-group">
-                <label for="usuario">Usuario</label>
-                <input v-model="form.usuario" id="usuario" type="text" autocomplete="username" required />
-              </div>
-              <div class="form-group">
-                <label for="contrasena">Contraseña</label>
-                <input v-model="form.contrasena" id="contrasena" type="password" autocomplete="current-password" required />
-              </div>
-              <div class="form-group">
-                <label for="ejercicio">Ejercicio</label>
-                <input v-model.number="form.ejercicio" id="ejercicio" type="number" :min="minEjercicio" :max="maxEjercicio" required />
-              </div>
-              <div v-if="error" class="error-message">{{ error }}</div>
-              <div v-if="loading" class="loading-message">Conectando al sistema...</div>
-              <div class="form-actions">
-                <button type="submit" :disabled="loading">Aceptar</button>
-                <button type="button" @click="onCancel" :disabled="loading">Cancelar</button>
-              </div>
-            </form>
-          </div>
+    <div class="acceso-form-container">
+      <h2>Acceso al Sistema</h2>
+      <form @submit.prevent="onSubmit">
+        <div class="form-group">
+          <label for="usuario">Usuario</label>
+          <input v-model="form.usuario" id="usuario" type="text" autocomplete="username" required />
         </div>
+        <div class="form-group">
+          <label for="contrasena">Contraseña</label>
+          <input v-model="form.contrasena" id="contrasena" type="password" autocomplete="current-password" required />
+        </div>
+        <div class="form-group">
+          <label for="ejercicio">Ejercicio</label>
+          <input v-model.number="form.ejercicio" id="ejercicio" type="number" :min="minEjercicio" :max="maxEjercicio" required />
+        </div>
+        <div v-if="error" class="error-message">{{ error }}</div>
+        <div v-if="loading" class="loading-message">Conectando al sistema...</div>
+        <div class="form-actions">
+          <button type="submit" :disabled="loading">Aceptar</button>
+          <button type="button" @click="onCancel" :disabled="loading">Cancelar</button>
+        </div>
+      </form>
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'Acceso'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'AccesoPage',
   data() {
     return {
       form: {
         usuario: '',
         contrasena: '',
-        ejercicio: new Date().getFullYear(),
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        ejercicio: new Date().getFullYear()
+      },
       minEjercicio: 2003,
       maxEjercicio: new Date().getFullYear(),
       loading: false,
@@ -97,34 +54,9 @@ export default {
     if (lastUser) this.form.usuario = lastUser;
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async fetchEjercicioMinMax() {
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.getEjercicioMinMax',
           payload: {}
         });
@@ -140,10 +72,7 @@ export default {
       this.error = '';
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.login',
           payload: {
             usuario: this.form.usuario,
@@ -179,8 +108,66 @@ export default {
 };
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.acceso-page {
+  max-width: 400px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 32px 24px;
+}
+.breadcrumb {
+  font-size: 0.9em;
+  color: #888;
+  margin-bottom: 16px;
+}
+.acceso-form-container h2 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.form-group {
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 1em;
+}
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+.form-actions button {
+  min-width: 100px;
+  padding: 8px 0;
+  border: none;
+  border-radius: 4px;
+  background: #1976d2;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+.form-actions button[disabled] {
+  background: #aaa;
+  cursor: not-allowed;
+}
+.error-message {
+  color: #c00;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.loading-message {
+  color: #1976d2;
+  margin-bottom: 10px;
+  text-align: center;
+}
 </style>

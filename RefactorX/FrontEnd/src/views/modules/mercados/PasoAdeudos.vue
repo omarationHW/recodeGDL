@@ -1,23 +1,23 @@
 <template>
-  <div class="module-view">
+  <div class="container paso-adeudos-page">
     <h1>Generar Adeudos Tianguis (Mercado 214)</h1>
     <div class="breadcrumb">
       <router-link to="/">Inicio</router-link> / Paso Adeudos
     </div>
     <form @submit.prevent="generarAdeudos">
       <div class="form-row">
-        <label class="municipal-form-label" for="trimestre">Trimestre:</label>
+        <label for="trimestre">Trimestre:</label>
         <select v-model="trimestre" id="trimestre">
           <option v-for="t in [1,2,3,4]" :key="t" :value="t">{{ t }}</option>
         </select>
-        <label class="municipal-form-label" for="ano">Año:</label>
+        <label for="ano">Año:</label>
         <input type="number" v-model="ano" id="ano" min="2009" max="2999" />
         <button type="submit">Generar Adeudos</button>
       </div>
     </form>
     <div v-if="adeudos.length">
       <h2>Previsualización de Adeudos</h2>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>#</th>
@@ -47,7 +47,6 @@
     <div v-if="message" class="alert alert-success mt-3">{{ message }}</div>
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -69,10 +68,7 @@ export default {
       this.message = '';
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           eRequest: {
             action: 'generarAdeudos',
             params: {
@@ -81,14 +77,11 @@ export default {
               usuario_id: this.$store.state.user.id || 1
             }
           }
-        }
-          )
         });
-        const resData = await res.json();
-        if (resData.eResponse.status === 'ok') {
-          this.adeudos = resData.eResponse.data;
+        if (res.data.eResponse.success) {
+          this.adeudos = res.data.eResponse.data;
         } else {
-          this.error = resData.eResponse.message || 'Error generando adeudos';
+          this.error = res.data.eResponse.message || 'Error generando adeudos';
         }
       } catch (e) {
         this.error = e.message;
@@ -101,25 +94,19 @@ export default {
       this.message = '';
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           eRequest: {
             action: 'insertarAdeudos',
             params: {
               adeudos: this.adeudos
             }
           }
-        }
-          )
         });
-        const resData = await res.json();
-        if (resData.eResponse.status === 'ok') {
-          this.message = `Adeudos insertados correctamente: ${resData.eResponse.data.insertados}`;
+        if (res.data.eResponse.success) {
+          this.message = `Adeudos insertados correctamente: ${res.data.eResponse.data.insertados}`;
           this.adeudos = [];
         } else {
-          this.error = resData.eResponse.message || 'Error insertando adeudos';
+          this.error = res.data.eResponse.message || 'Error insertando adeudos';
         }
       } catch (e) {
         this.error = e.message;

@@ -4,35 +4,35 @@
     <div class="filters mb-3">
       <div class="row">
         <div class="col-md-2">
-          <label class="municipal-form-label">Oficina</label>
-          <select v-model="selectedOficina" @change="fetchMercados" class="municipal-form-control">
+          <label>Oficina</label>
+          <select v-model="selectedOficina" @change="fetchMercados" class="form-control">
             <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">{{ of.recaudadora }}</option>
           </select>
         </div>
         <div class="col-md-4">
-          <label class="municipal-form-label">Mercado</label>
-          <select v-model="selectedMercado" class="municipal-form-control">
+          <label>Mercado</label>
+          <select v-model="selectedMercado" class="form-control">
             <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">{{ m.num_mercado_nvo }} - {{ m.descripcion }}</option>
           </select>
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model.number="axo" class="municipal-form-control" min="1994" max="2999" />
+          <label>Año</label>
+          <input type="number" v-model.number="axo" class="form-control" min="1994" max="2999" />
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Mes</label>
-          <input type="number" v-model.number="mes" class="municipal-form-control" min="1" max="12" />
+          <label>Mes</label>
+          <input type="number" v-model.number="mes" class="form-control" min="1" max="12" />
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <button class="btn btn-municipal-primary w-100" @click="fetchAdeudos">Buscar</button>
+          <button class="btn btn-primary w-100" @click="fetchAdeudos">Buscar</button>
         </div>
       </div>
     </div>
     <div class="mb-2">
-      <button class="btn btn-municipal-success" @click="exportExcel">Exportar a Excel</button>
+      <button class="btn btn-success" @click="exportExcel">Exportar a Excel</button>
     </div>
     <div class="table-responsive">
-      <table class="-bordered municipal-table-striped">
+      <table class="table table-bordered table-striped">
         <thead>
           <tr>
             <th>Rec.</th>

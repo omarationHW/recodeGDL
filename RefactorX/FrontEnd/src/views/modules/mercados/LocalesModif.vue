@@ -1,5 +1,5 @@
 <template>
-  <div class="module-view">
+  <div class="locales-modif-page">
     <h1>Modificación de Locales</h1>
     <nav class="breadcrumb">
       <router-link to="/">Inicio</router-link> /
@@ -95,7 +95,6 @@
     </div>
     <div v-if="message" :class="{'success': success, 'error': !success}">{{message}}</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>

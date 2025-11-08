@@ -1,16 +1,12 @@
 <template>
   <div class="module-view">
-    <h1><font-awesome-icon icon="store" /> Mercados</h1>
-    <div class="module-content">
-      <p>Módulo en desarrollo...</p>
+    <div class="module-view-header">
+      <h1>Módulo de Mercados</h1>
+      <p>En mantenimiento - Temporalmente deshabilitado</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useApi } from '@/composables/useApi'
-
-const { loading, error, data, execute } = useApi()
+// Placeholder mientras se corrigen los errores de sintaxis del módulo
 </script>
-
-

@@ -23,6 +23,7 @@ export function useLicenciasErrorHandler() {
     show: false,
     type: 'info', // 'success', 'error', 'warning', 'info'
     message: '',
+    duration: '', // Tiempo de duración de la operación (ej: "2.5s", "350ms")
     timeout: null
   })
 
@@ -85,8 +86,12 @@ export function useLicenciasErrorHandler() {
 
   /**
    * Muestra una notificación toast
+   * @param {string} type - Tipo de toast: 'success', 'error', 'warning', 'info'
+   * @param {string} message - Mensaje a mostrar
+   * @param {string} operationDuration - Duración de la operación (ej: "2.5s", "350ms") - opcional
+   * @param {number} autoHideDuration - Tiempo en ms para auto-ocultar (default: 5000)
    */
-  const showToast = (type, message, duration = 5000) => {
+  const showToast = (type, message, operationDuration = '', autoHideDuration = 5000) => {
     // Limpiar timeout previo si existe
     if (toast.timeout) {
       clearTimeout(toast.timeout)
@@ -95,11 +100,12 @@ export function useLicenciasErrorHandler() {
     toast.show = true
     toast.type = type
     toast.message = message
+    toast.duration = operationDuration
 
     // Auto-ocultar el toast
     toast.timeout = setTimeout(() => {
       hideToast()
-    }, duration)
+    }, autoHideDuration)
   }
 
   /**

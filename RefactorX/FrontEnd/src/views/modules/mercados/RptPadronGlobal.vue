@@ -1,28 +1,25 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="users" /></div>
-      <div class="module-view-info">
-        <h1>Padrón Global de Locales</h1>
-        <p>Mercados - Padrón Global de Locales</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="padron-global-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Padrón Global de Locales</li>
+      </ol>
+    </nav>
     <h1>Padrón Global de Locales</h1>
     <form @submit.prevent="fetchPadron">
       <div class="form-row">
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="year">Año</label>
-          <input type="number" v-model="form.year" class="municipal-form-control" id="year" required />
+          <label for="year">Año</label>
+          <input type="number" v-model="form.year" class="form-control" id="year" required />
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="month">Mes</label>
-          <input type="number" v-model="form.month" class="municipal-form-control" id="month" min="1" max="12" required />
+          <label for="month">Mes</label>
+          <input type="number" v-model="form.month" class="form-control" id="month" min="1" max="12" required />
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label" for="status">Estatus</label>
-          <select v-model="form.status" class="municipal-form-control" id="status" required>
+          <label for="status">Estatus</label>
+          <select v-model="form.status" class="form-control" id="status" required>
             <option value="A">Vigentes</option>
             <option value="B">Baja</option>
             <option value="C">Baja por Acuerdo</option>
@@ -31,16 +28,16 @@
           </select>
         </div>
         <div class="form-group col-md-3 align-self-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
-          <button type="button" class="btn btn-municipal-success ml-2" @click="exportExcel">Exportar Excel</button>
-          <button type="button" class="btn btn-municipal-danger ml-2" @click="exportPDF">Reporte PDF</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
+          <button type="button" class="btn btn-success ml-2" @click="exportExcel">Exportar Excel</button>
+          <button type="button" class="btn btn-danger ml-2" @click="exportPDF">Reporte PDF</button>
         </div>
       </div>
     </form>
     <div v-if="loading" class="mt-3">Cargando...</div>
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
     <div v-if="padron.length > 0" class="table-responsive mt-3">
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Registro</th>
@@ -69,9 +66,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -94,10 +88,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const response = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const response = await this.$axios.post('/api/execute', {
           action: 'getPadronGlobal',
           params: {
             year: this.form.year,

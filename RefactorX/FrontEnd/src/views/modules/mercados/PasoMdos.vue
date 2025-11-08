@@ -9,7 +9,7 @@
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="tianguis.length > 0">
       <h2>Registros de Tianguis</h2>
-      <table class="-sm municipal-table-bordered">
+      <table class="table table-sm table-bordered">
         <thead>
           <tr>
             <th>Folio</th>

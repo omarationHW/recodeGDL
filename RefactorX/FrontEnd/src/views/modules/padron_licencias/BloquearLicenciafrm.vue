@@ -1,13 +1,14 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="lock" />
       </div>
       <div class="module-view-info">
         <h1>Bloquear/Desbloquear Licencia</h1>
-        <p>Padrón de Licencias - Gestión de bloqueos de licencias comerciales</p></div>
+        <p>Padrón de Licencias - Gestión de bloqueos de licencias comerciales</p>
+      </div>
       <button
         type="button"
         class="btn-help-icon"
@@ -43,7 +44,7 @@
                   <button
                     type="submit"
                     class="btn-municipal-primary"
-                    :disabled="loading || !searchLicencia"
+                    :disabled="!searchLicencia"
                   >
                     <font-awesome-icon icon="search" /> Buscar
                   </button>
@@ -79,6 +80,10 @@
                   <td>{{ licenciaData.propietario }}</td>
                 </tr>
                 <tr>
+                  <td class="label">RFC:</td>
+                  <td><code>{{ licenciaData.rfc || 'N/A' }}</code></td>
+                </tr>
+                <tr>
                   <td class="label">Actividad:</td>
                   <td>{{ licenciaData.actividad }}</td>
                 </tr>
@@ -90,6 +95,7 @@
                   <td class="label">Estado:</td>
                   <td>
                     <span :class="licenciaData.vigente === 'V' ? 'badge-success' : 'badge-danger'" class="badge">
+                      <font-awesome-icon :icon="licenciaData.vigente === 'V' ? 'check-circle' : 'times-circle'" />
                       {{ licenciaData.vigente === 'V' ? 'Vigente' : 'No Vigente' }}
                     </span>
                   </td>
@@ -129,9 +135,13 @@
                     class="municipal-form-control"
                     v-model="bloqueoForm.motivo"
                     rows="3"
+                    maxlength="500"
                     placeholder="Ingrese el motivo del bloqueo"
                     required
                   ></textarea>
+                  <small class="form-text text-muted">
+                    {{ bloqueoForm.motivo.length }}/500 caracteres
+                  </small>
                 </div>
               </div>
 
@@ -140,7 +150,6 @@
                   <button
                     type="submit"
                     class="btn-municipal-danger"
-                    :disabled="loading"
                   >
                     <font-awesome-icon icon="lock" /> Bloquear Licencia
                   </button>
@@ -158,18 +167,23 @@
 
           <!-- Lista de Bloqueos Activos -->
           <div class="mt-4" v-if="bloqueos.length > 0">
-            <h6 class="section-title">
-              <font-awesome-icon icon="list" />
-              Bloqueos Activos ({{ bloqueos.length }})
+            <h6 class="section-title header-with-badge">
+              <span>
+                <font-awesome-icon icon="list" />
+                Historial de Bloqueos
+              </span>
+              <span class="badge badge-purple">{{ bloqueos.length }}</span>
             </h6>
             <div class="table-responsive">
               <table class="municipal-table">
                 <thead class="municipal-table-header">
                   <tr>
                     <th>Tipo</th>
-                    <th>Motivo</th>
+                    <th>Motivo Bloqueo</th>
                     <th>Fecha Bloqueo</th>
                     <th>Usuario</th>
+                    <th>Motivo Desbloqueo</th>
+                    <th>Fecha Desbloqueo</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
@@ -189,6 +203,12 @@
                       </small>
                     </td>
                     <td><code>{{ bloqueo.usuario_bloqueo }}</code></td>
+                    <td>{{ bloqueo.motivo_desbloqueo || '-' }}</td>
+                    <td>
+                      <small class="text-muted">
+                        {{ formatDate(bloqueo.fecha_desbloqueo) }}
+                      </small>
+                    </td>
                     <td>
                       <span :class="bloqueo.activo ? 'badge-danger' : 'badge-success'" class="badge">
                         <font-awesome-icon :icon="bloqueo.activo ? 'lock' : 'unlock'" />
@@ -204,6 +224,7 @@
                       >
                         <font-awesome-icon icon="unlock" /> Desbloquear
                       </button>
+                      <span v-else class="text-muted">-</span>
                     </td>
                   </tr>
                 </tbody>
@@ -214,24 +235,6 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
-  </div>
-
     <!-- Modal de Ayuda -->
     <DocumentationModal
       :show="showDocumentation"
@@ -239,13 +242,14 @@
       :moduleName="'padron_licencias'"
       @close="closeDocumentation"
     />
-  </template>
+  </div>
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -255,16 +259,8 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const {
-  loading,
-  loadingMessage,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { handleApiError, showToast } = useLicenciasErrorHandler()
 
 // Estado
 const searchLicencia = ref('')
@@ -285,21 +281,26 @@ const hasBloqueosActivos = computed(() => {
 const buscarLicencia = async () => {
   if (!searchLicencia.value) return
 
-  setLoading(true, 'Buscando licencia...')
+  const startTime = Date.now()
+  showLoading('Buscando licencia...')
+
   try {
     const response = await execute(
-      'SP_BUSCAR_LICENCIA',
-      'padron_licencias',
+      'sp_bloquearlicencia_get_licencia',
+      'licencias',
       [
-        { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'string' }
+        { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' }
       ],
       'guadalajara'
     )
 
+    hideLoading()
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+
     if (response && response.result && response.result.length > 0) {
       licenciaData.value = response.result[0]
       await cargarBloqueos()
-      showToast('success', 'Licencia encontrada')
+      showToast('success', `Licencia encontrada (${duration}s)`, 3000, 'bottom-right')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -311,21 +312,20 @@ const buscarLicencia = async () => {
       bloqueos.value = []
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
     licenciaData.value = null
     bloqueos.value = []
-  } finally {
-    setLoading(false)
   }
 }
 
 const cargarBloqueos = async () => {
   try {
     const response = await execute(
-      'SP_CONSULTAR_BLOQUEOS_LICENCIA',
-      'padron_licencias',
+      'sp_bloquearlicencia_get_bloqueos',
+      'licencias',
       [
-        { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'string' }
+        { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' }
       ],
       'guadalajara'
     )
@@ -350,31 +350,15 @@ const confirmarBloqueo = async () => {
     return
   }
 
-  // Primera confirmación
-  const firstConfirm = await Swal.fire({
+  // Confirmación
+  const confirm = await Swal.fire({
     icon: 'warning',
     title: '¿Bloquear licencia?',
     html: `
       <p>¿Está seguro de bloquear la licencia <strong>#${licenciaData.value.licencia}</strong>?</p>
+      <p><strong>Propietario:</strong> ${licenciaData.value.propietario}</p>
       <p><strong>Tipo:</strong> ${bloqueoForm.value.tipo}</p>
       <p><strong>Motivo:</strong> ${bloqueoForm.value.motivo}</p>
-    `,
-    showCancelButton: true,
-    confirmButtonColor: '#dc3545',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Continuar',
-    cancelButtonText: 'Cancelar'
-  })
-
-  if (!firstConfirm.isConfirmed) return
-
-  // Segunda confirmación
-  const secondConfirm = await Swal.fire({
-    icon: 'question',
-    title: 'Confirmación final',
-    html: `
-      <p class="text-danger"><strong>Esta acción bloqueará completamente la licencia</strong></p>
-      <p>¿Desea continuar?</p>
     `,
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
@@ -383,21 +367,23 @@ const confirmarBloqueo = async () => {
     cancelButtonText: 'Cancelar'
   })
 
-  if (!secondConfirm.isConfirmed) return
+  if (!confirm.isConfirmed) return
 
-  setLoading(true, 'Bloqueando licencia...')
+  showLoading('Bloqueando licencia...')
   try {
     const response = await execute(
-      'SP_BLOQUEAR_LICENCIA',
-      'padron_licencias',
+      'sp_bloquearlicencia_bloquear',
+      'licencias',
       [
-        { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'string' },
+        { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' },
         { nombre: 'p_tipo', valor: bloqueoForm.value.tipo, tipo: 'string' },
         { nombre: 'p_motivo', valor: bloqueoForm.value.motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    hideLoading()
 
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
@@ -410,7 +396,7 @@ const confirmarBloqueo = async () => {
 
       bloqueoForm.value = { tipo: '', motivo: '' }
       await cargarBloqueos()
-      showToast('success', 'Licencia bloqueada exitosamente')
+      showToast('success', 'Licencia bloqueada exitosamente', 3000, 'bottom-right')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -420,9 +406,8 @@ const confirmarBloqueo = async () => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -453,11 +438,11 @@ const confirmarDesbloqueo = async (bloqueo) => {
 
   if (!motivo) return
 
-  setLoading(true, 'Desbloqueando licencia...')
+  showLoading('Desbloqueando licencia...')
   try {
     const response = await execute(
-      'SP_DESBLOQUEAR_LICENCIA',
-      'padron_licencias',
+      'sp_bloquearlicencia_desbloquear',
+      'licencias',
       [
         { nombre: 'p_id_bloqueo', valor: bloqueo.id_bloqueo, tipo: 'integer' },
         { nombre: 'p_motivo_desbloqueo', valor: motivo, tipo: 'string' },
@@ -465,6 +450,8 @@ const confirmarDesbloqueo = async (bloqueo) => {
       ],
       'guadalajara'
     )
+
+    hideLoading()
 
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
@@ -476,7 +463,7 @@ const confirmarDesbloqueo = async (bloqueo) => {
       })
 
       await cargarBloqueos()
-      showToast('success', 'Licencia desbloqueada exitosamente')
+      showToast('success', 'Licencia desbloqueada exitosamente', 3000, 'bottom-right')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -486,9 +473,8 @@ const confirmarDesbloqueo = async (bloqueo) => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 

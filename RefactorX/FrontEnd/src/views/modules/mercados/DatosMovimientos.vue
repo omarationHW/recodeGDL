@@ -1,29 +1,26 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Consulta de Movimientos</h1>
-        <p>Mercados - Consulta de Movimientos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header bg-primary text-white">Movimientos del Local</div>
-      <div class="municipal-card-body">
+  <div class="datos-movimientos-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Consulta de Movimientos</li>
+      </ol>
+    </nav>
+    <div class="card mb-3">
+      <div class="card-header bg-primary text-white">Movimientos del Local</div>
+      <div class="card-body">
         <div class="row mb-2">
           <div class="col-md-4">
-            <label class="municipal-form-label" for="id_local">ID Local</label>
-            <input v-model="id_local" type="number" class="municipal-form-control" id="id_local" placeholder="Ingrese el ID del local" />
+            <label for="id_local">ID Local</label>
+            <input v-model="id_local" type="number" class="form-control" id="id_local" placeholder="Ingrese el ID del local" />
           </div>
           <div class="col-md-2 align-self-end">
-            <button class="btn-municipal-success" @click="fetchMovimientos">Buscar</button>
+            <button class="btn btn-success" @click="fetchMovimientos">Buscar</button>
           </div>
         </div>
         <div v-if="movimientos.length > 0">
-          <table class="-bordered municipal-table-sm">
-            <thead class="thead-light municipal-table-header">
+          <table class="table table-bordered table-sm">
+            <thead class="thead-light">
               <tr>
                 <th>Control</th>
                 <th>Año</th>
@@ -70,27 +67,24 @@
         </div>
       </div>
     </div>
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">Catálogo de Claves de Movimiento</div>
-      <div class="municipal-card-body">
+    <div class="card mb-3">
+      <div class="card-header">Catálogo de Claves de Movimiento</div>
+      <div class="card-body">
         <ul>
           <li v-for="c in clavesMov" :key="c.clave_movimiento">{{ c.clave_movimiento }} - {{ c.descripcion }}</li>
         </ul>
       </div>
     </div>
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">Catálogo de Claves de Cuota</div>
-      <div class="municipal-card-body">
+    <div class="card mb-3">
+      <div class="card-header">Catálogo de Claves de Cuota</div>
+      <div class="card-body">
         <ul>
           <li v-for="c in cveCuotas" :key="c.clave_cuota">{{ c.clave_cuota }} - {{ c.descripcion }}</li>
         </ul>
       </div>
     </div>
-    <button class="btn-municipal-secondary" @click="$router.back()">Regresar</button>
+    <button class="btn btn-secondary" @click="$router.back()">Regresar</button>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -110,10 +104,7 @@ export default {
       if (!this.id_local) return;
       this.searched = false;
       // 1. Movimientos
-      const movResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const movResp = await this.$axios.post('/api/execute', {
         action: 'get_movimientos_by_local',
         params: { id_local: this.id_local }
       });
@@ -121,19 +112,13 @@ export default {
       // 2. Calcular vigdescripcion y renta para cada movimiento
       for (let mov of movs) {
         // Vigencia descripción
-        const vigResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const vigResp = await this.$axios.post('/api/execute', {
           action: 'calc_vigencia_descripcion',
           params: { vigencia: mov.vigencia }
         });
         mov.vigdescripcion = vigResp.data.data;
         // Obtener cuota
-        const cuotaResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const cuotaResp = await this.$axios.post('/api/execute', {
           action: 'get_cuota_by_params',
           params: {
             vaxo: mov.axo_memo,
@@ -145,10 +130,7 @@ export default {
         let cuota = cuotaResp.data.data && cuotaResp.data.data[0];
         // Calcular renta
         if (cuota) {
-          const rentaResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          const rentaResp = await this.$axios.post('/api/execute', {
             action: 'calc_renta',
             params: {
               superficie: mov.superficie,
@@ -167,18 +149,12 @@ export default {
     },
     async fetchCatalogs() {
       // Claves de movimiento
-      const claveMovResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const claveMovResp = await this.$axios.post('/api/execute', {
         action: 'get_clave_movimientos'
       });
       this.clavesMov = claveMovResp.data.data || [];
       // Claves de cuota
-      const cveCuotaResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const cveCuotaResp = await this.$axios.post('/api/execute', {
         action: 'get_cve_cuotas'
       });
       this.cveCuotas = cveCuotaResp.data.data || [];

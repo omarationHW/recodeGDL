@@ -1,5 +1,5 @@
 <template>
-  <div class="module-view">
+  <div class="rpt-caratula-datos-page">
     <nav class="breadcrumb">
       <router-link to="/">Inicio</router-link> /
       <span>Carátula de Locales</span>
@@ -7,39 +7,39 @@
     <h1>Carátula de Locales</h1>
     <form @submit.prevent="fetchCaratulaDatos">
       <div class="form-row">
-        <label class="municipal-form-label" for="id_local">ID Local:</label>
+        <label for="id_local">ID Local:</label>
         <input v-model="form.id_local" id="id_local" type="number" required />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="renta">Renta:</label>
+        <label for="renta">Renta:</label>
         <input v-model="form.renta" id="renta" type="number" step="0.01" required />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="adeudo">Adeudo:</label>
+        <label for="adeudo">Adeudo:</label>
         <input v-model="form.adeudo" id="adeudo" type="number" step="0.01" required />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="recargos">Recargos:</label>
+        <label for="recargos">Recargos:</label>
         <input v-model="form.recargos" id="recargos" type="number" step="0.01" required />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="gastos">Gastos:</label>
+        <label for="gastos">Gastos:</label>
         <input v-model="form.gastos" id="gastos" type="number" step="0.01" required />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="multa">Multa:</label>
+        <label for="multa">Multa:</label>
         <input v-model="form.multa" id="multa" type="number" step="0.01" required />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="total">Total:</label>
+        <label for="total">Total:</label>
         <input v-model="form.total" id="total" type="number" step="0.01" required />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="folios">Folios Requerimientos:</label>
+        <label for="folios">Folios Requerimientos:</label>
         <input v-model="form.folios" id="folios" type="text" />
       </div>
       <div class="form-row">
-        <label class="municipal-form-label" for="leyenda">Leyenda:</label>
+        <label for="leyenda">Leyenda:</label>
         <input v-model="form.leyenda" id="leyenda" type="text" />
       </div>
       <button type="submit">Consultar Carátula</button>
@@ -48,7 +48,7 @@
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="result">
       <h2>Datos del Local</h2>
-      <table class="result-municipal-table">
+      <table class="result-table">
         <tr><th>Nombre</th><td>{{ result.nombre }}</td></tr>
         <tr><th>Domicilio</th><td>{{ result.domicilio }}</td></tr>
         <tr><th>Sector</th><td>{{ result.sector }}</td></tr>
@@ -69,7 +69,7 @@
         <tr><th>Leyenda</th><td>{{ result.leyenda }}</td></tr>
       </table>
       <h2>Detalle de Adeudos</h2>
-      <table class="result-municipal-table">
+      <table class="result-table">
         <thead>
           <tr>
             <th>Periodo</th>
@@ -89,7 +89,6 @@
       </table>
     </div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>

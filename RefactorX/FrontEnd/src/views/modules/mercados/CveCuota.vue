@@ -1,19 +1,16 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="money-bill-wave" /></div>
-      <div class="module-view-info">
-        <h1>Claves de Cuota</h1>
-        <p>Mercados - Claves de Cuota</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="cve-cuota-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Claves de Cuota</li>
+      </ol>
+    </nav>
     <h2>Catálogo de Claves de Cuota</h2>
     <div class="mb-3">
-      <button class="btn-municipal-primary" @click="openCreate">Agregar</button>
+      <button class="btn btn-primary" @click="openCreate">Agregar</button>
     </div>
-    <table class="municipal-table">
+    <table class="table table-striped">
       <thead>
         <tr>
           <th>Clave</th>
@@ -26,7 +23,7 @@
           <td>{{ item.clave_cuota }}</td>
           <td>{{ item.descripcion }}</td>
           <td>
-            <button class="btn-icon btn-warning" @click="openEdit(item)">Editar</button>
+            <button class="btn btn-sm btn-warning" @click="openEdit(item)">Editar</button>
           </td>
         </tr>
       </tbody>
@@ -38,15 +35,15 @@
           <form @submit.prevent="submitForm">
             <div class="mb-3">
               <label>Clave de Cuota</label>
-              <input type="number" v-model.number="form.clave_cuota" class="municipal-form-control" :readonly="formMode==='edit'" required />
+              <input type="number" v-model.number="form.clave_cuota" class="form-control" :readonly="formMode==='edit'" required />
             </div>
             <div class="mb-3">
               <label>Descripción</label>
-              <input type="text" v-model="form.descripcion" class="municipal-form-control" maxlength="50" required />
+              <input type="text" v-model="form.descripcion" class="form-control" maxlength="50" required />
             </div>
             <div class="mb-3">
-              <button type="submit" class="btn-municipal-success">Guardar</button>
-              <button type="button" class="btn-municipal-secondary" @click="closeForm">Cancelar</button>
+              <button type="submit" class="btn btn-success">Guardar</button>
+              <button type="button" class="btn btn-secondary" @click="closeForm">Cancelar</button>
             </div>
           </form>
         </div>
@@ -55,9 +52,6 @@
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
     <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -91,7 +85,7 @@ export default {
           })
         });
         const data = await res.json();
-        if (data.eResponse.status === 'ok') {
+        if (data.eResponse.success) {
           this.cveCuotas = data.eResponse.data;
         } else {
           this.error = data.eResponse.message;
@@ -138,7 +132,7 @@ export default {
           })
         });
         const data = await res.json();
-        if (data.eResponse.status === 'ok') {
+        if (data.eResponse.success) {
           this.success = data.eResponse.message;
           this.showForm = false;
           this.fetchCveCuotas();

@@ -1,104 +1,66 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
-      </div>
-      <div class="module-view-info">
-        <h1>Adeudos Energia</h1>
-        <p>Mercados - Gestión de Adeudos</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+  <div class="adeudos-energia-page">
+    <div class="breadcrumb">
+      <span>Inicio</span> &gt; <span>Reportes</span> &gt; <span class="active">Adeudos Energía</span>
     </div>
-
-    <div class="module-view-content">
-      <div class="adeudos-energia-page">
-          <div class="breadcrumb">
-            <span>Inicio</span> &gt; <span>Reportes</span> &gt; <span class="active">Adeudos Energía</span>
-          </div>
-          <h1>Listado de Adeudos de Energía Eléctrica</h1>
-          <div class="form-row">
-            <label>Año de Adeudo</label>
-            <input type="number" v-model="axo" min="1994" max="2999" />
-            <label>Oficina</label>
-            <select v-model="oficina">
-              <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
-            </select>
-            <button @click="buscar" :disabled="loading">Buscar</button>
-            <button @click="exportarExcel" :disabled="loading || !adeudos.length">Excel</button>
-            <button @click="imprimir" :disabled="loading || !adeudos.length">Imprimir</button>
-          </div>
-          <div v-if="loading" class="loading">Cargando...</div>
-          <div v-if="error" class="error">{{ error }}</div>
-          <table v-if="adeudos.length" class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr class="row-hover">
-                <th>Rec.</th>
-                <th>Merc.</th>
-                <th>Cat.</th>
-                <th>Sec.</th>
-                <th>Local</th>
-                <th>Letra</th>
-                <th>Bloque</th>
-                <th>Consumo</th>
-                <th>Nombre</th>
-                <th>Adicionales</th>
-                <th>Cuota Bim/Mes</th>
-                <th>Año Adeudo</th>
-                <th>Adeudo</th>
-                <th>Periodo Adeudo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in adeudos" :key="row.id_local + '-' + row.id_energia" class="row-hover">
-                <td>{{ row.oficina }}</td>
-                <td>{{ row.num_mercado }}</td>
-                <td>{{ row.categoria }}</td>
-                <td>{{ row.seccion }}</td>
-                <td>{{ row.local }}</td>
-                <td>{{ row.letra_local }}</td>
-                <td>{{ row.bloque }}</td>
-                <td>{{ row.cve_consumo }}</td>
-                <td>{{ row.nombre }}</td>
-                <td>{{ row.local_adicional }}</td>
-                <td>{{ row.cuota | currency }}</td>
-                <td>{{ row.axo }}</td>
-                <td>{{ row.adeudo | currency }}</td>
-                <td>{{ row.meses }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div v-if="!loading && !adeudos.length" class="no-data">No hay datos para los filtros seleccionados.</div>
-        </div>
+    <h1>Listado de Adeudos de Energía Eléctrica</h1>
+    <div class="form-row">
+      <label>Año de Adeudo</label>
+      <input type="number" v-model="axo" min="1994" max="2999" />
+      <label>Oficina</label>
+      <select v-model="oficina">
+        <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
+      </select>
+      <button @click="buscar" :disabled="loading">Buscar</button>
+      <button @click="exportarExcel" :disabled="loading || !adeudos.length">Excel</button>
+      <button @click="imprimir" :disabled="loading || !adeudos.length">Imprimir</button>
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'AdeudosEnergia'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
+    <div v-if="loading" class="loading">Cargando...</div>
+    <div v-if="error" class="error">{{ error }}</div>
+    <table v-if="adeudos.length" class="adeudos-table">
+      <thead>
+        <tr>
+          <th>Rec.</th>
+          <th>Merc.</th>
+          <th>Cat.</th>
+          <th>Sec.</th>
+          <th>Local</th>
+          <th>Letra</th>
+          <th>Bloque</th>
+          <th>Consumo</th>
+          <th>Nombre</th>
+          <th>Adicionales</th>
+          <th>Cuota Bim/Mes</th>
+          <th>Año Adeudo</th>
+          <th>Adeudo</th>
+          <th>Periodo Adeudo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in adeudos" :key="row.id_local + '-' + row.id_energia">
+          <td>{{ row.oficina }}</td>
+          <td>{{ row.num_mercado }}</td>
+          <td>{{ row.categoria }}</td>
+          <td>{{ row.seccion }}</td>
+          <td>{{ row.local }}</td>
+          <td>{{ row.letra_local }}</td>
+          <td>{{ row.bloque }}</td>
+          <td>{{ row.cve_consumo }}</td>
+          <td>{{ row.nombre }}</td>
+          <td>{{ row.local_adicional }}</td>
+          <td>{{ row.cuota | currency }}</td>
+          <td>{{ row.axo }}</td>
+          <td>{{ row.adeudo | currency }}</td>
+          <td>{{ row.meses }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div v-if="!loading && !adeudos.length" class="no-data">No hay datos para los filtros seleccionados.</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'AdeudosEnergiaPage',
   data() {
     const currentYear = new Date().getFullYear();
@@ -108,13 +70,8 @@ export default {
       recaudadoras: [],
       adeudos: [],
       loading: false,
-      error: '',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }};
+      error: ''
+    };
   },
   filters: {
     currency(val) {
@@ -126,36 +83,11 @@ export default {
     this.fetchRecaudadoras();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async fetchRecaudadoras() {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.getRecaudadoras',
           payload: {}
         });
@@ -176,10 +108,7 @@ export default {
       this.error = '';
       this.adeudos = [];
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.getAdeudosEnergia',
           payload: {axo: this.axo, oficina: this.oficina}
         });
@@ -198,10 +127,7 @@ export default {
       // Puede implementarse descarga de archivo en backend, aquí solo ejemplo
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.exportExcel',
           payload: {axo: this.axo, oficina: this.oficina}
         });
@@ -221,10 +147,7 @@ export default {
       // Puede implementarse generación de PDF en backend, aquí solo ejemplo
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.printReport',
           payload: {axo: this.axo, oficina: this.oficina}
         });
@@ -244,8 +167,49 @@ export default {
 };
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.adeudos-energia-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.breadcrumb {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 1rem;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.form-row label {
+  font-weight: bold;
+}
+.adeudos-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.adeudos-table th, .adeudos-table td {
+  border: 1px solid #ccc;
+  padding: 0.3rem 0.5rem;
+  text-align: left;
+}
+.adeudos-table th {
+  background: #f5f5f5;
+}
+.loading {
+  color: #007bff;
+  font-weight: bold;
+}
+.error {
+  color: #b00;
+  font-weight: bold;
+}
+.no-data {
+  color: #888;
+  margin-top: 2rem;
+}
 </style>

@@ -206,14 +206,6 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
     </div>
     <!-- /module-view-content -->
 
@@ -243,6 +235,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Composables
@@ -261,6 +254,7 @@ const {
   handleApiError,
   loadingMessage
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const searchForm = ref({
@@ -297,6 +291,7 @@ const buscarAnuncio = async () => {
     return
   }
 
+  showLoading('Buscando anuncio...', 'Consultando base de datos')
   setLoading(true, 'Buscando anuncio...')
 
   try {
@@ -304,9 +299,11 @@ const buscarAnuncio = async () => {
       'TramiteBajaAnun_sp_tramite_baja_anun_buscar',
       'padron_licencias',
       [
-        { nombre: 'p_num_anuncio', valor: searchForm.value.numAnuncio, tipo: 'integer' }
+        { nombre: 'p_anuncio', valor: searchForm.value.numAnuncio, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -325,6 +322,7 @@ const buscarAnuncio = async () => {
     handleApiError(error)
     anuncio.value = null
   } finally {
+    hideLoading()
     setLoading(false)
   }
 }
@@ -371,39 +369,37 @@ const tramitarBaja = async () => {
     return
   }
 
+  showLoading('Tramitando baja...', 'Procesando baja de anuncio y recalculando saldos')
   setLoading(true, 'Tramitando baja de anuncio...')
 
   try {
-    // Paso 1: Tramitar la baja
+    // Tramitar la baja (el SP ya recalcula saldos internamente)
     const tramiteResponse = await execute(
       'TramiteBajaAnun_sp_tramite_baja_anun_tramitar',
       'padron_licencias',
       [
-        { nombre: 'p_num_anuncio', valor: searchForm.value.numAnuncio, tipo: 'integer' },
-        { nombre: 'p_anio', valor: bajaForm.value.anio, tipo: 'integer' },
-        { nombre: 'p_folio', valor: bajaForm.value.folio, tipo: 'integer' },
-        { nombre: 'p_motivo', valor: bajaForm.value.motivo.trim(), tipo: 'string' }
+        { nombre: 'p_anuncio', valor: searchForm.value.numAnuncio, tipo: 'integer' },
+        { nombre: 'p_motivo', valor: bajaForm.value.motivo.trim(), tipo: 'string' },
+        { nombre: 'p_usuario', valor: 'SISTEMA', tipo: 'string' },
+        { nombre: 'p_axo_baja', valor: bajaForm.value.anio, tipo: 'integer' },
+        { nombre: 'p_folio_baja', valor: bajaForm.value.folio, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
+    hideLoading()
+
     if (tramiteResponse && tramiteResponse.result && tramiteResponse.result[0]?.success) {
-      // Paso 2: Recalcular saldos
-      await execute(
-        'TramiteBajaAnun_calc_sdosl',
-        'padron_licencias',
-        [
-          { nombre: 'p_num_anuncio', valor: searchForm.value.numAnuncio, tipo: 'integer' }
-        ],
-        'guadalajara'
-      )
+      // El SP ya recalculó los saldos internamente
 
       limpiarTodo()
 
       await Swal.fire({
         icon: 'success',
         title: '¡Baja tramitada!',
-        text: 'La baja del anuncio ha sido procesada y los saldos recalculados',
+        text: 'La baja del anuncio ha sido procesada exitosamente',
         confirmButtonColor: '#ea8215',
         timer: 3000
       })
@@ -418,6 +414,7 @@ const tramitarBaja = async () => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
     await Swal.fire({
       icon: 'error',

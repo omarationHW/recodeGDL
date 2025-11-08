@@ -1,42 +1,39 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-invoice" /></div>
-      <div class="module-view-info">
-        <h1>Facturación de Estados de Cuenta</h1>
-        <p>Mercados - Facturación de Estados de Cuenta</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-factura-emision-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Facturación de Estados de Cuenta</li>
+      </ol>
+    </nav>
     <h1>Facturación de Estados de Cuenta</h1>
     <form @submit.prevent="fetchFacturaEmision">
       <div class="form-row">
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="oficina">Oficina</label>
-          <input type="number" v-model.number="form.oficina" class="municipal-form-control" id="oficina" required>
+          <label for="oficina">Oficina</label>
+          <input type="number" v-model.number="form.oficina" class="form-control" id="oficina" required>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input type="number" v-model.number="form.axo" class="municipal-form-control" id="axo" required>
+          <label for="axo">Año</label>
+          <input type="number" v-model.number="form.axo" class="form-control" id="axo" required>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="periodo">Periodo</label>
-          <input type="number" v-model.number="form.periodo" class="municipal-form-control" id="periodo" required>
+          <label for="periodo">Periodo</label>
+          <input type="number" v-model.number="form.periodo" class="form-control" id="periodo" required>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="mercado">Mercado</label>
-          <input type="number" v-model.number="form.mercado" class="municipal-form-control" id="mercado" required>
+          <label for="mercado">Mercado</label>
+          <input type="number" v-model.number="form.mercado" class="form-control" id="mercado" required>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="opc">Opción</label>
-          <select v-model.number="form.opc" class="municipal-form-control" id="opc" required>
+          <label for="opc">Opción</label>
+          <select v-model.number="form.opc" class="form-control" id="opc" required>
             <option :value="1">Solo Mercado Seleccionado</option>
             <option :value="2">Todos los Mercados</option>
           </select>
         </div>
         <div class="form-group col-md-2 align-self-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -44,7 +41,7 @@
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
     <div v-if="factura.length" class="table-responsive mt-4">
       <h3>Resultados de Facturación</h3>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Datos Local</th>
@@ -73,9 +70,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

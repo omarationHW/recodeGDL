@@ -1,39 +1,36 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="exclamation-triangle" /></div>
-      <div class="module-view-info">
-        <h1>Listado de Adeudos Anteriores</h1>
-        <p>Mercados - Listado de Adeudos Anteriores</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-adeudos-anteriores">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Listado de Adeudos Anteriores</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Listado de Adeudos de Años Anteriores a 1996 de Mercados</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input v-model.number="form.axo" type="number" min="1900" max="2099" class="municipal-form-control" id="axo" required />
+          <label for="axo">Año</label>
+          <input v-model.number="form.axo" type="number" min="1900" max="2099" class="form-control" id="axo" required />
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="oficina">Oficina</label>
-          <input v-model.number="form.oficina" type="number" min="1" max="99" class="municipal-form-control" id="oficina" required />
+          <label for="oficina">Oficina</label>
+          <input v-model.number="form.oficina" type="number" min="1" max="99" class="form-control" id="oficina" required />
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="periodo">Periodo (Mes)</label>
-          <input v-model.number="form.periodo" type="number" min="1" max="12" class="municipal-form-control" id="periodo" required />
+          <label for="periodo">Periodo (Mes)</label>
+          <input v-model.number="form.periodo" type="number" min="1" max="12" class="form-control" id="periodo" required />
         </div>
         <div class="col-md-3 d-flex align-items-end">
-          <button type="submit" class="btn btn-municipal-primary w-100">Consultar</button>
+          <button type="submit" class="btn btn-primary w-100">Consultar</button>
         </div>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="report.length">
-      <table class="-bordered -sm municipal-table-hover">
-        <thead class="thead-light municipal-table-header">
+      <table class="table table-bordered table-sm table-hover">
+        <thead class="thead-light">
           <tr>
             <th>ID Local</th>
             <th>Datos Local</th>
@@ -77,9 +74,6 @@
     </div>
     <div v-else-if="!loading && !error" class="alert alert-warning">No hay datos para los parámetros seleccionados.</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

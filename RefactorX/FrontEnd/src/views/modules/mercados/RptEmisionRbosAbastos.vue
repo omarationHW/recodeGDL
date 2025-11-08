@@ -1,39 +1,36 @@
 <template>
-  <div class="module-view">
+  <div class="rpt-emision-rbos-abastos">
     <h1>Emisión de Recibos de Abastos</h1>
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-invoice" /></div>
-      <div class="module-view-info">
-        <h1>Emisión Recibos Abastos</h1>
-        <p>Mercados - Emisión Recibos Abastos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Emisión Recibos Abastos</li>
+      </ol>
+    </nav>
     <form @submit.prevent="fetchReport">
       <div class="form-row">
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Oficina</label>
-          <select v-model="form.oficina" class="municipal-form-control" required>
+          <label>Oficina</label>
+          <select v-model="form.oficina" class="form-control" required>
             <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
           </select>
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Mercado</label>
-          <select v-model="form.mercado" class="municipal-form-control" required>
+          <label>Mercado</label>
+          <select v-model="form.mercado" class="form-control" required>
             <option v-for="m in mercados" :key="m.id" :value="m.id">{{ m.nombre }}</option>
           </select>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model="form.axo" class="municipal-form-control" required min="1990" max="2100">
+          <label>Año</label>
+          <input type="number" v-model="form.axo" class="form-control" required min="1990" max="2100">
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label">Periodo</label>
-          <input type="number" v-model="form.periodo" class="municipal-form-control" required min="1" max="12">
+          <label>Periodo</label>
+          <input type="number" v-model="form.periodo" class="form-control" required min="1" max="12">
         </div>
         <div class="form-group col-md-2 align-self-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -43,7 +40,7 @@
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="reportData && reportData.length">
       <h3>Resultados</h3>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Local</th>
@@ -94,7 +91,7 @@
             <div class="modal-body">
               <div v-if="loadingReq">Cargando...</div>
               <div v-else-if="requerimientos && requerimientos.length">
-                <table class="municipal-table-sm">
+                <table class="table table-sm">
                   <thead>
                     <tr>
                       <th>Folio</th>
@@ -118,16 +115,13 @@
               <div v-else>No hay requerimientos para este local.</div>
             </div>
             <div class="modal-footer">
-              <button class="btn-municipal-secondary" @click="showReqModal=false">Cerrar</button>
+              <button class="btn btn-secondary" @click="showReqModal=false">Cerrar</button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

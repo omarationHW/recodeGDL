@@ -1,0 +1,267 @@
+﻿=================================================================
+       RESUMEN DE INVENTARIO DE OBJETOS DE BASE DE DATOS
+=================================================================
+
+Fecha de generación: 2025-10-28 16:19:09
+
+SISTEMAS PROCESADOS:
+-------------------
+  - ApremiosSVN
+  - aseo
+  - cementerios
+  - estacionamientos
+  - Licencias2
+  - mercados
+  - OTRAS OBLIG
+  - Recaudadora
+
+RUTAS ANALIZADAS:
+-----------------
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\Ingresos\ApremiosSVN
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\aseo
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\cementerios
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\estacionamientos
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\catastro\Recaudadora
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\catastro\Licencias2
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\17\Aplicaciones\mercados
+  - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\OTRAS OBLIG
+
+ESTADÍSTICAS POR SISTEMA:
+-------------------------
+
+ApremiosSVN:
+  Archivos leídos: 135
+  Bases de datos: 4
+  Esquemas: 3
+  Tablas: 56
+  Vistas: 0
+  Stored Procedures: 8
+  Funciones: 0
+  Duplicados omitidos: 697
+  Objetos sin DB/Esquema (ejemplos): 3
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\Ingresos\ApremiosSVN\EstadxFolio.pas::SP then
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\Ingresos\ApremiosSVN\FirmaElectronica.dfm::TABLA tb_f...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\Ingresos\ApremiosSVN\Listados_Ade.dfm::TABLA dbestaci...
+
+aseo:
+  Archivos leídos: 209
+  Bases de datos: 3
+  Esquemas: 1
+  Tablas: 34
+  Vistas: 0
+  Stored Procedures: 0
+  Funciones: 0
+  Duplicados omitidos: 505
+  Objetos sin DB/Esquema (ejemplos): 3
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\aseo\ABC_Recaudadoras.dfm::TABL...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\aseo\ActCont_CR.dfm::TABLA ta
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\aseo\Adeudos_EdoCta.dfm::TABLA ...
+
+cementerios:
+  Archivos leídos: 104
+  Bases de datos: 3
+  Esquemas: 3
+  Tablas: 48
+  Vistas: 1
+  Stored Procedures: 29
+  Funciones: 0
+  Duplicados omitidos: 653
+  Objetos sin DB/Esquema (ejemplos): 3
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\cementerios\actadercm.sql::TABL...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\cementerios\actadercm.sql::SP p...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\Ingresos\cementerios\adeudos masivos.sql...
+
+estacionamientos:
+  Archivos leídos: 189
+  Bases de datos: 30
+  Esquemas: 8
+  Tablas: 185
+  Vistas: 0
+  Stored Procedures: 38
+  Funciones: 0
+  Duplicados omitidos: 306
+  Objetos sin DB/Esquema (ejemplos): 3
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\estacionamientos\AplicaPgo_DivAdmin.dfm::TAB...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\estacionamientos\metro.pas::TABLA data
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\estacionamientos\metro.pas::TABLA the
+
+Licencias2:
+  Archivos leídos: 203
+  Bases de datos: 2
+  Esquemas: 3
+  Tablas: 140
+  Vistas: 0
+  Stored Procedures: 4
+  Funciones: 0
+  Duplicados omitidos: 1047
+  Objetos sin DB/Esquema (ejemplos): 3
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\catastro\Licencias2\bloqueoDomiciliosfrm...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\catastro\Licencias2\CatastroDM.dfm::TABL...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\196\aplicaciones\repositories\catastro\Licencias2\consultaLicenciafrm....
+
+mercados:
+  Archivos leídos: 310
+  Bases de datos: 4
+  Esquemas: 2
+  Tablas: 86
+  Vistas: 0
+  Stored Procedures: 26
+  Funciones: 0
+  Duplicados omitidos: 934
+  Objetos sin DB/Esquema (ejemplos): 3
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\17\Aplicaciones\mercados\AdeudosLocales.dfm::TABLA ta_11
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\17\Aplicaciones\mercados\AltaPagos.pas::SP then
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\17\Aplicaciones\mercados\CargaDiversosEsp.dfm::TABLA ta_11_pagos_loca
+
+OTRAS OBLIG:
+  Archivos leídos: 56
+  Bases de datos: 2
+  Esquemas: 1
+  Tablas: 16
+  Vistas: 0
+  Stored Procedures: 1
+  Funciones: 0
+  Duplicados omitidos: 61
+  Objetos sin DB/Esquema (ejemplos): 2
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\OTRAS OBLIG\GActualiza.dfm::TABLA catastro_g...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\197\aplicaciones\Ingresos\OTRAS OBLIG\GAdeudosGral.pas::SP Then
+
+Recaudadora:
+  Archivos leídos: 253
+  Bases de datos: 3
+  Esquemas: 2
+  Tablas: 176
+  Vistas: 0
+  Stored Procedures: 2
+  Funciones: 0
+  Duplicados omitidos: 1181
+  Objetos sin DB/Esquema (ejemplos): 3
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\catastro\Recaudadora\ActualizaFechaEmpresas.pas::SP t...
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\catastro\Recaudadora\desctorec.dfm::SP procedure
+    - C:\Sistemas\RefactorX\Guadalajara\Originales\Code\199\aplicaciones\catastro\Recaudadora\estadreq.dfm::TABLA tmp_gaspag
+
+TOTALES GLOBALES:
+-----------------
+  Total archivos leídos: 1459
+  Total bases de datos: 51
+  Total esquemas: 23
+  Total tablas: 741
+  Total vistas: 1
+  Total stored procedures: 108
+  Total funciones: 0
+  Total duplicados omitidos: 5384
+
+ARCHIVOS CSV GENERADOS:
+-----------------------
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\estacionamiento_exclusivo.csv
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\aseo_contratado.csv
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\cementerio.csv
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\estacionamiento_publico.csv
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\padron_licencias.csv
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\mercados.csv
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\otras_obligaciones.csv
+  - C:\Sistemas\RefactorX\Guadalajara\infx\infx\bin\Debug\net48\res\multas_reglamentos.csv
+
+VALIDACIÓN:
+-----------
+  - Deduplicación: Completada (clave: sistema+base_de_datos+esquema+tipo_objeto+nombre_objeto+destino_postgre)
+  - Total objetos únicos: 850
+
+MUESTRAS ALEATORIAS (10 objetos por sistema):
+----------------------------------------------
+
+ApremiosSVN:
+  TABLA: dbo.ta_15_apremios400 (DB: )
+  TABLA: dbo.ex_contrato (DB: dbestacion)
+  SP: dbo.spd_15_reqAseo (DB: )
+  TABLA: dbo.recargos (DB: dbestacion)
+  TABLA: dbo.ta_12_passwords (DB: db_ingresos)
+  TABLA: dbo.ta_11_mercados (DB: db_ingresos)
+  TABLA: dbo.ex_adeudo (DB: dbestacion)
+  TABLA: dbo.ta_16_tipo_aseo (DB: db_ingresos)
+  SP: dbo.procedure (DB: )
+  TABLA: dbo.ta_versiones (DB: db_egresos)
+
+aseo:
+  TABLA: dbo.ta_12_operaciones (DB: db_ingresos)
+  TABLA: dbo.ta_17_adeudos_div (DB: db_ingresos)
+  TABLA: dbo.ta_16_unidades (DB: db_ingresos)
+  TABLA: dbo.ta_16_tipos_emp (DB: db_ingresos)
+  TABLA: dbo.ta_12_diasinhabil (DB: db_ingresos)
+  TABLA: dbo.ta_16_gastos (DB: db_ingresos)
+  TABLA: dbo.ta_16_rel_licgiro (DB: db_ingresos)
+  TABLA: dbo.ta_15_periodos (DB: db_ingresos)
+  TABLA: dbo.ta (DB: )
+  TABLA: dbo.ta_versiones (DB: db_egresos)
+
+cementerios:
+  TABLA: dbo.datos (DB: )
+  TABLA: dbo.systables (DB: catastro_gdl)
+  TABLA: informix.ta_13_datosrcm (DB: db_ingresos)
+  SP: dbo.spd_13_datosdet (DB: db_ingresos)
+  TABLA: dbo.ta_13_titulos (DB: db_ingresos)
+  TABLA: dbo.cg_12_ingreso (DB: db_ingresos)
+  SP: saranda.spd_adeudos_rcm1 (DB: db_ingresos)
+  TABLA: dbo.ta_12_cerrardia (DB: db_ingresos)
+  TABLA: dbo.ta_12_ingreso (DB: db_ingresos)
+  TABLA: dbo.ta_12_passwords (DB: db_ingresos)
+
+estacionamientos:
+  TABLA: dbo.fig (DB: floating)
+  TABLA: dbo.one (DB: )
+  TABLA: dbo.jpeg_get_small (DB: by)
+  TABLA: dbo.ta14_refrecibo (DB: dbestacion)
+  TABLA: dbo.the (DB: 3:1)
+  SP: dbo.after (DB: )
+  SP: dbo.to (DB: of)
+  TABLA: dbo.Adobe (DB: them.)
+  TABLA: dbo.pubcategoria (DB: dbestacion)
+  TABLA: dbo.256Kb (DB: just)
+
+Recaudadora:
+  TABLA: dbo.saldosafavor (DB: catastro_gdl)
+  TABLA: dbo.sdosFavor (DB: catastro_gdl)
+  TABLA: dbo.c_zonayrec (DB: catastro_gdl)
+  TABLA: dbo.impuestoTransp (DB: catastro_gdl)
+  TABLA: dbo.c_autdescrec (DB: catastro_gdl)
+  TABLA: dbo.v_convenio (DB: catastro_gdl)
+  TABLA: dbo.valores (DB: catastro_gdl)
+  TABLA: dbo.reqmultas (DB: catastro_gdl)
+  TABLA: dbo.detreqanun (DB: catastro_gdl)
+  TABLA: dbo.pagos (DB: catastro_gdl)
+
+Licencias2:
+  TABLA: dbo.c_girosautoev (DB: catastro_gdl)
+  TABLA: dbo.digital_docs (DB: catastro_gdl)
+  TABLA: dbo.banamex (DB: catastro_gdl)
+  TABLA: dbo.solic (DB: catastro_gdl)
+  TABLA: dbo.seg_revision (DB: catastro_gdl)
+  TABLA: dbo.tramites_grupos (DB: catastro_gdl)
+  TABLA: dbo.sysbacktram (DB: catastro_gdl)
+  TABLA: dbo.lic_400 (DB: catastro_gdl)
+  TABLA: dbo.cp_correos (DB: catastro_gdl)
+  SP: dbo.FUNCTION (DB: )
+
+mercados:
+  SP: dbo.spd_11_bancopag (DB: db_ingresos)
+  TABLA: dbo.ta_11_clave_mov (DB: db_ingresos)
+  TABLA: dbo.ta_11_ade_ene_canc (DB: db_ingresos)
+  TABLA: dbo.ta_11_energia_hist (DB: db_ingresos)
+  TABLA: dbo.ta_11_cve_cuota (DB: db_ingresos)
+  TABLA: dbo.ta_12_im (DB: )
+  TABLA: dbo.ta_12_operaciones (DB: db_ingresos)
+  TABLA: dbo.ta_11_adeudo_dif (DB: db_ingresos)
+  SP: dbo.spd_11_mto_energia (DB: )
+  TABLA: dbo.ta_11_adeudo_energ (DB: db_ingresos)
+
+OTRAS OBLIG:
+  TABLA: dbo.ta_12_operaciones (DB: db_ingresos)
+  TABLA: dbo.t34_unidades (DB: db_ingresos)
+  TABLA: dbo.t34_datos (DB: db_ingresos)
+  TABLA: dbo.ta_15_apremios (DB: db_ingresos)
+  TABLA: dbo.t34_pagos (DB: db_ingresos)
+  TABLA: dbo.ta_12_passwords (DB: db_ingresos)
+  TABLA: dbo.ta_15_periodos (DB: db_ingresos)
+  TABLA: dbo.t34_suspensiones (DB: db_ingresos)
+  SP: dbo.Then (DB: )
+  TABLA: dbo.t34_fechalimite (DB: db_ingresos)

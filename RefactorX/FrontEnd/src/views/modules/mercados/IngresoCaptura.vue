@@ -1,46 +1,43 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Ingreso Captura</h1>
-        <p>Mercados - Ingreso Captura</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="ingreso-captura-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Ingreso Captura</li>
+      </ol>
+    </nav>
     <h1>Ingreso Capturado por Fecha de Pago</h1>
     <form @submit.prevent="fetchIngresoCaptura">
       <div class="row mb-3">
         <div class="col-md-2">
-          <label class="municipal-form-label">Número de Mercado</label>
-          <input v-model.number="form.num_mercado" type="number" class="municipal-form-control" required />
+          <label>Número de Mercado</label>
+          <input v-model.number="form.num_mercado" type="number" class="form-control" required />
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Fecha Pago</label>
-          <input v-model="form.fecha_pago" type="date" class="municipal-form-control" required />
+          <label>Fecha Pago</label>
+          <input v-model="form.fecha_pago" type="date" class="form-control" required />
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Oficina Pago</label>
-          <input v-model.number="form.oficina_pago" type="number" class="municipal-form-control" required />
+          <label>Oficina Pago</label>
+          <input v-model.number="form.oficina_pago" type="number" class="form-control" required />
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Caja Pago</label>
-          <input v-model="form.caja_pago" type="text" maxlength="1" class="municipal-form-control" required />
+          <label>Caja Pago</label>
+          <input v-model="form.caja_pago" type="text" maxlength="1" class="form-control" required />
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Operación Pago</label>
-          <input v-model.number="form.operacion_pago" type="number" class="municipal-form-control" required />
+          <label>Operación Pago</label>
+          <input v-model.number="form.operacion_pago" type="number" class="form-control" required />
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <button class="btn btn-municipal-primary w-100" type="submit">Buscar</button>
+          <button class="btn btn-primary w-100" type="submit">Buscar</button>
         </div>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="results && results.length">
-      <table class="-striped municipal-table-bordered mt-3">
+      <table class="table table-striped table-bordered mt-3">
         <thead>
           <tr>
             <th>Fecha Pago</th>
@@ -63,12 +60,9 @@
     </div>
     <div v-else-if="results && !results.length" class="alert alert-warning">No hay resultados para los filtros seleccionados.</div>
     <div class="mt-4">
-      <router-link class="btn-municipal-secondary" to="/">Regresar</router-link>
+      <router-link class="btn btn-secondary" to="/">Regresar</router-link>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

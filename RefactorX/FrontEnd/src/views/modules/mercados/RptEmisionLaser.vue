@@ -1,39 +1,36 @@
 <template>
-  <div class="module-view">
+  <div class="rpt-emision-laser-page">
     <h1>Emisión de Recibos Laser</h1>
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-invoice" /></div>
-      <div class="module-view-info">
-        <h1>Emisión Laser</h1>
-        <p>Mercados - Emisión Laser</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Emisión Laser</li>
+      </ol>
+    </nav>
     <form @submit.prevent="fetchReport">
       <div class="form-row">
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Oficina</label>
-          <select v-model="form.oficina" class="municipal-form-control" required>
+          <label>Oficina</label>
+          <select v-model="form.oficina" class="form-control" required>
             <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
           </select>
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model.number="form.axo" class="municipal-form-control" required />
+          <label>Año</label>
+          <input type="number" v-model.number="form.axo" class="form-control" required />
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Periodo (Mes)</label>
-          <input type="number" v-model.number="form.periodo" min="1" max="12" class="municipal-form-control" required />
+          <label>Periodo (Mes)</label>
+          <input type="number" v-model.number="form.periodo" min="1" max="12" class="form-control" required />
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Mercado</label>
-          <select v-model="form.mercado" class="municipal-form-control" required>
+          <label>Mercado</label>
+          <select v-model="form.mercado" class="form-control" required>
             <option v-for="m in mercados" :key="m.id" :value="m.id">{{ m.nombre }}</option>
           </select>
         </div>
       </div>
-      <button type="submit" class="btn-municipal-primary">Generar Reporte</button>
+      <button type="submit" class="btn btn-primary">Generar Reporte</button>
     </form>
 
     <div v-if="loading" class="mt-3">
@@ -44,7 +41,7 @@
 
     <div v-if="report && report.length" class="mt-4">
       <h3>Locales con Adeudo</h3>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Local</th>
@@ -83,7 +80,7 @@
           </div>
           <div class="modal-body">
             <h6>Pagos</h6>
-            <table class="municipal-table-sm">
+            <table class="table table-sm">
               <thead>
                 <tr>
                   <th>Fecha Pago</th>
@@ -113,16 +110,13 @@
             </ul>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn-municipal-secondary" @click="detalleLocal=null">Cerrar</button>
+            <button type="button" class="btn btn-secondary" @click="detalleLocal=null">Cerrar</button>
           </div>
         </div>
       </div>
     </div>
 
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -177,10 +171,7 @@ export default {
       this.error = '';
       this.report = [];
       try {
-        const resp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const resp = await this.$axios.post('/api/execute', {
           eRequest: {
             action: 'getReport',
             params: {
@@ -190,14 +181,11 @@ export default {
               mercado: this.form.mercado
             }
           }
-        }
-          )
         });
-        const respData = await resp.json();
-        if (respData.eResponse && respData.eResponse.report) {
-          this.report = respData.eResponse.report;
+        if (resp.data.eResponse && resp.data.eResponse.report) {
+          this.report = resp.data.eResponse.report;
         } else {
-          this.error = respData.eResponse.error || 'No se encontraron datos.';
+          this.error = resp.data.eResponse.error || 'No se encontraron datos.';
         }
       } catch (e) {
         this.error = e.message || 'Error al consultar el reporte';
@@ -208,38 +196,29 @@ export default {
     async showDetalle(local) {
       this.detalleLocal = local;
       // Cargar pagos
-      const pagosResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const pagosResp = await this.$axios.post('/api/execute', {
         eRequest: {
           action: 'getPagos',
           params: { id_local: local.id_local, axo: this.form.axo, periodo: this.form.periodo }
         }
       });
-      this.pagos = pagosRespData.eResponse.pagos || [];
+      this.pagos = pagosResp.data.eResponse.pagos || [];
       // Cargar meses adeudo
-      const mesesResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const mesesResp = await this.$axios.post('/api/execute', {
         eRequest: {
           action: 'getMesAdeudo',
           params: { id_local: local.id_local, axo: this.form.axo }
         }
       });
-      this.mesesAdeudo = mesesRespData.eResponse.mes_adeudo || [];
+      this.mesesAdeudo = mesesResp.data.eResponse.mes_adeudo || [];
       // Cargar requerimientos
-      const reqResp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const reqResp = await this.$axios.post('/api/execute', {
         eRequest: {
           action: 'getRequerimientos',
           params: { id_local: local.id_local, modulo: 11 }
         }
       });
-      this.requerimientos = reqRespData.eResponse.requerimientos || [];
+      this.requerimientos = reqResp.data.eResponse.requerimientos || [];
     },
     currency(val) {
       if (val == null) return '';

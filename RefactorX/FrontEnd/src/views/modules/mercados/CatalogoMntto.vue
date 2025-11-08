@@ -1,161 +1,123 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
+  <div class="catalogo-mntto-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Catálogo de Mercados</li>
+      </ol>
+    </nav>
+    <h2>Catálogo de Mercados</h2>
+    <form @submit.prevent="onSubmit">
+      <div class="form-group">
+        <label for="oficina">Oficina</label>
+        <select v-model="form.oficina" class="form-control" required>
+          <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+            {{ rec.id_rec }} - {{ rec.recaudadora }}
+          </option>
+        </select>
       </div>
-      <div class="module-view-info">
-        <h1>Catalogo Mntto</h1>
-        <p>Mercados - Catálogos del Sistema</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-    </div>
-
-    <div class="module-view-content">
-      <div class="catalogo-mntto-page">
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-              <li class="breadcrumb-item active" aria-current="page">Catálogo de Mercados</li>
-            </ol>
-          </nav>
-          <h2>Catálogo de Mercados</h2>
-          <form @submit.prevent="onSubmit">
-            <div class="form-group">
-              <label for="oficina">Oficina</label>
-              <select v-model="form.oficina" class="municipal-form-control" required>
-                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
-                </option>
-              </select>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="num_mercado_nvo">Mercado</label>
-                <input type="number" v-model="form.num_mercado_nvo" class="municipal-form-control" maxlength="3" required />
-              </div>
-              <div class="form-group">
-                <label for="descripcion">Nombre</label>
-                <input type="text" v-model="form.descripcion" class="municipal-form-control" maxlength="30" required />
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="categoria">Categoría</label>
-              <select v-model="form.categoria" class="municipal-form-control" required>
-                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
-                  {{ cat.categoria }} - {{ cat.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="zona">Zona</label>
-              <select v-model="form.zona" class="municipal-form-control" required>
-                <option v-for="zona in zonas" :key="zona.id_zona" :value="zona.id_zona">
-                  {{ zona.id_zona }} - {{ zona.zona }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="cuenta_ingreso">Cuenta Ingreso</label>
-              <select v-model="form.cuenta_ingreso" class="municipal-form-control" required>
-                <option v-for="cta in cuentas" :key="cta.cta_aplicacion" :value="cta.cta_aplicacion">
-                  {{ cta.cta_aplicacion }} - {{ cta.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>¿El Mercado cobra Energía Eléctrica?</label>
-              <select v-model="form.pregunta" class="municipal-form-control" required>
-                <option value="S">Sí</option>
-                <option value="N">No</option>
-              </select>
-            </div>
-            <div v-if="form.pregunta === 'S'" class="form-group">
-              <label for="cuenta_energia">Cuenta Energía</label>
-              <select v-model="form.cuenta_energia" class="municipal-form-control">
-                <option v-for="cta in cuentas" :key="cta.cta_aplicacion" :value="cta.cta_aplicacion">
-                  {{ cta.cta_aplicacion }} - {{ cta.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="emision">Tipo de Emisión</label>
-              <select v-model="form.emision" class="municipal-form-control" required>
-                <option value="MASIVA">Masiva</option>
-                <option value="DISKETTE">Diskette</option>
-                <option value="BAJA">Baja</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <button type="submit" class="btn-municipal-primary">{{ editMode ? 'Actualizar' : 'Agregar' }}</button>
-              <button type="button" class="btn-municipal-secondary" @click="resetForm">Cancelar</button>
-            </div>
-          </form>
-          <hr />
-          <h3>Lista de Mercados</h3>
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr class="row-hover">
-                <th>Oficina</th>
-                <th>Mercado</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Zona</th>
-                <th>Cuenta Ingreso</th>
-                <th>Cuenta Energía</th>
-                <th>Emisión</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in catalogo" :key="item.oficina + '-' + item.num_mercado_nvo" class="row-hover">
-                <td>{{ item.oficina }}</td>
-                <td>{{ item.num_mercado_nvo }}</td>
-                <td>{{ item.descripcion }}</td>
-                <td>{{ item.categoria }}</td>
-                <td>{{ item.id_zona }}</td>
-                <td>{{ item.cuenta_ingreso }}</td>
-                <td>{{ item.cuenta_energia || '-' }}</td>
-                <td>{{ emisionLabel(item.tipo_emision) }}</td>
-                <td>
-                  <button class="btn-municipal-info" @click="editItem(item)">Editar</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div v-if="message" class="alert" :class="{'alert-success': success, 'alert-danger': !success}">
-            {{ message }}
-          </div>
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          <label for="num_mercado_nvo">Mercado</label>
+          <input type="number" v-model="form.num_mercado_nvo" class="form-control" maxlength="3" required />
         </div>
+        <div class="form-group col-md-10">
+          <label for="descripcion">Nombre</label>
+          <input type="text" v-model="form.descripcion" class="form-control" maxlength="30" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="categoria">Categoría</label>
+        <select v-model="form.categoria" class="form-control" required>
+          <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+            {{ cat.categoria }} - {{ cat.descripcion }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="zona">Zona</label>
+        <select v-model="form.zona" class="form-control" required>
+          <option v-for="zona in zonas" :key="zona.id_zona" :value="zona.id_zona">
+            {{ zona.id_zona }} - {{ zona.zona }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="cuenta_ingreso">Cuenta Ingreso</label>
+        <select v-model="form.cuenta_ingreso" class="form-control" required>
+          <option v-for="cta in cuentas" :key="cta.cta_aplicacion" :value="cta.cta_aplicacion">
+            {{ cta.cta_aplicacion }} - {{ cta.descripcion }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>¿El Mercado cobra Energía Eléctrica?</label>
+        <select v-model="form.pregunta" class="form-control" required>
+          <option value="S">Sí</option>
+          <option value="N">No</option>
+        </select>
+      </div>
+      <div v-if="form.pregunta === 'S'" class="form-group">
+        <label for="cuenta_energia">Cuenta Energía</label>
+        <select v-model="form.cuenta_energia" class="form-control">
+          <option v-for="cta in cuentas" :key="cta.cta_aplicacion" :value="cta.cta_aplicacion">
+            {{ cta.cta_aplicacion }} - {{ cta.descripcion }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="emision">Tipo de Emisión</label>
+        <select v-model="form.emision" class="form-control" required>
+          <option value="MASIVA">Masiva</option>
+          <option value="DISKETTE">Diskette</option>
+          <option value="BAJA">Baja</option>
+        </select>
+      </div>
+      <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary mr-2">{{ editMode ? 'Actualizar' : 'Agregar' }}</button>
+        <button type="button" class="btn btn-secondary" @click="resetForm">Cancelar</button>
+      </div>
+    </form>
+    <hr />
+    <h3>Lista de Mercados</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Oficina</th>
+          <th>Mercado</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Zona</th>
+          <th>Cuenta Ingreso</th>
+          <th>Cuenta Energía</th>
+          <th>Emisión</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in catalogo" :key="item.oficina + '-' + item.num_mercado_nvo">
+          <td>{{ item.oficina }}</td>
+          <td>{{ item.num_mercado_nvo }}</td>
+          <td>{{ item.descripcion }}</td>
+          <td>{{ item.categoria }}</td>
+          <td>{{ item.id_zona }}</td>
+          <td>{{ item.cuenta_ingreso }}</td>
+          <td>{{ item.cuenta_energia || '-' }}</td>
+          <td>{{ emisionLabel(item.tipo_emision) }}</td>
+          <td>
+            <button class="btn btn-sm btn-info" @click="editItem(item)">Editar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div v-if="message" class="alert" :class="{'alert-success': success, 'alert-danger': !success}">
+      {{ message }}
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'CatalogoMntto'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'CatalogoMnttoPage',
   data() {
     return {
@@ -173,13 +135,8 @@ export default {
         pregunta: 'N',
         cuenta_energia: '',
         zona: '',
-        emision: 'MASIVA',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        emision: 'MASIVA'
+      },
       editMode: false,
       editKey: null,
       message: '',
@@ -194,28 +151,6 @@ export default {
     this.loadCuentas();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async api(action, params = {}) {
       const res = await fetch('/api/execute', {
         method: 'POST',
@@ -303,8 +238,15 @@ export default {
 }
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.catalogo-mntto-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.breadcrumb {
+  background: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
 </style>

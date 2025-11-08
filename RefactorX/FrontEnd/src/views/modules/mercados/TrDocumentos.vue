@@ -1,35 +1,32 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Transferencia de Documentos</h1>
-        <p>Mercados - Transferencia de Documentos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card">
-      <div class="municipal-card-header">
+  <div class="tr-documentos-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Transferencia de Documentos</li>
+      </ol>
+    </nav>
+    <div class="card">
+      <div class="card-header">
         <h3>Transferencia de Documentos</h3>
       </div>
-      <div class="municipal-card-body">
+      <div class="card-body">
         <form @submit.prevent="onBuscar">
           <div class="row mb-3">
             <div class="col-md-3">
-              <label class="municipal-form-label" for="fecha">Fecha Elaboración</label>
-              <input type="date" v-model="form.fecha_elaboracion" class="municipal-form-control" required />
+              <label for="fecha">Fecha Elaboración</label>
+              <input type="date" v-model="form.fecha_elaboracion" class="form-control" required />
             </div>
             <div class="col-md-3">
-              <label class="municipal-form-label" for="cuenta">Cuenta</label>
-              <select v-model="form.cuenta" class="municipal-form-control" @change="onCuentaChange">
+              <label for="cuenta">Cuenta</label>
+              <select v-model="form.cuenta" class="form-control" @change="onCuentaChange">
                 <option v-for="cta in cuentas" :key="cta.id" :value="cta.id">
                   {{ cta.nombre }}
                 </option>
               </select>
             </div>
             <div class="col-md-3">
-              <label class="municipal-form-label" for="tipo_doc">Tipo de Documento</label>
+              <label for="tipo_doc">Tipo de Documento</label>
               <div>
                 <div class="form-check form-check-inline">
                   <input class="form-check-input" type="radio" id="cheques" value="C" v-model="form.tipo_doc" />
@@ -46,14 +43,14 @@
               </div>
             </div>
             <div class="col-md-3 align-self-end">
-              <button type="submit" class="btn-municipal-primary">Buscar</button>
+              <button type="submit" class="btn btn-primary">Buscar</button>
             </div>
           </div>
         </form>
         <div v-if="documentos.length">
           <h5>Documentos encontrados: {{ documentos.length }}</h5>
           <div class="table-responsive">
-            <table class="-bordered municipal-table-sm">
+            <table class="table table-bordered table-sm">
               <thead>
                 <tr>
                   <th>Cheque</th>
@@ -84,7 +81,7 @@
               </tbody>
             </table>
           </div>
-          <button class="btn btn-municipal-success mt-3" @click="onGenerarTransferencia">Generar Archivo de Transferencia</button>
+          <button class="btn btn-success mt-3" @click="onGenerarTransferencia">Generar Archivo de Transferencia</button>
         </div>
         <div v-else-if="buscado">
           <div class="alert alert-warning">No se encontraron documentos para los criterios seleccionados.</div>
@@ -108,9 +105,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -202,7 +196,7 @@ export default {
             params
           }
         });
-        if (data.eResponse.status === 'ok' && data.eResponse.data && data.eResponse.data[0].archivo_url) {
+        if (data.eResponse.success && data.eResponse.data && data.eResponse.data[0].archivo_url) {
           this.archivoUrl = data.eResponse.data[0].archivo_url;
           $(this.$refs.modalDescarga).modal('show');
         } else {

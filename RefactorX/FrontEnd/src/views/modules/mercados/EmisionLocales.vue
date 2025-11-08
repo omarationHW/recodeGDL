@@ -1,47 +1,44 @@
 <template>
-  <div class="module-view">
+  <div class="emision-locales-page">
     <h1>Emisión de Recibos de Locales</h1>
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="store" /></div>
-      <div class="module-view-info">
-        <h1>Emisión de Recibos</h1>
-        <p>Mercados - Emisión de Recibos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active">Emisión de Recibos</li>
+      </ol>
+    </nav>
     <form @submit.prevent="emitirRecibos">
       <div class="form-row">
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Recaudadora</label>
-          <select v-model="form.oficina" class="municipal-form-control" required @change="listarMercados">
+          <label>Recaudadora</label>
+          <select v-model="form.oficina" class="form-control" required @change="listarMercados">
             <option v-for="rec in recaudadoras" :key="rec.id" :value="rec.id">{{ rec.nombre }}</option>
           </select>
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label">Mercado</label>
-          <select v-model="form.mercado" class="municipal-form-control" required>
+          <label>Mercado</label>
+          <select v-model="form.mercado" class="form-control" required>
             <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.descripcion }}</option>
           </select>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model.number="form.axo" class="municipal-form-control" min="2003" max="2999" required />
+          <label>Año</label>
+          <input type="number" v-model.number="form.axo" class="form-control" min="2003" max="2999" required />
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label">Periodo (Mes)</label>
-          <input type="number" v-model.number="form.periodo" class="municipal-form-control" min="1" max="12" required />
+          <label>Periodo (Mes)</label>
+          <input type="number" v-model.number="form.periodo" class="form-control" min="1" max="12" required />
         </div>
       </div>
       <div class="form-row mt-2">
-        <button type="submit" class="btn btn-municipal-primary mr-2">Emisión</button>
-        <button type="button" class="btn btn-municipal-success mr-2" @click="grabarEmision">Grabar</button>
-        <button type="button" class="btn btn-municipal-info mr-2" @click="facturacion">Facturación</button>
+        <button type="submit" class="btn btn-primary mr-2">Emisión</button>
+        <button type="button" class="btn btn-success mr-2" @click="grabarEmision">Grabar</button>
+        <button type="button" class="btn btn-info mr-2" @click="facturacion">Facturación</button>
       </div>
     </form>
     <div v-if="recibos.length" class="mt-4">
       <h3>Recibos Generados</h3>
-      <table class="municipal-table">
+      <table class="table table-sm table-bordered">
         <thead>
           <tr>
             <th>Local</th>
@@ -86,9 +83,6 @@
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
     <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

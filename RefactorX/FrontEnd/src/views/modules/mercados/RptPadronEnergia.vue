@@ -1,27 +1,24 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="bolt" /></div>
-      <div class="module-view-info">
-        <h1>Padrón Energía Eléctrica</h1>
-        <p>Mercados - Padrón Energía Eléctrica</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-padron-energia-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Padrón Energía Eléctrica</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Padrón de Energía Eléctrica del Mercado</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row g-3 align-items-end">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="oficina">Oficina</label>
-          <input type="number" v-model.number="form.oficina" id="oficina" class="municipal-form-control" required min="1">
+          <label for="oficina" class="form-label">Oficina</label>
+          <input type="number" v-model.number="form.oficina" id="oficina" class="form-control" required min="1">
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="mercado">Mercado</label>
-          <input type="number" v-model.number="form.mercado" id="mercado" class="municipal-form-control" required min="1">
+          <label for="mercado" class="form-label">Mercado</label>
+          <input type="number" v-model.number="form.mercado" id="mercado" class="form-control" required min="1">
         </div>
         <div class="col-md-3">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -32,8 +29,8 @@
         <strong>Mercado:</strong> {{ report.descripcion_mercado }}
       </div>
       <div class="table-responsive">
-        <table class="-bordered municipal-table-striped">
-          <thead class="table-light municipal-table-header">
+        <table class="table table-bordered table-striped">
+          <thead class="table-light">
             <tr>
               <th>ID</th>
               <th>Datos del Local</th>
@@ -66,9 +63,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -108,7 +102,7 @@ export default {
           })
         });
         const json = await response.json();
-        if (json.eResponse && json.eResponse.status === 'ok') {
+        if (json.eResponse && json.eResponse.success) {
           this.report = json.eResponse.data;
         } else {
           this.error = json.eResponse && json.eResponse.message ? json.eResponse.message : 'Error desconocido';

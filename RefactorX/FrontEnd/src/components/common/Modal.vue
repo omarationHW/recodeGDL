@@ -3,7 +3,7 @@
     <div
       v-if="show"
       class="modal fade show d-block"
-      :class="{ 'modal-backdrop-show': show }"
+      :class="[$attrs.class, { 'modal-backdrop-show': show }]"
       tabindex="-1"
       @click.self="closeModal"
     >
@@ -65,6 +65,7 @@
 <script>
 export default {
   name: 'Modal',
+  inheritAttrs: false,
   props: {
     show: {
       type: Boolean,

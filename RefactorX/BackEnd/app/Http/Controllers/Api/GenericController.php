@@ -14,55 +14,83 @@ class GenericController
         return [
             'padron_licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'catastro_gdl'
+                'schema' => 'public',
+                'allowed_schemas' => ['public', 'comun'] // Solo estos esquemas
             ],
             'licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'catastro_gdl'
+                'schema' => 'public',
+                'allowed_schemas' => ['public', 'comun']
+            ],
+            'aseo_contratado' => [
+                'database' => 'aseo_contratado',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ],
             'aseo' => [
-                'database' => 'padron_aseo',
-                'schema' => 'informix'
+                'database' => 'aseo_contratado',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
+            ],
+            'cementerio' => [
+                'database' => 'cementerio',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ],
             'cementerios' => [
-                'database' => 'padron_cementerios',
-                'schema' => 'informix'
+                'database' => 'cementerio',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ],
-            'convenios' => [
-                'database' => 'padron_convenios',
-                'schema' => 'informix'
-            ],
-            'estacionamientos' => [
-                'database' => 'padron_estacionamientos',
-                'schema' => 'informix'
+            'estacionamiento_exclusivo' => [
+                'database' => 'estacionamiento_exclusivo',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ],
             'estacionamiento_publico' => [
-                'database' => 'padron_estacionamientos',
-                'schema' => 'informix'
+                'database' => 'estacionamiento_publico',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ],
-            'otras-oblig' => [
-                'database' => 'padron_otras_oblig',
-                'schema' => 'informix'
-            ],
-            'recaudadora' => [
-                'database' => 'padron_recaudadora',
-                'schema' => 'informix'
-            ],
-            'tramite-trunk' => [
-                'database' => 'padron_tramite_trunk',
-                'schema' => 'informix'
-            ],
-            'apremiossvn' => [
-                'database' => 'padron_apremiossvn',
-                'schema' => 'informix'
+            'estacionamientos' => [
+                'database' => 'estacionamiento_publico',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ],
             'mercados' => [
-                'database' => 'padron_mercados',
-                'schema' => 'informix'
+                'database' => 'mercados',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
+            ],
+            'multas_reglamentos' => [
+                'database' => 'multas_reglamentos',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
+            ],
+            'multas' => [
+                'database' => 'multas_reglamentos',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
+            ],
+            'otras_obligaciones' => [
+                'database' => 'otras_obligaciones',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
+            ],
+            'otras-oblig' => [
+                'database' => 'otras_obligaciones',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
+            ],
+            'distribucion' => [
+                'database' => 'distribucion',
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ],
             'default' => [
                 'database' => config('database.connections.pgsql.database', 'postgres'),
-                'schema' => config('database.connections.pgsql.schema', 'informix')
+                'schema' => 'public',
+                'allowed_schemas' => ['public']
             ]
         ];
     }
@@ -73,7 +101,7 @@ class GenericController
      * @OA\Post(
      *     path="/api/generic",
      *     summary="Ejecutar stored procedure genérico",
-     *     description="Endpoint genérico para ejecutar stored procedures en diferentes módulos y bases de datos",
+     *     description="Endpoint genérico para ejecutar stored procedures en diferentes módulos y bases de datos. El esquema por defecto es 'public'. Solo la base 'padron_licencias' puede usar también el esquema 'comun'.",
      *     tags={"Generic API"},
      *     @OA\RequestBody(
      *         required=true,
@@ -82,10 +110,10 @@ class GenericController
      *             @OA\Property(
      *                 property="eRequest",
      *                 type="object",
-     *                 @OA\Property(property="Operacion", type="string", example="select"),
-     *                 @OA\Property(property="Base", type="string", example="padron_licencias"),
-     *                 @OA\Property(property="StoredProcedure", type="string", example="sp_consulta"),
-     *                 @OA\Property(property="Parametros", type="object")
+     *                 @OA\Property(property="Operacion", type="string", example="select", description="Nombre del stored procedure a ejecutar"),
+     *                 @OA\Property(property="Base", type="string", example="padron_licencias", description="Nombre del módulo/base de datos"),
+     *                 @OA\Property(property="Esquema", type="string", example="public", description="Esquema de la base de datos (opcional). Por defecto: 'public'. Solo 'padron_licencias' puede usar 'comun'"),
+     *                 @OA\Property(property="Parametros", type="object", description="Parámetros del stored procedure")
      *             )
      *         )
      *     ),
@@ -153,15 +181,28 @@ class GenericController
             $parametros = $eRequest['Parametros'] ?? [];
             $paginacion = $eRequest['Paginacion'] ?? null;
             $tenant = $eRequest['Tenant'] ?? '';
+            $esquemaRequest = $eRequest['Esquema'] ?? null; // Esquema opcional desde el request
 
-            Log::info("🔍 Variables extraídas: operacion={$operacion}, base={$base}, parametros=" . count($parametros) . ", tenant={$tenant}");
+            Log::info("🔍 Variables extraídas: operacion={$operacion}, base={$base}, parametros=" . count($parametros) . ", tenant={$tenant}, esquema={$esquemaRequest}");
 
             $moduleDbConfig = $this->getModuleDbConfig();
             $config = $moduleDbConfig[$base] ?? $moduleDbConfig['default'];
             $dbname = $config['database'];
-            $schema = $config['schema'];
+            $schemaDefault = $config['schema']; // Esquema por defecto (public)
+            $allowedSchemas = $config['allowed_schemas'] ?? ['public'];
 
-            Log::info("🔍 Módulo: {$base} -> Base: {$dbname}, Esquema: {$schema}");
+            // Si viene esquema en el request, validar que sea permitido
+            if ($esquemaRequest) {
+                $esquemaRequest = strtolower($esquemaRequest);
+                if (!in_array($esquemaRequest, $allowedSchemas)) {
+                    throw new Exception("El esquema '{$esquemaRequest}' no es permitido para la base '{$base}'. Esquemas permitidos: " . implode(', ', $allowedSchemas));
+                }
+                $schema = $esquemaRequest; // Usar el esquema del request
+            } else {
+                $schema = $schemaDefault; // Usar esquema por defecto (public)
+            }
+
+            Log::info("🔍 Módulo: {$base} -> Base: {$dbname}, Esquema: {$schema} (default: {$schemaDefault}, allowed: " . implode(', ', $allowedSchemas) . ")");
 
             $host = config('database.connections.pgsql.host');
             $port = config('database.connections.pgsql.port');
@@ -240,15 +281,27 @@ class GenericController
                             case 'json':
                                 $valor = is_string($valor) ? $valor : json_encode($valor);
                                 break;
+                            case 'integer_array':
+                            case 'int_array':
+                                // Convertir array JSON a formato PostgreSQL array {1,2,3}
+                                if (is_string($valor)) {
+                                    $decoded = json_decode($valor, true);
+                                    if (is_array($decoded)) {
+                                        $valor = '{' . implode(',', array_map('intval', $decoded)) . '}';
+                                    } else {
+                                        $valor = '{}'; // Array vacío si no se puede decodificar
+                                    }
+                                } elseif (is_array($valor)) {
+                                    $valor = '{' . implode(',', array_map('intval', $valor)) . '}';
+                                } else {
+                                    $valor = '{}';
+                                }
+                                break;
                             default:
                                 $valor = strval($valor);
                         }
-                    } else {
-                        // Si el valor es null y el tipo es string, convertir a string vacío
-                        if ($tipo === 'string') {
-                            $valor = '';
-                        }
                     }
+                    // Mantener null como null para que el SP pueda usar sus valores por defecto
 
                     $paramMap[$param['nombre']] = $valor;
                 }
@@ -291,6 +344,18 @@ class GenericController
 
             Log::info("🔍 SP ejecutado, obteniendo resultados...");
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Convertir booleanos de PostgreSQL ('t'/'f') a booleanos de PHP (true/false)
+            foreach ($result as &$row) {
+                foreach ($row as $key => &$value) {
+                    if ($value === 't') {
+                        $value = true;
+                    } elseif ($value === 'f') {
+                        $value = false;
+                    }
+                }
+            }
+
             Log::info("✅ SP completado. Resultados: " . count($result) . " registros");
 
             $testConnection = $pdo->query('SELECT current_database(), current_user, version()');

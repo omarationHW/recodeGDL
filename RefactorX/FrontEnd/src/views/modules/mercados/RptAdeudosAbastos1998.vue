@@ -1,40 +1,37 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="exclamation-triangle" /></div>
-      <div class="module-view-info">
-        <h1>Adeudos Abastos 1998</h1>
-        <p>Mercados - Adeudos Abastos 1998</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="adeudos-abastos-1998-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Adeudos Abastos 1998</li>
+      </ol>
+    </nav>
     <h1>Listado de Adeudos de Mercados del Año: {{ axo }}</h1>
     <form @submit.prevent="fetchAdeudos">
       <div class="form-row">
         <div class="form-group col-md-2">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model="axo" class="municipal-form-control" min="1998" max="1998" />
+          <label>Año</label>
+          <input type="number" v-model="axo" class="form-control" min="1998" max="1998" />
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label">Oficina</label>
-          <select v-model="oficina" class="municipal-form-control">
+          <label>Oficina</label>
+          <select v-model="oficina" class="form-control">
             <option v-for="of in oficinas" :key="of.value" :value="of.value">{{ of.label }}</option>
           </select>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label">Periodo</label>
-          <input type="number" v-model="periodo" class="municipal-form-control" min="1" max="12" />
+          <label>Periodo</label>
+          <input type="number" v-model="periodo" class="form-control" min="1" max="12" />
         </div>
         <div class="form-group col-md-2 align-self-end">
-          <button type="submit" class="btn-municipal-primary">Buscar</button>
+          <button type="submit" class="btn btn-primary">Buscar</button>
         </div>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando datos...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="adeudos.length">
-      <table class="-bordered municipal-table-sm mt-3">
+      <table class="table table-bordered table-sm mt-3">
         <thead>
           <tr>
             <th>Datos Local</th>
@@ -71,9 +68,6 @@
     </div>
     <div v-else-if="!loading">No hay datos para los parámetros seleccionados.</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -107,10 +101,7 @@ export default {
       this.error = '';
       this.adeudos = [];
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'get_adeudos_abastos_1998',
           params: {
             axo: this.axo,

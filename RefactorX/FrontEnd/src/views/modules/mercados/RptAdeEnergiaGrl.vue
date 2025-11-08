@@ -1,48 +1,45 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="bolt" /></div>
-      <div class="module-view-info">
-        <h1>Adeudos Globales Energía</h1>
-        <p>Mercados - Adeudos Globales Energía</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="ade-energia-grl-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Adeudos Globales Energía</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Adeudos Globales de Energía Eléctrica</h1>
     <form @submit.prevent="fetchDebts" class="form-inline mb-3">
       <div class="form-group mr-2">
-        <label class="municipal-form-label mr-2" for="office">Recaudadora:</label>
-        <select v-model="filters.office_id" @change="onOfficeChange" class="municipal-form-control" required>
+        <label for="office" class="mr-2">Recaudadora:</label>
+        <select v-model="filters.office_id" @change="onOfficeChange" class="form-control" required>
           <option v-for="rec in offices" :key="rec.id" :value="rec.id">{{ rec.name }}</option>
         </select>
       </div>
       <div class="form-group mr-2">
-        <label class="municipal-form-label mr-2" for="market">Mercado:</label>
-        <select v-model="filters.market_id" class="municipal-form-control" required>
+        <label for="market" class="mr-2">Mercado:</label>
+        <select v-model="filters.market_id" class="form-control" required>
           <option v-for="m in markets" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">{{ m.num_mercado_nvo }} - {{ m.descripcion }}</option>
         </select>
       </div>
       <div class="form-group mr-2">
-        <label class="municipal-form-label mr-2" for="year">Año:</label>
-        <select v-model="filters.year" class="municipal-form-control" required>
+        <label for="year" class="mr-2">Año:</label>
+        <select v-model="filters.year" class="form-control" required>
           <option v-for="y in years" :key="y.axo" :value="y.axo">{{ y.axo }}</option>
         </select>
       </div>
       <div class="form-group mr-2">
-        <label class="municipal-form-label mr-2" for="month">Mes:</label>
-        <select v-model="filters.month" class="municipal-form-control" required>
+        <label for="month" class="mr-2">Mes:</label>
+        <select v-model="filters.month" class="form-control" required>
           <option v-for="m in months" :key="m.id" :value="m.id">{{ m.name }}</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-municipal-primary mr-2">Consultar</button>
-      <button type="button" class="btn-municipal-success" @click="exportExcel" :disabled="debts.length === 0">Exportar Excel</button>
+      <button type="submit" class="btn btn-primary mr-2">Consultar</button>
+      <button type="button" class="btn btn-success" @click="exportExcel" :disabled="debts.length === 0">Exportar Excel</button>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando datos...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="debts.length > 0">
-      <table class="-bordered municipal-table-sm">
-        <thead class="thead-light municipal-table-header">
+      <table class="table table-bordered table-sm">
+        <thead class="thead-light">
           <tr>
             <th>Datos Local</th>
             <th>Nombre Locatario</th>
@@ -71,9 +68,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -110,10 +104,7 @@ export default {
     async fetchYearsMonths() {
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getYearsMonths',
           params: {}
         });
@@ -132,10 +123,7 @@ export default {
       this.markets = [];
       this.filters.market_id = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getMarketsByOffice',
           params: { office_id: this.filters.office_id }
         });
@@ -153,10 +141,7 @@ export default {
       this.debts = [];
       this.totalAdeudo = 0;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getEnergyDebts',
           params: {
             office_id: this.filters.office_id,

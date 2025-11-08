@@ -9,11 +9,11 @@
       </p>
     </div>
     
-    <div class="municipal-card">
+    <div class="card">
       <div class="card-header bg-light">
         <h5 class="mb-0">Rpt Movimientos</h5>
       </div>
-      <div class="municipal-card-body">
+      <div class="card-body">
         <p class="text-muted">
           Funcionalidad pendiente de implementación para el sistema de mercados.
         </p>

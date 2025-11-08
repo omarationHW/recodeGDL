@@ -1,113 +1,75 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
-      </div>
-      <div class="module-view-info">
-        <h1>Cons Captura Fecha</h1>
-        <p>Mercados - Consultas</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+  <div class="cons-captura-fecha-page">
+    <div class="breadcrumb">
+      <router-link to="/">Inicio</router-link> / Consulta de Pagos Capturados por Mercado
     </div>
-
-    <div class="module-view-content">
-      <div class="cons-captura-fecha-page">
-          <div class="breadcrumb">
-            <router-link to="/">Inicio</router-link> / Consulta de Pagos Capturados por Mercado
-          </div>
-          <h2>Detalle de Pagos Capturados</h2>
-          <form class="form-inline" @submit.prevent="buscarPagos">
-            <label>Fecha Pago:
-              <input type="date" v-model="form.fecha" required />
-            </label>
-            <label>Oficina:
-              <select v-model="form.oficina" @change="cargarCajas" required>
-                <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">{{ of.recaudadora }}</option>
-              </select>
-            </label>
-            <label>Caja:
-              <select v-model="form.caja" required>
-                <option v-for="cj in cajas" :key="cj.caja" :value="cj.caja">{{ cj.caja }}</option>
-              </select>
-            </label>
-            <label>Operación:
-              <input type="number" v-model="form.operacion" required />
-            </label>
-            <button type="submit">Buscar</button>
-          </form>
-          <div v-if="loading" class="loading">Cargando...</div>
-          <div v-if="error" class="error">{{ error }}</div>
-          <div v-if="pagos.length">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr class="row-hover">
-                  <th><input type="checkbox" v-model="selectAll" @change="toggleAll" /></th>
-                  <th>Control</th>
-                  <th>Datos Local</th>
-                  <th>Año</th>
-                  <th>Mes</th>
-                  <th>Fecha</th>
-                  <th>Rec</th>
-                  <th>Caja</th>
-                  <th>Oper.</th>
-                  <th>Renta</th>
-                  <th>Partida</th>
-                  <th>Actualización</th>
-                  <th>Usuario</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(pago, idx) in pagos" :key="pago.id_local + '-' + pago.axo + '-' + pago.periodo" class="row-hover">
-                  <td><input type="checkbox" v-model="selected" :value="pago" /></td>
-                  <td>{{ pago.id_local }}</td>
-                  <td>{{ pago.datoslocal }}</td>
-                  <td>{{ pago.axo }}</td>
-                  <td>{{ pago.periodo }}</td>
-                  <td>{{ pago.fecha_pago | date }}</td>
-                  <td>{{ pago.oficina_pago }}</td>
-                  <td>{{ pago.caja_pago }}</td>
-                  <td>{{ pago.operacion_pago }}</td>
-                  <td>{{ pago.importe_pago | currency }}</td>
-                  <td>{{ pago.folio }}</td>
-                  <td>{{ pago.fecha_modificacion | datetime }}</td>
-                  <td>{{ pago.usuario }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <button @click="borrarPagos" :disabled="!selected.length">Borrar Pago(s)</button>
-          </div>
-          <div v-else-if="!loading">No hay pagos para los criterios seleccionados.</div>
-        </div>
+    <h2>Detalle de Pagos Capturados</h2>
+    <form class="form-inline" @submit.prevent="buscarPagos">
+      <label>Fecha Pago:
+        <input type="date" v-model="form.fecha" required />
+      </label>
+      <label>Oficina:
+        <select v-model="form.oficina" @change="cargarCajas" required>
+          <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">{{ of.recaudadora }}</option>
+        </select>
+      </label>
+      <label>Caja:
+        <select v-model="form.caja" required>
+          <option v-for="cj in cajas" :key="cj.caja" :value="cj.caja">{{ cj.caja }}</option>
+        </select>
+      </label>
+      <label>Operación:
+        <input type="number" v-model="form.operacion" required />
+      </label>
+      <button type="submit">Buscar</button>
+    </form>
+    <div v-if="loading" class="loading">Cargando...</div>
+    <div v-if="error" class="error">{{ error }}</div>
+    <div v-if="pagos.length">
+      <table class="pagos-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" v-model="selectAll" @change="toggleAll" /></th>
+            <th>Control</th>
+            <th>Datos Local</th>
+            <th>Año</th>
+            <th>Mes</th>
+            <th>Fecha</th>
+            <th>Rec</th>
+            <th>Caja</th>
+            <th>Oper.</th>
+            <th>Renta</th>
+            <th>Partida</th>
+            <th>Actualización</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(pago, idx) in pagos" :key="pago.id_local + '-' + pago.axo + '-' + pago.periodo">
+            <td><input type="checkbox" v-model="selected" :value="pago" /></td>
+            <td>{{ pago.id_local }}</td>
+            <td>{{ pago.datoslocal }}</td>
+            <td>{{ pago.axo }}</td>
+            <td>{{ pago.periodo }}</td>
+            <td>{{ pago.fecha_pago | date }}</td>
+            <td>{{ pago.oficina_pago }}</td>
+            <td>{{ pago.caja_pago }}</td>
+            <td>{{ pago.operacion_pago }}</td>
+            <td>{{ pago.importe_pago | currency }}</td>
+            <td>{{ pago.folio }}</td>
+            <td>{{ pago.fecha_modificacion | datetime }}</td>
+            <td>{{ pago.usuario }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <button @click="borrarPagos" :disabled="!selected.length">Borrar Pago(s)</button>
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'ConsCapturaFecha'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
+    <div v-else-if="!loading">No hay pagos para los criterios seleccionados.</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'ConsCapturaFechaPage',
   data() {
     return {
@@ -115,13 +77,8 @@ export default {
         fecha: '',
         oficina: '',
         caja: '',
-        operacion: '',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        operacion: ''
+      },
       oficinas: [],
       cajas: [],
       pagos: [],
@@ -135,38 +92,13 @@ export default {
     this.cargarOficinas();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async cargarOficinas() {
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           eRequest: { action: 'getOficinas' }
         });
-        this.oficinas = resData.eResponse.data;
+        this.oficinas = res.data.eResponse.data;
       } catch (e) {
         this.error = 'Error cargando oficinas';
       } finally {
@@ -177,13 +109,10 @@ export default {
       if (!this.form.oficina) return;
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           eRequest: { action: 'getCajasByOficina', params: { oficina: this.form.oficina } }
         });
-        this.cajas = resData.eResponse.data;
+        this.cajas = res.data.eResponse.data;
       } catch (e) {
         this.error = 'Error cargando cajas';
       } finally {
@@ -196,10 +125,7 @@ export default {
       this.pagos = [];
       this.selected = [];
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           eRequest: {
             action: 'getPagosByFecha',
             params: {
@@ -210,7 +136,7 @@ export default {
             }
           }
         });
-        this.pagos = resData.eResponse.data || [];
+        this.pagos = res.data.eResponse.data || [];
       } catch (e) {
         this.error = 'Error consultando pagos';
       } finally {
@@ -228,10 +154,7 @@ export default {
       if (!confirm('¿Está seguro de borrar los pagos seleccionados?')) return;
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           eRequest: {
             action: 'deletePagos',
             params: {
@@ -265,8 +188,38 @@ export default {
 };
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.cons-captura-fecha-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.breadcrumb {
+  margin-bottom: 1rem;
+  color: #888;
+}
+.form-inline label {
+  margin-right: 1rem;
+}
+.pagos-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.pagos-table th, .pagos-table td {
+  border: 1px solid #ccc;
+  padding: 0.3rem 0.5rem;
+  text-align: left;
+}
+.pagos-table th {
+  background: #f0f0f0;
+}
+.loading {
+  color: #007bff;
+  margin: 1rem 0;
+}
+.error {
+  color: #c00;
+  margin: 1rem 0;
+}
 </style>

@@ -6,13 +6,13 @@ export function useApi() {
   const error = ref(null)
   const data = ref(null)
 
-  const execute = async (operacion, base, parametros = [], tenant = '') => {
+  const execute = async (operacion, base, parametros = [], tenant = '', pagination = null, esquema = null) => {
     loading.value = true
     error.value = null
     data.value = null
 
     try {
-      const response = await apiService.execute(operacion, base, parametros, tenant)
+      const response = await apiService.execute(operacion, base, parametros, tenant, pagination, esquema)
 
       if (response.success) {
         data.value = response.data

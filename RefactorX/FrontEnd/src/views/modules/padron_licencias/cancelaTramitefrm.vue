@@ -384,6 +384,8 @@ const buscarTramite = async () => {
       'SP_GET_TRAMITE_BY_ID',
       'padron_licencias',
       [{ nombre: 'p_id_tramite', valor: parseInt(searchIdTramite.value), tipo: 'integer' }],
+      'guadalajara',
+      null,
       'comun'
     )
 
@@ -404,6 +406,8 @@ const buscarTramite = async () => {
           'SP_GET_GIRO_BY_ID',
           'padron_licencias',
           [{ nombre: 'p_id_giro', valor: parseInt(tramiteData.value.id_giro), tipo: 'integer' }],
+          'guadalajara',
+          null,
           'comun'
         )
 
@@ -440,19 +444,64 @@ const confirmarCancelacion = async () => {
   const { value: motivo } = await Swal.fire({
     title: 'Motivo de Cancelación',
     html: `
-      <p>Ingrese el motivo por el cual se cancela el trámite <strong>#${tramiteData.value.id_tramite}</strong>:</p>
-      <textarea id="swal-motivo" class="swal2-textarea" placeholder="Motivo de la cancelación..." rows="4" style="width: 100%;"></textarea>
+      <div style="text-align: left; padding: 10px 20px;">
+        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+          <p style="margin: 0; color: #856404; font-size: 14px;">
+            <strong>⚠️ Importante:</strong> Está a punto de cancelar el siguiente trámite:
+          </p>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #6c757d; font-weight: 500; width: 40%;">Trámite #:</td>
+              <td style="padding: 8px 0;"><strong style="color: #ea8215; font-size: 16px;">${tramiteData.value.id_tramite}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Tipo:</td>
+              <td style="padding: 8px 0;">${tramiteData.value.tipo_tramite || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Propietario:</td>
+              <td style="padding: 8px 0;">${propietarioCompleto.value || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Giro:</td>
+              <td style="padding: 8px 0;">${giroDescripcion.value || 'N/A'}</td>
+            </tr>
+          </table>
+        </div>
+
+        <label style="display: block; margin-bottom: 8px; color: #495057; font-weight: 600; font-size: 14px;">
+          📝 Motivo de la Cancelación: <span style="color: #dc3545;">*</span>
+        </label>
+        <textarea
+          id="swal-motivo"
+          class="swal2-textarea"
+          placeholder="Describa el motivo por el cual se cancela este trámite..."
+          rows="4"
+          style="width: 100%; padding: 12px; border: 2px solid #ced4da; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 100px;"
+        ></textarea>
+        <small style="display: block; margin-top: 8px; color: #6c757d; font-size: 12px;">
+          * El motivo quedará registrado en el historial del trámite
+        </small>
+      </div>
     `,
+    width: '600px',
     focusConfirm: false,
     showCancelButton: true,
-    confirmButtonColor: '#dc3545',
+    confirmButtonColor: '#ea8215',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Continuar',
-    cancelButtonText: 'Cancelar',
+    confirmButtonText: '<i class="fa fa-arrow-right"></i> Continuar',
+    cancelButtonText: '<i class="fa fa-times"></i> Cancelar',
+    customClass: {
+      confirmButton: 'btn-municipal-primary',
+      cancelButton: 'btn-municipal-secondary'
+    },
     preConfirm: () => {
       const motivoValue = document.getElementById('swal-motivo').value
       if (!motivoValue || !motivoValue.trim()) {
-        Swal.showValidationMessage('Debe ingresar el motivo de la cancelación')
+        Swal.showValidationMessage('⚠️ Debe ingresar el motivo de la cancelación')
       }
       return motivoValue
     }
@@ -492,15 +541,21 @@ const confirmarCancelacion = async () => {
         { nombre: 'p_id_tramite', valor: parseInt(tramiteData.value.id_tramite), tipo: 'integer' },
         { nombre: 'p_motivo', valor: motivo, tipo: 'string' }
       ],
+      'guadalajara',
+      null,
       'comun'
     )
 
+    const endTime = performance.now()
+    const duration = endTime - startTime
+    const durationText = duration < 1000 ? `${Math.round(duration)}ms` : `${(duration / 1000).toFixed(2)}s`
+
+    // OCULTAR LOADING PRIMERO
+    hideLoading()
+
+    // DESPUÉS MOSTRAR ALERTAS
     if (response && response.result && response.result.length > 0) {
       const resultado = response.result[0]
-
-      const endTime = performance.now()
-      const duration = endTime - startTime
-      const durationText = duration < 1000 ? `${Math.round(duration)}ms` : `${(duration / 1000).toFixed(2)}s`
 
       if (resultado.new_status === 'C') {
         // Actualizar estado local
@@ -523,9 +578,8 @@ const confirmarCancelacion = async () => {
     }
   } catch (error) {
     console.error('Error al cancelar trámite:', error)
-    handleError(error)
-  } finally {
     hideLoading()
+    handleError(error)
   }
 }
 

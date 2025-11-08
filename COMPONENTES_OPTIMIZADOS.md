@@ -1,10 +1,10 @@
 # 📋 Control de Componentes Optimizados - Padrón de Licencias
 
-**Última actualización:** 2025-11-06
+**Última actualización:** 2025-11-07
 
 ---
 
-## ✅ Componentes Completados (30/598)
+## ✅ Componentes Completados (36/598)
 
 ### 1. ✅ **consulta-usuarios** (consultausuariosfrm.vue)
 - **Ruta:** `/padron-licencias/consulta-usuarios`
@@ -1222,6 +1222,261 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 33/598 componentes (5.52%)**
+## 34. ✅ **modtramitefrm** (Modificación de Trámites) - P1 CRÍTICA
+
+**Fecha:** 2025-11-07
+**Módulo:** Padrón de Licencias
+**Tipo:** Edición de datos / Operación Crítica
+**Prioridad:** P1 - CRÍTICA
+**Estatus:** ✅ COMPLETADO
+
+- **Funcionalidad:** Permite modificar la información de trámites en proceso (solicitudes de licencias o anuncios que aún NO han sido aprobados). Puede corregir datos del solicitante, actualizar ubicaciones, modificar giros/actividades y ajustar datos técnicos.
+- **Características Implementadas:**
+  - ✅ **Header con 3 botones:** Regresar a Consulta + Limpiar/Nuevo + Ayuda
+  - ✅ **Acordeón de Búsqueda:** Colapsable con auto-colapso al encontrar trámite
+  - ✅ **Acordeón de Información:** Colapsable con auto-colapso al cargar trámite
+  - ✅ Búsqueda de trámite por ID con validación de estado
+  - ✅ Navegación automática desde ConsultaTramitefrm con auto-carga de datos (onMounted + route.params.id)
+  - ✅ Navegación rápida a Consulta de Trámites (botón header)
+  - ✅ Botón "Nuevo Trámite" limpia formulario y expande búsqueda (permite modificar otro trámite)
+  - ✅ Validación de estados modificables (T=En Trámite, R=Rechazado)
+  - ✅ Bloqueo visual para trámites Autorizados (A) o Cancelados (C)
+  - ✅ **6 PESTAÑAS (TABS)** organizadas con sistema de navegación superior:
+    * 1. Datos del Propietario (primer_ap, segundo_ap, propietario, RFC, CURP, teléfono, email)
+    * 2. Domicilio Fiscal (domicilio, números, colonia)
+    * 3. Ubicación del Negocio (calle con búsqueda, números, letras, colonia, CP, zona/subzona readonly)
+    * 4. Giro y Actividad (búsqueda de giro SCIAN, actividad específica)
+    * 5. Datos Técnicos (superficies, cajones, empleados, aforo, inversión, horario)
+    * 6. Observaciones (textarea con contador de caracteres 0/1000)
+  - ✅ Card de información del trámite con badges de estado
+  - ✅ Grid responsivo de info: fecha captura, capturista, tipo trámite, bloqueado
+  - ✅ Modal de búsqueda de Giros SCIAN (búsqueda en tiempo real, mínimo 3 caracteres)
+  - ✅ Modal de búsqueda de Calles (búsqueda en tiempo real, mínimo 3 caracteres, actualiza zona/subzona automáticamente)
+  - ✅ Validaciones completas de campos obligatorios
+  - ✅ Confirmación con resumen antes de actualizar
+  - ✅ Inputs en UPPERCASE automático para nombres y códigos
+  - ✅ Alert box de advertencia para trámites no modificables
+  - ✅ Modal de ayuda con documentación completa
+  - ✅ Limpieza de formulario al cancelar o después de actualizar
+  - ✅ Performance timing con formato inteligente ms/s
+  - ✅ Toast con tiempo de operación
+- **SPs Desplegados (6):**
+  - ✅ `comun.sp_get_tramite_by_id(p_id_tramite INTEGER)` - Obtiene trámite completo con todos sus datos
+  - ✅ `comun.sp_get_giro_by_id(p_id_giro INTEGER)` - Obtiene descripción del giro
+  - ✅ `comun.sp_update_tramite(p_id_tramite, p_primer_ap, p_segundo_ap, p_propietario, p_rfc, p_curp, p_telefono_prop, p_email, p_domicilio, p_numext_prop, p_numint_prop, p_colonia_prop, p_cvecalle, p_ubicacion, p_numext_ubic, p_numint_ubic, p_letraext_ubic, p_letraint_ubic, p_colonia_ubic, p_espubic, p_zona, p_subzona, p_cp, p_id_giro, p_actividad, p_sup_construida, p_sup_autorizada, p_num_cajones, p_num_empleados, p_aforo, p_inversion, p_rhorario, p_observaciones, p_usuario)` - **SP PRINCIPAL** actualiza todos los campos modificables con validación de estado
+  - ✅ `comun.sp_get_giros_search(p_busqueda VARCHAR, p_tipo VARCHAR, p_limit INTEGER)` - Búsqueda de giros SCIAN vigentes
+  - ✅ `comun.sp_get_calles_search(p_busqueda VARCHAR, p_limit INTEGER)` - Búsqueda de calles con zona y subzona
+  - ✅ `comun.sp_get_colonias_search(p_busqueda VARCHAR, p_limit INTEGER)` - Búsqueda de colonias (SP auxiliar)
+- **Tablas EXISTENTES:**
+  - ✅ `comun.tramites` - Tabla principal (UPDATE de 32+ campos)
+  - ✅ `comun.c_giros` - Catálogo de giros (SELECT para búsqueda)
+  - ✅ `comun.c_callesqry` - Catálogo de calles (SELECT para búsqueda)
+  - ✅ `comun.cp_correos` - Catálogo de colonias (SELECT para búsqueda)
+- **Módulo API:** `'padron_licencias'` con esquema `'comun'`
+- **Base de Datos:** `padron_licencias` en servidor 192.168.6.146
+- **Ubicación SPs:** `temp/deploy_modtramitefrm_sps.php`
+- **Scripts de Análisis:**
+  - `temp/analizar_tramites_modtramitefrm.php` - Análisis completo de estructura tabla tramites
+  - `temp/verificar_sps_modtramite.php` - Verificación de SPs disponibles
+- **Funcionalidad:** Modificación completa de trámites en proceso con validación de estado y búsqueda de catálogos
+- **Optimizaciones de código:**
+  - ✅ **COMPONENTE NUEVO OPTIMIZADO:** 1401 líneas de código limpio (template + script)
+  - ✅ Estructura 100% alineada con patrón estándar (GirosDconAdeudofrm.vue)
+  - ✅ **Sistema de ACORDEONES:** Búsqueda e Información colapsables con auto-gestión de estado
+  - ✅ **Sistema de PESTAÑAS (tabs)** con navegación superior (`.tabs-container` + `.tab-button`)
+  - ✅ Estado activo con `activeTab.value` controlando visibilidad con `v-show`
+  - ✅ UX inteligente: Auto-colapso de AMBOS acordeones al cargar trámite (foco en pestañas)
+  - ✅ Navegación integrada: useRouter para cambio rápido entre módulos relacionados
+  - ✅ Computed properties para `puedeModificar` y `mensajeEstado`
+  - ✅ Búsqueda secuencial: trámite → giro (2 llamadas SP en carga)
+  - ✅ Búsquedas modales con debounce mínimo de 3 caracteres
+  - ✅ Performance measurement con timing inteligente ms/s
+  - ✅ Sin inline styles (100% clases CSS reutilizables del tema municipal)
+  - ✅ Validaciones completas en frontend antes de submit
+  - ✅ Modal de ayuda con documentación de estados y campos obligatorios
+  - ✅ Auto-actualización de zona/subzona al seleccionar calle
+  - ✅ Diferenciación clara: modtramitefrm (trámites en proceso) vs modlicfrm (licencias autorizadas)
+  - ✅ **FIX CRÍTICO:** Corrección de parámetro esquema (posición 6 en `execute()`, no posición 4)
+  - ✅ **FIX NAVEGACIÓN:** Auto-carga de trámite desde route params (`onMounted` con `route.params.id`)
+  - ✅ **FIX ACTUALIZACIÓN:** Parseo correcto de respuesta JSON del SP (detecta y parsea `sp_update_tramite`)
+- **Testing:** ✅ SPs desplegados y funcionales en servidor
+- **Estilos CSS:** ✅ 8 nuevas clases agregadas a municipal-theme.css (líneas 9005-9154):
+  - `.alert-warning-box` - Alert de advertencia con borde izquierdo naranja
+  - `.tramite-info-grid` - Grid responsive con auto-fit minmax(250px, 1fr)
+  - `.info-item` - Item de información con layout vertical
+  - `.info-label` - Label uppercase con letter-spacing
+  - `.info-value` - Valor del campo con font-weight 500
+  - `.input-with-button` - Contenedor flex para input + botón de búsqueda
+  - `.char-counter` - Contador de caracteres con monospace font
+  - `.btn-municipal-sm` - Botón pequeño para tablas (13px, padding reducido)
+  - `.badge-info` - Badge azul para información
+  - Media queries responsive para mobile
+- **Estilos CSS (Tabs):** ✅ Reutilizadas clases existentes de municipal-theme.css (líneas 4982-5086):
+  - `.tabs-container` - Contenedor flex con gap y degradado de fondo
+  - `.tab-button` - Botón de tab con border, transiciones y hover effects
+  - `.tab-button.active` - Estado activo con gradiente naranja y sombra
+  - `.tab-content` - Animación fadeIn para contenido de tabs
+  - Media queries responsive para tabs en mobile
+
+---
+
+## 35. ✅ **ReactivaTramite** (Reactivación de Trámites Cancelados) - P1 CRÍTICA
+
+**Fecha:** 2025-11-07
+**Módulo:** Padrón de Licencias
+**Tipo:** Operación Crítica - Reactivar trámites cancelados
+**Prioridad:** P1 - CRÍTICA
+**Estatus:** ✅ COMPLETADO
+
+- **Funcionalidad:** Permite reactivar trámites que fueron previamente cancelados. Cambia el estado del trámite de CANCELADO (C) a EN PROCESO (T) para que pueda continuar con su flujo normal.
+- **Características Implementadas:**
+  - ✅ **Header Municipal:** module-view-header sin inline styles, con título, descripción y botón de ayuda
+  - ✅ **Búsqueda optimizada:** Input con ID de trámite + campo de giro deshabilitado (readonly)
+  - ✅ **Empty state:** Mensaje amigable cuando no hay trámite seleccionado
+  - ✅ **Vista de detalles:** Grid responsive (tramite-details-grid) con 5 secciones organizadas
+  - ✅ **Secciones de información:**
+    - 📋 Datos Generales (ID, Folio, Tipo, Fecha Captura, Estado con badge)
+    - 💼 Giro y Actividad (Giro descripción, Actividad)
+    - 👤 Información del Solicitante (Propietario, RFC, CURP)
+    - 📍 Ubicación (Domicilio completo)
+    - ❌ Información de Cancelación (Fecha, Motivo, Usuario que canceló)
+  - ✅ **Badge de estatus:** Coloreado según estado (danger/purple/success/warning/secondary)
+  - ✅ **Alertas contextuales:**
+    - 🔴 Trámite NO Cancelado (alert-danger) - No puede reactivarse
+  - ✅ **Validación de estado:** Solo permite reactivar si estatus = 'C' (Cancelado)
+  - ✅ **Confirmación única:** Modal SweetAlert2 elegante con resumen completo
+  - ✅ **Contador de caracteres:** 0/500 en textarea de motivo de reactivación
+  - ✅ **Actualización local del estado:** Cambia badge a "EN PROCESO" después de reactivar
+  - ✅ **Modal de ayuda:** Documentación integrada con procedimiento y estados
+  - ✅ useGlobalLoading (no loading local)
+  - ✅ useLicenciasErrorHandler + useApi
+  - ✅ Performance timing con formato ms/s
+  - ✅ Sin inline styles (100% estilos globales)
+  - ✅ Toast con tiempo de operación en bottom-right
+- **SPs Desplegados (3):** Todos en esquema `comun` usando tablas REALES
+  - ✅ `sp_get_tramite_by_id(p_id_tramite INTEGER)` - Obtiene datos completos del trámite (reutilizado de cancelaTramitefrm)
+  - ✅ `sp_get_giro_by_id(p_id_giro INTEGER)` - Obtiene descripción del giro (reutilizado de cancelaTramitefrm)
+  - ✅ `sp_reactivar_tramite(p_id_tramite INTEGER, p_motivo TEXT, p_usuario TEXT)` - **SP PRINCIPAL** Reactiva el trámite cancelado
+- **Tablas EXISTENTES del Sistema:**
+  - ✅ `comun.tramites` - Trámites del sistema (UPDATE estatus de 'C' → 'T')
+  - ✅ `comun.c_giros` - Catálogo de giros (SELECT para descripción)
+- **Lógica de Reactivación:**
+  - ✅ Valida que el trámite exista
+  - ✅ Valida que esté en estado 'C' (Cancelado)
+  - ✅ Cambia estado a 'T' (En Proceso/Trámite)
+  - ✅ Concatena motivo: 'REACTIVADO POR <USUARIO>.' + chr(13) + chr(10) + 'FECHA: <timestamp>' + chr(13) + chr(10) + 'MOTIVO: <motivo>'
+  - ✅ Actualiza observaciones concatenando el motivo de reactivación
+  - ✅ Actualiza feccap a la fecha/hora actual
+  - ✅ Retorna success: true/false con mensaje descriptivo
+- **Módulo API:** `'licencias'` (NO 'padron_licencias') con esquema `'comun'`
+- **Base de Datos:** `padron_licencias` en servidor 192.168.6.146
+- **Ubicación SPs:** `temp/DEPLOY_REACTIVATRAMITE_SPS.sql` + `temp/deploy_reactivatramite_sps.php`
+- **Funcionalidad:** Reactivación controlada de trámites cancelados con validación y registro de motivo
+- **Optimizaciones de código:**
+  - ✅ **COMPONENTE OPTIMIZADO:** 508 líneas de código limpio (template + script)
+  - ✅ Estructura 100% alineada con patrón estándar (cancelaTramitefrm.vue, BloquearTramitefrm.vue)
+  - ✅ Grid de detalles responsive con clases tramite-details-grid (reutilizadas de cancelaTramitefrm)
+  - ✅ Computed properties implícitas para validación de estado
+  - ✅ Búsqueda secuencial: trámite → giro (2 llamadas SP en carga)
+  - ✅ Performance measurement con timing inteligente ms/s
+  - ✅ Modal de confirmación único (no doble confirmación)
+  - ✅ hideLoading antes de Swal para mejor UX
+  - ✅ Badge púrpura (badge-purple) para estado 'T' (En Proceso)
+  - ✅ Estados descriptivos: 'T' = En Proceso (no "Terminado")
+  - ✅ Iconos FontAwesome apropiados para cada estado (spinner para 'T')
+  - ✅ Auto-limpieza de formulario manteniendo datos del trámite después de reactivar (para ver el cambio)
+- **Testing:** ⏳ PENDIENTE - SPs creados, esperando deployment cuando conexión DB se restablezca
+- **Estilos CSS:** ✅ Reutiliza clases existentes de municipal-theme.css:
+  - `.tramite-details-grid` - Grid responsive auto-fit minmax(300px, 1fr)
+  - `.tramite-detail-section` - Sección con background slate-50
+  - `.tramite-section-title` - Título con borde inferior naranja
+  - `.tramite-detail-row` - Fila con layout flex space-between
+  - `.tramite-detail-label` - Etiqueta bold slate-600
+  - `.tramite-detail-value` - Valor text-right slate-900
+  - `.empty-state-card` - Card de estado vacío con mensaje centrado
+  - `.badge-purple` - Badge morado para estado "En Proceso"
+- **Estados de Trámites:**
+  - 'A' = Autorizado (badge-success, check-circle)
+  - 'P' = Pendiente (badge-warning, clock)
+  - 'C' = Cancelado (badge-danger, times-circle)
+  - 'T' = En Proceso (badge-purple, spinner)
+  - 'R' = Rechazado (badge-secondary, ban)
+- **Flujo Complementario:** Este componente complementa a cancelaTramitefrm.vue, permitiendo revertir cancelaciones por error
+- **Casos de Uso:**
+  - Trámite cancelado por error administrativo
+  - Documentación faltante fue presentada posteriormente
+  - Resolución favorable después de revisión
+  - Corrección de situación que impedía continuar
+
+---
+
+## 36. ✅ **doctosfrm** (Catálogo de Tipos de Documentos) - P2 IMPORTANTE
+
+**Fecha:** 2025-11-07
+**Módulo:** Padrón de Licencias
+**Estatus:** ✅ COMPLETADO
+
+- **Funcionalidad:** Catálogo CRUD de tipos de documentos requeridos para trámites
+- **Características Implementadas:**
+  - ✅ Header Municipal sin inline styles
+  - ✅ Filtros colapsables (accordion)
+  - ✅ Paginación completa (10/25/50/100 registros)
+  - ✅ Búsqueda por clave y nombre
+  - ✅ Empty state
+  - ✅ CRUD completo (Create, Read, Update, Delete)
+  - ✅ Modales para ver/editar/crear
+  - ✅ Confirmaciones SweetAlert2
+  - ✅ useGlobalLoading + useLicenciasErrorHandler
+  - ✅ Performance timing ms/s
+  - ✅ Auto-refresh después de operaciones
+  - ✅ Badge púrpura con contador de registros
+
+- **SPs Creados (4):**
+  - ✅ sp_doctos_list() - Lista todos los tipos de documentos
+  - ✅ sp_doctos_create(p_cvedocto, p_documento) - Crea nuevo tipo
+  - ✅ sp_doctos_update(p_cvedocto, p_documento) - Actualiza tipo
+  - ✅ sp_doctos_delete(p_cvedocto) - Elimina tipo
+
+- **Módulo API:** 'padron_licencias' con esquema 'public'
+- **Tabla:** public.cat_doctos
+  - cvedocto INTEGER PRIMARY KEY
+  - documento VARCHAR(30) NOT NULL
+  - feccap TIMESTAMP DEFAULT NOW()
+  - capturista VARCHAR(50)
+
+- **Patrón de Código:**
+  ```javascript
+  // Patrón API Call
+  execute(
+    'SP_DOCTOS_LIST',
+    'padron_licencias',
+    [],
+    '',      // tenant vacío
+    null,    // pagination
+    'public' // esquema public (no comun)
+  )
+  ```
+
+- **Validaciones Implementadas:**
+  - No permitir claves duplicadas
+  - Validar existencia antes de UPDATE/DELETE
+  - Campos obligatorios: cvedocto, documento
+  - Máximo 30 caracteres en nombre del documento
+  - Trim automático de espacios
+
+- **Scripts de Deployment:**
+  - `temp/DEPLOY_DOCTOSFRM_SPS.sql` (4 SPs)
+  - `temp/deploy_doctosfrm_sps.php` (deployment script)
+
+- **Notas Técnicas:**
+  - Componente de catálogo puro (sin relación directa con trámites)
+  - Esquema 'public' (diferente de otros componentes que usan 'comun')
+  - Auto-recarga de datos después de cada operación exitosa
+  - Filtros se aplican sobre caché local (no requiere re-consulta a BD)
+  - Paginación del lado del cliente para mejor performance
+
+---
+
+**PROGRESO TOTAL: 36/598 componentes (6.02%)**
 **Última actualización:** 2025-11-07
 

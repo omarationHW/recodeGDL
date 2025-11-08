@@ -1,34 +1,31 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="chart-bar" /></div>
-      <div class="module-view-info">
-        <h1>Reporte Ingreso Zonificado</h1>
-        <p>Mercados - Reporte Ingreso Zonificado</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="container mt-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Reporte Ingreso Zonificado</li>
+      </ol>
+    </nav>
     <h2>Reporte de Ingreso Zonificado</h2>
     <form @submit.prevent="fetchReport" class="row g-3 mb-4">
       <div class="col-md-4">
-        <label class="municipal-form-label" for="fecdesde">Fecha Desde</label>
-        <input type="date" v-model="fecdesde" id="fecdesde" class="municipal-form-control" required />
+        <label for="fecdesde" class="form-label">Fecha Desde</label>
+        <input type="date" v-model="fecdesde" id="fecdesde" class="form-control" required />
       </div>
       <div class="col-md-4">
-        <label class="municipal-form-label" for="fechasta">Fecha Hasta</label>
-        <input type="date" v-model="fechasta" id="fechasta" class="municipal-form-control" required />
+        <label for="fechasta" class="form-label">Fecha Hasta</label>
+        <input type="date" v-model="fechasta" id="fechasta" class="form-control" required />
       </div>
       <div class="col-md-4 align-self-end">
-        <button type="submit" class="btn-municipal-primary">Consultar</button>
-        <button type="button" class="btn btn-municipal-secondary ms-2" @click="exportPDF" :disabled="!reportData.length">Exportar PDF</button>
+        <button type="submit" class="btn btn-primary">Consultar</button>
+        <button type="button" class="btn btn-secondary ms-2" @click="exportPDF" :disabled="!reportData.length">Exportar PDF</button>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando datos...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="reportData.length">
       <h5 class="mt-4">Resultados del {{ fecdesde }} al {{ fechasta }}</h5>
-      <table class="-bordered municipal-table-striped mt-2">
+      <table class="table table-bordered table-striped mt-2">
         <thead>
           <tr>
             <th style="width: 10%">Zona ID</th>
@@ -52,9 +49,6 @@
       </table>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

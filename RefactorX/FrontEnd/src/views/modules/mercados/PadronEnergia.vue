@@ -1,46 +1,43 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="bolt" /></div>
-      <div class="module-view-info">
-        <h1>Padrón de Energía Eléctrica</h1>
-        <p>Mercados - Padrón de Energía Eléctrica</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">Filtros</div>
-      <div class="municipal-card-body row g-3 align-items-end">
+  <div class="padron-energia-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Padrón de Energía Eléctrica</li>
+      </ol>
+    </nav>
+    <div class="card mb-3">
+      <div class="card-header">Filtros</div>
+      <div class="card-body row g-3 align-items-end">
         <div class="col-md-2">
-          <label class="municipal-form-label" for="recaudadora">Oficina</label>
+          <label for="recaudadora" class="form-label">Oficina</label>
           <select v-model="selectedRecaudadora" @change="onRecaudadoraChange" class="form-select" id="recaudadora">
             <option value="" disabled>Seleccione...</option>
             <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
           </select>
         </div>
         <div class="col-md-4">
-          <label class="municipal-form-label" for="mercado">Mercado</label>
+          <label for="mercado" class="form-label">Mercado</label>
           <select v-model="selectedMercado" class="form-select" id="mercado">
             <option value="" disabled>Seleccione...</option>
             <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.num_mercado_nvo }} - {{ merc.descripcion }}</option>
           </select>
         </div>
         <div class="col-md-2">
-          <button class="btn btn-municipal-primary w-100" @click="buscarPadron" :disabled="loading">Buscar</button>
+          <button class="btn btn-primary w-100" @click="buscarPadron" :disabled="loading">Buscar</button>
         </div>
         <div class="col-md-2">
-          <button class="btn btn-municipal-success w-100" @click="exportarExcel" :disabled="!padron.length">Exportar Excel</button>
+          <button class="btn btn-success w-100" @click="exportarExcel" :disabled="!padron.length">Exportar Excel</button>
         </div>
         <div class="col-md-2">
-          <button class="btn btn-municipal-secondary w-100" @click="imprimirPDF" :disabled="!padron.length">Imprimir PDF</button>
+          <button class="btn btn-secondary w-100" @click="imprimirPDF" :disabled="!padron.length">Imprimir PDF</button>
         </div>
       </div>
     </div>
     <div v-if="loading" class="alert alert-info">Cargando datos...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="padron.length" class="table-responsive">
-      <table class="-striped municipal-table-bordered">
+      <table class="table table-striped table-bordered">
         <thead>
           <tr>
             <th>Rec.</th>
@@ -76,10 +73,7 @@
       </table>
     </div>
     <div v-else-if="!loading && !error" class="alert alert-warning">No hay datos para mostrar.</div>
-    </div>
-    <!-- /module-view-content -->
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -104,10 +98,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getRecaudadoras'
         });
         if (res.data.success) {
@@ -128,10 +119,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getMercadosByRecaudadora',
           params: { id_rec: this.selectedRecaudadora }
         });
@@ -155,10 +143,7 @@ export default {
       this.error = '';
       this.padron = [];
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getPadronEnergia',
           params: {
             id_rec: this.selectedRecaudadora,
@@ -180,10 +165,7 @@ export default {
       if (!this.selectedRecaudadora || !this.selectedMercado) return;
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'exportPadronEnergiaExcel',
           params: {
             id_rec: this.selectedRecaudadora,
@@ -205,10 +187,7 @@ export default {
       if (!this.selectedRecaudadora || !this.selectedMercado) return;
       this.loading = true;
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'printPadronEnergia',
           params: {
             id_rec: this.selectedRecaudadora,

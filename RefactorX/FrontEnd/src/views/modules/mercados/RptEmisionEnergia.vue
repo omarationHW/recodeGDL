@@ -1,41 +1,38 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="bolt" /></div>
-      <div class="module-view-info">
-        <h1>Emisión Recibos Energía</h1>
-        <p>Mercados - Emisión Recibos Energía</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-emision-energia-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Emisión Recibos Energía</li>
+      </ol>
+    </nav>
     <h2>Emisión de Recibos de Energía Eléctrica</h2>
     <form @submit.prevent="onSubmit" class="mb-4">
       <div class="row mb-2">
         <div class="col-md-3">
-          <label class="municipal-form-label">Oficina Recaudadora</label>
-          <select v-model="form.oficina" class="municipal-form-control" required>
+          <label>Oficina Recaudadora</label>
+          <select v-model="form.oficina" class="form-control" required>
             <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label">Mercado</label>
-          <select v-model="form.mercado" class="municipal-form-control" required>
+          <label>Mercado</label>
+          <select v-model="form.mercado" class="form-control" required>
             <option v-for="m in mercados" :key="m.id" :value="m.id">{{ m.nombre }}</option>
           </select>
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model="form.axo" class="municipal-form-control" required min="2000" max="2100">
+          <label>Año</label>
+          <input type="number" v-model="form.axo" class="form-control" required min="2000" max="2100">
         </div>
         <div class="col-md-2">
-          <label class="municipal-form-label">Periodo (Mes)</label>
-          <select v-model="form.periodo" class="municipal-form-control" required>
+          <label>Periodo (Mes)</label>
+          <select v-model="form.periodo" class="form-control" required>
             <option v-for="mes in meses" :key="mes.value" :value="mes.value">{{ mes.label }}</option>
           </select>
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -43,7 +40,7 @@
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="result && result.length">
       <h4>Recibos de Energía</h4>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Datos Local</th>
@@ -70,17 +67,14 @@
         </tbody>
       </table>
       <div class="mt-3">
-        <button class="btn-municipal-success" @click="onPrint">Imprimir</button>
-        <button class="btn btn-municipal-secondary ml-2" @click="onPreview">Previsualizar</button>
+        <button class="btn btn-success" @click="onPrint">Imprimir</button>
+        <button class="btn btn-secondary ml-2" @click="onPreview">Previsualizar</button>
       </div>
     </div>
     <div v-else-if="result && !result.length">
       <div class="alert alert-warning">No se encontraron datos para los parámetros seleccionados.</div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

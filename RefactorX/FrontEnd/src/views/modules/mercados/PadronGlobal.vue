@@ -1,28 +1,25 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="users" /></div>
-      <div class="module-view-info">
-        <h1>Padrón Global de Locales</h1>
-        <p>Mercados - Padrón Global de Locales</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">Filtros de Consulta</div>
-      <div class="municipal-card-body row">
+  <div class="padron-global-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Padrón Global de Locales</li>
+      </ol>
+    </nav>
+    <div class="card mb-3">
+      <div class="card-header">Filtros de Consulta</div>
+      <div class="card-body row">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input type="number" v-model="filters.axo" class="municipal-form-control" min="1995" max="3000" />
+          <label for="axo">Año</label>
+          <input type="number" v-model="filters.axo" class="form-control" min="1995" max="3000" />
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="mes">Mes</label>
-          <input type="number" v-model="filters.mes" class="municipal-form-control" min="1" max="12" />
+          <label for="mes">Mes</label>
+          <input type="number" v-model="filters.mes" class="form-control" min="1" max="12" />
         </div>
         <div class="col-md-4">
-          <label class="municipal-form-label" for="vig">Estado del local</label>
-          <select v-model="filters.vig" class="municipal-form-control">
+          <label for="vig">Estado del local</label>
+          <select v-model="filters.vig" class="form-control">
             <option value="A">VIGENTES</option>
             <option value="B">CON BAJA TOTAL</option>
             <option value="C">CON BAJA POR ACUERDO</option>
@@ -30,23 +27,23 @@
           </select>
         </div>
         <div class="col-md-2 d-flex align-items-end">
-          <button class="btn btn-municipal-primary w-100" @click="fetchPadron">Consultar</button>
+          <button class="btn btn-primary w-100" @click="fetchPadron">Consultar</button>
         </div>
       </div>
     </div>
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header d-flex justify-content-between align-items-center">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
         <span>Padrón Global de Locales</span>
         <div>
-          <button class="btn btn-municipal-success mr-2" @click="exportExcel"><i class="fa fa-file-excel"></i> Exportar Excel</button>
-          <button class="btn-municipal-secondary" @click="$router.push('/')"><i class="fa fa-arrow-left"></i> Salir</button>
+          <button class="btn btn-success mr-2" @click="exportExcel"><i class="fa fa-file-excel"></i> Exportar Excel</button>
+          <button class="btn btn-secondary" @click="$router.push('/')"><i class="fa fa-arrow-left"></i> Salir</button>
         </div>
       </div>
-      <div class="municipal-card-body p-0">
+      <div class="card-body p-0">
         <div v-if="loading" class="text-center p-4">
           <span class="spinner-border"></span> Cargando datos...
         </div>
-        <table v-else class="-sm -striped municipal-table-hover mb-0">
+        <table v-else class="table table-sm table-striped table-hover mb-0">
           <thead>
             <tr>
               <th>Rec.</th>
@@ -90,9 +87,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -111,44 +105,30 @@ export default {
     };
   },
   methods: {
-    async fetchPadron() {
+    fetchPadron() {
       this.loading = true;
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getPadronGlobal',
-            params: this.filters
-          })
-        });
-        const resData = await res.json();
-        this.padron = resData.data || [];
-      } catch (err) {
-        console.error('Error al consultar el padrón global:', err);
-      } finally {
+      this.$axios.post('/api/execute', {
+        action: 'getPadronGlobal',
+        params: this.filters
+      }).then(res => {
+        this.padron = res.data.data || [];
+      }).catch(err => {
+        this.$toast.error('Error al consultar el padrón global');
+      }).finally(() => {
         this.loading = false;
-      }
+      });
     },
-    async exportExcel() {
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'exportPadronGlobalExcel',
-            params: this.filters
-          })
-        });
-        const resData = await res.json();
-        if (resData.data && resData.data.url) {
-          window.open(resData.data.url, '_blank');
+    exportExcel() {
+      this.$axios.post('/api/execute', {
+        action: 'exportPadronGlobalExcel',
+        params: this.filters
+      }).then(res => {
+        if (res.data.data && res.data.data.url) {
+          window.open(res.data.data.url, '_blank');
         } else {
-          console.error('No se pudo generar el archivo Excel');
+          this.$toast.error('No se pudo generar el archivo Excel');
         }
-      } catch (err) {
-        console.error('Error al exportar:', err);
-      }
+      });
     },
     estadoLabel(vig) {
       switch (vig) {

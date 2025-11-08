@@ -1,45 +1,42 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="dollar-sign" /></div>
-      <div class="module-view-info">
-        <h1>Pagos por Mercado</h1>
-        <p>Mercados - Pagos por Mercado</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="pagos-loc-grl-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Pagos por Mercado</li>
+      </ol>
+    </nav>
     <h2>Reporte de Pagos por Mercado</h2>
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-body">
+    <div class="card mb-3">
+      <div class="card-body">
         <form @submit.prevent="buscarPagos">
           <div class="row">
             <div class="col-md-3">
-              <label class="municipal-form-label">Oficina Recaudadora</label>
-              <select v-model="form.recaudadora_id" class="municipal-form-control" @change="onRecaudadoraChange">
+              <label>Oficina Recaudadora</label>
+              <select v-model="form.recaudadora_id" class="form-control" @change="onRecaudadoraChange">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
               </select>
             </div>
             <div class="col-md-5">
-              <label class="municipal-form-label">Mercado</label>
-              <select v-model="form.mercado_id" class="municipal-form-control">
+              <label>Mercado</label>
+              <select v-model="form.mercado_id" class="form-control">
                 <option value="">Seleccione...</option>
                 <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.num_mercado_nvo }} - {{ merc.descripcion }}</option>
               </select>
             </div>
             <div class="col-md-2">
-              <label class="municipal-form-label">Desde</label>
-              <input type="date" v-model="form.fecha_desde" class="municipal-form-control" />
+              <label>Desde</label>
+              <input type="date" v-model="form.fecha_desde" class="form-control" />
             </div>
             <div class="col-md-2">
-              <label class="municipal-form-label">Hasta</label>
-              <input type="date" v-model="form.fecha_hasta" class="municipal-form-control" />
+              <label>Hasta</label>
+              <input type="date" v-model="form.fecha_hasta" class="form-control" />
             </div>
           </div>
           <div class="mt-3">
-            <button type="submit" class="btn-municipal-primary">Buscar</button>
-            <button type="button" class="btn btn-municipal-success ml-2" @click="exportarExcel" :disabled="pagos.length === 0">Exportar a Excel</button>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <button type="button" class="btn btn-success ml-2" @click="exportarExcel" :disabled="pagos.length === 0">Exportar a Excel</button>
           </div>
         </form>
       </div>
@@ -49,8 +46,8 @@
     <div v-if="pagos.length > 0">
       <h5>Resultados</h5>
       <div class="table-responsive">
-        <table class="-sm -bordered municipal-table-hover">
-          <thead class="thead-light municipal-table-header">
+        <table class="table table-sm table-bordered table-hover">
+          <thead class="thead-light">
             <tr>
               <th>Mercado</th>
               <th>Sección</th>
@@ -98,9 +95,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -129,10 +123,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getRecaudadoras',
           params: {}
         });
@@ -154,10 +145,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getMercadosByRecaudadora',
           params: { recaudadora_id: this.form.recaudadora_id }
         });
@@ -177,10 +165,7 @@ export default {
       this.error = '';
       this.pagos = [];
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getPagosLocGrl',
           params: {
             recaudadora_id: this.form.recaudadora_id,
@@ -204,10 +189,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'exportPagosLocGrlExcel',
           params: {
             recaudadora_id: this.form.recaudadora_id,

@@ -1,13 +1,14 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-alt" />
       </div>
       <div class="module-view-info">
         <h1>Bloquear/Desbloquear Trámite</h1>
-        <p>Padrón de Licencias - Gestión de bloqueos de trámites</p></div>
+        <p>Padrón de Licencias - Gestión de bloqueos de trámites</p>
+      </div>
       <button
         type="button"
         class="btn-help-icon"
@@ -43,7 +44,7 @@
                   <button
                     type="submit"
                     class="btn-municipal-primary"
-                    :disabled="loading || !searchTramite"
+                    :disabled="!searchTramite"
                   >
                     <font-awesome-icon icon="search" /> Buscar
                   </button>
@@ -163,9 +164,13 @@
                     class="municipal-form-control"
                     v-model="bloqueoForm.motivo"
                     rows="3"
+                    maxlength="500"
                     placeholder="Ingrese el motivo del bloqueo"
                     required
                   ></textarea>
+                  <small class="form-text text-muted">
+                    {{ bloqueoForm.motivo.length }}/500 caracteres
+                  </small>
                 </div>
               </div>
 
@@ -174,7 +179,6 @@
                   <button
                     type="submit"
                     class="btn-municipal-danger"
-                    :disabled="loading"
                   >
                     <font-awesome-icon icon="lock" /> Bloquear Trámite
                   </button>
@@ -192,9 +196,12 @@
 
           <!-- Historial de Bloqueos -->
           <div class="mt-4" v-if="bloqueos.length > 0">
-            <h6 class="section-title">
-              <font-awesome-icon icon="history" />
-              Historial de Bloqueos ({{ bloqueos.length }})
+            <h6 class="section-title header-with-badge">
+              <span>
+                <font-awesome-icon icon="history" />
+                Historial de Bloqueos
+              </span>
+              <span class="badge badge-purple">{{ bloqueos.length }}</span>
             </h6>
             <div class="table-responsive">
               <table class="municipal-table">
@@ -257,24 +264,6 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
-  </div>
-
     <!-- Modal de Ayuda -->
     <DocumentationModal
       :show="showDocumentation"
@@ -282,13 +271,14 @@
       :moduleName="'padron_licencias'"
       @close="closeDocumentation"
     />
-  </template>
+  </div>
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -298,16 +288,8 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const {
-  loading,
-  loadingMessage,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { handleApiError, showToast } = useLicenciasErrorHandler()
 
 // Estado
 const searchTramite = ref(null)
@@ -329,21 +311,28 @@ const hasBloqueosActivos = computed(() => {
 const buscarTramite = async () => {
   if (!searchTramite.value) return
 
-  setLoading(true, 'Buscando trámite...')
+  const startTime = Date.now()
+  showLoading('Buscando trámite...')
+
   try {
     const response = await execute(
-      'GET_TRAMITE',
+      'sp_bloqueartramite_get_tramite',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: searchTramite.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
+
+    hideLoading()
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result.length > 0) {
       tramiteData.value = response.result[0]
       await Promise.all([cargarBloqueos(), cargarGiroDescripcion()])
-      showToast('success', 'Trámite encontrado')
+      showToast('success', `Trámite encontrado (${duration}s)`, 3000, 'bottom-right')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -356,24 +345,25 @@ const buscarTramite = async () => {
       giroDescripcion.value = ''
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
     tramiteData.value = null
     bloqueos.value = []
     giroDescripcion.value = ''
-  } finally {
-    setLoading(false)
   }
 }
 
 const cargarBloqueos = async () => {
   try {
     const response = await execute(
-      'GET_BLOQUEOS',
+      'sp_bloqueartramite_get_bloqueos',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: searchTramite.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
     if (response && response.result) {
@@ -390,12 +380,14 @@ const cargarGiroDescripcion = async () => {
 
   try {
     const response = await execute(
-      'GET_GIRO_DESCRIPCION',
+      'sp_bloqueartramite_get_giro',
       'padron_licencias',
       [
-        { nombre: 'p_giro', valor: tramiteData.value.giro, tipo: 'string' }
+        { nombre: 'p_giro', valor: tramiteData.value.giro, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -418,8 +410,8 @@ const confirmarBloqueo = async () => {
     return
   }
 
-  // Primera confirmación
-  const firstConfirm = await Swal.fire({
+  // Confirmación
+  const confirm = await Swal.fire({
     icon: 'warning',
     title: '¿Bloquear trámite?',
     html: `
@@ -430,33 +422,16 @@ const confirmarBloqueo = async () => {
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Continuar',
-    cancelButtonText: 'Cancelar'
-  })
-
-  if (!firstConfirm.isConfirmed) return
-
-  // Segunda confirmación
-  const secondConfirm = await Swal.fire({
-    icon: 'question',
-    title: 'Confirmación final',
-    html: `
-      <p class="text-danger"><strong>Esta acción bloqueará el trámite</strong></p>
-      <p>¿Desea continuar?</p>
-    `,
-    showCancelButton: true,
-    confirmButtonColor: '#dc3545',
-    cancelButtonColor: '#6c757d',
     confirmButtonText: 'Sí, bloquear',
     cancelButtonText: 'Cancelar'
   })
 
-  if (!secondConfirm.isConfirmed) return
+  if (!confirm.isConfirmed) return
 
-  setLoading(true, 'Bloqueando trámite...')
+  showLoading('Bloqueando trámite...')
   try {
     const response = await execute(
-      'SP_BLOQUEAR_TRAMITE',
+      'sp_bloqueartramite_bloquear',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: searchTramite.value, tipo: 'integer' },
@@ -464,8 +439,12 @@ const confirmarBloqueo = async () => {
         { nombre: 'p_motivo', valor: bloqueoForm.value.motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
+
+    hideLoading()
 
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
@@ -478,7 +457,7 @@ const confirmarBloqueo = async () => {
 
       bloqueoForm.value = { tipo: '', motivo: '' }
       await cargarBloqueos()
-      showToast('success', 'Trámite bloqueado exitosamente')
+      showToast('success', 'Trámite bloqueado exitosamente', 3000, 'bottom-right')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -488,9 +467,8 @@ const confirmarBloqueo = async () => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -521,18 +499,22 @@ const confirmarDesbloqueo = async (bloqueo) => {
 
   if (!motivo) return
 
-  setLoading(true, 'Desbloqueando trámite...')
+  showLoading('Desbloqueando trámite...')
   try {
     const response = await execute(
-      'SP_DESBLOQUEAR_TRAMITE',
+      'sp_bloqueartramite_desbloquear',
       'padron_licencias',
       [
         { nombre: 'p_id_bloqueo', valor: bloqueo.id_bloqueo, tipo: 'integer' },
         { nombre: 'p_motivo_desbloqueo', valor: motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
+
+    hideLoading()
 
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
@@ -544,7 +526,7 @@ const confirmarDesbloqueo = async (bloqueo) => {
       })
 
       await cargarBloqueos()
-      showToast('success', 'Trámite desbloqueado exitosamente')
+      showToast('success', 'Trámite desbloqueado exitosamente', 3000, 'bottom-right')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -554,9 +536,8 @@ const confirmarDesbloqueo = async (bloqueo) => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -573,7 +554,7 @@ const getEstadoBadgeClass = (estatus) => {
     'A': 'badge-success',
     'P': 'badge-warning',
     'C': 'badge-danger',
-    'T': 'badge-info'
+    'T': 'badge-purple'
   }
   return classes[estatus] || 'badge-secondary'
 }

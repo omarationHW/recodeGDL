@@ -1,178 +1,140 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
+  <div class="cons-pagos-energia-page">
+    <h1>Consulta de Pagos de Energía</h1>
+    <nav class="breadcrumb">
+      <span>Inicio</span> &gt; <span>Consultas</span> &gt; <span>Pagos de Energía</span>
+    </nav>
+    <div class="card">
+      <div class="card-header">
+        <strong>Clasificación</strong>
       </div>
-      <div class="module-view-info">
-        <h1>Cons Pagos Energia</h1>
-        <p>Mercados - Gestión de Pagos</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-    </div>
-
-    <div class="module-view-content">
-      <div class="cons-pagos-energia-page">
-          <h1>Consulta de Pagos de Energía</h1>
-          <nav class="breadcrumb">
-            <span>Inicio</span> &gt; <span>Consultas</span> &gt; <span>Pagos de Energía</span>
-          </nav>
-          <div class="municipal-card">
-            <div class="municipal-card">
-              <strong>Clasificación</strong>
+      <div class="card-body">
+        <div class="form-group">
+          <label><input type="radio" v-model="searchType" value="local" /> Por Local</label>
+          <label><input type="radio" v-model="searchType" value="fecha_pago" /> Por Fecha de Pago</label>
+        </div>
+        <div v-if="searchType==='local'">
+          <div class="row">
+            <div class="col">
+              <label>Recaudadora</label>
+              <select v-model="formLocal.oficina" @change="onRecaudadoraChange">
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
+              </select>
             </div>
-            <div class="municipal-card">
-              <div class="form-group">
-                <label><input type="radio" v-model="searchType" value="local" /> Por Local</label>
-                <label><input type="radio" v-model="searchType" value="fecha_pago" /> Por Fecha de Pago</label>
-              </div>
-              <div v-if="searchType==='local'">
-                <div class="row">
-                  <div class="col">
-                    <label>Recaudadora</label>
-                    <select v-model="formLocal.oficina" @change="onRecaudadoraChange">
-                      <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
-                    </select>
-                  </div>
-                  <div class="col">
-                    <label>Mercado</label>
-                    <input v-model="formLocal.num_mercado" maxlength="3" />
-                  </div>
-                  <div class="col">
-                    <label>Categoria</label>
-                    <input v-model="formLocal.categoria" maxlength="1" />
-                  </div>
-                  <div class="col">
-                    <label>Sección</label>
-                    <select v-model="formLocal.seccion">
-                      <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">{{ sec.descripcion }}</option>
-                    </select>
-                  </div>
-                  <div class="col">
-                    <label>Local</label>
-                    <input v-model="formLocal.local" maxlength="5" />
-                  </div>
-                  <div class="col">
-                    <label>Letra</label>
-                    <input v-model="formLocal.letra_local" maxlength="1" />
-                  </div>
-                  <div class="col">
-                    <label>Bloque</label>
-                    <input v-model="formLocal.bloque" maxlength="1" />
-                  </div>
-                </div>
-              </div>
-              <div v-if="searchType==='fecha_pago'">
-                <div class="row">
-                  <div class="col">
-                    <label>Fecha de Pago</label>
-                    <input type="date" v-model="formFechaPago.fecha_pago" />
-                  </div>
-                  <div class="col">
-                    <label>Oficina</label>
-                    <select v-model="formFechaPago.oficina_pago" @change="onOficinaPagoChange">
-                      <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
-                    </select>
-                  </div>
-                  <div class="col">
-                    <label>Caja</label>
-                    <select v-model="formFechaPago.caja_pago">
-                      <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">{{ caja.caja }}</option>
-                    </select>
-                  </div>
-                  <div class="col">
-                    <label>Operación</label>
-                    <input v-model="formFechaPago.operacion_pago" maxlength="5" />
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <button @click="buscar" class="btn-municipal-primary">Buscar</button>
-                <button @click="limpiar" class="btn-municipal-secondary">Limpiar</button>
-              </div>
+            <div class="col">
+              <label>Mercado</label>
+              <input v-model="formLocal.num_mercado" maxlength="3" />
             </div>
-          </div>
-          <div class="municipal-card" v-if="resultados.length">
-            <div class="municipal-card">
-              <strong>Resultados</strong>
+            <div class="col">
+              <label>Categoria</label>
+              <input v-model="formLocal.categoria" maxlength="1" />
             </div>
-            <div class="municipal-card">
-              <table class="municipal-table">
-                <thead class="municipal-table-header">
-                  <tr class="row-hover">
-                    <th>Control</th>
-                    <th>Rec.</th>
-                    <th>Mercado</th>
-                    <th>Cat.</th>
-                    <th>Sec.</th>
-                    <th>Local</th>
-                    <th>Letra</th>
-                    <th>Bloque</th>
-                    <th>Año</th>
-                    <th>Mes</th>
-                    <th>Fecha Pago</th>
-                    <th>Oficina Pago</th>
-                    <th>Caja</th>
-                    <th>Operación</th>
-                    <th>Importe</th>
-                    <th>Folio</th>
-                    <th>Usuario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="row in resultados" :key="row.id_pago_energia" class="row-hover">
-                    <td>{{ row.id_local }}</td>
-                    <td>{{ row.oficina }}</td>
-                    <td>{{ row.num_mercado }}</td>
-                    <td>{{ row.categoria }}</td>
-                    <td>{{ row.seccion }}</td>
-                    <td>{{ row.local }}</td>
-                    <td>{{ row.letra_local }}</td>
-                    <td>{{ row.bloque }}</td>
-                    <td>{{ row.axo }}</td>
-                    <td>{{ row.periodo }}</td>
-                    <td>{{ row.fecha_pago }}</td>
-                    <td>{{ row.oficina_pago }}</td>
-                    <td>{{ row.caja_pago }}</td>
-                    <td>{{ row.operacion_pago }}</td>
-                    <td>{{ row.importe_pago }}</td>
-                    <td>{{ row.folio }}</td>
-                    <td>{{ row.usuario }}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="col">
+              <label>Sección</label>
+              <select v-model="formLocal.seccion">
+                <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">{{ sec.descripcion }}</option>
+              </select>
+            </div>
+            <div class="col">
+              <label>Local</label>
+              <input v-model="formLocal.local" maxlength="5" />
+            </div>
+            <div class="col">
+              <label>Letra</label>
+              <input v-model="formLocal.letra_local" maxlength="1" />
+            </div>
+            <div class="col">
+              <label>Bloque</label>
+              <input v-model="formLocal.bloque" maxlength="1" />
             </div>
           </div>
         </div>
+        <div v-if="searchType==='fecha_pago'">
+          <div class="row">
+            <div class="col">
+              <label>Fecha de Pago</label>
+              <input type="date" v-model="formFechaPago.fecha_pago" />
+            </div>
+            <div class="col">
+              <label>Oficina</label>
+              <select v-model="formFechaPago.oficina_pago" @change="onOficinaPagoChange">
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
+              </select>
+            </div>
+            <div class="col">
+              <label>Caja</label>
+              <select v-model="formFechaPago.caja_pago">
+                <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">{{ caja.caja }}</option>
+              </select>
+            </div>
+            <div class="col">
+              <label>Operación</label>
+              <input v-model="formFechaPago.operacion_pago" maxlength="5" />
+            </div>
+          </div>
+        </div>
+        <div class="form-group mt-2">
+          <button @click="buscar" class="btn btn-primary">Buscar</button>
+          <button @click="limpiar" class="btn btn-secondary">Limpiar</button>
+        </div>
+      </div>
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'ConsPagosEnergia'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
+    <div class="card mt-3" v-if="resultados.length">
+      <div class="card-header">
+        <strong>Resultados</strong>
+      </div>
+      <div class="card-body">
+        <table class="table table-sm table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Control</th>
+              <th>Rec.</th>
+              <th>Mercado</th>
+              <th>Cat.</th>
+              <th>Sec.</th>
+              <th>Local</th>
+              <th>Letra</th>
+              <th>Bloque</th>
+              <th>Año</th>
+              <th>Mes</th>
+              <th>Fecha Pago</th>
+              <th>Oficina Pago</th>
+              <th>Caja</th>
+              <th>Operación</th>
+              <th>Importe</th>
+              <th>Folio</th>
+              <th>Usuario</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in resultados" :key="row.id_pago_energia">
+              <td>{{ row.id_local }}</td>
+              <td>{{ row.oficina }}</td>
+              <td>{{ row.num_mercado }}</td>
+              <td>{{ row.categoria }}</td>
+              <td>{{ row.seccion }}</td>
+              <td>{{ row.local }}</td>
+              <td>{{ row.letra_local }}</td>
+              <td>{{ row.bloque }}</td>
+              <td>{{ row.axo }}</td>
+              <td>{{ row.periodo }}</td>
+              <td>{{ row.fecha_pago }}</td>
+              <td>{{ row.oficina_pago }}</td>
+              <td>{{ row.caja_pago }}</td>
+              <td>{{ row.operacion_pago }}</td>
+              <td>{{ row.importe_pago }}</td>
+              <td>{{ row.folio }}</td>
+              <td>{{ row.usuario }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'ConsPagosEnergiaPage',
   data() {
     return {
@@ -188,13 +150,8 @@ export default {
         seccion: '',
         local: '',
         letra_local: '',
-        bloque: '',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        bloque: ''
+      },
       formFechaPago: {
         fecha_pago: '',
         oficina_pago: '',
@@ -208,28 +165,6 @@ export default {
     this.loadSecciones();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async loadRecaudadoras() {
       const res = await fetch('/api/execute', {
         method: 'POST',
@@ -288,8 +223,41 @@ export default {
 }
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.cons-pagos-energia-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.card {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+.card-header {
+  background: #f7f7f7;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+}
+.card-body {
+  padding: 1rem;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.col {
+  flex: 1 1 120px;
+  min-width: 120px;
+}
+.table {
+  width: 100%;
+  font-size: 0.95rem;
+}
+.breadcrumb {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  color: #888;
+}
 </style>

@@ -1,21 +1,18 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Clave de Diferencias</h1>
-        <p>Mercados - Clave de Diferencias</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="cve-diferencias-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Clave de Diferencias</li>
+      </ol>
+    </nav>
     <h2>Clave de Diferencias</h2>
     <div class="mb-3">
-      <button class="btn btn-municipal-primary me-2" @click="showAddModal = true">Agregar</button>
-      <button class="btn btn-municipal-secondary me-2" :disabled="!selectedRow" @click="showEditModal = true">Modificar</button>
+      <button class="btn btn-primary me-2" @click="showAddModal = true">Agregar</button>
+      <button class="btn btn-secondary me-2" :disabled="!selectedRow" @click="showEditModal = true">Modificar</button>
       <button class="btn btn-outline-secondary" @click="fetchData">Refrescar</button>
     </div>
-    <table class="-striped municipal-table-hover">
+    <table class="table table-striped table-hover">
       <thead>
         <tr>
           <th>Clave</th>
@@ -40,12 +37,12 @@
     <b-modal v-model="showAddModal" title="Agregar Clave de Diferencia" @ok="addCveDiferencia">
       <form @submit.prevent="addCveDiferencia">
         <div class="mb-3">
-          <label class="municipal-form-label">Descripción</label>
-          <input v-model="form.descripcion" type="text" class="municipal-form-control" maxlength="60" required />
+          <label>Descripción</label>
+          <input v-model="form.descripcion" type="text" class="form-control" maxlength="60" required />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Cuenta Ingreso</label>
-          <select v-model="form.cuenta_ingreso" class="municipal-form-control" required>
+          <label>Cuenta Ingreso</label>
+          <select v-model="form.cuenta_ingreso" class="form-control" required>
             <option v-for="cuenta in cuentasIngreso" :key="cuenta.cta_aplicacion" :value="cuenta.cta_aplicacion">
               {{ cuenta.cta_aplicacion }} - {{ cuenta.descripcion }}
             </option>
@@ -58,12 +55,12 @@
     <b-modal v-model="showEditModal" title="Modificar Clave de Diferencia" @ok="updateCveDiferencia">
       <form @submit.prevent="updateCveDiferencia">
         <div class="mb-3">
-          <label class="municipal-form-label">Descripción</label>
-          <input v-model="form.descripcion" type="text" class="municipal-form-control" maxlength="60" required />
+          <label>Descripción</label>
+          <input v-model="form.descripcion" type="text" class="form-control" maxlength="60" required />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Cuenta Ingreso</label>
-          <select v-model="form.cuenta_ingreso" class="municipal-form-control" required>
+          <label>Cuenta Ingreso</label>
+          <select v-model="form.cuenta_ingreso" class="form-control" required>
             <option v-for="cuenta in cuentasIngreso" :key="cuenta.cta_aplicacion" :value="cuenta.cta_aplicacion">
               {{ cuenta.cta_aplicacion }} - {{ cuenta.descripcion }}
             </option>
@@ -74,9 +71,6 @@
 
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

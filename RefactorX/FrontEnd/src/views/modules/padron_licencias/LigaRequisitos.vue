@@ -1,21 +1,20 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="clipboard-list" />
       </div>
       <div class="module-view-info">
         <h1>Liga de Requisitos a Giros</h1>
-        <p>Padrón de Licencias - Asignación de Requisitos a Giros de Licencia</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Asignación de Requisitos a Giros de Licencia</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="openDocumentation">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -66,11 +65,11 @@
             </div>
             <div class="info-item">
               <strong>Clasificación:</strong>
-              <span class="badge-secondary">{{ selectedGiro.clasificacion || 'N/A' }}</span>
+              <span class="badge badge-light-secondary">{{ selectedGiro.clasificacion || 'N/A' }}</span>
             </div>
             <div class="info-item">
               <strong>Tipo:</strong>
-              <span class="badge-info">{{ selectedGiro.tipo || 'N/A' }}</span>
+              <span class="badge badge-light-info">{{ selectedGiro.tipo || 'N/A' }}</span>
             </div>
           </div>
         </div>
@@ -108,7 +107,7 @@
           </div>
         </div>
 
-        <div class="row" style="margin-top: 20px;">
+        <div class="row mt-4">
           <!-- Columna Izquierda: Requisitos Disponibles -->
           <div class="col-md-6">
             <div class="requisitos-panel">
@@ -116,7 +115,7 @@
                 <h6>
                   <font-awesome-icon icon="list" />
                   Requisitos Disponibles
-                  <span class="badge-info">{{ filteredRequisitosDisponibles.length }}</span>
+                  <span class="badge-purple">{{ filteredRequisitosDisponibles.length }}</span>
                 </h6>
                 <button
                   class="btn-municipal-primary btn-sm"
@@ -162,7 +161,7 @@
                 <h6>
                   <font-awesome-icon icon="check-circle" />
                   Requisitos Asignados
-                  <span class="badge-success">{{ filteredRequisitosAsignados.length }}</span>
+                  <span class="badge-purple">{{ filteredRequisitosAsignados.length }}</span>
                 </h6>
                 <button
                   class="btn-municipal-danger btn-sm"
@@ -203,7 +202,7 @@
         </div>
 
         <!-- Botones de acción -->
-        <div class="button-group" style="margin-top: 20px;">
+        <div class="button-group mt-4">
           <button
             class="btn-municipal-secondary"
             @click="selectAllDisponibles"
@@ -229,14 +228,6 @@
             Seleccionar Todos Asignados
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando requisitos...</p>
       </div>
     </div>
 
@@ -270,6 +261,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Composables
@@ -279,14 +271,15 @@ const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+
+const loading = ref(false)
 
 // Estado
 const giros = ref([])
@@ -322,28 +315,32 @@ const filteredRequisitosAsignados = computed(() => {
 
 // Métodos
 const loadGiros = async () => {
-  setLoading(true, 'Cargando giros...')
+  const startTime = Date.now()
+  showLoading('Cargando giros...')
+  loading.value = true
 
   try {
     const response = await execute(
-      'SP_LIGAREQUISITOS_GIROS',
-      'padron_licencias',
+      'sp_ligarequisitos_giros',
+      'licencias',
       [],
       'guadalajara'
     )
 
     if (response && response.result) {
       giros.value = response.result
-      showToast('success', 'Giros cargados correctamente')
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+      showToast('success', `${giros.value.length} giros cargados (${duration}s)`, 3000, 'bottom-right')
     } else {
       giros.value = []
-      showToast('error', 'Error al cargar giros')
+      showToast('error', 'Error al cargar giros', 3000, 'bottom-right')
     }
   } catch (error) {
     handleApiError(error)
     giros.value = []
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -360,13 +357,15 @@ const onGiroSelected = () => {
 }
 
 const loadRequisitosGiro = async () => {
-  setLoading(true, 'Cargando requisitos...')
+  const startTime = Date.now()
+  showLoading('Cargando requisitos...')
+  loading.value = true
 
   try {
     // Cargar requisitos disponibles
     const disponiblesResponse = await execute(
-      'SP_LIGAREQUISITOS_AVAILABLE',
-      'padron_licencias',
+      'sp_ligarequisitos_available',
+      'licencias',
       [
         { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' }
       ],
@@ -375,8 +374,8 @@ const loadRequisitosGiro = async () => {
 
     // Cargar requisitos asignados
     const asignadosResponse = await execute(
-      'SP_LIGAREQUISITOS_LIST',
-      'padron_licencias',
+      'sp_ligarequisitos_list',
+      'licencias',
       [
         { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' }
       ],
@@ -395,18 +394,23 @@ const loadRequisitosGiro = async () => {
       requisitosAsignados.value = []
     }
 
-    showToast('success', 'Requisitos cargados correctamente')
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+    const totalDisponibles = requisitosDisponibles.value.length
+    const totalAsignados = requisitosAsignados.value.length
+    showToast('success', `Requisitos cargados: ${totalDisponibles} disponibles, ${totalAsignados} asignados (${duration}s)`, 3000, 'bottom-right')
   } catch (error) {
     handleApiError(error)
     requisitosDisponibles.value = []
     requisitosAsignados.value = []
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
 const addSelectedRequisitos = async () => {
   if (selectedDisponibles.value.length === 0) {
+    hideLoading()
     await Swal.fire({
       icon: 'warning',
       title: 'Selección requerida',
@@ -416,6 +420,7 @@ const addSelectedRequisitos = async () => {
     return
   }
 
+  hideLoading()
   const confirmResult = await Swal.fire({
     icon: 'question',
     title: '¿Agregar requisitos seleccionados?',
@@ -431,7 +436,9 @@ const addSelectedRequisitos = async () => {
     return
   }
 
-  setLoading(true, 'Agregando requisitos...')
+  const startTime = Date.now()
+  showLoading('Agregando requisitos...')
+  loading.value = true
 
   try {
     let successCount = 0
@@ -440,8 +447,8 @@ const addSelectedRequisitos = async () => {
     for (const reqId of selectedDisponibles.value) {
       try {
         const response = await execute(
-          'SP_LIGAREQUISITOS_ADD',
-          'padron_licencias',
+          'sp_ligarequisitos_add',
+          'licencias',
           [
             { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' },
             { nombre: 'p_req', valor: reqId, tipo: 'integer' }
@@ -459,7 +466,10 @@ const addSelectedRequisitos = async () => {
       }
     }
 
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+
     if (successCount > 0) {
+      hideLoading()
       await Swal.fire({
         icon: 'success',
         title: 'Requisitos agregados',
@@ -468,10 +478,11 @@ const addSelectedRequisitos = async () => {
         timer: 2000
       })
 
-      showToast('success', `${successCount} requisito(s) agregado(s)`)
+      showToast('success', `${successCount} requisito(s) agregado(s) (${duration}s)`, 3000, 'bottom-right')
       loadRequisitosGiro()
       selectedDisponibles.value = []
     } else {
+      hideLoading()
       await Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -482,12 +493,14 @@ const addSelectedRequisitos = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
 const removeSelectedRequisitos = async () => {
   if (selectedAsignados.value.length === 0) {
+    hideLoading()
     await Swal.fire({
       icon: 'warning',
       title: 'Selección requerida',
@@ -497,6 +510,7 @@ const removeSelectedRequisitos = async () => {
     return
   }
 
+  hideLoading()
   const confirmResult = await Swal.fire({
     icon: 'warning',
     title: '¿Quitar requisitos seleccionados?',
@@ -512,7 +526,9 @@ const removeSelectedRequisitos = async () => {
     return
   }
 
-  setLoading(true, 'Quitando requisitos...')
+  const startTime = Date.now()
+  showLoading('Quitando requisitos...')
+  loading.value = true
 
   try {
     let successCount = 0
@@ -521,8 +537,8 @@ const removeSelectedRequisitos = async () => {
     for (const reqId of selectedAsignados.value) {
       try {
         const response = await execute(
-          'SP_LIGAREQUISITOS_REMOVE',
-          'padron_licencias',
+          'sp_ligarequisitos_remove',
+          'licencias',
           [
             { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' },
             { nombre: 'p_req', valor: reqId, tipo: 'integer' }
@@ -540,7 +556,10 @@ const removeSelectedRequisitos = async () => {
       }
     }
 
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+
     if (successCount > 0) {
+      hideLoading()
       await Swal.fire({
         icon: 'success',
         title: 'Requisitos quitados',
@@ -549,10 +568,11 @@ const removeSelectedRequisitos = async () => {
         timer: 2000
       })
 
-      showToast('success', `${successCount} requisito(s) quitado(s)`)
+      showToast('success', `${successCount} requisito(s) quitado(s) (${duration}s)`, 3000, 'bottom-right')
       loadRequisitosGiro()
       selectedAsignados.value = []
     } else {
+      hideLoading()
       await Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -563,7 +583,8 @@ const removeSelectedRequisitos = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 

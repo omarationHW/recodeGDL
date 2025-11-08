@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 
 const sidebarCollapsed = ref(false)
+const sidebarWidth = ref(280) // Ancho por defecto del sidebar
 
 export function useSidebar() {
   const toggleSidebar = () => {
@@ -15,10 +16,16 @@ export function useSidebar() {
     sidebarCollapsed.value = false
   }
 
+  const setSidebarWidth = (width) => {
+    sidebarWidth.value = width
+  }
+
   return {
     sidebarCollapsed,
+    sidebarWidth,
     toggleSidebar,
     collapseSidebar,
-    expandSidebar
+    expandSidebar,
+    setSidebarWidth
   }
 }

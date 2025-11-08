@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="edit" />
       </div>
@@ -9,20 +9,33 @@
         <h1>Modificación de Licencias y Anuncios</h1>
         <p>Padrón de Licencias - Editar datos de licencias y anuncios existentes</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-secondary" @click="regresarConsulta">
+          <font-awesome-icon icon="arrow-left" />
+          Regresar a Consulta
+        </button>
+        <button class="btn-municipal-success" @click="nuevaLicencia">
+          <font-awesome-icon icon="plus" />
+          Nueva Licencia
+        </button>
+        <button class="btn-municipal-purple" @click="openDocumentation">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
-      <!-- Filtros de búsqueda -->
+      <!-- Acordeón de Búsqueda -->
       <div class="municipal-card">
-        <div class="municipal-card-body">
+        <div class="municipal-card-header clickable-header" @click="toggleBusqueda">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Buscar Licencia o Anuncio
+            <font-awesome-icon :icon="showBusqueda ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+        </div>
+        <div class="municipal-card-body" v-show="showBusqueda">
           <div class="form-row">
             <div class="form-group" style="width: 250px;">
               <label class="municipal-form-label">Buscar <span class="required">*</span></label>
@@ -47,48 +60,111 @@
                 placeholder="Ingrese número..."
               />
             </div>
-            <div class="form-group" style="align-self: flex-end;">
-              <button
-                class="btn-municipal-primary"
-                @click="buscar"
-                :disabled="loading || !searchNumber"
-              >
-                <font-awesome-icon icon="search" />
-                Buscar
-              </button>
-            </div>
+          </div>
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="buscar"
+              :disabled="!searchNumber"
+            >
+              <font-awesome-icon icon="search" />
+              Buscar
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="limpiarFormulario"
+              v-if="licenciaData || anuncioData"
+            >
+              <font-awesome-icon icon="times" />
+              Limpiar
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Panel de Licencia -->
-      <div v-if="licenciaData && searchType === 'licencia'" class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="id-card" />
-            Datos de la Licencia #{{ licenciaData.licencia }}
-            <span v-if="licenciaData.vigente !== 'V'" class="badge-danger">BAJA</span>
-            <span v-else class="badge-success">VIGENTE</span>
-          </h5>
-          <div class="button-group">
-            <button
-              v-if="licenciaData.vigente !== 'V'"
-              class="btn-municipal-success btn-sm"
-              @click="reactivarLicencia"
-            >
-              <font-awesome-icon icon="check-circle" />
-              Reactivar
-            </button>
+      <div v-if="licenciaData && searchType === 'licencia'">
+        <div class="municipal-card">
+          <div class="municipal-card-header header-with-badge">
+            <h5>
+              <font-awesome-icon icon="id-card" />
+              Datos de la Licencia #{{ licenciaData.licencia }}
+            </h5>
+            <div class="header-right">
+              <span v-if="licenciaData.vigente !== 'V'" class="badge-danger">BAJA</span>
+              <span v-else class="badge-success">VIGENTE</span>
+              <button
+                class="btn-municipal-info btn-sm"
+                @click="verDetalleLicencia"
+              >
+                <font-awesome-icon icon="eye" />
+                Ver Detalle
+              </button>
+              <button
+                v-if="licenciaData.vigente !== 'V'"
+                class="btn-municipal-success btn-sm"
+                @click="reactivarLicencia"
+              >
+                <font-awesome-icon icon="check-circle" />
+                Reactivar
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="municipal-card-body">
-          <!-- Información del Propietario -->
-          <div class="section-title">
+        <!-- Tabs de Licencia -->
+        <div class="tabs-container">
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'propietario' }"
+            @click="setActiveTab('propietario')"
+          >
             <font-awesome-icon icon="user" />
-            Información del Propietario
-          </div>
+            Propietario
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'domicilioFiscal' }"
+            @click="setActiveTab('domicilioFiscal')"
+          >
+            <font-awesome-icon icon="home" />
+            Domicilio Fiscal
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'giroActividad' }"
+            @click="setActiveTab('giroActividad')"
+          >
+            <font-awesome-icon icon="briefcase" />
+            Giro y Actividad
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'ubicacionNegocio' }"
+            @click="setActiveTab('ubicacionNegocio')"
+          >
+            <font-awesome-icon icon="map-marker-alt" />
+            Ubicación del Negocio
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'datosTecnicos' }"
+            @click="setActiveTab('datosTecnicos')"
+          >
+            <font-awesome-icon icon="ruler-combined" />
+            Datos Técnicos
+          </button>
+        </div>
 
+        <!-- Tab: Propietario -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'propietario'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="user" />
+              Información del Propietario
+            </h5>
+          </div>
+          <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Propietario</label>
@@ -152,13 +228,18 @@
               />
             </div>
           </div>
-
-          <!-- Domicilio del Propietario -->
-          <div class="section-title">
-            <font-awesome-icon icon="home" />
-            Domicilio del Propietario
           </div>
+        </div>
 
+        <!-- Tab: Domicilio Fiscal -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'domicilioFiscal'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="home" />
+              Domicilio del Propietario
+            </h5>
+          </div>
+          <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group" style="flex: 2;">
               <label class="municipal-form-label">Domicilio</label>
@@ -193,13 +274,18 @@
               />
             </div>
           </div>
-
-          <!-- Giro y Actividad -->
-          <div class="section-title">
-            <font-awesome-icon icon="briefcase" />
-            Giro y Actividad
           </div>
+        </div>
 
+        <!-- Tab: Giro y Actividad -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'giroActividad'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="briefcase" />
+              Giro y Actividad
+            </h5>
+          </div>
+          <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group" style="flex: 2;">
               <label class="municipal-form-label">Giro SCIAN <span class="required">*</span></label>
@@ -233,13 +319,18 @@
               </div>
             </div>
           </div>
-
-          <!-- Ubicación del Negocio -->
-          <div class="section-title">
-            <font-awesome-icon icon="map-marker-alt" />
-            Ubicación del Negocio
           </div>
+        </div>
 
+        <!-- Tab: Ubicación del Negocio -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'ubicacionNegocio'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="map-marker-alt" />
+              Ubicación del Negocio
+            </h5>
+          </div>
+          <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group" style="flex: 2;">
               <label class="municipal-form-label">Calle</label>
@@ -356,13 +447,18 @@
               </div>
             </div>
           </div>
-
-          <!-- Datos Adicionales -->
-          <div class="section-title">
-            <font-awesome-icon icon="info-circle" />
-            Datos Adicionales
           </div>
+        </div>
 
+        <!-- Tab: Datos Técnicos -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'datosTecnicos'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="ruler-combined" />
+              Datos Técnicos
+            </h5>
+          </div>
+          <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Superficie Construida (m²)</label>
@@ -429,12 +525,6 @@
             </div>
           </div>
 
-          <!-- Saldo y Adeudo -->
-          <div v-if="saldoLicencia" class="section-title">
-            <font-awesome-icon icon="dollar-sign" />
-            Saldo de la Licencia
-          </div>
-
           <div v-if="saldoLicencia" class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Total Adeudo</label>
@@ -452,56 +542,99 @@
               </button>
             </div>
           </div>
+          </div>
+        </div>
 
-          <!-- Botones de acción -->
-          <div class="button-group" style="margin-top: 30px;">
-            <button
-              class="btn-municipal-primary"
-              @click="actualizarLicencia"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="save" />
-              Actualizar Licencia
-            </button>
-            <button
-              class="btn-municipal-secondary"
-              @click="cancelar"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="times" />
-              Cancelar
-            </button>
+        <!-- Botones de acción (fuera de tabs) -->
+        <div class="municipal-card">
+          <div class="municipal-card-body">
+            <div class="button-group">
+              <button
+                class="btn-municipal-primary"
+                @click="actualizarLicencia"
+              >
+                <font-awesome-icon icon="save" />
+                Actualizar Licencia
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="cancelar"
+              >
+                <font-awesome-icon icon="times" />
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Panel de Anuncio -->
-      <div v-if="anuncioData && searchType === 'anuncio'" class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="bullhorn" />
-            Datos del Anuncio #{{ anuncioData.anuncio }}
-            <span v-if="anuncioData.vigente !== 'V'" class="badge-danger">BAJA</span>
-            <span v-else class="badge-success">VIGENTE</span>
-          </h5>
-          <div class="button-group">
-            <button
-              v-if="anuncioData.vigente !== 'V'"
-              class="btn-municipal-success btn-sm"
-              @click="reactivarAnuncio"
-            >
-              <font-awesome-icon icon="check-circle" />
-              Reactivar
-            </button>
+      <div v-if="anuncioData && searchType === 'anuncio'">
+        <div class="municipal-card">
+          <div class="municipal-card-header header-with-badge">
+            <h5>
+              <font-awesome-icon icon="bullhorn" />
+              Datos del Anuncio #{{ anuncioData.anuncio }}
+            </h5>
+            <div class="header-right">
+              <span v-if="anuncioData.vigente !== 'V'" class="badge-danger">BAJA</span>
+              <span v-else class="badge-success">VIGENTE</span>
+              <button
+                class="btn-municipal-info btn-sm"
+                @click="verDetalleAnuncio"
+              >
+                <font-awesome-icon icon="eye" />
+                Ver Detalle
+              </button>
+              <button
+                v-if="anuncioData.vigente !== 'V'"
+                class="btn-municipal-success btn-sm"
+                @click="reactivarAnuncio"
+              >
+                <font-awesome-icon icon="check-circle" />
+                Reactivar
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="municipal-card-body">
-          <!-- Información del Anuncio -->
-          <div class="section-title">
+        <!-- Tabs de Anuncio -->
+        <div class="tabs-container">
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'infoAnuncio' }"
+            @click="setActiveTab('infoAnuncio')"
+          >
             <font-awesome-icon icon="bullhorn" />
-            Información del Anuncio
+            Información
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'dimensiones' }"
+            @click="setActiveTab('dimensiones')"
+          >
+            <font-awesome-icon icon="ruler-combined" />
+            Dimensiones
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'ubicacionAnuncio' }"
+            @click="setActiveTab('ubicacionAnuncio')"
+          >
+            <font-awesome-icon icon="map-marker-alt" />
+            Ubicación
+          </button>
+        </div>
+
+        <!-- Tab: Información del Anuncio -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'infoAnuncio'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="bullhorn" />
+              Información del Anuncio
+            </h5>
           </div>
+          <div class="municipal-card-body">
 
           <div class="form-row">
             <div class="form-group">
@@ -532,13 +665,18 @@
               />
             </div>
           </div>
-
-          <!-- Dimensiones -->
-          <div class="section-title">
-            <font-awesome-icon icon="ruler-combined" />
-            Dimensiones del Anuncio
           </div>
+        </div>
 
+        <!-- Tab: Dimensiones -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'dimensiones'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="ruler-combined" />
+              Dimensiones del Anuncio
+            </h5>
+          </div>
+          <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Medida 1 (m)</label>
@@ -580,13 +718,18 @@
               />
             </div>
           </div>
-
-          <!-- Ubicación del Anuncio -->
-          <div class="section-title">
-            <font-awesome-icon icon="map-marker-alt" />
-            Ubicación del Anuncio
           </div>
+        </div>
 
+        <!-- Tab: Ubicación del Anuncio -->
+        <div class="municipal-card tab-content" v-show="activeTab === 'ubicacionAnuncio'">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="map-marker-alt" />
+              Ubicación del Anuncio
+            </h5>
+          </div>
+          <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group" style="flex: 2;">
               <label class="municipal-form-label">Calle</label>
@@ -680,7 +823,6 @@
             </div>
           </div>
 
-          <!-- Texto del Anuncio -->
           <div class="form-row">
             <div class="form-group" style="flex: 3;">
               <label class="municipal-form-label">Texto del Anuncio</label>
@@ -691,35 +833,30 @@
               ></textarea>
             </div>
           </div>
-
-          <!-- Botones de acción -->
-          <div class="button-group" style="margin-top: 30px;">
-            <button
-              class="btn-municipal-primary"
-              @click="actualizarAnuncio"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="save" />
-              Actualizar Anuncio
-            </button>
-            <button
-              class="btn-municipal-secondary"
-              @click="cancelar"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="times" />
-              Cancelar
-            </button>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
+        <!-- Botones de acción (fuera de tabs) -->
+        <div class="municipal-card">
+          <div class="municipal-card-body">
+            <div class="button-group">
+              <button
+                class="btn-municipal-primary"
+                @click="actualizarAnuncio"
+              >
+                <font-awesome-icon icon="save" />
+                Actualizar Anuncio
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                @click="cancelar"
+              >
+                <font-awesome-icon icon="times" />
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -746,7 +883,9 @@
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -755,11 +894,10 @@ const showDocumentation = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
+const router = useRouter()
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  loadingMessage,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -768,6 +906,8 @@ const {
 } = useLicenciasErrorHandler()
 
 // Estado
+const showBusqueda = ref(false)
+const activeTab = ref('propietario')
 const searchType = ref('licencia')
 const searchNumber = ref(null)
 const licenciaData = ref(null)
@@ -801,18 +941,23 @@ const buscar = async () => {
 }
 
 const buscarLicencia = async () => {
-  setLoading(true, 'Buscando licencia...')
+  showLoading('Buscando licencia...')
 
   try {
     const response = await execute(
       'SP_MODLIC_BUSCAR_LICENCIA',
       'padron_licencias',
       [{ nombre: 'p_licencia', valor: searchNumber.value, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
       licenciaData.value = response.result[0]
+
+      // Guardar en localStorage
+      localStorage.setItem('licenciaActual', JSON.stringify(licenciaData.value))
 
       // Cargar giros SCIAN si hay un giro
       if (licenciaData.value.cod_giro) {
@@ -828,27 +973,33 @@ const buscarLicencia = async () => {
     } else {
       showToast('error', 'No existe este número de licencia')
       licenciaData.value = null
+      localStorage.removeItem('licenciaActual')
     }
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const buscarAnuncio = async () => {
-  setLoading(true, 'Buscando anuncio...')
+  showLoading('Buscando anuncio...')
 
   try {
     const response = await execute(
       'SP_MODLIC_BUSCAR_ANUNCIO',
       'padron_licencias',
       [{ nombre: 'p_anuncio', valor: searchNumber.value, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
       anuncioData.value = response.result[0]
+
+      // Guardar en localStorage
+      localStorage.setItem('anuncioActual', JSON.stringify(anuncioData.value))
 
       // Cargar tipos de anuncio
       await loadTiposAnuncio()
@@ -857,11 +1008,12 @@ const buscarAnuncio = async () => {
     } else {
       showToast('error', 'No existe este número de anuncio')
       anuncioData.value = null
+      localStorage.removeItem('anuncioActual')
     }
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -872,7 +1024,9 @@ const loadGirosScian = async () => {
       'SP_GET_SCIAN_CATALOGO',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result) {
@@ -892,7 +1046,9 @@ const loadActividades = async (codGiro) => {
         { nombre: 'p_tipo', valor: 'L', tipo: 'string' },
         { nombre: 'p_cod_giro', valor: parseInt(codGiro), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result) {
@@ -909,7 +1065,9 @@ const loadTiposAnuncio = async () => {
       'SP_GET_TIPOS_ANUNCIO',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result) {
@@ -926,7 +1084,9 @@ const loadSaldoLicencia = async (idLicencia) => {
       'SP_GET_SALDO_LICENCIA',
       'padron_licencias',
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -973,7 +1133,7 @@ const actualizarLicencia = async () => {
   const firmaResult = await solicitarFirma()
   if (!firmaResult.success) return
 
-  setLoading(true, 'Actualizando licencia...')
+  showLoading('Actualizando licencia...')
 
   try {
     const response = await execute(
@@ -1010,7 +1170,9 @@ const actualizarLicencia = async () => {
         { nombre: 'p_inversion', valor: licenciaData.value.inversion, tipo: 'double' },
         { nombre: 'p_rhorario', valor: licenciaData.value.rhorario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1022,6 +1184,9 @@ const actualizarLicencia = async () => {
       // Recalcular saldos
       await recalcularSaldos(licenciaData.value.id_licencia)
 
+      // Ocultar loading ANTES del mensaje
+      hideLoading()
+
       await Swal.fire({
         icon: 'success',
         title: 'Licencia Actualizada',
@@ -1032,12 +1197,12 @@ const actualizarLicencia = async () => {
       // Recargar datos
       await buscarLicencia()
     } else {
+      hideLoading()
       showToast('error', 'Error al actualizar la licencia')
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -1053,7 +1218,7 @@ const actualizarAnuncio = async () => {
   const firmaResult = await solicitarFirma()
   if (!firmaResult.success) return
 
-  setLoading(true, 'Actualizando anuncio...')
+  showLoading('Actualizando anuncio...')
 
   try {
     const response = await execute(
@@ -1077,12 +1242,17 @@ const actualizarAnuncio = async () => {
         { nombre: 'p_id_fabricante', valor: anuncioData.value.id_fabricante, tipo: 'integer' },
         { nombre: 'p_texto_anuncio', valor: anuncioData.value.texto_anuncio, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result[0]?.success) {
       // Recalcular adeudo del anuncio
       await recalcularAdeudoAnuncio(anuncioData.value.id_anuncio, anuncioData.value.id_licencia)
+
+      // Ocultar loading ANTES del mensaje
+      hideLoading()
 
       await Swal.fire({
         icon: 'success',
@@ -1094,12 +1264,12 @@ const actualizarAnuncio = async () => {
       // Recargar datos
       await buscarAnuncio()
     } else {
+      hideLoading()
       showToast('error', 'Error al actualizar el anuncio')
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -1123,7 +1293,9 @@ const recalcularSaldos = async (idLicencia) => {
       'SP_CALC_SDOS_LIC',
       'padron_licencias',
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
   } catch (error) {
     console.error('Error recalculando saldos:', error)
@@ -1139,7 +1311,9 @@ const recalcularAdeudoAnuncio = async (idAnuncio, idLicencia) => {
         { nombre: 'p_id_anuncio', valor: idAnuncio, tipo: 'integer' },
         { nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     // Recalcular saldos totales de la licencia
@@ -1166,7 +1340,9 @@ const abrirMapa = async () => {
       'SP_GET_SESSION_ID',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result[0]?.sessionid) {
@@ -1177,7 +1353,9 @@ const abrirMapa = async () => {
         'SP_MODLIC_LIMPIAR_SESION',
         'padron_licencias',
         [{ nombre: 'p_sesion_id', valor: sesionMapa.value, tipo: 'integer' }],
-        'guadalajara'
+        'guadalajara',
+        null,
+        'comun' // esquema
       )
 
       // Abrir URL del mapa
@@ -1201,7 +1379,9 @@ const iniciarPollingUbicacion = () => {
         'SP_GET_UBICACION_SESION',
         'padron_licencias',
         [{ nombre: 'p_sesion_id', valor: sesionMapa.value, tipo: 'integer' }],
-        'guadalajara'
+        'guadalajara',
+        null,
+        'comun' // esquema
       )
 
       if (response && response.result && response.result.length > 0) {
@@ -1232,7 +1412,9 @@ const actualizarCoordenadas = async () => {
         { nombre: 'p_licencia', valor: licenciaData.value.licencia, tipo: 'integer' },
         { nombre: 'p_sesion_id', valor: sesionMapa.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
   } catch (error) {
     console.error('Error actualizando coordenadas:', error)
@@ -1272,7 +1454,9 @@ const solicitarFirma = async () => {
         { nombre: 'p_firma', valor: firma, tipo: 'string' },
         { nombre: 'p_modulos_id', valor: 1, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result[0]) {
@@ -1329,7 +1513,9 @@ const solicitarFirmaUsuario = async () => {
         { nombre: 'p_firma', valor: formValues.firma, tipo: 'string' },
         { nombre: 'p_modulos_id', valor: 2, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result[0]) {
@@ -1412,6 +1598,37 @@ const formatCurrency = (value) => {
   return parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+const verDetalleLicencia = () => {
+  if (licenciaData.value) {
+    // Guardar estado completo antes de navegar
+    sessionStorage.setItem('modlicfrm_state', JSON.stringify({
+      searchType: searchType.value,
+      searchNumber: searchNumber.value,
+      selectedCodGiro: selectedCodGiro.value,
+      coordenadasSeleccionadas: coordenadasSeleccionadas.value,
+      sesionMapa: sesionMapa.value
+    }))
+
+    // Ya está guardado en localStorage, solo navegar
+    router.push('/padron-licencias/detalle-licencia')
+  }
+}
+
+const verDetalleAnuncio = () => {
+  if (anuncioData.value) {
+    // Guardar estado completo antes de navegar
+    sessionStorage.setItem('modlicfrm_state', JSON.stringify({
+      searchType: searchType.value,
+      searchNumber: searchNumber.value,
+      coordenadasSeleccionadas: coordenadasSeleccionadas.value,
+      sesionMapa: sesionMapa.value
+    }))
+
+    // Ya está guardado en localStorage, solo navegar
+    router.push('/padron-licencias/detalle-anuncio')
+  }
+}
+
 const cancelar = () => {
   licenciaData.value = null
   anuncioData.value = null
@@ -1419,11 +1636,97 @@ const cancelar = () => {
   searchNumber.value = null
   coordenadasSeleccionadas.value = null
   sesionMapa.value = null
+  localStorage.removeItem('licenciaActual')
+  localStorage.removeItem('anuncioActual')
   showToast('info', 'Operación cancelada')
+}
+
+const limpiarFormulario = () => {
+  licenciaData.value = null
+  anuncioData.value = null
+  saldoLicencia.value = null
+  searchNumber.value = null
+  coordenadasSeleccionadas.value = null
+  sesionMapa.value = null
+  selectedCodGiro.value = ''
+  actividades.value = []
+  localStorage.removeItem('licenciaActual')
+  localStorage.removeItem('anuncioActual')
+  showToast('info', 'Formulario limpiado')
+}
+
+const toggleBusqueda = () => {
+  showBusqueda.value = !showBusqueda.value
+}
+
+const setActiveTab = (tab) => {
+  activeTab.value = tab
+}
+
+const regresarConsulta = () => {
+  router.push('/padron-licencias/consulta-licencias')
+}
+
+const nuevaLicencia = () => {
+  router.push('/padron-licencias/registro-solicitud')
 }
 
 // Lifecycle
 onMounted(async () => {
+  // Restaurar estado si viene de ver detalle
+  const savedState = sessionStorage.getItem('modlicfrm_state')
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState)
+      sessionStorage.removeItem('modlicfrm_state')
+
+      // Restaurar estado
+      searchType.value = state.searchType
+      searchNumber.value = state.searchNumber
+      selectedCodGiro.value = state.selectedCodGiro || ''
+      coordenadasSeleccionadas.value = state.coordenadasSeleccionadas
+      sesionMapa.value = state.sesionMapa
+
+      // Recargar datos
+      await loadGirosScian()
+      if (state.searchType === 'licencia') {
+        await buscarLicencia()
+      } else {
+        await buscarAnuncio()
+      }
+      return
+    } catch (error) {
+      console.error('Error restaurando estado:', error)
+      sessionStorage.removeItem('modlicfrm_state')
+    }
+  }
+
+  // Auto-cargar licencia si viene desde consultaLicenciafrm
+  const idLicenciaFromSession = sessionStorage.getItem('licencia_a_modificar')
+
+  if (idLicenciaFromSession) {
+    // Limpiar el sessionStorage después de leerlo
+    sessionStorage.removeItem('licencia_a_modificar')
+    searchType.value = 'licencia'
+    searchNumber.value = parseInt(idLicenciaFromSession)
+    await loadGirosScian()
+    await buscarLicencia()
+    return
+  }
+
+  // Auto-cargar anuncio si viene desde consultaAnunciofrm
+  const idAnuncioFromSession = sessionStorage.getItem('anuncio_a_modificar')
+
+  if (idAnuncioFromSession) {
+    // Limpiar el sessionStorage después de leerlo
+    sessionStorage.removeItem('anuncio_a_modificar')
+    searchType.value = 'anuncio'
+    searchNumber.value = parseInt(idAnuncioFromSession)
+    await loadGirosScian()
+    await buscarAnuncio()
+    return
+  }
+
   await loadGirosScian()
 })
 </script>

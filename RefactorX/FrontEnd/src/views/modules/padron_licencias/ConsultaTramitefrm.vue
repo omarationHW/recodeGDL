@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="search" />
       </div>
@@ -9,17 +9,85 @@
         <h1>Consulta de Trámites</h1>
         <p>Padrón de Licencias - Búsqueda avanzada y consulta de trámites</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button
+          v-if="tramites.length > 0"
+          class="btn-municipal-success"
+          @click="exportarExcel"
+        >
+          <font-awesome-icon icon="file-excel" />
+          Excel
+        </button>
+        <button
+          v-if="tramites.length > 0"
+          class="btn-municipal-danger"
+          @click="exportarPDF"
+        >
+          <font-awesome-icon icon="file-pdf" />
+          PDF
+        </button>
+        <button
+          v-if="primeraBusqueda"
+          class="btn-municipal-secondary"
+          @click="limpiarBusqueda"
+          title="Limpiar filtros y resultados"
+        >
+          <font-awesome-icon icon="eraser" />
+          Limpiar
+        </button>
+        <button
+          class="btn-municipal-primary"
+          @click="buscarTramites"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-success"
+          @click="nuevoTramite"
+        >
+          <font-awesome-icon icon="plus" />
+          Nuevo Trámite
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
+      <!-- Panel de Estadísticas -->
+
+      <!-- Loading skeleton para estadísticas -->
+      <div class="stats-grid" v-if="loadingEstadisticas">
+        <div class="stat-card stat-card-loading" v-for="n in 6" :key="`loading-${n}`">
+          <div class="stat-content">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-number"></div>
+            <div class="skeleton-label"></div>
+            <div class="skeleton-percentage"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards de estadísticas con datos -->
+      <div class="stats-grid" v-else-if="estadisticas.length > 0">
+        <div class="stat-card" v-for="stat in estadisticas" :key="stat.estatus" :class="`stat-${stat.estatus}`">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon :icon="getEstatusIcon(stat.estatus)" />
+            </div>
+            <h3 class="stat-number">{{ formatNumber(stat.total) }}</h3>
+            <p class="stat-label">{{ stat.descripcion }}</p>
+            <small class="stat-percentage">{{ stat.porcentaje }}%</small>
+          </div>
+        </div>
+      </div>
+
       <!-- Filtros de búsqueda -->
       <div class="municipal-card">
         <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
@@ -42,13 +110,23 @@
               />
             </div>
             <div class="form-group">
+              <label class="municipal-form-label">ID Licencia</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model="filtros.id_licencia"
+                placeholder="Número de licencia"
+              />
+            </div>
+            <div class="form-group">
               <label class="municipal-form-label">Tipo de Trámite</label>
               <select class="municipal-form-control" v-model="filtros.tipo_tramite">
                 <option value="">Todos</option>
-                <option value="1">Licencia Nueva</option>
-                <option value="2">Renovación</option>
-                <option value="3">Cambio de Giro</option>
-                <option value="4">Traspaso</option>
+                <option value="LN">Licencia Nueva</option>
+                <option value="RE">Renovación</option>
+                <option value="CG">Cambio de Giro</option>
+                <option value="TR">Traspaso</option>
+                <option value="AN">Anuncio</option>
               </select>
             </div>
             <div class="form-group">
@@ -63,6 +141,9 @@
                 <option value="C">Cancelado</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Propietario</label>
               <input
@@ -72,9 +153,6 @@
                 placeholder="Nombre del propietario"
               />
             </div>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Fecha Desde</label>
               <input
@@ -101,6 +179,9 @@
                 maxlength="13"
               />
             </div>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Giro</label>
               <input
@@ -110,9 +191,6 @@
                 placeholder="Código de giro"
               />
             </div>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Calle</label>
               <input
@@ -147,7 +225,6 @@
             <button
               class="btn-municipal-primary"
               @click="buscarTramites"
-              :disabled="loading"
             >
               <font-awesome-icon icon="search" />
               Buscar
@@ -155,30 +232,10 @@
             <button
               class="btn-municipal-secondary"
               @click="limpiarFiltros"
-              :disabled="loading"
             >
               <font-awesome-icon icon="eraser" />
               Limpiar
             </button>
-            <button
-              class="btn-municipal-secondary"
-              @click="buscarTramites"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="sync-alt" />
-              Actualizar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel de Estadísticas -->
-      <div class="stats-grid" v-if="estadisticas.length > 0">
-        <div class="stat-card" v-for="stat in estadisticas" :key="stat.estatus" :class="`stat-${stat.estatus}`">
-          <div class="stat-content">
-            <h3 class="stat-number">{{ stat.total }}</h3>
-            <p class="stat-label">{{ stat.descripcion }}</p>
-            <small class="stat-percentage">{{ stat.porcentaje }}%</small>
           </div>
         </div>
       </div>
@@ -186,37 +243,24 @@
       <!-- Tabla de resultados -->
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="list" />
-            Resultados de Búsqueda
-            <span class="badge-info" v-if="totalResultados > 0">{{ totalResultados }} registros</span>
-          </h5>
-          <div class="button-group button-group-sm" v-if="tramites.length > 0">
-            <button
-              class="btn-municipal-success btn-sm"
-              @click="exportarExcel"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="file-excel" />
-              Excel
-            </button>
-            <button
-              class="btn-municipal-danger btn-sm"
-              @click="exportarPDF"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="file-pdf" />
-              PDF
-            </button>
+          <div class="header-with-badge">
+            <h5>
+              <font-awesome-icon icon="list" />
+              Resultados de Búsqueda
+            </h5>
+            <span class="badge-purple" v-if="totalResultados > 0">
+              {{ formatNumber(totalResultados) }} registros totales
+            </span>
           </div>
         </div>
 
-        <div class="municipal-card-body table-container" v-if="!loading">
+        <div class="municipal-card-body table-container">
           <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
                   <th>ID</th>
+                  <th>Licencia</th>
                   <th>Tipo</th>
                   <th>Propietario</th>
                   <th>RFC</th>
@@ -229,19 +273,36 @@
               </thead>
               <tbody>
                 <tr v-if="tramites.length === 0 && !primeraBusqueda">
-                  <td colspan="9" class="text-center text-muted">
+                  <td colspan="10" class="text-center text-muted">
                     <font-awesome-icon icon="search" size="2x" class="empty-icon" />
                     <p>Utiliza los filtros de búsqueda para encontrar trámites</p>
                   </td>
                 </tr>
                 <tr v-else-if="tramites.length === 0">
-                  <td colspan="9" class="text-center text-muted">
+                  <td colspan="10" class="text-center text-muted">
                     <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
                     <p>No se encontraron trámites con los filtros especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="tramite in tramites" :key="tramite.id_tramite" class="row-hover">
+                <tr
+                  v-else
+                  v-for="tramite in tramites"
+                  :key="tramite.id_tramite"
+                  @click="tramiteSeleccionado = tramite"
+                  @dblclick="verDetalle(tramite)"
+                  :class="{ 'row-hover': true, 'selected-row': tramiteSeleccionado?.id_tramite === tramite.id_tramite }"
+                  style="cursor: pointer;"
+                >
                   <td><strong class="text-primary">{{ tramite.id_tramite }}</strong></td>
+                  <td>
+                    <span v-if="tramite.id_licencia" class="badge badge-info">
+                      <font-awesome-icon icon="file-alt" />
+                      {{ tramite.id_licencia }}
+                    </span>
+                    <span v-else class="text-muted">
+                      <small>Sin licencia</small>
+                    </span>
+                  </td>
                   <td>
                     <small>{{ tramite.tipo_tramite_desc || 'N/A' }}</small>
                   </td>
@@ -272,14 +333,14 @@
                     <div class="button-group button-group-sm">
                       <button
                         class="btn-municipal-info btn-sm"
-                        @click="verDetalle(tramite)"
+                        @click.stop="verDetalle(tramite)"
                         title="Ver detalles"
                       >
                         <font-awesome-icon icon="eye" />
                       </button>
                       <button
                         class="btn-municipal-primary btn-sm"
-                        @click="verHistorial(tramite.id_tramite)"
+                        @click.stop="verHistorial(tramite)"
                         title="Ver historial"
                       >
                         <font-awesome-icon icon="history" />
@@ -287,7 +348,7 @@
                       <button
                         v-if="tramite.estatus !== 'R' && tramite.estatus !== 'C'"
                         class="btn-municipal-secondary btn-sm"
-                        @click="modificarTramite(tramite.id_tramite)"
+                        @click.stop="modificarTramite(tramite)"
                         title="Modificar"
                       >
                         <font-awesome-icon icon="edit" />
@@ -300,62 +361,78 @@
           </div>
         </div>
 
-        <!-- Paginación -->
-        <div class="pagination-container" v-if="totalResultados > 0 && !loading">
+        <!-- Controles de Paginación -->
+        <div v-if="tramites.length > 0" class="pagination-controls">
           <div class="pagination-info">
-            <font-awesome-icon icon="info-circle" />
-            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-            a {{ Math.min(currentPage * itemsPerPage, totalResultados) }}
-            de {{ totalResultados }} registros
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalResultados) }}
+              de {{ totalResultados }} registros
+            </span>
           </div>
 
-          <div class="pagination-controls">
-            <div class="page-size-selector">
-              <label>Mostrar:</label>
-              <select v-model="itemsPerPage" @change="changePageSize">
-                <option :value="10">10</option>
-                <option :value="20">20</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
-            </div>
-
-            <div class="pagination-nav">
-              <button
-                class="pagination-button"
-                @click="goToPage(currentPage - 1)"
-                :disabled="currentPage === 1"
-              >
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                class="pagination-button"
-                :class="{ active: page === currentPage }"
-                @click="goToPage(page)"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                class="pagination-button"
-                @click="goToPage(currentPage + 1)"
-                :disabled="currentPage === totalPages"
-              >
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-            </div>
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              v-model="itemsPerPage"
+              @change="changePageSize"
+              style="width: auto; display: inline-block;"
+            >
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+              <option :value="100">100</option>
+            </select>
           </div>
-        </div>
-      </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading && tramites.length === 0" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Buscando trámites...</p>
+          <div class="pagination-buttons">
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              title="Primera página"
+            >
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              title="Página anterior"
+            >
+              <font-awesome-icon icon="angle-left" />
+            </button>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              title="Página siguiente"
+            >
+              <font-awesome-icon icon="angle-right" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              title="Última página"
+            >
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -380,6 +457,10 @@
               <tr>
                 <td class="label">Tipo de Trámite:</td>
                 <td>{{ tramiteSeleccionado.tipo_tramite_desc }}</td>
+              </tr>
+              <tr>
+                <td class="label">ID Licencia:</td>
+                <td><strong class="text-primary">{{ tramiteSeleccionado.id_licencia || 'N/A' }}</strong></td>
               </tr>
               <tr>
                 <td class="label">Estatus:</td>
@@ -509,9 +590,17 @@
             Cerrar
           </button>
           <button
+            v-if="tramiteSeleccionado.id_licencia"
+            class="btn-municipal-success"
+            @click="verLicencia(tramiteSeleccionado.id_licencia)"
+          >
+            <font-awesome-icon icon="file-alt" />
+            Ver Licencia
+          </button>
+          <button
             v-if="tramiteSeleccionado.estatus !== 'R' && tramiteSeleccionado.estatus !== 'C'"
             class="btn-municipal-primary"
-            @click="modificarTramite(tramiteSeleccionado.id_tramite); closeDetalleModal()"
+            @click="modificarTramite(tramiteSeleccionado); closeDetalleModal()"
           >
             <font-awesome-icon icon="edit" />
             Modificar Trámite
@@ -576,6 +665,7 @@ import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -584,11 +674,14 @@ const showDocumentation = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
+const nuevoTramite = () => {
+  router.push('/padron-licencias/registro-solicitud')
+}
+
 const router = useRouter()
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -596,8 +689,11 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+// Constante para caché
+const CACHE_KEY = 'consulta_tramites_cache'
+
 // Estado
-const showFilters = ref(true)
+const showFilters = ref(false)
 const tramites = ref([])
 const estadisticas = ref([])
 const totalResultados = ref(0)
@@ -609,10 +705,12 @@ const showHistorialModal = ref(false)
 const tramiteSeleccionado = ref({})
 const historialTramiteId = ref(null)
 const loadingHistorial = ref(false)
+const loadingEstadisticas = ref(true)
 
 // Filtros
 const filtros = ref({
   id_tramite: '',
+  id_licencia: '',
   tipo_tramite: '',
   estatus: '',
   fecha_desde: '',
@@ -641,63 +739,209 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// Métodos de Caché
+const guardarCacheConsulta = () => {
+  try {
+    const cache = {
+      filtros: filtros.value,
+      tramites: tramites.value,
+      totalResultados: totalResultados.value,
+      currentPage: currentPage.value,
+      primeraBusqueda: primeraBusqueda.value,
+      timestamp: new Date().getTime()
+    }
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache))
+  } catch (error) {
+    console.error('Error al guardar caché:', error)
+  }
+}
+
+const cargarCacheConsulta = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_KEY)
+    if (cached) {
+      const cache = JSON.parse(cached)
+
+      // Verificar que el cache no sea muy antiguo (máximo 1 hora)
+      const ahora = new Date().getTime()
+      const tiempoTranscurrido = ahora - cache.timestamp
+      const unaHora = 60 * 60 * 1000
+
+      if (tiempoTranscurrido < unaHora) {
+        // Restaurar datos desde el caché
+        filtros.value = cache.filtros
+        tramites.value = cache.tramites
+        totalResultados.value = cache.totalResultados
+        currentPage.value = cache.currentPage
+        primeraBusqueda.value = cache.primeraBusqueda
+
+        console.log('✅ Caché cargado exitosamente')
+        return true
+      } else {
+        // Cache expirado, limpiar
+        sessionStorage.removeItem(CACHE_KEY)
+        console.log('⏰ Caché expirado, se limpió')
+      }
+    }
+  } catch (error) {
+    console.error('Error al cargar caché:', error)
+  }
+  return false
+}
+
+const limpiarCacheConsulta = () => {
+  try {
+    sessionStorage.removeItem(CACHE_KEY)
+    console.log('🗑️ Caché limpiado')
+  } catch (error) {
+    console.error('Error al limpiar caché:', error)
+  }
+}
+
 // Métodos
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
 }
 
+const limpiarBusqueda = () => {
+  // Limpiar caché
+  limpiarCacheConsulta()
+
+  // Resetear filtros
+  filtros.value = {
+    id_tramite: '',
+    id_licencia: '',
+    tipo_tramite: '',
+    estatus: '',
+    fecha_desde: '',
+    fecha_hasta: '',
+    propietario: '',
+    rfc: '',
+    id_dependencia: '',
+    id_giro: '',
+    calle: '',
+    colonia: ''
+  }
+
+  // Resetear resultados
+  tramites.value = []
+  totalResultados.value = 0
+  currentPage.value = 1
+  primeraBusqueda.value = false
+
+  // Establecer fechas por defecto
+  establecerFechasPorDefecto()
+
+  showToast('info', 'Filtros y resultados limpiados')
+}
+
 const buscarTramites = async () => {
-  setLoading(true, 'Buscando trámites...')
+  // Limpiar localStorage antes de nueva búsqueda
+  localStorage.removeItem('tramites_consulta')
+
+  showLoading('Buscando trámites...', 'Consultando base de datos')
   primeraBusqueda.value = true
+  showFilters.value = false  // Contraer acordeón al buscar
 
   try {
-    const params = []
-
-    // Agregar solo filtros con valor
-    if (filtros.value.id_tramite) {
-      params.push({ nombre: 'p_id_tramite', valor: parseInt(filtros.value.id_tramite), tipo: 'integer' })
-    }
-    if (filtros.value.tipo_tramite) {
-      params.push({ nombre: 'p_tipo_tramite', valor: parseInt(filtros.value.tipo_tramite), tipo: 'integer' })
-    }
-    if (filtros.value.estatus) {
-      params.push({ nombre: 'p_estatus', valor: filtros.value.estatus, tipo: 'string' })
-    }
-    if (filtros.value.fecha_desde) {
-      params.push({ nombre: 'p_fecha_desde', valor: filtros.value.fecha_desde, tipo: 'string' })
-    }
-    if (filtros.value.fecha_hasta) {
-      params.push({ nombre: 'p_fecha_hasta', valor: filtros.value.fecha_hasta, tipo: 'string' })
-    }
-    if (filtros.value.propietario) {
-      params.push({ nombre: 'p_propietario', valor: filtros.value.propietario, tipo: 'string' })
-    }
-    if (filtros.value.rfc) {
-      params.push({ nombre: 'p_rfc', valor: filtros.value.rfc, tipo: 'string' })
-    }
-    if (filtros.value.id_dependencia) {
-      params.push({ nombre: 'p_id_dependencia', valor: parseInt(filtros.value.id_dependencia), tipo: 'integer' })
-    }
-    if (filtros.value.id_giro) {
-      params.push({ nombre: 'p_id_giro', valor: parseInt(filtros.value.id_giro), tipo: 'integer' })
-    }
-    if (filtros.value.calle) {
-      params.push({ nombre: 'p_calle', valor: filtros.value.calle, tipo: 'string' })
-    }
-    if (filtros.value.colonia) {
-      params.push({ nombre: 'p_colonia', valor: filtros.value.colonia, tipo: 'string' })
-    }
-
-    // Paginación
-    params.push({ nombre: 'p_page', valor: currentPage.value, tipo: 'integer' })
-    params.push({ nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' })
+    // IMPORTANTE: Enviar TODOS los parámetros en orden posicional (14 total)
+    const params = [
+      // 1. p_id_tramite
+      {
+        nombre: 'p_id_tramite',
+        valor: filtros.value.id_tramite ? parseInt(filtros.value.id_tramite) : null,
+        tipo: 'integer'
+      },
+      // 2. p_id_licencia
+      {
+        nombre: 'p_id_licencia',
+        valor: filtros.value.id_licencia ? parseInt(filtros.value.id_licencia) : null,
+        tipo: 'integer'
+      },
+      // 3. p_tipo_tramite
+      {
+        nombre: 'p_tipo_tramite',
+        valor: filtros.value.tipo_tramite || null,
+        tipo: 'string'
+      },
+      // 4. p_estatus
+      {
+        nombre: 'p_estatus',
+        valor: filtros.value.estatus || null,
+        tipo: 'string'
+      },
+      // 5. p_fecha_desde
+      {
+        nombre: 'p_fecha_desde',
+        valor: filtros.value.fecha_desde || null,
+        tipo: 'date'
+      },
+      // 6. p_fecha_hasta
+      {
+        nombre: 'p_fecha_hasta',
+        valor: filtros.value.fecha_hasta || null,
+        tipo: 'date'
+      },
+      // 7. p_propietario
+      {
+        nombre: 'p_propietario',
+        valor: filtros.value.propietario || null,
+        tipo: 'string'
+      },
+      // 8. p_rfc
+      {
+        nombre: 'p_rfc',
+        valor: filtros.value.rfc || null,
+        tipo: 'string'
+      },
+      // 9. p_id_dependencia
+      {
+        nombre: 'p_id_dependencia',
+        valor: filtros.value.id_dependencia ? parseInt(filtros.value.id_dependencia) : null,
+        tipo: 'integer'
+      },
+      // 10. p_id_giro
+      {
+        nombre: 'p_id_giro',
+        valor: filtros.value.id_giro ? parseInt(filtros.value.id_giro) : null,
+        tipo: 'integer'
+      },
+      // 11. p_calle
+      {
+        nombre: 'p_calle',
+        valor: filtros.value.calle || null,
+        tipo: 'string'
+      },
+      // 12. p_colonia
+      {
+        nombre: 'p_colonia',
+        valor: filtros.value.colonia || null,
+        tipo: 'string'
+      },
+      // 13. p_page
+      {
+        nombre: 'p_page',
+        valor: currentPage.value,
+        tipo: 'integer'
+      },
+      // 14. p_limit
+      {
+        nombre: 'p_limit',
+        valor: itemsPerPage.value,
+        tipo: 'integer'
+      }
+    ]
 
     const response = await execute(
-      'SP_CONSULTATRAMITE_LIST',
+      'consulta_tramites_list',
       'padron_licencias',
       params,
-      'guadalajara'
+      'padron_licencias',
+      null,
+      'comun'
     )
+
+    hideLoading()
 
     if (response && response.result) {
       tramites.value = response.result
@@ -707,27 +951,35 @@ const buscarTramites = async () => {
         totalResultados.value = 0
       }
       showToast('success', `Se encontraron ${totalResultados.value} trámite(s)`)
+
+      // Guardar en caché después de una búsqueda exitosa
+      guardarCacheConsulta()
     } else {
       tramites.value = []
       totalResultados.value = 0
       showToast('info', 'No se encontraron trámites con los filtros especificados')
+
+      // Guardar en caché incluso si no hay resultados
+      guardarCacheConsulta()
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
     tramites.value = []
     totalResultados.value = 0
-  } finally {
-    setLoading(false)
   }
 }
 
 const cargarEstadisticas = async () => {
+  loadingEstadisticas.value = true
   try {
     const response = await execute(
-      'SP_CONSULTATRAMITE_ESTADISTICAS',
+      'consulta_tramites_estadisticas',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
     if (response && response.result) {
@@ -735,6 +987,8 @@ const cargarEstadisticas = async () => {
     }
   } catch (error) {
     console.error('Error al cargar estadísticas:', error)
+  } finally {
+    loadingEstadisticas.value = false
   }
 }
 
@@ -770,7 +1024,8 @@ const closeDetalleModal = () => {
   tramiteSeleccionado.value = {}
 }
 
-const verHistorial = async (idTramite) => {
+const verHistorial = async (tramite) => {
+  const idTramite = tramite?.id_tramite || tramite
   historialTramiteId.value = idTramite
   showHistorialModal.value = true
   loadingHistorial.value = true
@@ -785,26 +1040,62 @@ const closeHistorialModal = () => {
   historialTramiteId.value = null
 }
 
-const modificarTramite = (idTramite) => {
-  router.push(`/padron-licencias/modificacion-tramites/${idTramite}`)
+const modificarTramite = (tramite) => {
+  const idTramite = tramite?.id_tramite || tramite
+  // Guardar el ID en sessionStorage para pasarlo de forma segura
+  sessionStorage.setItem('tramite_a_modificar', idTramite.toString())
+  // Navegar sin exponer el ID en la URL
+  router.push('/padron-licencias/modificacion-tramites')
+}
+
+const verLicencia = (idLicencia) => {
+  // Navegar al módulo de consulta de licencias con el ID específico
+  router.push({
+    path: '/padron-licencias/consulta-licencias',
+    query: { id_licencia: idLicencia }
+  })
 }
 
 const exportarExcel = async () => {
-  await Swal.fire({
-    title: 'Exportar a Excel',
-    text: 'Funcionalidad en desarrollo. Utilizará SP_CONSULTATRAMITE_EXPORTAR',
-    icon: 'info',
-    confirmButtonColor: '#ea8215'
-  })
+  showLoading('Exportando a Excel...', 'Generando archivo')
+
+  try {
+    // TODO: Implementar exportación real
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    hideLoading()
+
+    await Swal.fire({
+      title: 'Exportar a Excel',
+      text: 'Funcionalidad en desarrollo. Utilizará SP_CONSULTATRAMITE_EXPORTAR',
+      icon: 'info',
+      confirmButtonColor: '#ea8215'
+    })
+  } catch (error) {
+    hideLoading()
+    handleApiError(error)
+  }
 }
 
 const exportarPDF = async () => {
-  await Swal.fire({
-    title: 'Exportar a PDF',
-    text: 'Funcionalidad en desarrollo',
-    icon: 'info',
-    confirmButtonColor: '#ea8215'
-  })
+  showLoading('Exportando a PDF...', 'Generando documento')
+
+  try {
+    // TODO: Implementar exportación real
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    hideLoading()
+
+    await Swal.fire({
+      title: 'Exportar a PDF',
+      text: 'Funcionalidad en desarrollo',
+      icon: 'info',
+      confirmButtonColor: '#ea8215'
+    })
+  } catch (error) {
+    hideLoading()
+    handleApiError(error)
+  }
 }
 
 // Utilidades
@@ -839,7 +1130,9 @@ const getEstatusIcon = (estatus) => {
     'V': 'walking',
     'A': 'check-circle',
     'R': 'times-circle',
-    'C': 'ban'
+    'C': 'ban',
+    'T': 'file-alt',
+    'N': 'question-circle'
   }
   return icons[estatus] || 'info-circle'
 }
@@ -866,8 +1159,32 @@ const formatDate = (dateString) => {
   }
 }
 
+const formatNumber = (num) => {
+  return new Intl.NumberFormat('es-MX').format(num)
+}
+
 // Lifecycle
+// Establecer fechas por defecto (últimos 6 meses)
+const establecerFechasPorDefecto = () => {
+  const hoy = new Date()
+  const seisMesesAtras = new Date()
+  seisMesesAtras.setMonth(seisMesesAtras.getMonth() - 6)
+
+  // Formatear a YYYY-MM-DD para inputs tipo date
+  filtros.value.fecha_hasta = hoy.toISOString().split('T')[0]
+  filtros.value.fecha_desde = seisMesesAtras.toISOString().split('T')[0]
+}
+
 onMounted(() => {
+  // Intentar cargar desde caché primero
+  const cacheLoaded = cargarCacheConsulta()
+
+  // Si no hay caché, establecer fechas por defecto
+  if (!cacheLoaded) {
+    establecerFechasPorDefecto()
+  }
+
+  // Siempre cargar estadísticas
   cargarEstadisticas()
 })
 </script>

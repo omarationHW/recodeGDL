@@ -1,39 +1,42 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="layer-group" />
       </div>
       <div class="module-view-info">
         <h1>Grupos de Licencias</h1>
-        <p>Padrón de Licencias - Gestión de Grupos y Asignación de Licencias</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+        <p>Padrón de Licencias - Gestión de Grupos y Asignación de Licencias</p>
+      </div>
+      <div class="button-group ms-auto">
         <button
           v-if="currentView === 'list'"
-          class="btn-municipal-primary"
+          class="btn-municipal-success"
           @click="openCreateModal"
-          :disabled="loading"
         >
           <font-awesome-icon icon="plus" />
           Nuevo Grupo
         </button>
         <button
+          v-if="currentView === 'list'"
+          class="btn-municipal-primary"
+          @click="loadGrupos"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
           v-if="currentView === 'manage'"
           class="btn-municipal-secondary"
           @click="backToList"
-          :disabled="loading"
         >
           <font-awesome-icon icon="arrow-left" />
           Volver a Lista
+        </button>
+        <button class="btn-municipal-purple" @click="openDocumentation">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -42,41 +45,52 @@
 
     <!-- Vista de Lista de Grupos -->
     <div v-if="currentView === 'list'">
+
       <!-- Tabla de grupos -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="list" />
             Grupos Registrados
-            <span class="badge-info" v-if="grupos.length > 0">{{ grupos.length }} grupos</span>
           </h5>
-          <div class="button-group">
-            <button
-              class="btn-municipal-secondary"
-              @click="loadGrupos"
-              :disabled="loading"
-            >
-              <font-awesome-icon icon="sync-alt" />
-              Actualizar
-            </button>
+          <div class="header-right">
+            <span class="badge-purple" v-if="totalRecords > 0">
+              {{ formatNumber(totalRecords) }} grupo{{ totalRecords !== 1 ? 's' : '' }}
+            </span>
           </div>
         </div>
 
-        <div class="municipal-card-body table-container" v-if="!loading">
+        <div class="municipal-card-body table-container">
           <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>ID</th>
-                  <th>Descripción</th>
-                  <th>Acciones</th>
+                  <th style="width: 10%;">
+                    <font-awesome-icon icon="hashtag" class="me-2" />
+                    ID
+                  </th>
+                  <th style="width: 60%;">
+                    <font-awesome-icon icon="layer-group" class="me-2" />
+                    Descripción
+                  </th>
+                  <th style="width: 30%; text-align: center;">
+                    <font-awesome-icon icon="cog" class="me-1" />
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="grupo in grupos" :key="grupo.id" class="row-hover">
-                  <td><strong class="text-primary">{{ grupo.id }}</strong></td>
-                  <td>{{ grupo.descripcion || 'N/A' }}</td>
+                <tr v-for="grupo in paginatedGrupos" :key="grupo.id" class="row-hover">
                   <td>
+                    <strong class="text-primary">{{ grupo.id }}</strong>
+                  </td>
+                  <td>
+                    <div class="giro-name">
+                      <font-awesome-icon icon="layer-group" class="giro-icon" />
+                      <span class="giro-text">{{ grupo.descripcion || 'N/A' }}</span>
+                    </div>
+                  </td>
+                  <td style="text-align: center;">
                     <div class="button-group button-group-sm">
                       <button
                         class="btn-municipal-info btn-sm"
@@ -103,14 +117,67 @@
                     </div>
                   </td>
                 </tr>
-                <tr v-if="grupos.length === 0 && !loading">
-                  <td colspan="3" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>No hay grupos registrados</p>
+                <tr v-if="grupos.length === 0">
+                  <td colspan="3" class="empty-state">
+                    <div class="empty-state-content">
+                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
+                      <p class="empty-state-text">No hay grupos registrados</p>
+                      <p class="empty-state-hint">Presiona "Nuevo Grupo" para crear el primero</p>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination-container" v-if="totalRecords > 0">
+          <div class="pagination-info">
+            <font-awesome-icon icon="info-circle" />
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ totalRecords }} registros
+          </div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <label>Mostrar:</label>
+              <select v-model="itemsPerPage" @change="changePageSize">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-nav">
+              <button
+                class="pagination-button"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+              >
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="pagination-button"
+                :class="{ active: page === currentPage }"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="pagination-button"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+              >
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -139,7 +206,7 @@
             </div>
           </div>
 
-          <div class="row" style="margin-top: 20px;">
+          <div class="row mt-4">
             <!-- Columna Izquierda: Licencias Disponibles -->
             <div class="col-md-6">
               <div class="licencias-panel">
@@ -152,7 +219,7 @@
                   <button
                     class="btn-municipal-primary btn-sm"
                     @click="addSelectedLicencias"
-                    :disabled="selectedDisponibles.length === 0 || loading"
+                    :disabled="selectedDisponibles.length === 0"
                   >
                     <font-awesome-icon icon="arrow-right" />
                     Agregar ({{ selectedDisponibles.length }})
@@ -197,10 +264,10 @@
                   <button
                     class="btn-municipal-danger btn-sm"
                     @click="removeSelectedLicencias"
-                    :disabled="selectedGrupo.length === 0 || loading"
+                    :disabled="selectedGrupoLicencias.length === 0"
                   >
                     <font-awesome-icon icon="arrow-left" />
-                    Quitar ({{ selectedGrupo.length }})
+                    Quitar ({{ selectedGrupoLicencias.length }})
                   </button>
                 </div>
                 <div class="panel-body">
@@ -214,7 +281,7 @@
                         <input
                           type="checkbox"
                           :value="licencia.licencia"
-                          v-model="selectedGrupo"
+                          v-model="selectedGrupoLicencias"
                         />
                         <span class="licencia-info">
                           <strong>{{ licencia.licencia }}</strong>
@@ -234,13 +301,8 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && grupos.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando grupos...</p>
-      </div>
     </div>
+    <!-- /module-view-content -->
 
     <!-- Modal de creación -->
     <Modal
@@ -303,19 +365,20 @@
       </form>
     </Modal>
 
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" class="toast-duration-icon" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
     <!-- Modal de Ayuda -->
     <DocumentationModal
@@ -324,7 +387,9 @@
       :moduleName="'padron_licencias'"
       @close="closeDocumentation"
     />
-  </template>
+  </div>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -332,6 +397,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
@@ -342,14 +408,13 @@ const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const currentView = ref('list') // 'list' | 'manage'
@@ -366,6 +431,11 @@ const showEditModal = ref(false)
 const creatingGrupo = ref(false)
 const updatingGrupo = ref(false)
 
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecords = ref(0)
+
 // Formularios
 const newGrupo = ref({
   descripcion: ''
@@ -377,48 +447,86 @@ const editForm = ref({
 })
 
 // Computed
-const filteredLicenciasDisponibles = computed(() => {
-  if (!selectedGiroFilter.value) {
-    return licenciasDisponibles.value
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const start = Math.max(1, currentPage.value - 2)
+  const end = Math.min(totalPages.value, currentPage.value + 2)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
   }
-  return licenciasDisponibles.value.filter(
-    lic => lic.id_giro === parseInt(selectedGiroFilter.value)
-  )
+  return pages
+})
+
+// Computed para paginación de grupos
+const paginatedGrupos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return grupos.value.slice(start, end)
+})
+
+// Computed SIN límite - muestra todas las licencias
+const filteredLicenciasDisponibles = computed(() => {
+  let filtered = licenciasDisponibles.value
+
+  if (selectedGiroFilter.value) {
+    filtered = filtered.filter(
+      lic => lic.id_giro === parseInt(selectedGiroFilter.value)
+    )
+  }
+
+  return filtered
 })
 
 const filteredLicenciasGrupo = computed(() => {
-  if (!selectedGiroFilter.value) {
-    return licenciasGrupo.value
+  let filtered = licenciasGrupo.value
+
+  if (selectedGiroFilter.value) {
+    filtered = filtered.filter(
+      lic => lic.id_giro === parseInt(selectedGiroFilter.value)
+    )
   }
-  return licenciasGrupo.value.filter(
-    lic => lic.id_giro === parseInt(selectedGiroFilter.value)
-  )
+
+  return filtered
 })
 
 // Métodos
 const loadGrupos = async () => {
-  setLoading(true, 'Cargando grupos...')
+  showLoading('Cargando grupos...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
       'GET_GRUPOS_LICENCIAS',
       'padron_licencias',
       [],
-      'guadalajara'
+      'public'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result) {
       grupos.value = response.result
-      showToast('success', 'Grupos cargados correctamente')
+      totalRecords.value = grupos.value.length
+
+      const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+      showToast('success', 'Grupos cargados correctamente', timeMessage)
     } else {
       grupos.value = []
+      totalRecords.value = 0
       showToast('error', 'Error al cargar grupos')
     }
   } catch (error) {
     handleApiError(error)
     grupos.value = []
+    totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -428,7 +536,7 @@ const loadGiros = async () => {
       'GET_GIROS',
       'padron_licencias',
       [],
-      'guadalajara'
+      'public'
     )
 
     if (response && response.result) {
@@ -464,11 +572,9 @@ const createGrupo = async () => {
     icon: 'question',
     title: '¿Confirmar creación de grupo?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se creará un nuevo grupo:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${newGrupo.value.descripcion}</li>
-        </ul>
+      <div>
+        <p>Se creará un nuevo grupo:</p>
+        <p><strong>Descripción:</strong> ${newGrupo.value.descripcion}</p>
       </div>
     `,
     showCancelButton: true,
@@ -491,23 +597,31 @@ const createGrupo = async () => {
       [
         { nombre: 'p_descripcion', valor: newGrupo.value.descripcion, tipo: 'string' }
       ],
-      'guadalajara'
+      'public'
     )
 
-    if (response && response.result && response.result[0]?.success) {
+    console.log('INSERT Response:', response)
+
+    // Verificar si tiene success=true O si tiene id/descripcion (formato antiguo)
+    const hasSuccess = response?.result?.[0]?.success === true
+    const hasIdDescripcion = response?.result?.[0]?.id && response?.result?.[0]?.descripcion
+
+    if (response && response.result && (hasSuccess || hasIdDescripcion)) {
       showCreateModal.value = false
-      loadGrupos()
+      creatingGrupo.value = false
+      await loadGrupos()
 
       await Swal.fire({
         icon: 'success',
         title: '¡Grupo creado!',
-        text: 'El grupo ha sido creado exitosamente',
+        text: response.result[0]?.message || 'El grupo ha sido creado exitosamente',
         confirmButtonColor: '#ea8215',
         timer: 2000
       })
 
-      showToast('success', 'Grupo creado exitosamente')
+      showToast('success', response.result[0]?.message || 'Grupo creado exitosamente')
     } else {
+      creatingGrupo.value = false
       await Swal.fire({
         icon: 'error',
         title: 'Error al crear grupo',
@@ -516,6 +630,7 @@ const createGrupo = async () => {
       })
     }
   } catch (error) {
+    creatingGrupo.value = false
     handleApiError(error)
     await Swal.fire({
       icon: 'error',
@@ -523,8 +638,6 @@ const createGrupo = async () => {
       text: 'No se pudo crear el grupo',
       confirmButtonColor: '#ea8215'
     })
-  } finally {
-    creatingGrupo.value = false
   }
 }
 
@@ -552,12 +665,10 @@ const updateGrupo = async () => {
     icon: 'question',
     title: '¿Confirmar actualización?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se actualizarán los datos del grupo:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>ID:</strong> ${editForm.value.id}</li>
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
-        </ul>
+      <div>
+        <p>Se actualizarán los datos del grupo:</p>
+        <p><strong>ID:</strong> ${editForm.value.id}</p>
+        <p><strong>Descripción:</strong> ${editForm.value.descripcion}</p>
       </div>
     `,
     showCancelButton: true,
@@ -581,23 +692,31 @@ const updateGrupo = async () => {
         { nombre: 'p_id', valor: editForm.value.id, tipo: 'integer' },
         { nombre: 'p_descripcion', valor: editForm.value.descripcion, tipo: 'string' }
       ],
-      'guadalajara'
+      'public'
     )
 
-    if (response && response.result && response.result[0]?.success) {
+    console.log('UPDATE Response:', response)
+
+    // Verificar si tiene success=true O si tiene id/descripcion (formato antiguo)
+    const hasSuccess = response?.result?.[0]?.success === true
+    const hasIdDescripcion = response?.result?.[0]?.id && response?.result?.[0]?.descripcion
+
+    if (response && response.result && (hasSuccess || hasIdDescripcion)) {
       showEditModal.value = false
-      loadGrupos()
+      updatingGrupo.value = false
+      await loadGrupos()
 
       await Swal.fire({
         icon: 'success',
         title: '¡Grupo actualizado!',
-        text: 'Los datos del grupo han sido actualizados',
+        text: response.result[0]?.message || 'Los datos del grupo han sido actualizados',
         confirmButtonColor: '#ea8215',
         timer: 2000
       })
 
-      showToast('success', 'Grupo actualizado exitosamente')
+      showToast('success', response.result[0]?.message || 'Grupo actualizado exitosamente')
     } else {
+      updatingGrupo.value = false
       await Swal.fire({
         icon: 'error',
         title: 'Error al actualizar',
@@ -606,9 +725,8 @@ const updateGrupo = async () => {
       })
     }
   } catch (error) {
-    handleApiError(error)
-  } finally {
     updatingGrupo.value = false
+    handleApiError(error)
   }
 }
 
@@ -630,7 +748,7 @@ const confirmDeleteGrupo = async (grupo) => {
 }
 
 const deleteGrupo = async (grupo) => {
-  setLoading(true, 'Eliminando grupo...')
+  showLoading('Eliminando grupo...')
 
   try {
     const response = await execute(
@@ -639,21 +757,29 @@ const deleteGrupo = async (grupo) => {
       [
         { nombre: 'p_id', valor: grupo.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'public'
     )
 
-    if (response && response.result && response.result[0]?.success) {
-      loadGrupos()
+    console.log('DELETE Response:', response)
+
+    hideLoading()
+
+    // Verificar si tiene success=true O si tiene id/descripcion (formato antiguo)
+    const hasSuccess = response?.result?.[0]?.success === true
+    const hasIdDescripcion = response?.result?.[0]?.id && response?.result?.[0]?.descripcion
+
+    if (response && response.result && (hasSuccess || hasIdDescripcion)) {
+      await loadGrupos()
 
       await Swal.fire({
         icon: 'success',
         title: '¡Grupo eliminado!',
-        text: 'El grupo ha sido eliminado exitosamente',
+        text: response.result[0]?.message || 'El grupo ha sido eliminado exitosamente',
         confirmButtonColor: '#ea8215',
         timer: 2000
       })
 
-      showToast('success', 'Grupo eliminado exitosamente')
+      showToast('success', response.result[0]?.message || 'Grupo eliminado exitosamente')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -663,9 +789,8 @@ const deleteGrupo = async (grupo) => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -683,7 +808,8 @@ const manageLicencias = async (grupo) => {
 }
 
 const loadLicenciasDisponibles = async () => {
-  setLoading(true, 'Cargando licencias disponibles...')
+  showLoading('Cargando licencias disponibles...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -692,24 +818,32 @@ const loadLicenciasDisponibles = async () => {
       [
         { nombre: 'p_grupo_id', valor: selectedGrupo.value.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'public'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result) {
       licenciasDisponibles.value = response.result
+
+      const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+      showToast('success', `${formatNumber(licenciasDisponibles.value.length)} licencias disponibles`, timeMessage)
     } else {
       licenciasDisponibles.value = []
+      showToast('warning', 'No se encontraron licencias disponibles')
     }
   } catch (error) {
     handleApiError(error)
     licenciasDisponibles.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const loadLicenciasGrupo = async (grupoId) => {
-  setLoading(true, 'Cargando licencias del grupo...')
+  showLoading('Cargando licencias del grupo...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -718,19 +852,26 @@ const loadLicenciasGrupo = async (grupoId) => {
       [
         { nombre: 'p_grupo_id', valor: grupoId, tipo: 'integer' }
       ],
-      'guadalajara'
+      'public'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result) {
       licenciasGrupo.value = response.result
+
+      const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+      showToast('success', `${formatNumber(licenciasGrupo.value.length)} licencias en el grupo`, timeMessage)
     } else {
       licenciasGrupo.value = []
+      showToast('warning', 'No se encontraron licencias en el grupo')
     }
   } catch (error) {
     handleApiError(error)
     licenciasGrupo.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -739,7 +880,28 @@ const addSelectedLicencias = async () => {
     return
   }
 
-  setLoading(true, 'Agregando licencias al grupo...')
+  // Confirmación antes de agregar
+  const confirmResult = await Swal.fire({
+    icon: 'question',
+    title: '¿Agregar licencias al grupo?',
+    html: `
+      <div>
+        <p>Se agregarán <strong>${selectedDisponibles.value.length}</strong> licencia(s) al grupo:</p>
+        <p><strong>${selectedGrupo.value.descripcion}</strong></p>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, agregar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirmResult.isConfirmed) {
+    return
+  }
+
+  showLoading('Agregando licencias al grupo...')
 
   try {
     const response = await execute(
@@ -747,10 +909,12 @@ const addSelectedLicencias = async () => {
       'padron_licencias',
       [
         { nombre: 'p_grupo_id', valor: selectedGrupo.value.id, tipo: 'integer' },
-        { nombre: 'p_licencias', valor: JSON.stringify(selectedDisponibles.value), tipo: 'string' }
+        { nombre: 'p_licencias', valor: selectedDisponibles.value, tipo: 'integer_array' }
       ],
-      'guadalajara'
+      'public'
     )
+
+    hideLoading()
 
     if (response && response.result && response.result[0]?.success) {
       selectedDisponibles.value = []
@@ -758,7 +922,16 @@ const addSelectedLicencias = async () => {
         loadLicenciasDisponibles(),
         loadLicenciasGrupo(selectedGrupo.value.id)
       ])
-      showToast('success', 'Licencias agregadas al grupo')
+
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Licencias agregadas!',
+        text: response.result[0]?.message || 'Licencias agregadas al grupo exitosamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', response.result[0]?.message || 'Licencias agregadas al grupo')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -768,9 +941,8 @@ const addSelectedLicencias = async () => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -779,7 +951,28 @@ const removeSelectedLicencias = async () => {
     return
   }
 
-  setLoading(true, 'Quitando licencias del grupo...')
+  // Confirmación antes de quitar
+  const confirmResult = await Swal.fire({
+    icon: 'warning',
+    title: '¿Quitar licencias del grupo?',
+    html: `
+      <div>
+        <p>Se quitarán <strong>${selectedGrupoLicencias.value.length}</strong> licencia(s) del grupo:</p>
+        <p><strong>${selectedGrupo.value.descripcion}</strong></p>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, quitar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirmResult.isConfirmed) {
+    return
+  }
+
+  showLoading('Quitando licencias del grupo...')
 
   try {
     const response = await execute(
@@ -787,10 +980,12 @@ const removeSelectedLicencias = async () => {
       'padron_licencias',
       [
         { nombre: 'p_grupo_id', valor: selectedGrupo.value.id, tipo: 'integer' },
-        { nombre: 'p_licencias', valor: JSON.stringify(selectedGrupoLicencias.value), tipo: 'string' }
+        { nombre: 'p_licencias', valor: selectedGrupoLicencias.value, tipo: 'integer_array' }
       ],
-      'guadalajara'
+      'public'
     )
+
+    hideLoading()
 
     if (response && response.result && response.result[0]?.success) {
       selectedGrupoLicencias.value = []
@@ -798,7 +993,16 @@ const removeSelectedLicencias = async () => {
         loadLicenciasDisponibles(),
         loadLicenciasGrupo(selectedGrupo.value.id)
       ])
-      showToast('success', 'Licencias quitadas del grupo')
+
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Licencias quitadas!',
+        text: response.result[0]?.message || 'Licencias quitadas del grupo exitosamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', response.result[0]?.message || 'Licencias quitadas del grupo')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -808,9 +1012,8 @@ const removeSelectedLicencias = async () => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -821,6 +1024,24 @@ const backToList = () => {
   licenciasGrupo.value = []
   selectedDisponibles.value = []
   selectedGrupoLicencias.value = []
+}
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    // No hay paginación real en SPs, solo visual
+  }
+}
+
+const changePageSize = () => {
+  currentPage.value = 1
+  // No hay paginación real en SPs, solo visual
+}
+
+// Utilidades
+const formatNumber = (value) => {
+  if (!value && value !== 0) return '0'
+  return new Intl.NumberFormat('es-MX').format(value)
 }
 
 // Lifecycle

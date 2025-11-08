@@ -1,22 +1,19 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="money-bill-wave" /></div>
-      <div class="module-view-info">
-        <h1>Cuotas de Mercados</h1>
-        <p>Mercados - Cuotas de Mercados</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="cuotas-mdo-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Cuotas de Mercados</li>
+      </ol>
+    </nav>
     <h2>Cuotas de Mercados</h2>
     <div class="mb-3 d-flex align-items-center">
-      <label class="municipal-form-label me-2">Año:</label>
-      <input type="number" v-model="axo" class="municipal-form-control w-auto" min="2000" max="2100" />
-      <button class="btn btn-municipal-primary ms-2" @click="fetchCuotas">Buscar</button>
-      <button class="btn btn-municipal-success ms-2" @click="showCreate = true">Agregar</button>
+      <label class="me-2">Año:</label>
+      <input type="number" v-model="axo" class="form-control w-auto" min="2000" max="2100" />
+      <button class="btn btn-primary ms-2" @click="fetchCuotas">Buscar</button>
+      <button class="btn btn-success ms-2" @click="showCreate = true">Agregar</button>
     </div>
-    <table class="-striped municipal-table-bordered">
+    <table class="table table-striped table-bordered">
       <thead>
         <tr>
           <th>Año</th>
@@ -41,8 +38,8 @@
           <td>{{ cuota.fecha_alta | date }}</td>
           <td>{{ cuota.usuario }}</td>
           <td>
-            <button class="btn-icon btn-municipal-warning" @click="editCuota(cuota)">Editar</button>
-            <button class="btn btn-sm btn-municipal-danger ms-1" @click="deleteCuota(cuota)">Eliminar</button>
+            <button class="btn btn-sm btn-warning" @click="editCuota(cuota)">Editar</button>
+            <button class="btn btn-sm btn-danger ms-1" @click="deleteCuota(cuota)">Eliminar</button>
           </td>
         </tr>
       </tbody>
@@ -55,38 +52,38 @@
           <h3>{{ showEdit ? 'Editar Cuota' : 'Agregar Cuota' }}</h3>
           <form @submit.prevent="showEdit ? updateCuota() : createCuota()">
             <div class="mb-2">
-              <label class="municipal-form-label">Año</label>
-              <input type="number" v-model="form.axo" class="municipal-form-control" required min="2000" max="2100" />
+              <label>Año</label>
+              <input type="number" v-model="form.axo" class="form-control" required min="2000" max="2100" />
             </div>
             <div class="mb-2">
-              <label class="municipal-form-label">Categoría</label>
-              <select v-model="form.categoria" class="municipal-form-control" required>
+              <label>Categoría</label>
+              <select v-model="form.categoria" class="form-control" required>
                 <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">{{ cat.categoria }} - {{ cat.descripcion }}</option>
               </select>
             </div>
             <div class="mb-2">
-              <label class="municipal-form-label">Sección</label>
-              <select v-model="form.seccion" class="municipal-form-control" required>
+              <label>Sección</label>
+              <select v-model="form.seccion" class="form-control" required>
                 <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">{{ sec.seccion }} - {{ sec.descripcion }}</option>
               </select>
             </div>
             <div class="mb-2">
-              <label class="municipal-form-label">Clave Cuota</label>
-              <select v-model="form.clave_cuota" class="municipal-form-control" required>
+              <label>Clave Cuota</label>
+              <select v-model="form.clave_cuota" class="form-control" required>
                 <option v-for="cve in clavesCuota" :key="cve.clave_cuota" :value="cve.clave_cuota">{{ cve.clave_cuota }} - {{ cve.descripcion }}</option>
               </select>
             </div>
             <div class="mb-2">
-              <label class="municipal-form-label">Importe</label>
-              <input type="number" v-model="form.importe_cuota" class="municipal-form-control" required min="0.01" step="0.01" />
+              <label>Importe</label>
+              <input type="number" v-model="form.importe_cuota" class="form-control" required min="0.01" step="0.01" />
             </div>
             <div class="mb-2">
-              <label class="municipal-form-label">Usuario</label>
-              <input type="number" v-model="form.id_usuario" class="municipal-form-control" required />
+              <label>Usuario</label>
+              <input type="number" v-model="form.id_usuario" class="form-control" required />
             </div>
             <div class="d-flex justify-content-end">
-              <button class="btn btn-municipal-secondary me-2" type="button" @click="closeModal">Cancelar</button>
-              <button class="btn-municipal-primary" type="submit">{{ showEdit ? 'Actualizar' : 'Guardar' }}</button>
+              <button class="btn btn-secondary me-2" type="button" @click="closeModal">Cancelar</button>
+              <button class="btn btn-primary" type="submit">{{ showEdit ? 'Actualizar' : 'Guardar' }}</button>
             </div>
           </form>
         </div>
@@ -94,9 +91,6 @@
     </div>
 
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -130,10 +124,7 @@ export default {
   },
   methods: {
     async fetchCuotas() {
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'list_cuotas',
         params: { axo: this.axo }
       });
@@ -142,10 +133,7 @@ export default {
       }
     },
     async fetchCategorias() {
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'get_categorias'
       });
       if (res.data.success) {
@@ -153,10 +141,7 @@ export default {
       }
     },
     async fetchSecciones() {
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'get_secciones'
       });
       if (res.data.success) {
@@ -164,10 +149,7 @@ export default {
       }
     },
     async fetchClavesCuota() {
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'get_claves_cuota'
       });
       if (res.data.success) {
@@ -191,10 +173,7 @@ export default {
       };
     },
     async createCuota() {
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'create_cuota',
         params: this.form
       });
@@ -210,10 +189,7 @@ export default {
       this.showEdit = true;
     },
     async updateCuota() {
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'update_cuota',
         params: this.form
       });
@@ -226,10 +202,7 @@ export default {
     },
     async deleteCuota(cuota) {
       if (!confirm('¿Está seguro de eliminar la cuota seleccionada?')) return;
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'delete_cuota',
         params: { id_cuotas: cuota.id_cuotas }
       });

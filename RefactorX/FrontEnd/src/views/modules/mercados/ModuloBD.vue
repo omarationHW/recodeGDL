@@ -1,19 +1,16 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Catálogo de Categorías</h1>
-        <p>Mercados - Catálogo de Categorías</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="modulo-bd-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Catálogo de Categorías</li>
+      </ol>
+    </nav>
     <h1>Catálogo de Categorías</h1>
     <div class="actions mb-3">
-      <button class="btn-municipal-primary" @click="showAddModal = true">Agregar Categoría</button>
+      <button class="btn btn-primary" @click="showAddModal = true">Agregar Categoría</button>
     </div>
-    <table class="municipal-table">
+    <table class="table table-bordered">
       <thead>
         <tr>
           <th>ID</th>
@@ -26,7 +23,7 @@
           <td>{{ cat.categoria }}</td>
           <td>{{ cat.descripcion }}</td>
           <td>
-            <button class="btn-icon btn-warning" @click="editCategoria(cat)">Editar</button>
+            <button class="btn btn-sm btn-warning" @click="editCategoria(cat)">Editar</button>
           </td>
         </tr>
       </tbody>
@@ -39,11 +36,11 @@
           <form @submit.prevent="addCategoria">
             <div class="form-group">
               <label>Descripción</label>
-              <input v-model="newCategoria.descripcion" class="municipal-form-control" required />
+              <input v-model="newCategoria.descripcion" class="form-control" required />
             </div>
             <div class="modal-footer">
-              <button class="btn-municipal-secondary" @click="showAddModal = false">Cancelar</button>
-              <button class="btn-municipal-primary" type="submit">Guardar</button>
+              <button class="btn btn-secondary" @click="showAddModal = false">Cancelar</button>
+              <button class="btn btn-primary" type="submit">Guardar</button>
             </div>
           </form>
         </div>
@@ -57,20 +54,17 @@
           <form @submit.prevent="updateCategoria">
             <div class="form-group">
               <label>Descripción</label>
-              <input v-model="editCategoriaData.descripcion" class="municipal-form-control" required />
+              <input v-model="editCategoriaData.descripcion" class="form-control" required />
             </div>
             <div class="modal-footer">
-              <button class="btn-municipal-secondary" @click="showEditModal = false">Cancelar</button>
-              <button class="btn-municipal-primary" type="submit">Actualizar</button>
+              <button class="btn btn-secondary" @click="showEditModal = false">Cancelar</button>
+              <button class="btn btn-primary" type="submit">Actualizar</button>
             </div>
           </form>
         </div>
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -96,10 +90,7 @@ export default {
   methods: {
     async fetchCategorias() {
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.getCategorias',
           payload: {}
         });
@@ -112,10 +103,7 @@ export default {
     },
     async addCategoria() {
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.addCategoria',
           payload: this.newCategoria
         });
@@ -136,10 +124,7 @@ export default {
     },
     async updateCategoria() {
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'mercados.updateCategoria',
           payload: this.editCategoriaData
         });

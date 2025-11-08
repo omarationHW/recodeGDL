@@ -1,19 +1,16 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Fechas de Descuento</h1>
-        <p>Mercados - Fechas de Descuento</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="fechas-descuento-mntto-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Fechas de Descuento</li>
+      </ol>
+    </nav>
     <h2>Mantenimiento a Fechas de Descuento</h2>
-    <div class="municipal-card mb-4">
-      <div class="municipal-card-header">Listado de Fechas de Descuento</div>
-      <div class="municipal-card-body">
-        <table class="-bordered municipal-table-sm">
+    <div class="card mb-4">
+      <div class="card-header">Listado de Fechas de Descuento</div>
+      <div class="card-body">
+        <table class="table table-bordered table-sm">
           <thead>
             <tr>
               <th>Mes</th>
@@ -32,43 +29,40 @@
               <td>{{ row.fecha_alta | datetime }}</td>
               <td>{{ row.usuario }}</td>
               <td>
-                <button class="btn-icon btn-municipal-primary" @click="edit(row)">Editar</button>
+                <button class="btn btn-sm btn-primary" @click="edit(row)">Editar</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
-    <div v-if="showForm" class="municipal-card">
-      <div class="municipal-card-header">Editar Fecha de Descuento</div>
-      <div class="municipal-card-body">
+    <div v-if="showForm" class="card">
+      <div class="card-header">Editar Fecha de Descuento</div>
+      <div class="card-body">
         <form @submit.prevent="submit">
           <div class="row">
             <div class="col-md-2">
-              <label class="municipal-form-label">Mes</label>
-              <input type="number" class="municipal-form-control" v-model.number="form.mes" min="1" max="12" disabled />
+              <label>Mes</label>
+              <input type="number" class="form-control" v-model.number="form.mes" min="1" max="12" disabled />
             </div>
             <div class="col-md-4">
-              <label class="municipal-form-label">Fecha Descuento</label>
-              <input type="date" class="municipal-form-control" v-model="form.fecha_descuento" required />
+              <label>Fecha Descuento</label>
+              <input type="date" class="form-control" v-model="form.fecha_descuento" required />
             </div>
             <div class="col-md-4">
-              <label class="municipal-form-label">Fecha Recargos</label>
-              <input type="date" class="municipal-form-control" v-model="form.fecha_recargos" required />
+              <label>Fecha Recargos</label>
+              <input type="date" class="form-control" v-model="form.fecha_recargos" required />
             </div>
           </div>
           <div class="mt-3">
-            <button type="submit" class="btn-municipal-success">Guardar</button>
-            <button type="button" class="btn-municipal-secondary" @click="cancel">Cancelar</button>
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <button type="button" class="btn btn-secondary" @click="cancel">Cancelar</button>
           </div>
           <div v-if="error" class="alert alert-danger mt-2">{{ error }}</div>
         </form>
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

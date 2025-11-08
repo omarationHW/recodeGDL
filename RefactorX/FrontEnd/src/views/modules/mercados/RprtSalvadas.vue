@@ -1,25 +1,22 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Reporte Salvadas</h1>
-        <p>Mercados - Reporte Salvadas</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rprt-salvadas-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Reporte Salvadas</li>
+      </ol>
+    </nav>
     <h1>Reporte de Salvadas</h1>
     <form @submit.prevent="fetchReport">
       <div class="form-group">
         <label for="start_date">Fecha Inicio</label>
-        <input type="date" v-model="filters.start_date" id="start_date" class="municipal-form-control" required>
+        <input type="date" v-model="filters.start_date" id="start_date" class="form-control" required>
       </div>
       <div class="form-group">
         <label for="end_date">Fecha Fin</label>
-        <input type="date" v-model="filters.end_date" id="end_date" class="municipal-form-control" required>
+        <input type="date" v-model="filters.end_date" id="end_date" class="form-control" required>
       </div>
-      <button type="submit" class="btn-municipal-primary">Generar Reporte</button>
+      <button type="submit" class="btn btn-primary">Generar Reporte</button>
     </form>
     <div v-if="loading" class="mt-3">
       <span>Cargando reporte...</span>
@@ -29,7 +26,7 @@
     </div>
     <div v-if="report.length" class="mt-4">
       <h2>Resultados</h2>
-      <table class="municipal-table">
+      <table class="table table-bordered">
         <thead>
           <tr>
             <th>#</th>
@@ -52,9 +49,6 @@
       <span>No se encontraron resultados para el rango seleccionado.</span>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -96,7 +90,7 @@ export default {
           })
         });
         const data = await response.json();
-        if (data.eResponse && data.eResponse.status === 'ok') {
+        if (data.eResponse && data.eResponse.success) {
           this.report = data.eResponse.data;
         } else {
           this.error = data.eResponse ? data.eResponse.message : 'Error desconocido';

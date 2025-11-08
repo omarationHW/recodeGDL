@@ -1,94 +1,56 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="tags" />
-      </div>
-      <div class="module-view-info">
-        <h1>Categorías</h1>
-        <p>Gestión del catálogo de categorías de mercados</p>
-      </div>
-      <div class="module-view-actions">
-        <button class="btn-municipal-primary" @click="showCreateModal = true">
-          <font-awesome-icon icon="plus" />
-          Agregar Categoría
-        </button>
-      </div>
+  <div class="categoria-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Categorías</li>
+      </ol>
+    </nav>
+    <h2>Categorías</h2>
+    <div class="mb-3">
+      <button class="btn btn-primary" @click="showCreateModal = true">Agregar Categoría</button>
     </div>
-
-    <div class="module-view-content">
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="list" />
-            Listado de Categorías
-          </h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="table-responsive">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr>
-                  <th>Categoría</th>
-                  <th>Descripción</th>
-                  <th style="width: 200px">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="cat in categorias" :key="cat.categoria" class="row-hover">
-                  <td><strong>{{ cat.categoria }}</strong></td>
-                  <td>{{ cat.descripcion }}</td>
-                  <td>
-                    <div class="button-group button-group-sm">
-                      <button class="btn-municipal-warning btn-sm" @click="editCategoria(cat)">
-                        <font-awesome-icon icon="edit" /> Editar
-                      </button>
-                      <button class="btn-municipal-danger btn-sm" @click="deleteCategoria(cat.categoria)">
-                        <font-awesome-icon icon="trash" /> Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-if="categorias.length === 0">
-                  <td colspan="3" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No hay categorías registradas</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Categoría</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="cat in categorias" :key="cat.categoria">
+          <td>{{ cat.categoria }}</td>
+          <td>{{ cat.descripcion }}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" @click="editCategoria(cat)">Editar</button>
+            <button class="btn btn-sm btn-danger" @click="deleteCategoria(cat.categoria)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <!-- Modal Crear/Editar -->
     <div v-if="showCreateModal || showEditModal" class="modal-backdrop">
       <div class="modal-dialog">
-        <div class="modal-content-custom">
-          <div class="modal-header-custom">
-            <h5>{{ showEditModal ? 'Editar' : 'Agregar' }} Categoría</h5>
-            <button type="button" class="close-button" @click="closeModal">
-              <font-awesome-icon icon="times" />
-            </button>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ showEditModal ? 'Editar' : 'Agregar' }} Categoría</h5>
+            <button type="button" class="close" @click="closeModal">&times;</button>
           </div>
-          <div class="modal-body-custom">
+          <div class="modal-body">
             <form @submit.prevent="showEditModal ? updateCategoria() : createCategoria()">
               <div class="form-group">
-                <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <input type="number" v-model.number="form.categoria" :disabled="showEditModal" class="municipal-form-control" required />
+                <label for="categoria">Categoría</label>
+                <input type="number" v-model.number="form.categoria" :disabled="showEditModal" class="form-control" required />
               </div>
               <div class="form-group">
-                <label class="municipal-form-label">Descripción <span class="required">*</span></label>
-                <input type="text" v-model="form.descripcion" maxlength="30" class="municipal-form-control" required />
+                <label for="descripcion">Descripción</label>
+                <input type="text" v-model="form.descripcion" maxlength="30" class="form-control" required />
               </div>
-              <div class="modal-footer-custom">
-                <button type="button" class="btn-municipal-secondary" @click="closeModal">
-                  <font-awesome-icon icon="times" /> Cancelar
-                </button>
-                <button type="submit" class="btn-municipal-primary">
-                  <font-awesome-icon icon="save" /> Guardar
-                </button>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
               </div>
             </form>
           </div>
@@ -96,108 +58,148 @@
       </div>
     </div>
 
-    <div v-if="message" class="toast-notification toast-info">
-      <font-awesome-icon icon="info-circle" class="toast-icon" />
-      <span class="toast-message">{{ message }}</span>
-    </div>
+    <!-- Mensaje -->
+    <div v-if="message" class="alert alert-info mt-3">{{ message }}</div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useApi } from '@/composables/useApi'
-import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useToast } from 'vue-toastification'
-
-const { executeStoredProcedure } = useApi()
-const { handleError } = useLicenciasErrorHandler()
-const toast = useToast()
-
-const categorias = ref([])
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
-const form = ref({
-  categoria: '',
-  descripcion: ''
-})
-const message = ref('')
-
-const fetchCategorias = async () => {
-  try {
-    const result = await executeStoredProcedure('categoria.list', {})
-    if (result.success) {
-      categorias.value = result.data || []
-    } else {
-      message.value = result.message || 'Error al cargar categorías'
+<script>
+export default {
+  name: 'CategoriaPage',
+  data() {
+    return {
+      categorias: [],
+      showCreateModal: false,
+      showEditModal: false,
+      form: {
+        categoria: '',
+        descripcion: ''
+      },
+      message: ''
+    };
+  },
+  mounted() {
+    this.fetchCategorias();
+  },
+  methods: {
+    fetchCategorias() {
+      fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eRequest: { action: 'categoria.list' } })
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.eResponse.success) {
+            this.categorias = res.eResponse.data;
+          } else {
+            this.message = res.eResponse.message;
+          }
+        });
+    },
+    createCategoria() {
+      fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eRequest: {
+            action: 'categoria.create',
+            params: {
+              categoria: this.form.categoria,
+              descripcion: this.form.descripcion
+            }
+          }
+        })
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.eResponse.success) {
+            this.message = 'Categoría agregada correctamente';
+            this.closeModal();
+            this.fetchCategorias();
+          } else {
+            this.message = res.eResponse.message;
+          }
+        });
+    },
+    editCategoria(cat) {
+      this.form = { ...cat };
+      this.showEditModal = true;
+    },
+    updateCategoria() {
+      fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eRequest: {
+            action: 'categoria.update',
+            params: {
+              categoria: this.form.categoria,
+              descripcion: this.form.descripcion
+            }
+          }
+        })
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.eResponse.success) {
+            this.message = 'Categoría actualizada correctamente';
+            this.closeModal();
+            this.fetchCategorias();
+          } else {
+            this.message = res.eResponse.message;
+          }
+        });
+    },
+    deleteCategoria(categoria) {
+      if (!confirm('¿Está seguro de eliminar la categoría?')) return;
+      fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eRequest: {
+            action: 'categoria.delete',
+            params: { categoria }
+          }
+        })
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.eResponse.success) {
+            this.message = 'Categoría eliminada correctamente';
+            this.fetchCategorias();
+          } else {
+            this.message = res.eResponse.message;
+          }
+        });
+    },
+    closeModal() {
+      this.showCreateModal = false;
+      this.showEditModal = false;
+      this.form = { categoria: '', descripcion: '' };
     }
-  } catch (error) {
-    handleError(error)
   }
-}
-
-const createCategoria = async () => {
-  try {
-    const result = await executeStoredProcedure('categoria.create', {
-      categoria: form.value.categoria,
-      descripcion: form.value.descripcion
-    })
-    if (result.success) {
-      toast.success('Categoría agregada correctamente')
-      closeModal()
-      fetchCategorias()
-    } else {
-      message.value = result.message || 'Error al crear categoría'
-    }
-  } catch (error) {
-    handleError(error)
-  }
-}
-
-const editCategoria = (cat) => {
-  form.value = { ...cat }
-  showEditModal.value = true
-}
-
-const updateCategoria = async () => {
-  try {
-    const result = await executeStoredProcedure('categoria.update', {
-      categoria: form.value.categoria,
-      descripcion: form.value.descripcion
-    })
-    if (result.success) {
-      toast.success('Categoría actualizada correctamente')
-      closeModal()
-      fetchCategorias()
-    } else {
-      message.value = result.message || 'Error al actualizar categoría'
-    }
-  } catch (error) {
-    handleError(error)
-  }
-}
-
-const deleteCategoria = async (categoria) => {
-  if (!confirm('¿Está seguro de eliminar la categoría?')) return
-  try {
-    const result = await executeStoredProcedure('categoria.delete', { categoria })
-    if (result.success) {
-      toast.success('Categoría eliminada correctamente')
-      fetchCategorias()
-    } else {
-      message.value = result.message || 'Error al eliminar categoría'
-    }
-  } catch (error) {
-    handleError(error)
-  }
-}
-
-const closeModal = () => {
-  showCreateModal.value = false
-  showEditModal.value = false
-  form.value = { categoria: '', descripcion: '' }
-}
-
-onMounted(() => {
-  fetchCategorias()
-})
+};
 </script>
+
+<style scoped>
+.categoria-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-dialog {
+  background: #fff;
+  border-radius: 4px;
+  min-width: 350px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+</style>

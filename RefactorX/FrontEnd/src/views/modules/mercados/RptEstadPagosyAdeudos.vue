@@ -1,49 +1,46 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="dollar-sign" /></div>
-      <div class="module-view-info">
-        <h1>Estadística de Pagos y Adeudos</h1>
-        <p>Mercados - Estadística de Pagos y Adeudos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="estad-pagosy-adeudos-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Estadística de Pagos y Adeudos</li>
+      </ol>
+    </nav>
     <h1>Estadística de Pagos, Captura y Adeudos de Mercados</h1>
     <form @submit.prevent="fetchEstadistica">
       <div class="form-row">
         <div class="form-group col-md-3">
-          <label class="municipal-form-label" for="recaudadora">Recaudadora</label>
-          <select v-model="selectedRecaudadora" class="municipal-form-control" id="recaudadora" @change="fetchMercados">
+          <label for="recaudadora">Recaudadora</label>
+          <select v-model="selectedRecaudadora" class="form-control" id="recaudadora" @change="fetchMercados">
             <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
           </select>
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label" for="mercado">Mercado</label>
-          <select v-model="selectedMercado" class="municipal-form-control" id="mercado">
+          <label for="mercado">Mercado</label>
+          <select v-model="selectedMercado" class="form-control" id="mercado">
             <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.descripcion }}</option>
           </select>
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input type="number" v-model="axo" class="municipal-form-control" id="axo" min="2000" max="2100">
+          <label for="axo">Año</label>
+          <input type="number" v-model="axo" class="form-control" id="axo" min="2000" max="2100">
         </div>
         <div class="form-group col-md-2">
-          <label class="municipal-form-label" for="mes">Mes</label>
-          <input type="number" v-model="mes" class="municipal-form-control" id="mes" min="1" max="12">
+          <label for="mes">Mes</label>
+          <input type="number" v-model="mes" class="form-control" id="mes" min="1" max="12">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group col-md-3">
-          <label class="municipal-form-label" for="fec3">Fecha Desde</label>
-          <input type="date" v-model="fec3" class="municipal-form-control" id="fec3">
+          <label for="fec3">Fecha Desde</label>
+          <input type="date" v-model="fec3" class="form-control" id="fec3">
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label" for="fec4">Fecha Hasta</label>
-          <input type="date" v-model="fec4" class="municipal-form-control" id="fec4">
+          <label for="fec4">Fecha Hasta</label>
+          <input type="date" v-model="fec4" class="form-control" id="fec4">
         </div>
         <div class="form-group col-md-2 align-self-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -53,7 +50,7 @@
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
     <div v-if="estadistica.length" class="mt-4">
       <h3>Resumen por Mercado</h3>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Mercado</th>
@@ -87,9 +84,6 @@
       </table>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -126,10 +120,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getRecaudadoras'
         });
         if (res.data.success) {
@@ -151,10 +142,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getMercadosByRecaudadora',
           params: { id_rec: this.selectedRecaudadora }
         });
@@ -176,10 +164,7 @@ export default {
       this.error = '';
       this.estadistica = [];
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'getEstadisticaPagosyAdeudos',
           params: {
             id_rec: this.selectedRecaudadora,

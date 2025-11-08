@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="history" />
       </div>
@@ -20,7 +20,7 @@
         <button
           class="btn-municipal-primary"
           @click="exportToExcel"
-          :disabled="loading || bloques.length === 0"
+          :disabled="bloques.length === 0"
         >
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
@@ -28,7 +28,7 @@
         <button
           class="btn-municipal-secondary"
           @click="printReport"
-          :disabled="loading || bloques.length === 0"
+          :disabled="bloques.length === 0"
         >
           <font-awesome-icon icon="print" />
           Imprimir Reporte
@@ -131,7 +131,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchBloques"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -139,7 +138,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -147,7 +145,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadBloques"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
@@ -158,18 +155,15 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Historial de Bloqueos
-          <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
+        <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords.toLocaleString() }} registros</span>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
+      <div class="municipal-card-body table-container">
         <div class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
@@ -282,14 +276,6 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && bloques.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando historial de bloqueos...</p>
       </div>
     </div>
 
@@ -415,6 +401,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
@@ -424,15 +411,8 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const bloques = ref([])
@@ -476,7 +456,8 @@ const visiblePages = computed(() => {
 
 // Métodos
 const loadBloques = async () => {
-  setLoading(true, 'Cargando historial de bloqueos...')
+  showLoading('Cargando historial de bloqueos...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -486,8 +467,13 @@ const loadBloques = async () => {
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'public'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result) {
       bloques.value = response.result
@@ -497,23 +483,25 @@ const loadBloques = async () => {
         totalRecords.value = 0
       }
       calculateStatistics()
-      showToast('success', 'Historial cargado correctamente')
+
+      const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+      showToast('success', `${totalRecords.value.toLocaleString()} registros encontrados`, `(${timeMessage})`)
     } else {
       bloques.value = []
       totalRecords.value = 0
-      showToast('error', 'Error al cargar historial')
+      showToast('info', 'No se encontraron bloqueos')
     }
   } catch (error) {
-    handleApiError(error)
+    handleApiError(error, 'No se pudo cargar el historial')
     bloques.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const searchBloques = async () => {
-  setLoading(true, 'Buscando bloqueos...')
+  showLoading('Buscando bloqueos...')
   currentPage.value = 1
 
   try {
@@ -529,7 +517,9 @@ const searchBloques = async () => {
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'public'
     )
 
     if (response && response.result) {
@@ -544,14 +534,42 @@ const searchBloques = async () => {
     } else {
       bloques.value = []
       totalRecords.value = 0
-      showToast('warning', 'No se encontraron resultados')
+      showToast('info', 'No se encontraron resultados')
     }
   } catch (error) {
-    handleApiError(error)
+    handleApiError(error, 'Error en la búsqueda')
     bloques.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
+  }
+}
+
+const viewDetalle = async (bloqueo) => {
+  showLoading('Cargando detalle del bloqueo...')
+
+  try {
+    const response = await execute(
+      'h_bloqueoDomiciliosfrm_sp_h_bloqueo_dom_detalle',
+      'padron_licencias',
+      [
+        { nombre: 'p_id', valor: bloqueo.id, tipo: 'integer' }
+      ],
+      'guadalajara',
+      null,
+      'public'
+    )
+
+    if (response && response.result && response.result[0]) {
+      selectedBloque.value = response.result[0]
+      showDetalleModal.value = true
+    } else {
+      showToast('error', 'No se pudo cargar el detalle')
+    }
+  } catch (error) {
+    handleApiError(error, 'Error al cargar el detalle')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -567,32 +585,6 @@ const clearFilters = () => {
   loadBloques()
 }
 
-const viewDetalle = async (bloque) => {
-  setLoading(true, 'Cargando detalle del bloqueo...')
-
-  try {
-    const response = await execute(
-      'h_bloqueoDomiciliosfrm_sp_h_bloqueo_dom_detalle',
-      'padron_licencias',
-      [
-        { nombre: 'p_id', valor: bloque.id, tipo: 'integer' }
-      ],
-      'guadalajara'
-    )
-
-    if (response && response.result && response.result[0]) {
-      selectedBloque.value = response.result[0]
-      showDetalleModal.value = true
-    } else {
-      showToast('error', 'No se pudo cargar el detalle')
-    }
-  } catch (error) {
-    handleApiError(error)
-  } finally {
-    setLoading(false)
-  }
-}
-
 const exportToExcel = async () => {
   const result = await Swal.fire({
     title: 'Exportar a Excel',
@@ -606,7 +598,7 @@ const exportToExcel = async () => {
   })
 
   if (result.isConfirmed) {
-    setLoading(true, 'Generando archivo Excel...')
+    showLoading('Generando archivo Excel...')
 
     try {
       const response = await execute(
@@ -635,7 +627,7 @@ const exportToExcel = async () => {
     } catch (error) {
       handleApiError(error)
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }
 }
@@ -653,7 +645,7 @@ const printReport = async () => {
   })
 
   if (result.isConfirmed) {
-    setLoading(true, 'Generando reporte...')
+    showLoading('Generando reporte...')
 
     try {
       const response = await execute(
@@ -682,7 +674,7 @@ const printReport = async () => {
     } catch (error) {
       handleApiError(error)
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }
 }

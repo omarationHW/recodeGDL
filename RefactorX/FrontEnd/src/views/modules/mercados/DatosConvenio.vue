@@ -1,5 +1,5 @@
 <template>
-  <div class="module-view">
+  <div class="datos-convenio-page">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item to="/">Inicio</el-breadcrumb-item>
       <el-breadcrumb-item>Convenios</el-breadcrumb-item>
@@ -104,7 +104,6 @@
     </el-card>
     <el-empty v-else description="Cargando convenio..." />
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>

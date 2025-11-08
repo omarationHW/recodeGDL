@@ -1,29 +1,27 @@
+<!-- Catálogo de Documentos - v1.0 -->
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-alt" />
       </div>
       <div class="module-view-info">
-        <h1>Gestión de Documentos</h1>
-        <p>Padrón de Licencias - CRUD de Documentos de Trámites</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
-        <button
-          class="btn-municipal-primary"
-          @click="openCreateModal"
-          :disabled="loading"
-        >
+        <h1>Catálogo de Documentos</h1>
+        <p>Padrón de Licencias - Gestión de Tipos de Documentos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-success" @click="abrirModalCrear" :disabled="loading">
           <font-awesome-icon icon="plus" />
-          Nuevo Documento
+          Nuevo
+        </button>
+        <button class="btn-municipal-primary" @click="buscar" :disabled="loading">
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button class="btn-municipal-purple" @click="openDocumentation">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -32,112 +30,153 @@
 
     <!-- Filtros de búsqueda -->
     <div class="municipal-card">
-      <div class="municipal-card-body">
+      <div class="municipal-card-header clickable-header" @click="toggleFilters">
+        <h5>
+          <font-awesome-icon icon="filter" />
+          Filtros de Búsqueda
+          <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+        </h5>
+      </div>
+
+      <div v-show="showFilters" class="municipal-card-body">
         <div class="form-row">
           <div class="form-group">
-            <label class="municipal-form-label">ID Trámite</label>
+            <label class="municipal-form-label">Clave Documento:</label>
             <input
               type="number"
               class="municipal-form-control"
-              v-model="filters.tramiteId"
-              placeholder="ID del trámite"
-            >
+              v-model.number="filters.cvedocto"
+              placeholder="Clave del documento"
+              @keyup.enter="aplicarFiltrosYPaginacion"
+            />
           </div>
-        </div>
-        <div class="button-group">
-          <button
-            class="btn-municipal-primary"
-            @click="searchDocumentos"
-            :disabled="loading || !filters.tramiteId"
-          >
-            <font-awesome-icon icon="search" />
-            Buscar
-          </button>
-          <button
-            class="btn-municipal-secondary"
-            @click="clearFilters"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="times" />
-            Limpiar
-          </button>
-          <button
-            class="btn-municipal-secondary"
-            @click="loadCatalog"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="list" />
-            Catálogo
-          </button>
+
+          <div class="form-group">
+            <label class="municipal-form-label">Nombre Documento:</label>
+            <input
+              type="text"
+              class="municipal-form-control"
+              v-model="filters.documento"
+              placeholder="Buscar por nombre"
+              @keyup.enter="aplicarFiltrosYPaginacion"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="municipal-form-label">&nbsp;</label>
+            <div class="btn-group-actions">
+              <button @click="aplicarFiltrosYPaginacion" class="btn-municipal-primary" :disabled="loading || todosDocumentos.length === 0">
+                <font-awesome-icon icon="search" /> Buscar
+              </button>
+              <button @click="limpiarFiltros" class="btn-municipal-secondary" :disabled="loading">
+                <font-awesome-icon icon="eraser" /> Limpiar
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
-          Documentos del Trámite
-          <span class="badge-info" v-if="documentos.length > 0">{{ documentos.length }} registros</span>
+          Documentos Registrados
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <span class="badge-purple" v-if="totalRegistros > 0">
+            {{ totalRegistros.toLocaleString() }} registro{{ totalRegistros !== 1 ? 's' : '' }}
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
+      <div class="municipal-card-body table-container">
         <div class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
-                <th>ID</th>
-                <th>Trámite ID</th>
-                <th>Documentos</th>
-                <th>Otro</th>
-                <th>Descripción Otro</th>
-                <th>Fecha Creación</th>
-                <th>Acciones</th>
+                <th style="width: 10%; text-align: center;">
+                  <font-awesome-icon icon="hashtag" class="me-1" />
+                  Clave
+                </th>
+                <th style="width: 55%;">
+                  <font-awesome-icon icon="align-left" class="me-2" />
+                  Documento
+                </th>
+                <th style="width: 15%; text-align: center;">
+                  <font-awesome-icon icon="calendar" class="me-1" />
+                  Fecha
+                </th>
+                <th style="width: 15%; text-align: center;">
+                  <font-awesome-icon icon="user" class="me-1" />
+                  Usuario
+                </th>
+                <th style="width: 15%; text-align: center;">
+                  <font-awesome-icon icon="cogs" class="me-1" />
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="doc in documentos" :key="doc.id" class="row-hover">
-                <td><strong class="text-primary">{{ doc.id }}</strong></td>
-                <td>
-                  <span class="badge-secondary">
-                    {{ doc.tramite_id }}
+              <tr v-if="loading">
+                <td colspan="5" class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                  </div>
+                </td>
+              </tr>
+              <tr v-else-if="documentos.length === 0">
+                <td colspan="5" class="empty-state">
+                  <div class="empty-state-content">
+                    <font-awesome-icon icon="inbox" class="empty-state-icon" />
+                    <p class="empty-state-text">No se encontraron documentos con los filtros seleccionados</p>
+                    <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda o presiona "Actualizar"</p>
+                  </div>
+                </td>
+              </tr>
+              <tr v-else v-for="doc in documentos" :key="doc.cvedocto" class="clickable-row">
+                <td style="text-align: center;">
+                  <span class="badge badge-light-secondary">
+                    <font-awesome-icon icon="hashtag" />
+                    {{ doc.cvedocto }}
                   </span>
                 </td>
-                <td>{{ doc.documentos || 'N/A' }}</td>
                 <td>
-                  <span class="badge" :class="doc.otro ? 'badge-success' : 'badge-secondary'">
-                    <font-awesome-icon :icon="doc.otro ? 'check' : 'times'" />
-                    {{ doc.otro ? 'Sí' : 'No' }}
+                  <div class="giro-name">
+                    <font-awesome-icon icon="file-alt" class="giro-icon" />
+                    <span class="giro-text">{{ doc.documento?.trim() }}</span>
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <small class="text-muted">
+                    {{ formatDate(doc.feccap) }}
+                  </small>
+                </td>
+                <td style="text-align: center;">
+                  <span class="badge badge-light-info">
+                    {{ doc.capturista?.trim() || 'N/A' }}
                   </span>
                 </td>
-                <td>
-                  <small class="text-muted">
-                    {{ doc.otro_texto || 'N/A' }}
-                  </small>
-                </td>
-                <td>
-                  <small class="text-muted">
-                    <font-awesome-icon icon="calendar" />
-                    {{ formatDate(doc.created_at) }}
-                  </small>
-                </td>
-                <td>
-                  <div class="button-group button-group-sm">
+                <td style="text-align: center;">
+                  <div class="btn-group-actions">
                     <button
-                      class="btn-municipal-primary btn-sm"
-                      @click="editDocumento(doc)"
+                      @click.stop="verDocumento(doc)"
+                      class="btn-table btn-table-info"
+                      title="Ver detalles"
+                    >
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                    <button
+                      @click.stop="editarDocumento(doc)"
+                      class="btn-table btn-table-primary"
                       title="Editar"
                     >
                       <font-awesome-icon icon="edit" />
                     </button>
                     <button
-                      class="btn-municipal-danger btn-sm"
-                      @click="confirmDeleteDocumento(doc)"
+                      @click.stop="eliminarDocumento(doc)"
+                      class="btn-table btn-table-danger"
                       title="Eliminar"
                     >
                       <font-awesome-icon icon="trash" />
@@ -145,476 +184,527 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="documentos.length === 0 && !loading">
-                <td colspan="7" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron documentos para este trámite</p>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
+
+        <!-- Paginación -->
+        <div class="pagination-container" v-if="totalRegistros > 0 && !loading">
+          <div class="pagination-info">
+            <font-awesome-icon icon="info-circle" />
+            Mostrando {{ ((paginaActual - 1) * registrosPorPagina) + 1 }}
+            a {{ Math.min(paginaActual * registrosPorPagina, totalRegistros) }}
+            de {{ totalRegistros.toLocaleString() }} registros
+          </div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <label>Mostrar:</label>
+              <select v-model.number="registrosPorPagina" @change="cambiarRegistrosPorPagina">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-nav">
+              <button
+                class="pagination-button"
+                @click="cambiarPagina(paginaActual - 1)"
+                :disabled="paginaActual === 1"
+              >
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="pagination-button"
+                :class="{ active: page === paginaActual }"
+                @click="cambiarPagina(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="pagination-button"
+                @click="cambiarPagina(paginaActual + 1)"
+                :disabled="paginaActual === totalPaginas"
+              >
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && documentos.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando documentos...</p>
-      </div>
-    </div>
-
-    <!-- Modal de creación -->
-    <Modal
-      :show="showCreateModal"
-      title="Crear Nuevo Documento"
-      size="xl"
-      @close="showCreateModal = false"
-      @confirm="createDocumento"
-      :loading="creatingDocumento"
-      confirmText="Crear Documento"
-      cancelText="Cancelar"
-      :showDefaultFooter="true"
-      :confirmButtonClass="'btn-municipal-primary'"
-    >
-      <form @submit.prevent="createDocumento">
-        <div class="form-group">
-          <label class="municipal-form-label">ID Trámite: <span class="required">*</span></label>
-          <input
-            type="number"
-            class="municipal-form-control"
-            v-model="newDocumento.tramite_id"
-            required
-          >
-        </div>
-        <div class="form-group">
-          <label class="municipal-form-label">Documentos (JSON): <span class="required">*</span></label>
-          <textarea
-            class="municipal-form-control"
-            v-model="newDocumento.documentos"
-            rows="4"
-            placeholder='["Documento 1", "Documento 2"]'
-            required
-          ></textarea>
-          <small class="form-text">Ingrese un array JSON con los documentos</small>
-        </div>
-        <div class="form-group">
-          <label class="municipal-form-label">
-            <input
-              type="checkbox"
-              v-model="newDocumento.otro"
-            >
-            ¿Incluye otro documento?
-          </label>
-        </div>
-        <div class="form-group" v-if="newDocumento.otro">
-          <label class="municipal-form-label">Descripción de otro documento:</label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="newDocumento.otro_texto"
-            maxlength="255"
-          >
-        </div>
-      </form>
-    </Modal>
-
-    <!-- Modal de edición -->
-    <Modal
-      :show="showEditModal"
-      :title="`Editar Documento ID: ${selectedDocumento?.id}`"
-      size="xl"
-      @close="showEditModal = false"
-      @confirm="updateDocumento"
-      :loading="updatingDocumento"
-      confirmText="Guardar Cambios"
-      cancelText="Cancelar"
-      :showDefaultFooter="true"
-      :confirmButtonClass="'btn-municipal-primary'"
-    >
-      <form @submit.prevent="updateDocumento">
-        <div class="form-group">
-          <label class="municipal-form-label">ID Trámite (No editable):</label>
-          <input
-            type="number"
-            class="municipal-form-control"
-            :value="editForm.tramite_id"
-            disabled
-          >
-        </div>
-        <div class="form-group">
-          <label class="municipal-form-label">Documentos (JSON): <span class="required">*</span></label>
-          <textarea
-            class="municipal-form-control"
-            v-model="editForm.documentos"
-            rows="4"
-            placeholder='["Documento 1", "Documento 2"]'
-            required
-          ></textarea>
-          <small class="form-text">Ingrese un array JSON con los documentos</small>
-        </div>
-        <div class="form-group">
-          <label class="municipal-form-label">
-            <input
-              type="checkbox"
-              v-model="editForm.otro"
-            >
-            ¿Incluye otro documento?
-          </label>
-        </div>
-        <div class="form-group" v-if="editForm.otro">
-          <label class="municipal-form-label">Descripción de otro documento:</label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="editForm.otro_texto"
-            maxlength="255"
-          >
-        </div>
-      </form>
-    </Modal>
-
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" class="toast-duration-icon" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
   </div>
-  <!-- /module-view -->
+  <!-- /module-view-content -->
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'doctosfrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+  <!-- Modal Crear -->
+  <Modal
+    :show="showModalCrear"
+    title="Crear Nuevo Documento"
+    @close="cerrarModal"
+    size="lg"
+  >
+    <div class="modal-section">
+      <div class="section-header">
+        <font-awesome-icon icon="file-alt" />
+        <h6>Información del Documento</h6>
+      </div>
+      <div class="modal-grid-2">
+        <div class="form-field">
+          <label class="form-label-modal">Clave Documento <span class="text-danger">*</span></label>
+          <input type="number" class="form-input-modal" v-model.number="nuevoDocumento.cvedocto" required>
+        </div>
+        <div class="form-field">
+          <label class="form-label-modal">Nombre Documento <span class="text-danger">*</span></label>
+          <input type="text" class="form-input-modal" v-model="nuevoDocumento.documento" maxlength="30" required>
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <button class="btn-municipal-secondary" @click="cerrarModal">
+        <font-awesome-icon icon="times" />
+        Cancelar
+      </button>
+      <button class="btn-municipal-primary" @click="crearDocumento">
+        <font-awesome-icon icon="save" />
+        Crear
+      </button>
+    </template>
+  </Modal>
+
+  <!-- Modal Editar -->
+  <Modal
+    :show="showModalEditar"
+    title="Editar Documento"
+    @close="cerrarModal"
+    size="lg"
+  >
+    <div class="modal-section">
+      <div class="section-header">
+        <font-awesome-icon icon="file-alt" />
+        <h6>Información del Documento</h6>
+      </div>
+      <div class="modal-grid-2">
+        <div class="form-field">
+          <label class="form-label-modal">Clave Documento</label>
+          <input type="number" class="form-input-modal" :value="documentoSeleccionado?.cvedocto" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label-modal">Nombre Documento <span class="text-danger">*</span></label>
+          <input type="text" class="form-input-modal" v-model="documentoEditado.documento" maxlength="30" required>
+        </div>
+        <div class="form-field">
+          <label class="form-label-modal">Fecha Captura</label>
+          <input type="text" class="form-input-modal" :value="formatDate(documentoSeleccionado?.feccap)" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label-modal">Usuario</label>
+          <input type="text" class="form-input-modal" :value="documentoSeleccionado?.capturista" disabled>
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <button class="btn-municipal-secondary" @click="cerrarModal">
+        <font-awesome-icon icon="times" />
+        Cancelar
+      </button>
+      <button class="btn-municipal-primary" @click="actualizarDocumento">
+        <font-awesome-icon icon="save" />
+        Guardar
+      </button>
+    </template>
+  </Modal>
+
+  <!-- Modal Ver -->
+  <Modal
+    :show="showModalVer"
+    title="Detalle del Documento"
+    @close="cerrarModal"
+    size="lg"
+  >
+    <div class="modal-section">
+      <div class="section-header">
+        <font-awesome-icon icon="file-alt" />
+        <h6>Información del Documento</h6>
+      </div>
+      <div class="modal-grid-2">
+        <div class="form-field">
+          <label class="form-label-modal">Clave Documento</label>
+          <input type="text" class="form-input-modal" :value="documentoSeleccionado?.cvedocto" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label-modal">Nombre Documento</label>
+          <input type="text" class="form-input-modal" :value="documentoSeleccionado?.documento" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label-modal">Fecha Captura</label>
+          <input type="text" class="form-input-modal" :value="formatDate(documentoSeleccionado?.feccap)" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label-modal">Usuario</label>
+          <input type="text" class="form-input-modal" :value="documentoSeleccionado?.capturista" disabled>
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <button class="btn-municipal-secondary" @click="cerrarModal">
+        <font-awesome-icon icon="times" />
+        Cerrar
+      </button>
+    </template>
+  </Modal>
+
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'doctosfrm'"
+    :moduleName="'padron_licencias'"
+    @close="closeDocumentation"
+  />
+</div>
+<!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Documentation
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 // Estado
+const loading = ref(false)
 const documentos = ref([])
-const selectedDocumento = ref(null)
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
-const creatingDocumento = ref(false)
-const updatingDocumento = ref(false)
+const todosDocumentos = ref([]) // Cache
+const documentoSeleccionado = ref(null)
+const showModalCrear = ref(false)
+const showModalEditar = ref(false)
+const showModalVer = ref(false)
+const showFilters = ref(false) // Acordeón de filtros - inicia oculto
+
+// Paginación
+const paginaActual = ref(1)
+const registrosPorPagina = ref(10)
+const totalRegistros = ref(0)
+
+const totalPaginas = computed(() => {
+  return Math.ceil(totalRegistros.value / registrosPorPagina.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const start = Math.max(1, paginaActual.value - 2)
+  const end = Math.min(totalPaginas.value, paginaActual.value + 2)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  return pages
+})
 
 // Filtros
 const filters = ref({
-  tramiteId: null
+  cvedocto: null,
+  documento: ''
 })
 
 // Formularios
-const newDocumento = ref({
-  tramite_id: null,
-  documentos: '',
-  otro: false,
-  otro_texto: ''
+const nuevoDocumento = ref({
+  cvedocto: null,
+  documento: ''
 })
 
-const editForm = ref({
-  id: null,
-  tramite_id: null,
-  documentos: '',
-  otro: false,
-  otro_texto: ''
+const documentoEditado = ref({
+  documento: ''
 })
 
 // Métodos
-const loadDocumentos = async () => {
-  if (!filters.value.tramiteId) {
-    showToast('warning', 'Por favor ingrese un ID de trámite')
-    return
+const aplicarFiltrosYPaginacion = () => {
+  let filtered = [...todosDocumentos.value]
+
+  // Aplicar filtros
+  if (filters.value.cvedocto !== null && filters.value.cvedocto !== '') {
+    filtered = filtered.filter(d => d.cvedocto === filters.value.cvedocto)
   }
 
-  setLoading(true, 'Cargando documentos...')
+  if (filters.value.documento) {
+    const doc = filters.value.documento.toLowerCase()
+    filtered = filtered.filter(d =>
+      d.documento?.toLowerCase().includes(doc)
+    )
+  }
+
+  totalRegistros.value = filtered.length
+
+  // Aplicar paginación
+  const start = (paginaActual.value - 1) * registrosPorPagina.value
+  const end = start + registrosPorPagina.value
+  documentos.value = filtered.slice(start, end)
+}
+
+const buscar = async () => {
+  const startTime = performance.now()
+  showLoading('Cargando documentos...', 'Buscando en el catálogo')
+  loading.value = true
+  showFilters.value = false // Cerrar acordeón al actualizar
 
   try {
     const response = await execute(
       'SP_DOCTOS_LIST',
       'padron_licencias',
-      [
-        { nombre: 'p_tramite_id', valor: filters.value.tramiteId, tipo: 'integer' }
-      ],
-      'guadalajara'
+      [],
+      '',      // tenant
+      null,    // pagination
+      'comun' // esquema
     )
 
-    if (response && response.result) {
-      documentos.value = response.result
-      showToast('success', 'Documentos cargados correctamente')
+    if (response && response.result && response.result.length > 0) {
+      todosDocumentos.value = response.result
+      paginaActual.value = 1
+      aplicarFiltrosYPaginacion()
+
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      showToast('success', `${totalRegistros.value.toLocaleString()} documentos encontrados`, `(${duration}s)`)
     } else {
+      todosDocumentos.value = []
       documentos.value = []
+      totalRegistros.value = 0
       showToast('info', 'No se encontraron documentos')
     }
   } catch (error) {
     handleApiError(error)
+    todosDocumentos.value = []
     documentos.value = []
+    totalRegistros.value = 0
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
-const searchDocumentos = () => {
-  loadDocumentos()
-}
-
-const clearFilters = () => {
+const limpiarFiltros = () => {
   filters.value = {
-    tramiteId: null
+    cvedocto: null,
+    documento: ''
   }
-  documentos.value = []
-}
-
-const loadCatalog = async () => {
-  setLoading(true, 'Cargando catálogo...')
-
-  try {
-    const response = await execute(
-      'SP_DOCTOS_CATALOG',
-      'padron_licencias',
-      [],
-      'guadalajara'
-    )
-
-    if (response && response.result) {
-      documentos.value = response.result
-      showToast('success', 'Catálogo cargado correctamente')
-    } else {
-      documentos.value = []
-      showToast('info', 'No hay documentos en el catálogo')
-    }
-  } catch (error) {
-    handleApiError(error)
-    documentos.value = []
-  } finally {
-    setLoading(false)
+  paginaActual.value = 1
+  if (todosDocumentos.value.length > 0) {
+    aplicarFiltrosYPaginacion()
   }
 }
 
-const openCreateModal = () => {
-  newDocumento.value = {
-    tramite_id: filters.value.tramiteId || null,
-    documentos: '',
-    otro: false,
-    otro_texto: ''
+const cambiarPagina = (pagina) => {
+  if (pagina >= 1 && pagina <= totalPaginas.value) {
+    paginaActual.value = pagina
+    aplicarFiltrosYPaginacion()
   }
-  showCreateModal.value = true
 }
 
-const createDocumento = async () => {
-  if (!newDocumento.value.tramite_id || !newDocumento.value.documentos) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Campos requeridos',
-      text: 'Por favor complete todos los campos obligatorios',
-      confirmButtonColor: '#ea8215'
-    })
+const cambiarRegistrosPorPagina = () => {
+  paginaActual.value = 1
+  aplicarFiltrosYPaginacion()
+}
+
+const abrirModalCrear = () => {
+  nuevoDocumento.value = {
+    cvedocto: null,
+    documento: ''
+  }
+  showModalCrear.value = true
+}
+
+const verDocumento = (doc) => {
+  documentoSeleccionado.value = doc
+  showModalVer.value = true
+}
+
+const editarDocumento = (doc) => {
+  documentoSeleccionado.value = doc
+  documentoEditado.value = {
+    documento: doc.documento?.trim()
+  }
+  showModalEditar.value = true
+}
+
+const crearDocumento = async () => {
+  if (!nuevoDocumento.value.cvedocto || !nuevoDocumento.value.documento) {
+    showToast('error', 'Por favor complete todos los campos obligatorios')
     return
   }
 
-  // Validar JSON
-  try {
-    JSON.parse(newDocumento.value.documentos)
-  } catch (e) {
-    await Swal.fire({
-      icon: 'error',
-      title: 'JSON inválido',
-      text: 'El formato de documentos debe ser un JSON válido',
-      confirmButtonColor: '#ea8215'
-    })
-    return
-  }
-
-  const confirmResult = await Swal.fire({
+  const result = await Swal.fire({
     icon: 'question',
-    title: '¿Confirmar creación de documento?',
-    text: `Se creará un nuevo documento para el trámite ${newDocumento.value.tramite_id}`,
+    title: '¿Crear Documento?',
+    html: `
+      <div class="swal-content">
+        <p><strong>Clave:</strong> ${nuevoDocumento.value.cvedocto}</p>
+        <p><strong>Documento:</strong> ${nuevoDocumento.value.documento}</p>
+      </div>
+    `,
     showCancelButton: true,
-    confirmButtonColor: '#ea8215',
+    confirmButtonColor: '#9363CD',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, crear documento',
+    confirmButtonText: 'Sí, crear',
     cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmResult.isConfirmed) {
-    return
-  }
+  if (!result.isConfirmed) return
 
-  creatingDocumento.value = true
+  showLoading('Creando documento...', 'Guardando en la base de datos')
 
   try {
     const response = await execute(
       'SP_DOCTOS_CREATE',
       'padron_licencias',
       [
-        { nombre: 'p_tramite_id', valor: newDocumento.value.tramite_id, tipo: 'integer' },
-        { nombre: 'p_documentos', valor: newDocumento.value.documentos, tipo: 'string' },
-        { nombre: 'p_otro', valor: newDocumento.value.otro, tipo: 'boolean' },
-        { nombre: 'p_otro_texto', valor: newDocumento.value.otro_texto || '', tipo: 'string' }
+        { nombre: 'p_cvedocto', valor: nuevoDocumento.value.cvedocto, tipo: 'integer' },
+        { nombre: 'p_documento', valor: nuevoDocumento.value.documento, tipo: 'string' }
       ],
-      'guadalajara'
+      '',      // tenant
+      null,    // pagination
+      'comun' // esquema
     )
 
-    if (response && response.result) {
-      showCreateModal.value = false
-      loadDocumentos()
+    hideLoading()
 
+    if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
         icon: 'success',
-        title: 'Documento creado',
+        title: '¡Documento Creado!',
         text: 'El documento ha sido creado exitosamente',
-        confirmButtonColor: '#ea8215',
-        timer: 2000
+        confirmButtonColor: '#9363CD',
+        timer: 2000,
+        showConfirmButton: false
       })
 
       showToast('success', 'Documento creado exitosamente')
+      cerrarModal()
+      await buscar()  // Recargar datos
     } else {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error al crear documento',
-        text: 'Error desconocido',
-        confirmButtonColor: '#ea8215'
-      })
+      showToast('error', response.result?.[0]?.message || 'Error al crear el documento')
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    creatingDocumento.value = false
   }
 }
 
-const editDocumento = (documento) => {
-  selectedDocumento.value = documento
-  editForm.value = {
-    id: documento.id,
-    tramite_id: documento.tramite_id,
-    documentos: documento.documentos || '',
-    otro: documento.otro || false,
-    otro_texto: documento.otro_texto || ''
-  }
-  showEditModal.value = true
-}
-
-const updateDocumento = async () => {
-  if (!editForm.value.documentos) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Campos requeridos',
-      text: 'Por favor complete los campos obligatorios',
-      confirmButtonColor: '#ea8215'
-    })
+const actualizarDocumento = async () => {
+  if (!documentoEditado.value.documento) {
+    showToast('error', 'Por favor complete todos los campos obligatorios')
     return
   }
 
-  // Validar JSON
-  try {
-    JSON.parse(editForm.value.documentos)
-  } catch (e) {
-    await Swal.fire({
-      icon: 'error',
-      title: 'JSON inválido',
-      text: 'El formato de documentos debe ser un JSON válido',
-      confirmButtonColor: '#ea8215'
-    })
-    return
-  }
-
-  const confirmResult = await Swal.fire({
+  const result = await Swal.fire({
     icon: 'question',
-    title: '¿Confirmar actualización?',
-    text: `Se actualizarán los datos del documento ID ${editForm.value.id}`,
+    title: '¿Actualizar Documento?',
+    html: `
+      <div class="swal-content">
+        <p><strong>Clave:</strong> ${documentoSeleccionado.value.cvedocto}</p>
+        <p><strong>Nuevo nombre:</strong> ${documentoEditado.value.documento}</p>
+      </div>
+    `,
     showCancelButton: true,
-    confirmButtonColor: '#ea8215',
+    confirmButtonColor: '#9363CD',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, guardar cambios',
+    confirmButtonText: 'Sí, actualizar',
     cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmResult.isConfirmed) {
-    return
-  }
+  if (!result.isConfirmed) return
 
-  updatingDocumento.value = true
+  showLoading('Actualizando documento...', 'Guardando cambios')
 
   try {
     const response = await execute(
       'SP_DOCTOS_UPDATE',
       'padron_licencias',
       [
-        { nombre: 'p_id', valor: editForm.value.id, tipo: 'integer' },
-        { nombre: 'p_documentos', valor: editForm.value.documentos, tipo: 'string' },
-        { nombre: 'p_otro', valor: editForm.value.otro, tipo: 'boolean' },
-        { nombre: 'p_otro_texto', valor: editForm.value.otro_texto || '', tipo: 'string' }
+        { nombre: 'p_cvedocto', valor: documentoSeleccionado.value.cvedocto, tipo: 'integer' },
+        { nombre: 'p_documento', valor: documentoEditado.value.documento, tipo: 'string' }
       ],
-      'guadalajara'
+      '',      // tenant
+      null,    // pagination
+      'comun' // esquema
     )
 
-    if (response && response.result) {
-      showEditModal.value = false
-      loadDocumentos()
+    hideLoading()
 
+    if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
         icon: 'success',
-        title: 'Documento actualizado',
-        text: 'Los datos del documento han sido actualizados',
-        confirmButtonColor: '#ea8215',
-        timer: 2000
+        title: '¡Documento Actualizado!',
+        text: 'El documento ha sido actualizado exitosamente',
+        confirmButtonColor: '#9363CD',
+        timer: 2000,
+        showConfirmButton: false
       })
 
       showToast('success', 'Documento actualizado exitosamente')
+      cerrarModal()
+      await buscar()  // Recargar datos
     } else {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error al actualizar',
-        text: 'Error desconocido',
-        confirmButtonColor: '#ea8215'
-      })
+      showToast('error', response.result?.[0]?.message || 'Error al actualizar el documento')
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    updatingDocumento.value = false
   }
 }
 
-const confirmDeleteDocumento = async (documento) => {
+const eliminarDocumento = async (doc) => {
   const result = await Swal.fire({
-    title: '¿Eliminar documento?',
-    text: `¿Está seguro de eliminar el documento ID ${documento.id}?`,
     icon: 'warning',
+    title: '¿Eliminar Documento?',
+    html: `
+      <div class="swal-content">
+        <p><strong>Clave:</strong> ${doc.cvedocto}</p>
+        <p><strong>Documento:</strong> ${doc.documento?.trim()}</p>
+        <p class="text-danger mt-3">Esta acción no se puede deshacer</p>
+      </div>
+    `,
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
     cancelButtonColor: '#6c757d',
@@ -622,38 +712,55 @@ const confirmDeleteDocumento = async (documento) => {
     cancelButtonText: 'Cancelar'
   })
 
-  if (result.isConfirmed) {
-    await deleteDocumento(documento)
-  }
-}
+  if (!result.isConfirmed) return
 
-const deleteDocumento = async (documento) => {
+  showLoading('Eliminando documento...', 'Procesando')
+
   try {
     const response = await execute(
       'SP_DOCTOS_DELETE',
       'padron_licencias',
       [
-        { nombre: 'p_id', valor: documento.id, tipo: 'integer' }
+        { nombre: 'p_cvedocto', valor: doc.cvedocto, tipo: 'integer' }
       ],
-      'guadalajara'
+      '',      // tenant
+      null,    // pagination
+      'comun' // esquema
     )
 
-    if (response && response.result) {
-      loadDocumentos()
+    hideLoading()
 
+    if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
         icon: 'success',
-        title: 'Documento eliminado',
-        text: 'El documento ha sido eliminado',
-        confirmButtonColor: '#ea8215',
-        timer: 2000
+        title: '¡Documento Eliminado!',
+        text: 'El documento ha sido eliminado exitosamente',
+        confirmButtonColor: '#9363CD',
+        timer: 2000,
+        showConfirmButton: false
       })
 
       showToast('success', 'Documento eliminado exitosamente')
+      await buscar()  // Recargar datos
+    } else {
+      showToast('error', response.result?.[0]?.message || 'Error al eliminar el documento')
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
   }
+}
+
+const cerrarModal = () => {
+  showModalCrear.value = false
+  showModalEditar.value = false
+  showModalVer.value = false
+  documentoSeleccionado.value = null
+}
+
+// Toggle filtros
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
 }
 
 // Utilidades
@@ -661,12 +768,10 @@ const formatDate = (dateString) => {
   if (!dateString) return 'N/A'
   try {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('es-MX', {
       year: 'numeric',
       month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit'
     })
   } catch (error) {
     return 'Fecha inválida'
@@ -675,11 +780,6 @@ const formatDate = (dateString) => {
 
 // Lifecycle
 onMounted(() => {
-  // No cargar automáticamente, esperar filtro
-})
-
-onBeforeUnmount(() => {
-  showCreateModal.value = false
-  showEditModal.value = false
+  // No cargar datos automáticamente - el usuario debe presionar "Actualizar"
 })
 </script>

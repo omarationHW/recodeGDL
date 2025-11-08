@@ -9,14 +9,22 @@
         <h1>Registro de Solicitud</h1>
         <p>Padrón de Licencias - Registro de Nuevas Solicitudes de Trámites</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="regresarConsulta"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Regresar a Consulta
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -48,6 +56,11 @@
           </div>
         </div>
       </div>
+      <div class="wizard-progress-indicator">
+        <span class="badge-purple">
+          Paso {{ currentStep }} de {{ steps.length }}
+        </span>
+      </div>
     </div>
 
     <!-- Formulario de Registro de Solicitud -->
@@ -57,9 +70,6 @@
           <font-awesome-icon :icon="steps[currentStep - 1].icon" />
           {{ steps[currentStep - 1].title }}
         </h5>
-        <span class="badge-purple">
-          Paso {{ currentStep }} de {{ steps.length }}
-        </span>
       </div>
       <div class="municipal-card-body">
         <form @submit.prevent>
@@ -548,6 +558,7 @@
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -555,6 +566,8 @@ import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
+const router = useRouter()
+
 const showDocumentation = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
@@ -799,6 +812,9 @@ const registrarSolicitud = async () => {
     if (response && response.result && response.result[0]) {
       ultimaSolicitud.value = response.result[0]
 
+      // Cerrar loading ANTES de mostrar el mensaje de éxito
+      hideLoading()
+
       await Swal.fire({
         icon: 'success',
         title: 'Solicitud Registrada!',
@@ -816,6 +832,9 @@ const registrarSolicitud = async () => {
       limpiarFormulario()
       currentStep.value = 1
     } else {
+      // Cerrar loading también en caso de respuesta sin datos
+      hideLoading()
+
       await Swal.fire({
         icon: 'error',
         title: 'Error al registrar solicitud',
@@ -945,6 +964,10 @@ const verDetalleTramite = async (id_tramite) => {
     text: `Funcionalidad para ver detalles del trámite ${id_tramite}`,
     confirmButtonColor: '#ea8215'
   })
+}
+
+const regresarConsulta = () => {
+  router.push('/padron-licencias/consulta-tramites')
 }
 
 // Lifecycle

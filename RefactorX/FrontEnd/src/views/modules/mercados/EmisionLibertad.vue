@@ -1,28 +1,25 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-invoice" /></div>
-      <div class="module-view-info">
-        <h1>Emisión Libertad</h1>
-        <p>Mercados - Emisión Libertad</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="emision-libertad-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Emisión Libertad</li>
+      </ol>
+    </nav>
     <h2>Emisión de Recibos para Mercados con Caja de Cobro</h2>
     <form @submit.prevent="generarEmision">
       <div class="form-row">
         <div class="form-group col-md-2">
           <label for="axo">Año</label>
-          <input type="number" v-model="form.axo" min="2003" max="2999" class="municipal-form-control" required />
+          <input type="number" v-model="form.axo" min="2003" max="2999" class="form-control" required />
         </div>
         <div class="form-group col-md-2">
           <label for="periodo">Periodo (Mes)</label>
-          <input type="number" v-model="form.periodo" min="1" max="12" class="municipal-form-control" required />
+          <input type="number" v-model="form.periodo" min="1" max="12" class="form-control" required />
         </div>
         <div class="form-group col-md-3">
           <label for="recaudadora">Recaudadora</label>
-          <select v-model="form.oficina" class="municipal-form-control" @change="fetchMercados" required>
+          <select v-model="form.oficina" class="form-control" @change="fetchMercados" required>
             <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
           </select>
         </div>
@@ -37,7 +34,7 @@
         </div>
       </div>
       <div class="form-group mt-3">
-        <button type="submit" class="btn-municipal-primary" :disabled="loading">Generar Emisión</button>
+        <button type="submit" class="btn btn-primary" :disabled="loading">Generar Emisión</button>
         <button type="button" class="btn btn-success ml-2" @click="exportarEmision" :disabled="!emision.length || loading">Exportar TXT</button>
       </div>
     </form>
@@ -45,7 +42,7 @@
     <div v-if="error" class="mt-3 alert alert-danger">{{ error }}</div>
     <div v-if="emision.length" class="mt-4">
       <h4>Detalle de Emisión</h4>
-      <table class="municipal-table">
+      <table class="table table-sm table-bordered">
         <thead>
           <tr>
             <th>Local</th>
@@ -79,9 +76,6 @@
       </table>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -117,10 +111,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getRecaudadoras' });
+        const res = await this.$axios.post('/api/execute', { action: 'getRecaudadoras' });
         this.recaudadoras = res.data.data;
       } catch (e) {
         this.error = 'Error cargando recaudadoras';
@@ -133,10 +124,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getMercadosByRecaudadora', params: { oficina: this.form.oficina } });
+        const res = await this.$axios.post('/api/execute', { action: 'getMercadosByRecaudadora', params: { oficina: this.form.oficina } });
         this.mercados = res.data.data;
       } catch (e) {
         this.error = 'Error cargando mercados';
@@ -149,10 +137,7 @@ export default {
       this.error = '';
       this.emision = [];
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'generarEmisionLibertad',
           params: {
             oficina: this.form.oficina,
@@ -177,10 +162,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await this.$axios.post('/api/execute', {
           action: 'exportarEmisionLibertad',
           params: {
             oficina: this.form.oficina,

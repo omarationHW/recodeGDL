@@ -19,7 +19,7 @@ axiosInstance.interceptors.response.use(
 )
 
 export const apiService = {
-  async execute(operacion, base, parametros = [], tenant = '', pagination = null) {
+  async execute(operacion, base, parametros = [], tenant = '', pagination = null, esquema = null) {
     try {
       const payload = {
         eRequest: {
@@ -28,6 +28,11 @@ export const apiService = {
           Parametros: parametros,
           Tenant: tenant
         }
+      }
+
+      // Agregar esquema si se proporciona (por defecto usa 'public')
+      if (esquema) {
+        payload.eRequest.Esquema = esquema
       }
 
       if (pagination && (typeof pagination.limit !== 'undefined' || typeof pagination.offset !== 'undefined')) {
@@ -49,8 +54,8 @@ export const apiService = {
   },
 
   async executeStoredProcedure(config) {
-    const { operacion, base, parametros = [], tenant = '', pagination = null } = config
-    return this.execute(operacion, base, parametros, tenant, pagination)
+    const { operacion, base, parametros = [], tenant = '', pagination = null, esquema = null } = config
+    return this.execute(operacion, base, parametros, tenant, pagination, esquema)
   }
 }
 

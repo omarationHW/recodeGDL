@@ -1,35 +1,32 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="store" /></div>
-      <div class="module-view-info">
-        <h1>Padrón de Locales</h1>
-        <p>Mercados - Padrón de Locales</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="padron-locales-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Padrón de Locales</li>
+      </ol>
+    </nav>
     <h2>Padrón de Arrendamiento de Mercados</h2>
     <form @submit.prevent="fetchPadronLocales">
       <div class="row mb-3">
         <div class="col-md-4">
-          <label class="municipal-form-label" for="oficina">Oficina Recaudadora</label>
-          <select v-model="form.oficina" id="oficina" class="municipal-form-control" required>
+          <label for="oficina">Oficina Recaudadora</label>
+          <select v-model="form.oficina" id="oficina" class="form-control" required>
             <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
               {{ rec.recaudadora }}
             </option>
           </select>
         </div>
         <div class="col-md-4">
-          <label class="municipal-form-label" for="mercado">Mercado</label>
-          <select v-model="form.mercado" id="mercado" class="municipal-form-control" required>
+          <label for="mercado">Mercado</label>
+          <select v-model="form.mercado" id="mercado" class="form-control" required>
             <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
               {{ merc.descripcion }}
             </option>
           </select>
         </div>
         <div class="col-md-4 align-self-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -37,8 +34,8 @@
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="padronLocales.length">
       <h4 class="mt-4">Locales encontrados: {{ padronLocales.length }}</h4>
-      <table class="-bordered municipal-table-sm mt-2">
-        <thead class="thead-light municipal-table-header">
+      <table class="table table-bordered table-sm mt-2">
+        <thead class="thead-light">
           <tr>
             <th>Local</th>
             <th>Adicionales</th>
@@ -70,9 +67,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

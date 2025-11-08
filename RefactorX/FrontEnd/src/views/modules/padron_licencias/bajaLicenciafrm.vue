@@ -1,49 +1,70 @@
 <template>
   <div class="module-view">
     <!-- Header -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="ban" />
       </div>
       <div class="module-view-info">
-        <h1>Baja de Licencia</h1>
-        <p>Gestión de baja de licencias comerciales</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <h1>Baja de Licencias</h1>
+        <p>Padrón de Licencias - Dar de baja licencias comerciales</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="regresarConsulta"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Regresar a Consulta
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
-      <!-- Búsqueda de Licencia -->
+      <!-- Panel de Búsqueda (Colapsable) -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div
+          class="municipal-card-header accordion-header"
+          @click="showBusqueda = !showBusqueda"
+          style="cursor: pointer;"
+        >
           <h5 class="municipal-card-title">
             <font-awesome-icon icon="search" />
             Buscar Licencia
           </h5>
+          <font-awesome-icon
+            :icon="showBusqueda ? 'chevron-up' : 'chevron-down'"
+            class="accordion-icon"
+          />
         </div>
-        <div class="municipal-card-body">
+        <div class="municipal-card-body" v-show="showBusqueda">
           <form @submit.prevent="buscarLicencia">
             <div class="form-row">
               <div class="form-group col-md-6">
-                <label class="municipal-form-label">Número de Licencia:</label>
+                <label class="municipal-form-label">
+                  <font-awesome-icon icon="id-card" class="me-1" />
+                  Número de Licencia *
+                </label>
                 <div class="input-group">
                   <input
-                    type="text"
+                    type="number"
                     class="municipal-form-control"
-                    v-model="searchLicencia"
+                    v-model.number="searchLicencia"
                     placeholder="Ingrese número de licencia"
                     required
+                    min="1"
                   />
                   <button
                     type="submit"
                     class="btn-municipal-primary"
-                    :disabled="loading || !searchLicencia"
+                    :disabled="!searchLicencia"
                   >
                     <font-awesome-icon icon="search" /> Buscar
                   </button>
@@ -59,68 +80,180 @@
         <div class="municipal-card-header">
           <h5 class="municipal-card-title">
             <font-awesome-icon icon="file-contract" />
-            Información de la Licencia #{{ licenciaData.licencia }}
+            Licencia #{{ licenciaData.licencia }}
+            <span
+              :class="licenciaData.vigente === 'V' ? 'badge-success' : 'badge-danger'"
+              class="badge ms-2"
+            >
+              {{ licenciaData.vigente === 'V' ? 'VIGENTE' : 'NO VIGENTE' }}
+            </span>
           </h5>
         </div>
         <div class="municipal-card-body">
+          <!-- Datos de la Licencia -->
           <div class="details-grid">
+            <!-- Propietario -->
             <div class="detail-section">
               <h6 class="section-title">
-                <font-awesome-icon icon="id-card" />
-                Datos Generales
+                <font-awesome-icon icon="user" />
+                Propietario
               </h6>
               <table class="detail-table">
                 <tr>
-                  <td class="label">Licencia:</td>
-                  <td><strong>{{ licenciaData.licencia }}</strong></td>
+                  <td class="label">Nombre:</td>
+                  <td>
+                    <strong>{{ licenciaData.propietario }} {{ licenciaData.primer_ap }} {{ licenciaData.segundo_ap }}</strong>
+                  </td>
                 </tr>
                 <tr>
-                  <td class="label">Propietario:</td>
-                  <td>{{ licenciaData.propietario }}</td>
+                  <td class="label">RFC:</td>
+                  <td>{{ licenciaData.rfc || 'N/A' }}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Actividad -->
+            <div class="detail-section">
+              <h6 class="section-title">
+                <font-awesome-icon icon="briefcase" />
+                Actividad
+              </h6>
+              <table class="detail-table">
+                <tr>
+                  <td class="label">Giro:</td>
+                  <td>{{ licenciaData.descripcion_giro || 'N/A' }}</td>
                 </tr>
                 <tr>
                   <td class="label">Actividad:</td>
-                  <td>{{ licenciaData.actividad }}</td>
+                  <td>{{ licenciaData.actividad || 'N/A' }}</td>
                 </tr>
+              </table>
+            </div>
+
+            <!-- Ubicación -->
+            <div class="detail-section">
+              <h6 class="section-title">
+                <font-awesome-icon icon="map-marker-alt" />
+                Ubicación del Negocio
+              </h6>
+              <table class="detail-table">
                 <tr>
-                  <td class="label">Ubicación:</td>
-                  <td>{{ licenciaData.ubicacion }}</td>
-                </tr>
-                <tr>
-                  <td class="label">Estado:</td>
+                  <td class="label">Domicilio:</td>
                   <td>
-                    <span :class="licenciaData.vigente === 'V' ? 'badge-success' : 'badge-danger'" class="badge">
-                      {{ licenciaData.vigente === 'V' ? 'Vigente' : 'No Vigente' }}
-                    </span>
+                    {{ licenciaData.ubicacion || 'N/A' }}
+                    {{ licenciaData.numext_ubic ? '#' + licenciaData.numext_ubic : '' }}
+                    {{ licenciaData.numint_ubic ? 'Int. ' + licenciaData.numint_ubic : '' }}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="label">Colonia:</td>
+                  <td>{{ licenciaData.colonia_ubic || 'N/A' }}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Información General -->
+            <div class="detail-section">
+              <h6 class="section-title">
+                <font-awesome-icon icon="info-circle" />
+                Información General
+              </h6>
+              <table class="detail-table">
+                <tr>
+                  <td class="label">Fecha Otorgamiento:</td>
+                  <td>{{ formatDate(licenciaData.fecha_otorgamiento) }}</td>
+                </tr>
+                <tr>
+                  <td class="label">Sup. Construida:</td>
+                  <td>{{ licenciaData.sup_construida ? licenciaData.sup_construida + ' m²' : 'N/A' }}</td>
+                </tr>
+                <tr>
+                  <td class="label">Empleados:</td>
+                  <td>{{ licenciaData.num_empleados || '0' }}</td>
+                </tr>
+                <tr v-if="licenciaData.bloqueado > 0">
+                  <td colspan="2">
+                    <div class="alert alert-warning mb-0">
+                      <font-awesome-icon icon="lock" />
+                      <strong>Licencia Bloqueada</strong>
+                    </div>
                   </td>
                 </tr>
               </table>
             </div>
           </div>
 
-          <!-- Anuncios ligados -->
-          <div class="alert alert-info" v-if="anuncios.length > 0">
-            <strong><font-awesome-icon icon="info-circle" /> Información:</strong>
-            La licencia tiene {{ anuncios.length }} anuncio(s) ligado(s).
+          <!-- Anuncios Ligados -->
+          <div v-if="anuncios.length > 0" class="mt-3">
+            <div class="alert alert-info">
+              <font-awesome-icon icon="bullhorn" />
+              <strong>Anuncios Ligados:</strong> Esta licencia tiene {{ anuncios.length }} anuncio(s) ligado(s).
+              Al dar de baja la licencia, también se darán de baja todos los anuncios vigentes.
+            </div>
+
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead>
+                  <tr>
+                    <th>Anuncio</th>
+                    <th>Estado</th>
+                    <th>Texto</th>
+                    <th>Ubicación</th>
+                    <th>Fecha Otorgamiento</th>
+                    <th>Bloqueado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="anuncio in anuncios" :key="anuncio.id_anuncio">
+                    <td><strong>#{{ anuncio.anuncio }}</strong></td>
+                    <td>
+                      <span
+                        :class="anuncio.vigente === 'V' ? 'badge-success' : 'badge-secondary'"
+                        class="badge"
+                      >
+                        {{ anuncio.vigente === 'V' ? 'Vigente' : 'No Vigente' }}
+                      </span>
+                    </td>
+                    <td>{{ anuncio.texto_anuncio || 'N/A' }}</td>
+                    <td>{{ anuncio.ubicacion || 'N/A' }}</td>
+                    <td>{{ formatDate(anuncio.fecha_otorgamiento) }}</td>
+                    <td>
+                      <span v-if="anuncio.bloqueado > 0" class="badge-danger badge">
+                        <font-awesome-icon icon="lock" /> SÍ
+                      </span>
+                      <span v-else class="badge-success badge">NO</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <!-- Formulario de Baja -->
           <div class="mt-4" v-if="licenciaData.vigente === 'V'">
-            <h6 class="section-title">
-              <font-awesome-icon icon="edit" />
-              Registrar Baja
+            <h6 class="section-title text-danger">
+              <font-awesome-icon icon="exclamation-triangle" />
+              Registrar Baja de Licencia
             </h6>
+
             <form @submit.prevent="confirmarBaja">
               <div class="form-row">
                 <div class="form-group col-md-12">
-                  <label class="municipal-form-label">Motivo de la baja *:</label>
+                  <label class="municipal-form-label">
+                    <font-awesome-icon icon="comment-alt" class="me-1" />
+                    Motivo de la Baja *
+                  </label>
                   <textarea
                     class="municipal-form-control"
                     v-model="bajaForm.motivo"
                     rows="3"
-                    placeholder="Ingrese el motivo de la baja"
+                    placeholder="Ingrese el motivo detallado de la baja"
                     required
+                    maxlength="500"
                   ></textarea>
+                  <small class="form-text text-muted">
+                    {{ bajaForm.motivo.length }}/500 caracteres
+                  </small>
                 </div>
               </div>
 
@@ -134,7 +267,7 @@
                       v-model="bajaForm.bajaError"
                     />
                     <label class="custom-control-label" for="bajaError">
-                      Baja por error (no requiere año/folio)
+                      <strong>Baja por error</strong> (no requiere año/folio)
                     </label>
                   </div>
                 </div>
@@ -142,7 +275,10 @@
 
               <div class="form-row" v-if="!bajaForm.bajaError">
                 <div class="form-group col-md-6">
-                  <label class="municipal-form-label">Año *:</label>
+                  <label class="municipal-form-label">
+                    <font-awesome-icon icon="calendar" class="me-1" />
+                    Año *
+                  </label>
                   <input
                     type="number"
                     class="municipal-form-control"
@@ -154,7 +290,10 @@
                   />
                 </div>
                 <div class="form-group col-md-6">
-                  <label class="municipal-form-label">Folio *:</label>
+                  <label class="municipal-form-label">
+                    <font-awesome-icon icon="hashtag" class="me-1" />
+                    Folio *
+                  </label>
                   <input
                     type="number"
                     class="municipal-form-control"
@@ -166,12 +305,17 @@
                 </div>
               </div>
 
+              <div class="alert alert-danger mt-3">
+                <font-awesome-icon icon="exclamation-circle" />
+                <strong>ADVERTENCIA:</strong> Esta acción NO se puede deshacer.
+                La licencia y todos sus anuncios vigentes serán dados de baja permanentemente.
+              </div>
+
               <div class="form-row">
                 <div class="form-group col-md-12">
                   <button
                     type="submit"
                     class="btn-municipal-danger"
-                    :disabled="loading"
                   >
                     <font-awesome-icon icon="ban" /> Dar de Baja Licencia
                   </button>
@@ -187,22 +331,28 @@
             </form>
           </div>
 
-          <div class="alert alert-warning" v-else>
+          <!-- Licencia ya dada de baja -->
+          <div class="alert alert-warning mt-3" v-else>
+            <font-awesome-icon icon="info-circle" />
             <strong>Esta licencia ya está dada de baja</strong>
-            <p class="mb-0">Fecha de baja: {{ formatDate(licenciaData.fecha_baja) }}</p>
+            <p class="mb-0 mt-2">
+              <strong>Fecha de baja:</strong> {{ formatDate(licenciaData.fecha_baja) }}<br>
+              <strong>Año:</strong> {{ licenciaData.axo_baja || 'N/A' }}<br>
+              <strong>Folio:</strong> {{ licenciaData.folio_baja || 'N/A' }}
+            </p>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando...</p>
+      <!-- Mensaje cuando no hay licencia buscada -->
+      <div class="municipal-card text-center" v-if="!licenciaData && !primeraBusqueda">
+        <div class="municipal-card-body py-5">
+          <font-awesome-icon icon="search" size="3x" class="text-muted mb-3" />
+          <h5 class="text-muted">Busque una licencia para dar de baja</h5>
+          <p class="text-muted">Ingrese el número de licencia en el panel de búsqueda.</p>
+        </div>
       </div>
     </div>
-  </div>
 
     <!-- Modal de Ayuda -->
     <DocumentationModal
@@ -211,26 +361,32 @@
       :moduleName="'padron_licencias'"
       @close="closeDocumentation"
     />
-  </template>
+  </div>
+</template>
 
 <script setup>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
+const router = useRouter()
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { handleApiError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
 
 // Estado
-const searchLicencia = ref('')
+const showDocumentation = ref(false)
+const showBusqueda = ref(true)
+const primeraBusqueda = ref(false)
+const searchLicencia = ref(null)
 const licenciaData = ref(null)
 const anuncios = ref([])
-const loading = ref(false)
 
 const bajaForm = ref({
   motivo: '',
@@ -240,17 +396,31 @@ const bajaForm = ref({
 })
 
 // Métodos
-const buscarLicencia = async () => {
-  if (!searchLicencia.value) return
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
-  loading.value = true
+const regresarConsulta = () => {
+  router.push('/padron-licencias/consulta-licencias')
+}
+
+const buscarLicencia = async () => {
+  if (!searchLicencia.value) {
+    showToast('warning', 'Ingrese el número de licencia')
+    return
+  }
+
+  showLoading('Buscando licencia...', 'Consultando base de datos')
+  primeraBusqueda.value = true
+  showBusqueda.value = false
+
   try {
-    // Buscar licencia usando el SP de baja
     const response = await execute(
-      'sp_bajalicencia_buscar',
+      'sp_bajalic_buscar_licencia',
       'padron_licencias',
-      [{ nombre: 'p_licencia', valor: parseInt(searchLicencia.value), tipo: 'integer' }],
-      'guadalajara'
+      [{ nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' }],
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -258,40 +428,40 @@ const buscarLicencia = async () => {
 
       // Cargar anuncios ligados
       await cargarAnuncios()
+
+      showToast('success', 'Licencia encontrada')
     } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'No encontrada',
-        text: 'La licencia no existe en el sistema',
-        confirmButtonColor: '#ea8215'
-      })
       licenciaData.value = null
+      anuncios.value = []
+      showToast('warning', 'No se encontró la licencia')
     }
   } catch (error) {
     console.error('Error al buscar licencia:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo buscar la licencia',
-      confirmButtonColor: '#ea8215'
-    })
+    handleApiError(error)
+    licenciaData.value = null
+    anuncios.value = []
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
 const cargarAnuncios = async () => {
+  if (!licenciaData.value) return
+
   try {
-    // Buscar anuncios ligados usando el SP específico
     const response = await execute(
-      'sp_bajalicencia_anuncios',
+      'sp_bajalic_obtener_anuncios',
       'padron_licencias',
-      [{ nombre: 'p_id_licencia', valor: parseInt(licenciaData.value.id_licencia), tipo: 'integer' }],
-      'guadalajara'
+      [{ nombre: 'p_id_licencia', valor: licenciaData.value.id_licencia, tipo: 'integer' }],
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
 
     if (response && response.result) {
       anuncios.value = response.result
+    } else {
+      anuncios.value = []
     }
   } catch (error) {
     console.error('Error al cargar anuncios:', error)
@@ -302,33 +472,43 @@ const cargarAnuncios = async () => {
 const confirmarBaja = async () => {
   // Validaciones
   if (!bajaForm.value.motivo.trim()) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Motivo requerido',
-      text: 'Debe ingresar el motivo de la baja',
-      confirmButtonColor: '#ea8215'
-    })
+    showToast('warning', 'Debe ingresar el motivo de la baja')
     return
   }
 
   if (!bajaForm.value.bajaError && (!bajaForm.value.anio || !bajaForm.value.folio)) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Datos incompletos',
-      text: 'Debe ingresar año y folio para baja normal',
+    showToast('warning', 'Debe ingresar año y folio para baja normal')
+    return
+  }
+
+  // Verificar si hay anuncios bloqueados
+  const anunciosBloqueados = anuncios.value.filter(a => a.bloqueado > 0 && a.vigente === 'V')
+  if (anunciosBloqueados.length > 0) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Anuncios Bloqueados',
+      html: `No se puede dar de baja la licencia porque tiene ${anunciosBloqueados.length} anuncio(s) bloqueado(s):<br><br>` +
+            anunciosBloqueados.map(a => `• Anuncio #${a.anuncio}`).join('<br>'),
       confirmButtonColor: '#ea8215'
     })
     return
   }
 
   // Confirmación
+  const anunciosVigentes = anuncios.value.filter(a => a.vigente === 'V')
+  const mensajeAnuncios = anunciosVigentes.length > 0
+    ? `<p class="text-warning"><strong>${anunciosVigentes.length} anuncio(s) vigente(s) también serán dados de baja.</strong></p>`
+    : ''
+
   const result = await Swal.fire({
     icon: 'warning',
     title: '¿Dar de baja licencia?',
     html: `
       <p>¿Está seguro de dar de baja la licencia <strong>#${licenciaData.value.licencia}</strong>?</p>
+      <p><strong>Propietario:</strong> ${licenciaData.value.propietario}</p>
       <p><strong>Motivo:</strong> ${bajaForm.value.motivo}</p>
-      <p class="text-danger"><strong>Esta acción NO se puede deshacer</strong></p>
+      ${mensajeAnuncios}
+      <p class="text-danger mt-3"><strong>Esta acción NO se puede deshacer</strong></p>
     `,
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
@@ -339,22 +519,90 @@ const confirmarBaja = async () => {
 
   if (!result.isConfirmed) return
 
-  loading.value = true
+  // Solicitar firma
+  const firmaResult = await solicitarFirma()
+  if (!firmaResult.success) return
+
+  // Ejecutar baja
+  await ejecutarBaja()
+}
+
+const solicitarFirma = async () => {
+  const { value: firma } = await Swal.fire({
+    title: 'Firma de Autorización',
+    input: 'password',
+    inputLabel: 'Ingrese su firma para confirmar la baja:',
+    inputPlaceholder: 'Firma',
+    showCancelButton: true,
+    confirmButtonText: 'Aceptar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ea8215',
+    inputValidator: (value) => {
+      if (!value) {
+        return 'Debe ingresar su firma'
+      }
+    }
+  })
+
+  if (!firma) {
+    return { success: false }
+  }
+
+  // Verificar firma
   try {
-    // Ejecutar baja de licencia
     const response = await execute(
-      'sp_bajalicencia_ejecutar',
+      'SP_VERIFICA_FIRMA',
       'padron_licencias',
       [
-        { nombre: 'p_licencia', valor: parseInt(searchLicencia.value), tipo: 'integer' },
+        { nombre: 'p_usuario', valor: localStorage.getItem('usuario') || '', tipo: 'string' },
+        { nombre: 'p_login', valor: '', tipo: 'string' },
+        { nombre: 'p_firma', valor: firma, tipo: 'string' },
+        { nombre: 'p_modulos_id', valor: 1, tipo: 'integer' }
+      ],
+      'guadalajara',
+      null,
+      'comun'
+    )
+
+    if (response && response.result && response.result[0]?.firma_valida) {
+      return { success: true }
+    } else {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Firma Incorrecta',
+        text: 'La firma ingresada no es válida',
+        confirmButtonColor: '#ea8215'
+      })
+      return { success: false }
+    }
+  } catch (error) {
+    console.error('Error verificando firma:', error)
+    handleApiError(error)
+    return { success: false }
+  }
+}
+
+const ejecutarBaja = async () => {
+  showLoading('Procesando baja de licencia...', 'Esto puede tardar unos momentos')
+
+  try {
+    const response = await execute(
+      'sp_bajalic_ejecutar',
+      'padron_licencias',
+      [
+        { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' },
         { nombre: 'p_motivo', valor: bajaForm.value.motivo, tipo: 'string' },
         { nombre: 'p_anio', valor: bajaForm.value.bajaError ? null : bajaForm.value.anio, tipo: 'integer' },
         { nombre: 'p_folio', valor: bajaForm.value.bajaError ? null : bajaForm.value.folio, tipo: 'integer' },
         { nombre: 'p_baja_error', valor: bajaForm.value.bajaError, tipo: 'boolean' },
-        { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
+        { nombre: 'p_usuario', valor: localStorage.getItem('usuario') || 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun' // esquema
     )
+
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const resultado = response.result[0]
@@ -362,16 +610,15 @@ const confirmarBaja = async () => {
       if (resultado.success) {
         await Swal.fire({
           icon: 'success',
-          title: 'Baja registrada',
+          title: 'Baja Registrada',
           text: resultado.message,
-          confirmButtonColor: '#ea8215',
-          timer: 2000
+          confirmButtonColor: '#ea8215'
         })
 
-        // Limpiar y recargar
-        cancelar()
+        // Limpiar y buscar de nuevo para mostrar el estado actualizado
+        await buscarLicencia()
       } else {
-        Swal.fire({
+        await Swal.fire({
           icon: 'error',
           title: 'Error',
           text: resultado.message,
@@ -380,22 +627,18 @@ const confirmarBaja = async () => {
       }
     }
   } catch (error) {
+    hideLoading()
     console.error('Error al dar de baja:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo completar la baja de licencia',
-      confirmButtonColor: '#ea8215'
-    })
-  } finally {
-    loading.value = false
+    handleApiError(error)
   }
 }
 
 const cancelar = () => {
-  searchLicencia.value = ''
+  searchLicencia.value = null
   licenciaData.value = null
   anuncios.value = []
+  primeraBusqueda.value = false
+  showBusqueda.value = true
   bajaForm.value = {
     motivo: '',
     anio: new Date().getFullYear(),
@@ -407,6 +650,195 @@ const cancelar = () => {
 const formatDate = (date) => {
   if (!date) return 'N/A'
   const d = new Date(date)
-  return d.toLocaleDateString('es-MX')
+  return d.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
+
+// Restaurar estado si viene de otra vista
+onMounted(() => {
+  const savedSearch = localStorage.getItem('bajalicencia_search')
+  if (savedSearch) {
+    searchLicencia.value = parseInt(savedSearch)
+    localStorage.removeItem('bajalicencia_search')
+    buscarLicencia()
+  }
+})
 </script>
+
+<style scoped>
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.accordion-header:hover {
+  background-color: #f3f4f6;
+}
+
+.accordion-icon {
+  color: #9363CD;
+  transition: transform 0.2s;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-section {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.section-title {
+  font-size: 0.9rem;
+  color: #9363CD;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #9363CD;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title.text-danger {
+  color: #dc3545;
+  border-bottom-color: #dc3545;
+}
+
+.detail-table {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.detail-table tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-table tr:last-child {
+  border-bottom: none;
+}
+
+.detail-table td {
+  padding: 0.5rem 0;
+}
+
+.detail-table td.label {
+  font-weight: 500;
+  color: #6b7280;
+  width: 40%;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-success {
+  background-color: #10b981;
+  color: white;
+}
+
+.badge-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.municipal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.municipal-table thead {
+  background-color: #9363CD;
+  color: white;
+}
+
+.municipal-table th,
+.municipal-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid #e5e7eb;
+}
+
+.municipal-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.alert svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.alert-info {
+  background-color: #dbeafe;
+  border: 1px solid #3b82f6;
+  color: #1e40af;
+}
+
+.alert-warning {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.alert-danger {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-group input {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-group.col-md-6,
+  .form-group.col-md-12 {
+    width: 100%;
+  }
+}
+</style>

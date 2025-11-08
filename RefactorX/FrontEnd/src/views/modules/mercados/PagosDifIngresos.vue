@@ -1,33 +1,30 @@
 <template>
-  <div class="module-view">
+  <div class="pagos-dif-ingresos-page">
     <h1>Inconsistencias de Pagos</h1>
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="dollar-sign" /></div>
-      <div class="module-view-info">
-        <h1>Inconsistencias de Pagos</h1>
-        <p>Mercados - Inconsistencias de Pagos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Inconsistencias de Pagos</li>
+      </ol>
+    </nav>
     <form @submit.prevent="onBuscar">
       <div class="form-row align-items-end">
         <div class="form-group col-md-4">
-          <label class="municipal-form-label" for="recaudadora">Recaudadora</label>
-          <select v-model="form.rec" class="municipal-form-control" id="recaudadora" required>
+          <label for="recaudadora">Recaudadora</label>
+          <select v-model="form.rec" class="form-control" id="recaudadora" required>
             <option v-for="r in recaudadoras" :key="r.id_rec" :value="r.id_rec">{{ r.recaudadora }}</option>
           </select>
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label" for="fechaDesde">Fecha desde</label>
-          <input type="date" v-model="form.fpadsd" class="municipal-form-control" id="fechaDesde" required />
+          <label for="fechaDesde">Fecha desde</label>
+          <input type="date" v-model="form.fpadsd" class="form-control" id="fechaDesde" required />
         </div>
         <div class="form-group col-md-3">
-          <label class="municipal-form-label" for="fechaHasta">Fecha hasta</label>
-          <input type="date" v-model="form.fpahst" class="municipal-form-control" id="fechaHasta" required />
+          <label for="fechaHasta">Fecha hasta</label>
+          <input type="date" v-model="form.fpahst" class="form-control" id="fechaHasta" required />
         </div>
         <div class="form-group col-md-2">
-          <button type="submit" class="btn btn-municipal-primary btn-block">Buscar</button>
+          <button type="submit" class="btn btn-primary btn-block">Buscar</button>
         </div>
       </div>
       <div class="form-row">
@@ -42,14 +39,14 @@
           </div>
         </div>
         <div class="form-group col-md-6 text-right">
-          <button v-if="resultados.length" @click="onExportar" type="button" class="btn-municipal-success">Exportar a Excel</button>
+          <button v-if="resultados.length" @click="onExportar" type="button" class="btn btn-success">Exportar a Excel</button>
         </div>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info mt-3">Cargando...</div>
     <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
     <div v-if="resultados.length" class="table-responsive mt-3">
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th v-for="col in columnas" :key="col">{{ col }}</th>
@@ -64,9 +61,6 @@
     </div>
     <div v-if="!loading && resultados.length === 0 && buscado" class="alert alert-warning mt-3">No se encontraron resultados.</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -102,7 +96,7 @@ export default {
           body: JSON.stringify({ eRequest: { action: 'getRecaudadoras' } })
         });
         const json = await res.json();
-        if (json.eResponse.status === 'ok') {
+        if (json.eResponse.success) {
           this.recaudadoras = json.eResponse.data;
           if (this.recaudadoras.length) {
             this.form.rec = this.recaudadoras[0].id_rec;
@@ -139,7 +133,7 @@ export default {
           })
         });
         const json = await res.json();
-        if (json.eResponse.status === 'ok') {
+        if (json.eResponse.success) {
           this.resultados = json.eResponse.data;
           if (this.resultados.length) {
             this.columnas = Object.keys(this.resultados[0]);
@@ -172,7 +166,7 @@ export default {
           })
         });
         const json = await res.json();
-        if (json.eResponse.status === 'ok' && json.eResponse.data) {
+        if (json.eResponse.success && json.eResponse.data) {
           // Exportar a Excel (simple CSV)
           const rows = json.eResponse.data;
           if (!rows.length) return;

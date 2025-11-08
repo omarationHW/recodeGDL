@@ -1,46 +1,54 @@
 <template>
   <div class="module-view">
+    <!-- Navigation Header -->
+    <div class="navigation-header">
+      <button
+        type="button"
+        class="btn-nav-back"
+        @click="router.push({ name: 'ConsultaLicenciafrm' })"
+        title="Regresar a Consulta de Licencias"
+      >
+        <font-awesome-icon icon="arrow-left" />
+        <span>Regresar a Consulta</span>
+      </button>
+      <button
+        type="button"
+        class="btn-nav-help"
+        @click="openDocumentation"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+        <span>Ayuda</span>
+      </button>
+    </div>
+
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="chart-line" />
       </div>
       <div class="module-view-info">
         <h1>Giros Vigentes por Contribuyente</h1>
-        <p>Padrón de Licencias - Reporte de Licencias Activas por Giro</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
-        <button
-          class="btn-municipal-primary"
-          @click="exportToExcel"
-          :disabled="loading || licencias.length === 0"
-        >
-          <font-awesome-icon icon="file-excel" />
-          Exportar Excel
-        </button>
-        <button
-          class="btn-municipal-secondary"
-          @click="generatePDF"
-          :disabled="loading || licencias.length === 0"
-        >
-          <font-awesome-icon icon="file-pdf" />
-          Generar PDF
-        </button>
+        <p>Padrón de Licencias - Reporte de Licencias Activas por Giro</p>
       </div>
     </div>
 
     <div class="module-view-content">
 
-    <!-- Filtros de búsqueda -->
+    <!-- Filtros de búsqueda (Collapsible) -->
     <div class="municipal-card">
-      <div class="municipal-card-body">
+      <div
+        class="accordion-header"
+        :class="{ 'collapsed': !filtersPanelExpanded }"
+        @click="filtersPanelExpanded = !filtersPanelExpanded"
+      >
+        <h5 class="municipal-card-title">
+          <font-awesome-icon icon="filter" />
+          Filtros de Búsqueda
+        </h5>
+        <font-awesome-icon :icon="filtersPanelExpanded ? 'chevron-up' : 'chevron-down'" />
+      </div>
+      <div v-show="filtersPanelExpanded" class="municipal-card-body">
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Giro (Categoría)</label>
@@ -83,7 +91,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchLicencias"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -91,7 +98,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -99,10 +105,17 @@
           <button
             class="btn-municipal-secondary"
             @click="loadLicencias"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
+          </button>
+          <button
+            class="btn-municipal-primary"
+            @click="exportToExcel"
+            :disabled="licencias.length === 0"
+          >
+            <font-awesome-icon icon="file-excel" />
+            Exportar Excel
           </button>
         </div>
       </div>

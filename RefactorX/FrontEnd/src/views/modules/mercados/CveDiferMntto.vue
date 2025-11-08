@@ -1,42 +1,39 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Claves de Diferencias por Cobrar</h1>
-        <p>Mercados - Claves de Diferencias por Cobrar</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card mb-4">
-      <div class="municipal-card-header">
+  <div class="cve-difer-mntto-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Claves de Diferencias por Cobrar</li>
+      </ol>
+    </nav>
+    <div class="card mb-4">
+      <div class="card-header">
         <h5>Mantenimiento Claves de Diferencias por Cobrar</h5>
       </div>
-      <div class="municipal-card-body">
+      <div class="card-body">
         <form @submit.prevent="onSubmit">
           <div class="row mb-3">
             <div class="col-md-2">
-              <label class="municipal-form-label" for="clave_diferencia">Clave Diferencia</label>
-              <input type="number" class="municipal-form-control" id="clave_diferencia" v-model.number="form.clave_diferencia" :disabled="formMode==='edit'" required min="1" max="5000">
+              <label for="clave_diferencia" class="form-label">Clave Diferencia</label>
+              <input type="number" class="form-control" id="clave_diferencia" v-model.number="form.clave_diferencia" :disabled="formMode==='edit'" required min="1" max="5000">
             </div>
             <div class="col-md-6">
-              <label class="municipal-form-label" for="descripcion">Descripción de la Clave</label>
-              <input type="text" class="municipal-form-control" id="descripcion" v-model="form.descripcion" maxlength="60" required style="text-transform:uppercase">
+              <label for="descripcion" class="form-label">Descripción de la Clave</label>
+              <input type="text" class="form-control" id="descripcion" v-model="form.descripcion" maxlength="60" required style="text-transform:uppercase">
             </div>
             <div class="col-md-2">
-              <label class="municipal-form-label" for="cuenta_ingreso">Cuenta Ingreso</label>
-              <input type="number" class="municipal-form-control" id="cuenta_ingreso" v-model.number="form.cuenta_ingreso" required min="1" max="999999">
+              <label for="cuenta_ingreso" class="form-label">Cuenta Ingreso</label>
+              <input type="number" class="form-control" id="cuenta_ingreso" v-model.number="form.cuenta_ingreso" required min="1" max="999999">
             </div>
             <div class="col-md-2">
-              <label class="municipal-form-label" for="id_usuario">Usuario</label>
-              <input type="number" class="municipal-form-control" id="id_usuario" v-model.number="form.id_usuario" required>
+              <label for="id_usuario" class="form-label">Usuario</label>
+              <input type="number" class="form-control" id="id_usuario" v-model.number="form.id_usuario" required>
             </div>
           </div>
           <div class="row mb-2">
             <div class="col-md-12">
-              <label class="municipal-form-label">Catálogo de Cuentas</label>
-              <table class="-sm -bordered municipal-table-hover">
+              <label class="form-label">Catálogo de Cuentas</label>
+              <table class="table table-sm table-bordered table-hover">
                 <thead>
                   <tr>
                     <th>Cuenta</th>
@@ -54,19 +51,19 @@
           </div>
           <div class="row mt-3">
             <div class="col-md-12 text-end">
-              <button type="submit" class="btn btn-municipal-primary me-2">{{ formMode==='edit' ? 'Actualizar' : 'Agregar' }}</button>
-              <button type="button" class="btn-municipal-secondary" @click="resetForm">Cancelar</button>
+              <button type="submit" class="btn btn-primary me-2">{{ formMode==='edit' ? 'Actualizar' : 'Agregar' }}</button>
+              <button type="button" class="btn btn-secondary" @click="resetForm">Cancelar</button>
             </div>
           </div>
         </form>
       </div>
     </div>
-    <div class="municipal-card">
-      <div class="municipal-card-header">
+    <div class="card">
+      <div class="card-header">
         <h6>Listado de Claves de Diferencias</h6>
       </div>
-      <div class="municipal-card-body p-0">
-        <table class="-striped municipal-table-hover mb-0">
+      <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
           <thead>
             <tr>
               <th>Clave</th>
@@ -99,9 +96,6 @@
       {{ alert.message }}
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

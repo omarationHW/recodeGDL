@@ -1,18 +1,15 @@
 <template>
-  <div class="module-view">
+  <div class="listados-locales-page">
     <h1>Listados de Mercados</h1>
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="store" /></div>
-      <div class="module-view-info">
-        <h1>Listados de Mercados</h1>
-        <p>Mercados - Listados de Mercados</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">Seleccione el tipo de listado</div>
-      <div class="municipal-card-body">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active">Listados de Mercados</li>
+      </ol>
+    </nav>
+    <div class="card mb-3">
+      <div class="card-header">Seleccione el tipo de listado</div>
+      <div class="card-body">
         <div class="form-check form-check-inline">
           <input class="form-check-input" type="radio" id="padron" value="padron" v-model="tipoListado">
           <label class="form-check-label" for="padron">Padrón de Locales</label>
@@ -32,29 +29,29 @@
       </div>
     </div>
 
-    <div v-if="tipoListado === 'padron'" class="municipal-card mb-3">
-      <div class="municipal-card-header">Padrón de Locales</div>
-      <div class="municipal-card-body">
+    <div v-if="tipoListado === 'padron'" class="card mb-3">
+      <div class="card-header">Padrón de Locales</div>
+      <div class="card-body">
         <div class="row mb-2">
           <div class="col-md-3">
-            <label class="municipal-form-label">Recaudadora</label>
-            <select v-model="selectedRecaudadora" class="municipal-form-control" @change="fetchMercados">
+            <label>Recaudadora</label>
+            <select v-model="selectedRecaudadora" class="form-control" @change="fetchMercados">
               <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
             </select>
           </div>
           <div class="col-md-3">
-            <label class="municipal-form-label">Mercado</label>
-            <select v-model="selectedMercado" class="municipal-form-control">
+            <label>Mercado</label>
+            <select v-model="selectedMercado" class="form-control">
               <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.descripcion }}</option>
             </select>
           </div>
           <div class="col-md-3 align-self-end">
-            <button class="btn-municipal-primary" @click="buscarPadron">Buscar</button>
-            <button class="btn btn-municipal-success ml-2" @click="exportarExcel" :disabled="locales.length === 0">Exportar Excel</button>
+            <button class="btn btn-primary" @click="buscarPadron">Buscar</button>
+            <button class="btn btn-success ml-2" @click="exportarExcel" :disabled="locales.length === 0">Exportar Excel</button>
           </div>
         </div>
         <div v-if="locales.length > 0">
-          <table class="municipal-table">
+          <table class="table table-sm table-bordered">
             <thead>
               <tr>
                 <th>Rec.</th>
@@ -91,30 +88,30 @@
       </div>
     </div>
 
-    <div v-if="tipoListado === 'movimientos'" class="municipal-card mb-3">
-      <div class="municipal-card-header">Movimientos Locales</div>
-      <div class="municipal-card-body">
+    <div v-if="tipoListado === 'movimientos'" class="card mb-3">
+      <div class="card-header">Movimientos Locales</div>
+      <div class="card-body">
         <div class="row mb-2">
           <div class="col-md-3">
-            <label class="municipal-form-label">Fecha Desde</label>
-            <input type="date" v-model="fechaDesde" class="municipal-form-control" />
+            <label>Fecha Desde</label>
+            <input type="date" v-model="fechaDesde" class="form-control" />
           </div>
           <div class="col-md-3">
-            <label class="municipal-form-label">Fecha Hasta</label>
-            <input type="date" v-model="fechaHasta" class="municipal-form-control" />
+            <label>Fecha Hasta</label>
+            <input type="date" v-model="fechaHasta" class="form-control" />
           </div>
           <div class="col-md-3">
-            <label class="municipal-form-label">Recaudadora</label>
-            <select v-model="selectedRecaudadora" class="municipal-form-control">
+            <label>Recaudadora</label>
+            <select v-model="selectedRecaudadora" class="form-control">
               <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
             </select>
           </div>
           <div class="col-md-3 align-self-end">
-            <button class="btn-municipal-primary" @click="buscarMovimientos">Buscar</button>
+            <button class="btn btn-primary" @click="buscarMovimientos">Buscar</button>
           </div>
         </div>
         <div v-if="movimientos.length > 0">
-          <table class="municipal-table">
+          <table class="table table-sm table-bordered">
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -149,24 +146,24 @@
       </div>
     </div>
 
-    <div v-if="tipoListado === 'ingresozonas'" class="municipal-card mb-3">
-      <div class="municipal-card-header">Ingreso por Zonas</div>
-      <div class="municipal-card-body">
+    <div v-if="tipoListado === 'ingresozonas'" class="card mb-3">
+      <div class="card-header">Ingreso por Zonas</div>
+      <div class="card-body">
         <div class="row mb-2">
           <div class="col-md-3">
-            <label class="municipal-form-label">Fecha Desde</label>
-            <input type="date" v-model="fechaDesde" class="municipal-form-control" />
+            <label>Fecha Desde</label>
+            <input type="date" v-model="fechaDesde" class="form-control" />
           </div>
           <div class="col-md-3">
-            <label class="municipal-form-label">Fecha Hasta</label>
-            <input type="date" v-model="fechaHasta" class="municipal-form-control" />
+            <label>Fecha Hasta</label>
+            <input type="date" v-model="fechaHasta" class="form-control" />
           </div>
           <div class="col-md-3 align-self-end">
-            <button class="btn-municipal-primary" @click="buscarIngresoZonificado">Buscar</button>
+            <button class="btn btn-primary" @click="buscarIngresoZonificado">Buscar</button>
           </div>
         </div>
         <div v-if="ingresos.length > 0">
-          <table class="municipal-table">
+          <table class="table table-sm table-bordered">
             <thead>
               <tr>
                 <th>Zona</th>
@@ -185,9 +182,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -215,10 +209,7 @@ export default {
   },
   methods: {
     async fetchRecaudadoras() {
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getRecaudadoras' });
+      const res = await this.$axios.post('/api/execute', { action: 'getRecaudadoras' });
       this.recaudadoras = res.data.recaudadoras;
       if (this.recaudadoras.length > 0) {
         this.selectedRecaudadora = this.recaudadoras[0].id_rec;
@@ -227,10 +218,7 @@ export default {
     },
     async fetchMercados() {
       if (!this.selectedRecaudadora) return;
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getMercadosByRecaudadora', params: { recaudadora_id: this.selectedRecaudadora } });
+      const res = await this.$axios.post('/api/execute', { action: 'getMercadosByRecaudadora', params: { recaudadora_id: this.selectedRecaudadora } });
       this.mercados = res.data.mercados;
       if (this.mercados.length > 0) {
         this.selectedMercado = this.mercados[0].num_mercado_nvo;
@@ -238,10 +226,7 @@ export default {
     },
     async buscarPadron() {
       if (!this.selectedRecaudadora || !this.selectedMercado) return;
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'getPadronLocales',
         params: {
           recaudadora_id: this.selectedRecaudadora,
@@ -253,10 +238,7 @@ export default {
     },
     async buscarMovimientos() {
       if (!this.selectedRecaudadora || !this.fechaDesde || !this.fechaHasta) return;
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'getMovimientosLocales',
         params: {
           recaudadora_id: this.selectedRecaudadora,
@@ -269,10 +251,7 @@ export default {
     },
     async buscarIngresoZonificado() {
       if (!this.fechaDesde || !this.fechaHasta) return;
-      const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      const res = await this.$axios.post('/api/execute', {
         action: 'getIngresoZonificado',
         params: {
           fecha_desde: this.fechaDesde,

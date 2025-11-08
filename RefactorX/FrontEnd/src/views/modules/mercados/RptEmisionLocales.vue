@@ -1,52 +1,49 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="store" /></div>
-      <div class="module-view-info">
-        <h1>Emisión de Recibos de Locales</h1>
-        <p>Mercados - Emisión de Recibos de Locales</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-emision-locales-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Emisión de Recibos de Locales</li>
+      </ol>
+    </nav>
     <h2>Emisión de Recibos de Locales</h2>
     <form @submit.prevent="onPreview">
       <div class="row mb-3">
         <div class="col-md-3">
-          <label class="municipal-form-label">Oficina</label>
-          <select v-model="form.oficina" class="municipal-form-control" @change="fetchMercados">
+          <label>Oficina</label>
+          <select v-model="form.oficina" class="form-control" @change="fetchMercados">
             <option value="">Seleccione...</option>
             <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model.number="form.axo" class="municipal-form-control" min="1990" max="2100" required />
+          <label>Año</label>
+          <input type="number" v-model.number="form.axo" class="form-control" min="1990" max="2100" required />
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label">Mes</label>
-          <select v-model.number="form.periodo" class="municipal-form-control" required>
+          <label>Mes</label>
+          <select v-model.number="form.periodo" class="form-control" required>
             <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label">Mercado</label>
-          <select v-model="form.mercado" class="municipal-form-control" required>
+          <label>Mercado</label>
+          <select v-model="form.mercado" class="form-control" required>
             <option value="">Seleccione...</option>
             <option v-for="m in mercados" :key="m.id" :value="m.id">{{ m.descripcion }}</option>
           </select>
         </div>
       </div>
       <div class="mb-3">
-        <button type="submit" class="btn-municipal-primary">Previsualizar</button>
-        <button type="button" class="btn btn-municipal-success ml-2" @click="onEmitir" :disabled="!previewData.length">Emitir Recibos</button>
+        <button type="submit" class="btn btn-primary">Previsualizar</button>
+        <button type="button" class="btn btn-success ml-2" @click="onEmitir" :disabled="!previewData.length">Emitir Recibos</button>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="previewData.length">
       <h4>Previsualización de Recibos</h4>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Local</th>
@@ -77,9 +74,6 @@
     </div>
     <div v-if="successMsg" class="alert alert-success mt-3">{{ successMsg }}</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -121,97 +115,79 @@ export default {
         { id: 5, nombre: 'Zona Cruz del Sur' }
       ];
     },
-    async fetchMercados() {
+    fetchMercados() {
       if (!this.form.oficina) return;
       this.loading = true;
       this.error = '';
-      try {
-        const resp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eRequest: {
-              action: 'get-mercados',
-              params: { oficina: this.form.oficina }
-            }
-          })
-        });
-        const data = await resp.json();
-        this.mercados = data.eResponse.data.map(m => ({
+      this.$axios.post('/api/execute', {
+        eRequest: {
+          action: 'get-mercados',
+          params: { oficina: this.form.oficina }
+        }
+      }).then(resp => {
+        this.mercados = resp.data.eResponse.data.map(m => ({
           id: m.num_mercado_nvo,
           descripcion: m.descripcion
         }));
         this.loading = false;
-      } catch (err) {
+      }).catch(err => {
         this.error = 'Error al cargar mercados';
         this.loading = false;
-      }
+      });
     },
-    async onPreview() {
+    onPreview() {
       this.loading = true;
       this.error = '';
       this.successMsg = '';
-      try {
-        const resp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eRequest: {
-              action: 'get',
-              params: {
-                oficina: this.form.oficina,
-                axo: this.form.axo,
-                periodo: this.form.periodo,
-                mercado: this.form.mercado
-              }
-            }
-          })
-        });
-        const data = await resp.json();
-        if (data.eResponse.status === 'ok') {
-          this.previewData = data.eResponse.data;
+      this.$axios.post('/api/execute', {
+        eRequest: {
+          action: 'get',
+          params: {
+            oficina: this.form.oficina,
+            axo: this.form.axo,
+            periodo: this.form.periodo,
+            mercado: this.form.mercado
+          }
+        }
+      }).then(resp => {
+        if (resp.data.eResponse.success) {
+          this.previewData = resp.data.eResponse.data;
         } else {
-          this.error = data.eResponse.message || 'Error en la consulta';
+          this.error = resp.data.eResponse.message || 'Error en la consulta';
         }
         this.loading = false;
-      } catch (err) {
+      }).catch(err => {
         this.error = 'Error en la consulta';
         this.loading = false;
-      }
+      });
     },
-    async onEmitir() {
+    onEmitir() {
       if (!this.previewData.length) return;
       this.loading = true;
       this.error = '';
       this.successMsg = '';
-      try {
-        const resp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eRequest: {
-              action: 'emit',
-              params: {
-                oficina: this.form.oficina,
-                axo: this.form.axo,
-                periodo: this.form.periodo,
-                mercado: this.form.mercado,
-                usuario_id: this.$store?.state?.user?.id || 1 // Asumiendo autenticación
-              }
-            }
-          })
-        });
-        const data = await resp.json();
-        if (data.eResponse.status === 'ok') {
-          this.successMsg = data.eResponse.message;
+      this.$axios.post('/api/execute', {
+        eRequest: {
+          action: 'emit',
+          params: {
+            oficina: this.form.oficina,
+            axo: this.form.axo,
+            periodo: this.form.periodo,
+            mercado: this.form.mercado,
+            usuario_id: this.$store.state.user.id // Asumiendo autenticación
+          }
+        }
+      }).then(resp => {
+        if (resp.data.eResponse.success) {
+          this.successMsg = resp.data.eResponse.message;
         } else {
-          this.error = data.eResponse.message || 'Error al emitir';
+          this.error = resp.data.eResponse.message || 'Error al emitir';
         }
         this.loading = false;
-      } catch (err) {
+      }).catch(err => {
         this.error = 'Error al emitir';
         this.loading = false;
-      }
+      });
     },
     currency(val) {
       if (val == null) return '';

@@ -1,19 +1,16 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="book" /></div>
-      <div class="module-view-info">
-        <h1>Catálogo de Mercados</h1>
-        <p>Mercados - Catálogo de Mercados</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="catalogo-mercados-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Catálogo de Mercados</li>
+      </ol>
+    </nav>
     <h1>Catálogo de Mercados Municipales</h1>
     <div class="mb-3">
-      <button class="btn-municipal-primary" @click="showCreateForm = true">Agregar Mercado</button>
+      <button class="btn btn-primary" @click="showCreateForm = true">Agregar Mercado</button>
     </div>
-    <table class="municipal-table">
+    <table class="table table-striped">
       <thead>
         <tr>
           <th>Oficina</th>
@@ -38,8 +35,8 @@
           <td>{{ mercado.id_zona }}</td>
           <td>{{ mercado.tipo_emision }}</td>
           <td>
-            <button class="btn-icon btn-warning" @click="editMercado(mercado)">Editar</button>
-            <button class="btn-icon btn-danger" @click="deleteMercado(mercado)">Eliminar</button>
+            <button class="btn btn-sm btn-warning" @click="editMercado(mercado)">Editar</button>
+            <button class="btn btn-sm btn-danger" @click="deleteMercado(mercado)">Eliminar</button>
           </td>
         </tr>
       </tbody>
@@ -52,43 +49,43 @@
           <form @submit.prevent="showEditForm ? updateMercado() : createMercado()">
             <div class="form-group">
               <label>Oficina</label>
-              <input v-model="form.oficina" type="number" class="municipal-form-control" required :readonly="showEditForm">
+              <input v-model="form.oficina" type="number" class="form-control" required :readonly="showEditForm">
             </div>
             <div class="form-group">
               <label>Núm. Mercado</label>
-              <input v-model="form.num_mercado_nvo" type="number" class="municipal-form-control" required :readonly="showEditForm">
+              <input v-model="form.num_mercado_nvo" type="number" class="form-control" required :readonly="showEditForm">
             </div>
             <div class="form-group">
               <label>Nombre</label>
-              <input v-model="form.descripcion" type="text" class="municipal-form-control" required>
+              <input v-model="form.descripcion" type="text" class="form-control" required>
             </div>
             <div class="form-group">
               <label>Categoría</label>
-              <input v-model="form.categoria" type="number" class="municipal-form-control" required>
+              <input v-model="form.categoria" type="number" class="form-control" required>
             </div>
             <div class="form-group">
               <label>Cuenta Ingreso</label>
-              <input v-model="form.cuenta_ingreso" type="number" class="municipal-form-control" required>
+              <input v-model="form.cuenta_ingreso" type="number" class="form-control" required>
             </div>
             <div class="form-group">
               <label>Cuenta Energía</label>
-              <input v-model="form.cuenta_energia" type="number" class="municipal-form-control">
+              <input v-model="form.cuenta_energia" type="number" class="form-control">
             </div>
             <div class="form-group">
               <label>Zona</label>
-              <input v-model="form.id_zona" type="number" class="municipal-form-control" required>
+              <input v-model="form.id_zona" type="number" class="form-control" required>
             </div>
             <div class="form-group">
               <label>Tipo Emisión</label>
-              <select v-model="form.tipo_emision" class="municipal-form-control" required>
+              <select v-model="form.tipo_emision" class="form-control" required>
                 <option value="M">Masiva</option>
                 <option value="D">Diskette</option>
                 <option value="B">Baja</option>
               </select>
             </div>
             <div class="form-group text-right">
-              <button type="submit" class="btn-municipal-success">Guardar</button>
-              <button type="button" class="btn-municipal-secondary" @click="closeForm">Cancelar</button>
+              <button type="submit" class="btn btn-success">Guardar</button>
+              <button type="button" class="btn btn-secondary" @click="closeForm">Cancelar</button>
             </div>
           </form>
         </div>
@@ -96,13 +93,10 @@
     </div>
     <!-- Reporte -->
     <div class="mt-4">
-      <button class="btn-municipal-info" @click="generarReporte">Generar Reporte PDF</button>
+      <button class="btn btn-info" @click="generarReporte">Generar Reporte PDF</button>
       <a v-if="reporteUrl" :href="reporteUrl" target="_blank" class="btn btn-success ml-2">Descargar PDF</a>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -131,88 +125,56 @@ export default {
     this.fetchMercados();
   },
   methods: {
-    async fetchMercados() {
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getCatalogoMercados',
-            params: {}
-          })
-        });
-        const resData = await res.json();
-        if (resData.success) {
-          this.mercados = resData.data;
+    fetchMercados() {
+      this.$axios.post('/api/execute', {
+        action: 'getCatalogoMercados',
+        params: {}
+      }).then(res => {
+        if (res.data.success) {
+          this.mercados = res.data.data;
         }
-      } catch (err) {
-        console.error('Error al cargar mercados:', err);
-      }
+      });
     },
-    async createMercado() {
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'createCatalogoMercado',
-            params: this.form
-          })
-        });
-        const resData = await res.json();
-        if (resData.success) {
+    createMercado() {
+      this.$axios.post('/api/execute', {
+        action: 'createCatalogoMercado',
+        params: this.form
+      }).then(res => {
+        if (res.data.success) {
           this.fetchMercados();
           this.closeForm();
         }
-      } catch (err) {
-        console.error('Error al crear mercado:', err);
-      }
+      });
     },
     editMercado(mercado) {
       this.form = { ...mercado };
       this.showEditForm = true;
       this.showCreateForm = false;
     },
-    async updateMercado() {
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'updateCatalogoMercado',
-            params: this.form
-          })
-        });
-        const resData = await res.json();
-        if (resData.success) {
+    updateMercado() {
+      this.$axios.post('/api/execute', {
+        action: 'updateCatalogoMercado',
+        params: this.form
+      }).then(res => {
+        if (res.data.success) {
           this.fetchMercados();
           this.closeForm();
         }
-      } catch (err) {
-        console.error('Error al actualizar mercado:', err);
-      }
+      });
     },
-    async deleteMercado(mercado) {
+    deleteMercado(mercado) {
       if (confirm('¿Está seguro de eliminar este mercado?')) {
-        try {
-          const res = await fetch('/api/execute', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'deleteCatalogoMercado',
-              params: {
-                oficina: mercado.oficina,
-                num_mercado_nvo: mercado.num_mercado_nvo
-              }
-            })
-          });
-          const resData = await res.json();
-          if (resData.success) {
+        this.$axios.post('/api/execute', {
+          action: 'deleteCatalogoMercado',
+          params: {
+            oficina: mercado.oficina,
+            num_mercado_nvo: mercado.num_mercado_nvo
+          }
+        }).then(res => {
+          if (res.data.success) {
             this.fetchMercados();
           }
-        } catch (err) {
-          console.error('Error al eliminar mercado:', err);
-        }
+        });
       }
     },
     closeForm() {
@@ -230,25 +192,17 @@ export default {
         usuario_id: 1
       };
     },
-    async generarReporte() {
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getCatalogoMercadosReporte',
-            params: {}
-          })
-        });
-        const resData = await res.json();
-        if (resData.success && resData.data && resData.data.pdf_url) {
-          this.reporteUrl = resData.data.pdf_url;
+    generarReporte() {
+      this.$axios.post('/api/execute', {
+        action: 'getCatalogoMercadosReporte',
+        params: {}
+      }).then(res => {
+        if (res.data.success && res.data.data && res.data.data.pdf_url) {
+          this.reporteUrl = res.data.data.pdf_url;
         } else {
           alert('No se pudo generar el reporte.');
         }
-      } catch (err) {
-        console.error('Error al generar reporte:', err);
-      }
+      });
     }
   }
 };

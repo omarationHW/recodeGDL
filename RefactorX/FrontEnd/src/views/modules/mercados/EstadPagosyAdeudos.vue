@@ -1,202 +1,76 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="chart-bar" />
+  <div class="estad-pagos-adeudos-page">
+    <nav class="breadcrumb">
+      <span>Inicio</span> &gt; <span>Reportes</span> &gt; <span>Estadística de Pagos y Adeudos</span>
+    </nav>
+    <h1>Estadística de Pagos y Adeudos</h1>
+    <form @submit.prevent="onConsultar">
+      <div class="form-row">
+        <label for="recaudadora">Recaudadora:</label>
+        <select v-model="form.rec" id="recaudadora" required>
+          <option v-for="r in recs" :key="r.id_rec" :value="r.id_rec">{{ r.recaudadora }}</option>
+        </select>
       </div>
-      <div class="module-view-info">
-        <h1>Estadística de Pagos y Adeudos</h1>
-        <p>Mercados - Reportes Estadísticos de Pagos y Adeudos</p>
+      <div class="form-row">
+        <label for="axo">Año:</label>
+        <input type="number" v-model.number="form.axo" id="axo" min="1995" max="2100" required />
+        <label for="mes">Mes:</label>
+        <input type="number" v-model.number="form.mes" id="mes" min="1" max="12" required />
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="form-row">
+        <label for="fecdsd">Fecha Desde:</label>
+        <input type="date" v-model="form.fecdsd" id="fecdsd" required />
+        <label for="fechst">Fecha Hasta:</label>
+        <input type="date" v-model="form.fechst" id="fechst" required />
+      </div>
+      <div class="form-row">
+        <button type="submit">Consultar</button>
+        <button type="button" @click="onExport">Exportar</button>
+      </div>
+    </form>
+    <div v-if="loading" class="loading">Cargando...</div>
+    <div v-if="error" class="error">{{ error }}</div>
+    <div v-if="result && result.length">
+      <h2>Resultados</h2>
+      <table class="result-table">
+        <thead>
+          <tr>
+            <th>Mercado</th>
+            <th>Nombre</th>
+            <th>Locales Pagados</th>
+            <th>Importe Pagado</th>
+            <th>Periodos Pagados</th>
+            <th>Locales Capturados</th>
+            <th>Importe Capturado</th>
+            <th>Periodos Capturados</th>
+            <th>Locales con Adeudo</th>
+            <th>Importe Adeudo</th>
+            <th>Periodos Adeudo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in result" :key="row.num_mercado_nvo">
+            <td>{{ row.num_mercado_nvo }}</td>
+            <td>{{ row.descripcion }}</td>
+            <td>{{ row.localpag }}</td>
+            <td>{{ currency(row.pagospag) }}</td>
+            <td>{{ row.periodospag }}</td>
+            <td>{{ row.localcap }}</td>
+            <td>{{ currency(row.pagoscap) }}</td>
+            <td>{{ row.periodoscap }}</td>
+            <td>{{ row.localade }}</td>
+            <td>{{ currency(row.pagosade) }}</td>
+            <td>{{ row.periodosade }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <div class="module-view-content">
-      <!-- Filtros de búsqueda -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="filter" />
-            Filtros de Consulta
-          </h5>
-        </div>
-        <div class="municipal-card-body">
-          <form @submit.prevent="onConsultar">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label" for="recaudadora">Recaudadora:</label>
-                <select class="municipal-form-control" v-model="form.rec" id="recaudadora" required>
-                  <option value="">Seleccione una recaudadora</option>
-                  <option v-for="r in recs" :key="r.id_rec" :value="r.id_rec">
-                    {{ r.id_rec }} - {{ r.recaudadora }}
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label" for="axo">Año:</label>
-                <input
-                  type="number"
-                  class="municipal-form-control"
-                  v-model.number="form.axo"
-                  id="axo"
-                  min="1995"
-                  max="2100"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label class="municipal-form-label" for="mes">Mes:</label>
-                <input
-                  type="number"
-                  class="municipal-form-control"
-                  v-model.number="form.mes"
-                  id="mes"
-                  min="1"
-                  max="12"
-                  required
-                />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label" for="fecdsd">Fecha Desde:</label>
-                <input
-                  type="date"
-                  class="municipal-form-control"
-                  v-model="form.fecdsd"
-                  id="fecdsd"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label class="municipal-form-label" for="fechst">Fecha Hasta:</label>
-                <input
-                  type="date"
-                  class="municipal-form-control"
-                  v-model="form.fechst"
-                  id="fechst"
-                  required
-                />
-              </div>
-            </div>
-            <div class="button-group">
-              <button
-                type="submit"
-                class="btn-municipal-primary"
-                :disabled="loading"
-              >
-                <font-awesome-icon icon="search" />
-                Consultar
-              </button>
-              <button
-                type="button"
-                class="btn-municipal-secondary"
-                @click="onExport"
-                :disabled="loading || !result.length"
-              >
-                <font-awesome-icon icon="file-export" />
-                Exportar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Resultados -->
-      <div class="municipal-card" v-if="result && result.length">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="table" />
-            Resultados de la Consulta
-            <span class="badge-info">{{ result.length }} mercados</span>
-          </h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="table-responsive">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr>
-                  <th>Mercado</th>
-                  <th>Nombre</th>
-                  <th>Locales Pagados</th>
-                  <th>Importe Pagado</th>
-                  <th>Periodos Pagados</th>
-                  <th>Locales Capturados</th>
-                  <th>Importe Capturado</th>
-                  <th>Periodos Capturados</th>
-                  <th>Locales con Adeudo</th>
-                  <th>Importe Adeudo</th>
-                  <th>Periodos Adeudo</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in result" :key="row.num_mercado_nvo" class="row-hover">
-                  <td><strong class="text-primary">{{ row.num_mercado_nvo }}</strong></td>
-                  <td>{{ row.descripcion }}</td>
-                  <td><span class="badge-success">{{ row.localpag }}</span></td>
-                  <td><strong>{{ currency(row.pagospag) }}</strong></td>
-                  <td>{{ row.periodospag }}</td>
-                  <td><span class="badge-info">{{ row.localcap }}</span></td>
-                  <td><strong>{{ currency(row.pagoscap) }}</strong></td>
-                  <td>{{ row.periodoscap }}</td>
-                  <td><span class="badge-danger">{{ row.localade }}</span></td>
-                  <td><strong class="text-danger">{{ currency(row.pagosade) }}</strong></td>
-                  <td>{{ row.periodosade }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando estadísticas...</p>
-        </div>
-      </div>
-
-      <!-- Toast Notifications -->
-      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-        <span class="toast-message">{{ toast.message }}</span>
-        <button class="toast-close" @click="hideToast">
-          <font-awesome-icon icon="times" />
-        </button>
-      </div>
-    </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'EstadPagosyAdeudos'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
   name: 'EstadPagosyAdeudosPage',
-  components: {
-    DocumentationModal
-  },
   data() {
     return {
       recs: [],
@@ -209,13 +83,7 @@ export default {
       },
       result: [],
       loading: false,
-      error: '',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }
+      error: ''
     };
   },
   created() {
@@ -224,28 +92,6 @@ export default {
     this.form.fechst = this.formatDate(new Date());
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async fetchRecaudadoras() {
       this.loading = true;
       this.error = '';
@@ -264,14 +110,11 @@ export default {
         if (data.eResponse.status === 'ok') {
           this.recs = data.eResponse.data;
           if (this.recs.length) this.form.rec = this.recs[0].id_rec;
-          this.showToast('success', 'Recaudadoras cargadas correctamente');
         } else {
           this.error = data.eResponse.message;
-          this.showToast('error', 'Error al cargar recaudadoras');
         }
       } catch (e) {
         this.error = e.message;
-        this.showToast('error', `Error: ${e.message}`);
       } finally {
         this.loading = false;
       }
@@ -300,20 +143,17 @@ export default {
         const data = await res.json();
         if (data.eResponse.status === 'ok') {
           this.result = data.eResponse.data;
-          this.showToast('success', `Consulta exitosa: ${this.result.length} mercados encontrados`);
         } else {
           this.error = data.eResponse.message;
-          this.showToast('error', 'Error al consultar estadísticas');
         }
       } catch (e) {
         this.error = e.message;
-        this.showToast('error', `Error: ${e.message}`);
       } finally {
         this.loading = false;
       }
     },
     onExport() {
-      this.showToast('info', 'Funcionalidad de exportación próximamente');
+      alert('Funcionalidad de exportación no implementada en este ejemplo.');
     },
     formatDate(date) {
       const d = new Date(date);
@@ -331,6 +171,55 @@ export default {
 </script>
 
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.estad-pagos-adeudos-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.breadcrumb {
+  font-size: 0.95em;
+  color: #888;
+  margin-bottom: 1rem;
+}
+.form-row {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+.form-row label {
+  min-width: 120px;
+  margin-right: 0.5rem;
+}
+.form-row input, .form-row select {
+  margin-right: 1.5rem;
+  padding: 0.3em 0.5em;
+}
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+}
+.result-table th, .result-table td {
+  border: 1px solid #ccc;
+  padding: 0.5em 0.7em;
+  text-align: right;
+}
+.result-table th {
+  background: #f5f5f5;
+  text-align: center;
+}
+.result-table td:first-child, .result-table th:first-child {
+  text-align: center;
+}
+.result-table td:nth-child(2), .result-table th:nth-child(2) {
+  text-align: left;
+}
+.loading {
+  color: #007bff;
+  font-weight: bold;
+}
+.error {
+  color: #c00;
+  font-weight: bold;
+}
 </style>

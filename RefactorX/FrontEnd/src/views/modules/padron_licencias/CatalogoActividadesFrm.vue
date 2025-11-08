@@ -1,832 +1,851 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="tasks" />
       </div>
       <div class="module-view-info">
         <h1>Catálogo de Actividades</h1>
-        <p>Padrón de Licencias - Gestión de Actividades Comerciales</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+        <p>Padrón de Licencias - Gestión de Actividades Comerciales</p>
+      </div>
+      <div class="button-group ms-auto">
         <button
-          class="btn-municipal-primary"
-          @click="openCreateModal"
+          class="btn-municipal-success"
+          @click="abrirModalNuevo"
           :disabled="loading"
         >
           <font-awesome-icon icon="plus" />
-          Nueva Actividad
+          Nuevo
+        </button>
+        <button
+          class="btn-municipal-primary"
+          @click="buscar"
+          :disabled="loading"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
 
     <div class="module-view-content">
-
-    <!-- Filtros de búsqueda -->
-    <div class="municipal-card">
-      <div class="municipal-card-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="municipal-form-label">Giro</label>
-            <select class="municipal-form-control" v-model="filters.id_giro">
-              <option value="">Todos los giros</option>
-              <option v-for="giro in giros" :key="giro.id_giro" :value="giro.id_giro">
-                {{ giro.descripcion }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Descripción</label>
-            <input
-              type="text"
-              class="municipal-form-control"
-              v-model="filters.descripcion"
-              placeholder="Buscar por descripción"
-            >
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Estado</label>
-            <select class="municipal-form-control" v-model="filters.vigente">
-              <option value="">Todos</option>
-              <option value="true">Vigente</option>
-              <option value="false">No Vigente</option>
-            </select>
-          </div>
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header clickable-header" @click="toggleFilters">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Búsqueda
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
         </div>
-        <div class="button-group">
-          <button
-            class="btn-municipal-primary"
-            @click="searchActividades"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="search" />
-            Buscar
-          </button>
-          <button
-            class="btn-municipal-secondary"
-            @click="clearFilters"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="times" />
-            Limpiar
-          </button>
-          <button
-            class="btn-municipal-secondary"
-            @click="loadActividades"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="sync-alt" />
-            Actualizar
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <!-- Tabla de resultados -->
-    <div class="municipal-card">
-      <div class="municipal-card-header">
-        <h5>
-          <font-awesome-icon icon="list" />
-          Actividades Registradas
-          <span class="badge-info" v-if="actividades.length > 0">{{ actividades.length }} registros</span>
-        </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div v-show="showFilters" class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Genérico:</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="filters.generico"
+                placeholder="Código genérico"
+                @keyup.enter="buscar"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Uso:</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="filters.uso"
+                placeholder="Código de uso"
+                @keyup.enter="buscar"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Concepto:</label>
+              <input
+                type="text"
+                class="municipal-form-control"
+                v-model="filters.concepto"
+                placeholder="Buscar por concepto"
+                @keyup.enter="buscar"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">&nbsp;</label>
+              <div class="btn-group-actions">
+                <button @click="buscar" class="btn-municipal-primary" :disabled="loading">
+                  <font-awesome-icon icon="search" /> Buscar
+                </button>
+                <button @click="limpiarFiltros" class="btn-municipal-secondary" :disabled="loading">
+                  <font-awesome-icon icon="eraser" /> Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr>
-                <th>ID</th>
-                <th>Giro</th>
-                <th>Descripción</th>
-                <th>Observaciones</th>
-                <th>Vigente</th>
-                <th>Fecha Alta</th>
-                <th>Usuario Alta</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="actividad in filteredActividades" :key="actividad.id_actividad" class="row-hover">
-                <td><strong class="text-primary">{{ actividad.id_actividad }}</strong></td>
-                <td>
-                  <span class="badge-secondary">
-                    {{ getGiroDescripcion(actividad.id_giro) }}
-                  </span>
-                </td>
-                <td>{{ actividad.descripcion || 'N/A' }}</td>
-                <td>
-                  <small class="text-muted">
-                    {{ actividad.observaciones || 'Sin observaciones' }}
-                  </small>
-                </td>
-                <td>
-                  <span class="badge" :class="actividad.vigente ? 'badge-success' : 'badge-danger'">
-                    <font-awesome-icon :icon="actividad.vigente ? 'check-circle' : 'times-circle'" />
-                    {{ actividad.vigente ? 'Vigente' : 'No Vigente' }}
-                  </span>
-                </td>
-                <td>
-                  <small class="text-muted">
-                    <font-awesome-icon icon="calendar" />
-                    {{ formatDate(actividad.fecha_alta) }}
-                  </small>
-                </td>
-                <td>{{ actividad.usuario_alta || 'N/A' }}</td>
-                <td>
-                  <div class="button-group button-group-sm">
-                    <button
-                      class="btn-municipal-info btn-sm"
-                      @click="viewActividad(actividad)"
-                      title="Ver detalles"
-                    >
-                      <font-awesome-icon icon="eye" />
-                    </button>
-                    <button
-                      class="btn-municipal-primary btn-sm"
-                      @click="editActividad(actividad)"
-                      title="Editar"
-                    >
-                      <font-awesome-icon icon="edit" />
-                    </button>
-                    <button
-                      class="btn-municipal-danger btn-sm"
-                      @click="confirmDeleteActividad(actividad)"
-                      title="Eliminar"
-                    >
-                      <font-awesome-icon icon="trash" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="filteredActividades.length === 0 && !loading">
-                <td colspan="8" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron actividades con los criterios especificados</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && actividades.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando actividades...</p>
-      </div>
-    </div>
-
-    <!-- Modal de creación -->
-    <Modal
-      :show="showCreateModal"
-      title="Crear Nueva Actividad"
-      size="xl"
-      @close="showCreateModal = false"
-      @confirm="createActividad"
-      :loading="creatingActividad"
-      confirmText="Crear Actividad"
-      cancelText="Cancelar"
-      :showDefaultFooter="true"
-      :confirmButtonClass="'btn-municipal-primary'"
-    >
-      <form @submit.prevent="createActividad">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="municipal-form-label">Giro: <span class="required">*</span></label>
-            <select class="municipal-form-control" v-model="newActividad.id_giro" required>
-              <option value="">Seleccionar giro...</option>
-              <option v-for="giro in giros" :key="giro.id_giro" :value="giro.id_giro">
-                {{ giro.descripcion }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Vigente:</label>
-            <select class="municipal-form-control" v-model="newActividad.vigente">
-              <option :value="true">Vigente</option>
-              <option :value="false">No Vigente</option>
-            </select>
+      <!-- Tabla de resultados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Listado de Actividades
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="totalRegistros > 0">
+              {{ totalRegistros.toLocaleString() }} registros
+            </span>
           </div>
         </div>
-        <div class="form-group full-width">
-          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="newActividad.descripcion"
-            required
-          >
-        </div>
-        <div class="form-group full-width">
-          <label class="municipal-form-label">Observaciones:</label>
-          <textarea
-            class="municipal-form-control"
-            v-model="newActividad.observaciones"
-            rows="3"
-          ></textarea>
-        </div>
-      </form>
-    </Modal>
-
-    <!-- Modal de edición -->
-    <Modal
-      :show="showEditModal"
-      :title="`Editar Actividad: ${selectedActividad?.descripcion}`"
-      size="xl"
-      @close="showEditModal = false"
-      @confirm="updateActividad"
-      :loading="updatingActividad"
-      confirmText="Guardar Cambios"
-      cancelText="Cancelar"
-      :showDefaultFooter="true"
-      :confirmButtonClass="'btn-municipal-primary'"
-    >
-      <form @submit.prevent="updateActividad">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="municipal-form-label">ID (No editable):</label>
-            <input
-              type="text"
-              class="municipal-form-control"
-              :value="editForm.id_actividad"
-              disabled
-            >
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th style="width: 10%; text-align: center;">
+                    <font-awesome-icon icon="hashtag" class="me-1" />
+                    Genérico
+                  </th>
+                  <th style="width: 10%; text-align: center;">
+                    <font-awesome-icon icon="hashtag" class="me-1" />
+                    Uso
+                  </th>
+                  <th style="width: 10%; text-align: center;">
+                    <font-awesome-icon icon="hashtag" class="me-1" />
+                    Actividad
+                  </th>
+                  <th style="width: 55%;">
+                    <font-awesome-icon icon="align-left" class="me-2" />
+                    Concepto
+                  </th>
+                  <th style="width: 15%; text-align: center;">
+                    <font-awesome-icon icon="cogs" class="me-1" />
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loading">
+                  <td colspan="5" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Cargando...</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-else-if="actividades.length === 0">
+                  <td colspan="5" class="empty-state">
+                    <div class="empty-state-content">
+                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
+                      <p class="empty-state-text">No se encontraron actividades con los filtros seleccionados</p>
+                      <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda o presiona "Actualizar"</p>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-else v-for="actividad in actividades" :key="`${actividad.generico}-${actividad.uso}-${actividad.actividad}`" class="clickable-row">
+                  <td style="text-align: center;">
+                    <span class="badge badge-light-secondary">{{ actividad.generico }}</span>
+                  </td>
+                  <td style="text-align: center;">
+                    <span class="badge badge-light-info">{{ actividad.uso }}</span>
+                  </td>
+                  <td style="text-align: center;">
+                    <span class="badge badge-light-primary">{{ actividad.actividad }}</span>
+                  </td>
+                  <td>
+                    <div class="giro-name">
+                      <font-awesome-icon icon="file-alt" class="giro-icon" />
+                      <span class="giro-text">{{ actividad.concepto }}</span>
+                    </div>
+                  </td>
+                  <td style="text-align: center;">
+                    <div class="btn-group-actions">
+                      <button @click.stop="verDetalle(actividad)" class="btn-table btn-table-info" title="Ver detalle">
+                        <font-awesome-icon icon="eye" />
+                      </button>
+                      <button @click.stop="editarActividad(actividad)" class="btn-table btn-table-primary" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button
+                        @click.stop="confirmarEliminar(actividad)"
+                        class="btn-table btn-table-danger"
+                        title="Eliminar"
+                      >
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Giro: <span class="required">*</span></label>
-            <select class="municipal-form-control" v-model="editForm.id_giro" required>
-              <option value="">Seleccionar giro...</option>
-              <option v-for="giro in giros" :key="giro.id_giro" :value="giro.id_giro">
-                {{ giro.descripcion }}
-              </option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group full-width">
-          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="editForm.descripcion"
-            required
-          >
-        </div>
-        <div class="form-group full-width">
-          <label class="municipal-form-label">Observaciones:</label>
-          <textarea
-            class="municipal-form-control"
-            v-model="editForm.observaciones"
-            rows="3"
-          ></textarea>
-        </div>
-        <div class="form-group">
-          <label class="municipal-form-label">Estado:</label>
-          <select class="municipal-form-control" v-model="editForm.vigente">
-            <option :value="true">Vigente</option>
-            <option :value="false">No Vigente</option>
-          </select>
-        </div>
-      </form>
-    </Modal>
 
-    <!-- Modal de visualización -->
-    <Modal
-      :show="showViewModal"
-      :title="`Detalles de la Actividad: ${selectedActividad?.descripcion}`"
-      size="lg"
-      @close="showViewModal = false"
-      :showDefaultFooter="false"
-    >
-      <div v-if="selectedActividad" class="user-details">
-        <div class="details-grid">
-          <div class="detail-section">
-            <h6 class="section-title">
+          <!-- Paginación -->
+          <div class="pagination-container" v-if="totalRegistros > 0 && !loading">
+            <div class="pagination-info">
               <font-awesome-icon icon="info-circle" />
-              Información General
-            </h6>
-            <table class="detail-table">
-              <tr>
-                <td class="label">ID Actividad:</td>
-                <td><code>{{ selectedActividad.id_actividad }}</code></td>
-              </tr>
-              <tr>
-                <td class="label">Giro:</td>
-                <td>
-                  <span class="badge-secondary">
-                    {{ getGiroDescripcion(selectedActividad.id_giro) }}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td class="label">Descripción:</td>
-                <td>{{ selectedActividad.descripcion || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="label">Observaciones:</td>
-                <td>{{ selectedActividad.observaciones || 'Sin observaciones' }}</td>
-              </tr>
-              <tr>
-                <td class="label">Estado:</td>
-                <td>
-                  <span class="badge" :class="selectedActividad.vigente ? 'badge-success' : 'badge-danger'">
-                    <font-awesome-icon :icon="selectedActividad.vigente ? 'check-circle' : 'times-circle'" />
-                    {{ selectedActividad.vigente ? 'Vigente' : 'No Vigente' }}
-                  </span>
-                </td>
-              </tr>
-            </table>
+              Mostrando {{ ((paginaActual - 1) * registrosPorPagina) + 1 }}
+              a {{ Math.min(paginaActual * registrosPorPagina, totalRegistros) }}
+              de {{ totalRegistros }} registros
+            </div>
+
+            <div class="pagination-controls">
+              <div class="page-size-selector">
+                <label>Mostrar:</label>
+                <select v-model="registrosPorPagina" @change="cambiarTamanioPagina">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+              </div>
+
+              <div class="pagination-nav">
+                <button
+                  class="pagination-button"
+                  @click="cambiarPagina(paginaActual - 1)"
+                  :disabled="paginaActual === 1"
+                >
+                  <font-awesome-icon icon="chevron-left" />
+                </button>
+
+                <button
+                  v-for="page in visiblePages"
+                  :key="page"
+                  class="pagination-button"
+                  :class="{ active: page === paginaActual }"
+                  @click="cambiarPagina(page)"
+                >
+                  {{ page }}
+                </button>
+
+                <button
+                  class="pagination-button"
+                  @click="cambiarPagina(paginaActual + 1)"
+                  :disabled="paginaActual === totalPaginas"
+                >
+                  <font-awesome-icon icon="chevron-right" />
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="detail-section">
-            <h6 class="section-title">
-              <font-awesome-icon icon="calendar-alt" />
-              Información de Registro
-            </h6>
-            <table class="detail-table">
-              <tr>
-                <td class="label">Fecha Alta:</td>
-                <td>
-                  <font-awesome-icon icon="calendar-plus" class="text-success" />
-                  {{ formatDate(selectedActividad.fecha_alta) }}
-                </td>
-              </tr>
-              <tr>
-                <td class="label">Usuario Alta:</td>
-                <td>{{ selectedActividad.usuario_alta || 'N/A' }}</td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-municipal-secondary" @click="showViewModal = false">
-            <font-awesome-icon icon="times" />
-            Cerrar
-          </button>
-          <button class="btn-municipal-primary" @click="editActividad(selectedActividad); showViewModal = false">
-            <font-awesome-icon icon="edit" />
-            Editar Actividad
-          </button>
         </div>
       </div>
-    </Modal>
-
     </div>
-    <!-- /module-view-content -->
+
+    <!-- Modal para detalle/edición/creación -->
+    <Modal
+      :show="mostrarModal"
+      size="lg"
+      @close="cerrarModal"
+    >
+      <template #header>
+        <h5 class="modal-title">
+          <font-awesome-icon
+            :icon="modoEdicion === 'crear' ? 'plus-circle' : modoEdicion === 'editar' ? 'edit' : 'eye'"
+            class="me-2"
+            :class="{
+              'text-success': modoEdicion === 'crear',
+              'text-primary': modoEdicion === 'editar',
+              'text-info': modoEdicion === 'ver'
+            }"
+          />
+          {{ modalTitle }}
+        </h5>
+      </template>
+      <template #default>
+        <div class="giro-modal-content">
+          <!-- Sección: Códigos de Clasificación -->
+          <div class="modal-section">
+            <div class="section-header">
+              <font-awesome-icon icon="hashtag" class="section-icon" />
+              <h6 class="section-title">Códigos de Clasificación</h6>
+            </div>
+
+            <div class="modal-grid-3">
+              <div class="form-group-modal">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="layer-group" class="label-icon" />
+                  Genérico <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  class="form-input-modal"
+                  v-model.number="actividadForm.generico"
+                  :readonly="modoEdicion !== 'crear'"
+                  :disabled="modoEdicion !== 'crear'"
+                  placeholder="Código genérico"
+                />
+                <div class="form-hint" v-if="modoEdicion === 'crear'">Código de categoría genérica</div>
+              </div>
+
+              <div class="form-group-modal">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="th-large" class="label-icon" />
+                  Uso <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  class="form-input-modal"
+                  v-model.number="actividadForm.uso"
+                  :readonly="modoEdicion !== 'crear'"
+                  :disabled="modoEdicion !== 'crear'"
+                  placeholder="Código de uso"
+                />
+                <div class="form-hint" v-if="modoEdicion === 'crear'">Código de tipo de uso</div>
+              </div>
+
+              <div class="form-group-modal">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="tag" class="label-icon" />
+                  Actividad <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  class="form-input-modal"
+                  v-model.number="actividadForm.actividad"
+                  :readonly="modoEdicion !== 'crear'"
+                  :disabled="modoEdicion !== 'crear'"
+                  placeholder="Código de actividad"
+                />
+                <div class="form-hint" v-if="modoEdicion === 'crear'">Código específico de actividad</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Descripción -->
+          <div class="modal-section">
+            <div class="section-header">
+              <font-awesome-icon icon="file-alt" class="section-icon" />
+              <h6 class="section-title">Descripción de la Actividad</h6>
+            </div>
+
+            <div class="form-group-modal">
+              <label class="form-label-modal">
+                <font-awesome-icon icon="align-left" class="label-icon" />
+                Concepto <span class="text-danger">*</span>
+              </label>
+              <textarea
+                class="form-input-modal"
+                v-model="actividadForm.concepto"
+                :readonly="modoEdicion === 'ver'"
+                :disabled="modoEdicion === 'ver'"
+                placeholder="Descripción completa del concepto de la actividad comercial o industrial"
+                rows="5"
+                maxlength="120"
+              ></textarea>
+              <div class="form-hint">
+                <span>Máximo 120 caracteres</span>
+                <span class="float-end">
+                  <strong>{{ actividadForm.concepto.length }}</strong>/120
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Información Adicional (solo en modo ver) -->
+          <div v-if="modoEdicion === 'ver'" class="modal-section">
+            <div class="section-header">
+              <font-awesome-icon icon="info-circle" class="section-icon" />
+              <h6 class="section-title">Información del Sistema</h6>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">
+                  <font-awesome-icon icon="barcode" class="me-1" />
+                  Código Completo
+                </div>
+                <div class="info-value">
+                  <span class="badge badge-light-primary">
+                    {{ actividadForm.generico }}.{{ actividadForm.uso }}.{{ actividadForm.actividad }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <div class="info-label">
+                  <font-awesome-icon icon="calendar-alt" class="me-1" />
+                  Estado
+                </div>
+                <div class="info-value">
+                  <span class="badge badge-success">
+                    ✅ Activo en el Sistema
+                  </span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <div class="info-label">
+                  <font-awesome-icon icon="database" class="me-1" />
+                  Esquema
+                </div>
+                <div class="info-value">
+                  <span class="badge badge-light-info">
+                    comun.c_actividades
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button
+          @click="cerrarModal"
+          class="btn-municipal-secondary"
+          :disabled="loading"
+        >
+          <font-awesome-icon icon="times" />
+          {{ modoEdicion === 'ver' ? 'Cerrar' : 'Cancelar' }}
+        </button>
+        <button
+          v-if="modoEdicion === 'crear'"
+          @click="guardarActividad"
+          class="btn-municipal-success"
+          :disabled="loading"
+        >
+          <font-awesome-icon :icon="loading ? 'spinner' : 'save'" :spin="loading" />
+          Crear Actividad
+        </button>
+        <button
+          v-if="modoEdicion === 'editar'"
+          @click="guardarActividad"
+          class="btn-municipal-primary"
+          :disabled="loading"
+        >
+          <font-awesome-icon :icon="loading ? 'spinner' : 'save'" :spin="loading" />
+          Guardar Cambios
+        </button>
+      </template>
+    </Modal>
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
   </div>
-  <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'CatalogoActividadesFrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+</template>
 
 <script setup>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
 const { execute } = useApi()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { handleApiError, showToast, hideToast, getToastIcon, toast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
-// Estado
+// Estado reactivo
 const actividades = ref([])
-const giros = ref([])
-const selectedActividad = ref(null)
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
-const showViewModal = ref(false)
-const creatingActividad = ref(false)
-const updatingActividad = ref(false)
+const todasLasActividades = ref([]) // Cache de todos los datos
+const loading = ref(false)
+const showFilters = ref(false)
+const mostrarModal = ref(false)
+const modoEdicion = ref('ver') // 'ver', 'editar', 'crear'
+const totalRegistros = ref(0)
+const paginaActual = ref(1)
+const registrosPorPagina = ref(10)
 
 // Filtros
 const filters = ref({
-  id_giro: '',
-  descripcion: '',
-  vigente: ''
+  generico: null,
+  uso: null,
+  concepto: ''
 })
 
-// Formularios
-const newActividad = ref({
-  id_giro: '',
-  descripcion: '',
-  observaciones: '',
-  vigente: true
-})
-
-const editForm = ref({
-  id_actividad: null,
-  id_giro: '',
-  descripcion: '',
-  observaciones: '',
-  vigente: true
+// Formulario de actividad
+const actividadForm = ref({
+  generico: null,
+  uso: null,
+  actividad: null,
+  concepto: ''
 })
 
 // Computed
-const filteredActividades = computed(() => {
-  let filtered = actividades.value
+const totalPaginas = computed(() => {
+  return Math.ceil(totalRegistros.value / registrosPorPagina.value)
+})
 
-  if (filters.value.id_giro) {
-    filtered = filtered.filter(a => a.id_giro === parseInt(filters.value.id_giro))
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let start = Math.max(1, paginaActual.value - Math.floor(maxVisible / 2))
+  let end = Math.min(totalPaginas.value, start + maxVisible - 1)
+
+  if (end - start < maxVisible - 1) {
+    start = Math.max(1, end - maxVisible + 1)
   }
 
-  if (filters.value.descripcion) {
-    const search = filters.value.descripcion.toLowerCase()
-    filtered = filtered.filter(a =>
-      a.descripcion?.toLowerCase().includes(search)
-    )
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
   }
+  return pages
+})
 
-  if (filters.value.vigente !== '') {
-    const vigente = filters.value.vigente === 'true'
-    filtered = filtered.filter(a => a.vigente === vigente)
-  }
-
-  return filtered
+const modalTitle = computed(() => {
+  if (modoEdicion.value === 'crear') return 'Nueva Actividad'
+  if (modoEdicion.value === 'editar') return 'Editar Actividad'
+  return 'Detalle de Actividad'
 })
 
 // Métodos
-const loadActividades = async () => {
-  setLoading(true, 'Cargando actividades...')
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
+const openDocumentation = () => {
+  window.open('/docs/padron_licencias/CatalogoActividades.md', '_blank')
+}
+
+const aplicarFiltrosYPaginacion = () => {
+  let filtered = [...todasLasActividades.value]
+
+  // Aplicar filtros
+  if (filters.value.generico) {
+    filtered = filtered.filter(a => a.generico === filters.value.generico)
+  }
+  if (filters.value.uso) {
+    filtered = filtered.filter(a => a.uso === filters.value.uso)
+  }
+  if (filters.value.concepto) {
+    const concepto = filters.value.concepto.toLowerCase()
+    filtered = filtered.filter(a => a.concepto.toLowerCase().includes(concepto))
+  }
+
+  totalRegistros.value = filtered.length
+
+  // Aplicar paginación
+  const start = (paginaActual.value - 1) * registrosPorPagina.value
+  const end = start + registrosPorPagina.value
+  actividades.value = filtered.slice(start, end)
+}
+
+const buscar = async () => {
+  const startTime = performance.now()
+  showLoading('Cargando actividades...', 'Buscando en el catálogo')
+  loading.value = true
 
   try {
+    // El SP no recibe parámetros, siempre trae todo
     const response = await execute(
       'CATALOGO_ACTIVIDADES_LIST',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
-    if (response && response.result) {
-      actividades.value = response.result
-      showToast('success', 'Actividades cargadas correctamente')
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+
+    hideLoading()
+
+    if (response && response.result && response.result.length > 0) {
+      // Guardar todos los datos en cache
+      todasLasActividades.value = response.result
+
+      // Resetear a página 1
+      paginaActual.value = 1
+
+      // Aplicar filtros y paginación
+      aplicarFiltrosYPaginacion()
+
+      showToast('success', `${totalRegistros.value.toLocaleString()} actividades encontradas`, timeMessage)
     } else {
+      todasLasActividades.value = []
       actividades.value = []
-      showToast('error', 'Error al cargar actividades')
+      totalRegistros.value = 0
+      showToast('info', 'No se encontraron actividades', timeMessage)
     }
   } catch (error) {
-    handleApiError(error)
-    actividades.value = []
+    hideLoading()
+    console.error('Error al buscar actividades:', error)
+    handleApiError(error, 'Error al buscar actividades')
   } finally {
-    setLoading(false)
+    loading.value = false
   }
 }
 
-const loadGiros = async () => {
-  try {
-    const response = await execute(
-      'CATALOGO_GIROS_LIST',
-      'padron_licencias',
-      [],
-      'guadalajara'
-    )
-
-    if (response && response.result) {
-      giros.value = response.result
-    } else {
-      giros.value = []
-    }
-  } catch (error) {
-    handleApiError(error)
-    giros.value = []
-  }
-}
-
-const searchActividades = () => {
-  // La búsqueda se hace en el computed filteredActividades
-  showToast('info', 'Aplicando filtros de búsqueda')
-}
-
-const clearFilters = () => {
+const limpiarFiltros = () => {
   filters.value = {
-    id_giro: '',
-    descripcion: '',
-    vigente: ''
+    generico: null,
+    uso: null,
+    concepto: ''
   }
-  showToast('info', 'Filtros limpiados')
+  paginaActual.value = 1
+
+  // Si ya hay datos en cache, solo aplicar filtros y paginación
+  if (todasLasActividades.value.length > 0) {
+    aplicarFiltrosYPaginacion()
+  }
 }
 
-const openCreateModal = () => {
-  newActividad.value = {
-    id_giro: '',
-    descripcion: '',
-    observaciones: '',
-    vigente: true
+const cambiarPagina = (nuevaPagina) => {
+  if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas.value) {
+    paginaActual.value = nuevaPagina
+    // Solo aplicar paginación sobre los datos ya cargados
+    aplicarFiltrosYPaginacion()
   }
-  showCreateModal.value = true
 }
 
-const createActividad = async () => {
-  if (!newActividad.value.id_giro || !newActividad.value.descripcion) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Campos requeridos',
-      text: 'Por favor complete todos los campos obligatorios',
-      confirmButtonColor: '#ea8215'
-    })
-    return
-  }
+const cambiarTamanioPagina = () => {
+  paginaActual.value = 1
+  // Solo aplicar paginación sobre los datos ya cargados
+  aplicarFiltrosYPaginacion()
+}
 
-  const confirmResult = await Swal.fire({
+const verDetalle = async (actividad) => {
+  actividadForm.value = {
+    generico: actividad.generico,
+    uso: actividad.uso,
+    actividad: actividad.actividad,
+    concepto: actividad.concepto.trim()
+  }
+  modoEdicion.value = 'ver'
+  mostrarModal.value = true
+}
+
+const editarActividad = async (actividad) => {
+  actividadForm.value = {
+    generico: actividad.generico,
+    uso: actividad.uso,
+    actividad: actividad.actividad,
+    concepto: actividad.concepto.trim()
+  }
+  modoEdicion.value = 'editar'
+  mostrarModal.value = true
+}
+
+const abrirModalNuevo = () => {
+  actividadForm.value = {
+    generico: null,
+    uso: null,
+    actividad: null,
+    concepto: ''
+  }
+  modoEdicion.value = 'crear'
+  mostrarModal.value = true
+}
+
+const cerrarModal = () => {
+  mostrarModal.value = false
+  actividadForm.value = {
+    generico: null,
+    uso: null,
+    actividad: null,
+    concepto: ''
+  }
+}
+
+const guardarActividad = async () => {
+  if (modoEdicion.value === 'crear') {
+    await crearActividad()
+  } else if (modoEdicion.value === 'editar') {
+    await actualizarActividad()
+  }
+}
+
+const crearActividad = async () => {
+  // Confirmar antes de crear
+  const result = await Swal.fire({
     icon: 'question',
-    title: '¿Confirmar creación de actividad?',
+    title: '¿Crear Nueva Actividad?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se creará una nueva actividad:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Giro:</strong> ${getGiroDescripcion(newActividad.value.id_giro)}</li>
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${newActividad.value.descripcion}</li>
-          <li style="margin: 5px 0;"><strong>Estado:</strong> ${newActividad.value.vigente ? 'Vigente' : 'No Vigente'}</li>
-        </ul>
+      <div style="text-align: left; padding: 1rem;">
+        <p><strong>Genérico:</strong> ${actividadForm.value.generico}</p>
+        <p><strong>Uso:</strong> ${actividadForm.value.uso}</p>
+        <p><strong>Actividad:</strong> ${actividadForm.value.actividad}</p>
+        <p><strong>Concepto:</strong> ${actividadForm.value.concepto}</p>
       </div>
     `,
     showCancelButton: true,
-    confirmButtonColor: '#ea8215',
+    confirmButtonColor: '#28a745',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, crear actividad',
+    confirmButtonText: 'Sí, crear',
     cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmResult.isConfirmed) {
-    return
-  }
+  if (!result.isConfirmed) return
 
-  creatingActividad.value = true
+  showLoading('Creando actividad...', 'Guardando información')
+  // NO modificar loading.value para que la tabla NO se oculte
 
   try {
     const response = await execute(
       'CATALOGO_ACTIVIDADES_CREATE',
       'padron_licencias',
       [
-        { nombre: 'p_id_giro', valor: newActividad.value.id_giro, tipo: 'integer' },
-        { nombre: 'p_descripcion', valor: newActividad.value.descripcion, tipo: 'string' },
-        { nombre: 'p_observaciones', valor: newActividad.value.observaciones || '', tipo: 'string' },
-        { nombre: 'p_vigente', valor: newActividad.value.vigente, tipo: 'boolean' },
-        { nombre: 'p_usuario_alta', valor: 'sistema', tipo: 'string' }
+        { nombre: 'p_generico', valor: actividadForm.value.generico, tipo: 'integer' },
+        { nombre: 'p_uso', valor: actividadForm.value.uso, tipo: 'integer' },
+        { nombre: 'p_actividad', valor: actividadForm.value.actividad, tipo: 'integer' },
+        { nombre: 'p_concepto', valor: actividadForm.value.concepto, tipo: 'character varying' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
+    hideLoading()
+
     if (response && response.result && response.result[0]?.success) {
-      showCreateModal.value = false
-      loadActividades()
-
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Actividad creada!',
-        text: 'La actividad ha sido creada exitosamente',
-        confirmButtonColor: '#ea8215',
-        timer: 2000
-      })
-
       showToast('success', 'Actividad creada exitosamente')
+      cerrarModal()
+      // NO refrescar la consulta automáticamente
     } else {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error al crear actividad',
-        text: response?.result?.[0]?.message || 'Error desconocido',
-        confirmButtonColor: '#ea8215'
-      })
+      const message = response?.result?.[0]?.message || 'Error desconocido'
+      showToast('error', message)
     }
   } catch (error) {
-    handleApiError(error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error de conexión',
-      text: 'No se pudo crear la actividad',
-      confirmButtonColor: '#ea8215'
-    })
-  } finally {
-    creatingActividad.value = false
+    hideLoading()
+    console.error('Error al crear actividad:', error)
+    handleApiError(error, 'Error al crear actividad')
   }
 }
 
-const editActividad = (actividad) => {
-  selectedActividad.value = actividad
-  editForm.value = {
-    id_actividad: actividad.id_actividad,
-    id_giro: actividad.id_giro,
-    descripcion: actividad.descripcion || '',
-    observaciones: actividad.observaciones || '',
-    vigente: actividad.vigente
-  }
-  showEditModal.value = true
-}
-
-const updateActividad = async () => {
-  if (!editForm.value.id_giro || !editForm.value.descripcion) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Campos requeridos',
-      text: 'Por favor complete los campos obligatorios',
-      confirmButtonColor: '#ea8215'
-    })
-    return
-  }
-
-  const confirmResult = await Swal.fire({
+const actualizarActividad = async () => {
+  // Confirmar antes de actualizar
+  const result = await Swal.fire({
     icon: 'question',
-    title: '¿Confirmar actualización?',
+    title: '¿Guardar Cambios?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se actualizarán los datos de la actividad:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>ID:</strong> ${editForm.value.id_actividad}</li>
-          <li style="margin: 5px 0;"><strong>Giro:</strong> ${getGiroDescripcion(editForm.value.id_giro)}</li>
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
-          <li style="margin: 5px 0;"><strong>Estado:</strong> ${editForm.value.vigente ? 'Vigente' : 'No Vigente'}</li>
-        </ul>
+      <div style="text-align: left; padding: 1rem;">
+        <p><strong>Código:</strong> ${actividadForm.value.generico}.${actividadForm.value.uso}.${actividadForm.value.actividad}</p>
+        <p><strong>Concepto Nuevo:</strong> ${actividadForm.value.concepto}</p>
       </div>
     `,
     showCancelButton: true,
-    confirmButtonColor: '#ea8215',
+    confirmButtonColor: '#9363CD',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, guardar cambios',
+    confirmButtonText: 'Sí, guardar',
     cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmResult.isConfirmed) {
-    return
-  }
+  if (!result.isConfirmed) return
 
-  updatingActividad.value = true
+  showLoading('Actualizando actividad...', 'Guardando cambios')
+  // NO modificar loading.value para que la tabla NO se oculte
 
   try {
     const response = await execute(
       'CATALOGO_ACTIVIDADES_UPDATE',
       'padron_licencias',
       [
-        { nombre: 'p_id_actividad', valor: editForm.value.id_actividad, tipo: 'integer' },
-        { nombre: 'p_id_giro', valor: editForm.value.id_giro, tipo: 'integer' },
-        { nombre: 'p_descripcion', valor: editForm.value.descripcion, tipo: 'string' },
-        { nombre: 'p_observaciones', valor: editForm.value.observaciones || '', tipo: 'string' },
-        { nombre: 'p_vigente', valor: editForm.value.vigente, tipo: 'boolean' }
+        { nombre: 'p_generico', valor: actividadForm.value.generico, tipo: 'integer' },
+        { nombre: 'p_uso', valor: actividadForm.value.uso, tipo: 'integer' },
+        { nombre: 'p_actividad', valor: actividadForm.value.actividad, tipo: 'integer' },
+        { nombre: 'p_concepto', valor: actividadForm.value.concepto, tipo: 'character varying' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
+    hideLoading()
+
     if (response && response.result && response.result[0]?.success) {
-      showEditModal.value = false
-      loadActividades()
-
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Actividad actualizada!',
-        text: 'Los datos de la actividad han sido actualizados',
-        confirmButtonColor: '#ea8215',
-        timer: 2000
-      })
-
       showToast('success', 'Actividad actualizada exitosamente')
+      cerrarModal()
+      // NO refrescar la consulta automáticamente
     } else {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error al actualizar',
-        text: response?.result?.[0]?.message || 'Error desconocido',
-        confirmButtonColor: '#ea8215'
-      })
+      const message = response?.result?.[0]?.message || 'Error desconocido'
+      showToast('error', message)
     }
   } catch (error) {
-    handleApiError(error)
-  } finally {
-    updatingActividad.value = false
+    hideLoading()
+    console.error('Error al actualizar actividad:', error)
+    handleApiError(error, 'Error al actualizar actividad')
   }
 }
 
-const viewActividad = (actividad) => {
-  selectedActividad.value = actividad
-  showViewModal.value = true
-}
-
-const confirmDeleteActividad = async (actividad) => {
+const confirmarEliminar = async (actividad) => {
   const result = await Swal.fire({
-    title: '¿Eliminar actividad?',
-    text: `¿Está seguro de eliminar la actividad "${actividad.descripcion}"?`,
+    title: '¿Confirmar eliminación?',
+    html: `
+      <div class="text-start">
+        <p><strong>Genérico:</strong> ${actividad.generico}</p>
+        <p><strong>Uso:</strong> ${actividad.uso}</p>
+        <p><strong>Actividad:</strong> ${actividad.actividad}</p>
+        <p><strong>Concepto:</strong> ${actividad.concepto}</p>
+      </div>
+    `,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#dc3545',
+    confirmButtonColor: '#d33',
     cancelButtonColor: '#6c757d',
     confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar'
   })
 
   if (result.isConfirmed) {
-    await deleteActividad(actividad)
+    await eliminarActividad(actividad)
   }
 }
 
-const deleteActividad = async (actividad) => {
-  setLoading(true, 'Eliminando actividad...')
+const eliminarActividad = async (actividad) => {
+  showLoading('Eliminando actividad...', 'Procesando')
+  // NO modificar loading.value para que la tabla NO se oculte
 
   try {
     const response = await execute(
       'CATALOGO_ACTIVIDADES_DELETE',
       'padron_licencias',
       [
-        { nombre: 'p_id_actividad', valor: actividad.id_actividad, tipo: 'integer' }
+        { nombre: 'p_generico', valor: actividad.generico, tipo: 'integer' },
+        { nombre: 'p_uso', valor: actividad.uso, tipo: 'integer' },
+        { nombre: 'p_actividad', valor: actividad.actividad, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'comun'
     )
 
+    hideLoading()
+
     if (response && response.result && response.result[0]?.success) {
-      loadActividades()
-
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Actividad eliminada!',
-        text: 'La actividad ha sido eliminada exitosamente',
-        confirmButtonColor: '#ea8215',
-        timer: 2000
-      })
-
       showToast('success', 'Actividad eliminada exitosamente')
+      // NO refrescar la consulta automáticamente
     } else {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error al eliminar',
-        text: response?.result?.[0]?.message || 'Error desconocido',
-        confirmButtonColor: '#ea8215'
-      })
+      const message = response?.result?.[0]?.message || 'Error desconocido'
+      showToast('error', message)
     }
   } catch (error) {
-    handleApiError(error)
-  } finally {
-    setLoading(false)
-  }
-}
-
-// Utilidades
-const getGiroDescripcion = (idGiro) => {
-  const giro = giros.value.find(g => g.id_giro === idGiro)
-  return giro ? giro.descripcion : 'N/A'
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'
-  try {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
-  } catch (error) {
-    return 'Fecha inválida'
+    hideLoading()
+    console.error('Error al eliminar actividad:', error)
+    handleApiError(error, 'Error al eliminar actividad')
   }
 }
 
 // Lifecycle
-onMounted(async () => {
-  await loadGiros()
-  await loadActividades()
-})
-
-onBeforeUnmount(() => {
-  showCreateModal.value = false
-  showEditModal.value = false
-  showViewModal.value = false
+onMounted(() => {
+  // No cargar datos automáticamente - el usuario debe presionar "Buscar" o "Actualizar"
 })
 </script>

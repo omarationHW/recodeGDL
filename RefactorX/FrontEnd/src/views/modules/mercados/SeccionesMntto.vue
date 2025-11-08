@@ -1,38 +1,35 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Mantenimiento a Secciones</h1>
-        <p>Mercados - Mantenimiento a Secciones</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card">
-      <div class="municipal-card-header">
+  <div class="secciones-mntto-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Mantenimiento a Secciones</li>
+      </ol>
+    </nav>
+    <div class="card">
+      <div class="card-header">
         <h4>Mantenimiento a Secciones</h4>
       </div>
-      <div class="municipal-card-body">
+      <div class="card-body">
         <form @submit.prevent="onSubmit">
           <div class="row mb-3">
             <div class="col-md-2">
-              <label class="municipal-form-label" for="seccion">Sección</label>
-              <input v-model="form.seccion" id="seccion" maxlength="2" class="municipal-form-control" :disabled="mode==='edit'" required />
+              <label for="seccion" class="form-label">Sección</label>
+              <input v-model="form.seccion" id="seccion" maxlength="2" class="form-control" :disabled="mode==='edit'" required />
             </div>
             <div class="col-md-8">
-              <label class="municipal-form-label" for="descripcion">Descripción</label>
-              <input v-model="form.descripcion" id="descripcion" maxlength="30" class="municipal-form-control" required />
+              <label for="descripcion" class="form-label">Descripción</label>
+              <input v-model="form.descripcion" id="descripcion" maxlength="30" class="form-control" required />
             </div>
           </div>
           <div class="mb-3">
-            <button type="submit" class="btn btn-municipal-primary me-2">{{ mode==='edit' ? 'Actualizar' : 'Agregar' }}</button>
-            <button type="button" class="btn-municipal-secondary" @click="resetForm">Cancelar</button>
+            <button type="submit" class="btn btn-primary me-2">{{ mode==='edit' ? 'Actualizar' : 'Agregar' }}</button>
+            <button type="button" class="btn btn-secondary" @click="resetForm">Cancelar</button>
           </div>
         </form>
         <hr />
         <h5>Listado de Secciones</h5>
-        <table class="municipal-table">
+        <table class="table table-striped">
           <thead>
             <tr>
               <th>Sección</th>
@@ -45,7 +42,7 @@
               <td>{{ item.seccion }}</td>
               <td>{{ item.descripcion }}</td>
               <td>
-                <button class="btn btn-sm btn-municipal-info me-1" @click="editSeccion(item)">Editar</button>
+                <button class="btn btn-sm btn-info me-1" @click="editSeccion(item)">Editar</button>
               </td>
             </tr>
             <tr v-if="secciones.length===0">
@@ -59,9 +56,6 @@
       {{ alert.message }}
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

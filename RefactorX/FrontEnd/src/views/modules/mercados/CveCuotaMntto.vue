@@ -1,18 +1,15 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="money-bill-wave" /></div>
-      <div class="module-view-info">
-        <h1>Claves de Cuota</h1>
-        <p>Mercados - Claves de Cuota</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="cve-cuota-mntto-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Claves de Cuota</li>
+      </ol>
+    </nav>
     <h2>Mantenimiento de Claves para la Cuota</h2>
     <div v-if="!editing">
-      <button class="btn btn-municipal-primary mb-2" @click="startCreate">Nueva Clave de Cuota</button>
-      <table class="-bordered municipal-table-sm">
+      <button class="btn btn-primary mb-2" @click="startCreate">Nueva Clave de Cuota</button>
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Clave Cuota</th>
@@ -25,8 +22,8 @@
             <td>{{ item.clave_cuota }}</td>
             <td>{{ item.descripcion }}</td>
             <td>
-              <button class="btn-icon btn-municipal-info" @click="startEdit(item)">Editar</button>
-              <button class="btn-icon btn-municipal-danger" @click="deleteItem(item)">Eliminar</button>
+              <button class="btn btn-sm btn-info" @click="startEdit(item)">Editar</button>
+              <button class="btn btn-sm btn-danger" @click="deleteItem(item)">Eliminar</button>
             </td>
           </tr>
           <tr v-if="items.length === 0">
@@ -38,24 +35,21 @@
     <div v-else>
       <form @submit.prevent="save">
         <div class="form-group">
-          <label class="municipal-form-label" for="clave_cuota">Clave Cuota</label>
-          <input type="number" min="1" max="5000" class="municipal-form-control" id="clave_cuota" v-model.number="form.clave_cuota" :disabled="editMode === 'edit'">
+          <label for="clave_cuota">Clave Cuota</label>
+          <input type="number" min="1" max="5000" class="form-control" id="clave_cuota" v-model.number="form.clave_cuota" :disabled="editMode === 'edit'">
         </div>
         <div class="form-group">
-          <label class="municipal-form-label" for="descripcion">Descripción</label>
-          <input type="text" class="municipal-form-control" id="descripcion" v-model="form.descripcion" maxlength="60" style="text-transform:uppercase">
+          <label for="descripcion">Descripción</label>
+          <input type="text" class="form-control" id="descripcion" v-model="form.descripcion" maxlength="60" style="text-transform:uppercase">
         </div>
         <div class="form-group mt-3">
-          <button type="submit" class="btn-municipal-success">Guardar</button>
-          <button type="button" class="btn btn-municipal-secondary ml-2" @click="cancel">Cancelar</button>
+          <button type="submit" class="btn btn-success">Guardar</button>
+          <button type="button" class="btn btn-secondary ml-2" @click="cancel">Cancelar</button>
         </div>
       </form>
     </div>
     <div v-if="message" class="alert mt-3" :class="{'alert-success': success, 'alert-danger': !success}">{{ message }}</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

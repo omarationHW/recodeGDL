@@ -1,196 +1,158 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
-      </div>
-      <div class="module-view-info">
-        <h1>Carga Pag Energia Elec</h1>
-        <p>Mercados - Gestión de Pagos</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+  <div class="carga-pag-energia-elec">
+    <h1>Carga de Pagos de Energía Eléctrica</h1>
+    <div class="breadcrumb">
+      <router-link to="/">Inicio</router-link> / Carga de Pagos de Energía Eléctrica
     </div>
-
-    <div class="module-view-content">
-      <div class="carga-pag-energia-elec">
-          <h1>Carga de Pagos de Energía Eléctrica</h1>
-          <div class="breadcrumb">
-            <router-link to="/">Inicio</router-link> / Carga de Pagos de Energía Eléctrica
-          </div>
-          <form @submit.prevent="buscarAdeudos">
-            <fieldset>
-              <legend>Datos del Local</legend>
-              <div class="form-row">
-                <label>Recaudadora:
-                  <select v-model="form.oficina" @change="cargarMercados">
-                    <option v-for="rec in recaudadoras" :key="rec.id" :value="rec.id">{{ rec.nombre }}</option>
-                  </select>
-                </label>
-                <label>Mercado:
-                  <select v-model="form.mercado">
-                    <option v-for="merc in mercados" :key="merc.id" :value="merc.id">{{ merc.descripcion }}</option>
-                  </select>
-                </label>
-                <label>Categoria:
-                  <input v-model="form.categoria" maxlength="1" />
-                </label>
-                <label>Sección:
-                  <select v-model="form.seccion">
-                    <option v-for="sec in secciones" :key="sec" :value="sec">{{ sec }}</option>
-                  </select>
-                </label>
-                <label>Local Desde:
-                  <input v-model="form.local_desde" type="number" min="1" />
-                </label>
-                <label>Local Hasta:
-                  <input v-model="form.local_hasta" type="number" min="1" />
-                </label>
-              </div>
-              <button type="submit">Buscar Adeudos</button>
-            </fieldset>
-          </form>
-      
-          <div v-if="adeudos.length">
-            <h2>Adeudos Encontrados</h2>
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr class="row-hover">
-                  <th>Control</th>
-                  <th>Rec</th>
-                  <th>Merc</th>
-                  <th>Cat</th>
-                  <th>Secc</th>
-                  <th>Local</th>
-                  <th>Letra</th>
-                  <th>Bloque</th>
-                  <th>Cve</th>
-                  <th>Cant F/K</th>
-                  <th>Año</th>
-                  <th>Per</th>
-                  <th>Cuota</th>
-                  <th>Partida</th>
-                  <th>Seleccionar</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(adeudo, idx) in adeudos" :key="adeudo.id_energia" class="row-hover">
-                  <td>{{ adeudo.id_energia }}</td>
-                  <td>{{ adeudo.oficina }}</td>
-                  <td>{{ adeudo.num_mercado }}</td>
-                  <td>{{ adeudo.categoria }}</td>
-                  <td>{{ adeudo.seccion }}</td>
-                  <td>{{ adeudo.local }}</td>
-                  <td>{{ adeudo.letra_local }}</td>
-                  <td>{{ adeudo.bloque }}</td>
-                  <td>{{ adeudo.cve_consumo }}</td>
-                  <td>{{ adeudo.cantidad }}</td>
-                  <td>{{ adeudo.axo }}</td>
-                  <td>{{ adeudo.periodo }}</td>
-                  <td>{{ adeudo.importe }}</td>
-                  <td>
-                    <input v-model="adeudo.partida" placeholder="Partida" />
-                  </td>
-                  <td>
-                    <input type="checkbox" v-model="adeudo.selected" />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <fieldset>
-              <legend>Datos del Pago</legend>
-              <div class="form-row">
-                <label>Fecha de Pago:
-                  <input type="date" v-model="form.fecha_pago" />
-                </label>
-                <label>Oficina:
-                  <select v-model="form.oficina_pago" @change="cargarCajas">
-                    <option v-for="rec in recaudadoras" :key="rec.id" :value="rec.id">{{ rec.nombre }}</option>
-                  </select>
-                </label>
-                <label>Caja:
-                  <select v-model="form.caja_pago">
-                    <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">{{ caja.caja }}</option>
-                  </select>
-                </label>
-                <label>Operación:
-                  <input v-model="form.operacion_pago" type="number" />
-                </label>
-              </div>
-              <button @click="cargarPagos">Cargar Pagos</button>
-              <button @click="consultarPagos">Consultar Pagos</button>
-            </fieldset>
-          </div>
-      
-          <div v-if="pagos.length">
-            <h2>Pagos Realizados</h2>
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr class="row-hover">
-                  <th>ID Pago</th>
-                  <th>ID Energía</th>
-                  <th>Año</th>
-                  <th>Periodo</th>
-                  <th>Fecha Pago</th>
-                  <th>Oficina</th>
-                  <th>Caja</th>
-                  <th>Operación</th>
-                  <th>Importe</th>
-                  <th>Cve Consumo</th>
-                  <th>Cantidad</th>
-                  <th>Folio</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="pago in pagos" :key="pago.id_pago_energia" class="row-hover">
-                  <td>{{ pago.id_pago_energia }}</td>
-                  <td>{{ pago.id_energia }}</td>
-                  <td>{{ pago.axo }}</td>
-                  <td>{{ pago.periodo }}</td>
-                  <td>{{ pago.fecha_pago }}</td>
-                  <td>{{ pago.oficina_pago }}</td>
-                  <td>{{ pago.caja_pago }}</td>
-                  <td>{{ pago.operacion_pago }}</td>
-                  <td>{{ pago.importe_pago }}</td>
-                  <td>{{ pago.cve_consumo }}</td>
-                  <td>{{ pago.cantidad }}</td>
-                  <td>{{ pago.folio }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-      
-          <div v-if="error" class="alert alert-danger">{{ error }}</div>
-          <div v-if="success" class="alert alert-success">{{ success }}</div>
+    <form @submit.prevent="buscarAdeudos">
+      <fieldset>
+        <legend>Datos del Local</legend>
+        <div class="form-row">
+          <label>Recaudadora:
+            <select v-model="form.oficina" @change="cargarMercados">
+              <option v-for="rec in recaudadoras" :key="rec.id" :value="rec.id">{{ rec.nombre }}</option>
+            </select>
+          </label>
+          <label>Mercado:
+            <select v-model="form.mercado">
+              <option v-for="merc in mercados" :key="merc.id" :value="merc.id">{{ merc.descripcion }}</option>
+            </select>
+          </label>
+          <label>Categoria:
+            <input v-model="form.categoria" maxlength="1" />
+          </label>
+          <label>Sección:
+            <select v-model="form.seccion">
+              <option v-for="sec in secciones" :key="sec" :value="sec">{{ sec }}</option>
+            </select>
+          </label>
+          <label>Local Desde:
+            <input v-model="form.local_desde" type="number" min="1" />
+          </label>
+          <label>Local Hasta:
+            <input v-model="form.local_hasta" type="number" min="1" />
+          </label>
         </div>
-    </div>
-    <!-- /module-view-content -->
+        <button type="submit">Buscar Adeudos</button>
+      </fieldset>
+    </form>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'CargaPagEnergiaElec'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
+    <div v-if="adeudos.length">
+      <h2>Adeudos Encontrados</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Control</th>
+            <th>Rec</th>
+            <th>Merc</th>
+            <th>Cat</th>
+            <th>Secc</th>
+            <th>Local</th>
+            <th>Letra</th>
+            <th>Bloque</th>
+            <th>Cve</th>
+            <th>Cant F/K</th>
+            <th>Año</th>
+            <th>Per</th>
+            <th>Cuota</th>
+            <th>Partida</th>
+            <th>Seleccionar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(adeudo, idx) in adeudos" :key="adeudo.id_energia">
+            <td>{{ adeudo.id_energia }}</td>
+            <td>{{ adeudo.oficina }}</td>
+            <td>{{ adeudo.num_mercado }}</td>
+            <td>{{ adeudo.categoria }}</td>
+            <td>{{ adeudo.seccion }}</td>
+            <td>{{ adeudo.local }}</td>
+            <td>{{ adeudo.letra_local }}</td>
+            <td>{{ adeudo.bloque }}</td>
+            <td>{{ adeudo.cve_consumo }}</td>
+            <td>{{ adeudo.cantidad }}</td>
+            <td>{{ adeudo.axo }}</td>
+            <td>{{ adeudo.periodo }}</td>
+            <td>{{ adeudo.importe }}</td>
+            <td>
+              <input v-model="adeudo.partida" placeholder="Partida" />
+            </td>
+            <td>
+              <input type="checkbox" v-model="adeudo.selected" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <fieldset>
+        <legend>Datos del Pago</legend>
+        <div class="form-row">
+          <label>Fecha de Pago:
+            <input type="date" v-model="form.fecha_pago" />
+          </label>
+          <label>Oficina:
+            <select v-model="form.oficina_pago" @change="cargarCajas">
+              <option v-for="rec in recaudadoras" :key="rec.id" :value="rec.id">{{ rec.nombre }}</option>
+            </select>
+          </label>
+          <label>Caja:
+            <select v-model="form.caja_pago">
+              <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">{{ caja.caja }}</option>
+            </select>
+          </label>
+          <label>Operación:
+            <input v-model="form.operacion_pago" type="number" />
+          </label>
+        </div>
+        <button @click="cargarPagos">Cargar Pagos</button>
+        <button @click="consultarPagos">Consultar Pagos</button>
+      </fieldset>
+    </div>
+
+    <div v-if="pagos.length">
+      <h2>Pagos Realizados</h2>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>ID Pago</th>
+            <th>ID Energía</th>
+            <th>Año</th>
+            <th>Periodo</th>
+            <th>Fecha Pago</th>
+            <th>Oficina</th>
+            <th>Caja</th>
+            <th>Operación</th>
+            <th>Importe</th>
+            <th>Cve Consumo</th>
+            <th>Cantidad</th>
+            <th>Folio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="pago in pagos" :key="pago.id_pago_energia">
+            <td>{{ pago.id_pago_energia }}</td>
+            <td>{{ pago.id_energia }}</td>
+            <td>{{ pago.axo }}</td>
+            <td>{{ pago.periodo }}</td>
+            <td>{{ pago.fecha_pago }}</td>
+            <td>{{ pago.oficina_pago }}</td>
+            <td>{{ pago.caja_pago }}</td>
+            <td>{{ pago.operacion_pago }}</td>
+            <td>{{ pago.importe_pago }}</td>
+            <td>{{ pago.cve_consumo }}</td>
+            <td>{{ pago.cantidad }}</td>
+            <td>{{ pago.folio }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div v-if="error" class="alert alert-danger">{{ error }}</div>
+    <div v-if="success" class="alert alert-success">{{ success }}</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'CargaPagEnergiaElec',
   data() {
     return {
@@ -204,13 +166,8 @@ export default {
         fecha_pago: '',
         oficina_pago: '',
         caja_pago: '',
-        operacion_pago: '',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        operacion_pago: ''
+      },
       recaudadoras: [],
       mercados: [],
       secciones: [],
@@ -226,28 +183,6 @@ export default {
     this.cargarSecciones();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     async cargarRecaudadoras() {
       // Simulación: Debe ser reemplazado por llamada real a API
       this.recaudadoras = [
@@ -379,8 +314,40 @@ export default {
 }
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.carga-pag-energia-elec {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.breadcrumb {
+  margin-bottom: 1rem;
+}
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+.table th, .table td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+.alert {
+  margin-top: 1rem;
+  padding: 1rem;
+}
+.alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+}
 </style>

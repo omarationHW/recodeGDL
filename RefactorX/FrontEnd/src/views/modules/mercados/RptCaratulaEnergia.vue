@@ -2,15 +2,15 @@
   <div class="container mt-4">
     <h2>Carátula de Energía Eléctrica</h2>
     <div class="mb-3">
-      <label class="municipal-form-label" for="id_local">ID Local</label>
-      <input v-model="id_local" type="number" class="municipal-form-control" id="id_local" placeholder="Ingrese el ID del local" />
-      <button class="btn btn-municipal-primary mt-2" @click="fetchCaratula">Consultar</button>
+      <label for="id_local">ID Local</label>
+      <input v-model="id_local" type="number" class="form-control" id="id_local" placeholder="Ingrese el ID del local" />
+      <button class="btn btn-primary mt-2" @click="fetchCaratula">Consultar</button>
     </div>
     <div v-if="loading" class="alert alert-info">Cargando...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="caratula">
       <h4>Datos del Local</h4>
-      <table class="municipal-table-bordered">
+      <table class="table table-bordered">
         <tr><th>Oficina</th><td>{{ caratula.oficina }}</td></tr>
         <tr><th>Num. Mercado</th><td>{{ caratula.num_mercado }}</td></tr>
         <tr><th>Sección</th><td>{{ caratula.seccion }}</td></tr>
@@ -28,7 +28,7 @@
         <tr><th>Actualización</th><td>{{ caratula.fecha_modificacion }}</td></tr>
       </table>
       <h4>Resumen de Adeudos</h4>
-      <table class="municipal-table-striped">
+      <table class="table table-striped">
         <thead>
           <tr>
             <th>Periodo</th>
@@ -45,7 +45,7 @@
         </tbody>
       </table>
       <h4>Requerimientos</h4>
-      <table class="municipal-table-striped">
+      <table class="table table-striped">
         <thead>
           <tr>
             <th>Folio</th>
@@ -64,7 +64,7 @@
         </tbody>
       </table>
       <div class="mt-3">
-        <button class="btn btn-municipal-secondary" @click="printCaratula">Imprimir Carátula</button>
+        <button class="btn btn-secondary" @click="printCaratula">Imprimir Carátula</button>
       </div>
     </div>
   </div>

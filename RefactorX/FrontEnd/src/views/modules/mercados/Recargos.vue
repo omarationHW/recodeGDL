@@ -1,19 +1,16 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Recargos</h1>
-        <p>Mercados - Recargos</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="recargos-page">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Recargos</li>
+      </ol>
+    </nav>
     <h1>Catálogo de Recargos</h1>
     <div class="mb-3">
-      <button class="btn-municipal-primary" @click="showCreateModal = true">Agregar Recargo</button>
+      <button class="btn btn-primary" @click="showCreateModal = true">Agregar Recargo</button>
     </div>
-    <table class="municipal-table">
+    <table class="table table-striped">
       <thead>
         <tr>
           <th>Año</th>
@@ -32,8 +29,8 @@
           <td>{{ recargo.fecha_alta | formatDate }}</td>
           <td>{{ recargo.usuario }}</td>
           <td>
-            <button class="btn-icon btn-municipal-warning" @click="editRecargo(recargo)">Editar</button>
-            <button class="btn-icon btn-municipal-danger" @click="deleteRecargo(recargo)">Eliminar</button>
+            <button class="btn btn-sm btn-warning" @click="editRecargo(recargo)">Editar</button>
+            <button class="btn btn-sm btn-danger" @click="deleteRecargo(recargo)">Eliminar</button>
           </td>
         </tr>
       </tbody>
@@ -43,24 +40,24 @@
     <b-modal v-model="showCreateModal" title="Agregar Recargo" hide-footer>
       <form @submit.prevent="saveRecargo">
         <div class="mb-3">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model="form.axo" class="municipal-form-control" required />
+          <label>Año</label>
+          <input type="number" v-model="form.axo" class="form-control" required />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Mes</label>
-          <input type="number" v-model="form.periodo" class="municipal-form-control" min="1" max="12" required />
+          <label>Mes</label>
+          <input type="number" v-model="form.periodo" class="form-control" min="1" max="12" required />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Porcentaje</label>
-          <input type="number" v-model="form.porcentaje" class="municipal-form-control" step="0.01" required />
+          <label>Porcentaje</label>
+          <input type="number" v-model="form.porcentaje" class="form-control" step="0.01" required />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Usuario</label>
-          <input type="number" v-model="form.usuario_id" class="municipal-form-control" required />
+          <label>Usuario</label>
+          <input type="number" v-model="form.usuario_id" class="form-control" required />
         </div>
         <div class="d-flex justify-content-end">
-          <button type="button" class="btn btn-municipal-secondary me-2" @click="showCreateModal = false">Cancelar</button>
-          <button type="submit" class="btn-municipal-primary">Guardar</button>
+          <button type="button" class="btn btn-secondary me-2" @click="showCreateModal = false">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
         </div>
       </form>
     </b-modal>
@@ -69,31 +66,28 @@
     <b-modal v-model="showEditModal" title="Editar Recargo" hide-footer>
       <form @submit.prevent="saveRecargo(true)">
         <div class="mb-3">
-          <label class="municipal-form-label">Año</label>
-          <input type="number" v-model="form.axo" class="municipal-form-control" required disabled />
+          <label>Año</label>
+          <input type="number" v-model="form.axo" class="form-control" required disabled />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Mes</label>
-          <input type="number" v-model="form.periodo" class="municipal-form-control" min="1" max="12" required disabled />
+          <label>Mes</label>
+          <input type="number" v-model="form.periodo" class="form-control" min="1" max="12" required disabled />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Porcentaje</label>
-          <input type="number" v-model="form.porcentaje" class="municipal-form-control" step="0.01" required />
+          <label>Porcentaje</label>
+          <input type="number" v-model="form.porcentaje" class="form-control" step="0.01" required />
         </div>
         <div class="mb-3">
-          <label class="municipal-form-label">Usuario</label>
-          <input type="number" v-model="form.usuario_id" class="municipal-form-control" required />
+          <label>Usuario</label>
+          <input type="number" v-model="form.usuario_id" class="form-control" required />
         </div>
         <div class="d-flex justify-content-end">
-          <button type="button" class="btn btn-municipal-secondary me-2" @click="showEditModal = false">Cancelar</button>
-          <button type="submit" class="btn-municipal-primary">Guardar Cambios</button>
+          <button type="button" class="btn btn-secondary me-2" @click="showEditModal = false">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
         </div>
       </form>
     </b-modal>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -137,11 +131,8 @@ export default {
           action,
           params: { ...this.form }
         }
-      }
-          )
-        });
-        const resData = await res.json();
-      if (resData.eResponse.status === 'ok') {
+      });
+      if (res.data.eResponse.success) {
         this.showCreateModal = false;
         this.showEditModal = false;
         this.loadRecargos();
@@ -160,11 +151,8 @@ export default {
           action: 'recargos.delete',
           params: { axo: recargo.axo, periodo: recargo.periodo }
         }
-      }
-          )
-        });
-        const resData = await res.json();
-      if (resData.eResponse.status === 'ok') {
+      });
+      if (res.data.eResponse.success) {
         this.loadRecargos();
       } else {
         alert(res.data.eResponse.message || 'Error al eliminar');

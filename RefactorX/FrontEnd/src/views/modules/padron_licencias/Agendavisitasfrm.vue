@@ -1,29 +1,38 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="calendar-check" />
       </div>
       <div class="module-view-info">
         <h1>Agenda de Visitas</h1>
-        <p>Padrón de Licencias - Gestión de Agenda de Visitas de Inspección</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+        <p>Padrón de Licencias - Gestión de Agenda de Visitas de Inspección</p>
+      </div>
+      <div class="button-group ms-auto">
         <button
           class="btn-municipal-primary"
           @click="exportarReporte"
-          :disabled="loading || visitas.length === 0"
+          :disabled="visitas.length === 0"
         >
           <font-awesome-icon icon="file-pdf" />
           Exportar PDF
+        </button>
+        <button
+          class="btn-municipal-primary"
+          @click="loadVisitas"
+          :disabled="!filters.id_dependencia || !filters.fechaini || !filters.fechafin"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
+          type="button"
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -32,7 +41,14 @@
 
     <!-- Filtros de búsqueda -->
     <div class="municipal-card">
-      <div class="municipal-card-body">
+      <div class="municipal-card-header clickable-header" @click="toggleFilters">
+        <h5>
+          <font-awesome-icon icon="filter" />
+          Filtros de Búsqueda
+          <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+        </h5>
+      </div>
+      <div class="municipal-card-body" v-show="showFilters">
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Dependencia <span class="required">*</span></label>
@@ -64,26 +80,17 @@
           <button
             class="btn-municipal-primary"
             @click="searchVisitas"
-            :disabled="loading || !filters.id_dependencia || !filters.fechaini || !filters.fechafin"
+            :disabled="!filters.id_dependencia || !filters.fechaini || !filters.fechafin"
           >
             <font-awesome-icon icon="search" />
-            Buscar Visitas
+            Buscar
           </button>
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
-          </button>
-          <button
-            class="btn-municipal-secondary"
-            @click="loadVisitas"
-            :disabled="loading || !filters.id_dependencia || !filters.fechaini || !filters.fechafin"
-          >
-            <font-awesome-icon icon="sync-alt" />
-            Actualizar
           </button>
         </div>
       </div>
@@ -91,109 +98,114 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Agenda de Visitas Programadas
-          <span class="badge-info" v-if="visitas.length > 0">{{ visitas.length }} visitas</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="visitas.length > 0">{{ formatNumber(visitas.length) }} visitas</span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
+      <div class="municipal-card-body table-container">
         <div class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
-                <th>Fecha</th>
-                <th>Día</th>
-                <th>Turno</th>
-                <th>Hora</th>
-                <th>Zona/Subzona</th>
-                <th>ID Trámite</th>
-                <th>Propietario</th>
-                <th>Domicilio</th>
-                <th>Actividad</th>
-                <th>Acciones</th>
+                <th style="width: 10%;">
+                  <font-awesome-icon icon="calendar" class="me-1" />
+                  Fecha
+                </th>
+                <th style="width: 8%;">
+                  <font-awesome-icon icon="calendar-day" class="me-1" />
+                  Día
+                </th>
+                <th style="width: 8%; text-align: center;">
+                  <font-awesome-icon icon="sun" class="me-1" />
+                  Turno
+                </th>
+                <th style="width: 7%; text-align: center;">
+                  <font-awesome-icon icon="clock" class="me-1" />
+                  Hora
+                </th>
+                <th style="width: 8%; text-align: center;">
+                  <font-awesome-icon icon="map-marker-alt" class="me-1" />
+                  Zona
+                </th>
+                <th style="width: 8%; text-align: center;">
+                  <font-awesome-icon icon="file-alt" class="me-1" />
+                  Trámite
+                </th>
+                <th style="width: 15%;">
+                  <font-awesome-icon icon="user" class="me-1" />
+                  Propietario
+                </th>
+                <th style="width: 20%;">
+                  <font-awesome-icon icon="map-marked-alt" class="me-1" />
+                  Domicilio
+                </th>
+                <th style="width: 16%;">
+                  <font-awesome-icon icon="briefcase" class="me-1" />
+                  Actividad
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(visita, index) in visitas" :key="index" class="row-hover">
+              <tr v-for="(visita, index) in visitas" :key="index" class="clickable-row" @click="viewVisita(visita)">
                 <td>
-                  <strong class="text-primary">
-                    <font-awesome-icon icon="calendar" />
-                    {{ formatDate(visita.fecha) }}
-                  </strong>
+                  <div class="giro-name">
+                    <font-awesome-icon icon="calendar-check" class="giro-icon text-primary" />
+                    <span class="giro-text">{{ formatDate(visita.fecha) }}</span>
+                  </div>
                 </td>
                 <td>
-                  <span class="badge-info">{{ visita.dia_letras || 'N/A' }}</span>
+                  <span class="badge badge-light-info">{{ visita.dia_letras || 'N/A' }}</span>
                 </td>
-                <td>
+                <td style="text-align: center;">
                   <span class="badge" :class="getTurnoBadgeClass(visita.turno)">
                     {{ visita.turno || 'N/A' }}
                   </span>
                 </td>
-                <td>
-                  <small class="text-muted">
-                    <font-awesome-icon icon="clock" />
-                    {{ visita.hora || 'N/A' }}
-                  </small>
+                <td style="text-align: center;">
+                  <span class="text-muted">{{ visita.hora || 'N/A' }}</span>
                 </td>
-                <td>
+                <td style="text-align: center;">
                   <div class="zona-info">
-                    <span class="badge-secondary">Z: {{ visita.zona || 'N/A' }}</span>
-                    <span class="badge-secondary">SZ: {{ visita.subzona || 'N/A' }}</span>
+                    <span class="badge badge-secondary">Z: {{ visita.zona || 'N/A' }}</span>
+                    <span class="badge badge-secondary">SZ: {{ visita.subzona || 'N/A' }}</span>
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <code class="text-primary">{{ visita.id_tramite }}</code>
+                </td>
+                <td>
+                  <div class="giro-name">
+                    <font-awesome-icon icon="user-circle" class="giro-icon" />
+                    <span class="giro-text">{{ visita.propietarionvo?.trim() || visita.propietario?.trim() || 'N/A' }}</span>
                   </div>
                 </td>
                 <td>
-                  <code class="text-muted">{{ visita.id_tramite }}</code>
-                </td>
-                <td>{{ visita.propietarionvo?.trim() || visita.propietario?.trim() || 'N/A' }}</td>
-                <td>
-                  <small class="domicilio-text">{{ visita.domcompleto?.trim() || 'N/A' }}</small>
+                  <span class="domicilio-text">{{ visita.domcompleto?.trim() || 'N/A' }}</span>
                 </td>
                 <td>
-                  <small>{{ visita.actividad?.trim() || 'N/A' }}</small>
-                </td>
-                <td>
-                  <div class="button-group button-group-sm">
-                    <button
-                      class="btn-municipal-info btn-sm"
-                      @click="viewVisita(visita)"
-                      title="Ver detalles"
-                    >
-                      <font-awesome-icon icon="eye" />
-                    </button>
-                    <button
-                      class="btn-municipal-primary btn-sm"
-                      @click="verTramite(visita.id_tramite)"
-                      title="Ver trámite"
-                    >
-                      <font-awesome-icon icon="file-alt" />
-                    </button>
-                  </div>
+                  <span class="giro-text">{{ visita.actividad?.trim() || 'N/A' }}</span>
                 </td>
               </tr>
-              <tr v-if="visitas.length === 0 && !loading">
-                <td colspan="10" class="text-center text-muted">
-                  <font-awesome-icon icon="calendar-times" size="2x" class="empty-icon" />
-                  <p>No hay visitas agendadas para los criterios seleccionados</p>
-                  <p><small>Seleccione una dependencia y rango de fechas, luego presione Buscar</small></p>
+              <tr v-if="visitas.length === 0">
+                <td colspan="9" class="text-center">
+                  <div class="empty-state-content">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="calendar-times" />
+                    </div>
+                    <p class="empty-state-text">No hay visitas agendadas</p>
+                    <p class="empty-state-hint">Seleccione una dependencia y rango de fechas, luego presione Buscar</p>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && visitas.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando agenda de visitas...</p>
       </div>
     </div>
 
@@ -317,7 +329,13 @@
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -339,6 +357,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
@@ -349,9 +368,8 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -364,6 +382,7 @@ const visitas = ref([])
 const dependencias = ref([])
 const selectedVisita = ref(null)
 const showViewModal = ref(false)
+const showFilters = ref(true)
 
 // Filtros
 const filters = ref({
@@ -372,6 +391,11 @@ const filters = ref({
   fechafin: ''
 })
 
+// Toggle filtros
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
 // Métodos
 const loadDependencias = async () => {
   try {
@@ -379,7 +403,7 @@ const loadDependencias = async () => {
       'SP_GET_DEPENDENCIAS',
       'padron_licencias',
       [],
-      'guadalajara'
+      'comun'
     )
 
     if (response && response.result) {
@@ -399,7 +423,8 @@ const loadVisitas = async () => {
     return
   }
 
-  setLoading(true, 'Cargando agenda de visitas...')
+  showLoading('Cargando agenda de visitas...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -410,12 +435,16 @@ const loadVisitas = async () => {
         { nombre: 'p_fechaini', valor: filters.value.fechaini, tipo: 'string' },
         { nombre: 'p_fechafin', valor: filters.value.fechafin, tipo: 'string' }
       ],
-      'guadalajara'
+      'comun'
     )
+
+    const endTime = performance.now()
+    const duration = endTime - startTime
 
     if (response && response.result) {
       visitas.value = response.result
-      showToast('success', `Se encontraron ${visitas.value.length} visitas agendadas`)
+      const durationText = duration < 1000 ? `${Math.round(duration)}ms` : `${(duration / 1000).toFixed(2)}s`
+      showToast('success', `Se encontraron ${formatNumber(visitas.value.length)} visitas agendadas`, durationText)
     } else {
       visitas.value = []
       showToast('info', 'No se encontraron visitas en el rango seleccionado')
@@ -424,7 +453,7 @@ const loadVisitas = async () => {
     handleApiError(error)
     visitas.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -465,6 +494,11 @@ const exportarReporte = async () => {
 }
 
 // Utilidades
+const formatNumber = (num) => {
+  if (num === null || num === undefined) return '0'
+  return new Intl.NumberFormat('es-MX').format(num)
+}
+
 const getTurnoBadgeClass = (turno) => {
   const classes = {
     'MATUTINO': 'badge-success',
@@ -507,39 +541,5 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.zona-info {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.domicilio-text {
-  display: block;
-  max-width: 250px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.observaciones-box {
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-  min-height: 40px;
-  white-space: pre-wrap;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-@media (max-width: 768px) {
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Estilos específicos del componente - Los estilos globales están en municipal-theme.css */
 </style>

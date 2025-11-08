@@ -1,25 +1,22 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="dollar-sign" /></div>
-      <div class="module-view-info">
-        <h1>Pagos Energía Eléctrica</h1>
-        <p>Mercados - Pagos Energía Eléctrica</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="pagos-ene-cons-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Pagos Energía Eléctrica</li>
+      </ol>
+    </nav>
     <h2>Consulta de Pagos de Energía Eléctrica</h2>
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-body">
+    <div class="card mb-3">
+      <div class="card-body">
         <form @submit.prevent="fetchPagos">
           <div class="row g-2 align-items-end">
             <div class="col-md-4">
-              <label class="municipal-form-label" for="id_energia">ID Energía</label>
-              <input v-model="form.id_energia" type="number" class="municipal-form-control" id="id_energia" required />
+              <label for="id_energia" class="form-label">ID Energía</label>
+              <input v-model="form.id_energia" type="number" class="form-control" id="id_energia" required />
             </div>
             <div class="col-md-2">
-              <button type="submit" class="btn-municipal-primary">Buscar</button>
+              <button type="submit" class="btn btn-primary">Buscar</button>
             </div>
           </div>
         </form>
@@ -28,7 +25,7 @@
     <div v-if="loading" class="alert alert-info">Cargando...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="pagos.length">
-      <table class="-striped municipal-table-bordered">
+      <table class="table table-striped table-bordered">
         <thead>
           <tr>
             <th>Control</th>
@@ -65,12 +62,9 @@
       <div class="alert alert-warning">No hay pagos registrados para este ID Energía.</div>
     </div>
     <div class="mt-4">
-      <router-link class="btn-municipal-secondary" to="/">Regresar</router-link>
+      <router-link class="btn btn-secondary" to="/">Regresar</router-link>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -92,10 +86,7 @@ export default {
       this.error = '';
       this.pagos = [];
       try {
-        const response = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const response = await this.$axios.post('/api/execute', {
           action: 'getPagosEnergia',
           params: { id_energia: this.form.id_energia }
         });

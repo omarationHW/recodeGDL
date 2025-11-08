@@ -1,197 +1,159 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="store" />
-      </div>
-      <div class="module-view-info">
-        <h1>Catalogo Mercados</h1>
-        <p>Mercados - Catálogos del Sistema</p>
-      </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+  <div class="catalogo-mercados-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Catálogo de Mercados</li>
+      </ol>
+    </nav>
+    <h2>Catálogo de Mercados</h2>
+    <div class="mb-3">
+      <button class="btn btn-primary" @click="showForm('create')">Agregar Mercado</button>
+      <button class="btn btn-secondary ml-2" @click="fetchData">Refrescar</button>
+      <button class="btn btn-info ml-2" @click="showReport">Reporte</button>
     </div>
-
-    <div class="module-view-content">
-      <div class="catalogo-mercados-page">
-          <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-              <li class="breadcrumb-item active" aria-current="page">Catálogo de Mercados</li>
-            </ol>
-          </nav>
-          <h2>Catálogo de Mercados</h2>
-          <div class="mb-3">
-            <button class="btn-municipal-primary" @click="showForm('create')">Agregar Mercado</button>
-            <button class="btn-municipal-secondary" @click="fetchData">Refrescar</button>
-            <button class="btn-municipal-info" @click="showReport">Reporte</button>
-          </div>
-          <div v-if="showFormMode">
-            <div class="municipal-card">
-              <div class="municipal-card">
-                {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
-              </div>
-              <div class="municipal-card">
-                <form @submit.prevent="submitForm">
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label>Oficina</label>
-                      <input type="number" v-model.number="form.oficina" class="municipal-form-control" required :readonly="formMode==='update'" />
-                    </div>
-                    <div class="form-group">
-                      <label>Núm. Mercado</label>
-                      <input type="number" v-model.number="form.num_mercado_nvo" class="municipal-form-control" required :readonly="formMode==='update'" />
-                    </div>
-                    <div class="form-group">
-                      <label>Categoría</label>
-                      <input type="number" v-model.number="form.categoria" class="municipal-form-control" required />
-                    </div>
-                    <div class="form-group">
-                      <label>Descripción</label>
-                      <input type="text" v-model="form.descripcion" class="municipal-form-control" required maxlength="30" />
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label>Cuenta Ingreso</label>
-                      <input type="number" v-model.number="form.cuenta_ingreso" class="municipal-form-control" required />
-                    </div>
-                    <div class="form-group">
-                      <label>Cuenta Energía</label>
-                      <input type="number" v-model.number="form.cuenta_energia" class="municipal-form-control" />
-                    </div>
-                    <div class="form-group">
-                      <label>ID Zona</label>
-                      <input type="number" v-model.number="form.id_zona" class="municipal-form-control" required />
-                    </div>
-                    <div class="form-group">
-                      <label>Tipo Emisión</label>
-                      <select v-model="form.tipo_emision" class="municipal-form-control" required>
-                        <option value="M">Masiva</option>
-                        <option value="D">Disquette</option>
-                        <option value="B">Baja</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <button type="submit" class="btn btn-success">Guardar</button>
-                    <button type="button" class="btn-municipal-secondary" @click="cancelForm">Cancelar</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-          <div v-if="!showFormMode">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr class="row-hover">
-                  <th>Oficina</th>
-                  <th>Núm. Mercado</th>
-                  <th>Categoría</th>
-                  <th>Descripción</th>
-                  <th>Cuenta Ingreso</th>
-                  <th>Cuenta Energía</th>
-                  <th>ID Zona</th>
-                  <th>Tipo Emisión</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in rows" :key="row.oficina + '-' + row.num_mercado_nvo" class="row-hover">
-                  <td>{{ row.oficina }}</td>
-                  <td>{{ row.num_mercado_nvo }}</td>
-                  <td>{{ row.categoria }}</td>
-                  <td>{{ row.descripcion }}</td>
-                  <td>{{ row.cuenta_ingreso }}</td>
-                  <td>{{ row.cuenta_energia }}</td>
-                  <td>{{ row.id_zona }}</td>
-                  <td>{{ tipoEmisionLabel(row.tipo_emision) }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-warning" @click="showForm('update', row)">Editar</button>
-                    <button class="btn btn-sm btn-danger ml-1" @click="deleteRow(row)">Eliminar</button>
-                  </td>
-                </tr>
-                <tr v-if="rows.length === 0" class="row-hover">
-                  <td colspan="9" class="text-center">No hay registros</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-if="showReportDialog">
-            <div class="modal-backdrop show"></div>
-            <div class="modal d-block" tabindex="-1">
-              <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Reporte Catálogo de Mercados</h5>
-                    <button type="button" class="close" @click="showReportDialog=false">&times;</button>
-                  </div>
-                  <div class="modal-body">
-                    <table class="municipal-table">
-                      <thead class="municipal-table-header">
-                        <tr class="row-hover">
-                          <th>Oficina</th>
-                          <th>Núm. Mercado</th>
-                          <th>Categoría</th>
-                          <th>Descripción</th>
-                          <th>Cuenta Ingreso</th>
-                          <th>Cuenta Energía</th>
-                          <th>ID Zona</th>
-                          <th>Tipo Emisión</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="row in reportRows" :key="row.oficina + '-' + row.num_mercado_nvo" class="row-hover">
-                          <td>{{ row.oficina }}</td>
-                          <td>{{ row.num_mercado_nvo }}</td>
-                          <td>{{ row.categoria }}</td>
-                          <td>{{ row.descripcion }}</td>
-                          <td>{{ row.cuenta_ingreso }}</td>
-                          <td>{{ row.cuenta_energia }}</td>
-                          <td>{{ row.id_zona }}</td>
-                          <td>{{ tipoEmisionLabel(row.tipo_emision) }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="modal-footer">
-                    <button class="btn-municipal-secondary" @click="showReportDialog=false">Cerrar</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
-          <div v-if="successMessage" class="alert alert-success mt-3">{{ successMessage }}</div>
+    <div v-if="showFormMode">
+      <div class="card mb-3">
+        <div class="card-header">
+          {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
         </div>
+        <div class="card-body">
+          <form @submit.prevent="submitForm">
+            <div class="form-row">
+              <div class="form-group col-md-2">
+                <label>Oficina</label>
+                <input type="number" v-model.number="form.oficina" class="form-control" required :readonly="formMode==='update'" />
+              </div>
+              <div class="form-group col-md-2">
+                <label>Núm. Mercado</label>
+                <input type="number" v-model.number="form.num_mercado_nvo" class="form-control" required :readonly="formMode==='update'" />
+              </div>
+              <div class="form-group col-md-2">
+                <label>Categoría</label>
+                <input type="number" v-model.number="form.categoria" class="form-control" required />
+              </div>
+              <div class="form-group col-md-6">
+                <label>Descripción</label>
+                <input type="text" v-model="form.descripcion" class="form-control" required maxlength="30" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-3">
+                <label>Cuenta Ingreso</label>
+                <input type="number" v-model.number="form.cuenta_ingreso" class="form-control" required />
+              </div>
+              <div class="form-group col-md-3">
+                <label>Cuenta Energía</label>
+                <input type="number" v-model.number="form.cuenta_energia" class="form-control" />
+              </div>
+              <div class="form-group col-md-3">
+                <label>ID Zona</label>
+                <input type="number" v-model.number="form.id_zona" class="form-control" required />
+              </div>
+              <div class="form-group col-md-3">
+                <label>Tipo Emisión</label>
+                <select v-model="form.tipo_emision" class="form-control" required>
+                  <option value="M">Masiva</option>
+                  <option value="D">Disquette</option>
+                  <option value="B">Baja</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-success">Guardar</button>
+              <button type="button" class="btn btn-secondary ml-2" @click="cancelForm">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-    <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'CatalogoMercados'"
-      :moduleName="'mercados'"
-      @close="closeDocumentation"
-    />
+    <div v-if="!showFormMode">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Oficina</th>
+            <th>Núm. Mercado</th>
+            <th>Categoría</th>
+            <th>Descripción</th>
+            <th>Cuenta Ingreso</th>
+            <th>Cuenta Energía</th>
+            <th>ID Zona</th>
+            <th>Tipo Emisión</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in rows" :key="row.oficina + '-' + row.num_mercado_nvo">
+            <td>{{ row.oficina }}</td>
+            <td>{{ row.num_mercado_nvo }}</td>
+            <td>{{ row.categoria }}</td>
+            <td>{{ row.descripcion }}</td>
+            <td>{{ row.cuenta_ingreso }}</td>
+            <td>{{ row.cuenta_energia }}</td>
+            <td>{{ row.id_zona }}</td>
+            <td>{{ tipoEmisionLabel(row.tipo_emision) }}</td>
+            <td>
+              <button class="btn btn-sm btn-warning" @click="showForm('update', row)">Editar</button>
+              <button class="btn btn-sm btn-danger ml-1" @click="deleteRow(row)">Eliminar</button>
+            </td>
+          </tr>
+          <tr v-if="rows.length === 0">
+            <td colspan="9" class="text-center">No hay registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-if="showReportDialog">
+      <div class="modal-backdrop show"></div>
+      <div class="modal d-block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Reporte Catálogo de Mercados</h5>
+              <button type="button" class="close" @click="showReportDialog=false">&times;</button>
+            </div>
+            <div class="modal-body">
+              <table class="table table-sm table-bordered">
+                <thead>
+                  <tr>
+                    <th>Oficina</th>
+                    <th>Núm. Mercado</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th>Cuenta Ingreso</th>
+                    <th>Cuenta Energía</th>
+                    <th>ID Zona</th>
+                    <th>Tipo Emisión</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in reportRows" :key="row.oficina + '-' + row.num_mercado_nvo">
+                    <td>{{ row.oficina }}</td>
+                    <td>{{ row.num_mercado_nvo }}</td>
+                    <td>{{ row.categoria }}</td>
+                    <td>{{ row.descripcion }}</td>
+                    <td>{{ row.cuenta_ingreso }}</td>
+                    <td>{{ row.cuenta_energia }}</td>
+                    <td>{{ row.id_zona }}</td>
+                    <td>{{ tipoEmisionLabel(row.tipo_emision) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="showReportDialog=false">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+    <div v-if="successMessage" class="alert alert-success mt-3">{{ successMessage }}</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 export default {
-  components: {
-    DocumentationModal
-  },
   name: 'CatalogoMercadosPage',
   data() {
     return {
@@ -207,13 +169,8 @@ export default {
         cuenta_ingreso: '',
         cuenta_energia: '',
         id_zona: '',
-        tipo_emision: 'M',
-      showDocumentation: false,
-      toast: {
-        show: false,
-        type: 'info',
-        message: ''
-      }},
+        tipo_emision: 'M'
+      },
       errorMessage: '',
       successMessage: '',
       showReportDialog: false
@@ -223,28 +180,6 @@ export default {
     this.fetchData();
   },
   methods: {
-    openDocumentation() {
-      this.showDocumentation = true;
-    },
-    closeDocumentation() {
-      this.showDocumentation = false;
-    },
-    showToast(type, message) {
-      this.toast = { show: true, type, message };
-      setTimeout(() => this.hideToast(), 3000);
-    },
-    hideToast() {
-      this.toast.show = false;
-    },
-    getToastIcon(type) {
-      const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-      return icons[type] || 'info-circle';
-    },
     tipoEmisionLabel(val) {
       if (val === 'M') return 'Masiva';
       if (val === 'D') return 'Disquette';
@@ -351,8 +286,22 @@ export default {
 }
 </script>
 
-
 <style scoped>
-/* Los estilos municipales se heredan de las clases globales */
-/* Estilos específicos del componente si son necesarios */
+.catalogo-mercados-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+.table th, .table td {
+  vertical-align: middle;
+}
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1040;
+}
+.modal {
+  z-index: 1050;
+}
 </style>

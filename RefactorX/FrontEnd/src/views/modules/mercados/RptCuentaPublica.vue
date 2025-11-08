@@ -1,27 +1,24 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="chart-bar" /></div>
-      <div class="module-view-info">
-        <h1>Reporte Cuenta Pública</h1>
-        <p>Mercados - Reporte Cuenta Pública</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-cuenta-publica-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Reporte Cuenta Pública</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Cuentas por Cobrar - Reporte Cuenta Pública</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row g-3 align-items-end">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="axo">Año Fiscal</label>
-          <input type="number" v-model.number="form.axo" id="axo" class="municipal-form-control" required min="2000" max="2100">
+          <label for="axo" class="form-label">Año Fiscal</label>
+          <input type="number" v-model.number="form.axo" id="axo" class="form-control" required min="2000" max="2100">
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="oficina">Oficina/Recaudadora</label>
-          <input type="number" v-model.number="form.oficina" id="oficina" class="municipal-form-control" required min="1">
+          <label for="oficina" class="form-label">Oficina/Recaudadora</label>
+          <input type="number" v-model.number="form.oficina" id="oficina" class="form-control" required min="1">
         </div>
         <div class="col-md-3">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
         </div>
       </div>
     </form>
@@ -29,14 +26,14 @@
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="reportData && reportData.length">
       <div class="mb-3 text-center">
-        <!-- <img src="/logo.png" alt="Logo" style="height: 80px;" /> -->
+        <img src="/logo.png" alt="Logo" style="height: 80px;" />
         <h2 class="mt-2">TESORERIA MUNICIPAL</h2>
         <h4>DIRECCION DE INGRESOS MUNICIPALES</h4>
         <h5>CUENTAS POR COBRAR</h5>
         <div class="mb-2"><strong>Recaudadora:</strong> {{ reportData[0].recaudadora }}</div>
       </div>
-      <table class="-bordered municipal-table-striped">
-        <thead class="table-light municipal-table-header">
+      <table class="table table-bordered table-striped">
+        <thead class="table-light">
           <tr>
             <th rowspan="2" class="align-middle text-center">CONCEPTO</th>
             <th rowspan="2" class="align-middle text-center">SALDO MES ANTERIOR</th>
@@ -71,9 +68,6 @@
       No se encontraron datos para los parámetros seleccionados.
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -111,7 +105,7 @@ export default {
           })
         });
         const data = await response.json();
-        if (data.eResponse.status === 'ok') {
+        if (data.eResponse.success) {
           this.reportData = data.eResponse.data;
         } else {
           this.error = data.eResponse.error || 'Error desconocido al consultar el reporte.';

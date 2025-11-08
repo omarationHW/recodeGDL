@@ -1,42 +1,39 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="store" /></div>
-      <div class="module-view-info">
-        <h1>Adeudos de Locales</h1>
-        <p>Mercados - Adeudos de Locales</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="adeudos-locales-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Adeudos de Locales</li>
+      </ol>
+    </nav>
     <h2 class="mb-4">Listado de Adeudos de Mercados</h2>
     <form @submit.prevent="consultarAdeudos">
       <div class="row mb-3">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="axo">Año</label>
-          <input v-model.number="form.axo" type="number" min="1990" max="2100" class="municipal-form-control" id="axo" required />
+          <label for="axo">Año</label>
+          <input v-model.number="form.axo" type="number" min="1990" max="2100" class="form-control" id="axo" required />
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="oficina">Recaudadora</label>
-          <select v-model.number="form.oficina" class="municipal-form-control" id="oficina" required>
+          <label for="oficina">Recaudadora</label>
+          <select v-model.number="form.oficina" class="form-control" id="oficina" required>
             <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.recaudadora }}</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="periodo">Mes</label>
-          <input v-model.number="form.periodo" type="number" min="1" max="12" class="municipal-form-control" id="periodo" required />
+          <label for="periodo">Mes</label>
+          <input v-model.number="form.periodo" type="number" min="1" max="12" class="form-control" id="periodo" required />
         </div>
         <div class="col-md-3 d-flex align-items-end">
-          <button type="submit" class="btn-municipal-primary">Consultar</button>
-          <button type="button" class="btn btn-municipal-success ml-2" @click="exportarExcel" :disabled="!adeudos.length">Exportar Excel</button>
+          <button type="submit" class="btn btn-primary">Consultar</button>
+          <button type="button" class="btn btn-success ml-2" @click="exportarExcel" :disabled="!adeudos.length">Exportar Excel</button>
         </div>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando datos...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="adeudos.length">
-      <table class="-bordered municipal-table-sm mt-3">
-        <thead class="thead-light municipal-table-header">
+      <table class="table table-bordered table-sm mt-3">
+        <thead class="thead-light">
           <tr>
             <th>ID Local</th>
             <th>Datos Local</th>
@@ -69,9 +66,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>
@@ -111,22 +105,16 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const resp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const resp = await this.$axios.post('/api/execute', {
           eRequest: { action: 'getRecaudadoras' }
-        }
-          )
         });
-        const respData = await resp.json();
-        if (respData.eResponse.status === 'ok') {
-          this.recaudadoras = respData.eResponse.data;
+        if (resp.data.eResponse.success) {
+          this.recaudadoras = resp.data.eResponse.data;
           if (this.recaudadoras.length && !this.form.oficina) {
             this.form.oficina = this.recaudadoras[0].id_rec;
           }
         } else {
-          this.error = respData.eResponse.message;
+          this.error = resp.data.eResponse.message;
         }
       } catch (e) {
         this.error = e.message;
@@ -139,10 +127,7 @@ export default {
       this.error = '';
       this.adeudos = [];
       try {
-        const resp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const resp = await this.$axios.post('/api/execute', {
           eRequest: {
             action: 'getAdeudosLocales',
             params: {
@@ -151,14 +136,11 @@ export default {
               periodo: this.form.periodo
             }
           }
-        }
-          )
         });
-        const respData = await resp.json();
-        if (respData.eResponse.status === 'ok') {
-          this.adeudos = respData.eResponse.data;
+        if (resp.data.eResponse.success) {
+          this.adeudos = resp.data.eResponse.data;
         } else {
-          this.error = respData.eResponse.message;
+          this.error = resp.data.eResponse.message;
         }
       } catch (e) {
         this.error = e.message;

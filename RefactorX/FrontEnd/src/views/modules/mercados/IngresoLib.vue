@@ -1,29 +1,26 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Ingreso Mercado Libertad</h1>
-        <p>Mercados - Ingreso Mercado Libertad</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">Ingreso del Mercado Libertad</div>
-      <div class="municipal-card-body">
+  <div class="ingreso-lib-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Ingreso Mercado Libertad</li>
+      </ol>
+    </nav>
+    <div class="card mb-3">
+      <div class="card-header">Ingreso del Mercado Libertad</div>
+      <div class="card-body">
         <form @submit.prevent="fetchData">
           <div class="row mb-3">
             <div class="col-md-3">
-              <label class="municipal-form-label" for="mes">Mes a Procesar</label>
-              <input type="number" min="1" max="12" v-model.number="mes" class="municipal-form-control" id="mes" required />
+              <label for="mes" class="form-label">Mes a Procesar</label>
+              <input type="number" min="1" max="12" v-model.number="mes" class="form-control" id="mes" required />
             </div>
             <div class="col-md-3">
-              <label class="municipal-form-label" for="anio">Año</label>
-              <input type="number" v-model.number="anio" class="municipal-form-control" id="anio" required />
+              <label for="anio" class="form-label">Año</label>
+              <input type="number" v-model.number="anio" class="form-control" id="anio" required />
             </div>
             <div class="col-md-6">
-              <label class="municipal-form-label" for="mercado">Mercado</label>
+              <label for="mercado" class="form-label">Mercado</label>
               <select v-model="mercado_id" class="form-select" id="mercado" required>
                 <option v-for="m in mercados" :key="m.id" :value="m.id">
                   {{ m.num_mercado_nvo }} - {{ m.descripcion }}
@@ -32,8 +29,8 @@
             </div>
           </div>
           <div class="mb-3">
-            <button type="submit" class="btn btn-municipal-primary me-2">Procesar</button>
-            <button type="button" class="btn-municipal-secondary" @click="resetForm">Limpiar</button>
+            <button type="submit" class="btn btn-primary me-2">Procesar</button>
+            <button type="button" class="btn btn-secondary" @click="resetForm">Limpiar</button>
           </div>
         </form>
       </div>
@@ -42,7 +39,7 @@
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="ingresos.length">
       <h5>Ingresos por Fecha y Caja</h5>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Fecha Pago</th>
@@ -63,7 +60,7 @@
     </div>
     <div v-if="cajas.length">
       <h5>Totales por Caja</h5>
-      <table class="-bordered municipal-table-sm">
+      <table class="table table-bordered table-sm">
         <thead>
           <tr>
             <th>Caja</th>
@@ -88,9 +85,6 @@
       </ul>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

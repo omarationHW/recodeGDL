@@ -1,5 +1,5 @@
 <template>
-  <div class="module-view">
+  <div class="prescripcion-page">
     <h1>Prescripción de Adeudos de Energía Eléctrica</h1>
     <nav class="breadcrumb">
       <span>Inicio</span> &gt; <span>Prescripción de Adeudos</span>
@@ -87,7 +87,6 @@
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="success" class="success">{{ success }}</div>
   </div>
-  <!-- /module-view -->
 </template>
 
 <script>

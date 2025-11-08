@@ -2829,7 +2829,9 @@ body.modal-open {
 /* App Sidebar */
 .app-sidebar {
   background: white;
-  width: 280px;
+  width: 280px; /* Ancho por defecto, será sobrescrito por inline style */
+  min-width: 200px;
+  max-width: 500px;
   position: fixed;
   top: 70px;
   left: 0;
@@ -2843,7 +2845,7 @@ body.modal-open {
 
 /* Sidebar colapsado */
 .app-sidebar.sidebar-collapsed {
-  transform: translateX(-280px);
+  transform: translateX(-100%);
 }
 
 /* Main content ajuste cuando sidebar está colapsado */
@@ -3050,13 +3052,13 @@ body.modal-open {
 
 .main-content {
   margin-top: 70px;
-  margin-left: 280px;
+  margin-left: 280px; /* Valor por defecto, será sobrescrito por inline style */
   margin-bottom: 50px;
   padding: 0.5rem;
   background: #ffffff;
   min-height: calc(100vh - 120px);
-  width: calc(100% - 280px);
-  transition: margin-left var(--transition-normal), width var(--transition-normal);
+  width: auto;
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
 .content-wrapper {
@@ -4747,51 +4749,375 @@ body.modal-open {
 
 .tramite-details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .tramite-detail-section {
-  background: var(--slate-50);
+  background: white;
   border: 1px solid var(--slate-200);
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.tramite-detail-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .tramite-section-title {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--slate-700);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
+  color: var(--slate-800);
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--municipal-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tramite-section-title svg {
+  color: var(--municipal-primary);
+  font-size: 1.125rem;
 }
 
 .tramite-detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--slate-200);
+  align-items: flex-start;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--slate-100);
+  gap: 1rem;
 }
 
 .tramite-detail-row:last-child {
   border-bottom: none;
+  padding-bottom: 0;
+}
+
+.tramite-detail-row:first-child {
+  padding-top: 0;
 }
 
 .tramite-detail-label {
-  font-weight: 500;
-  color: var(--slate-600);
+  font-weight: 600;
+  color: var(--slate-700);
   font-size: 0.875rem;
   flex-shrink: 0;
-  margin-right: 1rem;
+  min-width: 120px;
+  max-width: 160px;
 }
 
 .tramite-detail-value {
   color: var(--slate-900);
   font-size: 0.875rem;
+  font-weight: 500;
   text-align: right;
   word-break: break-word;
+  flex: 1;
+}
+
+.tramite-detail-value .badge {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+}
+
+/* Tramite Alert Boxes */
+.tramite-alert {
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  border-left: 4px solid;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tramite-alert svg {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  margin-top: 0.125rem;
+}
+
+.tramite-alert.alert-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #fffaeb 100%);
+  border-left-color: var(--municipal-warning);
+  color: #856404;
+}
+
+.tramite-alert.alert-warning svg {
+  color: var(--municipal-warning);
+}
+
+.tramite-alert.alert-info {
+  background: linear-gradient(135deg, #d1ecf1 0%, #e7f5f7 100%);
+  border-left-color: #17a2b8;
+  color: #0c5460;
+}
+
+.tramite-alert.alert-info svg {
+  color: #17a2b8;
+}
+
+.tramite-alert.alert-success {
+  background: linear-gradient(135deg, #d4edda 0%, #e8f5e9 100%);
+  border-left-color: #28a745;
+  color: #155724;
+}
+
+.tramite-alert.alert-success svg {
+  color: #28a745;
+}
+
+.tramite-alert.alert-danger {
+  background: linear-gradient(135deg, #f8d7da 0%, #fce8ea 100%);
+  border-left-color: #dc3545;
+  color: #721c24;
+}
+
+.tramite-alert.alert-danger svg {
+  color: #dc3545;
+}
+
+/* Reactivation Form Section */
+.reactivacion-form-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 2px solid var(--slate-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.reactivacion-form-section h3 {
+  color: var(--slate-800);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--municipal-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reactivacion-form-section h3 svg {
+  color: var(--municipal-primary);
+  font-size: 1.25rem;
+}
+
+/* Form Group Enhancements */
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: var(--slate-700);
+  font-size: 0.9375rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-group label .text-danger {
+  color: #dc3545;
+  margin-left: 0.25rem;
+}
+
+/* Textarea Character Counter */
+.character-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.8125rem;
+  color: var(--slate-500);
+  margin-top: 0.375rem;
+  font-weight: 500;
+}
+
+.character-counter.near-limit {
+  color: var(--municipal-warning);
+  font-weight: 600;
+}
+
+.character-counter.at-limit {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+/* Enhanced Form Controls */
+.form-control {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.1);
+  outline: none;
+}
+
+.form-control:hover:not(:disabled):not(:focus) {
+  border-color: var(--slate-400);
+}
+
+/* Button Enhancements */
+.btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--municipal-primary) 0%, #6b46c1 100%);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6b46c1 0%, var(--municipal-primary) 100%);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--slate-500) 0%, var(--slate-600) 100%);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--slate-600) 0%, var(--slate-500) 100%);
+}
+
+/* Search Section Improvements */
+.search-form {
+  background: white;
+  border: 2px solid var(--slate-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.search-form .row {
+  gap: 1rem;
+}
+
+/* Responsive Adjustments for Tramite Details */
+@media (max-width: 992px) {
+  .tramite-details-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .tramite-detail-section {
+    padding: 1rem;
+  }
+
+  .tramite-section-title {
+    font-size: 0.875rem;
+  }
+
+  .tramite-detail-label {
+    min-width: 100px;
+    max-width: 140px;
+    font-size: 0.8125rem;
+  }
+
+  .tramite-detail-value {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .tramite-details-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .tramite-detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 0.5rem 0;
+  }
+
+  .tramite-detail-label {
+    min-width: auto;
+    max-width: none;
+  }
+
+  .tramite-detail-value {
+    text-align: left;
+    width: 100%;
+  }
+
+  .tramite-alert {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .reactivacion-form-section {
+    padding: 1.25rem;
+  }
+
+  .reactivacion-form-section h3 {
+    font-size: 1rem;
+  }
+
+  .search-form {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .tramite-section-title {
+    font-size: 0.8125rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .search-form .row {
+    gap: 0.75rem;
+  }
 }
 
 /* =================================================================================
@@ -9000,4 +9326,352 @@ div[class*="modal-usuario"] .modal-content {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* =================================================================================
+   COMPONENTE: modtramitefrm - Modificación de Trámites
+   Agregado: 2025-11-07
+   ================================================================================= */
+
+/* Alert Box de Advertencia */
+.alert-warning-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-left: 4px solid #ff9800;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.alert-warning-box svg {
+  color: #ff9800;
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert-warning-box strong {
+  color: #856404;
+  font-size: 16px;
+}
+
+.alert-warning-box p {
+  color: #856404;
+  margin: 5px 0 0 0;
+  font-size: 14px;
+}
+
+/* Grid de Información del Trámite */
+.tramite-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--slate-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 15px;
+  color: var(--slate-800);
+  font-weight: 500;
+}
+
+/* Input con Botón (para búsquedas) */
+.input-with-button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-with-button input {
+  flex: 1;
+}
+
+.input-with-button button {
+  flex-shrink: 0;
+  height: 40px;
+  width: 50px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contador de Caracteres */
+.char-counter {
+  text-align: right;
+  font-size: 12px;
+  color: var(--slate-500);
+  margin-top: 5px;
+  font-family: var(--font-mono);
+}
+
+/* Botones Pequeños para Tablas */
+.btn-municipal-sm {
+  padding: 5px 12px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-municipal-sm:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-municipal-sm:active {
+  transform: translateY(0);
+}
+
+/* Badge Info */
+.badge-info {
+  background-color: var(--gov-blue);
+  color: white;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Responsive para modtramitefrm */
+@media (max-width: 768px) {
+  .tramite-info-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .input-with-button {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-with-button button {
+    width: 100%;
+  }
+
+  .alert-warning-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* =========================================
+   VISTA DE SOLO LECTURA - READONLY VIEW
+   ========================================= */
+
+/* Sección de solo lectura */
+.readonly-section {
+  margin-bottom: 35px;
+  padding-bottom: 30px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.readonly-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.readonly-section .section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gov-blue);
+  margin-bottom: 25px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-left: 4px solid var(--gov-orange);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Grid de items readonly */
+.readonly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+/* Item individual readonly */
+.readonly-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.readonly-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.readonly-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 2px;
+}
+
+.readonly-value {
+  font-size: 15px;
+  color: #1e293b;
+  font-weight: 500;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-left: 3px solid var(--gov-orange);
+  border-radius: var(--radius-md);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.readonly-value:hover {
+  border-color: var(--gov-orange);
+  box-shadow: 0 2px 4px rgba(234, 130, 21, 0.15);
+}
+
+.readonly-value:empty::before {
+  content: 'N/A';
+  color: #94a3b8;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Readonly para observaciones (texto largo) */
+.readonly-section .readonly-item.full-width .readonly-value {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  min-height: auto;
+  padding: 16px 18px;
+  align-items: flex-start;
+}
+
+/* Responsive para readonly */
+@media (max-width: 768px) {
+  .readonly-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .readonly-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+  }
+
+  .readonly-section .section-title {
+    font-size: 15px;
+    padding: 10px 14px;
+  }
+
+  .readonly-value {
+    font-size: 14px;
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+
+  .readonly-label {
+    font-size: 10px;
+  }
+}
+
+/* =================================================================================
+   ESTILOS ESPECÍFICOS - TramiteBajaLic.vue
+   ================================================================================= */
+
+.instructions-box {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 16px;
+  border-radius: 4px;
+}
+
+.instructions-box ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.instructions-box li {
+  margin: 8px 0;
+  color: #495057;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.detail-section {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-table tr {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-table tr:last-child {
+  border-bottom: none;
+}
+
+.detail-table td {
+  padding: 8px 0;
+}
+
+.detail-table td.label {
+  font-weight: 500;
+  color: #6c757d;
+  width: 45%;
+}
+
+.form-section {
+  background: #e7f3ff;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #b3d9ff;
+  margin-top: 20px;
+}
+
+.form-text {
+  display: block;
+  margin-top: 4px;
+  color: #6c757d;
+  font-size: 0.875em;
 }

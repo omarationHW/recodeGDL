@@ -1,31 +1,28 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="chart-bar" /></div>
-      <div class="module-view-info">
-        <h1>Desglose de Adeudos por Importe</h1>
-        <p>Mercados - Desglose de Adeudos por Importe</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-desgloce-adepor-importe">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Desglose de Adeudos por Importe</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Locales con Adeudos Vencidos Desglosado por Año</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="year">Año</label>
-          <input v-model.number="form.year" type="number" min="2000" max="2100" class="municipal-form-control" id="year" required>
+          <label for="year">Año</label>
+          <input v-model.number="form.year" type="number" min="2000" max="2100" class="form-control" id="year" required>
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="period">Periodo (Mes)</label>
-          <input v-model.number="form.period" type="number" min="1" max="12" class="municipal-form-control" id="period" required>
+          <label for="period">Periodo (Mes)</label>
+          <input v-model.number="form.period" type="number" min="1" max="12" class="form-control" id="period" required>
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="amount">Importe mínimo ($)</label>
-          <input v-model.number="form.amount" type="number" step="0.01" min="0" class="municipal-form-control" id="amount" required>
+          <label for="amount">Importe mínimo ($)</label>
+          <input v-model.number="form.amount" type="number" step="0.01" min="0" class="form-control" id="amount" required>
         </div>
         <div class="col-md-3 d-flex align-items-end">
-          <button type="submit" class="btn btn-municipal-primary w-100">Consultar</button>
+          <button type="submit" class="btn btn-primary w-100">Consultar</button>
         </div>
       </div>
     </form>
@@ -36,8 +33,8 @@
         Locales con adeudos vencidos desglosado por año al periodo: {{ form.year }}-{{ form.period }} Importe mayor e igual a ${{ form.amount.toLocaleString(undefined, {minimumFractionDigits:2}) }}
       </h5>
       <div class="table-responsive">
-        <table class="-bordered -sm municipal-table-hover">
-          <thead class="thead-light municipal-table-header">
+        <table class="table table-bordered table-sm table-hover">
+          <thead class="thead-light">
             <tr>
               <th>Oficina</th>
               <th>Mercado</th>
@@ -94,9 +91,6 @@
     </div>
     <div v-else-if="!loading && !error" class="alert alert-warning">No se encontraron resultados para los parámetros indicados.</div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

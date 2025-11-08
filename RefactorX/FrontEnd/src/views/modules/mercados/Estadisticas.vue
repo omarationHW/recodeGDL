@@ -1,20 +1,17 @@
 <template>
-  <div class="module-view">
+  <div class="estadisticas-page">
     <h1>Estadísticas de Adeudos</h1>
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div>
-      <div class="module-view-info">
-        <h1>Estadísticas</h1>
-        <p>Mercados - Estadísticas</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Estadísticas</li>
+      </ol>
+    </nav>
     <div class="row">
       <div class="col-md-4">
-        <div class="municipal-card mb-3">
-          <div class="municipal-card-header">Tipo Estadística</div>
-          <div class="municipal-card-body">
+        <div class="card mb-3">
+          <div class="card-header">Tipo Estadística</div>
+          <div class="card-body">
             <div class="form-check">
               <input class="form-check-input" type="radio" id="tipo1" value="global" v-model="tipo" />
               <label class="form-check-label" for="tipo1">Todos los Adeudos</label>
@@ -34,21 +31,21 @@
         <form @submit.prevent="consultar">
           <div class="row mb-2">
             <div class="col">
-              <label class="municipal-form-label" for="year">Año</label>
-              <input type="number" id="year" v-model.number="year" class="municipal-form-control" min="1992" max="2999" required />
+              <label for="year">Año</label>
+              <input type="number" id="year" v-model.number="year" class="form-control" min="1992" max="2999" required />
             </div>
             <div class="col">
-              <label class="municipal-form-label" for="month">Mes</label>
-              <input type="number" id="month" v-model.number="month" class="municipal-form-control" min="1" max="12" required />
+              <label for="month">Mes</label>
+              <input type="number" id="month" v-model.number="month" class="form-control" min="1" max="12" required />
             </div>
             <div class="col" v-if="tipo !== 'global'">
-              <label class="municipal-form-label" for="importe">Importe</label>
-              <input type="number" id="importe" v-model.number="importe" class="municipal-form-control" min="0" step="0.01" required />
+              <label for="importe">Importe</label>
+              <input type="number" id="importe" v-model.number="importe" class="form-control" min="0" step="0.01" required />
             </div>
           </div>
           <div class="mb-2">
-            <button type="submit" class="btn-municipal-primary">Consultar</button>
-            <button type="button" class="btn btn-municipal-success ms-2" @click="exportarExcel" :disabled="!resultados.length">Exportar Excel</button>
+            <button type="submit" class="btn btn-primary">Consultar</button>
+            <button type="button" class="btn btn-success ms-2" @click="exportarExcel" :disabled="!resultados.length">Exportar Excel</button>
           </div>
         </form>
         <div v-if="loading" class="alert alert-info mt-3">Cargando...</div>
@@ -56,7 +53,7 @@
         <div v-if="resultados.length">
           <h5 class="mt-3">Resultados</h5>
           <div class="table-responsive">
-            <table class="-bordered municipal-table-sm">
+            <table class="table table-bordered table-sm">
               <thead>
                 <tr>
                   <th v-for="col in columnas" :key="col">{{ col }}</th>
@@ -73,9 +70,6 @@
       </div>
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

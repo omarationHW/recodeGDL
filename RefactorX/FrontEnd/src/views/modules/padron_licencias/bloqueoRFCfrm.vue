@@ -1,21 +1,23 @@
 <template>
   <div class="module-view">
-    <!-- Header -->
-    <div class="module-view-header" style="position: relative;">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="ban" />
       </div>
       <div class="module-view-info">
         <h1>Bloqueo de RFC</h1>
-        <p>Bloqueo de RFC por incumplimiento del programa de autoevaluación</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Bloqueo de RFC por incumplimiento del programa de autoevaluación</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -30,7 +32,7 @@
         <div class="municipal-card-body">
           <form @submit.prevent="buscarTramite">
             <div class="form-row">
-              <div class="form-group col-md-4">
+              <div class="form-group">
                 <label class="municipal-form-label">Número de Trámite:</label>
                 <input
                   type="number"
@@ -40,7 +42,7 @@
                   required
                 />
               </div>
-              <div class="form-group col-md-2">
+              <div class="form-group">
                 <label class="municipal-form-label">&nbsp;</label>
                 <button
                   type="submit"
@@ -54,7 +56,7 @@
           </form>
 
           <!-- Información del trámite encontrado -->
-          <div v-if="tramiteInfo" class="mt-3 p-3" style="background: #ffffff; border: 1px solid var(--slate-200); border-radius: 8px;">
+          <div v-if="tramiteInfo" class="info-tramite-box">
             <h6 class="mb-3"><strong>Información del Trámite</strong></h6>
             <div class="row">
               <div class="col-md-6">
@@ -67,8 +69,8 @@
               </div>
             </div>
             <div class="form-row mt-3">
-              <div class="form-group col-md-12">
-                <label class="municipal-form-label">Motivo del Bloqueo:</label>
+              <div class="form-group">
+                <label class="municipal-form-label required">Motivo del Bloqueo:</label>
                 <textarea
                   class="municipal-form-control"
                   v-model="nuevoBloqueo.observacion"
@@ -76,83 +78,101 @@
                   placeholder="Ingrese el motivo del bloqueo del RFC"
                   required
                 ></textarea>
+                <div class="char-counter">
+                  {{ nuevoBloqueo.observacion.length }} caracteres
+                </div>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn-municipal-danger mt-2"
-              @click="crearBloqueo"
-              :disabled="loading || !nuevoBloqueo.observacion"
-            >
-              <font-awesome-icon icon="lock" /> Registrar Bloqueo
-            </button>
-            <button
-              type="button"
-              class="btn-municipal-secondary ms-2 mt-2"
-              @click="limpiarFormulario"
-            >
-              <font-awesome-icon icon="eraser" /> Cancelar
-            </button>
+            <div class="button-group mt-2">
+              <button
+                type="button"
+                class="btn-municipal-danger"
+                @click="crearBloqueo"
+                :disabled="loading || !nuevoBloqueo.observacion"
+              >
+                <font-awesome-icon icon="lock" /> Registrar Bloqueo
+              </button>
+              <button
+                type="button"
+                class="btn-municipal-secondary"
+                @click="limpiarFormulario"
+              >
+                <font-awesome-icon icon="eraser" /> Cancelar
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Filtros -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5 class="municipal-card-title">
+        <div class="municipal-card-header clickable-header" @click="toggleFilters">
+          <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Búsqueda
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
           </h5>
         </div>
-        <div class="municipal-card-body">
+        <div class="municipal-card-body" v-show="showFilters">
           <div class="form-row">
-            <div class="form-group col-md-4">
+            <div class="form-group">
               <label class="municipal-form-label">Buscar por RFC:</label>
               <input
                 type="text"
                 class="municipal-form-control"
                 v-model="filtros.rfc"
                 placeholder="RFC..."
-                @input="cargarBloqueos"
+                @keyup.enter="buscar"
               />
             </div>
-            <div class="form-group col-md-3">
+            <div class="form-group">
               <label class="municipal-form-label">Vigencia:</label>
-              <select class="municipal-form-control" v-model="filtros.vigente" @change="cargarBloqueos">
+              <select class="municipal-form-control" v-model="filtros.vigente">
                 <option value="">Todos</option>
-                <option value="V">Vigentes</option>
-                <option value="C">Cancelados</option>
+                <option value="vigente">Vigentes</option>
+                <option value="cancelado">Cancelados</option>
               </select>
             </div>
-            <div class="form-group col-md-3">
-              <label class="municipal-form-label">Registros por página:</label>
-              <select class="municipal-form-control" v-model.number="pageSize" @change="cargarBloqueos">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
-            </div>
+          </div>
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="buscar"
+              :disabled="loading"
+            >
+              <font-awesome-icon icon="search" />
+              Buscar
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="limpiarFiltros"
+              :disabled="loading"
+            >
+              <font-awesome-icon icon="times" />
+              Limpiar
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Tabla de Bloqueos RFC -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5 class="municipal-card-title">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
             <font-awesome-icon icon="list" />
             Listado de Bloqueos RFC
-            <span class="badge badge-primary ms-2" v-if="totalRecords">
-              {{ totalRecords.toLocaleString() }} registro(s)
-            </span>
           </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="totalRecords > 0">
+              {{ formatNumber(totalRecords) }} registros
+            </span>
+          </div>
         </div>
-        <div class="municipal-card-body p-0">
+
+        <div class="municipal-card-body table-container">
           <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead>
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>RFC</th>
                   <th>Trámite</th>
@@ -163,23 +183,11 @@
                   <th>Fecha/Hora</th>
                   <th>Capturista</th>
                   <th>Observación</th>
-                  <th>Acciones</th>
+                  <th class="text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="loading">
-                  <td colspan="10" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Cargando...</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-else-if="bloqueos.length === 0">
-                  <td colspan="10" class="text-center py-4 text-muted">
-                    No se encontraron registros
-                  </td>
-                </tr>
-                <tr v-else v-for="bloqueo in bloqueos" :key="`${bloqueo.rfc}-${bloqueo.id_tramite}`">
+                <tr v-for="bloqueo in bloqueos" :key="`${bloqueo.rfc}-${bloqueo.id_tramite}`" class="row-hover">
                   <td><strong>{{ bloqueo.rfc }}</strong></td>
                   <td>{{ bloqueo.id_tramite }}</td>
                   <td>{{ bloqueo.licencia || 'N/A' }}</td>
@@ -193,8 +201,16 @@
                   <td class="small">{{ formatDateTime(bloqueo.hora) }}</td>
                   <td>{{ bloqueo.capturista }}</td>
                   <td class="small">{{ bloqueo.observacion }}</td>
-                  <td>
+                  <td class="text-center">
                     <div class="btn-group">
+                      <button
+                        class="btn-action btn-info"
+                        @click="verDetalle(bloqueo)"
+                        :disabled="loading"
+                        title="Ver detalle"
+                      >
+                        <font-awesome-icon icon="eye" />
+                      </button>
                       <button
                         v-if="bloqueo.vig === 'V'"
                         class="btn-action btn-success"
@@ -204,90 +220,239 @@
                       >
                         <font-awesome-icon icon="unlock" />
                       </button>
-                      <span v-else class="text-muted small">-</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="bloqueos.length === 0">
+                  <td colspan="10" class="empty-state">
+                    <div class="empty-state-content">
+                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
+                      <p class="empty-state-text">No se encontraron bloqueos de RFC</p>
+                      <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda</p>
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+        </div>
 
-          <!-- Paginación -->
-          <div class="pagination-container" v-if="totalRecords > 0 && !loading">
-            <div class="pagination-info">
-              <font-awesome-icon icon="info-circle" />
-              Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}
-              a {{ Math.min(currentPage * pageSize, totalRecords) }}
-              de {{ totalRecords }} registros
+        <!-- Paginación -->
+        <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+          <div class="pagination-info">
+            <font-awesome-icon icon="info-circle" />
+            Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}
+            a {{ Math.min(currentPage * pageSize, totalRecords) }}
+            de {{ totalRecords }} registros
+          </div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <label>Mostrar:</label>
+              <select v-model="pageSize" @change="cambiarTamañoPagina">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
             </div>
 
-            <div class="pagination-controls">
-              <div class="page-size-selector">
-                <label>Mostrar:</label>
-                <select v-model="pageSize" @change="cargarBloqueos">
-                  <option :value="10">10</option>
-                  <option :value="25">25</option>
-                  <option :value="50">50</option>
-                  <option :value="100">100</option>
-                </select>
-              </div>
+            <div class="pagination-nav">
+              <button
+                class="pagination-button"
+                @click="cambiarPagina(currentPage - 1)"
+                :disabled="currentPage === 1"
+              >
+                <font-awesome-icon icon="chevron-left" />
+              </button>
 
-              <div class="pagination-nav">
-                <button
-                  class="pagination-button"
-                  @click="cambiarPagina(currentPage - 1)"
-                  :disabled="currentPage === 1"
-                >
-                  <font-awesome-icon icon="chevron-left" />
-                </button>
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="pagination-button"
+                :class="{ active: page === currentPage }"
+                @click="cambiarPagina(page)"
+              >
+                {{ page }}
+              </button>
 
-                <button
-                  v-for="page in visiblePages"
-                  :key="page"
-                  class="pagination-button"
-                  :class="{ active: page === currentPage }"
-                  @click="cambiarPagina(page)"
-                >
-                  {{ page }}
-                </button>
-
-                <button
-                  class="pagination-button"
-                  @click="cambiarPagina(currentPage + 1)"
-                  :disabled="currentPage === totalPages"
-                >
-                  <font-awesome-icon icon="chevron-right" />
-                </button>
-              </div>
+              <button
+                class="pagination-button"
+                @click="cambiarPagina(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+              >
+                <font-awesome-icon icon="chevron-right" />
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando...</p>
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" class="toast-duration-icon" />
+          {{ toast.duration }}
+        </span>
       </div>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
   </div>
+  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'bloqueoRFCfrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+  <!-- Modal Detalle Bloqueo RFC -->
+  <Modal
+    :show="mostrarModalDetalle"
+    @close="cerrarModalDetalle"
+    size="lg"
+  >
+    <template #header>
+      <h5 class="modal-title">
+        <font-awesome-icon icon="eye" class="me-2 text-info" />
+        Detalle del Bloqueo - RFC {{ bloqueoSeleccionado?.rfc }}
+      </h5>
+    </template>
+
+    <div v-if="bloqueoSeleccionado" class="modal-body-detail">
+      <!-- Resumen superior con badges -->
+      <div class="detail-summary-bar">
+        <div class="summary-item">
+          <span class="summary-label">RFC</span>
+          <span class="badge badge-primary-modern">{{ bloqueoSeleccionado.rfc }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Trámite</span>
+          <span class="badge badge-info-modern">#{{ bloqueoSeleccionado.id_tramite }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Estado</span>
+          <span class="badge" :class="bloqueoSeleccionado.vig === 'V' ? 'badge-success' : 'badge-secondary'">
+            {{ bloqueoSeleccionado.vig === 'V' ? 'Vigente' : 'Cancelado' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Grid de detalles -->
+      <div class="details-grid">
+        <!-- Información del Contribuyente -->
+        <div class="detail-section">
+          <h6 class="detail-section-title">
+            <font-awesome-icon icon="user" class="me-2" />
+            Información del Contribuyente
+          </h6>
+          <table class="detail-table">
+            <tr>
+              <td class="label">RFC:</td>
+              <td><strong class="text-primary">{{ bloqueoSeleccionado.rfc }}</strong></td>
+            </tr>
+            <tr>
+              <td class="label">Propietario:</td>
+              <td>{{ bloqueoSeleccionado.propietario_completo }}</td>
+            </tr>
+            <tr>
+              <td class="label">Licencia:</td>
+              <td>{{ bloqueoSeleccionado.licencia || 'N/A' }}</td>
+            </tr>
+            <tr>
+              <td class="label">Actividad:</td>
+              <td>{{ bloqueoSeleccionado.actividad }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Datos del Bloqueo -->
+        <div class="detail-section">
+          <h6 class="detail-section-title">
+            <font-awesome-icon icon="lock" class="me-2" />
+            Datos del Bloqueo
+          </h6>
+          <table class="detail-table">
+            <tr>
+              <td class="label">Trámite:</td>
+              <td><strong>#{{ bloqueoSeleccionado.id_tramite }}</strong></td>
+            </tr>
+            <tr>
+              <td class="label">Fecha/Hora:</td>
+              <td>
+                <font-awesome-icon icon="clock" class="me-1 text-muted" />
+                {{ formatDateTime(bloqueoSeleccionado.hora) }}
+              </td>
+            </tr>
+            <tr>
+              <td class="label">Capturista:</td>
+              <td>
+                <font-awesome-icon icon="user-circle" class="me-1 text-muted" />
+                {{ bloqueoSeleccionado.capturista }}
+              </td>
+            </tr>
+            <tr>
+              <td class="label">Vigencia:</td>
+              <td>
+                <span class="badge" :class="bloqueoSeleccionado.vig === 'V' ? 'badge-success' : 'badge-secondary'">
+                  {{ bloqueoSeleccionado.vig === 'V' ? 'Vigente' : 'Cancelado' }}
+                </span>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sección completa: Observaciones -->
+      <div class="detail-section detail-section-full">
+        <h6 class="detail-section-title">
+          <font-awesome-icon icon="comment-alt" class="me-2" />
+          Observaciones
+        </h6>
+        <div class="detail-observation-box">
+          {{ bloqueoSeleccionado.observacion || 'Sin observaciones registradas' }}
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <button
+        type="button"
+        class="btn-municipal-secondary"
+        @click="cerrarModalDetalle"
+      >
+        <font-awesome-icon icon="times" />
+        Cerrar
+      </button>
+      <button
+        v-if="bloqueoSeleccionado?.vig === 'V'"
+        type="button"
+        class="btn-municipal-success"
+        @click="confirmarDesbloqueo(bloqueoSeleccionado); cerrarModalDetalle()"
+      >
+        <font-awesome-icon icon="unlock" />
+        Desbloquear RFC
+      </button>
+    </template>
+  </Modal>
+
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'bloqueoRFCfrm'"
+    :moduleName="'padron_licencias'"
+    @close="closeDocumentation"
+  />
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Modal from '@/components/common/Modal.vue'
 
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const showDocumentation = ref(false)
@@ -295,13 +460,18 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const bloqueos = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
-const pageSize = ref(25)
+const pageSize = ref(10)
 const totalRecords = ref(0)
+const showFilters = ref(false)
+const mostrarModalDetalle = ref(false)
+const bloqueoSeleccionado = ref(null)
 
 const idTramiteBuscar = ref(null)
 const tramiteInfo = ref(null)
@@ -312,7 +482,7 @@ const nuevoBloqueo = ref({
 
 const filtros = ref({
   rfc: '',
-  vigente: 'V'
+  vigente: 'vigente'
 })
 
 // Computed
@@ -337,20 +507,32 @@ const visiblePages = computed(() => {
 })
 
 // Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
 const cargarBloqueos = async () => {
-  loading.value = true
+  showLoading('Cargando bloqueos RFC...')
+  showFilters.value = false
+  const startTime = performance.now()
+
   try {
     const response = await execute(
       'sp_bloqueorfc_list',
-      'padron_licencias',
+      'licencias',
       [
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_page_size', valor: pageSize.value, tipo: 'integer' },
         { nombre: 'p_rfc', valor: filtros.value.rfc || null, tipo: 'string' },
-        { nombre: 'p_vigente', valor: filtros.value.vigente || null, tipo: 'string' }
+        { nombre: 'p_tipo_bloqueo', valor: filtros.value.vigente || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'public'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result) {
       bloqueos.value = response.result
@@ -359,73 +541,88 @@ const cargarBloqueos = async () => {
       } else {
         totalRecords.value = 0
       }
+
+      const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+      showToast(`${formatNumber(totalRecords.value)} bloqueos RFC cargados`, 'success', `${timeMessage}`)
     }
   } catch (error) {
     console.error('Error al cargar bloqueos RFC:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudieron cargar los bloqueos de RFC',
-      confirmButtonColor: '#ea8215'
-    })
+    handleApiError(error, 'No se pudieron cargar los bloqueos de RFC')
   } finally {
-    loading.value = false
+    hideLoading()
   }
+}
+
+const buscar = () => {
+  currentPage.value = 1
+  cargarBloqueos()
+}
+
+const limpiarFiltros = () => {
+  filtros.value = {
+    rfc: '',
+    vigente: 'vigente'
+  }
+  currentPage.value = 1
+  cargarBloqueos()
 }
 
 const buscarTramite = async () => {
   if (!idTramiteBuscar.value) return
 
-  loading.value = true
+  showLoading('Buscando trámite...')
   try {
     const response = await execute(
       'sp_bloqueorfc_buscar_tramite',
-      'padron_licencias',
+      'licencias',
       [{ nombre: 'p_id_tramite', valor: idTramiteBuscar.value, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'public'
     )
 
+    hideLoading()
+
     if (response && response.result && response.result.length > 0) {
-      tramiteInfo.value = response.result[0]
+      const result = response.result[0]
+      // Mapear campos del SP al formato esperado por el componente
+      tramiteInfo.value = {
+        ...result,
+        propietario_completo: result.propietario || ''
+      }
 
       if (!tramiteInfo.value.rfc || tramiteInfo.value.rfc.trim() === '') {
-        Swal.fire({
+        await Swal.fire({
           icon: 'warning',
           title: 'RFC no encontrado',
           text: 'El trámite no tiene RFC registrado',
-          confirmButtonColor: '#ea8215'
+          confirmButtonColor: '#9363CD'
         })
         tramiteInfo.value = null
       }
     } else {
-      Swal.fire({
+      await Swal.fire({
         icon: 'error',
         title: 'No encontrado',
         text: 'El trámite no existe en el sistema',
-        confirmButtonColor: '#ea8215'
+        confirmButtonColor: '#9363CD'
       })
       tramiteInfo.value = null
     }
   } catch (error) {
+    hideLoading()
     console.error('Error al buscar trámite:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo buscar el trámite',
-      confirmButtonColor: '#ea8215'
-    })
-  } finally {
-    loading.value = false
+    handleApiError(error, 'No se pudo buscar el trámite')
   }
 }
 
 const crearBloqueo = async () => {
   if (!nuevoBloqueo.value.observacion.trim()) {
-    Swal.fire({
+    await Swal.fire({
       icon: 'warning',
       title: 'Motivo requerido',
       text: 'Debe ingresar el motivo del bloqueo',
-      confirmButtonColor: '#ea8215'
+      confirmButtonColor: '#9363CD'
     })
     return
   }
@@ -448,53 +645,65 @@ const crearBloqueo = async () => {
 
   if (!confirmacion.isConfirmed) return
 
-  loading.value = true
+  showLoading('Registrando bloqueo...')
   try {
     const response = await execute(
       'sp_bloqueorfc_create',
-      'padron_licencias',
+      'licencias',
       [
+        { nombre: 'p_rfc', valor: tramiteInfo.value.rfc, tipo: 'string' },
         { nombre: 'p_id_tramite', valor: idTramiteBuscar.value, tipo: 'integer' },
+        { nombre: 'p_licencia', valor: tramiteInfo.value.id_licencia, tipo: 'integer' },
         { nombre: 'p_observacion', valor: nuevoBloqueo.value.observacion, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'public'
     )
+
+    // Primero ocultar el loading
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const resultado = response.result[0]
 
       if (resultado.success) {
+        // Luego mostrar el mensaje de éxito
         await Swal.fire({
           icon: 'success',
           title: 'Bloqueo Registrado',
           text: resultado.message,
-          confirmButtonColor: '#ea8215',
+          confirmButtonColor: '#9363CD',
           timer: 2000
         })
 
         limpiarFormulario()
-        cargarBloqueos()
+        // NO recargar automáticamente
       } else {
-        Swal.fire({
+        await Swal.fire({
           icon: 'error',
           title: 'Error',
           text: resultado.message,
-          confirmButtonColor: '#ea8215'
+          confirmButtonColor: '#9363CD'
         })
       }
     }
   } catch (error) {
+    hideLoading()
     console.error('Error al crear bloqueo:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo registrar el bloqueo',
-      confirmButtonColor: '#ea8215'
-    })
-  } finally {
-    loading.value = false
+    handleApiError(error, 'No se pudo registrar el bloqueo')
   }
+}
+
+const verDetalle = (bloqueo) => {
+  bloqueoSeleccionado.value = { ...bloqueo }
+  mostrarModalDetalle.value = true
+}
+
+const cerrarModalDetalle = () => {
+  mostrarModalDetalle.value = false
+  bloqueoSeleccionado.value = null
 }
 
 const confirmarDesbloqueo = async (bloqueo) => {
@@ -522,51 +731,51 @@ const confirmarDesbloqueo = async (bloqueo) => {
 
   if (!motivo) return
 
-  loading.value = true
+  showLoading('Desbloqueando RFC...')
   try {
     const response = await execute(
       'sp_bloqueorfc_desbloquear',
-      'padron_licencias',
+      'licencias',
       [
         { nombre: 'p_rfc', valor: bloqueo.rfc, tipo: 'string' },
         { nombre: 'p_id_tramite', valor: bloqueo.id_tramite, tipo: 'integer' },
         { nombre: 'p_motivo', valor: motivo, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'public'
     )
+
+    // Primero ocultar el loading
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const resultado = response.result[0]
 
       if (resultado.success) {
+        // Luego mostrar el mensaje de éxito
         await Swal.fire({
           icon: 'success',
           title: 'RFC Desbloqueado',
           text: resultado.message,
-          confirmButtonColor: '#ea8215',
+          confirmButtonColor: '#9363CD',
           timer: 2000
         })
 
-        cargarBloqueos()
+        // NO recargar automáticamente
       } else {
-        Swal.fire({
+        await Swal.fire({
           icon: 'error',
           title: 'Error',
           text: resultado.message,
-          confirmButtonColor: '#ea8215'
+          confirmButtonColor: '#9363CD'
         })
       }
     }
   } catch (error) {
+    hideLoading()
     console.error('Error al desbloquear RFC:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo desbloquear el RFC',
-      confirmButtonColor: '#ea8215'
-    })
-  } finally {
-    loading.value = false
+    handleApiError(error, 'No se pudo desbloquear el RFC')
   }
 }
 
@@ -577,6 +786,11 @@ const cambiarPagina = (page) => {
   }
 }
 
+const cambiarTamañoPagina = () => {
+  currentPage.value = 1
+  cargarBloqueos()
+}
+
 const limpiarFormulario = () => {
   idTramiteBuscar.value = null
   tramiteInfo.value = null
@@ -585,14 +799,36 @@ const limpiarFormulario = () => {
   }
 }
 
+const formatNumber = (value) => {
+  if (!value && value !== 0) return '0'
+  return new Intl.NumberFormat('es-MX').format(value)
+}
+
 const formatDateTime = (datetime) => {
   if (!datetime) return 'N/A'
   const d = new Date(datetime)
   return d.toLocaleString('es-MX')
 }
 
-// Cargar al montar
+// NO cargar automáticamente al montar
 onMounted(() => {
-  cargarBloqueos()
+  // No cargar automáticamente, solo cargar cuando el usuario presione "Buscar"
 })
 </script>
+
+<style scoped>
+.info-tramite-box {
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.char-counter {
+  font-size: 0.75rem;
+  color: var(--slate-500);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+</style>

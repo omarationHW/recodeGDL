@@ -1,88 +1,103 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-invoice-dollar" />
       </div>
       <div class="module-view-info">
         <h1>Giros con Adeudo</h1>
-        <p>Padrón de Licencias - Reporte de Giros con Adeudos</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+        <p>Padrón de Licencias - Reporte de Giros con Adeudos</p>
+      </div>
+      <div class="button-group ms-auto">
         <button
-          class="btn-municipal-primary"
+          class="btn-municipal-success"
           @click="exportToExcel"
           :disabled="loading || giros.length === 0"
         >
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>
+        <button
+          class="btn-municipal-primary"
+          @click="loadGiros"
+          :disabled="loading"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
 
     <div class="module-view-content">
-
-    <!-- Tarjeta de resumen -->
-    <div class="municipal-card" v-if="summary.totalGiros > 0">
-      <div class="municipal-card-header">
-        <h5>
-          <font-awesome-icon icon="chart-line" />
-          Resumen de Adeudos
-        </h5>
-      </div>
-      <div class="municipal-card-body">
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-icon stat-primary">
-              <font-awesome-icon icon="layer-group" />
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ summary.totalGiros }}</div>
-              <div class="stat-label">Giros con Adeudo</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon stat-warning">
-              <font-awesome-icon icon="file-invoice" />
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ summary.totalLicencias }}</div>
-              <div class="stat-label">Licencias con Adeudo</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon stat-danger">
-              <font-awesome-icon icon="dollar-sign" />
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ formatCurrency(summary.totalAdeudo) }}</div>
-              <div class="stat-label">Adeudo Total</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon stat-info">
-              <font-awesome-icon icon="calculator" />
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ formatCurrency(summary.averageAdeudo) }}</div>
-              <div class="stat-label">Promedio por Giro</div>
-            </div>
+      <!-- Stats grid con skeleton loading -->
+      <div class="stats-grid stats-grid-4" v-if="loadingEstadisticas">
+        <div class="stat-card stat-card-loading" v-for="n in 4" :key="`loading-${n}`">
+          <div class="stat-content">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-number"></div>
+            <div class="skeleton-label"></div>
+            <div class="skeleton-percentage"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Filtros de búsqueda -->
-    <div class="municipal-card">
-      <div class="municipal-card-body">
+      <div class="stats-grid stats-grid-4" v-else-if="summary.totalGiros > 0">
+        <div class="stat-card stat-primary">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="store" />
+            </div>
+            <h3 class="stat-number">{{ formatNumber(summary.totalGiros) }}</h3>
+            <p class="stat-label">Giros con Adeudo</p>
+          </div>
+        </div>
+        <div class="stat-card stat-warning">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="exclamation-triangle" />
+            </div>
+            <h3 class="stat-number">{{ formatNumber(summary.totalLicencias) }}</h3>
+            <p class="stat-label">Licencias con Adeudo</p>
+          </div>
+        </div>
+        <div class="stat-card stat-danger">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="dollar-sign" />
+            </div>
+            <h3 class="stat-number">{{ formatCurrency(summary.totalAdeudo) }}</h3>
+            <p class="stat-label">Adeudo Total</p>
+          </div>
+        </div>
+        <div class="stat-card stat-info">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="chart-line" />
+            </div>
+            <h3 class="stat-number">{{ formatCurrency(summary.averageAdeudo) }}</h3>
+            <p class="stat-label">Promedio por Giro</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header clickable-header" @click="toggleFilters">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Búsqueda
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+        </div>
+      <div class="municipal-card-body" v-show="showFilters">
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Año</label>
@@ -142,73 +157,106 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Giros con Adeudo
-          <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="totalRecords > 0">
+            {{ formatNumber(totalRecords) }} registros
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
+      <div class="municipal-card-body table-container">
         <div class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
-                <th>Giro</th>
-                <th>Total Licencias</th>
-                <th>Licencias con Adeudo</th>
-                <th>% Adeudo</th>
-                <th>Monto Total</th>
-                <th>Promedio</th>
-                <th>Porcentaje de Deuda</th>
+                <th style="width: 30%;">
+                  <font-awesome-icon icon="layer-group" class="me-2" />
+                  Giro Comercial
+                </th>
+                <th style="width: 10%; text-align: center;">
+                  <font-awesome-icon icon="building" class="me-1" />
+                  Total
+                </th>
+                <th style="width: 10%; text-align: center;">
+                  <font-awesome-icon icon="exclamation-circle" class="me-1" />
+                  Con Adeudo
+                </th>
+                <th style="width: 10%; text-align: center;">
+                  <font-awesome-icon icon="percentage" class="me-1" />
+                  % Adeudo
+                </th>
+                <th style="width: 15%; text-align: right;">
+                  <font-awesome-icon icon="dollar-sign" class="me-1" />
+                  Monto Total
+                </th>
+                <th style="width: 15%; text-align: right;">
+                  <font-awesome-icon icon="calculator" class="me-1" />
+                  Promedio
+                </th>
+                <th style="width: 10%; text-align: center;">
+                  <font-awesome-icon icon="chart-bar" class="me-1" />
+                  Visual
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="giro in giros" :key="giro.id" class="row-hover">
-                <td><strong class="text-primary">{{ giro.giro?.trim() || 'N/A' }}</strong></td>
+              <tr v-for="(giro, index) in giros" :key="`giro-${index}`" class="row-hover">
                 <td>
-                  <span class="badge-secondary">
-                    <font-awesome-icon icon="file-alt" />
-                    {{ giro.total_licencias || 0 }}
+                  <div class="giro-name">
+                    <font-awesome-icon icon="store" class="giro-icon" />
+                    <span class="giro-text">{{ giro.giro?.trim() || 'N/A' }}</span>
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <span class="badge badge-light-info">
+                    {{ formatNumber(giro.total_licencias || 0) }}
                   </span>
                 </td>
-                <td>
-                  <span class="badge-warning">
-                    <font-awesome-icon icon="exclamation-triangle" />
-                    {{ giro.licencias_con_adeudo || 0 }}
+                <td style="text-align: center;">
+                  <span class="badge" :class="getAdeudoBadgeClass(giro.licencias_con_adeudo)">
+                    <font-awesome-icon icon="exclamation-triangle" class="me-1" />
+                    {{ formatNumber(giro.licencias_con_adeudo || 0) }}
                   </span>
                 </td>
-                <td>
-                  <span class="badge" :class="getPercentageClass(giro.porcentaje_adeudo)">
+                <td style="text-align: center;">
+                  <span class="badge" :class="getPercentageBadgeClass(giro.porcentaje_adeudo)">
                     {{ formatPercentage(giro.porcentaje_adeudo) }}%
                   </span>
                 </td>
-                <td>
-                  <strong class="text-danger">{{ formatCurrency(giro.monto_total_adeudo) }}</strong>
+                <td style="text-align: right;">
+                  <div class="amount-cell">
+                    <font-awesome-icon icon="money-bill-wave" class="amount-icon text-danger" />
+                    <strong class="amount-value text-danger">{{ formatCurrency(giro.monto_total_adeudo) }}</strong>
+                  </div>
                 </td>
-                <td>
-                  <span class="text-muted">{{ formatCurrency(giro.promedio_adeudo) }}</span>
+                <td style="text-align: right;">
+                  <span class="amount-secondary">{{ formatCurrency(giro.promedio_adeudo) }}</span>
                 </td>
-                <td>
-                  <div class="debt-progress">
-                    <div
-                      class="debt-progress-bar"
-                      :style="{ width: `${Math.min(giro.porcentaje_adeudo || 0, 100)}%` }"
-                      :class="getProgressBarClass(giro.porcentaje_adeudo)"
-                    >
-                      <span v-if="giro.porcentaje_adeudo > 10">{{ formatPercentage(giro.porcentaje_adeudo) }}%</span>
+                <td style="text-align: center;">
+                  <div class="progress-wrapper">
+                    <div class="progress-bar-modern">
+                      <div
+                        class="progress-fill"
+                        :style="{ width: `${Math.min(giro.porcentaje_adeudo || 0, 100)}%` }"
+                        :class="getProgressFillClass(giro.porcentaje_adeudo)"
+                      ></div>
                     </div>
+                    <span class="progress-label">{{ formatPercentage(giro.porcentaje_adeudo) }}%</span>
                   </div>
                 </td>
               </tr>
-              <tr v-if="giros.length === 0 && !loading">
-                <td colspan="7" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron giros con adeudos</p>
+              <tr v-if="giros.length === 0">
+                <td colspan="7" class="empty-state">
+                  <div class="empty-state-content">
+                    <font-awesome-icon icon="inbox" class="empty-state-icon" />
+                    <p class="empty-state-text">No se encontraron giros con adeudos</p>
+                    <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda</p>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -267,22 +315,19 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && giros.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando reporte de giros con adeudo...</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
     </div>
     <!-- /module-view-content -->
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" class="toast-duration-icon" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -314,8 +359,6 @@ const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -323,18 +366,26 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+// Importar useGlobalLoading para el loading estándar
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const giros = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalRecords = ref(0)
+const showFilters = ref(false)
+const loadingEstadisticas = ref(false)
 
 // Resumen
 const summary = ref({
   totalGiros: 0,
   totalLicencias: 0,
   totalAdeudo: 0,
-  averageAdeudo: 0
+  averageAdeudo: 0,
+  averagePorcentaje: 0,
+  maxLicencias: 0
 })
 
 // Filtros
@@ -371,22 +422,87 @@ const visiblePages = computed(() => {
 })
 
 // Métodos
-const loadGiros = async () => {
-  setLoading(true, 'Cargando giros con adeudo...')
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
+const loadEstadisticas = async () => {
+  // Solo carga el resumen estadístico inicial
+  loadingEstadisticas.value = true
 
   try {
     const response = await execute(
-      'GirosDconAdeudofrm_sp_giros_dcon_adeudo',
+      'sp_giros_dcon_adeudo',
+      'padron_licencias',
+      [
+        { nombre: 'p_year', valor: null, tipo: 'integer' },
+        { nombre: 'p_giro', valor: null, tipo: 'string' },
+        { nombre: 'p_min_debt', valor: null, tipo: 'numeric' },
+        { nombre: 'p_page', valor: 1, tipo: 'integer' },
+        { nombre: 'p_limit', valor: 10, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      // Solo calculamos estadísticas, NO cargamos la tabla
+      let totalLicencias = 0
+      let totalAdeudo = 0
+      let sumPorcentajes = 0
+      let maxLic = 0
+
+      response.result.forEach(giro => {
+        const licConAdeudo = parseInt(giro.licencias_con_adeudo) || 0
+        const adeudo = parseFloat(giro.monto_total_adeudo) || 0
+        const porcentaje = parseFloat(giro.porcentaje_adeudo) || 0
+        const totalLic = parseInt(giro.total_licencias) || 0
+
+        totalLicencias += licConAdeudo
+        totalAdeudo += adeudo
+        sumPorcentajes += porcentaje
+        if (totalLic > maxLic) maxLic = totalLic
+      })
+
+      summary.value = {
+        totalGiros: response.result.length,
+        totalLicencias: totalLicencias,
+        totalAdeudo: totalAdeudo,
+        averageAdeudo: response.result.length > 0 ? totalAdeudo / response.result.length : 0,
+        averagePorcentaje: response.result.length > 0 ? (sumPorcentajes / response.result.length).toFixed(2) : 0,
+        maxLicencias: maxLic
+      }
+    }
+  } catch (error) {
+    console.error('Error al cargar estadísticas:', error)
+    handleApiError(error)
+  } finally {
+    loadingEstadisticas.value = false
+  }
+}
+
+const loadGiros = async () => {
+  showLoading('Cargando giros con adeudo...')
+  showFilters.value = false
+
+  // Timer para medir el tiempo de consulta
+  const startTime = performance.now()
+
+  try {
+    const response = await execute(
+      'sp_giros_dcon_adeudo',
       'padron_licencias',
       [
         { nombre: 'p_year', valor: filters.value.year || null, tipo: 'integer' },
         { nombre: 'p_giro', valor: filters.value.giro || null, tipo: 'string' },
-        { nombre: 'p_min_debt', valor: filters.value.minDebt || null, tipo: 'string' },
+        { nombre: 'p_min_debt', valor: filters.value.minDebt ? parseFloat(filters.value.minDebt) : null, tipo: 'numeric' },
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2) // Convertir a segundos
 
     if (response && response.result) {
       giros.value = response.result
@@ -396,7 +512,10 @@ const loadGiros = async () => {
         totalRecords.value = 0
       }
       calculateSummary()
-      showToast('success', 'Datos cargados correctamente')
+
+      // Formatear el mensaje con el tiempo
+      const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+      showToast('success', 'Datos cargados correctamente', timeMessage)
     } else {
       giros.value = []
       totalRecords.value = 0
@@ -407,7 +526,7 @@ const loadGiros = async () => {
     giros.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -439,16 +558,16 @@ const exportToExcel = async () => {
   })
 
   if (result.isConfirmed) {
-    setLoading(true, 'Generando archivo Excel...')
+    showLoading('Generando archivo Excel...')
 
     try {
       const response = await execute(
-        'GirosDconAdeudofrm_report_giros_dcon_adeudo',
+        'sp_report_giros_dcon_adeudo',
         'padron_licencias',
         [
           { nombre: 'p_year', valor: filters.value.year || null, tipo: 'integer' },
           { nombre: 'p_giro', valor: filters.value.giro || null, tipo: 'string' },
-          { nombre: 'p_min_debt', valor: filters.value.minDebt || null, tipo: 'string' }
+          { nombre: 'p_min_debt', valor: filters.value.minDebt ? parseFloat(filters.value.minDebt) : null, tipo: 'numeric' }
         ],
         'guadalajara'
       )
@@ -466,7 +585,52 @@ const exportToExcel = async () => {
     } catch (error) {
       handleApiError(error)
     } finally {
-      setLoading(false)
+      hideLoading()
+    }
+  }
+}
+
+const generateReport = async () => {
+  const result = await Swal.fire({
+    title: 'Generar Reporte PDF',
+    text: '¿Desea generar un reporte completo en PDF de giros con adeudo?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#28a745',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, generar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (result.isConfirmed) {
+    showLoading('Generando reporte PDF...')
+
+    try {
+      const response = await execute(
+        'sp_report_giros_dcon_adeudo',
+        'padron_licencias',
+        [
+          { nombre: 'p_year', valor: filters.value.year || null, tipo: 'integer' },
+          { nombre: 'p_giro', valor: filters.value.giro || null, tipo: 'string' },
+          { nombre: 'p_min_debt', valor: filters.value.minDebt ? parseFloat(filters.value.minDebt) : null, tipo: 'numeric' }
+        ],
+        'guadalajara'
+      )
+
+      if (response && response.result) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Reporte generado',
+          text: 'El reporte PDF se ha generado correctamente',
+          confirmButtonColor: '#28a745',
+          timer: 2000
+        })
+        showToast('success', 'Reporte PDF generado exitosamente')
+      }
+    } catch (error) {
+      handleApiError(error)
+    } finally {
+      hideLoading()
     }
   }
 }
@@ -511,6 +675,11 @@ const calculateSummary = () => {
 }
 
 // Utilidades
+const formatNumber = (value) => {
+  if (!value && value !== 0) return '0'
+  return new Intl.NumberFormat('es-MX').format(value)
+}
+
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '$0.00'
   return new Intl.NumberFormat('es-MX', {
@@ -540,108 +709,33 @@ const getProgressBarClass = (percentage) => {
   return 'progress-success'
 }
 
+// Nuevas funciones para badges y barras de progreso mejoradas
+const getAdeudoBadgeClass = (cantidad) => {
+  const num = parseInt(cantidad) || 0
+  if (num > 100) return 'badge-danger'
+  if (num > 50) return 'badge-warning'
+  if (num > 10) return 'badge-info'
+  return 'badge-light-warning'
+}
+
+const getPercentageBadgeClass = (percentage) => {
+  const percent = parseFloat(percentage) || 0
+  if (percent >= 50) return 'badge-danger'
+  if (percent >= 25) return 'badge-warning'
+  if (percent >= 10) return 'badge-info'
+  return 'badge-success'
+}
+
+const getProgressFillClass = (percentage) => {
+  const percent = parseFloat(percentage) || 0
+  if (percent >= 50) return 'progress-fill-danger'
+  if (percent >= 25) return 'progress-fill-warning'
+  if (percent >= 10) return 'progress-fill-info'
+  return 'progress-fill-success'
+}
+
 // Lifecycle
 onMounted(() => {
-  loadGiros()
+  loadEstadisticas()
 })
 </script>
-
-<style scoped>
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 0.5rem;
-  border: 1px solid #e9ecef;
-}
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5rem;
-  margin-right: 1rem;
-  font-size: 1.5rem;
-  color: white;
-}
-
-.stat-icon.stat-primary {
-  background: linear-gradient(135deg, #ea8215 0%, #c46e12 100%);
-}
-
-.stat-icon.stat-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-}
-
-.stat-icon.stat-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-}
-
-.stat-icon.stat-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #2c3e50;
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.debt-progress {
-  width: 100%;
-  height: 24px;
-  background-color: #e9ecef;
-  border-radius: 0.25rem;
-  overflow: hidden;
-  position: relative;
-}
-
-.debt-progress-bar {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: white;
-  transition: width 0.3s ease;
-}
-
-.debt-progress-bar.progress-success {
-  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
-}
-
-.debt-progress-bar.progress-info {
-  background: linear-gradient(90deg, #17a2b8 0%, #138496 100%);
-}
-
-.debt-progress-bar.progress-warning {
-  background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%);
-}
-
-.debt-progress-bar.progress-danger {
-  background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
-}
-</style>

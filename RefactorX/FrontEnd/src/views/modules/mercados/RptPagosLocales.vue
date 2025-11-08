@@ -1,27 +1,24 @@
 <template>
-  <div class="module-view">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="store" /></div>
-      <div class="module-view-info">
-        <h1>Reporte de Pagos Locales</h1>
-        <p>Mercados - Reporte de Pagos Locales</p>
-      </div>
-    </div>
-
-    <div class="module-view-content">
+  <div class="rpt-pagos-locales-page">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Reporte de Pagos Locales</li>
+      </ol>
+    </nav>
     <h1 class="mb-4">Reporte de Pagos Locales</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row g-3 align-items-end">
         <div class="col-md-3">
-          <label class="municipal-form-label" for="fecha_desde">Fecha Desde</label>
-          <input type="date" v-model="form.fecha_desde" class="municipal-form-control" required />
+          <label for="fecha_desde" class="form-label">Fecha Desde</label>
+          <input type="date" v-model="form.fecha_desde" class="form-control" required />
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="fecha_hasta">Fecha Hasta</label>
-          <input type="date" v-model="form.fecha_hasta" class="municipal-form-control" required />
+          <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
+          <input type="date" v-model="form.fecha_hasta" class="form-control" required />
         </div>
         <div class="col-md-3">
-          <label class="municipal-form-label" for="oficina">Recaudadora</label>
+          <label for="oficina" class="form-label">Recaudadora</label>
           <select v-model="form.oficina" class="form-select" required>
             <option value="" disabled>Seleccione...</option>
             <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
@@ -30,14 +27,14 @@
           </select>
         </div>
         <div class="col-md-3">
-          <button type="submit" class="btn btn-municipal-primary w-100">Generar Reporte</button>
+          <button type="submit" class="btn btn-primary w-100">Generar Reporte</button>
         </div>
       </div>
     </form>
     <div v-if="loading" class="alert alert-info">Cargando datos...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
     <div v-if="report.length > 0">
-      <table class="-bordered -striped municipal-table-sm mt-4">
+      <table class="table table-bordered table-striped table-sm mt-4">
         <thead>
           <tr>
             <th>Local</th>
@@ -76,9 +73,6 @@
       No hay datos para los filtros seleccionados.
     </div>
   </div>
-    <!-- /module-view-content -->
-  </div>
-  <!-- /module-view -->
 </template>
 
 <script>

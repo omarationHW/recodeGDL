@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="database" />
       </div>
@@ -94,7 +94,7 @@
               <tr>
                 <td class="label">Tipo Anuncio:</td>
                 <td>
-                  <span class="badge-info">
+                  <span class="badge-purple">
                     {{ anuncioInfo.tipo_anuncio?.trim() || 'N/A' }}
                   </span>
                 </td>
@@ -225,7 +225,7 @@
         <h5>
           <font-awesome-icon icon="money-bill-wave" />
           Historial de Pagos AS/400
-          <span class="badge-info" v-if="pagos.length > 0">{{ pagos.length }} pagos</span>
+          <span class="badge-purple" v-if="pagos.length > 0">{{ pagos.length }} pagos</span>
         </h5>
         <button
           class="btn-municipal-secondary btn-sm"
@@ -252,7 +252,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="pago in pagos" :key="pago.folio" class="row-hover">
+              <tr v-for="pago in pagos" :key="pago.folio" class="clickable-row">
                 <td><code class="text-primary">{{ pago.folio?.trim() }}</code></td>
                 <td>{{ pago.concepto?.trim() || 'N/A' }}</td>
                 <td>
@@ -384,7 +384,7 @@ const searchAnuncio = async () => {
 
   try {
     const response = await execute(
-      'consAnun400frm_sp_get_anuncio_400',
+      'sp_cons_anun_400_frm_get_anuncio_400',
       'padron_licencias',
       [
         { nombre: 'p_numero_anuncio', valor: filters.value.numeroAnuncio, tipo: 'string' }
@@ -422,7 +422,7 @@ const loadPagos = async () => {
 
   try {
     const response = await execute(
-      'consAnun400frm_sp_get_pagos_anun_400',
+      'sp_cons_anun_400_frm_get_pagos_anun_400',
       'padron_licencias',
       [
         { nombre: 'p_numero_anuncio', valor: filters.value.numeroAnuncio, tipo: 'string' }
@@ -488,7 +488,7 @@ const formatDate = (dateString) => {
       month: '2-digit',
       day: '2-digit'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }

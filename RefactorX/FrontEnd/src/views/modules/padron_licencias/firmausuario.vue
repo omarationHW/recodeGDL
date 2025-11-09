@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="signature" />
       </div>
@@ -125,7 +125,7 @@
         <h5>
           <font-awesome-icon icon="history" />
           Historial de Validaciones
-          <span class="badge-info">{{ validationHistory.length }} registros</span>
+          <span class="badge-purple">{{ validationHistory.length }} registros</span>
         </h5>
       </div>
       <div class="municipal-card-body">
@@ -140,7 +140,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in validationHistory" :key="index" class="row-hover">
+              <tr v-for="(item, index) in validationHistory" :key="index" class="clickable-row">
                 <td><code>{{ item.usuario }}</code></td>
                 <td>
                   <span class="badge" :class="item.success ? 'badge-success' : 'badge-danger'">
@@ -243,7 +243,7 @@ const validateFirma = async () => {
 
   try {
     const response = await execute(
-      'SP_VALIDATE_FIRMA_USUARIO',
+      'sp_validate_firma_usuario',
       'padron_licencias',
       [
         { nombre: 'p_usuario', valor: validationForm.value.usuario, tipo: 'string' },
@@ -342,79 +342,3 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.validation-result {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding: 2rem;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.result-success {
-  background-color: #d4edda;
-  border: 2px solid #28a745;
-}
-
-.result-error {
-  background-color: #f8d7da;
-  border: 2px solid #dc3545;
-}
-
-.result-icon {
-  flex-shrink: 0;
-}
-
-.result-success .result-icon {
-  color: #28a745;
-}
-
-.result-error .result-icon {
-  color: #dc3545;
-}
-
-.result-content {
-  flex-grow: 1;
-}
-
-.result-content h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.result-content p {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-}
-
-.result-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-item strong {
-  min-width: 180px;
-}
-
-.bg-success {
-  background-color: #28a745 !important;
-}
-
-.bg-danger {
-  background-color: #dc3545 !important;
-}
-
-.text-white {
-  color: white !important;
-}
-</style>

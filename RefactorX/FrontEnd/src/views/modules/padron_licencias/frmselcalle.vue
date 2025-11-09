@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="map-signs" />
       </div>
@@ -121,7 +121,7 @@
             <div class="info-row">
               <span class="info-label">Tipo:</span>
               <span class="info-value">
-                <span class="badge-info">{{ selectedCalle.tipo?.trim() }}</span>
+                <span class="badge-purple">{{ selectedCalle.tipo?.trim() }}</span>
               </span>
             </div>
             <div class="info-row">
@@ -181,7 +181,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
-          <span class="badge-info" v-if="calles.length > 0">{{ calles.length }} calles</span>
+          <span class="badge-purple" v-if="calles.length > 0">{{ calles.length }} calles</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -202,13 +202,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="calle in calles" :key="calle.codigo" class="row-hover">
+              <tr v-for="calle in calles" :key="calle.codigo" class="clickable-row">
                 <td>
                   <span class="badge-secondary">{{ calle.codigo }}</span>
                 </td>
                 <td><strong class="text-primary">{{ calle.nombre?.trim() }}</strong></td>
                 <td>
-                  <span class="badge-info">{{ calle.tipo?.trim() || 'N/A' }}</span>
+                  <span class="badge-purple">{{ calle.tipo?.trim() || 'N/A' }}</span>
                 </td>
                 <td>
                   <small class="text-muted">{{ calle.colonia?.trim() || 'N/A' }}</small>
@@ -330,7 +330,7 @@ const onSearchInput = () => {
 const loadSuggestions = async () => {
   try {
     const response = await execute(
-      'frmselcalle_sp_get_calles',
+      'sp_frmselcalle_get_calles',
       'padron_licencias',
       [
         { nombre: 'p_nombre', valor: searchQuery.value, tipo: 'string' },
@@ -342,8 +342,7 @@ const loadSuggestions = async () => {
     if (response && response.result) {
       suggestions.value = response.result
     }
-  } catch (error) {
-    console.error('Error loading suggestions:', error)
+  } catch {
     suggestions.value = []
   }
 }
@@ -372,7 +371,7 @@ const searchCalles = async () => {
 
   try {
     const response = await execute(
-      'frmselcalle_sp_get_calles',
+      'sp_frmselcalle_get_calles',
       'padron_licencias',
       [
         { nombre: 'p_nombre', valor: searchQuery.value || null, tipo: 'string' },
@@ -406,7 +405,7 @@ const selectCalle = async (calle) => {
     setLoading(true, 'Obteniendo detalles de la calle...')
 
     const response = await execute(
-      'frmselcalle_sp_get_calle_by_ids',
+      'sp_frmselcalle_get_calle_by_ids',
       'padron_licencias',
       [
         { nombre: 'p_codigo', valor: calle.codigo, tipo: 'string' }
@@ -452,12 +451,12 @@ const confirmSelection = async () => {
   const result = await Swal.fire({
     title: 'Confirmar selección de calle',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">¿Desea confirmar la siguiente selección?</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Calle:</strong> ${selectedCalle.value.nombre?.trim()}</li>
-          <li style="margin: 5px 0;"><strong>Tipo:</strong> ${selectedCalle.value.tipo?.trim()}</li>
-          <li style="margin: 5px 0;"><strong>Colonia:</strong> ${selectedCalle.value.colonia?.trim() || 'N/A'}</li>
+      <div class="swal-selection-content">
+        <p class="swal-confirmation-text">¿Desea confirmar la siguiente selección?</p>
+        <ul class="swal-list">
+          <li><strong>Calle:</strong> ${selectedCalle.value.nombre?.trim()}</li>
+          <li><strong>Tipo:</strong> ${selectedCalle.value.tipo?.trim()}</li>
+          <li><strong>Colonia:</strong> ${selectedCalle.value.colonia?.trim() || 'N/A'}</li>
           ${cruceInfo.length > 0 ? '<br><strong>Cruces:</strong>' : ''}
           ${cruceInfo.join('')}
         </ul>
@@ -517,96 +516,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.autocomplete-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #dee2e6;
-  border-top: none;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.autocomplete-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background-color 0.2s;
-}
-
-.autocomplete-item:hover {
-  background-color: #f8f9fa;
-}
-
-.suggestion-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.suggestion-info {
-  padding-left: 24px;
-}
-
-.selected-calle-card {
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.selected-info {
-  margin-bottom: 20px;
-}
-
-.info-row {
-  display: flex;
-  padding: 8px 0;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  min-width: 120px;
-  font-weight: 600;
-  color: #495057;
-}
-
-.info-value {
-  flex: 1;
-  color: #212529;
-}
-
-.selected-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.cruces-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.cruce-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.form-group {
-  position: relative;
-}
-</style>

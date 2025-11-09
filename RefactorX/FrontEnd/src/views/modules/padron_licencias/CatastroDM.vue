@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="building" />
       </div>
@@ -387,7 +387,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(derecho, index) in derechosList" :key="index" class="row-hover">
+              <tr v-for="(derecho, index) in derechosList" :key="index" class="clickable-row">
                 <td>{{ derecho.concepto }}</td>
                 <td>${{ formatCurrency(derecho.base) }}</td>
                 <td>{{ derecho.tasa }}%</td>
@@ -519,8 +519,8 @@ const autorizarDocumento = async () => {
   setLoading(true)
   try {
     const spName = autorizacionForm.value.tipo === 'licencia'
-      ? 'AUTORIZA_LICENCIA'
-      : 'AUTORIZA_ANUNCIO'
+      ? 'sp_autoriza_licencia'
+      : 'sp_autoriza_anuncio'
 
     const response = await execute(
       spName,
@@ -576,13 +576,13 @@ const calcularFecha = async () => {
     let spName = ''
     switch (fechasForm.value.tipoCalculo) {
       case 'limite_pago':
-        spName = 'CALC_FECHA_LIMITE_PAGO'
+        spName = 'sp_calc_fecha_limite_pago'
         break
       case 'resolucion':
-        spName = 'CALC_FECHA_RES'
+        spName = 'sp_calc_fecha_res'
         break
       case 'visita':
-        spName = 'CALC_FECHA_VISITA'
+        spName = 'sp_calc_fecha_visita'
         break
     }
 
@@ -624,7 +624,7 @@ const verificarInhabil = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'CHECA_INHABIL',
+      'sp_checa_inhabil',
       'padron_licencias',
       [
         { nombre: 'p_fecha', valor: fechasForm.value.fechaInicial }
@@ -661,7 +661,7 @@ const generarDictamen = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'GENERAR_DICTAMEN_MICROGENERADORES',
+      'sp_generar_dictamen_microgeneradores',
       'padron_licencias',
       [
         { nombre: 'p_empresa', valor: dictamenForm.value.empresa },
@@ -698,7 +698,7 @@ const imprimirDictamen = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'IMPRIMIR_DICTAMEN_MICROGENERADORES',
+      'sp_imprimir_dictamen_microgeneradores',
       'padron_licencias',
       [
         { nombre: 'p_folio', valor: dictamenResult.value.folio }
@@ -743,7 +743,7 @@ const consultarDerechos = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'GET_DERECHOS2',
+      'sp_get_derechos2',
       'padron_licencias',
       [
         { nombre: 'p_empresa', valor: derechosForm.value.empresa },
@@ -775,7 +775,7 @@ const actualizarConsulta = async () => {
   setLoading(true)
   try {
     await execute(
-      'REFRESH_QUERY',
+      'sp_refresh_query',
       'padron_licencias',
       [],
       'guadalajara'
@@ -801,7 +801,7 @@ const formatDate = (dateString) => {
       month: '2-digit',
       day: '2-digit'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }
@@ -817,65 +817,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.tabs-container {
-  display: flex;
-  gap: 0;
-  border-bottom: 2px solid #ddd;
-  padding: 0;
-}
-
-.tab-button {
-  padding: 12px 24px;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  color: #666;
-}
-
-.tab-button:hover {
-  background: #f8f9fa;
-  color: #ea8215;
-}
-
-.tab-button.active {
-  color: #ea8215;
-  border-bottom-color: #ea8215;
-  background: #fff;
-}
-
-.result-panel {
-  margin-top: 20px;
-  padding: 15px;
-}
-
-.alert {
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-info {
-  background-color: #d1ecf1;
-  border: 1px solid #bee5eb;
-  color: #0c5460;
-}
-
-.table-footer {
-  background-color: #f8f9fa;
-  font-weight: bold;
-}
-
-.text-right {
-  text-align: right;
-}
-</style>

@@ -1,0 +1,51 @@
+-- ============================================================
+-- Stored Procedure: sp_doctos_list
+-- ============================================================
+-- Tipo de Operación: READ
+-- Usado en: doctosfrm
+-- Frecuencia de uso: 1 veces
+-- Prioridad: OPCIONAL
+--
+-- Descripción:
+--   [TODO: Agregar descripción de la funcionalidad]
+--
+-- Parámetros:
+  -- Sin parámetros
+--
+-- Retorna:
+--   TABLE con las siguientes columnas:
+    -- Definir columnas de retorno
+--
+-- Ejemplo de uso:
+--   SELECT * FROM sp_doctos_list();
+--
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION sp_doctos_list(
+    -- Sin parámetros
+)
+RETURNS TABLE (
+    -- TODO: Definir columnas
+    id INTEGER,
+    nombre VARCHAR
+)
+AS $$
+BEGIN
+    -- ============================================================
+    -- TODO: Implementar lógica del stored procedure
+    -- ============================================================
+
+    RETURN QUERY
+    SELECT 
+        1 as id,
+        'Ejemplo' as nombre;
+    -- TODO: Reemplazar con query real
+
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================
+-- Verificación de creación
+-- ============================================================
+-- SELECT routine_name FROM information_schema.routines
+-- WHERE routine_name = 'sp_doctos_list' AND routine_schema = 'public';

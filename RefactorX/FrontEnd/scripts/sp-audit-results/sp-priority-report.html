@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditoría de Stored Procedures - Priorización</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container { max-width: 1600px; margin: 0 auto; }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-left: 4px solid #667eea;
+    }
+    .stat-card.critical { border-left-color: #dc2626; }
+    .stat-card.important { border-left-color: #f59e0b; }
+    .stat-card.optional { border-left-color: #10b981; }
+    .stat-card.existing { border-left-color: #3b82f6; }
+    .stat-card h3 { font-size: 13px; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; }
+    .stat-card .value { font-size: 36px; font-weight: bold; color: #1f2937; }
+    .stat-card .label { font-size: 12px; color: #9ca3af; margin-top: 5px; }
+    .section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .section h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #1f2937;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+    .section h2.critical { border-bottom-color: #dc2626; color: #dc2626; }
+    .section h2.important { border-bottom-color: #f59e0b; color: #f59e0b; }
+    .section h2.optional { border-bottom-color: #10b981; color: #10b981; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #f9fafb;
+      padding: 10px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13px;
+    }
+    tr:hover { background: #f9fafb; }
+    .priority { font-weight: bold; font-size: 14px; }
+    .priority.critical { color: #dc2626; }
+    .priority.important { color: #f59e0b; }
+    .priority.optional { color: #10b981; }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-right: 5px;
+    }
+    .badge.create { background: #dbeafe; color: #1e40af; }
+    .badge.read { background: #d1fae5; color: #065f46; }
+    .badge.update { background: #fef3c7; color: #92400e; }
+    .badge.delete { background: #fee2e2; color: #991b1b; }
+    .badge.report { background: #e0e7ff; color: #3730a3; }
+    .components { font-size: 11px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Auditoría y Priorización de Stored Procedures</h1>
+      <p>Módulo: padron_licencias | Generado: 9/11/2025, 5:58:30 p.m.</p>
+    </div>
+
+    <div class="summary">
+      <div class="stat-card">
+        <h3>Total SPs</h3>
+        <div class="value">312</div>
+        <div class="label">Identificados en código</div>
+      </div>
+      <div class="stat-card existing">
+        <h3>Existentes</h3>
+        <div class="value">58</div>
+        <div class="label">18.6% ya en BD</div>
+      </div>
+      <div class="stat-card critical">
+        <h3>Críticos</h3>
+        <div class="value">3</div>
+        <div class="label">Prioridad ALTA</div>
+      </div>
+      <div class="stat-card important">
+        <h3>Importantes</h3>
+        <div class="value">66</div>
+        <div class="label">Prioridad MEDIA</div>
+      </div>
+      <div class="stat-card optional">
+        <h3>Opcionales</h3>
+        <div class="value">185</div>
+        <div class="label">Prioridad BAJA</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="critical">🔴 SPs CRÍTICOS - Crear Primero (3)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Stored Procedure</th>
+            <th>Prioridad</th>
+            <th>Usos</th>
+            <th>Operaciones</th>
+            <th>Componentes</th>
+            <th>Parámetros</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr>
+              <td>1</td>
+              <td><code>\1</code></td>
+              <td class="priority critical">170</td>
+              <td>11</td>
+              <td>
+                <span class="badge query">QUERY</span>
+              </td>
+              <td class="components">ImpLicenciaReglamentadaFrm, ImpOficiofrm, ImpRecibofrm</td>
+              <td>8</td>
+            </tr>
+          
+            <tr>
+              <td>2</td>
+              <td><code>sp_get_tramite_by_id</code></td>
+              <td class="priority critical">120</td>
+              <td>4</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+              <td class="components">cancelaTramitefrm, formatosEcologiafrm, modtramitefrm...</td>
+              <td>1</td>
+            </tr>
+          
+            <tr>
+              <td>3</td>
+              <td><code>sp_verifica_firma</code></td>
+              <td class="priority critical">100</td>
+              <td>4</td>
+              <td>
+                <span class="badge query">QUERY</span>
+              </td>
+              <td class="components">bajaAnunciofrm, bajaLicenciafrm, modlicfrm</td>
+              <td>4</td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2 class="important">🟡 SPs IMPORTANTES - Crear Después (66)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Stored Procedure</th>
+            <th>Prioridad</th>
+            <th>Usos</th>
+            <th>Operaciones</th>
+            <th>Componentes</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr>
+              <td>1</td>
+              <td><code>sp_get_giro_by_id</code></td>
+              <td class="priority important">90</td>
+              <td>3</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+              <td class="components">cancelaTramitefrm, modtramitefrm</td>
+            </tr>
+          
+            <tr>
+              <td>2</td>
+              <td><code>sp_cancel_tramite</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">cancelaTramitefrm</td>
+            </tr>
+          
+            <tr>
+              <td>3</td>
+              <td><code>carga_delete_predio</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">carga</td>
+            </tr>
+          
+            <tr>
+              <td>4</td>
+              <td><code>sp_save_cargadatos</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">cargadatosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>5</td>
+              <td><code>carga_imagen_sp_delete_document_image</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">carga_imagen</td>
+            </tr>
+          
+            <tr>
+              <td>6</td>
+              <td><code>sp_catalogo_actividades_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">CatalogoActividadesFrm</td>
+            </tr>
+          
+            <tr>
+              <td>7</td>
+              <td><code>sp_catalogo_actividades_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">CatalogoActividadesFrm</td>
+            </tr>
+          
+            <tr>
+              <td>8</td>
+              <td><code>sp_catalogo_actividades_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">CatalogoActividadesFrm</td>
+            </tr>
+          
+            <tr>
+              <td>9</td>
+              <td><code>sp_catalogogiros_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">catalogogirosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>10</td>
+              <td><code>sp_catalogogiros_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">catalogogirosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>11</td>
+              <td><code>sp_solicnooficial_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">constanciaNoOficialfrm</td>
+            </tr>
+          
+            <tr>
+              <td>12</td>
+              <td><code>sp_solicnooficial_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">constanciaNoOficialfrm</td>
+            </tr>
+          
+            <tr>
+              <td>13</td>
+              <td><code>sp_solicnooficial_cancel</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">constanciaNoOficialfrm</td>
+            </tr>
+          
+            <tr>
+              <td>14</td>
+              <td><code>sp_dependencias_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">dependenciasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>15</td>
+              <td><code>sp_dependencias_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">dependenciasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>16</td>
+              <td><code>sp_dependencias_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">dependenciasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>17</td>
+              <td><code>sp_dictamenes_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">dictamenfrm</td>
+            </tr>
+          
+            <tr>
+              <td>18</td>
+              <td><code>sp_dictamenes_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">dictamenfrm</td>
+            </tr>
+          
+            <tr>
+              <td>19</td>
+              <td><code>sp_create_constancia</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">dictamenusodesuelo</td>
+            </tr>
+          
+            <tr>
+              <td>20</td>
+              <td><code>sp_update_constancia</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">dictamenusodesuelo</td>
+            </tr>
+          
+            <tr>
+              <td>21</td>
+              <td><code>sp_cancel_constancia</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">dictamenusodesuelo</td>
+            </tr>
+          
+            <tr>
+              <td>22</td>
+              <td><code>sp_doctos_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">doctosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>23</td>
+              <td><code>sp_doctos_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">doctosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>24</td>
+              <td><code>sp_doctos_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">doctosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>25</td>
+              <td><code>sp_empresas_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">empresasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>26</td>
+              <td><code>sp_empresas_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">empresasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>27</td>
+              <td><code>sp_empresas_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">empresasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>28</td>
+              <td><code>sp_fechaseg_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">fechasegfrm</td>
+            </tr>
+          
+            <tr>
+              <td>29</td>
+              <td><code>sp_fechaseg_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">fechasegfrm</td>
+            </tr>
+          
+            <tr>
+              <td>30</td>
+              <td><code>sp_fechaseg_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">fechasegfrm</td>
+            </tr>
+          
+            <tr>
+              <td>31</td>
+              <td><code>sp_firma_save</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">firma</td>
+            </tr>
+          
+            <tr>
+              <td>32</td>
+              <td><code>frmimplicenciareglamentada_sp_create_licencia_reglamentada</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">frmImpLicenciaReglamentada</td>
+            </tr>
+          
+            <tr>
+              <td>33</td>
+              <td><code>frmimplicenciareglamentada_sp_update_licencia_reglamentada</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">frmImpLicenciaReglamentada</td>
+            </tr>
+          
+            <tr>
+              <td>34</td>
+              <td><code>frmimplicenciareglamentada_sp_delete_licencia_reglamentada</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">frmImpLicenciaReglamentada</td>
+            </tr>
+          
+            <tr>
+              <td>35</td>
+              <td><code>gruposanunciosabcfrm_sp_anuncios_grupos_insert</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">GruposAnunciosAbcfrm</td>
+            </tr>
+          
+            <tr>
+              <td>36</td>
+              <td><code>gruposanunciosabcfrm_sp_anuncios_grupos_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">GruposAnunciosAbcfrm</td>
+            </tr>
+          
+            <tr>
+              <td>37</td>
+              <td><code>gruposanunciosabcfrm_sp_anuncios_grupos_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">GruposAnunciosAbcfrm</td>
+            </tr>
+          
+            <tr>
+              <td>38</td>
+              <td><code>insert_grupo_anuncio</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">gruposAnunciosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>39</td>
+              <td><code>update_grupo_anuncio</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">gruposAnunciosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>40</td>
+              <td><code>delete_grupo_anuncio</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">gruposAnunciosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>41</td>
+              <td><code>remove_anuncios_from_grupo</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">gruposAnunciosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>42</td>
+              <td><code>sp_insert_grupo_licencia</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">GruposLicenciasAbcfrm</td>
+            </tr>
+          
+            <tr>
+              <td>43</td>
+              <td><code>sp_update_grupo_licencia</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">GruposLicenciasAbcfrm</td>
+            </tr>
+          
+            <tr>
+              <td>44</td>
+              <td><code>sp_delete_grupo_licencia</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">GruposLicenciasAbcfrm</td>
+            </tr>
+          
+            <tr>
+              <td>45</td>
+              <td><code>sp_update_tramite</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">modtramitefrm</td>
+            </tr>
+          
+            <tr>
+              <td>46</td>
+              <td><code>sp_observaciones_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">observacionfrm</td>
+            </tr>
+          
+            <tr>
+              <td>47</td>
+              <td><code>sp_observaciones_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">observacionfrm</td>
+            </tr>
+          
+            <tr>
+              <td>48</td>
+              <td><code>sp_observaciones_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">observacionfrm</td>
+            </tr>
+          
+            <tr>
+              <td>49</td>
+              <td><code>sp_c_contribholog_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">prophologramasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>50</td>
+              <td><code>sp_c_contribholog_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">prophologramasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>51</td>
+              <td><code>sp_c_contribholog_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">prophologramasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>52</td>
+              <td><code>reghfrm_sp_create_historic_record</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">regHfrm</td>
+            </tr>
+          
+            <tr>
+              <td>53</td>
+              <td><code>reghfrm_sp_delete_historic_record</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">regHfrm</td>
+            </tr>
+          
+            <tr>
+              <td>54</td>
+              <td><code>cancelar_responsiva</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">Responsivafrm</td>
+            </tr>
+          
+            <tr>
+              <td>55</td>
+              <td><code>sp_semaforo_save</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">Semaforo</td>
+            </tr>
+          
+            <tr>
+              <td>56</td>
+              <td><code>sfrm_chgpass_sp_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">sfrm_chgpass</td>
+            </tr>
+          
+            <tr>
+              <td>57</td>
+              <td><code>webbrowser_sp_save_bookmark</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">webBrowser</td>
+            </tr>
+          
+            <tr>
+              <td>58</td>
+              <td><code>webbrowser_sp_delete_bookmark</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">webBrowser</td>
+            </tr>
+          
+            <tr>
+              <td>59</td>
+              <td><code>sp_zonaanuncio_create</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">ZonaAnuncio</td>
+            </tr>
+          
+            <tr>
+              <td>60</td>
+              <td><code>sp_zonaanuncio_update</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge update">UPDATE</span>
+              </td>
+              <td class="components">ZonaAnuncio</td>
+            </tr>
+          
+            <tr>
+              <td>61</td>
+              <td><code>sp_zonaanuncio_delete</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge delete">DELETE</span>
+              </td>
+              <td class="components">ZonaAnuncio</td>
+            </tr>
+          
+            <tr>
+              <td>62</td>
+              <td><code>sp_save_licencias_zona</code></td>
+              <td class="priority important">80</td>
+              <td>1</td>
+              <td>
+                <span class="badge create">CREATE</span>
+              </td>
+              <td class="components">ZonaLicencia</td>
+            </tr>
+          
+            <tr>
+              <td>63</td>
+              <td><code>consulta_licencias_estadisticas</code></td>
+              <td class="priority important">60</td>
+              <td>2</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+              <td class="components">consultaLicenciafrm, ConsultaLicenciasfrm</td>
+            </tr>
+          
+            <tr>
+              <td>64</td>
+              <td><code>sp_get_saldo_licencia</code></td>
+              <td class="priority important">60</td>
+              <td>2</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+              <td class="components">DetalleLicencia, modlicfrm</td>
+            </tr>
+          
+            <tr>
+              <td>65</td>
+              <td><code>get_deptos_by_dependencia</code></td>
+              <td class="priority important">50</td>
+              <td>3</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+              <td class="components">consultausuariosfrm</td>
+            </tr>
+          
+            <tr>
+              <td>66</td>
+              <td><code>unidadimg_rutadir</code></td>
+              <td class="priority important">50</td>
+              <td>3</td>
+              <td>
+                <span class="badge query">QUERY</span>
+              </td>
+              <td class="components">UnidadImg</td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2 class="optional">🟢 SPs OPCIONALES - Evaluar Necesidad (185)</h2>
+      <p style="color: #6b7280; font-size: 13px; margin-bottom: 15px;">
+        Estos SPs tienen baja prioridad. Evaluar si realmente se necesitan antes de crear.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Stored Procedure</th>
+            <th>Prioridad</th>
+            <th>Usos</th>
+            <th>Operaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr>
+              <td><code>carga_imagen_sp_get_document_image</code></td>
+              <td class="priority optional">40</td>
+              <td>2</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_catalogogiros_get</code></td>
+              <td class="priority optional">40</td>
+              <td>2</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>frmimplicenciareglamentada_sp_get_licencia_reglamentada_by_id</code></td>
+              <td class="priority optional">40</td>
+              <td>2</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_frmselcalle_get_calles</code></td>
+              <td class="priority optional">40</td>
+              <td>2</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_get_subzonas</code></td>
+              <td class="priority optional">40</td>
+              <td>2</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_get_dependencias</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_get_agenda_visitas</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_consulta_licencia</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_consulta_anuncios_licencia</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_baja_licencia</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge query">QUERY</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>consulta_giros_estadisticas</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>buscagiro_list</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_busque_search_by_owner</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_busque_search_by_location</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_busque_search_by_account</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_busque_search_by_rfc</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_busque_search_by_cadastral_key</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>sp_busque_get_detail</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge read">READ</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>buscar_actividad_por_id</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge query">QUERY</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><code>catalogo_scian_busqueda</code></td>
+              <td class="priority optional">30</td>
+              <td>1</td>
+              <td>
+                <span class="badge query">QUERY</span>
+              </td>
+            </tr>
+          
+          
+            <tr>
+              <td colspan="4" style="text-align: center; color: #6b7280; font-style: italic;">
+                ... y 165 más
+              </td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</body>
+</html>

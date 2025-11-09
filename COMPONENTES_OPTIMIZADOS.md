@@ -2250,6 +2250,29 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 56/598 componentes (9.36%)**
+### 57. ✅ **carton-catastral** (cartonva.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ Removed inline style (position: relative) from header
+  - ✅ clickable-row instead of row-hover (1 occurrence)
+  - ✅ badge-purple instead of badge-info (2 occurrences)
+  - ✅ SP names corrected to lowercase (4 SPs)
+  - ✅ Performance timing added to ALL operations (3 operations)
+  - ✅ Toast structure fixed with separate content/duration
+  - ✅ Already uses useLicenciasErrorHandler
+  - ✅ NO scoped CSS
+- **SPs:** sp_get_cuenta_by_cvecuenta, sp_get_convcta_by_cvecuenta, sp_get_convcta_by_cvecatnva_subpredio, sp_get_cartografia_predial (4 SPs)
+- **Features:**
+  - Búsqueda por clave de cuenta
+  - Búsqueda por clave catastral + subpredio
+  - Visualización de información de cuenta
+  - Listado de información catastral (CONVCTA)
+  - Ver información cartográfica predial
+  - Valores catastrales y tipos de propiedad
+- **Nota Técnica:** Componente sin carga automática, requiere búsqueda manual por cuenta o catastral
+
+---
+
+**PROGRESO TOTAL: 57/598 componentes (9.53%)**
 **Última actualización:** 2025-11-09
 

@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="map-marked-alt" />
       </div>
@@ -122,7 +122,7 @@
         <h5>
           <font-awesome-icon icon="map-marker-alt" />
           Información Catastral
-          <span class="badge-info" v-if="convcta.length > 0">{{ convcta.length }} registros</span>
+          <span class="badge-purple" v-if="convcta.length > 0">{{ convcta.length }} registros</span>
         </h5>
       </div>
 
@@ -140,13 +140,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in convcta" :key="index" class="row-hover">
+              <tr v-for="(item, index) in convcta" :key="index" class="clickable-row">
                 <td><code>{{ item.cvecatnva || 'N/A' }}</code></td>
                 <td>{{ item.subpredio || '-' }}</td>
                 <td>{{ item.superficie ? `${item.superficie} m²` : 'N/A' }}</td>
                 <td>{{ formatCurrency(item.valorcatastral) }}</td>
                 <td>
-                  <span class="badge-info">{{ item.tipopropiedad || 'N/A' }}</span>
+                  <span class="badge-purple">{{ item.tipopropiedad || 'N/A' }}</span>
                 </td>
                 <td>
                   <button
@@ -213,7 +213,13 @@
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" class="toast-duration-icon" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -274,11 +280,11 @@ const searchByAccount = async () => {
   }
 
   setLoading(true, 'Buscando información...')
+  const startTime = performance.now()
 
   try {
-    // SP_GET_CUENTA_BY_CVECUENTA
     const responseCuenta = await execute(
-      'SP_GET_CUENTA_BY_CVECUENTA',
+      'sp_get_cuenta_by_cvecuenta',
       'padron_licencias',
       [
         { nombre: 'p_cvecuenta', valor: filters.value.cveCuenta, tipo: 'string' }
@@ -288,11 +294,9 @@ const searchByAccount = async () => {
 
     if (responseCuenta && responseCuenta.result && responseCuenta.result.length > 0) {
       cuentaInfo.value = responseCuenta.result[0]
-      showToast('success', 'Información de cuenta encontrada')
 
-      // SP_GET_CONVCTA_BY_CVECUENTA
       const responseConvcta = await execute(
-        'SP_GET_CONVCTA_BY_CVECUENTA',
+        'sp_get_convcta_by_cvecuenta',
         'padron_licencias',
         [
           { nombre: 'p_cvecuenta', valor: filters.value.cveCuenta, tipo: 'string' }
@@ -303,6 +307,15 @@ const searchByAccount = async () => {
       if (responseConvcta && responseConvcta.result) {
         convcta.value = responseConvcta.result
       }
+
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1
+        ? `${((endTime - startTime)).toFixed(0)}ms`
+        : `${duration}s`
+
+      toast.value.duration = durationText
+      showToast('success', 'Información de cuenta encontrada')
     } else {
       cuentaInfo.value = null
       convcta.value = []
@@ -324,11 +337,11 @@ const searchByCatastral = async () => {
   }
 
   setLoading(true, 'Buscando información catastral...')
+  const startTime = performance.now()
 
   try {
-    // SP_GET_CONVCTA_BY_CVECATNVA_SUBPREDIO
     const response = await execute(
-      'SP_GET_CONVCTA_BY_CVECATNVA_SUBPREDIO',
+      'sp_get_convcta_by_cvecatnva_subpredio',
       'padron_licencias',
       [
         { nombre: 'p_cvecatnva', valor: filters.value.cveCatNva, tipo: 'string' },
@@ -339,6 +352,14 @@ const searchByCatastral = async () => {
 
     if (response && response.result && response.result.length > 0) {
       convcta.value = response.result
+
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1
+        ? `${((endTime - startTime)).toFixed(0)}ms`
+        : `${duration}s`
+
+      toast.value.duration = durationText
       showToast('success', `Se encontraron ${response.result.length} registros`)
 
       // Si hay cuenta asociada, buscar su info
@@ -361,11 +382,11 @@ const searchByCatastral = async () => {
 
 const viewCartografia = async (item) => {
   setLoading(true, 'Cargando información cartográfica...')
+  const startTime = performance.now()
 
   try {
-    // SP_GET_CARTOGRAFIA_PREDIAL
     const response = await execute(
-      'SP_GET_CARTOGRAFIA_PREDIAL',
+      'sp_get_cartografia_predial',
       'padron_licencias',
       [
         { nombre: 'p_cvecatnva', valor: item.cvecatnva, tipo: 'string' }
@@ -373,8 +394,15 @@ const viewCartografia = async (item) => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result && response.result.length > 0) {
       cartografiaInfo.value = response.result[0]
+      toast.value.duration = durationText
       showToast('success', 'Información cartográfica cargada')
     } else {
       cartografiaInfo.value = null

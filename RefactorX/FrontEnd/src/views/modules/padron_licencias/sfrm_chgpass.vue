@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="lock" />
       </div>
@@ -388,8 +388,10 @@ const changePassword = async () => {
   setLoading(true, 'Validando contraseña actual...')
 
   try {
+    const startTime = performance.now()
+
     const validateResponse = await execute(
-      'sfrm_chgpass_sp_chgpass_validate_current',
+      'sfrm_chgpass_sp_validate_current',
       'padron_licencias',
       [
         { nombre: 'p_usuario', valor: formData.value.usuario.trim(), tipo: 'string' },
@@ -413,15 +415,15 @@ const changePassword = async () => {
     const result = await Swal.fire({
       title: '¿Confirmar cambio de contraseña?',
       html: `
-        <div style="text-align: left; padding: 0 20px;">
-          <p style="margin-bottom: 10px;">Se cambiará la contraseña para el usuario:</p>
-          <ul style="list-style: none; padding: 0;">
-            <li style="margin: 5px 0;"><strong>Usuario:</strong> ${formData.value.usuario}</li>
-            <li style="margin: 5px 0;"><strong>Fortaleza de la nueva contraseña:</strong>
+        <div class="swal-confirmation-text">
+          <p>Se cambiará la contraseña para el usuario:</p>
+          <ul class="swal-selection-list">
+            <li><strong>Usuario:</strong> ${formData.value.usuario}</li>
+            <li><strong>Fortaleza de la nueva contraseña:</strong>
               <span class="badge-${strengthClass.value}">${strengthText.value}</span>
             </li>
           </ul>
-          <p style="margin-top: 15px; color: #dc3545; font-size: 0.9em;">
+          <p class="text-danger">
             <strong>IMPORTANTE:</strong> Asegúrese de recordar su nueva contraseña
           </p>
         </div>
@@ -443,7 +445,7 @@ const changePassword = async () => {
 
     // Cambiar la contraseña
     const changeResponse = await execute(
-      'sfrm_chgpass_sp_chgpass_update',
+      'sfrm_chgpass_sp_update',
       'padron_licencias',
       [
         { nombre: 'p_usuario', valor: formData.value.usuario.trim(), tipo: 'string' },
@@ -452,10 +454,14 @@ const changePassword = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (changeResponse && changeResponse.result && changeResponse.result[0]?.success) {
       // Registrar en bitácora
       await execute(
-        'sfrm_chgpass_sp_bitacora_chgpass',
+        'sfrm_chgpass_sp_bitacora',
         'padron_licencias',
         [
           { nombre: 'p_usuario', valor: formData.value.usuario.trim(), tipo: 'string' },
@@ -474,8 +480,13 @@ const changePassword = async () => {
         timer: 3000
       })
 
+      toast.value.duration = durationText
       showToast('success', 'Contraseña cambiada exitosamente')
     } else {
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
       const errorMessage = changeResponse?.result?.[0]?.message || 'Error al cambiar la contraseña'
 
       await Swal.fire({
@@ -485,6 +496,7 @@ const changePassword = async () => {
         confirmButtonColor: '#ea8215'
       })
 
+      toast.value.duration = durationText
       showToast('error', errorMessage)
     }
   } catch (error) {
@@ -520,135 +532,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.instructions-box {
-  background: #e7f3ff;
-  border-left: 4px solid #0066cc;
-  padding: 16px;
-  border-radius: 4px;
-}
-
-.instructions-box ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.instructions-box li {
-  margin: 8px 0;
-  color: #495057;
-}
-
-.password-strength-indicator {
-  margin-top: 8px;
-}
-
-.strength-bar {
-  height: 6px;
-  background: #e9ecef;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 4px;
-}
-
-.strength-fill {
-  height: 100%;
-  transition: width 0.3s, background-color 0.3s;
-}
-
-.strength-bar.weak .strength-fill {
-  background-color: #dc3545;
-}
-
-.strength-bar.medium .strength-fill {
-  background-color: #ffc107;
-}
-
-.strength-bar.strong .strength-fill {
-  background-color: #28a745;
-}
-
-.strength-text-weak {
-  color: #dc3545;
-}
-
-.strength-text-medium {
-  color: #ffc107;
-}
-
-.strength-text-strong {
-  color: #28a745;
-}
-
-.password-tips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 4px;
-}
-
-.password-tips small {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.85em;
-}
-
-.match-indicator {
-  margin-top: 8px;
-}
-
-.security-tips {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-.tip-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 3px solid #dee2e6;
-}
-
-.tip-item svg {
-  font-size: 1.2em;
-}
-
-.badge-weak {
-  background-color: #dc3545;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-}
-
-.badge-medium {
-  background-color: #ffc107;
-  color: #212529;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-}
-
-.badge-strong {
-  background-color: #28a745;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.full-width {
-  grid-column: 1 / -1;
-}
-</style>

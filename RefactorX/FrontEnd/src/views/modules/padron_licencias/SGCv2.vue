@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="chart-line" />
       </div>
@@ -121,7 +121,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Procesos de Calidad
-          <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} procesos</span>
+          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} procesos</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -144,7 +144,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="process in processes" :key="process.id" class="row-hover">
+              <tr v-for="process in processes" :key="process.id" class="clickable-row">
                 <td><strong class="text-primary">{{ process.id }}</strong></td>
                 <td>{{ process.nombre || 'N/A' }}</td>
                 <td>
@@ -543,15 +543,22 @@ const visiblePages = computed(() => {
 // Métodos
 const loadIndicators = async () => {
   try {
+    const startTime = performance.now()
+
     const response = await execute(
-      'SGCv2_sp_get_quality_indicators',
+      'sgcv2_sp_get_quality_indicators',
       'padron_licencias',
       [],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result) {
       indicators.value = response.result
+      toast.value.duration = durationText
     }
   } catch (error) {
     handleApiError(error)
@@ -562,8 +569,10 @@ const loadProcesses = async () => {
   setLoading(true, 'Cargando procesos de calidad...')
 
   try {
+    const startTime = performance.now()
+
     const response = await execute(
-      'SGCv2_sp_get_processes',
+      'sgcv2_sp_get_processes',
       'padron_licencias',
       [
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
@@ -575,6 +584,10 @@ const loadProcesses = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result) {
       processes.value = response.result
       if (processes.value.length > 0) {
@@ -582,10 +595,12 @@ const loadProcesses = async () => {
       } else {
         totalRecords.value = 0
       }
+      toast.value.duration = durationText
       showToast('success', 'Procesos cargados correctamente')
     } else {
       processes.value = []
       totalRecords.value = 0
+      toast.value.duration = durationText
       showToast('error', 'Error al cargar procesos')
     }
   } catch (error) {
@@ -670,13 +685,13 @@ const saveProcess = async () => {
     icon: 'question',
     title: editMode.value ? '¿Confirmar actualización?' : '¿Confirmar creación?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">${editMode.value ? 'Se actualizará el proceso:' : 'Se creará un nuevo proceso:'}</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Nombre:</strong> ${processForm.value.nombre}</li>
-          <li style="margin: 5px 0;"><strong>Categoría:</strong> ${processForm.value.categoria}</li>
-          <li style="margin: 5px 0;"><strong>Responsable:</strong> ${processForm.value.responsable}</li>
-          <li style="margin: 5px 0;"><strong>Indicador:</strong> ${processForm.value.indicador}%</li>
+      <div class="swal-confirmation-text">
+        <p>${editMode.value ? 'Se actualizará el proceso:' : 'Se creará un nuevo proceso:'}</p>
+        <ul class="swal-selection-list">
+          <li><strong>Nombre:</strong> ${processForm.value.nombre}</li>
+          <li><strong>Categoría:</strong> ${processForm.value.categoria}</li>
+          <li><strong>Responsable:</strong> ${processForm.value.responsable}</li>
+          <li><strong>Indicador:</strong> ${processForm.value.indicador}%</li>
         </ul>
       </div>
     `,
@@ -694,6 +709,8 @@ const saveProcess = async () => {
   savingProcess.value = true
 
   try {
+    const startTime = performance.now()
+
     const params = [
       { nombre: 'p_id', valor: processForm.value.id, tipo: 'integer' },
       { nombre: 'p_nombre', valor: processForm.value.nombre, tipo: 'string' },
@@ -706,11 +723,15 @@ const saveProcess = async () => {
     ]
 
     const response = await execute(
-      'SGCv2_sp_save_process',
+      'sgcv2_sp_save_process',
       'padron_licencias',
       params,
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       showCreateModal.value = false
@@ -725,6 +746,7 @@ const saveProcess = async () => {
         timer: 2000
       })
 
+      toast.value.duration = durationText
       showToast('success', editMode.value ? 'Proceso actualizado exitosamente' : 'Proceso creado exitosamente')
     } else {
       await Swal.fire({
@@ -762,7 +784,7 @@ const getKpiColorClass = (valor, meta) => {
 
 const getCategoryBadgeClass = (categoria) => {
   const classes = {
-    'OPERATIVO': 'badge-info',
+    'OPERATIVO': 'badge-purple',
     'ESTRATEGICO': 'badge-warning',
     'SOPORTE': 'badge-secondary'
   }
@@ -819,78 +841,3 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.kpi-card {
-  display: flex;
-  align-items: center;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.kpi-icon {
-  font-size: 2.5rem;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  margin-right: 1rem;
-}
-
-.kpi-success { background: #d4edda; color: #28a745; }
-.kpi-warning { background: #fff3cd; color: #ffc107; }
-.kpi-danger { background: #f8d7da; color: #dc3545; }
-
-.kpi-content {
-  flex: 1;
-}
-
-.kpi-label {
-  font-size: 0.875rem;
-  color: #6c757d;
-  margin: 0 0 0.25rem 0;
-}
-
-.kpi-value {
-  font-size: 1.75rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.kpi-meta {
-  font-size: 0.75rem;
-  color: #6c757d;
-}
-
-.progress-container {
-  min-width: 100px;
-}
-
-.progress {
-  height: 20px;
-  background-color: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: bold;
-  transition: width 0.3s ease;
-}
-</style>

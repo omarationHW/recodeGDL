@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="folder-open" />
       </div>
@@ -307,12 +307,18 @@ const cargarConfiguracion = async () => {
   setLoading(true, 'Cargando configuración...')
 
   try {
+    const startTime = performance.now()
+
     const response = await execute(
-      'UnidadImg_get_unidad_img',
+      'unidadimg_get_unidad_img',
       'padron_licencias',
       [],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result.length > 0) {
       const config = response.result[0]
@@ -323,8 +329,10 @@ const cargarConfiguracion = async () => {
         directorioTramites: config.directorio_tramites || '',
         directorioAnuncios: config.directorio_anuncios || ''
       }
+      toast.value.duration = durationText
       showToast('success', 'Configuración cargada correctamente')
     } else {
+      toast.value.duration = durationText
       showToast('info', 'No hay configuración guardada')
     }
   } catch (error) {
@@ -351,13 +359,13 @@ const guardarConfiguracion = async () => {
     icon: 'question',
     title: '¿Confirmar configuración?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se guardará la siguiente configuración:</p>
-        <ul style="list-style: none; padding: 0; font-size: 12px;">
-          <li style="margin: 5px 0;"><strong>Ruta Base:</strong> <code>${rutaBase.value}</code></li>
-          <li style="margin: 5px 0;"><strong>Licencias:</strong> <code>${rutaLicencias.value}</code></li>
-          <li style="margin: 5px 0;"><strong>Trámites:</strong> <code>${rutaTramites.value}</code></li>
-          <li style="margin: 5px 0;"><strong>Anuncios:</strong> <code>${rutaAnuncios.value}</code></li>
+      <div class="swal-confirmation-text">
+        <p>Se guardará la siguiente configuración:</p>
+        <ul class="swal-selection-list">
+          <li><strong>Ruta Base:</strong> <code>${rutaBase.value}</code></li>
+          <li><strong>Licencias:</strong> <code>${rutaLicencias.value}</code></li>
+          <li><strong>Trámites:</strong> <code>${rutaTramites.value}</code></li>
+          <li><strong>Anuncios:</strong> <code>${rutaAnuncios.value}</code></li>
         </ul>
       </div>
     `,
@@ -375,8 +383,10 @@ const guardarConfiguracion = async () => {
   setLoading(true, 'Guardando configuración...')
 
   try {
+    const startTime = performance.now()
+
     const response = await execute(
-      'UnidadImg_set_unidad_img',
+      'unidadimg_set_unidad_img',
       'padron_licencias',
       [
         { nombre: 'p_unidad', valor: configuracion.value.unidad, tipo: 'string' },
@@ -388,6 +398,10 @@ const guardarConfiguracion = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
         icon: 'success',
@@ -397,6 +411,7 @@ const guardarConfiguracion = async () => {
         timer: 2000
       })
 
+      toast.value.duration = durationText
       showToast('success', 'Configuración guardada exitosamente')
       await cargarConfiguracion()
     } else {
@@ -424,12 +439,14 @@ const probarRutas = async () => {
   setLoading(true, 'Validando rutas...')
 
   try {
+    const startTime = performance.now()
+
     // Simular validación de rutas
     validacionRutas.value = []
 
     // Validar ruta base
     const rutaDirResponse = await execute(
-      'UnidadImg_get_ruta_dir',
+      'unidadimg_get_ruta_dir',
       'padron_licencias',
       [
         { nombre: 'p_ruta', valor: rutaBase.value, tipo: 'string' }
@@ -445,7 +462,7 @@ const probarRutas = async () => {
 
     // Validar ruta licencias
     const rutaLicResponse = await execute(
-      'UnidadImg_rutadir',
+      'unidadimg_rutadir',
       'padron_licencias',
       [
         { nombre: 'p_ruta', valor: rutaLicencias.value, tipo: 'string' }
@@ -461,7 +478,7 @@ const probarRutas = async () => {
 
     // Validar ruta trámites
     const rutaTramResponse = await execute(
-      'UnidadImg_rutadir',
+      'unidadimg_rutadir',
       'padron_licencias',
       [
         { nombre: 'p_ruta', valor: rutaTramites.value, tipo: 'string' }
@@ -477,7 +494,7 @@ const probarRutas = async () => {
 
     // Validar ruta anuncios
     const rutaAnunResponse = await execute(
-      'UnidadImg_rutadir',
+      'unidadimg_rutadir',
       'padron_licencias',
       [
         { nombre: 'p_ruta', valor: rutaAnuncios.value, tipo: 'string' }
@@ -491,6 +508,10 @@ const probarRutas = async () => {
       mensaje: rutaAnunResponse?.result?.[0]?.existe ? 'Ruta accesible' : 'Ruta no encontrada o sin acceso'
     })
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     const todasValidas = validacionRutas.value.every(v => v.valida)
 
     if (todasValidas) {
@@ -500,6 +521,7 @@ const probarRutas = async () => {
         text: 'Todas las rutas son accesibles',
         confirmButtonColor: '#ea8215'
       })
+      toast.value.duration = durationText
       showToast('success', 'Todas las rutas son válidas')
     } else {
       await Swal.fire({
@@ -508,6 +530,7 @@ const probarRutas = async () => {
         text: 'Algunas rutas no son accesibles. Verifique la configuración.',
         confirmButtonColor: '#ea8215'
       })
+      toast.value.duration = durationText
       showToast('warning', 'Algunas rutas no son accesibles')
     }
   } catch (error) {
@@ -535,89 +558,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.path-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
-  padding: 10px;
-}
-
-.path-preview-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #ea8215;
-}
-
-.path-preview-item label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #666;
-  margin: 0;
-}
-
-.path-code {
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  background: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  color: #333;
-  word-break: break-all;
-}
-
-.validation-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.validation-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 15px;
-  border-radius: 8px;
-  border: 2px solid #ddd;
-  background: white;
-}
-
-.validation-item.valid {
-  border-color: #28a745;
-  background: #f0fff4;
-}
-
-.validation-item.invalid {
-  border-color: #dc3545;
-  background: #fff5f5;
-}
-
-.validation-item svg {
-  font-size: 24px;
-  margin-bottom: 5px;
-}
-
-.validation-item span {
-  font-weight: 600;
-  font-size: 14px;
-  color: #333;
-}
-
-.validation-item small {
-  font-size: 12px;
-  color: #666;
-}
-
-.form-text {
-  display: block;
-  margin-top: 5px;
-  font-size: 11px;
-  color: #666;
-  font-style: italic;
-}
-</style>

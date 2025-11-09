@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="sync-alt" />
       </div>
@@ -137,7 +137,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Historial de Sincronización
-          <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
+          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -159,7 +159,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="log in logs" :key="log.id" class="row-hover">
+              <tr v-for="log in logs" :key="log.id" class="clickable-row">
                 <td><strong class="text-primary">{{ log.id }}</strong></td>
                 <td>
                   <small class="text-muted">
@@ -168,7 +168,7 @@
                   </small>
                 </td>
                 <td>
-                  <span class="badge-info">
+                  <span class="badge-purple">
                     {{ log.tramites_procesados || 0 }} trámites
                   </span>
                 </td>
@@ -305,7 +305,7 @@
               <tr>
                 <td class="label">Trámites Procesados:</td>
                 <td>
-                  <span class="badge-info">{{ selectedLog.tramites_procesados || 0 }}</span>
+                  <span class="badge-purple">{{ selectedLog.tramites_procesados || 0 }}</span>
                 </td>
               </tr>
               <tr>
@@ -452,12 +452,18 @@ const visiblePages = computed(() => {
 // Métodos
 const loadConnectionStatus = async () => {
   try {
+    const startTime = performance.now()
+
     const response = await execute(
-      'TDMConection_sp_get_connection_status',
+      'tdmconection_sp_get_connection_status',
       'padron_licencias',
       [],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]) {
       const status = response.result[0]
@@ -470,6 +476,7 @@ const loadConnectionStatus = async () => {
       if (status.stats) {
         connectionStats.value = status.stats
       }
+      toast.value.duration = durationText
     }
   } catch (error) {
     connectionStatus.value = {
@@ -484,8 +491,10 @@ const loadLogs = async () => {
   setLoading(true, 'Cargando historial de sincronización...')
 
   try {
+    const startTime = performance.now()
+
     const response = await execute(
-      'TDMConection_sp_get_sync_log',
+      'tdmconection_sp_get_sync_log',
       'padron_licencias',
       [
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
@@ -497,6 +506,10 @@ const loadLogs = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result) {
       logs.value = response.result
       if (logs.value.length > 0) {
@@ -504,10 +517,12 @@ const loadLogs = async () => {
       } else {
         totalRecords.value = 0
       }
+      toast.value.duration = durationText
       showToast('success', 'Historial cargado correctamente')
     } else {
       logs.value = []
       totalRecords.value = 0
+      toast.value.duration = durationText
       showToast('error', 'Error al cargar historial')
     }
   } catch (error) {
@@ -566,19 +581,25 @@ const syncTramites = async () => {
   showToast('info', 'Iniciando sincronización...')
 
   try {
+    const startTime = performance.now()
+
     const response = await execute(
-      'TDMConection_sp_sync_tramites',
+      'tdmconection_sp_sync_tramites',
       'padron_licencias',
       [],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
         icon: 'success',
         title: '¡Sincronización exitosa!',
         html: `
-          <div style="text-align: left; padding: 0 20px;">
+          <div class="swal-confirmation-text">
             <p><strong>Trámites procesados:</strong> ${response.result[0].tramites_procesados || 0}</p>
             <p><strong>Duración:</strong> ${response.result[0].duracion_segundos || 0} segundos</p>
           </div>
@@ -587,6 +608,7 @@ const syncTramites = async () => {
         timer: 3000
       })
 
+      toast.value.duration = durationText
       showToast('success', 'Sincronización completada exitosamente')
       loadLogs()
       loadConnectionStatus()
@@ -686,101 +708,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.connection-status-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.connection-status-card {
-  display: flex;
-  align-items: center;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 2px solid;
-}
-
-.connection-status-card.connected {
-  background: #d4edda;
-  border-color: #28a745;
-  color: #155724;
-}
-
-.connection-status-card.disconnected {
-  background: #f8d7da;
-  border-color: #dc3545;
-  color: #721c24;
-}
-
-.status-icon {
-  font-size: 3rem;
-  margin-right: 1.5rem;
-}
-
-.status-content h6 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: bold;
-}
-
-.status-content p {
-  margin: 0 0 0.25rem 0;
-}
-
-.status-content small {
-  opacity: 0.8;
-}
-
-.connection-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.stat-item svg {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #333;
-  margin: 0.5rem 0;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #6c757d;
-}
-
-.log-message,
-.error-details {
-  margin-top: 1rem;
-}
-
-.log-message pre,
-.error-text {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 4px;
-  overflow-x: auto;
-  font-size: 0.875rem;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.error-text {
-  background: #f8d7da;
-  color: #721c24;
-}
-</style>

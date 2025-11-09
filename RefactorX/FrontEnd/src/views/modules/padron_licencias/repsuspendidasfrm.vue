@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="ban" />
       </div>
@@ -147,21 +147,21 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th style="width: 80px">Licencia</th>
-                  <th>Propietario</th>
-                  <th>RFC</th>
-                  <th>Giro</th>
-                  <th>Ubicación</th>
-                  <th>Colonia</th>
-                  <th style="width: 80px">Zona</th>
-                  <th>Fecha Otorgamiento</th>
-                  <th>Fecha Baja</th>
-                  <th style="width: 100px">Estado</th>
-                  <th style="width: 80px">Acciones</th>
+                  <th class="th-w-10">Licencia</th>
+                  <th class="th-w-15">Propietario</th>
+                  <th class="th-w-10">RFC</th>
+                  <th class="th-w-10">Giro</th>
+                  <th class="th-w-20">Ubicación</th>
+                  <th class="th-w-15">Colonia</th>
+                  <th class="th-w-10">Zona</th>
+                  <th class="th-w-15">Fecha Otorgamiento</th>
+                  <th class="th-w-15">Fecha Baja</th>
+                  <th class="th-w-10">Estado</th>
+                  <th class="th-w-10">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="lic in licencias" :key="lic.id_licencia" class="row-hover">
+                <tr v-for="lic in licencias" :key="lic.id_licencia" class="clickable-row">
                   <td>
                     <strong class="text-primary">{{ lic.licencia }}</strong>
                   </td>
@@ -179,7 +179,7 @@
                   </td>
                   <td>{{ lic.colonia_ubic || 'N/A' }}</td>
                   <td class="text-center">
-                    <span class="badge-info">{{ lic.zona || 'N/A' }}</span>
+                    <span class="badge-purple">{{ lic.zona || 'N/A' }}</span>
                   </td>
                   <td>
                     <small class="text-muted">
@@ -230,7 +230,7 @@
       <!-- Mensaje cuando no hay datos -->
       <div class="municipal-card" v-if="!loading && licencias.length === 0 && reporteGenerado">
         <div class="municipal-card-body text-center text-muted">
-          <font-awesome-icon icon="check-circle" size="3x" class="empty-icon" style="color: #28a745;" />
+          <font-awesome-icon icon="check-circle" size="3x" class="empty-icon text-success" />
           <p>No se encontraron licencias suspendidas con los criterios especificados</p>
         </div>
       </div>
@@ -324,7 +324,7 @@
               </tr>
               <tr>
                 <td class="label">Zona:</td>
-                <td><span class="badge-info">Zona {{ selectedLicencia.zona }}</span></td>
+                <td><span class="badge-purple">Zona {{ selectedLicencia.zona }}</span></td>
               </tr>
               <tr>
                 <td class="label">CP:</td>
@@ -477,6 +477,8 @@ const generarReporte = async () => {
   reporteGenerado.value = false
 
   try {
+    const startTime = performance.now()
+
     const params = []
 
     // Configurar parámetros según el tipo de filtro
@@ -497,24 +499,31 @@ const generarReporte = async () => {
     params.push({ nombre: 'p_tipo_suspension', valor: parseInt(filters.value.tipoSuspension), tipo: 'integer' })
 
     const response = await execute(
-      'REPORT_LICENCIAS_SUSPENDIDAS',
+      'report_licencias_suspendidas',
       'padron_licencias',
       params,
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       licencias.value = response.result
       reporteGenerado.value = true
 
       if (licencias.value.length > 0) {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${licencias.value.length} licencias suspendidas`)
       } else {
+        toast.value.duration = durationText
         showToast('info', 'No se encontraron licencias suspendidas con los criterios especificados')
       }
     } else {
       licencias.value = []
       reporteGenerado.value = true
+      toast.value.duration = durationText
       showToast('info', 'No se encontraron resultados')
     }
   } catch (error) {
@@ -598,76 +607,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.table-summary {
-  margin-top: 20px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.detail-section {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: bold;
-  color: #ea8215;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #ea8215;
-}
-
-.detail-table {
-  width: 100%;
-}
-
-.detail-table tr {
-  border-bottom: 1px solid #e9ecef;
-}
-
-.detail-table tr:last-child {
-  border-bottom: none;
-}
-
-.detail-table td {
-  padding: 8px 0;
-  font-size: 14px;
-}
-
-.detail-table td.label {
-  width: 150px;
-  font-weight: 600;
-  color: #6c757d;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #dee2e6;
-}
-</style>

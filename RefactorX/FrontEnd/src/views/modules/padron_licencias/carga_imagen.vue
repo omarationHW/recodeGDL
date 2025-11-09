@@ -1,13 +1,14 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="images" />
       </div>
       <div class="module-view-info">
         <h1>Carga de Imágenes</h1>
-        <p>Padrón de Licencias - Gestión de Imágenes y Documentos Digitalizados</p></div>
+        <p>Padrón de Licencias - Gestión de Imágenes y Documentos Digitalizados</p>
+      </div>
       <button
         type="button"
         class="btn-help-icon"
@@ -34,7 +35,7 @@
     <div class="municipal-card">
       <div class="municipal-card-body">
         <div class="form-row">
-          <div class="form-group" style="flex: 2;">
+          <div class="form-group">
             <label class="municipal-form-label">Número de Trámite/Licencia</label>
             <input
               type="text"
@@ -94,7 +95,7 @@
           </div>
           <div class="info-item">
             <label>Estado:</label>
-            <span class="badge badge-info">{{ tramiteInfo.estado || 'N/A' }}</span>
+            <span class="badge badge-purple">{{ tramiteInfo.estado || 'N/A' }}</span>
           </div>
           <div class="info-item">
             <label>Fecha:</label>
@@ -110,7 +111,7 @@
         <h5>
           <font-awesome-icon icon="images" />
           Documentos Digitalizados
-          <span class="badge-info" v-if="documentos.length > 0">{{ documentos.length }} documentos</span>
+          <span class="badge-purple" v-if="documentos.length > 0">{{ documentos.length }} documentos</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>

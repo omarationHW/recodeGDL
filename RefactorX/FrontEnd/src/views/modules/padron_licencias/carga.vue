@@ -1,13 +1,14 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="upload" />
       </div>
       <div class="module-view-info">
         <h1>Carga de Predios</h1>
-        <p>Padrón de Licencias - Sistema de Carga y Edición de Información Predial</p></div>
+        <p>Padrón de Licencias - Sistema de Carga y Edición de Información Predial</p>
+      </div>
       <button
         type="button"
         class="btn-help-icon"
@@ -91,7 +92,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
-          <span class="badge-info" v-if="predios.length > 0">{{ predios.length }} registros</span>
+          <span class="badge-purple" v-if="predios.length > 0">{{ predios.length }} registros</span>
         </h5>
       </div>
 
@@ -110,7 +111,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="predio in predios" :key="predio.id" class="row-hover">
+              <tr v-for="predio in predios" :key="predio.id" class="clickable-row">
                 <td><code class="text-primary">{{ predio.clavecatastral }}</code></td>
                 <td>{{ predio.cuenta || 'N/A' }}</td>
                 <td>{{ predio.propietario || 'N/A' }}</td>

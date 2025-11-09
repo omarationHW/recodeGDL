@@ -2183,6 +2183,26 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 53/598 componentes (8.86%)**
+### 54. ✅ **carga-predios** (carga.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ Removed inline style (position: relative) from header
+  - ✅ badge-purple instead of badge-info
+  - ✅ clickable-row instead of row-hover
+  - ✅ SP names already lowercase
+  - ✅ Already uses useLicenciasErrorHandler
+  - ✅ NO scoped CSS
+- **SPs:** sp_carga_buscar_predios, sp_carga_get_predio (2 SPs)
+- **Features:**
+  - Búsqueda de predios por clave catastral
+  - Carga y edición de información predial
+  - Tabla con: Clave Catastral, Cuenta, Propietario, Domicilio
+  - Modal para editar datos del predio
+  - Validación de datos antes de guardar
+- **Nota Técnica:** Componente sin carga automática, requiere búsqueda manual
+
+---
+
+**PROGRESO TOTAL: 54/598 componentes (9.03%)**
 **Última actualización:** 2025-11-09
 

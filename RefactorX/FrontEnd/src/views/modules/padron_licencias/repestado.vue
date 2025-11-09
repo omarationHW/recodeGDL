@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header module-header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="clipboard-list" />
       </div>
@@ -100,7 +100,7 @@
                 </tr>
                 <tr>
                   <td class="label">Tipo de Trámite:</td>
-                  <td><span class="badge-info">{{ tramite.tipo_tramite || 'N/A' }}</span></td>
+                  <td><span class="badge-purple">{{ tramite.tipo_tramite || 'N/A' }}</span></td>
                 </tr>
                 <tr>
                   <td class="label">Fecha Captura:</td>
@@ -182,7 +182,7 @@
               <table class="detail-table">
                 <tr>
                   <td class="label">Giro:</td>
-                  <td><span class="badge-info">ID: {{ tramite.id_giro || 'N/A' }}</span></td>
+                  <td><span class="badge-purple">ID: {{ tramite.id_giro || 'N/A' }}</span></td>
                 </tr>
                 <tr>
                   <td class="label">Actividad:</td>
@@ -223,7 +223,7 @@
           <h5>
             <font-awesome-icon icon="history" />
             Historial de Revisiones
-            <span class="badge-info" v-if="revisiones.length > 0">{{ revisiones.length }} revisiones</span>
+            <span class="badge-purple" v-if="revisiones.length > 0">{{ revisiones.length }} revisiones</span>
           </h5>
           <button
             class="btn-municipal-primary"
@@ -353,7 +353,7 @@ const consultarTramite = async () => {
   try {
     // Obtener datos del trámite
     const responseTramite = await execute(
-      'SP_GET_TRAMITE_ESTADO',
+      'sp_get_tramite_estado',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: parseInt(filters.value.idTramite), tipo: 'integer' }
@@ -384,7 +384,7 @@ const consultarTramite = async () => {
 const loadRevisiones = async () => {
   try {
     const response = await execute(
-      'SP_GET_TRAMITE_REVISIONES',
+      'sp_get_tramite_revisiones',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: parseInt(filters.value.idTramite), tipo: 'integer' }
@@ -398,7 +398,6 @@ const loadRevisiones = async () => {
       revisiones.value = []
     }
   } catch (error) {
-    console.error('Error al cargar revisiones:', error)
     revisiones.value = []
   }
 }
@@ -499,151 +498,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.detail-section {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.detail-section.full-width {
-  grid-column: 1 / -1;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: bold;
-  color: #ea8215;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #ea8215;
-}
-
-.detail-table {
-  width: 100%;
-}
-
-.detail-table tr {
-  border-bottom: 1px solid #e9ecef;
-}
-
-.detail-table tr:last-child {
-  border-bottom: none;
-}
-
-.detail-table td {
-  padding: 8px 0;
-  font-size: 14px;
-}
-
-.detail-table td.label {
-  width: 150px;
-  font-weight: 600;
-  color: #6c757d;
-}
-
-.observaciones-box {
-  background: white;
-  padding: 15px;
-  border-radius: 6px;
-  border: 1px solid #dee2e6;
-  white-space: pre-wrap;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.timeline {
-  position: relative;
-  padding: 20px 0;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 30px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: #dee2e6;
-}
-
-.timeline-item {
-  position: relative;
-  padding-left: 70px;
-  margin-bottom: 30px;
-}
-
-.timeline-marker {
-  position: absolute;
-  left: 20px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #6c757d;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  z-index: 1;
-}
-
-.timeline-marker-success {
-  background: #28a745;
-}
-
-.timeline-marker-danger {
-  background: #dc3545;
-}
-
-.timeline-marker-warning {
-  background: #ffc107;
-}
-
-.timeline-marker-secondary {
-  background: #6c757d;
-}
-
-.timeline-content {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.timeline-header h6 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.timeline-body p {
-  margin: 8px 0;
-  font-size: 14px;
-}
-
-.timeline-body .observaciones {
-  background: white;
-  padding: 10px;
-  border-radius: 6px;
-  border-left: 3px solid #ea8215;
-  margin-top: 10px;
-}
-</style>

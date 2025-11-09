@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header module-header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="chart-bar" />
       </div>
@@ -94,7 +94,7 @@
           <h5>
             <font-awesome-icon icon="table" />
             Resultados del Reporte
-            <span class="badge-info" v-if="resultados.length > 0">{{ resultados.length }} registros</span>
+            <span class="badge-purple" v-if="resultados.length > 0">{{ resultados.length }} registros</span>
           </h5>
           <button
             class="btn-municipal-primary"
@@ -125,7 +125,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in resultados" :key="row.id_giro" class="row-hover">
+                <tr v-for="row in resultados" :key="row.id_giro" class="clickable-row">
                   <td>
                     <span class="badge-secondary">{{ row.id_giro }}</span>
                   </td>
@@ -170,7 +170,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, index) in resultados" :key="index" class="row-hover">
+                <tr v-for="(row, index) in resultados" :key="index" class="clickable-row">
                   <td><strong>{{ row.concepto }}</strong></td>
                   <td class="text-right">{{ row.cantidad || 0 }}</td>
                   <td class="text-right">{{ formatCurrency(row.monto_total) }}</td>
@@ -191,9 +191,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, index) in resultados" :key="index" class="row-hover">
+                <tr v-for="(row, index) in resultados" :key="index" class="clickable-row">
                   <td>
-                    <span class="badge-info">Zona {{ row.zona || 'N/A' }}</span>
+                    <span class="badge-purple">Zona {{ row.zona || 'N/A' }}</span>
                   </td>
                   <td>
                     <span class="badge-secondary">{{ row.id_giro }}</span>
@@ -328,19 +328,19 @@ const generarReporte = async () => {
     // Determinar el SP según el tipo de reporte
     switch (filters.value.tipoReporte) {
       case '1':
-        spName = 'REP_EST_LIC_REPORT1'
+        spName = 'sp_rep_est_lic_report1'
         break
       case '2':
-        spName = 'REP_EST_LIC_REPORT2'
+        spName = 'sp_rep_est_lic_report2'
         break
       case '3':
-        spName = 'REP_EST_LIC_REPORT3'
+        spName = 'sp_rep_est_lic_report3'
         break
       case '4':
-        spName = 'REP_EST_LIC_REPORT4'
+        spName = 'sp_rep_est_lic_report4'
         break
       case '5':
-        spName = 'REP_EST_LIC_REPORT5'
+        spName = 'sp_rep_est_lic_report5'
         break
       default:
         throw new Error('Tipo de reporte no válido')
@@ -410,14 +410,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.table-total-row {
-  background-color: #f8f9fa;
-  font-weight: bold;
-  border-top: 2px solid #dee2e6;
-}
-
-.table-total-row td {
-  padding: 12px 8px;
-}
-</style>

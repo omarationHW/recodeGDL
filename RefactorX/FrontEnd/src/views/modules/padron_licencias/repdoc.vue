@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-alt" />
       </div>
@@ -99,7 +99,7 @@
           <h5>
             <font-awesome-icon icon="list-check" />
             Requisitos del Giro
-            <span class="badge-info" v-if="requisitos.length > 0">{{ requisitos.length }} requisitos</span>
+            <span class="badge-purple" v-if="requisitos.length > 0">{{ requisitos.length }} requisitos</span>
           </h5>
           <button
             class="btn-municipal-primary"
@@ -115,14 +115,14 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th style="width: 60px">No.</th>
+                  <th class="col-narrow">No.</th>
                   <th>Requisito</th>
-                  <th style="width: 120px">Obligatorio</th>
-                  <th style="width: 120px">Tipo Doc.</th>
+                  <th class="col-medium">Obligatorio</th>
+                  <th class="col-medium">Tipo Doc.</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(req, index) in requisitos" :key="req.id_requisito" class="row-hover">
+                <tr v-for="(req, index) in requisitos" :key="req.id_requisito" class="clickable-row">
                   <td class="text-center">
                     <span class="badge-secondary">{{ index + 1 }}</span>
                   </td>
@@ -222,7 +222,7 @@ const loadGiros = async () => {
 
   try {
     const response = await execute(
-      'SP_REPDOC_GET_GIROS',
+      'sp_repdoc_get_giros',
       'padron_licencias',
       [
         { nombre: 'p_tipo', valor: filters.value.tipoGiro, tipo: 'string' }
@@ -255,7 +255,7 @@ const loadRequisitos = async () => {
 
   try {
     const response = await execute(
-      'SP_REPDOC_GET_REQUISITOS_BY_GIRO',
+      'sp_repdoc_get_requisitos_by_giro',
       'padron_licencias',
       [
         { nombre: 'p_id_giro', valor: filters.value.idGiro, tipo: 'integer' }
@@ -314,8 +314,8 @@ const imprimirReporte = async () => {
 
   try {
     const spName = filters.value.tipoReporte === 'permisos'
-      ? 'SP_REPDOC_PRINT_PERMISOS_EVENTUALES'
-      : 'SP_REPDOC_PRINT_REQUISITOS'
+      ? 'sp_repdoc_print_permisos_eventuales'
+      : 'sp_repdoc_print_requisitos'
 
     const response = await execute(
       spName,

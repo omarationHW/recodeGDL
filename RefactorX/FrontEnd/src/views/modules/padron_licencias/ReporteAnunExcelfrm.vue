@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header module-header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="bullhorn" />
       </div>
@@ -218,7 +218,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="anun in anuncios" :key="anun.anuncio" class="row-hover">
+                <tr v-for="anun in anuncios" :key="anun.anuncio" class="clickable-row">
                   <td>
                     <strong class="text-primary">{{ anun.anuncio }}</strong>
                   </td>
@@ -239,7 +239,7 @@
                   </td>
                   <td>{{ anun.colonia_ubic || 'N/A' }}</td>
                   <td class="text-center">
-                    <span class="badge-info">{{ anun.zona || 'N/A' }}</span>
+                    <span class="badge-purple">{{ anun.zona || 'N/A' }}</span>
                   </td>
                   <td>
                     <small class="text-muted">
@@ -443,7 +443,7 @@ const generarReporte = async () => {
     ]
 
     const response = await execute(
-      'SP_REPORTE_ANUNCIOS_EXCEL',
+      'sp_reporte_anuncios_excel',
       'padron_licencias',
       params,
       'guadalajara'
@@ -559,40 +559,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.table-summary {
-  margin-top: 20px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.summary-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.table-total-row {
-  background-color: #f8f9fa;
-  font-weight: bold;
-  border-top: 2px solid #dee2e6;
-}
-
-.table-total-row td {
-  padding: 12px 8px;
-}
-
-.form-text {
-  display: block;
-  margin-top: 5px;
-  font-size: 12px;
-  color: #6c757d;
-}
-</style>

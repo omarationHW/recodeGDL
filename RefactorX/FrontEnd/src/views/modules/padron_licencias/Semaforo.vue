@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header module-header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="traffic-light" />
       </div>
@@ -193,7 +193,7 @@
         <h5>
           <font-awesome-icon icon="history" />
           Historial de Resultados
-          <span class="badge-info" v-if="historial.length > 0">{{ historial.length }} registros</span>
+          <span class="badge-purple" v-if="historial.length > 0">{{ historial.length }} registros</span>
         </h5>
         <button
           class="btn-municipal-secondary btn-sm"
@@ -218,7 +218,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(registro, index) in historial" :key="index" class="row-hover">
+              <tr v-for="(registro, index) in historial" :key="index" class="clickable-row">
                 <td><strong>{{ index + 1 }}</strong></td>
                 <td>
                   <span class="numero-badge">{{ registro.numero }}</span>
@@ -316,7 +316,7 @@ const generarColor = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_SEMAFORO_GET_RANDOM_COLOR',
+      'sp_semaforo_get_random_color',
       'padron_licencias',
       [],
       'guadalajara'
@@ -344,7 +344,7 @@ const registrarColor = async () => {
 
   try {
     await execute(
-      'SP_SEMAFORO_REGISTER_COLOR_RESULT',
+      'sp_semaforo_register_color_result',
       'padron_licencias',
       [
         { nombre: 'p_numero', valor: numeroGenerado.value },
@@ -354,7 +354,6 @@ const registrarColor = async () => {
       'guadalajara'
     )
   } catch (error) {
-    console.error('Error al registrar color:', error)
   }
 }
 
@@ -381,7 +380,7 @@ const guardarResultado = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_SEMAFORO_SAVE',
+      'sp_semaforo_save',
       'padron_licencias',
       [
         { nombre: 'p_numero', valor: numeroGenerado.value },
@@ -416,7 +415,7 @@ const cargarEstadisticas = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_SEMAFORO_GET_STATS',
+      'sp_semaforo_get_stats',
       'padron_licencias',
       [],
       'guadalajara'
@@ -437,7 +436,7 @@ const cargarHistorial = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_SEMAFORO_HISTORY',
+      'sp_semaforo_history',
       'padron_licencias',
       [
         { nombre: 'p_limit', valor: 50 }
@@ -502,7 +501,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
 .semaforo-container {
   display: flex;
   flex-direction: column;

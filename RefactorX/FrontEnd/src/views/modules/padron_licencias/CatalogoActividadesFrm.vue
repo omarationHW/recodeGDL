@@ -115,23 +115,23 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th style="width: 10%; text-align: center;">
+                  <th class="th-center th-w-10">
                     <font-awesome-icon icon="hashtag" class="me-1" />
                     Genérico
                   </th>
-                  <th style="width: 10%; text-align: center;">
+                  <th class="th-center th-w-10">
                     <font-awesome-icon icon="hashtag" class="me-1" />
                     Uso
                   </th>
-                  <th style="width: 10%; text-align: center;">
+                  <th class="th-center th-w-10">
                     <font-awesome-icon icon="hashtag" class="me-1" />
                     Actividad
                   </th>
-                  <th style="width: 55%;">
+                  <th class="th-w-55">
                     <font-awesome-icon icon="align-left" class="me-2" />
                     Concepto
                   </th>
-                  <th style="width: 15%; text-align: center;">
+                  <th class="th-center th-w-15">
                     <font-awesome-icon icon="cogs" class="me-1" />
                     Acciones
                   </th>
@@ -155,13 +155,13 @@
                   </td>
                 </tr>
                 <tr v-else v-for="actividad in actividades" :key="`${actividad.generico}-${actividad.uso}-${actividad.actividad}`" class="clickable-row">
-                  <td style="text-align: center;">
+                  <td class="text-center">
                     <span class="badge badge-light-secondary">{{ actividad.generico }}</span>
                   </td>
-                  <td style="text-align: center;">
+                  <td class="text-center">
                     <span class="badge badge-light-info">{{ actividad.uso }}</span>
                   </td>
-                  <td style="text-align: center;">
+                  <td class="text-center">
                     <span class="badge badge-light-primary">{{ actividad.actividad }}</span>
                   </td>
                   <td>
@@ -170,7 +170,7 @@
                       <span class="giro-text">{{ actividad.concepto }}</span>
                     </div>
                   </td>
-                  <td style="text-align: center;">
+                  <td class="text-center">
                     <div class="btn-group-actions">
                       <button @click.stop="verDetalle(actividad)" class="btn-table btn-table-info" title="Ver detalle">
                         <font-awesome-icon icon="eye" />
@@ -555,7 +555,7 @@ const buscar = async () => {
   try {
     // El SP no recibe parámetros, siempre trae todo
     const response = await execute(
-      'CATALOGO_ACTIVIDADES_LIST',
+      'sp_catalogo_actividades_list',
       'padron_licencias',
       [],
       'guadalajara',
@@ -588,7 +588,6 @@ const buscar = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al buscar actividades:', error)
     handleApiError(error, 'Error al buscar actividades')
   } finally {
     loading.value = false
@@ -680,7 +679,7 @@ const crearActividad = async () => {
     icon: 'question',
     title: '¿Crear Nueva Actividad?',
     html: `
-      <div style="text-align: left; padding: 1rem;">
+      <div class="swal-selection-content">
         <p><strong>Genérico:</strong> ${actividadForm.value.generico}</p>
         <p><strong>Uso:</strong> ${actividadForm.value.uso}</p>
         <p><strong>Actividad:</strong> ${actividadForm.value.actividad}</p>
@@ -701,7 +700,7 @@ const crearActividad = async () => {
 
   try {
     const response = await execute(
-      'CATALOGO_ACTIVIDADES_CREATE',
+      'sp_catalogo_actividades_create',
       'padron_licencias',
       [
         { nombre: 'p_generico', valor: actividadForm.value.generico, tipo: 'integer' },
@@ -726,7 +725,6 @@ const crearActividad = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al crear actividad:', error)
     handleApiError(error, 'Error al crear actividad')
   }
 }
@@ -737,7 +735,7 @@ const actualizarActividad = async () => {
     icon: 'question',
     title: '¿Guardar Cambios?',
     html: `
-      <div style="text-align: left; padding: 1rem;">
+      <div class="swal-selection-content">
         <p><strong>Código:</strong> ${actividadForm.value.generico}.${actividadForm.value.uso}.${actividadForm.value.actividad}</p>
         <p><strong>Concepto Nuevo:</strong> ${actividadForm.value.concepto}</p>
       </div>
@@ -756,7 +754,7 @@ const actualizarActividad = async () => {
 
   try {
     const response = await execute(
-      'CATALOGO_ACTIVIDADES_UPDATE',
+      'sp_catalogo_actividades_update',
       'padron_licencias',
       [
         { nombre: 'p_generico', valor: actividadForm.value.generico, tipo: 'integer' },
@@ -781,7 +779,6 @@ const actualizarActividad = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al actualizar actividad:', error)
     handleApiError(error, 'Error al actualizar actividad')
   }
 }
@@ -816,7 +813,7 @@ const eliminarActividad = async (actividad) => {
 
   try {
     const response = await execute(
-      'CATALOGO_ACTIVIDADES_DELETE',
+      'sp_catalogo_actividades_delete',
       'padron_licencias',
       [
         { nombre: 'p_generico', valor: actividad.generico, tipo: 'integer' },
@@ -839,7 +836,6 @@ const eliminarActividad = async (actividad) => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al eliminar actividad:', error)
     handleApiError(error, 'Error al eliminar actividad')
   }
 }

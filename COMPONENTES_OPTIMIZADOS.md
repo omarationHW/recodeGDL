@@ -2300,6 +2300,30 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 58/598 componentes (9.70%)**
+### 59. ✅ **catalogo-actividades** (CatalogoActividadesFrm.vue) - P2 PRIORIDAD ALTA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ Removed 9 inline styles (5 from thead, 4 from tbody → CSS classes)
+  - ✅ Fixed 4 SP names to lowercase with sp_ prefix
+  - ✅ Removed 4 console.error() calls
+  - ✅ Replaced 2 inline styles in SweetAlert with CSS classes
+  - ✅ Performance timing already present
+  - ✅ Toast structure already correct
+  - ✅ clickable-row already in use
+  - ✅ NO scoped CSS
+- **SPs:** sp_catalogo_actividades_list, sp_catalogo_actividades_create, sp_catalogo_actividades_update, sp_catalogo_actividades_delete (4 SPs)
+- **Features:**
+  - CRUD completo de actividades (crear, leer, actualizar, eliminar)
+  - Filtros por genérico, uso, concepto
+  - Modal con 3 modos: ver, editar, crear
+  - Paginación del lado del cliente con cache
+  - Validaciones de formulario
+  - Sistema de códigos jerárquico (genérico.uso.actividad)
+  - Búsqueda sin carga automática
+- **Nota Técnica:** Componente ABM de catálogo con cache local, no carga tabla automáticamente
+
+---
+
+**PROGRESO TOTAL: 59/598 componentes (9.87%)**
 **Última actualización:** 2025-11-09
 

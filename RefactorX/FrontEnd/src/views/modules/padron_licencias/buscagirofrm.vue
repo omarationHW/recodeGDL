@@ -181,7 +181,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="giro in paginatedGiros" :key="giro.id_giro" class="row-hover">
+                <tr v-for="giro in paginatedGiros" :key="giro.id_giro" class="clickable-row">
                   <td>
                     <span class="badge badge-light-info">
                       {{ giro.id_giro }}
@@ -197,7 +197,7 @@
                     <small class="text-muted">{{ giro.caracteristicas?.trim() || 'Sin características' }}</small>
                   </td>
                   <td class="text-center">
-                    <span class="badge" :class="giro.tipo === 'L' ? 'badge-info' : 'badge-warning'">
+                    <span class="badge" :class="giro.tipo === 'L' ? 'badge-purple' : 'badge-warning'">
                       <font-awesome-icon :icon="giro.tipo === 'L' ? 'building' : 'bullhorn'" class="me-1" />
                       {{ giro.tipo === 'L' ? 'Licencia' : 'Anuncio' }}
                     </span>
@@ -387,8 +387,7 @@ const cargarEstadisticas = async () => {
       }
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
-    // No mostrar toast de error para stats, solo console
+    // No mostrar toast de error para stats en este caso
   } finally {
     loadingEstadisticas.value = false
   }
@@ -407,8 +406,6 @@ const buscarGiros = async () => {
     const tipo = filters.value.tipo === '' ? null : filters.value.tipo
     const vigente = filters.value.vigente === '' ? null : filters.value.vigente
 
-    console.log('🔍 Filtros enviados:', { descripcion, tipo, vigente })
-
     const response = await execute(
       'buscagiro_list',
       'padron_licencias',
@@ -425,13 +422,9 @@ const buscarGiros = async () => {
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
 
-    console.log('📦 Respuesta del API:', response)
-
     if (response && response.result) {
       giros.value = response.result
       totalResultados.value = giros.value.length
-
-      console.log(`✅ Giros cargados: ${totalResultados.value}`)
 
       // Formatear el mensaje con el tiempo
       const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
@@ -441,7 +434,6 @@ const buscarGiros = async () => {
         timeMessage
       )
     } else {
-      console.log('⚠️ Respuesta sin result:', response)
       giros.value = []
       totalResultados.value = 0
       showToast('info', 'No se encontraron giros')
@@ -502,7 +494,7 @@ const getClasificacionClass = (clasificacion) => {
   const classes = {
     'A': 'badge-danger',
     'B': 'badge-warning',
-    'C': 'badge-info',
+    'C': 'badge-purple',
     'D': 'badge-success'
   }
   return classes[clasificacion] || 'badge-secondary'

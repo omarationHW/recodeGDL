@@ -2090,6 +2090,28 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 49/598 componentes (8.19%)**
+### 50. ✅ **bloquear-anuncio** (BloquearAnunciorm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ clickable-row instead of row-hover
+  - ✅ Removed console.error() and added handleApiError
+  - ✅ SP names already lowercase
+  - ✅ Already uses useGlobalLoading + useLicenciasErrorHandler
+  - ✅ NO inline styles
+  - ✅ NO scoped CSS block
+- **SPs:** sp_bloquearanuncio_get_anuncio, sp_bloquearanuncio_get_bloqueos, sp_bloquearanuncio_bloquear, sp_bloquearanuncio_desbloquear (4 SPs)
+- **Features:**
+  - Buscar anuncio por número
+  - Ver información completa del anuncio
+  - Bloquear anuncio con tipo y motivo
+  - Desbloquear anuncio con motivo
+  - Historial de bloqueos del anuncio
+  - Tipos de bloqueo: Temporal, Definitivo
+  - Confirmaciones con SweetAlert2
+- **Nota Técnica:** Componente sin carga automática, requiere buscar anuncio primero
+
+---
+
+**PROGRESO TOTAL: 50/598 componentes (8.36%)**
 **Última actualización:** 2025-11-09
 

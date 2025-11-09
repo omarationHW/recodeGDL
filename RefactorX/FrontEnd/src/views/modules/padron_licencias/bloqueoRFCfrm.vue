@@ -187,7 +187,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="bloqueo in bloqueos" :key="`${bloqueo.rfc}-${bloqueo.id_tramite}`" class="row-hover">
+                <tr v-for="bloqueo in bloqueos" :key="`${bloqueo.rfc}-${bloqueo.id_tramite}`" class="clickable-row">
                   <td><strong>{{ bloqueo.rfc }}</strong></td>
                   <td>{{ bloqueo.id_tramite }}</td>
                   <td>{{ bloqueo.licencia || 'N/A' }}</td>
@@ -328,7 +328,7 @@
         </div>
         <div class="summary-item">
           <span class="summary-label">Trámite</span>
-          <span class="badge badge-info-modern">#{{ bloqueoSeleccionado.id_tramite }}</span>
+          <span class="badge badge-purple-modern">#{{ bloqueoSeleccionado.id_tramite }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Estado</span>
@@ -546,7 +546,6 @@ const cargarBloqueos = async () => {
       showToast(`${formatNumber(totalRecords.value)} bloqueos RFC cargados`, 'success', `${timeMessage}`)
     }
   } catch (error) {
-    console.error('Error al cargar bloqueos RFC:', error)
     handleApiError(error, 'No se pudieron cargar los bloqueos de RFC')
   } finally {
     hideLoading()
@@ -611,7 +610,6 @@ const buscarTramite = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al buscar trámite:', error)
     handleApiError(error, 'No se pudo buscar el trámite')
   }
 }
@@ -691,7 +689,6 @@ const crearBloqueo = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al crear bloqueo:', error)
     handleApiError(error, 'No se pudo registrar el bloqueo')
   }
 }
@@ -774,7 +771,6 @@ const confirmarDesbloqueo = async (bloqueo) => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al desbloquear RFC:', error)
     handleApiError(error, 'No se pudo desbloquear el RFC')
   }
 }

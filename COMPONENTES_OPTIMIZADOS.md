@@ -2065,6 +2065,31 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 48/598 componentes (8.03%)**
+### 49. ✅ **bloqueo-rfc** (bloqueoRFCfrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ clickable-row instead of row-hover
+  - ✅ badge-purple-modern instead of badge-info-modern
+  - ✅ Removed all console.error() calls (4 occurrences)
+  - ✅ SP names already lowercase
+  - ✅ Already has performance timing on cargarBloqueos
+  - ✅ Already uses useLicenciasErrorHandler + useGlobalLoading
+  - ✅ NO scoped CSS block
+- **SPs:** sp_bloqueorfc_list, sp_bloqueorfc_buscar_tramite, sp_bloqueorfc_create, sp_bloqueorfc_desbloquear (4 SPs)
+- **Features:**
+  - Bloqueo de RFC por incumplimiento de autoevaluación
+  - Buscar trámite por ID
+  - Registrar bloqueo con motivo
+  - Desbloquear RFC con motivo
+  - Paginación (10, 25, 50, 100 registros)
+  - Filtros por RFC y estado
+  - Modal de detalles completos
+  - Confirmaciones con SweetAlert2
+  - Performance timing con formato ms/s
+- **Nota Técnica:** Componente sin carga automática, requiere acción del usuario
+
+---
+
+**PROGRESO TOTAL: 49/598 componentes (8.19%)**
 **Última actualización:** 2025-11-09
 

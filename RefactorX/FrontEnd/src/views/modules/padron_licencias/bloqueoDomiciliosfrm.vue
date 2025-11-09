@@ -156,11 +156,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="bloqueo in bloqueos" :key="`${bloqueo.tipo_registro}-${bloqueo.numero_registro}`" class="row-hover">
+                <tr v-for="bloqueo in bloqueos" :key="`${bloqueo.tipo_registro}-${bloqueo.numero_registro}`" class="clickable-row">
                   <td>
                     <span class="badge" :class="{
                       'badge-primary': bloqueo.tipo_registro === 'Licencia',
-                      'badge-info': bloqueo.tipo_registro === 'Anuncio',
+                      'badge-purple': bloqueo.tipo_registro === 'Anuncio',
                       'badge-warning': bloqueo.tipo_registro === 'Tramite'
                     }">
                       {{ bloqueo.tipo_registro }}
@@ -386,7 +386,7 @@
           <span class="summary-label">Tipo</span>
           <span class="badge" :class="{
             'badge-primary-modern': bloqueoSeleccionado.tipo_registro === 'Licencia',
-            'badge-info-modern': bloqueoSeleccionado.tipo_registro === 'Anuncio',
+            'badge-purple-modern': bloqueoSeleccionado.tipo_registro === 'Anuncio',
             'badge-warning-modern': bloqueoSeleccionado.tipo_registro === 'Tramite'
           }">
             {{ bloqueoSeleccionado.tipo_registro }}
@@ -420,7 +420,7 @@
               <td>
                 <span class="badge" :class="{
                   'badge-primary': bloqueoSeleccionado.tipo_registro === 'Licencia',
-                  'badge-info': bloqueoSeleccionado.tipo_registro === 'Anuncio',
+                  'badge-purple': bloqueoSeleccionado.tipo_registro === 'Anuncio',
                   'badge-warning': bloqueoSeleccionado.tipo_registro === 'Tramite'
                 }">
                   {{ bloqueoSeleccionado.tipo_registro }}
@@ -783,7 +783,6 @@ const guardarEdicion = async () => {
   } catch (error) {
     guardando.value = false
     hideLoading()
-    console.error('Error al actualizar bloqueo:', error)
     handleApiError(error, 'No se pudo actualizar el bloqueo')
   }
 }
@@ -825,7 +824,6 @@ const cargarBloqueos = async () => {
       showToast(`${formatNumber(totalRecords.value)} bloqueos cargados`, 'success', `(${timeMessage})`)
     }
   } catch (error) {
-    console.error('Error al cargar bloqueos:', error)
     handleApiError(error, 'No se pudieron cargar los bloqueos')
   } finally {
     hideLoading()
@@ -924,7 +922,6 @@ const guardarNuevoBloqueo = async () => {
   } catch (error) {
     guardando.value = false
     hideLoading()
-    console.error('Error al crear bloqueo:', error)
     handleApiError(error, 'No se pudo registrar el bloqueo')
   }
 }
@@ -997,7 +994,6 @@ const confirmarCancelacion = async (bloqueo) => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al cancelar bloqueo:', error)
     handleApiError(error, 'No se pudo cancelar el bloqueo')
   }
 }

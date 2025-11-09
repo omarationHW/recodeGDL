@@ -2038,6 +2038,33 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 47/598 componentes (7.86%)**
+### 48. ✅ **bloqueo-domicilios** (bloqueoDomiciliosfrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ clickable-row instead of row-hover
+  - ✅ badge-purple instead of badge-info (3 occurrences)
+  - ✅ badge-purple-modern instead of badge-info-modern
+  - ✅ Removed all console.error() calls (4 occurrences)
+  - ✅ Already has performance timing on cargarBloqueos
+  - ✅ Already uses useLicenciasErrorHandler + useGlobalLoading
+  - ✅ Already has clickable-header for filters
+  - ✅ SP names already lowercase
+  - ✅ NO scoped CSS block
+- **SPs:** sp_bloqueodomicilios_list, sp_bloqueodomicilios_create, sp_bloqueodomicilios_update, sp_bloqueodomicilios_cancel (4 SPs)
+- **Features:**
+  - Gestión de bloqueos de domicilios
+  - Bloquear/desbloquear licencias, anuncios y trámites
+  - 3 tipos de registros: Licencia, Anuncio, Trámite
+  - Filtros por tipo, estado y vigencia
+  - Paginación (10, 25, 50, 100 registros)
+  - Estadísticas: Total bloqueos, Vigentes, Bloqueados
+  - CRUD completo con modales
+  - Confirmaciones con SweetAlert2
+  - Performance timing con formato ms/s
+- **Nota Técnica:** Componente sin carga automática, requiere acción del usuario
+
+---
+
+**PROGRESO TOTAL: 48/598 componentes (8.03%)**
 **Última actualización:** 2025-11-09
 

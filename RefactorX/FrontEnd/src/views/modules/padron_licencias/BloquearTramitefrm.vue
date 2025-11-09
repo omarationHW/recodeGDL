@@ -218,7 +218,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="bloqueo in bloqueos" :key="bloqueo.id_bloqueo" class="row-hover">
+                  <tr v-for="bloqueo in bloqueos" :key="bloqueo.id_bloqueo" class="clickable-row">
                     <td>
                       <span class="badge-warning">
                         {{ bloqueo.tipo }}
@@ -370,8 +370,8 @@ const cargarBloqueos = async () => {
       bloqueos.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar bloqueos:', error)
     bloqueos.value = []
+    handleApiError(error, 'No se pudieron cargar los bloqueos')
   }
 }
 
@@ -394,8 +394,8 @@ const cargarGiroDescripcion = async () => {
       giroDescripcion.value = response.result[0].descripcion
     }
   } catch (error) {
-    console.error('Error al cargar descripción del giro:', error)
     giroDescripcion.value = tramiteData.value.giro
+    handleApiError(error, 'No se pudo cargar la descripción del giro')
   }
 }
 

@@ -2134,6 +2134,29 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 51/598 componentes (8.53%)**
+### 52. ✅ **bloquear-tramite** (BloquearTramitefrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ clickable-row instead of row-hover
+  - ✅ Removed console.error() calls (2 occurrences) and added handleApiError
+  - ✅ SP names already lowercase
+  - ✅ Already uses useGlobalLoading + useLicenciasErrorHandler
+  - ✅ NO inline styles
+  - ✅ NO scoped CSS block
+- **SPs:** sp_bloqueartramite_get_tramite, sp_bloqueartramite_get_bloqueos, sp_bloqueartramite_bloquear, sp_bloqueartramite_desbloquear, sp_get_giro_descripcion (5 SPs)
+- **Features:**
+  - Buscar trámite por ID
+  - Ver información completa del trámite
+  - Cargar descripción del giro desde catálogo
+  - Bloquear trámite con tipo y motivo
+  - Desbloquear trámite con motivo
+  - Historial de bloqueos del trámite
+  - Tipos de bloqueo: Temporal, Definitivo
+  - Confirmaciones con SweetAlert2
+- **Nota Técnica:** Componente sin carga automática, requiere buscar trámite primero
+
+---
+
+**PROGRESO TOTAL: 52/598 componentes (8.70%)**
 **Última actualización:** 2025-11-09
 

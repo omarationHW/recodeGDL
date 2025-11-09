@@ -1,22 +1,15 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="map-marked-alt" />
       </div>
       <div class="module-view-info">
         <h1>Zonas de Anuncios</h1>
-        <p>Padrón de Licencias - Catálogo de Zonas de Anuncios</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+        <p>Padrón de Licencias - Catálogo de Zonas de Anuncios</p>
+      </div>
+      <div class="button-group ms-auto">
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
@@ -24,6 +17,13 @@
         >
           <font-awesome-icon icon="plus" />
           Nueva Zona
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -84,14 +84,16 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Zonas de Anuncios
-          <span class="badge-info" v-if="zonas.length > 0">{{ zonas.length }} registros</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="zonas.length > 0">{{ zonas.length }} registros</span>
+          <div v-if="loading" class="spinner-border spinner-sm" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
         </div>
       </div>
 
@@ -401,9 +403,11 @@ const editForm = ref({
 const loadZonas = async () => {
   setLoading(true, 'Cargando zonas de anuncios...')
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_ZONAANUNCIO_LIST',
+      'sp_zonaanuncio_list',
       'padron_licencias',
       [
         { nombre: 'p_search', valor: filters.value.descripcion || null, tipo: 'string' },
@@ -412,9 +416,16 @@ const loadZonas = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       zonas.value = response.result
-      showToast('success', 'Zonas cargadas correctamente')
+      toast.value.duration = durationText
+      showToast('success', `Se cargaron ${zonas.value.length} zonas`)
     } else {
       zonas.value = []
       showToast('error', 'Error al cargar zonas')
@@ -463,12 +474,12 @@ const createZona = async () => {
     icon: 'question',
     title: '¿Confirmar creación de zona?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se creará una nueva zona con los siguientes datos:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Clave:</strong> ${newZona.value.clave}</li>
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${newZona.value.descripcion}</li>
-          <li style="margin: 5px 0;"><strong>Vigencia:</strong> ${newZona.value.vigente === 'V' ? 'Vigente' : 'Cancelada'}</li>
+      <div class="swal-selection-content">
+        <p class="swal-selection-text">Se creará una nueva zona con los siguientes datos:</p>
+        <ul class="swal-selection-list">
+          <li><strong>Clave:</strong> ${newZona.value.clave}</li>
+          <li><strong>Descripción:</strong> ${newZona.value.descripcion}</li>
+          <li><strong>Vigencia:</strong> ${newZona.value.vigente === 'V' ? 'Vigente' : 'Cancelada'}</li>
         </ul>
       </div>
     `,
@@ -487,7 +498,7 @@ const createZona = async () => {
 
   try {
     const response = await execute(
-      'SP_ZONAANUNCIO_CREATE',
+      'sp_zonaanuncio_create',
       'padron_licencias',
       [
         { nombre: 'p_clave', valor: newZona.value.clave.trim(), tipo: 'string' },
@@ -557,13 +568,13 @@ const updateZona = async () => {
     icon: 'question',
     title: '¿Confirmar actualización?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se actualizarán los datos de la zona:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>ID:</strong> ${editForm.value.id}</li>
-          <li style="margin: 5px 0;"><strong>Clave:</strong> ${editForm.value.clave}</li>
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
-          <li style="margin: 5px 0;"><strong>Vigencia:</strong> ${editForm.value.vigente === 'V' ? 'Vigente' : 'Cancelada'}</li>
+      <div class="swal-selection-content">
+        <p class="swal-selection-text">Se actualizarán los datos de la zona:</p>
+        <ul class="swal-selection-list">
+          <li><strong>ID:</strong> ${editForm.value.id}</li>
+          <li><strong>Clave:</strong> ${editForm.value.clave}</li>
+          <li><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
+          <li><strong>Vigencia:</strong> ${editForm.value.vigente === 'V' ? 'Vigente' : 'Cancelada'}</li>
         </ul>
       </div>
     `,
@@ -582,7 +593,7 @@ const updateZona = async () => {
 
   try {
     const response = await execute(
-      'SP_ZONAANUNCIO_UPDATE',
+      'sp_zonaanuncio_update',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: editForm.value.id, tipo: 'integer' },
@@ -644,15 +655,23 @@ const confirmDeleteZona = async (zona) => {
 }
 
 const deleteZona = async (zona) => {
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_ZONAANUNCIO_DELETE',
+      'sp_zonaanuncio_delete',
       'padron_licencias',
       [
-        { nombre: 'p_id', valor: zona.id, tipo: 'integer' }
+        { nombre: 'p_anuncio', valor: zona.anuncio, tipo: 'integer' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       loadZonas()

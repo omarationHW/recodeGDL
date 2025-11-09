@@ -1,10 +1,10 @@
 # 📋 Control de Componentes Optimizados - Padrón de Licencias
 
-**Última actualización:** 2025-11-07
+**Última actualización:** 2025-11-09
 
 ---
 
-## ✅ Componentes Completados (36/598)
+## ✅ Componentes Completados (39/598)
 
 ### 1. ✅ **consulta-usuarios** (consultausuariosfrm.vue)
 - **Ruta:** `/padron-licencias/consulta-usuarios`
@@ -1636,6 +1636,117 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 38/598 componentes (6.35%)**
-**Última actualización:** 2025-11-08
+### 39. ✅ **busqueda-colonia** (formabuscolonia.vue) - P3 PRIORIDAD MEDIA
+- **Ruta:** `/padron-licencias/busqueda-colonia`
+- **Fecha:** 2025-11-09
+- **Estado:** ✅ COMPLETADO
+- **Tipo:** Búsqueda - Colonias del Municipio (Formulario Auxiliar)
+- **Optimizaciones aplicadas:**
+  - ✅ Sin inline styles (removido style="position: relative;" del header)
+  - ✅ Badge púrpura con contador (cambio de badge-info a badge-purple)
+  - ✅ Toast con tiempo de consulta (performance.now() + formato ms/s)
+  - ✅ Header consistente con otros componentes
+  - ✅ Filtros colapsables con clickable-header (toggle chevron-up/down)
+  - ✅ Clase clickable-row en tabla
+  - ✅ Empty state con estructura estándar (empty-state-icon/text/subtext)
+  - ✅ header-with-badge en tabla de resultados
+  - ✅ SweetAlert con clases CSS (swal-selection-content, swal-selection-list)
+  - ✅ Modal de detalle con información completa
+  - ✅ Panel de filtros simplificado (nombre y código postal)
+  - ✅ Validación de criterios de búsqueda (al menos uno requerido)
+  - ✅ NO carga automáticamente al montar (espera búsqueda del usuario)
+
+- **SPs Utilizados (3):** Existentes en esquema `public`
+  - ✅ `sp_listar_colonias(p_c_mnpio)` - Listar todas las colonias del municipio
+  - ✅ `sp_buscar_colonias(p_c_mnpio, p_filtro)` - Búsqueda con filtro de nombre o CP
+  - ✅ `sp_obtener_colonia_seleccionada(p_c_mnpio, p_colonia)` - Obtener detalles completos
+
+- **Módulo API:** 'padron_licencias'
+- **Tabla consultada:**
+  - public.cp_correos - Catálogo de códigos postales y colonias (SEPOMEX)
+
+- **Parámetro Fijo:**
+  - `p_c_mnpio = 39` (Código del municipio de Guadalajara - hardcoded en todas las llamadas)
+
+- **Lógica de Búsqueda:**
+  - Búsqueda unificada: acepta nombre o código postal en p_filtro
+  - Filtrado interno: c_mnpio = 39 AND UPPER(colonia) LIKE '%FILTRO%'
+  - Criterios requeridos: Al menos nombre o CP
+  - Ordenamiento: por colonia ASC
+
+- **Patrón de Código:**
+  ```javascript
+  // Listar todas las colonias del municipio
+  execute(
+    'sp_listar_colonias',
+    'padron_licencias',
+    [{ nombre: 'p_c_mnpio', valor: 39, tipo: 'integer' }],
+    'guadalajara'
+  )
+
+  // Buscar con filtro
+  const searchTerm = filters.value.nombre || filters.value.cp
+  execute(
+    'sp_buscar_colonias',
+    'padron_licencias',
+    [
+      { nombre: 'p_c_mnpio', valor: 39, tipo: 'integer' },
+      { nombre: 'p_filtro', valor: searchTerm, tipo: 'string' }
+    ],
+    'guadalajara'
+  )
+
+  // Obtener detalles de colonia seleccionada
+  execute(
+    'sp_obtener_colonia_seleccionada',
+    'padron_licencias',
+    [
+      { nombre: 'p_c_mnpio', valor: 39, tipo: 'integer' },
+      { nombre: 'p_colonia', valor: colonia.colonia, tipo: 'string' }
+    ],
+    'guadalajara'
+  )
+  ```
+
+- **Campos Mostrados:**
+  - Colonia/Asentamiento, Código Postal, Tipo de Asentamiento
+  - Botones: Ver detalles, Seleccionar
+  - Badge púrpura en tipo de asentamiento
+
+- **Validaciones Implementadas:**
+  - Al menos un criterio de búsqueda requerido (nombre o CP)
+  - Confirmación antes de seleccionar con SweetAlert2
+  - Trim de nombres de colonias
+  - Formateo de códigos postales (N/A si no existe)
+  - Emit 'coloniaSelected' para uso como componente auxiliar
+
+- **Ubicación SPs:**
+  - `RefactorX/Base/padron_licencias/database/database/formabuscolonia_sp_buscar_colonias.sql`
+  - `RefactorX/Base/padron_licencias/database/database/formabuscolonia_sp_listar_colonias.sql`
+  - `RefactorX/Base/padron_licencias/database/database/formabuscolonia_sp_obtener_colonia_seleccionada.sql`
+
+- **Notas Técnicas:**
+  - Componente auxiliar de búsqueda (no CRUD)
+  - NO recarga datos automáticamente al entrar (onMounted comentado)
+  - Diseñado para ser usado como selector de colonias en otros formularios
+  - Emite evento 'coloniaSelected' con datos completos de la colonia
+  - Búsqueda flexible: nombre o CP en un solo filtro
+  - Performance: medición con performance.now()
+  - Modal de confirmación antes de seleccionar
+  - Toast con duración de consulta visible
+
+- **Inline Styles Removidos:**
+  - Línea 4 (versión anterior): `style="position: relative;"` en module-view-header → Removido
+  - Líneas 407-417 (SweetAlert): Estilos inline en HTML → Clases CSS
+  - Estructura de SweetAlert: Ahora usa `swal-selection-content` y `swal-selection-list`
+
+- **Cambios de Badge:**
+  - Línea 95 (anterior): `badge-info` → `badge-purple`
+  - Línea 129 (anterior): `badge-info` → `badge-purple`
+  - Línea 214 (anterior): `badge-info` → `badge-purple`
+
+---
+
+**PROGRESO TOTAL: 39/598 componentes (6.52%)**
+**Última actualización:** 2025-11-09
 

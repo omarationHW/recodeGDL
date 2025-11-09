@@ -1,28 +1,46 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="road" />
       </div>
       <div class="module-view-info">
         <h1>Búsqueda de Calles</h1>
-        <p>Padrón de Licencias - Formulario auxiliar para búsqueda y selección de calles</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Formulario auxiliar para búsqueda y selección de calles</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          v-if="calles.length > 0"
+          class="btn-municipal-secondary"
+          @click="clearFilters"
+          title="Limpiar filtros y resultados"
+        >
+          <font-awesome-icon icon="eraser" />
+          Limpiar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
 
     <!-- Filtros de búsqueda -->
     <div class="municipal-card">
-      <div class="municipal-card-body">
+      <div class="municipal-card-header clickable-header" @click="toggleFilters">
+        <h5>
+          <font-awesome-icon icon="filter" />
+          Criterios de Búsqueda
+          <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+        </h5>
+      </div>
+      <div class="municipal-card-body" v-show="showFilters">
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Nombre de la Calle</label>
@@ -32,17 +50,7 @@
               v-model="filters.nombre"
               placeholder="Ingrese el nombre de la calle"
               @keyup.enter="searchCalles"
-            >
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Código</label>
-            <input
-              type="text"
-              class="municipal-form-control"
-              v-model="filters.codigo"
-              placeholder="Código de calle"
-              @keyup.enter="searchCalles"
-            >
+            />
           </div>
         </div>
         <div class="button-group">
@@ -68,7 +76,7 @@
             :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
-            Actualizar
+            Listar Todas
           </button>
         </div>
       </div>
@@ -76,14 +84,18 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
-          <span class="badge-info" v-if="calles.length > 0">{{ calles.length }} calles</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="calles.length > 0">
+            {{ calles.length }} calles
+          </span>
+          <div v-if="loading" class="spinner-border spinner-sm" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
         </div>
       </div>
 
@@ -94,53 +106,53 @@
               <tr>
                 <th>Código</th>
                 <th>Nombre de la Calle</th>
-                <th>Tipo</th>
-                <th>Colonia</th>
+                <th>Población</th>
+                <th>Vialidad</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="calle in calles" :key="calle.codigo" class="row-hover">
+              <tr v-for="calle in calles" :key="calle.cvecalle" class="clickable-row" @click="viewCalle(calle)">
                 <td>
                   <span class="badge-secondary">
-                    {{ calle.codigo }}
+                    {{ calle.cvecalle }}
                   </span>
                 </td>
-                <td><strong class="text-primary">{{ calle.nombre?.trim() }}</strong></td>
+                <td><strong class="text-primary">{{ calle.calle?.trim() }}</strong></td>
                 <td>
                   <span class="badge-info">
-                    {{ calle.tipo?.trim() || 'N/A' }}
+                    {{ calle.cvepoblacion || 'N/A' }}
                   </span>
                 </td>
                 <td>
                   <small class="text-muted">
-                    {{ calle.colonia?.trim() || 'N/A' }}
+                    {{ calle.desvial || 'N/A' }}
                   </small>
                 </td>
                 <td>
                   <div class="button-group button-group-sm">
                     <button
+                      class="btn-municipal-info btn-sm"
+                      @click.stop="viewCalle(calle)"
+                      title="Ver detalles"
+                    >
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                    <button
                       class="btn-municipal-primary btn-sm"
-                      @click="selectCalle(calle)"
+                      @click.stop="selectCalle(calle)"
                       title="Seleccionar calle"
                     >
                       <font-awesome-icon icon="check" />
                       Seleccionar
                     </button>
-                    <button
-                      class="btn-municipal-info btn-sm"
-                      @click="viewCalle(calle)"
-                      title="Ver detalles"
-                    >
-                      <font-awesome-icon icon="eye" />
-                    </button>
                   </div>
                 </td>
               </tr>
               <tr v-if="calles.length === 0 && !loading">
-                <td colspan="5" class="text-center text-muted">
+                <td colspan="5" class="text-center text-muted empty-state">
                   <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron calles con los criterios especificados</p>
+                  <p>No se encontraron calles. Use los filtros para buscar o cargue el catálogo completo.</p>
                 </td>
               </tr>
             </tbody>
@@ -160,7 +172,7 @@
     <!-- Modal de visualización -->
     <Modal
       :show="showViewModal"
-      :title="`Detalles de la Calle: ${selectedCalle?.nombre}`"
+      :title="`Detalles de la Calle: ${selectedCalle?.calle}`"
       size="lg"
       @close="showViewModal = false"
       :showDefaultFooter="false"
@@ -175,27 +187,39 @@
             <table class="detail-table">
               <tr>
                 <td class="label">Código:</td>
-                <td><code>{{ selectedCalle.codigo }}</code></td>
+                <td><code>{{ selectedCalle.cvecalle }}</code></td>
               </tr>
               <tr>
                 <td class="label">Nombre:</td>
-                <td><strong>{{ selectedCalle.nombre?.trim() }}</strong></td>
+                <td><strong>{{ selectedCalle.calle?.trim() }}</strong></td>
               </tr>
               <tr>
-                <td class="label">Tipo:</td>
+                <td class="label">Población:</td>
                 <td>
                   <span class="badge-info">
-                    {{ selectedCalle.tipo?.trim() || 'N/A' }}
+                    {{ selectedCalle.cvepoblacion || 'N/A' }}
                   </span>
                 </td>
               </tr>
               <tr>
-                <td class="label">Colonia:</td>
-                <td>{{ selectedCalle.colonia?.trim() || 'N/A' }}</td>
+                <td class="label">Vialidad:</td>
+                <td>{{ selectedCalle.desvial || 'N/A' }}</td>
               </tr>
               <tr>
-                <td class="label">CP:</td>
-                <td>{{ selectedCalle.cp || 'N/A' }}</td>
+                <td class="label">Vigencia:</td>
+                <td>
+                  <span :class="selectedCalle.cvevig === 'V' ? 'badge-success' : 'badge-danger'">
+                    {{ selectedCalle.cvevig === 'V' ? 'Vigente' : 'No Vigente' }}
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="selectedCalle.capturista">
+                <td class="label">Capturista:</td>
+                <td>{{ selectedCalle.capturista }}</td>
+              </tr>
+              <tr v-if="selectedCalle.feccap">
+                <td class="label">Fecha Captura:</td>
+                <td>{{ formatDate(selectedCalle.feccap) }}</td>
               </tr>
             </table>
           </div>
@@ -213,17 +237,19 @@
       </div>
     </Modal>
 
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
+    </div>
+    <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
 
@@ -269,28 +295,43 @@ const emit = defineEmits(['calleSelected'])
 const calles = ref([])
 const selectedCalle = ref(null)
 const showViewModal = ref(false)
+const showFilters = ref(true)
 
 // Filtros
 const filters = ref({
-  nombre: '',
-  codigo: ''
+  nombre: ''
 })
 
 // Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
 const loadCalles = async () => {
   setLoading(true, 'Cargando catálogo de calles...')
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'formabuscalle_sp_listar_calles',
+      'sp_listar_calles',
       'padron_licencias',
       [],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result) {
       calles.value = response.result
-      showToast('success', 'Calles cargadas correctamente')
+
+      const durationText = duration < 1
+        ? `${((endTime - startTime)).toFixed(0)}ms`
+        : `${duration}s`
+
+      toast.value.duration = durationText
+      showToast('success', `Se cargaron ${calles.value.length} calles`)
     } else {
       calles.value = []
       showToast('error', 'Error al cargar calles')
@@ -304,11 +345,11 @@ const loadCalles = async () => {
 }
 
 const searchCalles = async () => {
-  if (!filters.value.nombre && !filters.value.codigo) {
+  if (!filters.value.nombre) {
     await Swal.fire({
       icon: 'warning',
-      title: 'Criterios de búsqueda',
-      text: 'Por favor ingrese al menos un criterio de búsqueda',
+      title: 'Criterio de búsqueda',
+      text: 'Por favor ingrese un nombre de calle para buscar',
       confirmButtonColor: '#ea8215'
     })
     return
@@ -316,22 +357,32 @@ const searchCalles = async () => {
 
   setLoading(true, 'Buscando calles...')
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'formabuscalle_sp_buscar_calles',
+      'sp_buscar_calles',
       'padron_licencias',
       [
-        { nombre: 'p_nombre', valor: filters.value.nombre || null, tipo: 'string' },
-        { nombre: 'p_codigo', valor: filters.value.codigo || null, tipo: 'string' }
+        { nombre: 'filtro', valor: filters.value.nombre, tipo: 'string' }
       ],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result) {
       calles.value = response.result
+
+      const durationText = duration < 1
+        ? `${((endTime - startTime)).toFixed(0)}ms`
+        : `${duration}s`
+
       if (calles.value.length === 0) {
         showToast('info', 'No se encontraron calles con los criterios especificados')
       } else {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${calles.value.length} calles`)
       }
     } else {
@@ -348,23 +399,22 @@ const searchCalles = async () => {
 
 const clearFilters = () => {
   filters.value = {
-    nombre: '',
-    codigo: ''
+    nombre: ''
   }
-  loadCalles()
+  calles.value = []
+  showToast('info', 'Filtros limpiados')
 }
 
 const selectCalle = async (calle) => {
   const result = await Swal.fire({
     title: 'Confirmar selección',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">¿Desea seleccionar esta calle?</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Código:</strong> ${calle.codigo}</li>
-          <li style="margin: 5px 0;"><strong>Nombre:</strong> ${calle.nombre?.trim()}</li>
-          <li style="margin: 5px 0;"><strong>Tipo:</strong> ${calle.tipo?.trim() || 'N/A'}</li>
-          <li style="margin: 5px 0;"><strong>Colonia:</strong> ${calle.colonia?.trim() || 'N/A'}</li>
+      <div class="swal-selection-content">
+        <p class="swal-selection-text">¿Desea seleccionar esta calle?</p>
+        <ul class="swal-selection-list">
+          <li><strong>Código:</strong> ${calle.cvecalle}</li>
+          <li><strong>Nombre:</strong> ${calle.calle?.trim()}</li>
+          <li><strong>Población:</strong> ${calle.cvepoblacion || 'N/A'}</li>
         </ul>
       </div>
     `,
@@ -379,12 +429,12 @@ const selectCalle = async (calle) => {
   if (result.isConfirmed) {
     selectedCalle.value = calle
     emit('calleSelected', calle)
-    showToast('success', `Calle "${calle.nombre?.trim()}" seleccionada`)
+    showToast('success', `Calle "${calle.calle?.trim()}" seleccionada`)
 
     await Swal.fire({
       icon: 'success',
       title: 'Calle seleccionada',
-      text: `Se ha seleccionado la calle "${calle.nombre?.trim()}"`,
+      text: `Se ha seleccionado la calle "${calle.calle?.trim()}"`,
       confirmButtonColor: '#ea8215',
       timer: 2000
     })
@@ -396,8 +446,24 @@ const viewCalle = (calle) => {
   showViewModal.value = true
 }
 
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch {
+    return 'N/A'
+  }
+}
+
 // Lifecycle
 onMounted(() => {
-  loadCalles()
+  // NO cargar automáticamente - esperar acción del usuario
 })
 </script>
+
+<!-- NO inline styles - All styles in municipal-theme.css -->

@@ -4,7 +4,7 @@
 
 ---
 
-## ✅ Componentes Completados (40/598)
+## ✅ Componentes Completados (41/598)
 
 ### 1. ✅ **consulta-usuarios** (consultausuariosfrm.vue)
 - **Ruta:** `/padron-licencias/consulta-usuarios`
@@ -1794,6 +1794,117 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 40/598 componentes (6.69%)**
+---
+
+### 41. ✅ **zona-licencia** (ZonaLicencia.vue) - P3 PRIORIDAD MEDIA
+- **Ruta:** `/padron-licencias/zona-licencia`
+- **Fecha:** 2025-11-09
+- **Estado:** ✅ COMPLETADO
+- **Tipo:** Gestión - Zonas y Asignación de Licencias a Zonas/Recaudadoras
+- **Optimizaciones aplicadas:**
+  - ✅ NO inline styles (removido `style="position: relative;"` y múltiples margin-top)
+  - ✅ Badge purple consistency
+  - ✅ Performance timing en TODAS las operaciones (ms/s format)
+  - ✅ Toast structure with separated content/duration
+  - ✅ SweetAlert CSS classes (swal-selection-content, swal-selection-list)
+  - ✅ clickable-row instead of row-hover
+  - ✅ Empty states estructurados
+  - ✅ Removido `<style scoped>` - todo a municipal-theme.css
+  - ✅ **CRÍTICO: Agregado selector de recaudadora (NO hardcoded)**
+  - ✅ **FIX: Corrección total de nombres y parámetros de SPs**
+
+- **SPs Utilizados (6):** Existentes en esquema `public`
+  - ✅ `sp_get_recaudadoras()` - Listar recaudadoras activas (recaud <= 5)
+  - ✅ `sp_get_zonas(p_recaud)` - Obtener zonas por recaudadora
+  - ✅ `sp_get_subzonas(p_cvezona, p_recaud)` - Obtener subzonas por zona y recaudadora
+  - ✅ `sp_get_licencia(p_licencia)` - Buscar licencia por número
+  - ✅ `sp_get_licencias_zona(p_licencia)` - Obtener zona asignada a licencia
+  - ✅ `sp_save_licencias_zona(p_licencia, p_zona, p_subzona, p_recaud, p_capturista)` - Guardar asignación
+
+- **Módulo API:** 'padron_licencias'
+- **Tablas consultadas:**
+  - public.c_recaud - Recaudadoras
+  - public.c_zonas - Zonas
+  - public.c_subzonas - Subzonas
+  - public.c_zonayrec - Relación zonas/recaudadoras
+  - public.licencias - Licencias comerciales
+  - public.licencias_zona - Asignaciones zona/licencia
+
+- **🔧 CORRECCIONES CRÍTICAS DE INTEGRACIÓN:**
+  - ❌ ANTES: `ZonaLicencia_sp_get_zonas` → ✅ AHORA: `sp_get_zonas`
+  - ❌ ANTES: Sin parámetro p_recaud → ✅ AHORA: Con p_recaud requerido
+  - ❌ ANTES: `p_zona_id` → ✅ AHORA: `p_cvezona` (nombre correcto)
+  - ❌ ANTES: `p_numero_licencia` → ✅ AHORA: `p_licencia` (tipo INTEGER)
+  - ❌ ANTES: Sin p_capturista → ✅ AHORA: Con usuario de localStorage
+  - **Patrón:** Nombres de SPs sin prefijos, parámetros exactos según definición BD
+
+- **Patrón de Código:**
+  ```javascript
+  // Cargar recaudadoras primero
+  execute('sp_get_recaudadoras', 'padron_licencias', [], 'guadalajara')
+
+  // Cargar zonas con recaudadora seleccionada
+  execute('sp_get_zonas', 'padron_licencias',
+    [{ nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }],
+    'guadalajara'
+  )
+
+  // Cargar subzonas con zona Y recaudadora
+  execute('sp_get_subzonas', 'padron_licencias',
+    [
+      { nombre: 'p_cvezona', valor: zonaId, tipo: 'integer' },
+      { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }
+    ],
+    'guadalajara'
+  )
+
+  // Guardar asignación con usuario de sesión
+  const usuario = localStorage.getItem('usuario') || 'sistema'
+  execute('sp_save_licencias_zona', 'padron_licencias',
+    [
+      { nombre: 'p_licencia', valor: licenciaId, tipo: 'integer' },
+      { nombre: 'p_zona', valor: zonaId, tipo: 'integer' },
+      { nombre: 'p_subzona', valor: subzonaId, tipo: 'integer' },
+      { nombre: 'p_recaud', valor: recaudId, tipo: 'integer' },
+      { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
+    ],
+    'guadalajara'
+  )
+  ```
+
+- **Arquitectura UI:**
+  - Tab 1: Catálogo de Zonas (requiere recaudadora seleccionada)
+  - Tab 2: Catálogo de Subzonas (requiere zona seleccionada)
+  - Tab 3: Asignación de Licencias (buscar + asignar zona/subzona)
+  - Selector de recaudadora global (afecta todas las tabs)
+  - Tabs con animación fadeIn en CSS
+
+- **Campos Mostrados:**
+  - Zonas: ID, Nombre, Recaudadora, Descripción
+  - Subzonas: ID, Nombre, Descripción
+  - Licencia: Número, Propietario, Giro, Dirección
+  - Asignación: Zona, Subzona (opcional)
+
+- **Validaciones Implementadas:**
+  - Recaudadora requerida antes de mostrar tabs
+  - Al menos zona requerida para guardar asignación
+  - Búsqueda de licencia valida existencia
+  - Confirmación SweetAlert antes de guardar
+  - Usuario capturista desde localStorage
+
+- **Ubicación SPs:** `RefactorX/Base/padron_licencias/database/database/ZonaLicencia_*.sql`
+
+- **Notas Técnicas:**
+  - Componente de gestión complejo (3 tabs)
+  - Relaciones: Recaudadora → Zonas → Subzonas
+  - Asignación persistente en tabla licencias_zona
+  - Performance: timing en cada operación (6 mediciones)
+  - SP save retorna VOID (sin validación de respuesta)
+  - Manejo de estado complejo con múltiples refs
+  - **Patrón aplicable:** Verificar SIEMPRE nombres y parámetros de SPs en archivos .sql
+
+---
+
+**PROGRESO TOTAL: 41/598 componentes (6.86%)**
 **Última actualización:** 2025-11-09
 

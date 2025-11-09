@@ -1,27 +1,52 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="map-marked-alt" />
       </div>
       <div class="module-view-info">
         <h1>Zonas de Licencias</h1>
-        <p>Padrón de Licencias - Gestión de Zonas y Asignación de Licencias</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Gestión de Zonas y Asignación de Licencias</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
 
-    <!-- Tabs -->
+    <!-- Selección de Recaudadora -->
     <div class="municipal-card">
+      <div class="municipal-card-header">
+        <h5>
+          <font-awesome-icon icon="building" />
+          Selección de Recaudadora
+        </h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Recaudadora: <span class="required">*</span></label>
+            <select class="municipal-form-control" v-model="selectedRecaudadora" @change="onRecaudadoraChange">
+              <option value="">-- Seleccione una recaudadora --</option>
+              <option v-for="rec in recaudadoras" :key="rec.recaud" :value="rec.recaud">
+                {{ rec.descripcion }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="municipal-card" v-if="selectedRecaudadora">
       <div class="municipal-card-body">
         <div class="tabs-container">
           <div class="tabs-header">
@@ -59,8 +84,10 @@
                   <h5>
                     <font-awesome-icon icon="map" />
                     Catálogo de Zonas
-                    <span class="badge-info" v-if="zonas.length > 0">{{ zonas.length }} zonas</span>
                   </h5>
+                  <div class="header-right">
+                    <span class="badge-purple" v-if="zonas.length > 0">{{ zonas.length }} zonas</span>
+                  </div>
                   <button
                     class="btn-municipal-secondary"
                     @click="loadZonas"
@@ -82,16 +109,16 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr v-for="zona in zonas" :key="zona.id" class="row-hover">
-                          <td><strong class="text-primary">{{ zona.id }}</strong></td>
-                          <td>{{ zona.nombre?.trim() || 'N/A' }}</td>
-                          <td>{{ zona.recaudadora?.trim() || 'N/A' }}</td>
+                        <tr v-for="zona in zonas" :key="zona.cvezona" class="clickable-row">
+                          <td><strong class="text-primary">{{ zona.cvezona }}</strong></td>
+                          <td>{{ zona.zona?.trim() || 'N/A' }}</td>
+                          <td>{{ selectedRecaudadora }}</td>
                           <td>{{ zona.descripcion?.trim() || 'N/A' }}</td>
                         </tr>
                         <tr v-if="zonas.length === 0 && !loading">
-                          <td colspan="4" class="text-center text-muted">
-                            <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                            <p>No hay zonas registradas</p>
+                          <td colspan="4" class="text-center text-muted empty-state">
+                            <font-awesome-icon icon="search" size="2x" class="empty-state-icon" />
+                            <p class="empty-state-text">No hay zonas registradas</p>
                           </td>
                         </tr>
                       </tbody>
@@ -123,7 +150,7 @@
                     </div>
                   </div>
 
-                  <div v-if="selectedZonaForSubzonas" class="table-responsive" style="margin-top: 20px;">
+                  <div v-if="selectedZonaForSubzonas" class="table-responsive mt-4">
                     <table class="municipal-table">
                       <thead class="municipal-table-header">
                         <tr>
@@ -133,15 +160,15 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr v-for="subzona in subzonas" :key="subzona.id" class="row-hover">
-                          <td><strong class="text-primary">{{ subzona.id }}</strong></td>
-                          <td>{{ subzona.nombre?.trim() || 'N/A' }}</td>
+                        <tr v-for="subzona in subzonas" :key="subzona.cvesubzona" class="clickable-row">
+                          <td><strong class="text-primary">{{ subzona.cvesubzona }}</strong></td>
+                          <td>{{ subzona.descsubzon?.trim() || 'N/A' }}</td>
                           <td>{{ subzona.descripcion?.trim() || 'N/A' }}</td>
                         </tr>
                         <tr v-if="subzonas.length === 0 && !loading">
-                          <td colspan="3" class="text-center text-muted">
-                            <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                            <p>No hay subzonas para esta zona</p>
+                          <td colspan="3" class="text-center text-muted empty-state">
+                            <font-awesome-icon icon="search" size="2x" class="empty-state-icon" />
+                            <p class="empty-state-text">No hay subzonas para esta zona</p>
                           </td>
                         </tr>
                       </tbody>
@@ -175,10 +202,9 @@
                     </div>
                     <div class="form-group">
                       <button
-                        class="btn-municipal-primary"
+                        class="btn-municipal-primary mt-label-offset"
                         @click="buscarLicencia"
                         :disabled="loading || !asignacion.numeroLicencia"
-                        style="margin-top: 24px;"
                       >
                         <font-awesome-icon icon="search" />
                         Buscar
@@ -213,7 +239,7 @@
                   </div>
 
                   <!-- Asignación de Zona y Subzona -->
-                  <div v-if="licenciaEncontrada" style="margin-top: 20px;">
+                  <div v-if="licenciaEncontrada" class="mt-4">
                     <div class="form-row">
                       <div class="form-group">
                         <label class="municipal-form-label">Zona: <span class="required">*</span></label>
@@ -279,8 +305,11 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -324,6 +353,8 @@ const {
 
 // Estado
 const activeTab = ref('zonas')
+const recaudadoras = ref([])
+const selectedRecaudadora = ref('')
 const zonas = ref([])
 const subzonas = ref([])
 const subzonasAsignacion = ref([])
@@ -338,20 +369,83 @@ const asignacion = ref({
 })
 
 // Métodos
-const loadZonas = async () => {
-  setLoading(true, 'Cargando zonas...')
+const loadRecaudadoras = async () => {
+  setLoading(true, 'Cargando recaudadoras...')
+
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'ZonaLicencia_sp_get_zonas',
+      'sp_get_recaudadoras',
       'padron_licencias',
       [],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
+    if (response && response.result) {
+      recaudadoras.value = response.result
+      toast.value.duration = durationText
+      showToast('success', `Se cargaron ${recaudadoras.value.length} recaudadoras`)
+    } else {
+      recaudadoras.value = []
+      showToast('error', 'Error al cargar recaudadoras')
+    }
+  } catch (error) {
+    handleApiError(error)
+    recaudadoras.value = []
+  } finally {
+    setLoading(false)
+  }
+}
+
+const onRecaudadoraChange = async () => {
+  // Limpiar datos al cambiar recaudadora
+  zonas.value = []
+  subzonas.value = []
+  subzonasAsignacion.value = []
+  selectedZonaForSubzonas.value = ''
+  limpiarAsignacion()
+
+  if (selectedRecaudadora.value) {
+    await loadZonas()
+  }
+}
+
+const loadZonas = async () => {
+  if (!selectedRecaudadora.value) {
+    return
+  }
+
+  setLoading(true, 'Cargando zonas...')
+
+  const startTime = performance.now()
+
+  try {
+    const response = await execute(
+      'sp_get_zonas',
+      'padron_licencias',
+      [
+        { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       zonas.value = response.result
-      showToast('success', 'Zonas cargadas correctamente')
+      toast.value.duration = durationText
+      showToast('success', `Se cargaron ${zonas.value.length} zonas`)
     } else {
       zonas.value = []
       showToast('error', 'Error al cargar zonas')
@@ -372,19 +466,29 @@ const loadSubzonas = async () => {
 
   setLoading(true, 'Cargando subzonas...')
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'ZonaLicencia_sp_get_subzonas',
+      'sp_get_subzonas',
       'padron_licencias',
       [
-        { nombre: 'p_zona_id', valor: selectedZonaForSubzonas.value, tipo: 'integer' }
+        { nombre: 'p_cvezona', valor: selectedZonaForSubzonas.value, tipo: 'integer' },
+        { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }
       ],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       subzonas.value = response.result
-      showToast('success', 'Subzonas cargadas correctamente')
+      toast.value.duration = durationText
+      showToast('success', `Se cargaron ${subzonas.value.length} subzonas`)
     } else {
       subzonas.value = []
     }
@@ -408,10 +512,11 @@ const onZonaChange = async () => {
 
   try {
     const response = await execute(
-      'ZonaLicencia_sp_get_subzonas',
+      'sp_get_subzonas',
       'padron_licencias',
       [
-        { nombre: 'p_zona_id', valor: asignacion.value.zonaId, tipo: 'integer' }
+        { nombre: 'p_cvezona', valor: asignacion.value.zonaId, tipo: 'integer' },
+        { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }
       ],
       'guadalajara'
     )
@@ -436,28 +541,37 @@ const buscarLicencia = async () => {
 
   setLoading(true, 'Buscando licencia...')
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'ZonaLicencia_sp_get_licencia',
+      'sp_get_licencia',
       'padron_licencias',
       [
-        { nombre: 'p_numero_licencia', valor: asignacion.value.numeroLicencia, tipo: 'string' }
+        { nombre: 'p_licencia', valor: parseInt(asignacion.value.numeroLicencia), tipo: 'integer' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
 
     if (response && response.result && response.result.length > 0) {
       licenciaEncontrada.value = response.result[0]
 
       // Si ya tiene zona asignada, cargar datos
-      if (licenciaEncontrada.value.zona_id) {
-        asignacion.value.zonaId = licenciaEncontrada.value.zona_id
+      if (licenciaEncontrada.value.zona) {
+        asignacion.value.zonaId = licenciaEncontrada.value.zona
         await onZonaChange()
-        if (licenciaEncontrada.value.subzona_id) {
-          asignacion.value.subzonaId = licenciaEncontrada.value.subzona_id
+        if (licenciaEncontrada.value.subzona) {
+          asignacion.value.subzonaId = licenciaEncontrada.value.subzona
         }
       }
 
+      toast.value.duration = durationText
       showToast('success', 'Licencia encontrada')
     } else {
       licenciaEncontrada.value = null
@@ -487,16 +601,19 @@ const guardarAsignacion = async () => {
     return
   }
 
+  const zonaSeleccionada = zonas.value.find(z => z.cvezona === asignacion.value.zonaId)
+  const subzonaSeleccionada = subzonasAsignacion.value.find(s => s.cvesubzona === asignacion.value.subzonaId)
+
   const confirmResult = await Swal.fire({
     icon: 'question',
     title: '¿Confirmar asignación?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se asignará la licencia a la zona seleccionada:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Licencia:</strong> ${licenciaEncontrada.value.numero}</li>
-          <li style="margin: 5px 0;"><strong>Zona:</strong> ${zonas.value.find(z => z.id === asignacion.value.zonaId)?.nombre || 'N/A'}</li>
-          ${asignacion.value.subzonaId ? `<li style="margin: 5px 0;"><strong>Subzona:</strong> ${subzonasAsignacion.value.find(s => s.id === asignacion.value.subzonaId)?.nombre || 'N/A'}</li>` : ''}
+      <div class="swal-selection-content">
+        <p class="swal-selection-text">Se asignará la licencia a la zona seleccionada:</p>
+        <ul class="swal-selection-list">
+          <li><strong>Licencia:</strong> ${licenciaEncontrada.value.licencia}</li>
+          <li><strong>Zona:</strong> ${zonaSeleccionada?.zona || 'N/A'}</li>
+          ${subzonaSeleccionada ? `<li><strong>Subzona:</strong> ${subzonaSeleccionada.descsubzon}</li>` : ''}
         </ul>
       </div>
     `,
@@ -513,42 +630,48 @@ const guardarAsignacion = async () => {
 
   setLoading(true, 'Guardando asignación...')
 
+  const startTime = performance.now()
+
   try {
+    // Get usuario from localStorage or session
+    const usuario = localStorage.getItem('usuario') || 'sistema'
+
     const response = await execute(
-      'ZonaLicencia_sp_save_licencias_zona',
+      'sp_save_licencias_zona',
       'padron_licencias',
       [
-        { nombre: 'p_numero_licencia', valor: licenciaEncontrada.value.numero, tipo: 'string' },
-        { nombre: 'p_zona_id', valor: asignacion.value.zonaId, tipo: 'integer' },
-        { nombre: 'p_subzona_id', valor: asignacion.value.subzonaId || null, tipo: 'integer' }
+        { nombre: 'p_licencia', valor: licenciaEncontrada.value.licencia, tipo: 'integer' },
+        { nombre: 'p_zona', valor: asignacion.value.zonaId, tipo: 'integer' },
+        { nombre: 'p_subzona', valor: asignacion.value.subzonaId || null, tipo: 'integer' },
+        { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' },
+        { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
 
-    if (response && response.result && response.result[0]?.success) {
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Asignación guardada!',
-        text: 'La licencia ha sido asignada exitosamente',
-        confirmButtonColor: '#ea8215',
-        timer: 2000
-      })
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
 
-      showToast('success', 'Asignación guardada exitosamente')
-      limpiarAsignacion()
-    } else {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error al guardar',
-        text: response?.result?.[0]?.message || 'Error desconocido',
-        confirmButtonColor: '#ea8215'
-      })
-    }
+    // SP returns VOID, so just check for no error
+    await Swal.fire({
+      icon: 'success',
+      title: '¡Asignación guardada!',
+      text: 'La licencia ha sido asignada exitosamente',
+      confirmButtonColor: '#ea8215',
+      timer: 2000
+    })
+
+    toast.value.duration = durationText
+    showToast('success', 'Asignación guardada exitosamente')
+    limpiarAsignacion()
   } catch (error) {
     handleApiError(error)
     await Swal.fire({
       icon: 'error',
-      title: 'Error de conexión',
+      title: 'Error al guardar',
       text: 'No se pudo guardar la asignación',
       confirmButtonColor: '#ea8215'
     })
@@ -569,95 +692,8 @@ const limpiarAsignacion = () => {
 
 // Lifecycle
 onMounted(async () => {
-  await loadZonas()
+  await loadRecaudadoras()
 })
 </script>
 
-<style scoped>
-.tabs-container {
-  width: 100%;
-}
-
-.tabs-header {
-  display: flex;
-  gap: 10px;
-  border-bottom: 2px solid #ddd;
-  margin-bottom: 20px;
-}
-
-.tab-button {
-  padding: 12px 24px;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: #666;
-  transition: all 0.3s;
-}
-
-.tab-button:hover {
-  color: #ea8215;
-  background: #f8f9fa;
-}
-
-.tab-button.active {
-  color: #ea8215;
-  border-bottom-color: #ea8215;
-  background: #fff;
-}
-
-.tab-panel {
-  animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.info-panel {
-  background: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-}
-
-.info-panel h6 {
-  margin: 0 0 15px 0;
-  color: #333;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.detail-table tr {
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.detail-table tr:last-child {
-  border-bottom: none;
-}
-
-.detail-table td {
-  padding: 10px 15px;
-}
-
-.detail-table td.label {
-  font-weight: 600;
-  color: #666;
-  width: 150px;
-}
-</style>
+<!-- NO inline styles - All styles in municipal-theme.css -->

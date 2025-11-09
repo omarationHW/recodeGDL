@@ -4,7 +4,7 @@
 
 ---
 
-## ✅ Componentes Completados (44/598)
+## ✅ Componentes Completados (45/598)
 
 ### 1. ✅ **consulta-usuarios** (consultausuariosfrm.vue)
 - **Ruta:** `/padron-licencias/consulta-usuarios`
@@ -1944,6 +1944,27 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 44/598 componentes (7.36%)**
+### 45. ✅ **baja-anuncio** (bajaAnunciofrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ NO inline styles (removed cursor: pointer)
+  - ✅ Removed 140 lines of scoped CSS
+  - ✅ Performance timing on 2 operations (ms/s format)
+  - ✅ Toast structure with separate duration
+  - ✅ loadingMessage from composable
+  - ✅ User from localStorage (NO hardcoded 'sistema')
+  - ✅ Changed from useGlobalLoading to useLicenciasErrorHandler for consistency
+  - ✅ SP names corrected to lowercase
+- **SP CORRECTIONS:**
+  - **BEFORE:** sp_bajaanun_buscar_anuncio → **AFTER:** sp_baja_anuncio_buscar
+  - **BEFORE:** SP_VERIFICA_FIRMA → **AFTER:** sp_verifica_firma
+  - **BEFORE:** sp_bajaanun_ejecutar → **AFTER:** sp_baja_anuncio_procesar
+- **SPs:** sp_baja_anuncio_buscar(p_anuncio), sp_baja_anuncio_verificar_permisos(p_usuario), sp_baja_anuncio_procesar(p_anuncio, p_motivo, p_axo_baja, p_folio_baja, p_usuario, p_baja_error, p_baja_tiempo, p_fecha) (3 SPs)
+- **Tablas:** anuncios, licencias, detsal_lic, usuarios, deptos
+- **Features:** Buscar anuncio, Validar firma, Ejecutar baja con año/folio, Baja por error, Cancelar adeudos, Recalcular saldos
+
+---
+
+**PROGRESO TOTAL: 45/598 componentes (7.53%)**
 **Última actualización:** 2025-11-09
 

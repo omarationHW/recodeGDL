@@ -1965,6 +1965,42 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 45/598 componentes (7.53%)**
+### 46. ✅ **baja-licencia** (bajaLicenciafrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ NO inline styles (removed cursor: pointer from clickable-header)
+  - ✅ Removed entire scoped CSS block (~173 lines)
+  - ✅ Performance timing on 2 operations: buscarLicencia and ejecutarBaja (ms/s format)
+  - ✅ Toast structure with separate duration
+  - ✅ loadingMessage from composable
+  - ✅ User from localStorage (NO hardcoded 'sistema')
+  - ✅ Changed from useGlobalLoading to useLicenciasErrorHandler for consistency
+  - ✅ SP names corrected to lowercase
+  - ✅ Loading overlay with spinner and message
+  - ✅ Toast notifications with icons
+  - ✅ Removed all console.error() calls
+- **SP CORRECTIONS:**
+  - **BEFORE:** sp_bajalic_buscar_licencia → **AFTER:** sp_consulta_licencia
+  - **BEFORE:** sp_bajalic_obtener_anuncios → **AFTER:** sp_consulta_anuncios_licencia
+  - **BEFORE:** SP_VERIFICA_FIRMA → **AFTER:** sp_verifica_firma
+  - **BEFORE:** sp_bajalic_ejecutar → **AFTER:** sp_baja_licencia
+- **SPs:** sp_consulta_licencia(p_licencia), sp_consulta_anuncios_licencia(p_licencia), sp_verifica_firma(p_usuario, p_firma), sp_baja_licencia(p_id_licencia, p_motivo, p_anio, p_folio, p_baja_error, p_usuario) (4 SPs)
+- **Tablas:** licencias, anuncios, detsal_lic, usuarios, deptos
+- **Features:**
+  - Buscar licencia comercial por número
+  - Mostrar información completa del propietario, actividad, ubicación
+  - Listar anuncios ligados a la licencia
+  - Validación de firma del usuario
+  - Ejecutar baja con año/folio o baja por error
+  - Baja automática de anuncios vigentes al dar de baja la licencia
+  - Validación de bloqueos en anuncios (previene baja si hay anuncios bloqueados)
+  - Confirmación de baja con SweetAlert2
+  - Recalcular saldos después de baja (ejecuta calc_sdosl)
+- **Details Grid Sections:** Propietario, Actividad, Ubicación, Información General
+- **Nota Crítica:** Anuncios bloqueados previenen la baja de la licencia completa
+
+---
+
+**PROGRESO TOTAL: 46/598 componentes (7.70%)**
 **Última actualización:** 2025-11-09
 

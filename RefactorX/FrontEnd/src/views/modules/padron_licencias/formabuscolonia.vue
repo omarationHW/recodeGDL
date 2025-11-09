@@ -1,13 +1,14 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="map-marked-alt" />
       </div>
       <div class="module-view-info">
         <h1>Búsqueda de Colonias</h1>
-        <p>Padrón de Licencias - Formulario auxiliar para búsqueda y selección de colonias</p></div>
+        <p>Padrón de Licencias - Formulario auxiliar para búsqueda y selección de colonias</p>
+      </div>
       <button
         type="button"
         class="btn-help-icon"
@@ -22,7 +23,14 @@
 
     <!-- Filtros de búsqueda -->
     <div class="municipal-card">
-      <div class="municipal-card-body">
+      <div class="municipal-card-header clickable-header" @click="toggleFilters">
+        <h5>
+          <font-awesome-icon icon="filter" />
+          Filtros de Búsqueda
+          <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+        </h5>
+      </div>
+      <div v-show="showFilters" class="municipal-card-body">
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Nombre de la Colonia</label>
@@ -44,17 +52,6 @@
               maxlength="5"
               @keyup.enter="searchColonias"
             >
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Zona</label>
-            <select class="municipal-form-control" v-model="filters.zona">
-              <option value="">Todas las zonas</option>
-              <option value="NORTE">Norte</option>
-              <option value="SUR">Sur</option>
-              <option value="ESTE">Este</option>
-              <option value="OESTE">Oeste</option>
-              <option value="CENTRO">Centro</option>
-            </select>
           </div>
         </div>
         <div class="button-group">
@@ -88,59 +85,63 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
-          <span class="badge-info" v-if="colonias.length > 0">{{ colonias.length }} colonias</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-actions">
+          <span class="badge-purple" v-if="colonias.length > 0">
+            {{ colonias.length }} colonias
+          </span>
+          <div v-if="loading" class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
         </div>
       </div>
 
       <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+        <div v-if="colonias.length === 0" class="empty-state">
+          <font-awesome-icon icon="search" class="empty-state-icon" />
+          <p class="empty-state-text">No se encontraron colonias</p>
+          <p class="empty-state-subtext">Intenta ajustar los filtros de búsqueda</p>
+        </div>
+
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
-                <th>Código</th>
-                <th>Nombre de la Colonia</th>
+                <th>Colonia/Asentamiento</th>
                 <th>Código Postal</th>
-                <th>Zona</th>
-                <th>Municipio</th>
+                <th>Tipo Asentamiento</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="colonia in colonias" :key="colonia.codigo" class="row-hover">
+              <tr
+                v-for="(colonia, idx) in colonias"
+                :key="idx"
+                class="clickable-row"
+                @click="selectColonia(colonia)"
+              >
                 <td>
-                  <span class="badge-secondary">
-                    {{ colonia.codigo }}
-                  </span>
+                  <strong class="text-primary">{{ colonia.colonia?.trim() }}</strong>
                 </td>
-                <td><strong class="text-primary">{{ colonia.nombre?.trim() }}</strong></td>
                 <td>
                   <code class="text-info">
-                    {{ colonia.cp || 'N/A' }}
+                    {{ colonia.d_codigopostal || 'N/A' }}
                   </code>
                 </td>
                 <td>
-                  <span class="badge-info">
-                    <font-awesome-icon icon="map-marker-alt" />
-                    {{ colonia.zona?.trim() || 'N/A' }}
+                  <span class="badge-purple">
+                    {{ colonia.d_tipo_asenta?.trim() || 'N/A' }}
                   </span>
-                </td>
-                <td>
-                  <small class="text-muted">
-                    {{ colonia.municipio?.trim() || 'N/A' }}
-                  </small>
                 </td>
                 <td>
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-primary btn-sm"
-                      @click="selectColonia(colonia)"
+                      @click.stop="selectColonia(colonia)"
                       title="Seleccionar colonia"
                     >
                       <font-awesome-icon icon="check" />
@@ -148,18 +149,12 @@
                     </button>
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewColonia(colonia)"
+                      @click.stop="viewColonia(colonia)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="colonias.length === 0 && !loading">
-                <td colspan="6" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron colonias con los criterios especificados</p>
                 </td>
               </tr>
             </tbody>
@@ -179,7 +174,7 @@
     <!-- Modal de visualización -->
     <Modal
       :show="showViewModal"
-      :title="`Detalles de la Colonia: ${selectedColonia?.nombre}`"
+      :title="`Detalles de la Colonia: ${selectedColonia?.colonia}`"
       size="lg"
       @close="showViewModal = false"
       :showDefaultFooter="false"
@@ -193,37 +188,24 @@
             </h6>
             <table class="detail-table">
               <tr>
-                <td class="label">Código:</td>
-                <td><code>{{ selectedColonia.codigo }}</code></td>
-              </tr>
-              <tr>
-                <td class="label">Nombre:</td>
-                <td><strong>{{ selectedColonia.nombre?.trim() }}</strong></td>
+                <td class="label">Colonia:</td>
+                <td><strong>{{ selectedColonia.colonia?.trim() }}</strong></td>
               </tr>
               <tr>
                 <td class="label">Código Postal:</td>
                 <td>
                   <code class="text-info">
-                    {{ selectedColonia.cp || 'N/A' }}
+                    {{ selectedColonia.d_codigopostal || 'N/A' }}
                   </code>
                 </td>
               </tr>
               <tr>
-                <td class="label">Zona:</td>
+                <td class="label">Tipo de Asentamiento:</td>
                 <td>
-                  <span class="badge-info">
-                    <font-awesome-icon icon="map-marker-alt" />
-                    {{ selectedColonia.zona?.trim() || 'N/A' }}
+                  <span class="badge-purple">
+                    {{ selectedColonia.d_tipo_asenta?.trim() || 'N/A' }}
                   </span>
                 </td>
-              </tr>
-              <tr>
-                <td class="label">Municipio:</td>
-                <td>{{ selectedColonia.municipio?.trim() || 'N/A' }}</td>
-              </tr>
-              <tr>
-                <td class="label">Localidad:</td>
-                <td>{{ selectedColonia.localidad?.trim() || 'N/A' }}</td>
               </tr>
             </table>
           </div>
@@ -246,8 +228,11 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -272,6 +257,7 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
+import { appConfig } from '@/config/app.config'
 
 // Composables
 const showDocumentation = ref(false)
@@ -297,29 +283,45 @@ const emit = defineEmits(['coloniaSelected'])
 const colonias = ref([])
 const selectedColonia = ref(null)
 const showViewModal = ref(false)
+const showFilters = ref(true)
 
 // Filtros
 const filters = ref({
   nombre: '',
-  cp: '',
-  zona: ''
+  cp: ''
 })
 
 // Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
 const loadColonias = async () => {
   setLoading(true, 'Cargando catálogo de colonias...')
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'formabuscolonia_sp_listar_colonias',
+      'sp_listar_colonias',
       'padron_licencias',
-      [],
+      [
+        { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' }
+      ],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       colonias.value = response.result
-      showToast('success', 'Colonias cargadas correctamente')
+      toast.value.duration = durationText
+      showToast('success', `Se cargaron ${colonias.value.length} colonias`)
     } else {
       colonias.value = []
       showToast('error', 'Error al cargar colonias')
@@ -333,11 +335,11 @@ const loadColonias = async () => {
 }
 
 const searchColonias = async () => {
-  if (!filters.value.nombre && !filters.value.cp && !filters.value.zona) {
+  if (!filters.value.nombre && !filters.value.cp) {
     await Swal.fire({
       icon: 'warning',
       title: 'Criterios de búsqueda',
-      text: 'Por favor ingrese al menos un criterio de búsqueda',
+      text: 'Por favor ingrese al menos un criterio de búsqueda (nombre o código postal)',
       confirmButtonColor: '#ea8215'
     })
     return
@@ -345,23 +347,36 @@ const searchColonias = async () => {
 
   setLoading(true, 'Buscando colonias...')
 
+  const startTime = performance.now()
+
   try {
+    // Construir el filtro de búsqueda combinado
+    const searchTerm = filters.value.nombre || filters.value.cp
+
     const response = await execute(
-      'formabuscolonia_sp_buscar_colonias',
+      'sp_buscar_colonias',
       'padron_licencias',
       [
-        { nombre: 'p_nombre', valor: filters.value.nombre || null, tipo: 'string' },
-        { nombre: 'p_cp', valor: filters.value.cp || null, tipo: 'string' },
-        { nombre: 'p_zona', valor: filters.value.zona || null, tipo: 'string' }
+        { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' },
+        { nombre: 'p_filtro', valor: searchTerm || null, tipo: 'string' }
       ],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       colonias.value = response.result
+
       if (colonias.value.length === 0) {
         showToast('info', 'No se encontraron colonias con los criterios especificados')
       } else {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${colonias.value.length} colonias`)
       }
     } else {
@@ -379,8 +394,7 @@ const searchColonias = async () => {
 const clearFilters = () => {
   filters.value = {
     nombre: '',
-    cp: '',
-    zona: ''
+    cp: ''
   }
   loadColonias()
 }
@@ -391,10 +405,11 @@ const selectColonia = async (colonia) => {
     setLoading(true, 'Obteniendo detalles de la colonia...')
 
     const response = await execute(
-      'formabuscolonia_sp_obtener_colonia_seleccionada',
+      'sp_obtener_colonia_seleccionada',
       'padron_licencias',
       [
-        { nombre: 'p_codigo', valor: colonia.codigo, tipo: 'string' }
+        { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' },
+        { nombre: 'p_colonia', valor: colonia.colonia, tipo: 'string' }
       ],
       'guadalajara'
     )
@@ -405,14 +420,12 @@ const selectColonia = async (colonia) => {
       const result = await Swal.fire({
         title: 'Confirmar selección',
         html: `
-          <div style="text-align: left; padding: 0 20px;">
-            <p style="margin-bottom: 10px;">¿Desea seleccionar esta colonia?</p>
-            <ul style="list-style: none; padding: 0;">
-              <li style="margin: 5px 0;"><strong>Código:</strong> ${coloniaCompleta.codigo}</li>
-              <li style="margin: 5px 0;"><strong>Nombre:</strong> ${coloniaCompleta.nombre?.trim()}</li>
-              <li style="margin: 5px 0;"><strong>CP:</strong> ${coloniaCompleta.cp || 'N/A'}</li>
-              <li style="margin: 5px 0;"><strong>Zona:</strong> ${coloniaCompleta.zona?.trim() || 'N/A'}</li>
-              <li style="margin: 5px 0;"><strong>Municipio:</strong> ${coloniaCompleta.municipio?.trim() || 'N/A'}</li>
+          <div class="swal-selection-content">
+            <p class="swal-selection-text">¿Desea seleccionar esta colonia?</p>
+            <ul class="swal-selection-list">
+              <li><strong>Colonia:</strong> ${coloniaCompleta.colonia?.trim()}</li>
+              <li><strong>CP:</strong> ${coloniaCompleta.d_codigopostal || 'N/A'}</li>
+              <li><strong>Tipo:</strong> ${coloniaCompleta.d_tipo_asenta?.trim() || 'N/A'}</li>
             </ul>
           </div>
         `,
@@ -427,12 +440,12 @@ const selectColonia = async (colonia) => {
       if (result.isConfirmed) {
         selectedColonia.value = coloniaCompleta
         emit('coloniaSelected', coloniaCompleta)
-        showToast('success', `Colonia "${coloniaCompleta.nombre?.trim()}" seleccionada`)
+        showToast('success', `Colonia "${coloniaCompleta.colonia?.trim()}" seleccionada`)
 
         await Swal.fire({
           icon: 'success',
           title: 'Colonia seleccionada',
-          text: `Se ha seleccionado la colonia "${coloniaCompleta.nombre?.trim()}"`,
+          text: `Se ha seleccionado la colonia "${coloniaCompleta.colonia?.trim()}"`,
           confirmButtonColor: '#ea8215',
           timer: 2000
         })
@@ -454,6 +467,7 @@ const viewColonia = (colonia) => {
 
 // Lifecycle
 onMounted(() => {
-  loadColonias()
+  // No cargar automáticamente, esperar que el usuario haga búsqueda
+  // loadColonias()
 })
 </script>

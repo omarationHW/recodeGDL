@@ -19,7 +19,12 @@
       "Bash(temp/tipos_tramites.txt)",
       "Bash(git add:*)",
       "Bash(rm:*)",
-      "Bash(NUL)"
+      "Bash(NUL)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(cat:*)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

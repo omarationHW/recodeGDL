@@ -4,7 +4,7 @@
 
 ---
 
-## ✅ Componentes Completados (39/598)
+## ✅ Componentes Completados (40/598)
 
 ### 1. ✅ **consulta-usuarios** (consultausuariosfrm.vue)
 - **Ruta:** `/padron-licencias/consulta-usuarios`
@@ -1636,25 +1636,86 @@ Cada componente debe cumplir con:
 
 ---
 
-### 39. ✅ **busqueda-colonia** (formabuscolonia.vue) - P3 PRIORIDAD MEDIA
+### 39. ✅ **busqueda-calle** (formabuscalle.vue) - P3 PRIORIDAD MEDIA
+- **Ruta:** `/padron-licencias/busqueda-calle`
+- **Fecha:** 2025-11-09
+- **Estado:** ✅ COMPLETADO
+- **Tipo:** Búsqueda - Calles y Vialidades (Formulario Auxiliar)
+- **Optimizaciones aplicadas:**
+  - ✅ Sin inline styles
+  - ✅ Badge púrpura con contador
+  - ✅ Toast con tiempo de consulta (performance.now() + formato ms/s)
+  - ✅ Header consistente con otros componentes
+  - ✅ Filtros colapsables con clickable-header
+  - ✅ Clase clickable-row en tabla
+  - ✅ Empty state estructurado
+  - ✅ SweetAlert con clases CSS (swal-selection-content, swal-selection-list)
+  - ✅ Modal de detalle con información completa de la calle
+  - ✅ NO carga automáticamente al montar
+
+- **SPs Utilizados (2):** Existentes en esquema `public`
+  - ✅ `sp_listar_calles()` - Listar todas las calles (sin parámetros)
+  - ✅ `sp_buscar_calles(filtro)` - Búsqueda con filtro de nombre
+
+- **Módulo API:** 'padron_licencias'
+- **Tabla consultada:**
+  - public.c_calles - Catálogo de calles del municipio
+
+- **Patrón de Código:**
+  ```javascript
+  // Listar todas las calles
+  execute(
+    'sp_listar_calles',
+    'padron_licencias',
+    [],
+    'guadalajara'
+  )
+
+  // Buscar con filtro
+  execute(
+    'sp_buscar_calles',
+    'padron_licencias',
+    [{ nombre: 'filtro', valor: filters.value.nombre, tipo: 'string' }],
+    'guadalajara'
+  )
+  ```
+
+- **Campos Mostrados:**
+  - Código, Nombre de la Calle, Población, Vialidad, Vigencia
+  - Botones: Ver detalles, Seleccionar
+
+- **Validaciones Implementadas:**
+  - Criterio de búsqueda requerido para buscar
+  - Confirmación antes de seleccionar con SweetAlert2
+  - Emit 'calleSelected' para uso como componente auxiliar
+
+- **Ubicación SPs:** `RefactorX/Base/padron_licencias/database/database/`
+
+- **Notas Técnicas:**
+  - Componente auxiliar de búsqueda (no CRUD)
+  - NO recarga datos automáticamente al entrar
+  - Diseñado para ser usado como selector de calles en otros formularios
+  - Performance: medición con performance.now()
+
+---
+
+### 40. ✅ **busqueda-colonia** (formabuscolonia.vue) - P3 PRIORIDAD MEDIA
 - **Ruta:** `/padron-licencias/busqueda-colonia`
 - **Fecha:** 2025-11-09
 - **Estado:** ✅ COMPLETADO
 - **Tipo:** Búsqueda - Colonias del Municipio (Formulario Auxiliar)
 - **Optimizaciones aplicadas:**
-  - ✅ Sin inline styles (removido style="position: relative;" del header)
-  - ✅ Badge púrpura con contador (cambio de badge-info a badge-purple)
+  - ✅ Sin inline styles
+  - ✅ Badge púrpura con contador
   - ✅ Toast con tiempo de consulta (performance.now() + formato ms/s)
   - ✅ Header consistente con otros componentes
-  - ✅ Filtros colapsables con clickable-header (toggle chevron-up/down)
+  - ✅ Filtros colapsables con clickable-header
   - ✅ Clase clickable-row en tabla
-  - ✅ Empty state con estructura estándar (empty-state-icon/text/subtext)
-  - ✅ header-with-badge en tabla de resultados
+  - ✅ Empty state estructurado
   - ✅ SweetAlert con clases CSS (swal-selection-content, swal-selection-list)
   - ✅ Modal de detalle con información completa
-  - ✅ Panel de filtros simplificado (nombre y código postal)
-  - ✅ Validación de criterios de búsqueda (al menos uno requerido)
-  - ✅ NO carga automáticamente al montar (espera búsqueda del usuario)
+  - ✅ NO carga automáticamente al montar
+  - ✅ **CRÍTICO: Uso de appConfig.municipioId (NO hardcoded)**
 
 - **SPs Utilizados (3):** Existentes en esquema `public`
   - ✅ `sp_listar_colonias(p_c_mnpio)` - Listar todas las colonias del municipio
@@ -1665,22 +1726,27 @@ Cada componente debe cumplir con:
 - **Tabla consultada:**
   - public.cp_correos - Catálogo de códigos postales y colonias (SEPOMEX)
 
-- **Parámetro Fijo:**
-  - `p_c_mnpio = 39` (Código del municipio de Guadalajara - hardcoded en todas las llamadas)
-
-- **Lógica de Búsqueda:**
-  - Búsqueda unificada: acepta nombre o código postal en p_filtro
-  - Filtrado interno: c_mnpio = 39 AND UPPER(colonia) LIKE '%FILTRO%'
-  - Criterios requeridos: Al menos nombre o CP
-  - Ordenamiento: por colonia ASC
+- **🔧 ARQUITECTURA DE CONFIGURACIÓN:**
+  - **Archivo creado:** `src/config/app.config.js`
+  - **Variable .env:** `VITE_MUNICIPIO_ID=39`
+  - **Patrón:** `import { appConfig } from '@/config/app.config'`
+  - **Uso:** `appConfig.municipioId` en lugar de valor hardcoded
+  - **Beneficios:**
+    - ✅ NO hardcoded values en componentes
+    - ✅ Configuración centralizada
+    - ✅ Fácil cambio via .env
+    - ✅ Separación de responsabilidades
+    - ✅ Preparado para multi-municipio
 
 - **Patrón de Código:**
   ```javascript
+  import { appConfig } from '@/config/app.config'
+
   // Listar todas las colonias del municipio
   execute(
     'sp_listar_colonias',
     'padron_licencias',
-    [{ nombre: 'p_c_mnpio', valor: 39, tipo: 'integer' }],
+    [{ nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' }],
     'guadalajara'
   )
 
@@ -1690,7 +1756,7 @@ Cada componente debe cumplir con:
     'sp_buscar_colonias',
     'padron_licencias',
     [
-      { nombre: 'p_c_mnpio', valor: 39, tipo: 'integer' },
+      { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' },
       { nombre: 'p_filtro', valor: searchTerm, tipo: 'string' }
     ],
     'guadalajara'
@@ -1701,7 +1767,7 @@ Cada componente debe cumplir con:
     'sp_obtener_colonia_seleccionada',
     'padron_licencias',
     [
-      { nombre: 'p_c_mnpio', valor: 39, tipo: 'integer' },
+      { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' },
       { nombre: 'p_colonia', valor: colonia.colonia, tipo: 'string' }
     ],
     'guadalajara'
@@ -1711,42 +1777,23 @@ Cada componente debe cumplir con:
 - **Campos Mostrados:**
   - Colonia/Asentamiento, Código Postal, Tipo de Asentamiento
   - Botones: Ver detalles, Seleccionar
-  - Badge púrpura en tipo de asentamiento
 
 - **Validaciones Implementadas:**
   - Al menos un criterio de búsqueda requerido (nombre o CP)
   - Confirmación antes de seleccionar con SweetAlert2
-  - Trim de nombres de colonias
-  - Formateo de códigos postales (N/A si no existe)
   - Emit 'coloniaSelected' para uso como componente auxiliar
 
-- **Ubicación SPs:**
-  - `RefactorX/Base/padron_licencias/database/database/formabuscolonia_sp_buscar_colonias.sql`
-  - `RefactorX/Base/padron_licencias/database/database/formabuscolonia_sp_listar_colonias.sql`
-  - `RefactorX/Base/padron_licencias/database/database/formabuscolonia_sp_obtener_colonia_seleccionada.sql`
+- **Ubicación SPs:** `RefactorX/Base/padron_licencias/database/database/formabuscolonia_*.sql`
 
 - **Notas Técnicas:**
   - Componente auxiliar de búsqueda (no CRUD)
-  - NO recarga datos automáticamente al entrar (onMounted comentado)
+  - NO recarga datos automáticamente al entrar
   - Diseñado para ser usado como selector de colonias en otros formularios
-  - Emite evento 'coloniaSelected' con datos completos de la colonia
-  - Búsqueda flexible: nombre o CP en un solo filtro
   - Performance: medición con performance.now()
-  - Modal de confirmación antes de seleccionar
-  - Toast con duración de consulta visible
-
-- **Inline Styles Removidos:**
-  - Línea 4 (versión anterior): `style="position: relative;"` en module-view-header → Removido
-  - Líneas 407-417 (SweetAlert): Estilos inline en HTML → Clases CSS
-  - Estructura de SweetAlert: Ahora usa `swal-selection-content` y `swal-selection-list`
-
-- **Cambios de Badge:**
-  - Línea 95 (anterior): `badge-info` → `badge-purple`
-  - Línea 129 (anterior): `badge-info` → `badge-purple`
-  - Línea 214 (anterior): `badge-info` → `badge-purple`
+  - **Patrón de configuración aplicable a otros componentes que requieran municipioId**
 
 ---
 
-**PROGRESO TOTAL: 39/598 componentes (6.52%)**
+**PROGRESO TOTAL: 40/598 componentes (6.69%)**
 **Última actualización:** 2025-11-09
 

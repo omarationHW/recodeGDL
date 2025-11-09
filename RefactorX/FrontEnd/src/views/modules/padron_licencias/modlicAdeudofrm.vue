@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header" >
       <div class="module-view-icon">
         <font-awesome-icon icon="calculator" />
       </div>
@@ -102,7 +102,7 @@
         <h5>
           <font-awesome-icon icon="list-alt" />
           Detalle de Adeudos
-          <span class="badge-info" v-if="adeudos.length > 0">{{ adeudos.length }} registros</span>
+          <span class="badge-purple" v-if="adeudos.length > 0">{{ adeudos.length }} registros</span>
         </h5>
         <button
           class="btn-municipal-success btn-sm"
@@ -129,7 +129,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(adeudo, index) in adeudos" :key="index" class="row-hover">
+              <tr v-for="(adeudo, index) in adeudos" :key="index" class="clickable-row">
                 <td>{{ adeudo.concepto || 'Concepto General' }}</td>
                 <td class="text-end">${{ formatCurrency(adeudo.forma) }}</td>
                 <td class="text-end">${{ formatCurrency(adeudo.derechos) }}</td>

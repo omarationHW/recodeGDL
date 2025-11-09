@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header" >
       <div class="module-view-icon">
         <font-awesome-icon icon="receipt" />
       </div>
@@ -112,7 +112,7 @@
               <tr>
                 <td class="label">Giro:</td>
                 <td>
-                  <span class="badge-info">{{ licenciaData.giro || 'N/A' }}</span>
+                  <span class="badge-purple">{{ licenciaData.giro || 'N/A' }}</span>
                 </td>
               </tr>
               <tr>
@@ -308,7 +308,7 @@ const searchLicencia = async () => {
   try {
     // SP_BUSCAR_LICENCIA
     const response = await execute(
-      'SP_BUSCAR_LICENCIA',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -343,11 +343,11 @@ const getReciboInfo = async () => {
   try {
     // SP_GET_LICENCIA_RECIBO
     const response = await execute(
-      'SP_GET_LICENCIA_RECIBO',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' },
-        { nombre: 'p_tiporecibo', valor: filters.value.tipoRecibo || 'PAGO_ANUAL', tipo: 'string' }
+        { nombre: 'p_tiporecibo', valor: filters.value.tipoRecibo || '\1', tipo: 'string' }
       ],
       'guadalajara'
     )
@@ -369,7 +369,7 @@ const getParametrosRecibo = async () => {
   try {
     // SP_GET_PARAMETROS_RECIBO
     const response = await execute(
-      'SP_GET_PARAMETROS_RECIBO',
+      '\1',
       'padron_licencias',
       [],
       'guadalajara'
@@ -387,7 +387,7 @@ const convertirMontoALetras = async (monto) => {
   try {
     // SP_NUMERO_A_LETRAS
     const response = await execute(
-      'SP_NUMERO_A_LETRAS',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numero', valor: monto, tipo: 'decimal' }
@@ -431,7 +431,7 @@ const generateReciboPreview = () => {
         </div>
         <div style="text-align: right;">
           <p style="margin: 5px 0;"><strong>Folio Pago:</strong> ${filters.value.folioPago || 'POR ASIGNAR'}</p>
-          <p style="margin: 5px 0;"><strong>Tipo:</strong> ${filters.value.tipoRecibo || 'PAGO_ANUAL'}</p>
+          <p style="margin: 5px 0;"><strong>Tipo:</strong> ${filters.value.tipoRecibo || '\1'}</p>
         </div>
       </div>
 
@@ -581,7 +581,7 @@ const formatCurrency = (value) => {
   if (!value) return '$0.00'
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
-    currency: 'MXN'
+    currency: '\1'
   }).format(value)
 }
 

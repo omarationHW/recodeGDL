@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header" >
       <div class="module-view-icon">
         <font-awesome-icon icon="file-signature" />
       </div>
@@ -108,7 +108,7 @@
               <tr>
                 <td class="label">Tipo Trámite:</td>
                 <td>
-                  <span class="badge-info">{{ tramiteInfo.tipotramite || 'N/A' }}</span>
+                  <span class="badge-purple">{{ tramiteInfo.tipotramite || 'N/A' }}</span>
                 </td>
               </tr>
               <tr>
@@ -208,7 +208,7 @@
         <h5>
           <font-awesome-icon icon="history" />
           Historial de Impresiones
-          <span class="badge-info">{{ impresiones.length }} registros</span>
+          <span class="badge-purple">{{ impresiones.length }} registros</span>
         </h5>
       </div>
       <div class="municipal-card-body table-container">
@@ -223,14 +223,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(imp, index) in impresiones" :key="index" class="row-hover">
+              <tr v-for="(imp, index) in impresiones" :key="index" class="clickable-row">
                 <td>
                   <font-awesome-icon icon="calendar" class="text-muted" />
                   {{ formatDate(imp.fechaimpresion) }}
                 </td>
                 <td>{{ imp.usuario || 'N/A' }}</td>
                 <td>
-                  <span class="badge-info">{{ imp.tipodocumento || 'Oficio' }}</span>
+                  <span class="badge-purple">{{ imp.tipodocumento || 'Oficio' }}</span>
                 </td>
                 <td><small>{{ imp.observaciones || '-' }}</small></td>
               </tr>
@@ -324,7 +324,7 @@ const searchTramite = async () => {
   try {
     // SP_GET_TRAMITE_INFO
     const response = await execute(
-      'SP_GET_TRAMITE_INFO',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' },
@@ -357,7 +357,7 @@ const loadImpresiones = async () => {
   try {
     // SP_IMP_OFICIO_TRAMITE_INFO (obtener historial)
     const response = await execute(
-      'SP_IMP_OFICIO_TRAMITE_INFO',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' }
@@ -477,11 +477,11 @@ const registerOficio = async () => {
   try {
     // SP_IMP_OFICIO_REGISTER
     const response = await execute(
-      'SP_IMP_OFICIO_REGISTER',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' },
-        { nombre: 'p_tipodocumento', valor: 'OFICIO', tipo: 'string' },
+        { nombre: 'p_tipodocumento', valor: '\1', tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' },
         { nombre: 'p_observaciones', valor: 'Impresión generada', tipo: 'string' }
       ],
@@ -517,10 +517,10 @@ const clearFilters = () => {
 // Utilidades
 const getEstadoBadgeClass = (estado) => {
   const estados = {
-    'APROBADO': 'badge-success',
+    '\1': 'badge-success',
     'EN PROCESO': 'badge-warning',
-    'RECHAZADO': 'badge-danger',
-    'PENDIENTE': 'badge-secondary'
+    '\1': 'badge-danger',
+    '\1': 'badge-secondary'
   }
   return estados[estado] || 'badge-secondary'
 }

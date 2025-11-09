@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header" >
       <div class="module-view-icon">
         <font-awesome-icon icon="file-excel" />
       </div>
@@ -558,7 +558,7 @@ const getStatusBadge = (estado) => {
     'CANCELADO': 'badge-danger',
     'BAJA': 'badge-secondary'
   }
-  return estados[estado?.toUpperCase()] || 'badge-info'
+  return estados[estado?.toUpperCase()] || 'badge-purple'
 }
 
 const formatDate = (dateString) => {

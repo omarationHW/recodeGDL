@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header" >
       <div class="module-view-icon">
         <font-awesome-icon icon="signature" />
       </div>
@@ -391,15 +391,19 @@ const saveSignature = async () => {
     const imageData = canvas.toDataURL('image/png')
     const base64 = imageData.split(',')[1]
 
+    const usuario = localStorage.getItem('usuario') || 'sistema'
+    const startTime = performance.now()
+
     const response = await execute(
-      'firma_sp_firma_save',
+      'sp_firma_save',
       'padron_licencias',
       [
         { nombre: 'p_signature_base64', valor: base64, tipo: 'string' },
-        { nombre: 'p_usuario', valor: 'usuario_actual', tipo: 'string' }
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result[0]?.success) {
       savedSignature.value = {
@@ -418,7 +422,7 @@ const saveSignature = async () => {
         timer: 2000
       })
 
-      showToast('success', 'Firma guardada exitosamente')
+      showToast('success', `Firma guardada en ${duration}s`)
     } else {
       await Swal.fire({
         icon: 'error',
@@ -457,16 +461,18 @@ const validateSignature = async () => {
 
   setLoading(true, 'Validando firma...')
   loadingMessage.value = 'Validando firma...'
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'firma_sp_firma_validate',
+      'sp_firma_validate',
       'padron_licencias',
       [
         { nombre: 'p_signature_id', valor: savedSignature.value.id, tipo: 'integer' }
       ],
       'guadalajara'
     )
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result[0]?.success) {
       savedSignature.value.validada = true
@@ -479,7 +485,7 @@ const validateSignature = async () => {
         timer: 2000
       })
 
-      showToast('success', 'Firma validada exitosamente')
+      showToast('success', `Firma validada en ${duration}s`)
     } else {
       await Swal.fire({
         icon: 'error',
@@ -527,7 +533,7 @@ const formatDateTime = (dateString) => {
       hour: '2-digit',
       minute: '2-digit'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }
@@ -557,184 +563,3 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', initCanvas)
 })
 </script>
-
-<style scoped>
-.instructions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-}
-
-.instruction-item {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.instruction-icon {
-  color: #ea8215;
-  flex-shrink: 0;
-}
-
-.instruction-text h6 {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.instruction-text p {
-  margin: 0;
-  color: #6c757d;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.signature-container {
-  position: relative;
-  width: 100%;
-  background: #ffffff;
-  border: 2px solid #dee2e6;
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.signature-canvas {
-  display: block;
-  cursor: crosshair;
-  touch-action: none;
-}
-
-.signature-placeholder {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: #adb5bd;
-  pointer-events: none;
-}
-
-.signature-placeholder p {
-  margin-top: 1rem;
-  font-size: 1.1rem;
-}
-
-.signature-tools {
-  display: flex;
-  gap: 2rem;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.tool-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-  min-width: 200px;
-}
-
-.tool-group label {
-  margin: 0;
-  white-space: nowrap;
-}
-
-.line-width-slider {
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: #dee2e6;
-  outline: none;
-  cursor: pointer;
-}
-
-.line-width-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ea8215;
-  cursor: pointer;
-}
-
-.line-width-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ea8215;
-  cursor: pointer;
-  border: none;
-}
-
-.tool-value {
-  font-weight: 600;
-  color: #2c3e50;
-  min-width: 40px;
-}
-
-.color-select {
-  max-width: 150px;
-}
-
-.saved-signature-container {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
-  align-items: start;
-}
-
-.saved-signature-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.saved-signature-info p {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.saved-signature-preview {
-  border: 2px solid #dee2e6;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  background: #f8f9fa;
-}
-
-.saved-signature-preview h6 {
-  margin: 0 0 1rem 0;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.signature-image {
-  width: 100%;
-  border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
-  background: white;
-}
-
-@media (max-width: 768px) {
-  .saved-signature-container {
-    grid-template-columns: 1fr;
-  }
-
-  .instructions {
-    grid-template-columns: 1fr;
-  }
-
-  .signature-tools {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .tool-group {
-    min-width: 100%;
-  }
-}
-</style>

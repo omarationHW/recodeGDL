@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header" >
       <div class="module-view-icon">
         <font-awesome-icon icon="file-invoice" />
       </div>
@@ -81,7 +81,7 @@
             class="badge"
             :class="licenciaData.bloqueada ? 'badge-danger' : 'badge-success'"
           >
-            {{ licenciaData.bloqueada ? 'BLOQUEADA' : 'ACTIVA' }}
+            {{ licenciaData.bloqueada ? '\1' : '\1' }}
           </span>
         </h5>
       </div>
@@ -104,7 +104,7 @@
               <tr>
                 <td class="label">Tipo:</td>
                 <td>
-                  <span class="badge-info">{{ licenciaData.tipo || 'N/A' }}</span>
+                  <span class="badge-purple">{{ licenciaData.tipo || 'N/A' }}</span>
                 </td>
               </tr>
               <tr>
@@ -293,7 +293,7 @@ const searchLicencia = async () => {
   try {
     // GETLICENCIAREGLAMENTADA
     const response = await execute(
-      'GETLICENCIAREGLAMENTADA',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -330,7 +330,7 @@ const checkLicenciaBloqueada = async () => {
   try {
     // CHECKLICENCIABLOQUEADA
     const response = await execute(
-      'CHECKLICENCIABLOQUEADA',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -353,7 +353,7 @@ const calcularAdeudo = async () => {
   try {
     // CALC_ADEUDOLIC
     const response = await execute(
-      'CALC_ADEUDOLIC',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -373,7 +373,7 @@ const obtenerSaldo = async () => {
   try {
     // DETSALDO_LICENCIA
     const response = await execute(
-      'DETSALDO_LICENCIA',
+      '\1',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -469,7 +469,7 @@ const formatCurrency = (value) => {
   if (!value) return '$0.00'
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
-    currency: 'MXN'
+    currency: '\1'
   }).format(value)
 }
 

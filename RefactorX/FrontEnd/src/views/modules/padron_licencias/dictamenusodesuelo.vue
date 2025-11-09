@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="map" />
       </div>
@@ -114,7 +114,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Constancias de Uso de Suelo
-          <span class="badge-info" v-if="constancias.length > 0">{{ constancias.length }} registros</span>
+          <span class="badge-purple" v-if="constancias.length > 0">{{ constancias.length }} registros</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -139,7 +139,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(const_item, index) in constancias" :key="index" class="row-hover">
+              <tr v-for="(const_item, index) in constancias" :key="index" class="clickable-row">
                 <td><strong class="text-primary">{{ const_item.axo }}</strong></td>
                 <td><code class="text-muted">{{ const_item.folio }}</code></td>
                 <td>
@@ -603,10 +603,11 @@ const editForm = ref({
 // Métodos
 const loadConstancias = async () => {
   setLoading(true, 'Cargando constancias...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'SP_LIST_CONSTANCIAS',
+      'sp_list_constancias',
       'padron_licencias',
       [
         { nombre: 'p_axo', valor: filters.value.axo || null, tipo: 'integer' },
@@ -617,10 +618,11 @@ const loadConstancias = async () => {
       ],
       'guadalajara'
     )
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result) {
       constancias.value = response.result
-      showToast('success', 'Constancias cargadas correctamente')
+      showToast('success', `Constancias cargadas en ${duration}s`)
     } else {
       constancias.value = []
       showToast('error', 'Error al cargar constancias')
@@ -675,12 +677,12 @@ const createConstancia = async () => {
     icon: 'question',
     title: '¿Confirmar creación de constancia?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se creará una nueva constancia con los siguientes datos:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Solicita:</strong> ${newConstancia.value.solicita}</li>
-          <li style="margin: 5px 0;"><strong>Tipo:</strong> ${getTipoText(newConstancia.value.tipo)}</li>
-          <li style="margin: 5px 0;"><strong>Domicilio:</strong> ${newConstancia.value.domicilio || 'N/A'}</li>
+      <div class="swal-confirmation-text">
+        <p>Se creará una nueva constancia con los siguientes datos:</p>
+        <ul>
+          <li><strong>Solicita:</strong> ${newConstancia.value.solicita}</li>
+          <li><strong>Tipo:</strong> ${getTipoText(newConstancia.value.tipo)}</li>
+          <li><strong>Domicilio:</strong> ${newConstancia.value.domicilio || 'N/A'}</li>
         </ul>
       </div>
     `,
@@ -696,10 +698,12 @@ const createConstancia = async () => {
   }
 
   creatingConstancia.value = true
+  const startTime = performance.now()
+  const usuario = localStorage.getItem('usuario') || 'sistema'
 
   try {
     const response = await execute(
-      'SP_CREATE_CONSTANCIA',
+      'sp_create_constancia',
       'padron_licencias',
       [
         { nombre: 'p_tipo', valor: parseInt(newConstancia.value.tipo), tipo: 'integer' },
@@ -708,10 +712,11 @@ const createConstancia = async () => {
         { nombre: 'p_observacion', valor: newConstancia.value.observacion?.trim() || null, tipo: 'string' },
         { nombre: 'p_domicilio', valor: newConstancia.value.domicilio?.trim() || null, tipo: 'string' },
         { nombre: 'p_id_licencia', valor: newConstancia.value.id_licencia || null, tipo: 'integer' },
-        { nombre: 'p_capturista', valor: 'sistema', tipo: 'string' }
+        { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result[0]) {
       showCreateModal.value = false
@@ -721,16 +726,17 @@ const createConstancia = async () => {
         icon: 'success',
         title: 'Constancia creada!',
         html: `
-          <div style="text-align: left; padding: 0 20px;">
+          <div class="swal-confirmation-text">
             <p><strong>Año:</strong> ${response.result[0].axo}</p>
             <p><strong>Folio:</strong> ${response.result[0].folio}</p>
+            <p><strong>Tiempo:</strong> ${duration}s</p>
           </div>
         `,
         confirmButtonColor: '#ea8215',
         timer: 3000
       })
 
-      showToast('success', 'Constancia creada exitosamente')
+      showToast('success', `Constancia creada en ${duration}s`)
     } else {
       await Swal.fire({
         icon: 'error',
@@ -783,11 +789,11 @@ const updateConstancia = async () => {
     icon: 'question',
     title: '¿Confirmar actualización?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se actualizarán los datos de la constancia:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Año-Folio:</strong> ${editForm.value.axo}-${editForm.value.folio}</li>
-          <li style="margin: 5px 0;"><strong>Solicita:</strong> ${editForm.value.solicita}</li>
+      <div class="swal-confirmation-text">
+        <p>Se actualizarán los datos de la constancia:</p>
+        <ul>
+          <li><strong>Año-Folio:</strong> ${editForm.value.axo}-${editForm.value.folio}</li>
+          <li><strong>Solicita:</strong> ${editForm.value.solicita}</li>
         </ul>
       </div>
     `,
@@ -803,10 +809,11 @@ const updateConstancia = async () => {
   }
 
   updatingConstancia.value = true
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'SP_UPDATE_CONSTANCIA',
+      'sp_update_constancia',
       'padron_licencias',
       [
         { nombre: 'p_axo', valor: editForm.value.axo, tipo: 'integer' },
@@ -821,6 +828,7 @@ const updateConstancia = async () => {
       ],
       'guadalajara'
     )
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result[0]?.success) {
       showEditModal.value = false
@@ -834,7 +842,7 @@ const updateConstancia = async () => {
         timer: 2000
       })
 
-      showToast('success', 'Constancia actualizada exitosamente')
+      showToast('success', `Constancia actualizada en ${duration}s`)
     } else {
       await Swal.fire({
         icon: 'error',
@@ -873,9 +881,11 @@ const confirmCancelConstancia = async (constancia) => {
 }
 
 const cancelConstancia = async (constancia) => {
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_CANCEL_CONSTANCIA',
+      'sp_cancel_constancia',
       'padron_licencias',
       [
         { nombre: 'p_axo', valor: constancia.axo, tipo: 'integer' },
@@ -883,6 +893,7 @@ const cancelConstancia = async (constancia) => {
       ],
       'guadalajara'
     )
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result[0]?.success) {
       loadConstancias()
@@ -895,7 +906,7 @@ const cancelConstancia = async (constancia) => {
         timer: 2000
       })
 
-      showToast('success', 'Constancia cancelada exitosamente')
+      showToast('success', `Constancia cancelada en ${duration}s`)
     }
   } catch (error) {
     handleApiError(error)
@@ -908,7 +919,7 @@ const getTipoBadgeClass = (tipo) => {
     '1': 'badge-primary',
     '2': 'badge-success',
     '3': 'badge-warning',
-    '4': 'badge-info'
+    '4': 'badge-purple'
   }
   return classes[tipo?.toString()] || 'badge-secondary'
 }
@@ -932,7 +943,7 @@ const formatDate = (dateString) => {
       month: '2-digit',
       day: '2-digit'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }
@@ -948,39 +959,3 @@ onBeforeUnmount(() => {
   showViewModal.value = false
 })
 </script>
-
-<style scoped>
-.domicilio-text {
-  display: block;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.observaciones-box {
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-  min-height: 60px;
-  white-space: pre-wrap;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-@media (max-width: 768px) {
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.required {
-  color: #dc3545;
-}
-</style>

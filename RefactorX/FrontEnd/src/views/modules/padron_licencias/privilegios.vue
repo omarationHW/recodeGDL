@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header" >
       <div class="module-view-icon">
         <font-awesome-icon icon="user-shield" />
       </div>
@@ -91,7 +91,7 @@
         <h5>
           <font-awesome-icon icon="shield-alt" />
           Permisos del Usuario
-          <span class="badge-info">{{ permisos.length }} permisos</span>
+          <span class="badge-purple">{{ permisos.length }} permisos</span>
         </h5>
       </div>
       <div class="municipal-card-body">
@@ -106,7 +106,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="permiso in permisos" :key="permiso.id" class="row-hover">
+              <tr v-for="permiso in permisos" :key="permiso.id" class="clickable-row">
                 <td><strong class="text-primary">{{ permiso.modulo || 'N/A' }}</strong></td>
                 <td>{{ permiso.permiso || 'N/A' }}</td>
                 <td>{{ permiso.descripcion || 'N/A' }}</td>
@@ -133,7 +133,7 @@
         <h5>
           <font-awesome-icon icon="building" />
           Departamentos Asignados
-          <span class="badge-info">{{ departamentos.length }} departamentos</span>
+          <span class="badge-purple">{{ departamentos.length }} departamentos</span>
         </h5>
       </div>
       <div class="municipal-card-body">
@@ -147,7 +147,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="depto in departamentos" :key="depto.clave" class="row-hover">
+              <tr v-for="depto in departamentos" :key="depto.clave" class="clickable-row">
                 <td><strong class="text-primary">{{ depto.clave }}</strong></td>
                 <td>{{ depto.nombre || 'N/A' }}</td>
                 <td>{{ depto.descripcion || 'N/A' }}</td>
@@ -166,7 +166,7 @@
           <h6>
             <font-awesome-icon icon="file-alt" />
             Movimientos de Licencias
-            <span class="badge-info">{{ movLicencias.length }}</span>
+            <span class="badge-purple">{{ movLicencias.length }}</span>
           </h6>
         </div>
         <div class="municipal-card-body">
@@ -185,7 +185,7 @@
           <h6>
             <font-awesome-icon icon="tasks" />
             Movimientos de Trámites
-            <span class="badge-info">{{ movTramites.length }}</span>
+            <span class="badge-purple">{{ movTramites.length }}</span>
           </h6>
         </div>
         <div class="municipal-card-body">
@@ -204,7 +204,7 @@
           <h6>
             <font-awesome-icon icon="clipboard-check" />
             Revisiones
-            <span class="badge-info">{{ revisiones.length }}</span>
+            <span class="badge-purple">{{ revisiones.length }}</span>
           </h6>
         </div>
         <div class="municipal-card-body">
@@ -224,7 +224,7 @@
         <h5>
           <font-awesome-icon icon="history" />
           Auditoría del Usuario
-          <span class="badge-info">{{ auditoria.length }} registros</span>
+          <span class="badge-purple">{{ auditoria.length }} registros</span>
         </h5>
       </div>
       <div class="municipal-card-body">
@@ -240,7 +240,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="audit in auditoria" :key="audit.id" class="row-hover">
+              <tr v-for="audit in auditoria" :key="audit.id" class="clickable-row">
                 <td>
                   <small class="text-muted">
                     <font-awesome-icon icon="calendar" />
@@ -248,7 +248,7 @@
                   </small>
                 </td>
                 <td>
-                  <span class="badge-info">{{ audit.accion || 'N/A' }}</span>
+                  <span class="badge-purple">{{ audit.accion || 'N/A' }}</span>
                 </td>
                 <td>{{ audit.modulo || 'N/A' }}</td>
                 <td>{{ audit.descripcion || 'N/A' }}</td>

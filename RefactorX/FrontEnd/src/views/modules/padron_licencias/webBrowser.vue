@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="globe" />
       </div>
@@ -128,7 +128,7 @@
 
     <!-- Iframe del navegador -->
     <div class="municipal-card browser-container">
-      <div class="municipal-card-body" style="padding: 0;">
+      <div class="municipal-card-body browser-card-body">
         <div v-if="!loadedUrl" class="browser-placeholder">
           <font-awesome-icon icon="globe" size="4x" class="placeholder-icon" />
           <h3>Bienvenido al Navegador Web</h3>
@@ -191,7 +191,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="bookmark in bookmarks" :key="bookmark.id" class="row-hover">
+              <tr v-for="bookmark in bookmarks" :key="bookmark.id" class="clickable-row">
                 <td>
                   <font-awesome-icon icon="bookmark" class="text-primary" />
                   {{ bookmark.nombre }}
@@ -308,16 +308,22 @@ const isSecure = computed(() => currentUrl.value.startsWith('https://'))
 
 // Métodos
 const loadBookmarks = async () => {
+  const startTime = performance.now()
   try {
     const response = await execute(
-      'webBrowser_sp_get_bookmarks',
+      'webbrowser_sp_get_bookmarks',
       'padron_licencias',
       [],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result) {
       bookmarks.value = response.result
+      toast.value.duration = durationText
     }
   } catch (error) {
     handleApiError(error)
@@ -412,19 +418,27 @@ const addBookmark = async () => {
   })
 
   if (bookmarkName) {
+    const startTime = performance.now()
     try {
+      const usuario = localStorage.getItem('usuario') || 'sistema'
       const response = await execute(
-        'webBrowser_sp_save_bookmark',
+        'webbrowser_sp_save_bookmark',
         'padron_licencias',
         [
           { nombre: 'p_nombre', valor: bookmarkName, tipo: 'string' },
-          { nombre: 'p_url', valor: currentUrl.value, tipo: 'string' }
+          { nombre: 'p_url', valor: currentUrl.value, tipo: 'string' },
+          { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
         ],
         'guadalajara'
       )
 
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
       if (response && response.result && response.result[0]?.success) {
         showToast('success', 'Marcador guardado exitosamente')
+        toast.value.duration = durationText
         loadBookmarks()
       } else {
         showToast('error', 'Error al guardar marcador')
@@ -448,9 +462,10 @@ const deleteBookmark = async (bookmark) => {
   })
 
   if (result.isConfirmed) {
+    const startTime = performance.now()
     try {
       const response = await execute(
-        'webBrowser_sp_delete_bookmark',
+        'webbrowser_sp_delete_bookmark',
         'padron_licencias',
         [
           { nombre: 'p_id', valor: bookmark.id, tipo: 'integer' }
@@ -458,8 +473,13 @@ const deleteBookmark = async (bookmark) => {
         'guadalajara'
       )
 
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
       if (response && response.result && response.result[0]?.success) {
         showToast('success', 'Marcador eliminado')
+        toast.value.duration = durationText
         loadBookmarks()
       }
     } catch (error) {
@@ -503,152 +523,3 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.browser-toolbar {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.nav-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.url-bar {
-  flex: 1;
-}
-
-.url-input-wrapper {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.url-icon {
-  position: absolute;
-  left: 12px;
-  color: #6c757d;
-  z-index: 1;
-}
-
-.url-input {
-  flex: 1;
-  padding-left: 40px;
-  padding-right: 60px;
-  font-family: monospace;
-  font-size: 0.9rem;
-}
-
-.go-button {
-  position: absolute;
-  right: 5px;
-  height: calc(100% - 10px);
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.security-warning {
-  background: #fff3cd;
-  border-left: 4px solid #ffc107;
-}
-
-.warning-content {
-  display: flex;
-  align-items: start;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.warning-icon {
-  font-size: 2rem;
-  color: #ffc107;
-  margin-top: 0.25rem;
-}
-
-.warning-text h6 {
-  margin: 0 0 0.5rem 0;
-  color: #856404;
-}
-
-.warning-text p {
-  margin: 0;
-  color: #856404;
-}
-
-.warning-actions {
-  text-align: right;
-}
-
-.browser-container {
-  margin-top: 1rem;
-  height: calc(100vh - 350px);
-  min-height: 500px;
-}
-
-.browser-placeholder {
-  text-align: center;
-  padding: 3rem 2rem;
-  color: #6c757d;
-}
-
-.placeholder-icon {
-  color: #dee2e6;
-  margin-bottom: 1rem;
-}
-
-.browser-placeholder h3 {
-  margin-bottom: 0.5rem;
-  color: #495057;
-}
-
-.quick-links {
-  margin-top: 2rem;
-}
-
-.quick-links h6 {
-  margin-bottom: 1rem;
-}
-
-.quick-link-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.browser-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
-}
-
-.bookmarks-list {
-  min-height: 200px;
-}
-
-.bookmark-url {
-  font-size: 0.85rem;
-  color: #6c757d;
-  display: block;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  color: #6c757d;
-}
-
-.empty-icon {
-  color: #dee2e6;
-  margin-bottom: 1rem;
-}
-</style>

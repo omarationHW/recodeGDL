@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="certificate" />
       </div>
@@ -97,7 +97,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Propietarios de Hologramas
-          <span class="badge-info" v-if="propietarios.length > 0">{{ propietarios.length }} registros</span>
+          <span class="badge-purple" v-if="propietarios.length > 0">{{ propietarios.length }} registros</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -121,7 +121,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="propietario in propietarios" :key="propietario.idcontrib" class="row-hover">
+              <tr v-for="propietario in propietarios" :key="propietario.idcontrib" class="clickable-row">
                 <td><strong class="text-primary">{{ propietario.idcontrib }}</strong></td>
                 <td>{{ propietario.nombre?.trim() || 'N/A' }}</td>
                 <td>{{ propietario.domicilio?.trim() || 'N/A' }}</td>
@@ -544,6 +544,7 @@ const editForm = ref({
 // Métodos
 const loadPropietarios = async () => {
   setLoading(true, 'Cargando propietarios...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -553,9 +554,14 @@ const loadPropietarios = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result) {
       propietarios.value = response.result
       showToast('success', 'Propietarios cargados correctamente')
+      toast.value.duration = durationText
     } else {
       propietarios.value = []
       showToast('error', 'Error al cargar propietarios')
@@ -656,8 +662,10 @@ const createPropietario = async () => {
   }
 
   creatingPropietario.value = true
+  const startTime = performance.now()
 
   try {
+    const usuario = localStorage.getItem('usuario') || 'sistema'
     const response = await execute(
       'sp_c_contribholog_create',
       'padron_licencias',
@@ -669,10 +677,14 @@ const createPropietario = async () => {
         { nombre: 'p_rfc', valor: newPropietario.value.rfc?.trim() || '', tipo: 'string' },
         { nombre: 'p_curp', valor: newPropietario.value.curp?.trim() || '', tipo: 'string' },
         { nombre: 'p_email', valor: newPropietario.value.email?.trim() || '', tipo: 'string' },
-        { nombre: 'p_capturista', valor: 'sistema', tipo: 'string' }
+        { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       showCreateModal.value = false
@@ -687,6 +699,7 @@ const createPropietario = async () => {
       })
 
       showToast('success', 'Propietario creado exitosamente')
+      toast.value.duration = durationText
     }
   } catch (error) {
     handleApiError(error)

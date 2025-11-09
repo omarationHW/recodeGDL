@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-contract" />
       </div>
@@ -113,7 +113,7 @@
               </tr>
               <tr>
                 <td class="label">Recaudación:</td>
-                <td><span class="badge-info">{{ licenciaData.recaud }}</span></td>
+                <td><span class="badge-purple">{{ licenciaData.recaud }}</span></td>
               </tr>
               <tr>
                 <td class="label">Propietario:</td>
@@ -201,7 +201,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           {{ tipoDocumento === 'R' ? 'Responsivas' : 'Supervisiones' }} Registradas
-          <span class="badge-info" v-if="responsivas.length > 0">{{ responsivas.length }} registros</span>
+          <span class="badge-purple" v-if="responsivas.length > 0">{{ responsivas.length }} registros</span>
         </h5>
         <button
           class="btn-municipal-secondary btn-sm"
@@ -230,10 +230,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="responsiva in responsivas" :key="`${responsiva.axo}-${responsiva.folio}`" class="row-hover">
+              <tr v-for="responsiva in responsivas" :key="`${responsiva.axo}-${responsiva.folio}`" class="clickable-row">
                 <td><strong>{{ responsiva.axo }}</strong></td>
                 <td><code>{{ responsiva.folio }}</code></td>
-                <td><span class="badge-info">{{ responsiva.licencia }}</span></td>
+                <td><span class="badge-purple">{{ responsiva.licencia }}</span></td>
                 <td>
                   <span class="badge" :class="getTipoBadgeClass(responsiva.tipo)">
                     {{ responsiva.tipo === 'R' ? 'Responsiva' : 'Supervisión' }}
@@ -378,7 +378,7 @@
               </tr>
               <tr>
                 <td class="label">Licencia:</td>
-                <td><span class="badge-info">{{ selectedResponsiva.licencia }}</span></td>
+                <td><span class="badge-purple">{{ selectedResponsiva.licencia }}</span></td>
               </tr>
               <tr>
                 <td class="label">Fecha Captura:</td>
@@ -502,6 +502,7 @@ const searchLicencia = async () => {
   }
 
   setLoading(true, 'Buscando licencia...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -513,10 +514,15 @@ const searchLicencia = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result && response.result.length > 0) {
       licenciaData.value = response.result[0]
       await loadResponsivas()
       showToast('success', 'Licencia encontrada correctamente')
+      toast.value.duration = durationText
     } else {
       licenciaData.value = null
       responsivas.value = []
@@ -633,19 +639,25 @@ const createResponsiva = async () => {
   }
 
   creatingResponsiva.value = true
+  const startTime = performance.now()
 
   try {
+    const usuario = localStorage.getItem('usuario') || 'sistema'
     const response = await execute(
       'crear_responsiva',
       'padron_licencias',
       [
         { nombre: 'p_id_licencia', valor: licenciaData.value.id_licencia, tipo: 'integer' },
         { nombre: 'p_tipo', valor: tipoDocumento.value, tipo: 'string' },
-        { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' },
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' },
         { nombre: 'p_observacion', valor: newResponsiva.value.observacion || null, tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       showCreateModal.value = false
@@ -660,6 +672,7 @@ const createResponsiva = async () => {
       })
 
       showToast('success', `${tipoDocumento.value === 'R' ? 'Responsiva' : 'Supervisión'} creada exitosamente`)
+      toast.value.duration = durationText
     }
   } catch (error) {
     handleApiError(error)
@@ -787,27 +800,3 @@ const getEstadoIcon = (vigente) => {
 }
 </script>
 
-<style scoped>
-.observation-text {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #ea8215;
-  white-space: pre-wrap;
-}
-
-.alert {
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  background: #e7f3ff;
-  border-left: 4px solid #0066cc;
-  color: #004a99;
-}
-
-.alert-info {
-  background: #e7f3ff;
-  border-left-color: #0066cc;
-  color: #004a99;
-}
-</style>

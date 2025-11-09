@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="history" />
       </div>
@@ -105,7 +105,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Registros Históricos
-          <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
+          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -128,7 +128,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="record in records" :key="record.id" class="row-hover">
+              <tr v-for="record in records" :key="record.id" class="clickable-row">
                 <td><strong class="text-primary">{{ record.id }}</strong></td>
                 <td>
                   <small class="text-muted">
@@ -474,10 +474,11 @@ const visiblePages = computed(() => {
 // Métodos
 const loadRecords = async () => {
   setLoading(true, 'Cargando registros históricos...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'regHfrm_sp_get_historic_records',
+      'reghfrm_sp_get_historic_records',
       'padron_licencias',
       [
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
@@ -490,6 +491,10 @@ const loadRecords = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result) {
       records.value = response.result
       if (records.value.length > 0) {
@@ -498,6 +503,7 @@ const loadRecords = async () => {
         totalRecords.value = 0
       }
       showToast('success', 'Registros cargados correctamente')
+      toast.value.duration = durationText
     } else {
       records.value = []
       totalRecords.value = 0
@@ -587,20 +593,27 @@ const createRecord = async () => {
   }
 
   creatingRecord.value = true
+  const startTime = performance.now()
 
   try {
+    const usuario = localStorage.getItem('usuario') || 'sistema'
     const response = await execute(
-      'regHfrm_sp_create_historic_record',
+      'reghfrm_sp_create_historic_record',
       'padron_licencias',
       [
         { nombre: 'p_tipo', valor: newRecord.value.tipo, tipo: 'string' },
         { nombre: 'p_folio', valor: newRecord.value.folio, tipo: 'string' },
         { nombre: 'p_descripcion', valor: newRecord.value.descripcion, tipo: 'string' },
         { nombre: 'p_fecha', valor: newRecord.value.fecha, tipo: 'date' },
-        { nombre: 'p_estado', valor: newRecord.value.estado, tipo: 'string' }
+        { nombre: 'p_estado', valor: newRecord.value.estado, tipo: 'string' },
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       showCreateModal.value = false
@@ -615,6 +628,7 @@ const createRecord = async () => {
       })
 
       showToast('success', 'Registro creado exitosamente')
+      toast.value.duration = durationText
     } else {
       await Swal.fire({
         icon: 'error',
@@ -638,10 +652,11 @@ const createRecord = async () => {
 
 const viewRecord = async (record) => {
   setLoading(true, 'Cargando detalles del registro...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'regHfrm_sp_get_historic_record',
+      'reghfrm_sp_get_historic_record',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: record.id, tipo: 'integer' }
@@ -649,9 +664,14 @@ const viewRecord = async (record) => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result && response.result[0]) {
       selectedRecord.value = response.result[0]
       showViewModal.value = true
+      toast.value.duration = durationText
     } else {
       showToast('error', 'No se pudieron cargar los detalles')
     }
@@ -680,15 +700,20 @@ const confirmDeleteRecord = async (record) => {
 }
 
 const deleteRecord = async (record) => {
+  const startTime = performance.now()
   try {
     const response = await execute(
-      'regHfrm_sp_delete_historic_record',
+      'reghfrm_sp_delete_historic_record',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: record.id, tipo: 'integer' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       loadRecords()
@@ -702,6 +727,7 @@ const deleteRecord = async (record) => {
       })
 
       showToast('success', 'Registro eliminado exitosamente')
+      toast.value.duration = durationText
     }
   } catch (error) {
     handleApiError(error)

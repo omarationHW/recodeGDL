@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="print" />
       </div>
@@ -336,10 +336,11 @@ const searchLicense = async () => {
   }
 
   setLoading(true, 'Buscando licencia...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'ImpLicenciaReglamentada_sp_get_license_data',
+      'implicenciareglamentada_sp_get_license_data',
       'padron_licencias',
       [
         { nombre: 'p_numero_licencia', valor: licenseNumber.value.trim(), tipo: 'string' }
@@ -347,9 +348,14 @@ const searchLicense = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result && response.result[0]) {
       licenseData.value = response.result[0]
       showToast('success', 'Licencia encontrada')
+      toast.value.duration = durationText
     } else {
       licenseData.value = null
       await Swal.fire({
@@ -402,21 +408,28 @@ const printLicense = async () => {
     return
   }
 
+  const startTime = performance.now()
   try {
+    const usuario = localStorage.getItem('usuario') || 'sistema'
     const response = await execute(
-      'ImpLicenciaReglamentada_sp_print_license',
+      'implicenciareglamentada_sp_print_license',
       'padron_licencias',
       [
         { nombre: 'p_numero_licencia', valor: licenseData.value.numero_licencia, tipo: 'string' },
-        { nombre: 'p_formato', valor: printFormat.value, tipo: 'string' }
+        { nombre: 'p_formato', valor: printFormat.value, tipo: 'string' },
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result && response.result[0]?.success) {
       showToast('success', 'Registro de impresión guardado')
+      toast.value.duration = durationText
 
-      // Imprimir usando window.print()
       setTimeout(() => {
         window.print()
       }, 500)
@@ -485,219 +498,3 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.license-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.info-section {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border-left: 4px solid #ea8215;
-}
-
-.info-section.full-width {
-  grid-column: 1 / -1;
-}
-
-.section-title {
-  color: #495057;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #dee2e6;
-  font-size: 1rem;
-}
-
-.detail-table {
-  width: 100%;
-}
-
-.detail-table tr {
-  border-bottom: 1px solid #dee2e6;
-}
-
-.detail-table tr:last-child {
-  border-bottom: none;
-}
-
-.detail-table td {
-  padding: 0.75rem 0.5rem;
-}
-
-.detail-table td.label {
-  font-weight: 500;
-  color: #6c757d;
-  width: 40%;
-}
-
-.print-preview {
-  background: white;
-  padding: 2rem;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  margin-top: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.print-preview.format-carta {
-  max-width: 8.5in;
-  min-height: 11in;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.print-preview.format-oficio {
-  max-width: 8.5in;
-  min-height: 13in;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.preview-header {
-  text-align: center;
-  border-bottom: 3px solid #ea8215;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.preview-logo {
-  color: #ea8215;
-  margin-bottom: 1rem;
-}
-
-.preview-title h3 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin: 0.5rem 0;
-}
-
-.preview-title h4 {
-  font-size: 1.25rem;
-  color: #495057;
-  margin: 0.5rem 0;
-}
-
-.preview-title h5 {
-  font-size: 1rem;
-  color: #6c757d;
-  margin: 0.5rem 0;
-}
-
-.preview-body {
-  padding: 1rem 0;
-}
-
-.license-number-banner {
-  text-align: center;
-  background: #ea8215;
-  color: white;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1.5rem;
-  font-size: 1.25rem;
-}
-
-.license-number {
-  font-weight: bold;
-  font-size: 1.5rem;
-  margin-left: 1rem;
-}
-
-.preview-section {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  border-left: 3px solid #ea8215;
-  background: #f8f9fa;
-}
-
-.preview-section h6 {
-  color: #ea8215;
-  font-weight: bold;
-  margin-bottom: 0.75rem;
-}
-
-.preview-section p {
-  margin: 0.25rem 0;
-  color: #333;
-}
-
-.preview-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid #dee2e6;
-}
-
-.signature-line {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 1rem;
-}
-
-.signature-box {
-  text-align: center;
-}
-
-.signature-name {
-  margin-bottom: 0.5rem;
-  margin-top: 2rem;
-}
-
-.signature-box p {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin: 0;
-}
-
-.preview-note {
-  text-align: center;
-  color: #6c757d;
-  font-style: italic;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #6c757d;
-}
-
-.empty-icon {
-  color: #dee2e6;
-  margin-bottom: 1.5rem;
-}
-
-.empty-state h4 {
-  color: #495057;
-  margin-bottom: 1rem;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Estilos de impresión */
-@media print {
-  .module-view-header,
-  .municipal-card:first-child,
-  .btn-municipal-primary,
-  .toast-notification {
-    display: none !important;
-  }
-
-  .print-preview {
-    border: none;
-    box-shadow: none;
-    padding: 0;
-  }
-
-  @page {
-    margin: 1in;
-  }
-}
-</style>

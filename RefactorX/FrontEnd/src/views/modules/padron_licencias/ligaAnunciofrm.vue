@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="link" />
       </div>
@@ -305,7 +305,7 @@ const buscarAnuncio = async () => {
 
   try {
     const response = await execute(
-      'SP_BUSCAR_ANUNCIO',
+      'sp_buscar_anuncio',
       'padron_licencias',
       [
         { nombre: 'p_anuncio', valor: searchForm.value.anuncioId, tipo: 'integer' }
@@ -356,7 +356,7 @@ const buscarTarget = async () => {
   setLoading(true, `Buscando ${ligaType.value}...`)
 
   try {
-    const spName = ligaType.value === 'licencia' ? 'SP_BUSCAR_LICENCIA' : 'SP_BUSCAR_EMPRESA'
+    const spName = ligaType.value === 'licencia' ? 'sp_buscar_licencia' : 'sp_buscar_empresa'
     const paramName = ligaType.value === 'licencia' ? 'p_licencia' : 'p_empresa'
 
     const response = await execute(
@@ -402,11 +402,11 @@ const ligarAnuncio = async () => {
     icon: 'question',
     title: '¿Confirmar liga de anuncio?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se ligará el anuncio a la ${ligaType.value}:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Anuncio:</strong> ${anuncioEncontrado.value.anuncio}</li>
-          <li style="margin: 5px 0;"><strong>${ligaType.value === 'licencia' ? 'Licencia' : 'Empresa'}:</strong>
+      <div class="swal-selection-content">
+        <p class="swal-confirmation-text">Se ligará el anuncio a la ${ligaType.value}:</p>
+        <ul class="swal-list">
+          <li><strong>Anuncio:</strong> ${anuncioEncontrado.value.anuncio}</li>
+          <li><strong>${ligaType.value === 'licencia' ? 'Licencia' : 'Empresa'}:</strong>
             ${ligaType.value === 'licencia' ? targetEncontrado.value.licencia : targetEncontrado.value.empresa}
           </li>
         </ul>
@@ -427,7 +427,7 @@ const ligarAnuncio = async () => {
 
   try {
     const response = await execute(
-      'SP_LIGAR_ANUNCIO',
+      'sp_ligar_anuncio',
       'padron_licencias',
       [
         { nombre: 'p_anuncio_id', valor: anuncioEncontrado.value.id_anuncio, tipo: 'integer' },
@@ -481,109 +481,3 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.align-end {
-  display: flex;
-  align-items: flex-end;
-}
-
-.info-box {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 2px solid;
-}
-
-.info-success {
-  background-color: #d4edda;
-  border-color: #28a745;
-}
-
-.info-primary {
-  background-color: #cfe2ff;
-  border-color: #0d6efd;
-}
-
-.info-box h6 {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-item strong {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.info-item span {
-  font-size: 1rem;
-}
-
-.radio-group {
-  display: flex;
-  gap: 2rem;
-  margin-top: 0.5rem;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 1.1rem;
-}
-
-.radio-option input[type="radio"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.confirmation-box {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding: 2rem;
-  background-color: #fff3cd;
-  border: 2px solid #ffc107;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-}
-
-.confirmation-icon {
-  flex-shrink: 0;
-  color: #ffc107;
-}
-
-.confirmation-content h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.3rem;
-}
-
-.confirmation-content p {
-  margin: 0 0 1rem 0;
-}
-
-.confirmation-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.confirmation-list li {
-  margin: 0.5rem 0;
-  font-size: 1rem;
-}
-</style>

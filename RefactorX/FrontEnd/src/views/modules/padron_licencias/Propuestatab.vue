@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="table" />
       </div>
@@ -149,7 +149,7 @@
         <h5>
           <font-awesome-icon icon="file-invoice" />
           Lista de Propuestas
-          <span class="badge-info" v-if="propuestas.length > 0">{{ propuestas.length }} registros</span>
+          <span class="badge-purple" v-if="propuestas.length > 0">{{ propuestas.length }} registros</span>
         </h5>
       </div>
       <div class="municipal-card-body table-container" v-if="!loading">
@@ -168,7 +168,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="propuesta in propuestas" :key="propuesta.id" class="row-hover">
+              <tr v-for="propuesta in propuestas" :key="propuesta.id" class="clickable-row">
                 <td><strong>{{ propuesta.id }}</strong></td>
                 <td>{{ propuesta.cuenta || 'N/A' }}</td>
                 <td><code>{{ propuesta.clave_catastral || 'N/A' }}</code></td>
@@ -208,7 +208,7 @@
         <h5>
           <font-awesome-icon icon="receipt" />
           Histórico de Cuenta
-          <span class="badge-info" v-if="historicoCuenta.length > 0">{{ historicoCuenta.length }} registros</span>
+          <span class="badge-purple" v-if="historicoCuenta.length > 0">{{ historicoCuenta.length }} registros</span>
         </h5>
       </div>
       <div class="municipal-card-body table-container">
@@ -227,7 +227,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(registro, index) in historicoCuenta" :key="index" class="row-hover">
+              <tr v-for="(registro, index) in historicoCuenta" :key="index" class="clickable-row">
                 <td><strong>{{ registro.cuenta }}</strong></td>
                 <td>{{ registro.anio }}</td>
                 <td>{{ registro.periodo }}</td>
@@ -258,7 +258,7 @@
         <h5>
           <font-awesome-icon icon="home" />
           Histórico Predial
-          <span class="badge-info" v-if="historicoPredial.length > 0">{{ historicoPredial.length }} registros</span>
+          <span class="badge-purple" v-if="historicoPredial.length > 0">{{ historicoPredial.length }} registros</span>
         </h5>
       </div>
       <div class="municipal-card-body table-container">
@@ -276,7 +276,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(registro, index) in historicoPredial" :key="index" class="row-hover">
+              <tr v-for="(registro, index) in historicoPredial" :key="index" class="clickable-row">
                 <td><strong>{{ registro.cuenta }}</strong></td>
                 <td>{{ registro.anio }}</td>
                 <td>{{ registro.sup_terreno }} m²</td>
@@ -357,7 +357,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(valor, index) in historicoValores" :key="index" class="row-hover">
+              <tr v-for="(valor, index) in historicoValores" :key="index" class="clickable-row">
                 <td><strong>{{ valor.anio }}</strong></td>
                 <td>${{ formatCurrency(valor.valor_base) }}</td>
                 <td>{{ valor.incremento }}%</td>
@@ -396,11 +396,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(diff, index) in historicoDiferencias" :key="index" class="row-hover">
+              <tr v-for="(diff, index) in historicoDiferencias" :key="index" class="clickable-row">
                 <td><strong>{{ diff.periodo }}</strong></td>
                 <td>{{ diff.diferencia }}</td>
                 <td>
-                  <span class="badge-info">{{ diff.tipo }}</span>
+                  <span class="badge-purple">{{ diff.tipo }}</span>
                 </td>
                 <td>${{ formatCurrency(diff.monto) }}</td>
                 <td>{{ formatDate(diff.fecha_registro) }}</td>
@@ -437,7 +437,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(regimen, index) in historicoRegimen" :key="index" class="row-hover">
+              <tr v-for="(regimen, index) in historicoRegimen" :key="index" class="clickable-row">
                 <td><strong>{{ regimen.regimen }}</strong></td>
                 <td>{{ regimen.tipo_propiedad }}</td>
                 <td>{{ regimen.propietario }}</td>
@@ -567,7 +567,7 @@ const buscarPropuestas = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'PROPUESTATAB_LIST',
+      'sp_propuestatab_list',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta || null },
@@ -597,7 +597,7 @@ const cargarHistoricoCuenta = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_GET_CUENTA_HISTORICO',
+      'sp_get_cuenta_historico',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
@@ -625,7 +625,7 @@ const cargarHistoricoPredial = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_GET_PREDIAL_HISTORICO',
+      'sp_get_predial_historico',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
@@ -653,7 +653,7 @@ const cargarHistoricoUbicacion = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_GET_UBICACION_HISTORICO',
+      'sp_get_ubicacion_historico',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
@@ -681,7 +681,7 @@ const cargarHistoricoValores = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_GET_VALORES_HISTORICO',
+      'sp_get_valores_historico',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
@@ -709,7 +709,7 @@ const cargarHistoricoDiferencias = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_GET_DIFERENCIAS_HISTORICO',
+      'sp_get_diferencias_historico',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
@@ -737,7 +737,7 @@ const cargarHistoricoRegimen = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'SP_GET_REGIMEN_PROPIEDAD_HISTORICO',
+      'sp_get_regimen_propiedad_historico',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
@@ -765,7 +765,7 @@ const cargarCondominio = async () => {
   setLoading(true)
   try {
     const response = await execute(
-      'PROPUESTATAB_CONDOMINIO',
+      'sp_propuestatab_condominio',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
@@ -784,9 +784,8 @@ const cargarCondominio = async () => {
   }
 }
 
-const verDetallePropuesta = (propuesta) => {
+const verDetallePropuesta = () => {
   // Implementar modal de detalles si es necesario
-  console.log('Ver detalle:', propuesta)
 }
 
 const limpiarFiltros = () => {
@@ -815,7 +814,7 @@ const formatDate = (dateString) => {
       month: '2-digit',
       day: '2-digit'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }
@@ -831,72 +830,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.tabs-container {
-  display: flex;
-  gap: 0;
-  border-bottom: 2px solid #ddd;
-  padding: 0;
-  flex-wrap: wrap;
-}
-
-.tab-button {
-  padding: 12px 16px;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  color: #666;
-  font-size: 14px;
-}
-
-.tab-button:hover {
-  background: #f8f9fa;
-  color: #ea8215;
-}
-
-.tab-button.active {
-  color: #ea8215;
-  border-bottom-color: #ea8215;
-  background: #fff;
-}
-
-.info-card {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 20px;
-  margin-bottom: 15px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.info-item {
-  padding: 10px;
-}
-
-.info-item strong {
-  display: block;
-  margin-bottom: 5px;
-  color: #495057;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.empty-icon {
-  margin-bottom: 10px;
-  opacity: 0.5;
-}
-</style>

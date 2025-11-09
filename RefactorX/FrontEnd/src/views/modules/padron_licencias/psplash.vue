@@ -1,7 +1,7 @@
 <template>
   <div class="module-view splash-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="rocket" />
       </div>
@@ -214,7 +214,7 @@ let countdownInterval = null
 const loadUserInfo = async () => {
   try {
     const response = await execute(
-      'psplash_sp_get_user_info',
+      'sp_psplash_get_user_info',
       'padron_licencias',
       [],
       'guadalajara'
@@ -231,7 +231,7 @@ const loadUserInfo = async () => {
 const loadAnnouncements = async () => {
   try {
     const response = await execute(
-      'psplash_sp_get_announcements',
+      'sp_psplash_get_announcements',
       'padron_licencias',
       [],
       'guadalajara'
@@ -250,7 +250,7 @@ const loadStats = async () => {
 
   try {
     const response = await execute(
-      'psplash_sp_get_stats',
+      'sp_psplash_get_stats',
       'padron_licencias',
       [],
       'guadalajara'
@@ -322,7 +322,7 @@ const getAnnouncementBadgeClass = (tipo) => {
     'URGENTE': 'badge-danger',
     'MANTENIMIENTO': 'badge-secondary'
   }
-  return classes[tipo] || 'badge-info'
+  return classes[tipo] || 'badge-purple'
 }
 
 const getAnnouncementIcon = (tipo) => {
@@ -344,7 +344,7 @@ const formatDate = (dateString) => {
       month: 'long',
       day: 'numeric'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }
@@ -374,273 +374,3 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.splash-view {
-  min-height: 100vh;
-}
-
-.splash-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.splash-header {
-  text-align: center;
-  padding: 3rem 0;
-  background: linear-gradient(135deg, #ea8215 0%, #c46a0f 100%);
-  color: white;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(234, 130, 21, 0.3);
-}
-
-.splash-logo {
-  margin-bottom: 1.5rem;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.splash-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.splash-subtitle {
-  font-size: 1.5rem;
-  font-weight: 300;
-  opacity: 0.95;
-}
-
-.welcome-message {
-  text-align: center;
-  padding: 2rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.welcome-message h4 {
-  color: #ea8215;
-  font-size: 1.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.user-role {
-  color: #6c757d;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-}
-
-.current-date {
-  color: #495057;
-  font-size: 0.95rem;
-}
-
-.quick-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  display: flex;
-  align-items: center;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-.stat-icon {
-  font-size: 3rem;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  margin-right: 1.5rem;
-}
-
-.stat-primary {
-  background: linear-gradient(135deg, #ea8215 0%, #ff9933 100%);
-  color: white;
-}
-
-.stat-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #20c0db 100%);
-  color: white;
-}
-
-.stat-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ffcd38 100%);
-  color: white;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #333;
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.95rem;
-  color: #6c757d;
-}
-
-.announcements-section {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.announcements-section h5 {
-  color: #495057;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #ea8215;
-}
-
-.announcements-carousel {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.announcement-item {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-left: 4px solid #ea8215;
-  border-radius: 4px;
-}
-
-.announcement-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.announcement-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: bold;
-}
-
-.announcement-date {
-  font-size: 0.85rem;
-  color: #6c757d;
-}
-
-.announcement-title {
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.announcement-message {
-  color: #495057;
-  margin: 0;
-}
-
-.quick-actions {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.quick-actions h5 {
-  color: #495057;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #ea8215;
-}
-
-.action-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.action-btn svg {
-  font-size: 2rem;
-}
-
-.action-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
-
-.action-primary {
-  background: linear-gradient(135deg, #ea8215 0%, #ff9933 100%);
-}
-
-.action-success {
-  background: linear-gradient(135deg, #28a745 0%, #34ce57 100%);
-}
-
-.action-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #20c0db 100%);
-}
-
-.action-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ffcd38 100%);
-}
-
-.auto-redirect {
-  text-align: center;
-  padding: 1rem;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
-  margin-top: 2rem;
-}
-
-.auto-redirect p {
-  margin: 0 0 0.5rem 0;
-  color: #856404;
-  font-weight: 500;
-}
-</style>

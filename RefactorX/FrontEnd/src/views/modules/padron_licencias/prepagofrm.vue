@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="percent" />
       </div>
@@ -96,7 +96,7 @@
             <table class="detail-table">
               <tr>
                 <td class="label">Último Complemento:</td>
-                <td><span class="badge-info">{{ cuentaData.ultcomp || 'N/A' }}</span></td>
+                <td><span class="badge-purple">{{ cuentaData.ultcomp || 'N/A' }}</span></td>
               </tr>
               <tr>
                 <td class="label">Año Último Complemento:</td>
@@ -174,7 +174,7 @@
         <h5>
           <font-awesome-icon icon="list-alt" />
           Descuentos Calculados
-          <span class="badge-info">{{ descuentos.length }} registros</span>
+          <span class="badge-purple">{{ descuentos.length }} registros</span>
         </h5>
       </div>
       <div class="municipal-card-body table-container" v-if="!loading">
@@ -191,7 +191,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(desc, index) in descuentos" :key="index" class="row-hover">
+              <tr v-for="(desc, index) in descuentos" :key="index" class="clickable-row">
                 <td>{{ desc.periodo || 'N/A' }}</td>
                 <td>{{ desc.concepto || 'N/A' }}</td>
                 <td class="text-end">${{ formatCurrency(desc.base) }}</td>
@@ -533,11 +533,11 @@ const procesarLiquidacion = async () => {
   const result = await Swal.fire({
     title: 'Procesar Liquidación Parcial',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se procesará la liquidación con los siguientes datos:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Monto:</strong> $${formatCurrency(liquidacionForm.value.monto)}</li>
-          <li style="margin: 5px 0;"><strong>Forma de Pago:</strong> ${liquidacionForm.value.forma_pago}</li>
+      <div class="swal-selection-content">
+        <p class="swal-confirmation-text">Se procesará la liquidación con los siguientes datos:</p>
+        <ul class="swal-list">
+          <li><strong>Monto:</strong> $${formatCurrency(liquidacionForm.value.monto)}</li>
+          <li><strong>Forma de Pago:</strong> ${liquidacionForm.value.forma_pago}</li>
         </ul>
       </div>
     `,
@@ -668,7 +668,7 @@ const formatDate = (dateString) => {
       month: '2-digit',
       day: '2-digit'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }
@@ -695,18 +695,3 @@ const getEstadoBadgeClass = (estado) => {
 }
 </script>
 
-<style scoped>
-.text-end {
-  text-align: right;
-}
-
-.text-success {
-  color: #28a745;
-}
-
-.table-total {
-  background-color: #f8f9fa;
-  font-weight: bold;
-  border-top: 2px solid #ea8215;
-}
-</style>

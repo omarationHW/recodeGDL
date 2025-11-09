@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header header-relative">
       <div class="module-view-icon">
         <font-awesome-icon icon="calendar-check" />
       </div>
@@ -170,7 +170,7 @@
         <h5>
           <font-awesome-icon icon="history" />
           Historial de Validaciones
-          <span class="badge-info">{{ validationHistory.length }} registros</span>
+          <span class="badge-purple">{{ validationHistory.length }} registros</span>
         </h5>
         <button
           class="btn-municipal-secondary btn-sm"
@@ -197,9 +197,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in validationHistory" :key="index" class="row-hover">
+              <tr v-for="(item, index) in validationHistory" :key="index" class="clickable-row">
                 <td>{{ validationHistory.length - index }}</td>
-                <td><span class="badge-info">{{ getBimestreLabel(item.bimestre) }}</span></td>
+                <td><span class="badge-purple">{{ getBimestreLabel(item.bimestre) }}</span></td>
                 <td><strong>{{ item.anio }}</strong></td>
                 <td><code>{{ item.periodo }}</code></td>
                 <td>
@@ -439,147 +439,9 @@ const formatDateTime = (dateTime) => {
       minute: '2-digit',
       second: '2-digit'
     })
-  } catch (error) {
+  } catch {
     return 'Fecha inválida'
   }
 }
 </script>
 
-<style scoped>
-.info-box {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  background: #e7f3ff;
-  border-radius: 8px;
-  border-left: 4px solid #0066cc;
-}
-
-.info-icon {
-  font-size: 2.5rem;
-  color: #0066cc;
-  flex-shrink: 0;
-}
-
-.info-content h6 {
-  color: #004a99;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  font-size: 1.125rem;
-}
-
-.info-content p {
-  color: #004a99;
-  margin-bottom: 0.75rem;
-  line-height: 1.6;
-}
-
-.info-content ul {
-  margin: 0;
-  padding-left: 1.5rem;
-  color: #004a99;
-}
-
-.info-content li {
-  margin: 0.5rem 0;
-  line-height: 1.6;
-}
-
-.validation-result {
-  display: flex;
-  gap: 2rem;
-  padding: 2rem;
-  border-radius: 8px;
-  align-items: center;
-}
-
-.validation-result.success {
-  background: #e8f5e9;
-  border-left: 4px solid #28a745;
-}
-
-.validation-result.error {
-  background: #ffebee;
-  border-left: 4px solid #dc3545;
-}
-
-.validation-icon {
-  flex-shrink: 0;
-}
-
-.validation-result.success .validation-icon {
-  color: #28a745;
-}
-
-.validation-result.error .validation-icon {
-  color: #dc3545;
-}
-
-.validation-content {
-  flex: 1;
-}
-
-.validation-content h4 {
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-}
-
-.validation-result.success h4 {
-  color: #155724;
-}
-
-.validation-result.error h4 {
-  color: #721c24;
-}
-
-.validation-content p {
-  margin-bottom: 1rem;
-  color: #495057;
-}
-
-.validated-data {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(0,0,0,0.1);
-}
-
-.validated-data h6 {
-  margin-bottom: 1rem;
-  color: #495057;
-  font-weight: 600;
-}
-
-.data-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.data-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.data-item label {
-  font-weight: 600;
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-
-.data-item span {
-  font-size: 1rem;
-  padding: 0.5rem 0.75rem;
-}
-
-.form-text {
-  display: block;
-  margin-top: 0.25rem;
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-</style>

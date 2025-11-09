@@ -2112,6 +2112,28 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 50/598 componentes (8.36%)**
+### 51. ✅ **bloquear-licencia** (BloquearLicenciafrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ clickable-row instead of row-hover
+  - ✅ Removed console.error() and added handleApiError
+  - ✅ SP names already lowercase
+  - ✅ Already uses useGlobalLoading + useLicenciasErrorHandler
+  - ✅ NO inline styles
+  - ✅ NO scoped CSS block
+- **SPs:** sp_bloquearlicencia_get_licencia, sp_bloquearlicencia_get_bloqueos, sp_bloquearlicencia_bloquear, sp_bloquearlicencia_desbloquear (4 SPs)
+- **Features:**
+  - Buscar licencia por número
+  - Ver información completa de la licencia
+  - Bloquear licencia con tipo y motivo
+  - Desbloquear licencia con motivo
+  - Historial de bloqueos de la licencia
+  - Tipos de bloqueo: Temporal, Definitivo
+  - Confirmaciones con SweetAlert2
+- **Nota Técnica:** Componente sin carga automática, requiere buscar licencia primero
+
+---
+
+**PROGRESO TOTAL: 51/598 componentes (8.53%)**
 **Última actualización:** 2025-11-09
 

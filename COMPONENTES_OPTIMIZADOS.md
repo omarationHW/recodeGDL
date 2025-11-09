@@ -4,7 +4,7 @@
 
 ---
 
-## ✅ Componentes Completados (43/598)
+## ✅ Componentes Completados (44/598)
 
 ### 1. ✅ **consulta-usuarios** (consultausuariosfrm.vue)
 - **Ruta:** `/padron-licencias/consulta-usuarios`
@@ -1922,6 +1922,28 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 43/598 componentes (7.19%)**
+### 44. ✅ **carga-datos** (cargadatosfrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ NO inline styles (removed 164 lines of scoped CSS)
+  - ✅ badge-purple consistency
+  - ✅ Performance timing on all operations (ms/s format)
+  - ✅ Toast structure with separate duration
+  - ✅ loadingMessage from composable
+  - ✅ User from localStorage (NO hardcoded 'sistema')
+  - ✅ Complete architectural redesign to match actual SPs
+  - ✅ Added "Datos Generales" tab with detail-table display
+  - ✅ Simplified Area Cartográfica (sum display, not table)
+- **CRITICAL FIX:** Redesigned from batch processing to individual property query
+  - **BEFORE:** Used cargaId, tipoDatos, filtroEstado for batch processing
+  - **AFTER:** Uses cvecatnva + subpredio for individual property queries
+  - **Reason:** SPs work with individual catastral keys, not batch IDs
+- **SPs:** sp_get_cargadatos(p_cvecatnva), sp_get_avaluos(p_cvecatnva, p_subpredio), sp_get_construcciones(p_cveavaluo), sp_get_area_carto(p_cvecatnva), sp_save_cargadatos(p_cvecatnva, p_data, p_user) (5 SPs)
+- **Tablas:** convcta, ubicacion, contrib, regprop, avaluos, construc, construc_carto, c_bloqcon
+- **4 Tabs:** Datos Generales, Avalúos, Construcciones, Área Cartográfica (removed Procesamiento tab)
+
+---
+
+**PROGRESO TOTAL: 44/598 componentes (7.36%)**
 **Última actualización:** 2025-11-09
 

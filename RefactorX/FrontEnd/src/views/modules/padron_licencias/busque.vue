@@ -1,13 +1,14 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="search" />
       </div>
       <div class="module-view-info">
         <h1>Búsqueda General</h1>
-        <p>Padrón de Licencias - Búsqueda Multicritero</p></div>
+        <p>Padrón de Licencias - Búsqueda Multicritero</p>
+      </div>
       <button
         type="button"
         class="btn-help-icon"
@@ -331,14 +332,16 @@
 
     <!-- Tabla de resultados unificada -->
     <div class="municipal-card" v-if="resultados.length > 0 || hasSearched">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
-          <span class="badge-info" v-if="resultados.length > 0">{{ resultados.length }} registros</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-actions">
+          <span class="badge-purple" v-if="resultados.length > 0">{{ resultados.length }} registros</span>
+          <div v-if="loading" class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
         </div>
       </div>
 
@@ -356,7 +359,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(resultado, index) in resultados" :key="index" class="row-hover">
+              <tr v-for="(resultado, index) in resultados" :key="index" class="clickable-row">
                 <td><strong class="text-primary">{{ resultado.id || 'N/A' }}</strong></td>
                 <td>{{ resultado.propietario?.trim() || 'N/A' }}</td>
                 <td>
@@ -392,10 +395,10 @@
     </div>
 
     <!-- Loading overlay -->
-    <div v-if="loading && resultados.length === 0" class="loading-overlay">
+    <div v-if="loading" class="loading-overlay">
       <div class="loading-spinner">
         <div class="spinner"></div>
-        <p>Buscando registros...</p>
+        <p>{{ loadingMessage }}</p>
       </div>
     </div>
 
@@ -488,8 +491,11 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -530,7 +536,8 @@ const {
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError
+  handleApiError,
+  loadingMessage
 } = useLicenciasErrorHandler()
 
 // Estado
@@ -586,9 +593,11 @@ const searchByOwner = async () => {
   setLoading(true, 'Buscando por propietario...')
   hasSearched.value = true
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_BUSQUE_SEARCH_BY_OWNER',
+      'sp_busque_search_by_owner',
       'padron_licencias',
       [
         { nombre: 'p_nombre', valor: filters.value.owner.nombre || null, tipo: 'string' },
@@ -598,9 +607,16 @@ const searchByOwner = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       resultados.value = response.result
       if (resultados.value.length > 0) {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${resultados.value.length} resultados`)
       } else {
         showToast('info', 'No se encontraron resultados')
@@ -642,9 +658,11 @@ const searchByLocation = async () => {
   setLoading(true, 'Buscando por ubicación...')
   hasSearched.value = true
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_BUSQUE_SEARCH_BY_LOCATION',
+      'sp_busque_search_by_location',
       'padron_licencias',
       [
         { nombre: 'p_calle', valor: filters.value.location.calle || null, tipo: 'string' },
@@ -654,9 +672,16 @@ const searchByLocation = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       resultados.value = response.result
       if (resultados.value.length > 0) {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${resultados.value.length} resultados`)
       } else {
         showToast('info', 'No se encontraron resultados')
@@ -698,9 +723,11 @@ const searchByAccount = async () => {
   setLoading(true, 'Buscando por cuenta...')
   hasSearched.value = true
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_BUSQUE_SEARCH_BY_ACCOUNT',
+      'sp_busque_search_by_account',
       'padron_licencias',
       [
         { nombre: 'p_cuenta', valor: filters.value.account.cuenta, tipo: 'string' }
@@ -708,9 +735,16 @@ const searchByAccount = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       resultados.value = response.result
       if (resultados.value.length > 0) {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${resultados.value.length} resultados`)
       } else {
         showToast('info', 'No se encontraron resultados')
@@ -750,9 +784,11 @@ const searchByRfc = async () => {
   setLoading(true, 'Buscando por RFC...')
   hasSearched.value = true
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_BUSQUE_SEARCH_BY_RFC',
+      'sp_busque_search_by_rfc',
       'padron_licencias',
       [
         { nombre: 'p_rfc', valor: filters.value.rfc.rfc.toUpperCase(), tipo: 'string' }
@@ -760,9 +796,16 @@ const searchByRfc = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       resultados.value = response.result
       if (resultados.value.length > 0) {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${resultados.value.length} resultados`)
       } else {
         showToast('info', 'No se encontraron resultados')
@@ -802,9 +845,11 @@ const searchByCadastral = async () => {
   setLoading(true, 'Buscando por clave catastral...')
   hasSearched.value = true
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_BUSQUE_SEARCH_BY_CADASTRAL_KEY',
+      'sp_busque_search_by_cadastral_key',
       'padron_licencias',
       [
         { nombre: 'p_clave_catastral', valor: filters.value.cadastral.clave, tipo: 'string' }
@@ -812,9 +857,16 @@ const searchByCadastral = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       resultados.value = response.result
       if (resultados.value.length > 0) {
+        toast.value.duration = durationText
         showToast('success', `Se encontraron ${resultados.value.length} resultados`)
       } else {
         showToast('info', 'No se encontraron resultados')
@@ -847,9 +899,11 @@ const viewDetalle = async (resultado) => {
 
   setLoading(true, 'Cargando detalles...')
 
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_BUSQUE_GET_DETAIL',
+      'sp_busque_get_detail',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: resultado.id, tipo: 'integer' }
@@ -857,8 +911,16 @@ const viewDetalle = async (resultado) => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1
+      ? `${((endTime - startTime)).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result && response.result[0]) {
       detailData.value = response.result[0]
+      toast.value.duration = durationText
+      showToast('success', 'Detalles cargados')
     } else {
       showToast('error', 'Error al cargar detalles')
     }
@@ -878,76 +940,3 @@ onBeforeUnmount(() => {
   showDetailModal.value = false
 })
 </script>
-
-<style scoped>
-/* Estilos para las pestañas */
-.municipal-tabs {
-  border-bottom: 2px solid #e0e0e0;
-  margin-bottom: 0;
-}
-
-.municipal-tabs .nav-item {
-  margin-bottom: -2px;
-}
-
-.municipal-tabs .nav-link {
-  border: none;
-  border-bottom: 3px solid transparent;
-  background: transparent;
-  color: #6c757d;
-  padding: 12px 20px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.municipal-tabs .nav-link:hover {
-  color: #ea8215;
-  border-bottom-color: #ea8215;
-  background: rgba(234, 130, 21, 0.05);
-}
-
-.municipal-tabs .nav-link.active {
-  color: #ea8215;
-  border-bottom-color: #ea8215;
-  background: rgba(234, 130, 21, 0.1);
-}
-
-/* Panel de item seleccionado */
-.selected-item-panel {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-}
-
-.selected-item-info {
-  flex: 1;
-}
-
-.info-row {
-  display: flex;
-  margin-bottom: 8px;
-}
-
-.info-row:last-child {
-  margin-bottom: 0;
-}
-
-.info-label {
-  font-weight: 600;
-  min-width: 150px;
-  color: #495057;
-}
-
-.info-value {
-  color: #212529;
-}
-
-.selected-item-actions {
-  margin-left: 20px;
-}
-</style>

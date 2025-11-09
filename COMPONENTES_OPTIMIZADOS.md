@@ -2001,6 +2001,43 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 46/598 componentes (7.70%)**
+### 47. ✅ **busqueda-general** (busque.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ NO inline styles (removed position: relative)
+  - ✅ badge-purple instead of badge-info
+  - ✅ clickable-row instead of row-hover
+  - ✅ Removed entire scoped CSS block (~72 lines including tab styles)
+  - ✅ Performance timing on ALL 6 operations (ms/s format)
+  - ✅ Toast structure with separate duration
+  - ✅ loadingMessage from composable
+  - ✅ header-with-badge structure
+  - ✅ SP names corrected to lowercase
+- **SP CORRECTIONS:**
+  - **BEFORE:** SP_BUSQUE_SEARCH_BY_OWNER → **AFTER:** sp_busque_search_by_owner
+  - **BEFORE:** SP_BUSQUE_SEARCH_BY_LOCATION → **AFTER:** sp_busque_search_by_location
+  - **BEFORE:** SP_BUSQUE_SEARCH_BY_ACCOUNT → **AFTER:** sp_busque_search_by_account
+  - **BEFORE:** SP_BUSQUE_SEARCH_BY_RFC → **AFTER:** sp_busque_search_by_rfc
+  - **BEFORE:** SP_BUSQUE_SEARCH_BY_CADASTRAL_KEY → **AFTER:** sp_busque_search_by_cadastral_key
+  - **BEFORE:** SP_BUSQUE_GET_DETAIL → **AFTER:** sp_busque_get_detail
+- **SPs:** 6 stored procedures for multi-criteria search
+- **Search Tabs:** 5 different search methods
+  1. Por Propietario (nombre, apellido_paterno, apellido_materno)
+  2. Por Ubicación (calle, numero, colonia)
+  3. Por Cuenta (número de cuenta)
+  4. Por RFC (RFC exacto)
+  5. Por Clave Catastral (clave catastral)
+- **Features:**
+  - Búsqueda multicritero con 5 pestañas
+  - Validación de al menos un criterio por búsqueda
+  - Tabla de resultados unificada
+  - Modal de detalle completo con 3 secciones
+  - Performance timing en todas las operaciones
+  - Tab navigation con estado activo
+- **Nota Técnica:** Componente de búsqueda general sin carga automática, espera acción del usuario
+
+---
+
+**PROGRESO TOTAL: 47/598 componentes (7.86%)**
 **Última actualización:** 2025-11-09
 

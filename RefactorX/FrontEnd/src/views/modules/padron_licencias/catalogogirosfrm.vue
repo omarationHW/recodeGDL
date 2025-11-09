@@ -222,11 +222,11 @@
                   <td>
                     <span class="badge bg-secondary">{{ giro.cod_giro || 'S/N' }}</span>
                   </td>
-                  <td class="text-truncate" style="max-width: 300px">{{ giro.descripcion }}</td>
+                  <td class="text-truncate giro-description-cell">{{ giro.descripcion }}</td>
                   <td>
                     <span class="badge" :class="{
                       'badge-success': giro.clasificacion === 'A',
-                      'badge-info': giro.clasificacion === 'B',
+                      'badge-purple': giro.clasificacion === 'B',
                       'badge-warning': giro.clasificacion === 'C',
                       'badge-danger': giro.clasificacion === 'D'
                     }">
@@ -681,7 +681,6 @@ const cargarEstadisticas = async () => {
       estadisticas.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
     handleApiError(error, 'Error al cargar estadísticas')
   } finally {
     loadingEstadisticas.value = false
@@ -728,7 +727,6 @@ const buscar = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al buscar giros:', error)
     handleApiError(error, 'Error al buscar giros')
   } finally {
     loading.value = false
@@ -781,7 +779,6 @@ const verDetalle = async (giro) => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al obtener detalle:', error)
     handleApiError(error, 'Error al obtener detalle del giro')
   }
 }
@@ -808,7 +805,6 @@ const editarGiro = async (giro) => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al cargar giro:', error)
     handleApiError(error, 'Error al cargar giro para edición')
   }
 }
@@ -848,7 +844,7 @@ const guardarGiro = async () => {
     icon: 'question',
     title: '¿Crear Nuevo Giro?',
     html: `
-      <div style="text-align: left; padding: 1rem;">
+      <div class="swal-selection-content">
         <p><strong>Código:</strong> ${giroForm.value.cod_giro}</p>
         <p><strong>Descripción:</strong> ${giroForm.value.descripcion}</p>
         <p><strong>Clasificación:</strong> ${giroForm.value.clasificacion}</p>
@@ -901,7 +897,6 @@ const guardarGiro = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al crear giro:', error)
     handleApiError(error, 'Error al crear el giro')
   }
 }
@@ -923,7 +918,7 @@ const actualizarGiro = async () => {
     icon: 'question',
     title: '¿Actualizar Giro?',
     html: `
-      <div style="text-align: left; padding: 1rem;">
+      <div class="swal-selection-content">
         <p><strong>ID:</strong> ${giroForm.value.id_giro}</p>
         <p><strong>Código:</strong> ${giroForm.value.cod_giro}</p>
         <p><strong>Descripción:</strong> ${giroForm.value.descripcion}</p>
@@ -931,7 +926,7 @@ const actualizarGiro = async () => {
         <p><strong>Tipo:</strong> ${giroForm.value.tipo === 'L' ? 'Licencia' : 'Anuncio'}</p>
         <p><strong>Estado:</strong> ${giroForm.value.vigente === 'V' ? 'Vigente' : 'Cancelado'}</p>
       </div>
-      <p style="margin-top: 1rem; color: #666;">¿Está seguro de actualizar este giro?</p>
+      <p class="swal-confirmation-text">¿Está seguro de actualizar este giro?</p>
     `,
     showCancelButton: true,
     confirmButtonText: 'Sí, actualizar',
@@ -979,7 +974,6 @@ const actualizarGiro = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al actualizar giro:', error)
     handleApiError(error, 'Error al actualizar el giro')
   }
 }
@@ -1028,7 +1022,6 @@ const cambiarVigencia = async (giro, nuevaVigencia) => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al cambiar vigencia:', error)
     handleApiError(error, 'Error al cambiar vigencia')
   }
 }
@@ -1057,260 +1050,3 @@ onMounted(() => {
   // NO cargar tabla automáticamente
 })
 </script>
-
-<style scoped>
-/* ========================================
-   BOTONES DE TABLA
-   ======================================== */
-.btn-group-actions {
-  display: flex;
-  gap: 0.25rem;
-  justify-content: center;
-}
-
-.btn-table {
-  padding: 0.375rem 0.5rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-table:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.btn-table-info {
-  background: linear-gradient(135deg, #0dcaf0 0%, #0891b2 100%);
-  color: white;
-}
-
-.btn-table-info:hover {
-  background: linear-gradient(135deg, #0891b2 0%, #0dcaf0 100%);
-}
-
-.btn-table-primary {
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-}
-
-.btn-table-primary:hover {
-  background: linear-gradient(135deg, #d67512 0%, #ea8215 100%);
-}
-
-.btn-table-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-}
-
-.btn-table-danger:hover {
-  background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
-}
-
-.btn-table-success {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-  color: white;
-}
-
-.btn-table-success:hover {
-  background: linear-gradient(135deg, #218838 0%, #28a745 100%);
-}
-
-.clickable-row {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.clickable-row:hover {
-  background-color: rgba(234, 130, 21, 0.05);
-}
-
-/* ========================================
-   ESTILOS DEL MODAL
-   ======================================== */
-.giro-modal-content {
-  padding: 0.5rem;
-}
-
-.modal-section {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(234, 130, 21, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.modal-section:last-child {
-  margin-bottom: 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid rgba(234, 130, 21, 0.2);
-}
-
-.section-icon {
-  font-size: 1.25rem;
-  color: #ea8215;
-}
-
-.section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0;
-}
-
-/* Grids del modal */
-.modal-grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.modal-grid-4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-
-@media (max-width: 992px) {
-  .modal-grid-4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 576px) {
-  .modal-grid-2,
-  .modal-grid-4 {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Formularios del modal */
-.form-group-modal {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-label-modal {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 0.5rem;
-}
-
-.label-icon {
-  font-size: 0.875rem;
-  color: #ea8215;
-}
-
-.form-input-modal,
-.form-select-modal {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  font-size: 0.9375rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  background-color: #ffffff;
-}
-
-.form-input-modal:focus,
-.form-select-modal:focus {
-  outline: none;
-  border-color: #ea8215;
-  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
-}
-
-.form-input-modal:read-only,
-.form-select-modal:disabled {
-  background-color: #f7fafc;
-  color: #4a5568;
-  cursor: not-allowed;
-}
-
-.form-input-modal::placeholder {
-  color: #a0aec0;
-}
-
-textarea.form-input-modal {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-hint {
-  font-size: 0.75rem;
-  color: #718096;
-  margin-top: 0.25rem;
-  font-style: italic;
-}
-
-/* Grid de información (modo ver) */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.info-item {
-  background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-.info-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #718096;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.info-value {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #2d3748;
-}
-
-/* Título del modal con ícono */
-.modal-title {
-  display: flex;
-  align-items: center;
-  font-weight: 600;
-}
-
-.modal-title .text-success {
-  color: #28a745 !important;
-}
-
-.modal-title .text-primary {
-  color: #ea8215 !important;
-}
-
-.modal-title .text-info {
-  color: #0dcaf0 !important;
-}
-</style>

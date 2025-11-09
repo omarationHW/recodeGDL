@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="map-marker-alt" />
       </div>
@@ -105,10 +105,9 @@
                     <tr
                       v-for="calle in calles1"
                       :key="calle.clave"
-                      class="row-hover"
+                      class="clickable-row"
                       :class="{ 'selected-row': calle1Selected?.clave === calle.clave }"
                       @click="selectCalle1(calle)"
-                      style="cursor: pointer;"
                     >
                       <td><code>{{ calle.clave }}</code></td>
                       <td><strong>{{ calle.calle }}</strong></td>
@@ -180,10 +179,9 @@
                     <tr
                       v-for="calle in calles2"
                       :key="calle.clave"
-                      class="row-hover"
+                      class="clickable-row"
                       :class="{ 'selected-row': calle2Selected?.clave === calle.clave }"
                       @click="selectCalle2(calle)"
-                      style="cursor: pointer;"
                     >
                       <td><code>{{ calle.clave }}</code></td>
                       <td><strong>{{ calle.calle }}</strong></td>
@@ -262,8 +260,11 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -330,10 +331,11 @@ const searchCalles1 = () => {
 
   searchTimeout1 = setTimeout(async () => {
     setLoading(true, 'Buscando calle 1...')
+    const startTime = performance.now()
 
     try {
       const response = await execute(
-        'SP_CRUCES_SEARCH_CALLE1',
+        'sp_cruces_search_calle1',
         'padron_licencias',
         [
           { nombre: 'p_busqueda', valor: searchCalle1.value, tipo: 'string' }
@@ -341,8 +343,13 @@ const searchCalles1 = () => {
         'guadalajara'
       )
 
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
       if (response && response.result) {
         calles1.value = response.result
+        toast.value.duration = durationText
       } else {
         calles1.value = []
       }
@@ -367,10 +374,11 @@ const searchCalles2 = () => {
 
   searchTimeout2 = setTimeout(async () => {
     setLoading(true, 'Buscando calle 2...')
+    const startTime = performance.now()
 
     try {
       const response = await execute(
-        'SP_CRUCES_SEARCH_CALLE2',
+        'sp_cruces_search_calle2',
         'padron_licencias',
         [
           { nombre: 'p_busqueda', valor: searchCalle2.value, tipo: 'string' }
@@ -378,8 +386,13 @@ const searchCalles2 = () => {
         'guadalajara'
       )
 
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
       if (response && response.result) {
         calles2.value = response.result
+        toast.value.duration = durationText
       } else {
         calles2.value = []
       }
@@ -418,10 +431,11 @@ const localizarCruce = async () => {
   }
 
   setLoading(true, 'Localizando cruce...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'SP_CRUCES_LOCALIZA_CALLE',
+      'sp_cruces_localiza_calle',
       'padron_licencias',
       [
         { nombre: 'p_clave_calle1', valor: calle1Selected.value.clave, tipo: 'string' },
@@ -430,8 +444,13 @@ const localizarCruce = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result && response.result.length > 0) {
       cruceLocalizado.value = response.result[0]
+      toast.value.duration = durationText
       showToast('success', 'Cruce localizado exitosamente')
     } else {
       cruceLocalizado.value = null
@@ -465,11 +484,11 @@ const confirmSelection = async () => {
     icon: 'success',
     title: '¡Selección confirmada!',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Cruce seleccionado:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Calle 1:</strong> ${calle1Selected.value.calle}</li>
-          <li style="margin: 5px 0;"><strong>Calle 2:</strong> ${calle2Selected.value.calle}</li>
+      <div class="swal-selection-content">
+        <p class="swal-confirmation-text">Cruce seleccionado:</p>
+        <ul class="swal-selection-list">
+          <li><strong>Calle 1:</strong> ${calle1Selected.value.calle}</li>
+          <li><strong>Calle 2:</strong> ${calle2Selected.value.calle}</li>
         </ul>
       </div>
     `,
@@ -596,5 +615,20 @@ onBeforeUnmount(() => {
   font-weight: 600;
   color: #666;
   width: 35%;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toast-duration {
+  margin-left: auto;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
 }
 </style>

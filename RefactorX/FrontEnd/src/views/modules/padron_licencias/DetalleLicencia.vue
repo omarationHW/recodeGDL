@@ -308,9 +308,11 @@ const cargarDatos = async () => {
 }
 
 const cargarSaldo = async (idLicencia) => {
+  const startTime = performance.now()
+
   try {
     const response = await execute(
-      'SP_GET_SALDO_LICENCIA',
+      'sp_get_saldo_licencia',
       'padron_licencias',
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
       'guadalajara',
@@ -318,11 +320,14 @@ const cargarSaldo = async (idLicencia) => {
       'comun'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result && response.result.length > 0) {
       saldoLicencia.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error cargando saldo:', error)
+    // Error manejado silenciosamente
   }
 }
 

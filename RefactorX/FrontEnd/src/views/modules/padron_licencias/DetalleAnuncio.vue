@@ -266,7 +266,6 @@ const cargarDatos = () => {
     try {
       anuncioData.value = JSON.parse(datosGuardados)
     } catch (error) {
-      console.error('Error al cargar datos del anuncio:', error)
       Swal.fire({
         title: 'Error',
         text: 'No se pudieron cargar los datos del anuncio',

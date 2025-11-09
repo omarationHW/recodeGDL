@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-contract" />
       </div>
@@ -74,12 +74,11 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group form-group-button-offset">
             <button
               class="btn-municipal-secondary"
               @click="loadAll"
               :disabled="loading"
-              style="margin-top: 24px;"
             >
               <font-awesome-icon icon="list" /> Ver Todas
             </button>
@@ -368,6 +367,7 @@ const loadAll = async () => {
 
 const loadSolicitudes = async () => {
   loading.value = true
+  const startTime = performance.now()
 
   try {
     const params = [
@@ -385,6 +385,9 @@ const loadSolicitudes = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result) {
       solicitudes.value = response.result
       if (response.result.length > 0) {
@@ -392,7 +395,6 @@ const loadSolicitudes = async () => {
       }
     }
   } catch (error) {
-    console.error('Error al cargar solicitudes:', error)
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -442,6 +444,8 @@ const guardarSolicitud = async () => {
 
 const crearSolicitud = async () => {
   loading.value = true
+  const startTime = performance.now()
+  const usuario = localStorage.getItem('usuario') || 'sistema'
 
   try {
     const response = await execute(
@@ -453,10 +457,13 @@ const crearSolicitud = async () => {
         { nombre: 'p_ubicacion', valor: formData.value.ubicacion.trim(), tipo: 'string' },
         { nombre: 'p_zona', valor: formData.value.zona, tipo: 'integer' },
         { nombre: 'p_subzona', valor: formData.value.subzona, tipo: 'integer' },
-        { nombre: 'p_capturista', valor: 'sistema', tipo: 'string' }
+        { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
@@ -472,7 +479,6 @@ const crearSolicitud = async () => {
       throw new Error(response?.result?.[0]?.message || 'Error desconocido')
     }
   } catch (error) {
-    console.error('Error al crear:', error)
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -486,6 +492,7 @@ const crearSolicitud = async () => {
 
 const actualizarSolicitud = async () => {
   loading.value = true
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -503,6 +510,9 @@ const actualizarSolicitud = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result && response.result[0]?.success) {
       await Swal.fire({
         icon: 'success',
@@ -517,7 +527,6 @@ const actualizarSolicitud = async () => {
       throw new Error(response?.result?.[0]?.message || 'Error desconocido')
     }
   } catch (error) {
-    console.error('Error al actualizar:', error)
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -533,8 +542,10 @@ const cancelarSolicitud = async (solic) => {
   const result = await Swal.fire({
     icon: 'warning',
     title: '¿Cancelar Solicitud?',
-    html: `<p>¿Desea cancelar la solicitud <strong>Año ${solic.axo}, Folio ${solic.folio}</strong>?</p>
-           <p>Esta acción marcará la solicitud como no vigente.</p>`,
+    html: `<div class="swal-selection-content">
+             <p class="swal-confirmation-text">¿Desea cancelar la solicitud <strong>Año ${solic.axo}, Folio ${solic.folio}</strong>?</p>
+             <p class="swal-confirmation-text">Esta acción marcará la solicitud como no vigente.</p>
+           </div>`,
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
     cancelButtonColor: '#6c757d',
@@ -544,6 +555,7 @@ const cancelarSolicitud = async (solic) => {
 
   if (result.isConfirmed) {
     loading.value = true
+    const startTime = performance.now()
 
     try {
       const response = await execute(
@@ -555,6 +567,9 @@ const cancelarSolicitud = async (solic) => {
         ],
         'guadalajara'
       )
+
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
 
       if (response && response.result && response.result[0]?.success) {
         await Swal.fire({
@@ -569,7 +584,6 @@ const cancelarSolicitud = async (solic) => {
         throw new Error(response?.result?.[0]?.message || 'Error desconocido')
       }
     } catch (error) {
-      console.error('Error al cancelar:', error)
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -589,3 +603,9 @@ const goToPage = (page) => {
   }
 }
 </script>
+
+<style scoped>
+.form-group-button-offset {
+  margin-top: 24px;
+}
+</style>

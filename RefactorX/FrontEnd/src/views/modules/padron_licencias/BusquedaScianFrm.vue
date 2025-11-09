@@ -269,10 +269,10 @@
                 <td class="label">Categorías Microgenerador:</td>
                 <td>
                   <div class="badge-group">
-                    <span v-if="selectedScian.microgenerador_a === 'S'" class="badge-info">A</span>
-                    <span v-if="selectedScian.microgenerador_b === 'S'" class="badge-info">B</span>
-                    <span v-if="selectedScian.microgenerador_c === 'S'" class="badge-info">C</span>
-                    <span v-if="selectedScian.microgenerador_d === 'S'" class="badge-info">D</span>
+                    <span v-if="selectedScian.microgenerador_a === 'S'" class="badge-purple">A</span>
+                    <span v-if="selectedScian.microgenerador_b === 'S'" class="badge-purple">B</span>
+                    <span v-if="selectedScian.microgenerador_c === 'S'" class="badge-purple">C</span>
+                    <span v-if="selectedScian.microgenerador_d === 'S'" class="badge-purple">D</span>
                   </div>
                 </td>
               </tr>
@@ -474,7 +474,7 @@ const clearSelection = () => {
 const getTipoBadgeClass = (tipo) => {
   const classes = {
     'S': 'badge-primary',  // Sector
-    'R': 'badge-info',     // Rama
+    'R': 'badge-purple',   // Rama
     'C': 'badge-success',  // Clase
     'A': 'badge-warning',  // Actividad
     'E': 'badge-secondary' // Específica

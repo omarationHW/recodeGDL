@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="print" />
       </div>
@@ -105,7 +105,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Licencias Reglamentadas
-          <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
+          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -134,7 +134,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="licencia in licencias" :key="licencia.id" class="row-hover">
+              <tr v-for="licencia in licencias" :key="licencia.id" class="clickable-row">
                 <td>
                   <input
                     type="checkbox"
@@ -530,8 +530,9 @@ const loadLicencias = async () => {
   setLoading(true, 'Cargando licencias...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'frmImpLicenciaReglamentada_sp_get_licencias_reglamentadas',
+      'frmimplicenciareglamentada_sp_get_licencias_reglamentadas',
       'padron_licencias',
       [
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
@@ -539,6 +540,9 @@ const loadLicencias = async () => {
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       licencias.value = response.result
@@ -547,6 +551,8 @@ const loadLicencias = async () => {
       } else {
         totalRecords.value = 0
       }
+      toast.value.message = 'Licencias cargadas correctamente'
+      toast.value.duration = durationText
       showToast('success', 'Licencias cargadas correctamente')
     } else {
       licencias.value = []
@@ -598,18 +604,24 @@ const createLicencia = async () => {
   }
 
   creatingLicencia.value = true
+  const usuario = localStorage.getItem('usuario') || 'sistema'
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'frmImpLicenciaReglamentada_sp_create_licencia_reglamentada',
+      'frmimplicenciareglamentada_sp_create_licencia_reglamentada',
       'padron_licencias',
       [
         { nombre: 'p_numero_licencia', valor: newLicencia.value.numeroLicencia, tipo: 'string' },
         { nombre: 'p_estado', valor: newLicencia.value.estado, tipo: 'string' },
-        { nombre: 'p_observaciones', valor: newLicencia.value.observaciones || '', tipo: 'string' }
+        { nombre: 'p_observaciones', valor: newLicencia.value.observaciones || '', tipo: 'string' },
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       showCreateModal.value = false
@@ -623,6 +635,8 @@ const createLicencia = async () => {
         timer: 2000
       })
 
+      toast.value.message = 'Licencia creada exitosamente'
+      toast.value.duration = durationText
       showToast('success', 'Licencia creada exitosamente')
     } else {
       await Swal.fire({
@@ -643,14 +657,18 @@ const editLicencia = async (licencia) => {
   setLoading(true, 'Cargando datos de la licencia...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'frmImpLicenciaReglamentada_sp_get_licencia_reglamentada_by_id',
+      'frmimplicenciareglamentada_sp_get_licencia_reglamentada_by_id',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: licencia.id, tipo: 'integer' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]) {
       selectedLicencia.value = response.result[0]
@@ -681,18 +699,24 @@ const updateLicencia = async () => {
   }
 
   updatingLicencia.value = true
+  const usuario = localStorage.getItem('usuario') || 'sistema'
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'frmImpLicenciaReglamentada_sp_update_licencia_reglamentada',
+      'frmimplicenciareglamentada_sp_update_licencia_reglamentada',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: editForm.value.id, tipo: 'integer' },
         { nombre: 'p_estado', valor: editForm.value.estado, tipo: 'string' },
-        { nombre: 'p_observaciones', valor: editForm.value.observaciones || '', tipo: 'string' }
+        { nombre: 'p_observaciones', valor: editForm.value.observaciones || '', tipo: 'string' },
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       showEditModal.value = false
@@ -706,6 +730,8 @@ const updateLicencia = async () => {
         timer: 2000
       })
 
+      toast.value.message = 'Licencia actualizada exitosamente'
+      toast.value.duration = durationText
       showToast('success', 'Licencia actualizada exitosamente')
     } else {
       await Swal.fire({
@@ -743,14 +769,18 @@ const deleteLicencia = async (licencia) => {
   setLoading(true, 'Eliminando registro...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'frmImpLicenciaReglamentada_sp_delete_licencia_reglamentada',
+      'frmimplicenciareglamentada_sp_delete_licencia_reglamentada',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: licencia.id, tipo: 'integer' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       loadLicencias()
@@ -763,6 +793,8 @@ const deleteLicencia = async (licencia) => {
         timer: 2000
       })
 
+      toast.value.message = 'Registro eliminado exitosamente'
+      toast.value.duration = durationText
       showToast('success', 'Registro eliminado exitosamente')
     }
   } catch (error) {
@@ -776,14 +808,18 @@ const previewLicencia = async (licencia) => {
   setLoading(true, 'Cargando vista previa...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'frmImpLicenciaReglamentada_sp_get_licencia_reglamentada_by_id',
+      'frmimplicenciareglamentada_sp_get_licencia_reglamentada_by_id',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: licencia.id, tipo: 'integer' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]) {
       selectedLicencia.value = response.result[0]
@@ -924,82 +960,3 @@ onBeforeUnmount(() => {
   showPreviewModal.value = false
 })
 </script>
-
-<style scoped>
-.license-preview {
-  border: 2px solid #2c3e50;
-  padding: 2rem;
-  background: white;
-}
-
-.preview-header {
-  text-align: center;
-  border-bottom: 3px solid #ea8215;
-  padding-bottom: 1rem;
-  margin-bottom: 2rem;
-}
-
-.preview-header h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0 0 0.5rem 0;
-}
-
-.preview-header h4 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #ea8215;
-  margin: 0;
-}
-
-.preview-body {
-  padding: 1rem 0;
-}
-
-.preview-row {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
-
-.preview-field {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.preview-field.full {
-  flex: 1 1 100%;
-}
-
-.preview-field label {
-  font-size: 0.875rem;
-  color: #6c757d;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.preview-field strong {
-  font-size: 1rem;
-  color: #2c3e50;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-left: 3px solid #ea8215;
-}
-
-.preview-footer {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 2px solid #dee2e6;
-  text-align: center;
-}
-
-.preview-footer p {
-  margin: 0;
-  color: #6c757d;
-  font-size: 0.875rem;
-  font-style: italic;
-}
-</style>

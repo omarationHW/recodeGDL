@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="leaf" />
       </div>
@@ -94,7 +94,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Trámites Capturados
-          <span class="badge-info" v-if="tramites.length > 0">{{ tramites.length }} trámites</span>
+          <span class="badge-purple" v-if="tramites.length > 0">{{ tramites.length }} trámites</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -119,7 +119,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="tramite in tramites" :key="tramite.id_tramite" class="row-hover">
+              <tr v-for="tramite in tramites" :key="tramite.id_tramite" class="clickable-row">
                 <td><strong class="text-primary">{{ tramite.id_tramite }}</strong></td>
                 <td><code class="text-muted">{{ tramite.folio }}</code></td>
                 <td>
@@ -134,8 +134,8 @@
                 </td>
                 <td>
                   <div class="zona-info">
-                    <span class="badge-info">Z: {{ tramite.zona || tramite.zona_1 || 'N/A' }}</span>
-                    <span class="badge-info">SZ: {{ tramite.subzona || tramite.subzona_1 || 'N/A' }}</span>
+                    <span class="badge-purple">Z: {{ tramite.zona || tramite.zona_1 || 'N/A' }}</span>
+                    <span class="badge-purple">SZ: {{ tramite.subzona || tramite.subzona_1 || 'N/A' }}</span>
                   </div>
                 </td>
                 <td>
@@ -481,17 +481,23 @@ const loadTramitesByFecha = async () => {
   setLoading(true, 'Cargando trámites...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'SP_GET_TRAMITES_BY_FECHA',
+      'sp_get_tramites_by_fecha',
       'padron_licencias',
       [
         { nombre: 'p_fecha', valor: filters.value.fecha, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       tramites.value = response.result
+      toast.value.message = `Se encontraron ${tramites.value.length} trámites`
+      toast.value.duration = durationText
       showToast('success', `Se encontraron ${tramites.value.length} trámites`)
     } else {
       tramites.value = []
@@ -514,17 +520,23 @@ const loadTramiteById = async () => {
   setLoading(true, 'Buscando trámite...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'SP_GET_TRAMITE_BY_ID',
+      'sp_get_tramite_by_id',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: parseInt(filters.value.id_tramite), tipo: 'integer' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result.length > 0) {
       tramites.value = response.result
+      toast.value.message = 'Trámite encontrado'
+      toast.value.duration = durationText
       showToast('success', 'Trámite encontrado')
     } else {
       tramites.value = []
@@ -570,14 +582,18 @@ const verCruceCalles = async (id_tramite) => {
   setLoading(true, 'Cargando cruce de calles...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'SP_GET_CRUCE_CALLES_BY_TRAMITE',
+      'sp_get_cruce_calles_by_tramite',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: parseInt(id_tramite), tipo: 'integer' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       cruceCalles.value = response.result
@@ -599,7 +615,7 @@ const generarFormato = async (tramite) => {
     icon: 'info',
     title: 'Generar Formato de Ecología',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
+      <div class="swal-confirmation-text">
         <p><strong>Trámite:</strong> ${tramite.id_tramite}</p>
         <p><strong>Propietario:</strong> ${tramite.propietarionvo || tramite.propietario}</p>
         <p><strong>Actividad:</strong> ${tramite.actividad}</p>
@@ -668,58 +684,3 @@ onBeforeUnmount(() => {
   showCruceModal.value = false
 })
 </script>
-
-<style scoped>
-.zona-info {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.domicilio-text {
-  display: block;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.actividad-text {
-  display: block;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.observaciones-box {
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-  min-height: 40px;
-  white-space: pre-wrap;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-@media (max-width: 768px) {
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.required {
-  color: #dc3545;
-}
-
-.empty-icon {
-  color: #6c757d;
-  margin-bottom: 10px;
-}
-</style>

@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="list-ul" />
       </div>
@@ -36,7 +36,7 @@
         <h5>
           <font-awesome-icon icon="check-square" />
           Giros Seleccionados
-          <span class="badge-info" v-if="selectedGiros.length > 0">{{ selectedGiros.length }} giros</span>
+          <span class="badge-purple" v-if="selectedGiros.length > 0">{{ selectedGiros.length }} giros</span>
         </h5>
       </div>
       <div class="municipal-card-body">
@@ -179,7 +179,7 @@
                 />
                 <font-awesome-icon icon="folder" class="category-icon" />
                 <span class="category-name">{{ categoria.nombre }}</span>
-                <span class="badge-info">{{ categoria.giros?.length || 0 }} giros</span>
+                <span class="badge-purple">{{ categoria.giros?.length || 0 }} giros</span>
               </div>
 
               <div v-if="categoria.expanded" class="category-giros">
@@ -303,12 +303,16 @@ const loadGiros = async () => {
   setLoading(true, 'Cargando catálogo de giros...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
       'grs_dlg_sp_get_giros',
       'padron_licencias',
       [],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       // Agrupar giros por categoría
@@ -329,6 +333,8 @@ const loadGiros = async () => {
       })
 
       categorias.value = Array.from(categoriasMap.values())
+      toast.value.message = 'Catálogo de giros cargado correctamente'
+      toast.value.duration = durationText
       showToast('success', 'Catálogo de giros cargado correctamente')
     }
   } catch (error) {
@@ -404,6 +410,7 @@ const openSelectionDialog = () => {
 const confirmSelection = () => {
   selectedGiros.value = [...tempSelectedGiros.value]
   showSelectionDialog.value = false
+  toast.value.message = `${selectedGiros.value.length} giros seleccionados`
   showToast('success', `${selectedGiros.value.length} giros seleccionados`)
 }
 
@@ -464,200 +471,3 @@ onBeforeUnmount(() => {
   showSelectionDialog.value = false
 })
 </script>
-
-<style scoped>
-.selected-giros-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.selected-giro-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-  border-left: 3px solid #ea8215;
-}
-
-.giro-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-}
-
-.giro-code {
-  font-family: monospace;
-  font-weight: bold;
-  color: #ea8215;
-  min-width: 80px;
-}
-
-.giro-name {
-  flex: 1;
-  color: #333;
-}
-
-.search-results {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.search-results h6 {
-  margin-bottom: 0.75rem;
-  color: #495057;
-}
-
-.results-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.result-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem;
-  background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.result-item:hover {
-  border-color: #ea8215;
-  box-shadow: 0 2px 4px rgba(234, 130, 21, 0.1);
-}
-
-.result-item.selected {
-  background: #fff3e0;
-  border-color: #ea8215;
-}
-
-.result-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-}
-
-.giro-selector {
-  min-height: 500px;
-}
-
-.modal-search {
-  margin-bottom: 1.5rem;
-}
-
-.categories-tree {
-  max-height: 400px;
-  overflow-y: auto;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 1rem;
-  background: #f8f9fa;
-}
-
-.category-node {
-  margin-bottom: 1rem;
-}
-
-.category-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.category-header:hover {
-  background: #e9ecef;
-}
-
-.expand-icon {
-  color: #6c757d;
-  width: 12px;
-}
-
-.category-icon {
-  color: #ea8215;
-}
-
-.category-name {
-  flex: 1;
-  font-weight: bold;
-  color: #333;
-}
-
-.category-giros {
-  margin-top: 0.5rem;
-  margin-left: 2rem;
-  padding-left: 1rem;
-  border-left: 2px solid #dee2e6;
-}
-
-.giro-item {
-  padding: 0.5rem 0;
-}
-
-.giro-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.giro-checkbox:hover {
-  background: rgba(234, 130, 21, 0.1);
-}
-
-.giro-checkbox input[type="checkbox"] {
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-}
-
-.modal-search-results .results-count {
-  margin-bottom: 1rem;
-  font-weight: bold;
-  color: #495057;
-}
-
-.selection-summary {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #e7f3ff;
-  border-radius: 4px;
-  text-align: center;
-  font-size: 1.1rem;
-}
-
-.selection-summary .badge-primary {
-  font-size: 1.2rem;
-  margin-left: 0.5rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  color: #6c757d;
-}
-
-.empty-icon {
-  color: #dee2e6;
-  margin-bottom: 1rem;
-}
-</style>

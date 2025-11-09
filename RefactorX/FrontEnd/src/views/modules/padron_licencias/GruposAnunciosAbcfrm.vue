@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="bullhorn" />
       </div>
@@ -80,7 +80,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Grupos de Anuncios
-          <span class="badge-info" v-if="grupos.length > 0">{{ grupos.length }} registros</span>
+          <span class="badge-purple" v-if="grupos.length > 0">{{ grupos.length }} registros</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -98,7 +98,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="grupo in grupos" :key="grupo.id" class="row-hover">
+              <tr v-for="grupo in grupos" :key="grupo.id" class="clickable-row">
                 <td><strong class="text-primary">{{ grupo.id }}</strong></td>
                 <td>{{ grupo.descripcion?.trim() || 'N/A' }}</td>
                 <td>
@@ -327,17 +327,23 @@ const loadGrupos = async () => {
   setLoading(true, 'Cargando grupos de anuncios...')
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'GruposAnunciosAbcfrm_sp_anuncios_grupos_list',
+      'gruposanunciosabcfrm_sp_anuncios_grupos_list',
       'padron_licencias',
       [
         { nombre: 'p_search', valor: filters.value.descripcion || null, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       grupos.value = response.result
+      toast.value.message = 'Grupos cargados correctamente'
+      toast.value.duration = durationText
       showToast('success', 'Grupos cargados correctamente')
     } else {
       grupos.value = []
@@ -384,10 +390,10 @@ const createGrupo = async () => {
     icon: 'question',
     title: '¿Confirmar creación de grupo?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se creará un nuevo grupo con los siguientes datos:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${newGrupo.value.descripcion}</li>
+      <div class="swal-confirmation-text">
+        <p>Se creará un nuevo grupo con los siguientes datos:</p>
+        <ul class="swal-selection-list">
+          <li><strong>Descripción:</strong> ${newGrupo.value.descripcion}</li>
         </ul>
       </div>
     `,
@@ -403,16 +409,22 @@ const createGrupo = async () => {
   }
 
   creatingGrupo.value = true
+  const usuario = localStorage.getItem('usuario') || 'sistema'
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'GruposAnunciosAbcfrm_sp_anuncios_grupos_insert',
+      'gruposanunciosabcfrm_sp_anuncios_grupos_insert',
       'padron_licencias',
       [
-        { nombre: 'p_descripcion', valor: newGrupo.value.descripcion.trim(), tipo: 'string' }
+        { nombre: 'p_descripcion', valor: newGrupo.value.descripcion.trim(), tipo: 'string' },
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       showCreateModal.value = false
@@ -426,6 +438,8 @@ const createGrupo = async () => {
         timer: 2000
       })
 
+      toast.value.message = 'Grupo creado exitosamente'
+      toast.value.duration = durationText
       showToast('success', 'Grupo creado exitosamente')
     } else {
       await Swal.fire({
@@ -472,11 +486,11 @@ const updateGrupo = async () => {
     icon: 'question',
     title: '¿Confirmar actualización?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se actualizarán los datos del grupo:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>ID:</strong> ${editForm.value.id}</li>
-          <li style="margin: 5px 0;"><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
+      <div class="swal-confirmation-text">
+        <p>Se actualizarán los datos del grupo:</p>
+        <ul class="swal-selection-list">
+          <li><strong>ID:</strong> ${editForm.value.id}</li>
+          <li><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
         </ul>
       </div>
     `,
@@ -492,17 +506,23 @@ const updateGrupo = async () => {
   }
 
   updatingGrupo.value = true
+  const usuario = localStorage.getItem('usuario') || 'sistema'
 
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'GruposAnunciosAbcfrm_sp_anuncios_grupos_update',
+      'gruposanunciosabcfrm_sp_anuncios_grupos_update',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: editForm.value.id, tipo: 'integer' },
-        { nombre: 'p_descripcion', valor: editForm.value.descripcion.trim(), tipo: 'string' }
+        { nombre: 'p_descripcion', valor: editForm.value.descripcion.trim(), tipo: 'string' },
+        { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       showEditModal.value = false
@@ -516,6 +536,8 @@ const updateGrupo = async () => {
         timer: 2000
       })
 
+      toast.value.message = 'Grupo actualizado exitosamente'
+      toast.value.duration = durationText
       showToast('success', 'Grupo actualizado exitosamente')
     } else {
       await Swal.fire({
@@ -556,14 +578,18 @@ const confirmDeleteGrupo = async (grupo) => {
 
 const deleteGrupo = async (grupo) => {
   try {
+    const startTime = performance.now()
     const response = await execute(
-      'GruposAnunciosAbcfrm_sp_anuncios_grupos_delete',
+      'gruposanunciosabcfrm_sp_anuncios_grupos_delete',
       'padron_licencias',
       [
         { nombre: 'p_id', valor: grupo.id, tipo: 'integer' }
       ],
       'guadalajara'
     )
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result && response.result[0]?.success) {
       loadGrupos()
@@ -576,6 +602,8 @@ const deleteGrupo = async (grupo) => {
         timer: 2000
       })
 
+      toast.value.message = 'Grupo eliminado exitosamente'
+      toast.value.duration = durationText
       showToast('success', 'Grupo eliminado exitosamente')
     }
   } catch (error) {

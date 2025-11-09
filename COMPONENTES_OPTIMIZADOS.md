@@ -2273,6 +2273,33 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 57/598 componentes (9.53%)**
+### 58. ✅ **catalogo-giros** (catalogogirosfrm.vue) - P2 PRIORIDAD ALTA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ Removed inline style from table cell (max-width: 300px → class giro-description-cell)
+  - ✅ badge-purple instead of badge-info (1 occurrence in clasificacion B)
+  - ✅ Removed 7 console.error() calls
+  - ✅ Replaced 3 inline styles in SweetAlert with CSS classes (swal-selection-content, swal-confirmation-text)
+  - ✅ Removed 255 lines of scoped CSS
+  - ✅ Performance timing already present
+  - ✅ SPs already lowercase (7 SPs)
+  - ✅ Toast structure already correct
+  - ✅ clickable-row already in use
+  - ✅ Uses useGlobalLoading for modals
+- **SPs:** sp_catalogogiros_estadisticas, sp_catalogogiros_list, sp_catalogogiros_get, sp_catalogogiros_create, sp_catalogogiros_update, sp_catalogogiros_cambiar_vigencia (7 SPs)
+- **Features:**
+  - CRUD completo de giros (crear, leer, actualizar, cambiar vigencia)
+  - Stats cards con skeleton loading (Total, Vigentes, Licencias, Reglamentados)
+  - Filtros avanzados (código, descripción, clasificación, tipo, vigencia)
+  - Modal con 3 modos: ver, editar, crear
+  - Paginación del lado del servidor
+  - Validaciones de formulario
+  - SweetAlert para confirmaciones
+  - Búsqueda sin carga automática
+- **Nota Técnica:** Componente ABM de catálogo con modal complejo, no carga tabla automáticamente
+
+---
+
+**PROGRESO TOTAL: 58/598 componentes (9.70%)**
 **Última actualización:** 2025-11-09
 

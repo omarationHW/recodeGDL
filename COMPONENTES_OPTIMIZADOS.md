@@ -2225,6 +2225,31 @@ Cada componente debe cumplir con:
 
 ---
 
-**PROGRESO TOTAL: 55/598 componentes (9.20%)**
+### 56. ✅ **carga-datos** (cargadatosfrm.vue) - P3 PRIORIDAD MEDIA
+- **Fecha:** 2025-11-09
+- **Optimizaciones:**
+  - ✅ clickable-row instead of row-hover (2 occurrences)
+  - ✅ badge-purple instead of badge-info (1 in getBadgeClass)
+  - ✅ Removed 6 inline styles (replaced with CSS classes: area-carto-display, area-carto-icon, area-carto-title, area-carto-value, area-carto-description, empty-area-carto)
+  - ✅ SP names already lowercase
+  - ✅ Performance timing already present on ALL operations
+  - ✅ Toast structure already correct
+  - ✅ User from localStorage already present
+  - ✅ Already uses useLicenciasErrorHandler
+  - ✅ NO scoped CSS
+- **SPs:** sp_get_cargadatos, sp_save_cargadatos, sp_get_avaluos, sp_get_construcciones, sp_get_area_carto (5 SPs)
+- **Features:**
+  - Consulta de datos catastrales por clave catastral
+  - 4 tabs: Datos Generales, Avalúos, Construcciones, Área Cartográfica
+  - Visualización de información del predio (ubicación, propietario, valores)
+  - Listado de avalúos históricos
+  - Listado de construcciones
+  - Área cartográfica total de construcción
+  - Guardado de cambios con auditoría
+- **Nota Técnica:** Componente sin carga automática, requiere buscar clave catastral primero
+
+---
+
+**PROGRESO TOTAL: 56/598 componentes (9.36%)**
 **Última actualización:** 2025-11-09
 

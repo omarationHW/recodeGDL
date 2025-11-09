@@ -232,7 +232,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="avaluo in avaluos" :key="avaluo.id" class="row-hover">
+              <tr v-for="avaluo in avaluos" :key="avaluo.id" class="clickable-row">
                 <td><strong>{{ avaluo.id }}</strong></td>
                 <td>{{ avaluo.cuenta || 'N/A' }}</td>
                 <td><code>{{ avaluo.clave_catastral || 'N/A' }}</code></td>
@@ -283,7 +283,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="construccion in construcciones" :key="construccion.id" class="row-hover">
+              <tr v-for="construccion in construcciones" :key="construccion.id" class="clickable-row">
                 <td><strong>{{ construccion.id }}</strong></td>
                 <td>{{ construccion.cuenta || 'N/A' }}</td>
                 <td>{{ construccion.tipo_construccion || 'N/A' }}</td>
@@ -321,17 +321,17 @@
         </h5>
       </div>
       <div class="municipal-card-body">
-        <div v-if="areaCarto !== null" class="text-center" style="padding: 40px;">
-          <font-awesome-icon icon="map" size="3x" style="color: #ea8215; margin-bottom: 20px;" />
-          <h3 style="color: #495057; margin-bottom: 10px;">Superficie Total de Construcción</h3>
-          <p style="font-size: 48px; font-weight: bold; color: #ea8215; margin: 20px 0;">
+        <div v-if="areaCarto !== null" class="text-center area-carto-display">
+          <font-awesome-icon icon="map" size="3x" class="area-carto-icon" />
+          <h3 class="area-carto-title">Superficie Total de Construcción</h3>
+          <p class="area-carto-value">
             {{ areaCarto }} m²
           </p>
-          <p style="color: #6c757d;">
+          <p class="area-carto-description">
             Superficie total de construcción cartográfica vigente para la clave catastral {{ cvecatnva }}
           </p>
         </div>
-        <div v-else class="text-center text-muted" style="padding: 40px;">
+        <div v-else class="text-center text-muted empty-area-carto">
           <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
           <p>No hay datos de área cartográfica disponibles</p>
         </div>
@@ -674,7 +674,7 @@ const cargarAreaCarto = async () => {
 const getBadgeClass = (estado) => {
   const classes = {
     completado: 'badge-success',
-    procesando: 'badge-info',
+    procesando: 'badge-purple',
     pendiente: 'badge-warning',
     error: 'badge-danger'
   }

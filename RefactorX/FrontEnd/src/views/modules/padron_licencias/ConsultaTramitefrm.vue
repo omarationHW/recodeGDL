@@ -295,7 +295,7 @@
                 >
                   <td><strong class="text-primary">{{ tramite.id_tramite }}</strong></td>
                   <td>
-                    <span v-if="tramite.id_licencia" class="badge badge-info">
+                    <span v-if="tramite.id_licencia" class="badge badge-purple">
                       <font-awesome-icon icon="file-alt" />
                       {{ tramite.id_licencia }}
                     </span>
@@ -1102,13 +1102,13 @@ const exportarPDF = async () => {
 const getBadgeClass = (estatus) => {
   const classes = {
     'P': 'badge-warning',
-    'E': 'badge-info',
+    'E': 'badge-purple',
     'V': 'badge-primary',
     'A': 'badge-success',
     'R': 'badge-danger',
     'C': 'badge-secondary'
   }
-  return classes[estatus] || 'badge-info'
+  return classes[estatus] || 'badge-purple'
 }
 
 const getEstatusDesc = (estatus) => {

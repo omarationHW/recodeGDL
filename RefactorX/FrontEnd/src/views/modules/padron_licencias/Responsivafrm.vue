@@ -788,7 +788,7 @@ const formatUbicacion = () => {
 }
 
 const getTipoBadgeClass = (tipo) => {
-  return tipo === 'R' ? 'badge-primary' : 'badge-info'
+  return tipo === 'R' ? 'badge-primary' : 'badge-purple'
 }
 
 const getEstadoBadgeClass = (vigente) => {

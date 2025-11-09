@@ -899,7 +899,7 @@ const changePageSize = () => {
 const getEstadoClass = (estado) => {
   const classes = {
     'PENDIENTE': 'badge-warning',
-    'IMPRESO': 'badge-info',
+    'IMPRESO': 'badge-purple',
     'ENTREGADO': 'badge-success'
   }
   return classes[estado] || 'badge-secondary'

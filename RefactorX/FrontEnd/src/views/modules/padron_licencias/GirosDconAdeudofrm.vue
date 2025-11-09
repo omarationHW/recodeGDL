@@ -697,7 +697,7 @@ const getPercentageClass = (percentage) => {
   const percent = parseFloat(percentage) || 0
   if (percent >= 75) return 'badge-danger'
   if (percent >= 50) return 'badge-warning'
-  if (percent >= 25) return 'badge-info'
+  if (percent >= 25) return 'badge-purple'
   return 'badge-success'
 }
 
@@ -714,7 +714,7 @@ const getAdeudoBadgeClass = (cantidad) => {
   const num = parseInt(cantidad) || 0
   if (num > 100) return 'badge-danger'
   if (num > 50) return 'badge-warning'
-  if (num > 10) return 'badge-info'
+  if (num > 10) return 'badge-purple'
   return 'badge-light-warning'
 }
 
@@ -722,7 +722,7 @@ const getPercentageBadgeClass = (percentage) => {
   const percent = parseFloat(percentage) || 0
   if (percent >= 50) return 'badge-danger'
   if (percent >= 25) return 'badge-warning'
-  if (percent >= 10) return 'badge-info'
+  if (percent >= 10) return 'badge-purple'
   return 'badge-success'
 }
 

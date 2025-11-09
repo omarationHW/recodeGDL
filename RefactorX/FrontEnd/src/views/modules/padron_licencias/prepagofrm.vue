@@ -689,7 +689,7 @@ const getEstadoBadgeClass = (estado) => {
     'ACTIVO': 'badge-success',
     'PENDIENTE': 'badge-warning',
     'CANCELADO': 'badge-danger',
-    'PROCESADO': 'badge-info'
+    'PROCESADO': 'badge-purple'
   }
   return classes[estado] || 'badge-secondary'
 }

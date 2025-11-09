@@ -147,7 +147,7 @@
               <div class="data-grid">
                 <div class="data-item">
                   <label>Bimestre:</label>
-                  <span class="badge-info">{{ getBimestreLabel(formData.bimestre) }}</span>
+                  <span class="badge-purple">{{ getBimestreLabel(formData.bimestre) }}</span>
                 </div>
                 <div class="data-item">
                   <label>Año:</label>

@@ -641,7 +641,7 @@ const getEstatusBadgeClass = (estatus) => {
     'T': 'badge-warning',
     'A': 'badge-success',
     'R': 'badge-danger',
-    'P': 'badge-info'
+    'P': 'badge-purple'
   }
   return classes[estatus] || 'badge-secondary'
 }

@@ -738,7 +738,7 @@ const deleteRecord = async (record) => {
 const getTipoBadgeClass = (tipo) => {
   const classes = {
     'ALTA': 'badge-success',
-    'MODIFICACION': 'badge-info',
+    'MODIFICACION': 'badge-purple',
     'REFRENDO': 'badge-warning',
     'CANCELACION': 'badge-danger'
   }
@@ -748,7 +748,7 @@ const getTipoBadgeClass = (tipo) => {
 const getEstadoBadgeClass = (estado) => {
   const classes = {
     'PENDIENTE': 'badge-warning',
-    'PROCESADO': 'badge-info',
+    'PROCESADO': 'badge-purple',
     'COMPLETADO': 'badge-success',
     'CANCELADO': 'badge-danger'
   }

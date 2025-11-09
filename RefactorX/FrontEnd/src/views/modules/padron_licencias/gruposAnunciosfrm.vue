@@ -214,7 +214,7 @@
                   <h6>
                     <font-awesome-icon icon="list" />
                     Anuncios Disponibles
-                    <span class="badge-info">{{ filteredAnunciosDisponibles.length }}</span>
+                    <span class="badge-purple">{{ filteredAnunciosDisponibles.length }}</span>
                   </h6>
                   <button
                     class="btn-municipal-primary btn-sm"

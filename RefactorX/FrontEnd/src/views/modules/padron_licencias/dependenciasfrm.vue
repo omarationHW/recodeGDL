@@ -92,7 +92,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Listado de Dependencias
-          <span class="badge-info" v-if="totalRegistros > 0">{{ totalRegistros.toLocaleString() }} registros</span>
+          <span class="badge-purple" v-if="totalRegistros > 0">{{ totalRegistros.toLocaleString() }} registros</span>
         </h5>
       </div>
 

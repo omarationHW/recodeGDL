@@ -721,7 +721,7 @@ const getTipoBloqueoClass = (tipo) => {
   const classes = {
     'PERMANENTE': 'badge-danger',
     'TEMPORAL': 'badge-warning',
-    'PARCIAL': 'badge-info'
+    'PARCIAL': 'badge-purple'
   }
   return classes[tipo] || 'badge-secondary'
 }

@@ -211,7 +211,7 @@
                   </td>
                   <td>
                     <div class="licencia-badge-container">
-                      <span v-if="constancia.id_licencia" class="badge badge-info licencia-badge">
+                      <span v-if="constancia.id_licencia" class="badge badge-purple licencia-badge">
                         <font-awesome-icon icon="file-contract" />
                         Lic. {{ constancia.id_licencia }}
                       </span>
@@ -1590,7 +1590,7 @@ textarea.municipal-form-control {
 }
 
 /* Badge info (con licencia) */
-.badge.badge-info.licencia-badge {
+.badge.badge-purple.licencia-badge {
   background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
   color: white;
 }

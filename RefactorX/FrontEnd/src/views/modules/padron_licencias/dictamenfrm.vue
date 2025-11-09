@@ -350,7 +350,7 @@
           </div>
           <div class="summary-item">
             <span class="summary-label">Fecha</span>
-            <span class="badge badge-info-modern">
+            <span class="badge badge-purple-modern">
               <font-awesome-icon icon="calendar" class="me-1" />
               {{ formatDate(selectedDictamen.fecha) }}
             </span>
@@ -1184,7 +1184,7 @@ const getDictamenBadgeClass = (valor) => {
     case '1': return 'badge-success'
     case '0': return 'badge-danger'
     case '2': return 'badge-warning'
-    case '3': return 'badge-info'
+    case '3': return 'badge-purple'
     default: return 'badge-secondary'
   }
 }

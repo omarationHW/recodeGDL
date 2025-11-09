@@ -214,7 +214,7 @@
                   <h6>
                     <font-awesome-icon icon="list" />
                     Licencias Disponibles
-                    <span class="badge-info">{{ filteredLicenciasDisponibles.length }}</span>
+                    <span class="badge-purple">{{ filteredLicenciasDisponibles.length }}</span>
                   </h6>
                   <button
                     class="btn-municipal-primary btn-sm"

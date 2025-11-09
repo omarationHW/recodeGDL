@@ -317,7 +317,7 @@ const goToConfiguracion = () => {
 // Utilidades
 const getAnnouncementBadgeClass = (tipo) => {
   const classes = {
-    'INFORMATIVO': 'badge-info',
+    'INFORMATIVO': 'badge-purple',
     'IMPORTANTE': 'badge-warning',
     'URGENTE': 'badge-danger',
     'MANTENIMIENTO': 'badge-secondary'

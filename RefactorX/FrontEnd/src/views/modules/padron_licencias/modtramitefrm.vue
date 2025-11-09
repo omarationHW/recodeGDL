@@ -79,7 +79,7 @@
             <font-awesome-icon :icon="showInfoTramite ? 'chevron-up' : 'chevron-down'" class="ms-2" />
           </h5>
           <div class="header-right">
-            <span class="badge-info me-2">ID: {{ form.id_tramite }}</span>
+            <span class="badge-purple me-2">ID: {{ form.id_tramite }}</span>
             <span class="badge-secondary me-2">Folio: {{ form.folio || 'N/A' }}</span>
             <span :class="getBadgeEstatus(form.estatus)">{{ getNombreEstatus(form.estatus) }}</span>
           </div>

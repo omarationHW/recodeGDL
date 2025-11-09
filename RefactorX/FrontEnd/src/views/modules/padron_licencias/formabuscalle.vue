@@ -120,7 +120,7 @@
                 </td>
                 <td><strong class="text-primary">{{ calle.calle?.trim() }}</strong></td>
                 <td>
-                  <span class="badge-info">
+                  <span class="badge-purple">
                     {{ calle.cvepoblacion || 'N/A' }}
                   </span>
                 </td>
@@ -196,7 +196,7 @@
               <tr>
                 <td class="label">Población:</td>
                 <td>
-                  <span class="badge-info">
+                  <span class="badge-purple">
                     {{ selectedCalle.cvepoblacion || 'N/A' }}
                   </span>
                 </td>

@@ -143,7 +143,7 @@
                     <code class="text-primary"><strong>{{ obs.id_observacion }}</strong></code>
                   </td>
                   <td style="text-align: center;">
-                    <span class="badge-info">{{ obs.num_tramite }}</span>
+                    <span class="badge-purple">{{ obs.num_tramite }}</span>
                   </td>
                   <td>
                     <div class="observacion-text">
@@ -752,7 +752,7 @@ const getTipoBadge = (tipo) => {
   const tipos = {
     'TRAMITE': 'badge-primary',
     'LICENCIA': 'badge-success',
-    'GENERAL': 'badge-info'
+    'GENERAL': 'badge-purple'
   }
   return tipos[tipo?.toUpperCase()] || 'badge-secondary'
 }

@@ -213,7 +213,7 @@
                 <td><strong class="text-primary">{{ licencia.numero || 'N/A' }}</strong></td>
                 <td>{{ licencia.propietario || 'N/A' }}</td>
                 <td>
-                  <span class="badge-info">
+                  <span class="badge-purple">
                     {{ licencia.giro || 'N/A' }}
                   </span>
                 </td>
@@ -354,7 +354,7 @@
               <tr>
                 <td class="label">Giro:</td>
                 <td>
-                  <span class="badge-info">
+                  <span class="badge-purple">
                     {{ selectedLicencia.giro || 'N/A' }}
                   </span>
                 </td>
@@ -742,7 +742,7 @@ const getStatusBadge = (estado) => {
   const estados = {
     'VIGENTE': 'badge-success',
     'SUSPENDIDA': 'badge-warning',
-    'TEMPORAL': 'badge-info',
+    'TEMPORAL': 'badge-purple',
     'CANCELADA': 'badge-danger'
   }
   return estados[estado?.toUpperCase()] || 'badge-secondary'

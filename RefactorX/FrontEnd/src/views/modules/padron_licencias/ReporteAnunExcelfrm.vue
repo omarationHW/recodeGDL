@@ -186,7 +186,7 @@
           <h5>
             <font-awesome-icon icon="table" />
             Anuncios Encontrados
-            <span class="badge-info" v-if="anuncios.length > 0">{{ anuncios.length }} anuncios</span>
+            <span class="badge-purple" v-if="anuncios.length > 0">{{ anuncios.length }} anuncios</span>
           </h5>
           <button
             class="btn-municipal-primary"

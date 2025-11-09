@@ -178,10 +178,10 @@
                     <code class="text-primary"><strong>{{ fecha.id }}</strong></code>
                   </td>
                   <td style="text-align: center;">
-                    <span class="badge-info">{{ fecha.t42_doctos_id || '-' }}</span>
+                    <span class="badge-purple">{{ fecha.t42_doctos_id || '-' }}</span>
                   </td>
                   <td style="text-align: center;">
-                    <span class="badge-info">{{ fecha.t42_centros_id || '-' }}</span>
+                    <span class="badge-purple">{{ fecha.t42_centros_id || '-' }}</span>
                   </td>
                   <td style="text-align: center;">
                     <small>{{ fecha.usuario_seg || '-' }}</small>

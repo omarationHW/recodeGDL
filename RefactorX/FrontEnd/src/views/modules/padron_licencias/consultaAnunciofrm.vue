@@ -258,7 +258,7 @@
                 >
                   <td><strong class="text-primary">{{ anuncio.anuncio }}</strong></td>
                   <td>
-                    <span v-if="anuncio.id_licencia" class="badge badge-info">
+                    <span v-if="anuncio.id_licencia" class="badge badge-purple">
                       <font-awesome-icon icon="file-alt" />
                       {{ anuncio.id_licencia }}
                     </span>
@@ -389,7 +389,7 @@
               <tr>
                 <td class="label">ID Licencia:</td>
                 <td>
-                  <span v-if="anuncioSeleccionado.id_licencia" class="badge badge-info">
+                  <span v-if="anuncioSeleccionado.id_licencia" class="badge badge-purple">
                     <font-awesome-icon icon="file-alt" />
                     {{ anuncioSeleccionado.id_licencia }}
                   </span>

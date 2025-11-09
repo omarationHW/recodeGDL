@@ -127,7 +127,7 @@
         <h5>
           <font-awesome-icon icon="list" />
           Licencias Vigentes
-          <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} licencias</span>
+          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} licencias</span>
         </h5>
         <div v-if="loading" class="spinner-border" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -154,7 +154,7 @@
                 <td><strong class="text-primary">{{ lic.numero_licencia?.trim() }}</strong></td>
                 <td>{{ lic.contribuyente?.trim() || 'N/A' }}</td>
                 <td>
-                  <span class="badge-info">
+                  <span class="badge-purple">
                     {{ lic.giro?.trim() || 'N/A' }}
                   </span>
                 </td>

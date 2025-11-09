@@ -214,7 +214,7 @@
                   </td>
                   <td>
                     <div class="licencia-badge-container">
-                      <span v-if="cert.id_licencia" class="badge badge-info licencia-badge">
+                      <span v-if="cert.id_licencia" class="badge badge-purple licencia-badge">
                         <font-awesome-icon icon="file-contract" />
                         Lic. {{ cert.id_licencia }}
                       </span>

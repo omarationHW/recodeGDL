@@ -739,10 +739,10 @@ const getBadgeClass = (vigente) => {
   const classes = {
     'V': 'badge-success',
     'C': 'badge-danger',
-    'A': 'badge-info',
+    'A': 'badge-purple',
     'B': 'badge-warning'
   }
-  return classes[vigente] || 'badge-info'
+  return classes[vigente] || 'badge-purple'
 }
 
 // Métodos

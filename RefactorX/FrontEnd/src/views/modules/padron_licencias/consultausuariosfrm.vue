@@ -1518,7 +1518,7 @@ const getStatusIcon = (fecbaj) => {
 const getLevelBadgeClass = (nivel) => {
   const classes = {
     1: 'badge-secondary',
-    5: 'badge-info',
+    5: 'badge-purple',
     9: 'badge-warning',
     10: 'badge-primary'
   }

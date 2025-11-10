@@ -17,7 +17,81 @@ const dbConfig = {
   password: 'FF)-BQk2',
 };
 
-// Batch #1: 10 SPs IMPORTANTES prioritarios
+// Batch #2: Siguientes 10 SPs IMPORTANTES
+const BATCH_2_SPS = [
+  {
+    name: 'sp_solicnooficial_create',
+    type: 'CREATE',
+    table: 'solicnooficial',
+    pk: 'axo',
+    description: 'Crea nueva solicitud no oficial'
+  },
+  {
+    name: 'sp_solicnooficial_update',
+    type: 'UPDATE',
+    table: 'solicnooficial',
+    pk: 'axo',
+    description: 'Actualiza solicitud no oficial'
+  },
+  {
+    name: 'sp_solicnooficial_cancel',
+    type: 'DELETE',
+    table: 'solicnooficial',
+    pk: 'axo',
+    description: 'Cancela solicitud no oficial'
+  },
+  {
+    name: 'sp_dependencias_create',
+    type: 'CREATE',
+    table: 'c_dependencias',
+    pk: 'id',
+    description: 'Crea nueva dependencia'
+  },
+  {
+    name: 'sp_dependencias_update',
+    type: 'UPDATE',
+    table: 'c_dependencias',
+    pk: 'id',
+    description: 'Actualiza dependencia'
+  },
+  {
+    name: 'sp_dependencias_delete',
+    type: 'DELETE',
+    table: 'c_dependencias',
+    pk: 'id',
+    description: 'Elimina dependencia'
+  },
+  {
+    name: 'sp_dictamenes_create',
+    type: 'CREATE',
+    table: 'dictamenes',
+    pk: 'id',
+    description: 'Crea nuevo dictamen'
+  },
+  {
+    name: 'sp_dictamenes_update',
+    type: 'UPDATE',
+    table: 'dictamenes',
+    pk: 'id',
+    description: 'Actualiza dictamen'
+  },
+  {
+    name: 'sp_create_constancia',
+    type: 'CREATE',
+    table: 'constancias',
+    pk: 'axo',
+    description: 'Crea nueva constancia'
+  },
+  {
+    name: 'sp_update_constancia',
+    type: 'UPDATE',
+    table: 'constancias',
+    pk: 'axo',
+    description: 'Actualiza constancia'
+  }
+];
+
+// Batch #1: 10 SPs IMPORTANTES prioritarios (YA COMPLETADO)
 const BATCH_1_SPS = [
   {
     name: 'sp_get_giro_by_id',
@@ -315,27 +389,41 @@ COMMENT ON FUNCTION ${spDef.name}(${pkType}) IS
 `;
 }
 
-async function generateBatchSQL() {
+async function generateBatchSQL(batchNumber = 1) {
   const client = new Client(dbConfig);
+
+  // Seleccionar el batch correcto
+  const batches = {
+    1: { sps: BATCH_1_SPS, from: 68, to: 78 },
+    2: { sps: BATCH_2_SPS, from: 78, to: 88 }
+  };
+
+  const selectedBatch = batches[batchNumber];
+  if (!selectedBatch) {
+    throw new Error(`Batch ${batchNumber} no encontrado`);
+  }
 
   try {
     await client.connect();
     console.log('✅ Conectado a la base de datos\n');
 
+    const fromPct = ((selectedBatch.from / 312) * 100).toFixed(1);
+    const toPct = ((selectedBatch.to / 312) * 100).toFixed(1);
+
     let sqlContent = `-- ============================================================
--- DEPLOY BATCH #1: 10 SPs IMPORTANTES
+-- DEPLOY BATCH #${batchNumber}: 10 SPs IMPORTANTES
 -- Base de datos: padron_licencias
 -- Fecha: ${new Date().toISOString().split('T')[0]}
 -- ============================================================
 --
--- Este script crea el BATCH #1 de 10 Stored Procedures IMPORTANTES
--- Progreso: De 68/312 (20.7%) → 78/312 (25.0%)
+-- Este script crea el BATCH #${batchNumber} de 10 Stored Procedures IMPORTANTES
+-- Progreso: De ${selectedBatch.from}/312 (${fromPct}%) → ${selectedBatch.to}/312 (${toPct}%)
 --
 -- ============================================================
 
 `;
 
-    for (const spDef of BATCH_1_SPS) {
+    for (const spDef of selectedBatch.sps) {
       console.log(`📋 Generando ${spDef.name} (${spDef.type})...`);
 
       const { schema, columns } = await getTableColumns(client, spDef.table);
@@ -401,6 +489,7 @@ ORDER BY routine_name;
 `;
 
     // Guardar archivo
+    const batchStr = String(batchNumber).padStart(2, '0');
     const outputPath = path.join(
       __dirname,
       '..',
@@ -409,13 +498,13 @@ ORDER BY routine_name;
       'padron_licencias',
       'database',
       'deploy',
-      'DEPLOY_BATCH_01_IMPORTANT.sql'
+      `DEPLOY_BATCH_${batchStr}_IMPORTANT.sql`
     );
 
     fs.writeFileSync(outputPath, sqlContent, 'utf8');
 
     console.log(`\n✅ Script SQL generado: ${outputPath}\n`);
-    console.log(`📊 Total de SPs generados: ${BATCH_1_SPS.length}`);
+    console.log(`📊 Total de SPs generados: ${selectedBatch.sps.length}`);
 
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -426,7 +515,8 @@ ORDER BY routine_name;
 }
 
 if (require.main === module) {
-  generateBatchSQL()
+  const batchNumber = parseInt(process.argv[2]) || 1;
+  generateBatchSQL(batchNumber)
     .then(() => {
       console.log('\n✅ Generación completada\n');
       process.exit(0);

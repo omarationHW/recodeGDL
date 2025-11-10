@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-09T23:40:12.596Z",
+  "timestamp": "2025-11-10T00:32:22.275Z",
   "totalSPs": 328,
   "database": "padron_licencias",
   "sps": [
@@ -2230,10 +2230,21 @@
     },
     {
       "name": "sp_get_tramite_by_id",
-      "exists": false,
-      "info": null,
+      "exists": true,
+      "info": {
+        "routine_name": "sp_get_tramite_by_id",
+        "routine_schema": "public",
+        "routine_type": "FUNCTION",
+        "return_type": "record",
+        "param_count": "62"
+      },
       "parameters": [],
-      "execution": null
+      "execution": {
+        "success": false,
+        "rowCount": 0,
+        "hasResults": false,
+        "error": "function sp_get_tramite_by_id(unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown) does not exist"
+      }
     },
     {
       "name": "sp_get_tramite_estado",
@@ -2848,10 +2859,21 @@
     },
     {
       "name": "sp_verifica_firma",
-      "exists": false,
-      "info": null,
+      "exists": true,
+      "info": {
+        "routine_name": "sp_verifica_firma",
+        "routine_schema": "public",
+        "routine_type": "FUNCTION",
+        "return_type": "record",
+        "param_count": "6"
+      },
       "parameters": [],
-      "execution": null
+      "execution": {
+        "success": false,
+        "rowCount": 0,
+        "hasResults": false,
+        "error": "function sp_verifica_firma(unknown, unknown, unknown, unknown, unknown, unknown) does not exist"
+      }
     },
     {
       "name": "sp_zonaanuncio_create",
@@ -3027,11 +3049,11 @@
     }
   ],
   "summary": {
-    "exist": 66,
-    "notExist": 262,
+    "exist": 68,
+    "notExist": 260,
     "executable": 0,
-    "withErrors": 66,
-    "percentageExist": "20.12",
+    "withErrors": 68,
+    "percentageExist": "20.73",
     "percentageExecutable": "0.00"
   }
 }

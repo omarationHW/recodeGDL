@@ -38,8 +38,9 @@ async function deployCriticalSPs() {
 
     // Leer el archivo SQL
     // __dirname = C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\FrontEnd\scripts
-    // Target =  C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\padron_licencias\database\deploy\DEPLOY_CRITICAL_SPS.sql
-    const sqlFilePath = path.join(__dirname, '..', '..', 'Base', 'padron_licencias', 'database', 'deploy', 'DEPLOY_CRITICAL_SPS.sql');
+    // Target =  C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\padron_licencias\database\deploy\
+    const sqlFileName = process.argv[2] || 'DEPLOY_CRITICAL_SPS.sql';
+    const sqlFilePath = path.join(__dirname, '..', '..', 'Base', 'padron_licencias', 'database', 'deploy', sqlFileName);
 
     log(`📂 Buscando archivo en: ${sqlFilePath}\n`, 'blue');
 

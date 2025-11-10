@@ -41,8 +41,8 @@ async function deployBatch(batchNumber) {
   log(`  PROCESANDO BATCH #${batchNumber}`, 'magenta');
   log(`${'═'.repeat(70)}`, 'magenta');
 
-  // 1. Generar SQL del batch
-  const generateCmd = `node "${path.join(__dirname, 'generate-batch-sps.cjs')}" ${batchNumber}`;
+  // 1. Generar SQL del batch (usando generador dinámico)
+  const generateCmd = `node "${path.join(__dirname, 'generate-dynamic-batch.cjs')}" ${batchNumber}`;
   const generateResult = runCommand(generateCmd, `Generando batch #${batchNumber}`);
 
   if (!generateResult.success) {
@@ -54,7 +54,9 @@ async function deployBatch(batchNumber) {
 
   // 2. Desplegar a la base de datos
   const batchStr = String(batchNumber).padStart(2, '0');
-  const deployCmd = `node "${path.join(__dirname, 'deploy-critical-sps.cjs')}" DEPLOY_BATCH_${batchStr}_IMPORTANT.sql`;
+  // El nombre del archivo puede ser _IMPORTANT o _OPTIONAL dependiendo del batch
+  const tierSuffix = batchNumber <= 7 ? 'IMPORTANT' : 'OPTIONAL';
+  const deployCmd = `node "${path.join(__dirname, 'deploy-critical-sps.cjs')}" DEPLOY_BATCH_${batchStr}_${tierSuffix}.sql`;
   const deployResult = runCommand(deployCmd, `Desplegando batch #${batchNumber}`);
 
   if (!deployResult.success) {

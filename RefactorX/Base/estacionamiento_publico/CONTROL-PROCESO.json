@@ -1,0 +1,1282 @@
+{
+  "modulo": "estacionamiento_publico",
+  "fecha_actualizacion": "2025-11-09",
+  "version": "1.0",
+  "resumen_general": {
+    "total_componentes": 108,
+    "componentes_ok": 32,
+    "componentes_pendientes": 13,
+    "componentes_sin_sps": 63,
+    "total_sps": 181,
+    "sps_ok": 162,
+    "sps_con_errores": 20,
+    "porcentaje_completado": 71.11,
+    "componentes_funcionales_porcentaje": 71.11
+  },
+  "componentes": {
+    "AccesoPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/AccesoPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Acceso y registro de movimientos de estacionamientos públicos",
+      "prioridad": "CRITICO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_pub_movtos"],
+      "estado_sps": {
+        "sp_pub_movtos": "OK"
+      },
+      "observaciones": "Componente crítico funcional. SP disponible y funcional."
+    },
+    "ActualizacionPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ActualizacionPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Actualización de pagos de estacionamientos públicos",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["actualiza_pub_pago"],
+      "estado_sps": {
+        "actualiza_pub_pago": "OK"
+      },
+      "observaciones": "Componente funcional. SP disponible y funcional."
+    },
+    "AplicaPagoDivAdminPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/AplicaPagoDivAdminPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Aplicación de pagos diversos administrativos",
+      "prioridad": "CRITICO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["sp_busca_folios_divadmin", "sp_aplica_pago_divadmin"],
+      "estado_sps": {
+        "sp_busca_folios_divadmin": "ERROR - parameter name 'axo' used more than once",
+        "sp_aplica_pago_divadmin": "OK"
+      },
+      "observaciones": "BLOQUEADO - sp_busca_folios_divadmin tiene error de parámetro duplicado 'axo'"
+    },
+    "AspectoPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/AspectoPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Gestión de aspectos visuales del sistema",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["get_aspectos", "get_current_aspecto"],
+      "estado_sps": {
+        "get_aspectos": "OK",
+        "get_current_aspecto": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "BajaMultiplePublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/BajaMultiplePublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Baja múltiple de folios de estacionamiento",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_insert_folios_baja_esta", "sp_get_incidencias_baja_multiple"],
+      "estado_sps": {
+        "sp_insert_folios_baja_esta": "OK",
+        "sp_get_incidencias_baja_multiple": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "BajasPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/BajasPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Baja individual de estacionamientos públicos",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar, falta confirmación SweetAlert2",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["sp_sfrm_baja_pub"],
+      "estado_sps": {
+        "sp_sfrm_baja_pub": "FALTANTE - SP no existe en BD"
+      },
+      "observaciones": "BLOQUEADO - sp_sfrm_baja_pub no existe en la BD"
+    },
+    "CargaEdoExPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/CargaEdoExPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Carga de estado de cuenta externo",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_insert_ta14_datos_edo", "sp_afec_esta01", "sp_insert_ta14_bitacora"],
+      "estado_sps": {
+        "sp_insert_ta14_datos_edo": "OK",
+        "sp_afec_esta01": "OK",
+        "sp_insert_ta14_bitacora": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "ChgAutorizDesctoPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ChgAutorizDesctoPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Autorización y cambio de descuentos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_buscar_folios_histo", "sp_cambiar_a_tesorero"],
+      "estado_sps": {
+        "sp_buscar_folios_histo": "OK",
+        "sp_cambiar_a_tesorero": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "ConciBanortePublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ConciBanortePublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Conciliación bancaria con Banorte",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_conciliados_by_folio"],
+      "estado_sps": {
+        "sp_conciliados_by_folio": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "ConsGralPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ConsGralPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Consulta general de folios",
+      "prioridad": "CRITICO",
+      "validaciones": {
+        "estilos": "PENDIENTE - Estilos inline complejos",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp14_afolios", "sp14_bfolios"],
+      "estado_sps": {
+        "sp14_afolios": "OK",
+        "sp14_bfolios": "OK"
+      },
+      "observaciones": "Componente crítico funcional. Todos los SPs operativos."
+    },
+    "ConsRemesasPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ConsRemesasPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Consulta de remesas",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["sp_get_remesas", "sp_get_remesa_detalle_mpio"],
+      "estado_sps": {
+        "sp_get_remesas": "OK",
+        "sp_get_remesa_detalle_mpio": "ERROR - type 'ta14_datos_mpio' does not exist"
+      },
+      "observaciones": "BLOQUEADO - sp_get_remesa_detalle_mpio requiere tipo 'ta14_datos_mpio' que no existe"
+    },
+    "ConsultaPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ConsultaPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Consulta principal de estacionamientos públicos",
+      "prioridad": "CRITICO",
+      "validaciones": {
+        "estilos": "PENDIENTE - badge-info debe ser badge-purple",
+        "estandares": "PENDIENTE - No usa composables estándar, falta DocumentationModal",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["sp_get_public_parking_list", "sp_get_public_parking_fines", "cajero_pub_detalle", "spget_lic_grales"],
+      "estado_sps": {
+        "sp_get_public_parking_list": "OK",
+        "sp_get_public_parking_fines": "OK",
+        "cajero_pub_detalle": "OK",
+        "spget_lic_grales": "FALTANTE - SP no existe en BD"
+      },
+      "observaciones": "BLOQUEADO - spget_lic_grales no existe en BD. Componente crítico de consulta."
+    },
+    "ContrarecibosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ContrarecibosPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Gestión de contrarecibos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["spd_crbo_abc", "sum_contrarecibos_by_date"],
+      "estado_sps": {
+        "spd_crbo_abc": "OK",
+        "sum_contrarecibos_by_date": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "EdoCtaPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/EdoCtaPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Estado de cuenta de estacionamientos públicos",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["spubreports_edocta"],
+      "estado_sps": {
+        "spubreports_edocta": "ERROR - parameter name 'numesta' used more than once"
+      },
+      "observaciones": "BLOQUEADO - spubreports_edocta tiene error de parámetro duplicado 'numesta'"
+    },
+    "EstadisticasPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/EstadisticasPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Reportes estadísticos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sqrp_esta01_report"],
+      "estado_sps": {
+        "sqrp_esta01_report": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "EstadoMpioPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/EstadoMpioPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Remesas estado-municipio",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_remesas_estado_mpio", "spd_delesta01"],
+      "estado_sps": {
+        "sp_get_remesas_estado_mpio": "OK",
+        "spd_delesta01": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "FoliosAltaPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/FoliosAltaPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Alta de folios de adeudo",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_insert_folio_adeudo"],
+      "estado_sps": {
+        "sp_insert_folio_adeudo": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "GenArcAltasPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/GenArcAltasPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Generación de archivos de altas",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["get_periodo_altas", "sp14_remesa"],
+      "estado_sps": {
+        "get_periodo_altas": "OK",
+        "sp14_remesa": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "GenArcDiarioPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/GenArcDiarioPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Generación de archivo diario",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp14_remesa"],
+      "estado_sps": {
+        "sp14_remesa": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "GenerarPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/GenerarPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Generación de públicos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - Componente muy básico, solo muestra JSON",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_public_parking_list"],
+      "estado_sps": {
+        "sp_get_public_parking_list": "OK"
+      },
+      "observaciones": "Componente funcional pero básico. SP operativo."
+    },
+    "GenIndividualPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/GenIndividualPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Generación individual de archivos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["sp_gen_individual_add", "sp_gen_individual_generate_file"],
+      "estado_sps": {
+        "sp_gen_individual_add": "ERROR - RETURN NEXT cannot have a parameter in function with OUT parameters",
+        "sp_gen_individual_generate_file": "OK"
+      },
+      "observaciones": "BLOQUEADO - sp_gen_individual_add tiene error de sintaxis en RETURN NEXT"
+    },
+    "GenPgosBanortePublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/GenPgosBanortePublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Generación de pagos Banorte",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp14_remesa"],
+      "estado_sps": {
+        "sp14_remesa": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "ImpPadronPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ImpPadronPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Impresión de padrón",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_padron_report"],
+      "estado_sps": {
+        "sp_get_padron_report": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "InfoPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/InfoPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Información general de públicos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No implementa stats-grid, no usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_public_parking_list"],
+      "estado_sps": {
+        "sp_get_public_parking_list": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "InspectoresPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/InspectoresPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Catálogo de inspectores",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_inspectors"],
+      "estado_sps": {
+        "sp_get_inspectors": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "ListadosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ListadosPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Listados de públicos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sqrp_publicos_report"],
+      "estado_sps": {
+        "sqrp_publicos_report": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "MensajePublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/MensajePublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Sistema de mensajes",
+      "prioridad": "BAJO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["sp_mensaje_show"],
+      "estado_sps": {
+        "sp_mensaje_show": "ERROR - parameter name 'tipo' used more than once"
+      },
+      "observaciones": "BLOQUEADO - sp_mensaje_show tiene error de parámetro duplicado 'tipo'"
+    },
+    "MetrometersPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/MetrometersPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Gestión de parquímetros",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_metrometer_by_axo_folio", "sp_get_metrometers_map_url"],
+      "estado_sps": {
+        "sp_get_metrometer_by_axo_folio": "OK",
+        "sp_get_metrometers_map_url": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "PagosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/PagosPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Gestión de pagos",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["spubreports"],
+      "estado_sps": {
+        "spubreports": "FALTANTE - SP no existe en BD (existe spubreports_list)"
+      },
+      "observaciones": "BLOQUEADO - spubreports no existe en BD (existe spubreports_list pero no spubreports)"
+    },
+    "PasswordsPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/PasswordsPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Gestión de contraseñas",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_passwords_list", "sp_passwords_update"],
+      "estado_sps": {
+        "sp_passwords_list": "OK",
+        "sp_passwords_update": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "PredioCartoPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/PredioCartoPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Cartografía de predios",
+      "prioridad": "BAJO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_predio_carto_url"],
+      "estado_sps": {
+        "sp_get_predio_carto_url": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "PublicosNew.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/PublicosNew.vue",
+      "status": "OK",
+      "funcionalidad": "Alta de nuevos estacionamientos públicos",
+      "prioridad": "CRITICO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["cons_predio", "sppubalta"],
+      "estado_sps": {
+        "cons_predio": "OK",
+        "sppubalta": "OK"
+      },
+      "observaciones": "Componente crítico funcional. Todos los SPs operativos."
+    },
+    "ReactivaFoliosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ReactivaFoliosPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Reactivación de folios",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_reactiva_folios_buscar"],
+      "estado_sps": {
+        "sp_reactiva_folios_buscar": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "RelacionFoliosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/RelacionFoliosPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Relación de folios",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["sQRp_relacion_folios_report"],
+      "estado_sps": {
+        "sQRp_relacion_folios_report": "ERROR - SP no encontrado después de ejecutar"
+      },
+      "observaciones": "BLOQUEADO - sQRp_relacion_folios_report se desplegó pero no se encuentra después"
+    },
+    "ReporteFoliosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ReporteFoliosPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Reporte de folios por inspector",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_get_folios_by_inspector"],
+      "estado_sps": {
+        "sp_get_folios_by_inspector": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "ReporteListaPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ReporteListaPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Listado de reportes",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["spubreports_list"],
+      "estado_sps": {
+        "spubreports_list": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "ReportePagosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ReportePagosPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Reporte de pagos",
+      "prioridad": "ALTO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["report_folios_pagados", "report_folios_adeudo_por_inspector"],
+      "estado_sps": {
+        "report_folios_pagados": "OK",
+        "report_folios_adeudo_por_inspector": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "ReportesCalcoPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ReportesCalcoPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Reportes de calcomanías",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_catalog_inspectors", "sp_report_folios"],
+      "estado_sps": {
+        "sp_catalog_inspectors": "OK",
+        "sp_report_folios": "OK"
+      },
+      "observaciones": "Componente funcional. Todos los SPs operativos."
+    },
+    "ReportesPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ReportesPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Reportes generales",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["spget_lic_detalles", "spubreports"],
+      "estado_sps": {
+        "spget_lic_detalles": "FALTANTE - SP no existe en BD",
+        "spubreports": "FALTANTE - SP no existe en BD"
+      },
+      "observaciones": "BLOQUEADO - Ambos SPs no existen en BD (spget_lic_detalles, spubreports)"
+    },
+    "SeguridadLoginPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/SeguridadLoginPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Login de seguridad",
+      "prioridad": "CRITICO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_login_seguridad"],
+      "estado_sps": {
+        "sp_login_seguridad": "OK"
+      },
+      "observaciones": "Componente crítico funcional. SP operativo."
+    },
+    "SolicRepFoliosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/SolicRepFoliosPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Solicitud de reposición de folios",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["report_folios_pagados", "sQRp_relacion_folios_report"],
+      "estado_sps": {
+        "report_folios_pagados": "OK",
+        "sQRp_relacion_folios_report": "ERROR - SP no encontrado después de ejecutar"
+      },
+      "observaciones": "BLOQUEADO - sQRp_relacion_folios_report se desplegó pero no se encuentra"
+    },
+    "TransFoliosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/TransFoliosPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Transferencia de folios",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["spd_delesta01"],
+      "estado_sps": {
+        "spd_delesta01": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "TransPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/TransPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Transferencia de públicos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar, faltan validaciones",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_ta_15_publicos_insert"],
+      "estado_sps": {
+        "sp_ta_15_publicos_insert": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "UpPagosPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/UpPagosPublicos.vue",
+      "status": "OK",
+      "funcionalidad": "Actualización de pagos",
+      "prioridad": "MEDIO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "OK",
+        "sps_funcionando": true
+      },
+      "sps_usados": ["sp_up_pagos_update"],
+      "estado_sps": {
+        "sp_up_pagos_update": "OK"
+      },
+      "observaciones": "Componente funcional. SP operativo."
+    },
+    "ValetPasoPublicos.vue": {
+      "ubicacion": "RefactorX/FrontEnd/src/views/modules/estacionamiento_publico/ValetPasoPublicos.vue",
+      "status": "PENDIENTE",
+      "funcionalidad": "Procesamiento de archivos valet",
+      "prioridad": "BAJO",
+      "validaciones": {
+        "estilos": "OK",
+        "estandares": "PENDIENTE - No usa composables estándar",
+        "integracion_bd": "ERROR",
+        "sps_funcionando": false
+      },
+      "sps_usados": ["process_valet_file"],
+      "estado_sps": {
+        "process_valet_file": "ERROR - RETURN NEXT cannot have a parameter in function with OUT parameters"
+      },
+      "observaciones": "BLOQUEADO - process_valet_file tiene error de sintaxis en RETURN NEXT"
+    }
+  },
+  "sps_deployed": {
+    "sp_pub_movtos": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["AccesoPublicos.vue"]
+    },
+    "actualiza_pub_pago": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ActualizacionPublicos.vue"]
+    },
+    "sp_busca_folios_divadmin": {
+      "status": "ERROR",
+      "en_bd": true,
+      "error": "parameter name 'axo' used more than once",
+      "usado_por": ["AplicaPagoDivAdminPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "15 minutos"
+    },
+    "sp_aplica_pago_divadmin": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["AplicaPagoDivAdminPublicos.vue"]
+    },
+    "get_aspectos": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["AspectoPublicos.vue"]
+    },
+    "get_current_aspecto": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["AspectoPublicos.vue"]
+    },
+    "sp_insert_folios_baja_esta": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["BajaMultiplePublicos.vue"]
+    },
+    "sp_get_incidencias_baja_multiple": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["BajaMultiplePublicos.vue"]
+    },
+    "sp_sfrm_baja_pub": {
+      "status": "FALTANTE",
+      "en_bd": false,
+      "usado_por": ["BajasPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "1-2 horas (crear SP)"
+    },
+    "sp_insert_ta14_datos_edo": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["CargaEdoExPublicos.vue"]
+    },
+    "sp_afec_esta01": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["CargaEdoExPublicos.vue"]
+    },
+    "sp_insert_ta14_bitacora": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["CargaEdoExPublicos.vue"]
+    },
+    "sp_buscar_folios_histo": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ChgAutorizDesctoPublicos.vue"]
+    },
+    "sp_cambiar_a_tesorero": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ChgAutorizDesctoPublicos.vue"]
+    },
+    "sp_conciliados_by_folio": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ConciBanortePublicos.vue"]
+    },
+    "sp14_afolios": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ConsGralPublicos.vue"]
+    },
+    "sp14_bfolios": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ConsGralPublicos.vue"]
+    },
+    "sp_get_remesas": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ConsRemesasPublicos.vue"]
+    },
+    "sp_get_remesa_detalle_mpio": {
+      "status": "ERROR",
+      "en_bd": true,
+      "error": "type 'ta14_datos_mpio' does not exist",
+      "usado_por": ["ConsRemesasPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "30-45 minutos (crear tipo o modificar SP)"
+    },
+    "sp_get_public_parking_list": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ConsultaPublicos.vue", "GenerarPublicos.vue", "InfoPublicos.vue"]
+    },
+    "sp_get_public_parking_fines": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ConsultaPublicos.vue"]
+    },
+    "cajero_pub_detalle": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ConsultaPublicos.vue"]
+    },
+    "spget_lic_grales": {
+      "status": "FALTANTE",
+      "en_bd": false,
+      "usado_por": ["ConsultaPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "2-3 horas (crear SP)"
+    },
+    "spd_crbo_abc": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ContrarecibosPublicos.vue"]
+    },
+    "sum_contrarecibos_by_date": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ContrarecibosPublicos.vue"]
+    },
+    "spubreports_edocta": {
+      "status": "ERROR",
+      "en_bd": true,
+      "error": "parameter name 'numesta' used more than once",
+      "usado_por": ["EdoCtaPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "15 minutos"
+    },
+    "sqrp_esta01_report": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["EstadisticasPublicos.vue"]
+    },
+    "sp_get_remesas_estado_mpio": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["EstadoMpioPublicos.vue"]
+    },
+    "spd_delesta01": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["EstadoMpioPublicos.vue", "TransFoliosPublicos.vue"]
+    },
+    "sp_insert_folio_adeudo": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["FoliosAltaPublicos.vue"]
+    },
+    "get_periodo_altas": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["GenArcAltasPublicos.vue"]
+    },
+    "sp14_remesa": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["GenArcAltasPublicos.vue", "GenArcDiarioPublicos.vue", "GenPgosBanortePublicos.vue"]
+    },
+    "sp_gen_individual_add": {
+      "status": "ERROR",
+      "en_bd": true,
+      "error": "RETURN NEXT cannot have a parameter in function with OUT parameters",
+      "usado_por": ["GenIndividualPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "30 minutos"
+    },
+    "sp_gen_individual_generate_file": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["GenIndividualPublicos.vue"]
+    },
+    "sp_get_padron_report": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ImpPadronPublicos.vue"]
+    },
+    "sp_get_inspectors": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["InspectoresPublicos.vue"]
+    },
+    "sqrp_publicos_report": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ListadosPublicos.vue"]
+    },
+    "sp_mensaje_show": {
+      "status": "ERROR",
+      "en_bd": true,
+      "error": "parameter name 'tipo' used more than once",
+      "usado_por": ["MensajePublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "10 minutos"
+    },
+    "sp_get_metrometer_by_axo_folio": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["MetrometersPublicos.vue"]
+    },
+    "sp_get_metrometers_map_url": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["MetrometersPublicos.vue"]
+    },
+    "spubreports": {
+      "status": "FALTANTE",
+      "en_bd": false,
+      "usado_por": ["PagosPublicos.vue", "ReportesPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "1-2 horas (crear SP o renombrar llamadas a spubreports_list)"
+    },
+    "sp_passwords_list": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["PasswordsPublicos.vue"]
+    },
+    "sp_passwords_update": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["PasswordsPublicos.vue"]
+    },
+    "sp_get_predio_carto_url": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["PredioCartoPublicos.vue"]
+    },
+    "cons_predio": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["PublicosNew.vue"]
+    },
+    "sppubalta": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["PublicosNew.vue"]
+    },
+    "sp_reactiva_folios_buscar": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ReactivaFoliosPublicos.vue"]
+    },
+    "sQRp_relacion_folios_report": {
+      "status": "ERROR",
+      "en_bd": true,
+      "error": "SP no encontrado después de ejecutar",
+      "usado_por": ["RelacionFoliosPublicos.vue", "SolicRepFoliosPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "1 hora (investigar problema de despliegue)"
+    },
+    "sp_get_folios_by_inspector": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ReporteFoliosPublicos.vue"]
+    },
+    "spubreports_list": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ReporteListaPublicos.vue"]
+    },
+    "report_folios_pagados": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ReportePagosPublicos.vue", "SolicRepFoliosPublicos.vue"]
+    },
+    "report_folios_adeudo_por_inspector": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ReportePagosPublicos.vue"]
+    },
+    "sp_catalog_inspectors": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ReportesCalcoPublicos.vue"]
+    },
+    "sp_report_folios": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["ReportesCalcoPublicos.vue"]
+    },
+    "spget_lic_detalles": {
+      "status": "FALTANTE",
+      "en_bd": false,
+      "usado_por": ["ReportesPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "2-3 horas (crear SP)"
+    },
+    "sp_login_seguridad": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["SeguridadLoginPublicos.vue"]
+    },
+    "sp_ta_15_publicos_insert": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["TransPublicos.vue"]
+    },
+    "sp_up_pagos_update": {
+      "status": "OK",
+      "en_bd": true,
+      "usado_por": ["UpPagosPublicos.vue"]
+    },
+    "process_valet_file": {
+      "status": "ERROR",
+      "en_bd": true,
+      "error": "RETURN NEXT cannot have a parameter in function with OUT parameters",
+      "usado_por": ["ValetPasoPublicos.vue"],
+      "requiere_correccion": true,
+      "tiempo_estimado_correccion": "30 minutos"
+    }
+  },
+  "componentes_ok": [
+    "AccesoPublicos.vue",
+    "ActualizacionPublicos.vue",
+    "AspectoPublicos.vue",
+    "BajaMultiplePublicos.vue",
+    "CargaEdoExPublicos.vue",
+    "ChgAutorizDesctoPublicos.vue",
+    "ConciBanortePublicos.vue",
+    "ConsGralPublicos.vue",
+    "ContrarecibosPublicos.vue",
+    "EstadisticasPublicos.vue",
+    "EstadoMpioPublicos.vue",
+    "FoliosAltaPublicos.vue",
+    "GenArcAltasPublicos.vue",
+    "GenArcDiarioPublicos.vue",
+    "GenerarPublicos.vue",
+    "GenPgosBanortePublicos.vue",
+    "ImpPadronPublicos.vue",
+    "InfoPublicos.vue",
+    "InspectoresPublicos.vue",
+    "ListadosPublicos.vue",
+    "MetrometersPublicos.vue",
+    "PasswordsPublicos.vue",
+    "PredioCartoPublicos.vue",
+    "PublicosNew.vue",
+    "ReactivaFoliosPublicos.vue",
+    "ReporteFoliosPublicos.vue",
+    "ReporteListaPublicos.vue",
+    "ReportePagosPublicos.vue",
+    "ReportesCalcoPublicos.vue",
+    "SeguridadLoginPublicos.vue",
+    "TransFoliosPublicos.vue",
+    "TransPublicos.vue",
+    "UpPagosPublicos.vue"
+  ],
+  "componentes_pendientes": [
+    {
+      "componente": "AplicaPagoDivAdminPublicos.vue",
+      "motivo": "Error en sp_busca_folios_divadmin - parámetro 'axo' duplicado",
+      "prioridad": "CRITICO",
+      "tiempo_estimado": "15 minutos"
+    },
+    {
+      "componente": "BajasPublicos.vue",
+      "motivo": "SP sp_sfrm_baja_pub no existe en BD",
+      "prioridad": "ALTO",
+      "tiempo_estimado": "1-2 horas"
+    },
+    {
+      "componente": "ConsRemesasPublicos.vue",
+      "motivo": "Error en sp_get_remesa_detalle_mpio - tipo 'ta14_datos_mpio' inexistente",
+      "prioridad": "ALTO",
+      "tiempo_estimado": "30-45 minutos"
+    },
+    {
+      "componente": "ConsultaPublicos.vue",
+      "motivo": "SP spget_lic_grales no existe en BD",
+      "prioridad": "CRITICO",
+      "tiempo_estimado": "2-3 horas"
+    },
+    {
+      "componente": "EdoCtaPublicos.vue",
+      "motivo": "Error en spubreports_edocta - parámetro 'numesta' duplicado",
+      "prioridad": "ALTO",
+      "tiempo_estimado": "15 minutos"
+    },
+    {
+      "componente": "GenIndividualPublicos.vue",
+      "motivo": "Error en sp_gen_individual_add - sintaxis RETURN NEXT",
+      "prioridad": "MEDIO",
+      "tiempo_estimado": "30 minutos"
+    },
+    {
+      "componente": "MensajePublicos.vue",
+      "motivo": "Error en sp_mensaje_show - parámetro 'tipo' duplicado",
+      "prioridad": "BAJO",
+      "tiempo_estimado": "10 minutos"
+    },
+    {
+      "componente": "PagosPublicos.vue",
+      "motivo": "SP spubreports no existe en BD",
+      "prioridad": "ALTO",
+      "tiempo_estimado": "1-2 horas"
+    },
+    {
+      "componente": "RelacionFoliosPublicos.vue",
+      "motivo": "sQRp_relacion_folios_report no se encuentra después de ejecutar",
+      "prioridad": "MEDIO",
+      "tiempo_estimado": "1 hora"
+    },
+    {
+      "componente": "ReportesPublicos.vue",
+      "motivo": "SPs spget_lic_detalles y spubreports no existen en BD",
+      "prioridad": "MEDIO",
+      "tiempo_estimado": "3-4 horas"
+    },
+    {
+      "componente": "SolicRepFoliosPublicos.vue",
+      "motivo": "sQRp_relacion_folios_report no se encuentra después de ejecutar",
+      "prioridad": "MEDIO",
+      "tiempo_estimado": "1 hora"
+    },
+    {
+      "componente": "ValetPasoPublicos.vue",
+      "motivo": "Error en process_valet_file - sintaxis RETURN NEXT",
+      "prioridad": "BAJO",
+      "tiempo_estimado": "30 minutos"
+    }
+  ],
+  "plan_accion": {
+    "fase_1_critico": {
+      "descripcion": "Componentes críticos bloqueados",
+      "componentes_afectados": 2,
+      "componentes": ["AplicaPagoDivAdminPublicos.vue", "ConsultaPublicos.vue"],
+      "sps_a_corregir": 2,
+      "sps": ["sp_busca_folios_divadmin", "spget_lic_grales"],
+      "tiempo_estimado": "2.25-3.25 horas"
+    },
+    "fase_2_alto": {
+      "descripcion": "Componentes de alta prioridad",
+      "componentes_afectados": 4,
+      "componentes": ["BajasPublicos.vue", "ConsRemesasPublicos.vue", "EdoCtaPublicos.vue", "PagosPublicos.vue"],
+      "sps_a_corregir": 4,
+      "sps": ["sp_sfrm_baja_pub", "sp_get_remesa_detalle_mpio", "spubreports_edocta", "spubreports"],
+      "tiempo_estimado": "3-4.5 horas"
+    },
+    "fase_3_medio": {
+      "descripcion": "Componentes de prioridad media",
+      "componentes_afectados": 4,
+      "componentes": ["GenIndividualPublicos.vue", "RelacionFoliosPublicos.vue", "ReportesPublicos.vue", "SolicRepFoliosPublicos.vue"],
+      "sps_a_corregir": 4,
+      "sps": ["sp_gen_individual_add", "sQRp_relacion_folios_report", "spget_lic_detalles", "spubreports"],
+      "tiempo_estimado": "5-6.5 horas"
+    },
+    "fase_4_bajo": {
+      "descripcion": "Componentes de baja prioridad",
+      "componentes_afectados": 2,
+      "componentes": ["MensajePublicos.vue", "ValetPasoPublicos.vue"],
+      "sps_a_corregir": 2,
+      "sps": ["sp_mensaje_show", "process_valet_file"],
+      "tiempo_estimado": "40 minutos"
+    }
+  },
+  "mejoras_pendientes_estandares": {
+    "total_componentes_sin_composables": 45,
+    "componentes_sin_confirmacion_sweetalert": 15,
+    "componentes_sin_validaciones": 25,
+    "componentes_sin_stats_cards": 20,
+    "badge_info_a_corregir": 1,
+    "estilos_inline_a_migrar": 18
+  }
+}

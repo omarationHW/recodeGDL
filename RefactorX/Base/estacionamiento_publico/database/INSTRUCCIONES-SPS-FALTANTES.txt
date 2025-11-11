@@ -1,0 +1,309 @@
+================================================================================
+INSTRUCCIONES: SPs Faltantes - Módulo Estacionamiento Público
+================================================================================
+Fecha: 2025-11-09
+Módulo: estacionamiento_publico
+Total SPs: 4
+================================================================================
+
+📋 RESUMEN
+----------
+Se implementaron 4 Stored Procedures que estaban faltantes y bloqueaban
+componentes críticos del módulo estacionamiento_publico:
+
+1. spget_lic_grales (CRÍTICO)
+2. spget_lic_detalles (MEDIO)
+3. sp_sfrm_baja_pub (ALTO)
+4. spubreports (ALTO - Wrapper)
+
+Componentes desbloqueados:
+- ConsultaPublicos.vue (CRÍTICO)
+- BajasPublicos.vue (ALTO)
+- PagosPublicos.vue (ALTO)
+- ReportesPublicos.vue (MEDIO)
+
+================================================================================
+
+📁 ARCHIVOS GENERADOS
+---------------------
+
+1. Archivos SQL individuales:
+   📄 spget_lic_grales.sql
+   📄 spget_lic_detalles.sql
+   📄 sp_sfrm_baja_pub.sql
+   📄 spubreports.sql
+
+2. Script consolidado de despliegue:
+   📄 deploy/DEPLOY_SPS_FALTANTES.sql
+
+3. Reportes y documentación:
+   📄 sps-faltantes-implementados.json (Reporte técnico JSON)
+   📄 REPORTE-SPS-FALTANTES.md (Documentación completa)
+   📄 INSTRUCCIONES-SPS-FALTANTES.txt (Este archivo)
+
+================================================================================
+
+🚀 CÓMO DESPLEGAR
+----------------
+
+OPCIÓN 1: Despliegue consolidado (RECOMENDADO)
+-----------------------------------------------
+Ejecuta el script consolidado que incluye los 4 SPs:
+
+Windows:
+  cd C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\estacionamiento_publico\database
+  SET PGPASSWORD=FF)-BQk2
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f deploy\DEPLOY_SPS_FALTANTES.sql
+
+Linux/Mac:
+  cd /path/to/RefactorX/Base/estacionamiento_publico/database
+  export PGPASSWORD='FF)-BQk2'
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f deploy/DEPLOY_SPS_FALTANTES.sql
+
+
+OPCIÓN 2: Despliegue individual
+--------------------------------
+Si prefieres desplegar los SPs uno por uno:
+
+Windows:
+  cd C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\estacionamiento_publico\database\database
+  SET PGPASSWORD=FF)-BQk2
+
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f spget_lic_grales.sql
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f spget_lic_detalles.sql
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f sp_sfrm_baja_pub.sql
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f spubreports.sql
+
+Linux/Mac:
+  cd /path/to/database/database
+  export PGPASSWORD='FF)-BQk2'
+
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f spget_lic_grales.sql
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f spget_lic_detalles.sql
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f sp_sfrm_baja_pub.sql
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f spubreports.sql
+
+================================================================================
+
+✅ VERIFICACIÓN
+--------------
+
+Después del despliegue, verifica que los SPs estén creados correctamente:
+
+Conectarse a la BD:
+  SET PGPASSWORD=FF)-BQk2
+  psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias
+
+Verificar SPs:
+  \df spget_lic_grales
+  \df spget_lic_detalles
+  \df sp_sfrm_baja_pub
+  \df spubreports
+
+Salir:
+  \q
+
+Resultado esperado:
+- Cada comando \df debe mostrar 1 función con sus parámetros
+- Si no aparece nada, el SP no se desplegó correctamente
+
+================================================================================
+
+🧪 PRUEBAS
+----------
+
+1. PRUEBA spget_lic_grales (CRÍTICO)
+------------------------------------
+En la BD:
+  SELECT * FROM spget_lic_grales(12345, 0, 4);
+  -- Reemplaza 12345 con un número de licencia real
+
+En la aplicación:
+  - Abrir ConsultaPublicos.vue
+  - Buscar un estacionamiento
+  - Hacer clic en el botón "Ver detalles" (ícono ojo)
+  - Seleccionar la pestaña "Licencia"
+  - Ingresar un valor en "Reca" (ej: 4)
+  - Hacer clic en "Cargar"
+  - Debe mostrar información de la licencia
+
+
+2. PRUEBA spget_lic_detalles (MEDIO)
+-------------------------------------
+En la BD:
+  SELECT * FROM spget_lic_detalles(1, 'L', 'N');
+  -- Reemplaza 1 con un ID de licencia real
+
+En la aplicación:
+  - Abrir ReportesPublicos.vue
+  - Ingresar un ID de licencia
+  - Hacer clic en "Ejecutar"
+  - Debe mostrar tabla con conceptos y montos
+
+
+3. PRUEBA sp_sfrm_baja_pub (ALTO)
+----------------------------------
+⚠️ CUIDADO: Esta prueba MODIFICA datos
+
+En la BD (usar transacción):
+  BEGIN;
+  SELECT * FROM sp_sfrm_baja_pub('12345', 'Prueba de baja');
+  ROLLBACK; -- Para deshacer los cambios
+
+En la aplicación:
+  - Abrir BajasPublicos.vue
+  - Ingresar número de licencia
+  - Ingresar motivo de baja
+  - Hacer clic en "Dar de baja"
+  - Debe mostrar mensaje de éxito con folio de baja
+
+
+4. PRUEBA spubreports (ALTO)
+-----------------------------
+En la BD:
+  SELECT * FROM spubreports(1);  -- Ordenar por categoría
+  SELECT * FROM spubreports(2);  -- Ordenar por sector
+  SELECT * FROM spubreports();   -- Sin parámetro (usa default=1)
+
+En la aplicación:
+  - Abrir PagosPublicos.vue o ReportesPublicos.vue
+  - Hacer clic en "Consultar" o "Ejecutar SPUBREPORTS"
+  - Debe mostrar listado de estacionamientos
+
+================================================================================
+
+⚠️ NOTAS IMPORTANTES
+--------------------
+
+1. MONTOS EN spget_lic_detalles
+   Los montos retornados son EJEMPLOS. Debes ajustarlos según las tarifas
+   reales del municipio de Guadalajara.
+
+   Para actualizar:
+   - Editar el archivo spget_lic_detalles.sql
+   - Buscar las líneas con los montos (ej: "v_cupo * 100.00", "500.00", etc.)
+   - Reemplazar con los montos correctos
+   - Re-desplegar el SP
+
+2. TABLA DE AUDITORÍA
+   El SP sp_sfrm_baja_pub intenta registrar en auditoria_estacionamientos.
+   Si la tabla no existe, continúa sin error pero no guarda auditoría.
+
+   Para crear la tabla (OPCIONAL):
+
+   CREATE TABLE IF NOT EXISTS auditoria_estacionamientos (
+       id SERIAL PRIMARY KEY,
+       tabla VARCHAR(50),
+       operacion VARCHAR(20),
+       id_registro INTEGER,
+       usuario VARCHAR(50),
+       fecha TIMESTAMP,
+       descripcion TEXT
+   );
+
+3. CAMPOS VACÍOS EN spget_lic_grales
+   Algunos campos retornan vacíos porque no se encontró su fuente en el
+   sistema original:
+   - actividad
+   - reglamentada
+   - letext, numint, letint
+   - colonia
+   - espubic
+   - asiento, curp
+   - sup_autorizada, aforo, rhorario
+   - fecha_consejo
+   - mensajes (mensaje1-8)
+
+   Estos pueden completarse consultando tablas adicionales si es necesario.
+
+4. PERMISOS
+   Asegúrate de que el usuario 'refact' tenga permisos para:
+   - CREATE FUNCTION
+   - SELECT en tablas: pubmain, pubcategoria
+   - UPDATE en tabla: pubmain (para sp_sfrm_baja_pub)
+   - INSERT en tabla: auditoria_estacionamientos (si existe)
+
+================================================================================
+
+📊 DATOS DE CONEXIÓN
+--------------------
+
+Host: 192.168.6.146
+Port: 5432
+Database: padron_licencias
+Username: refact
+Password: FF)-BQk2
+Esquema: public
+
+Tablas principales:
+- pubmain (estacionamientos públicos)
+- pubcategoria (categorías)
+- auditoria_estacionamientos (auditoría - verificar existencia)
+
+================================================================================
+
+📞 SOPORTE
+----------
+
+Si encuentras algún error o tienes dudas:
+
+1. Revisa el reporte completo: REPORTE-SPS-FALTANTES.md
+2. Revisa el archivo JSON técnico: sps-faltantes-implementados.json
+3. Verifica los logs de PostgreSQL
+4. Ejecuta las pruebas de verificación arriba indicadas
+
+Errores comunes:
+
+- "psql: command not found"
+  → Verifica que PostgreSQL esté instalado y en el PATH
+  → Usa la ruta completa: "C:\Program Files\PostgreSQL\16\bin\psql.exe"
+
+- "function already exists"
+  → Normal si re-despliegas. El script usa CREATE OR REPLACE.
+
+- "permission denied"
+  → Verifica que el usuario 'refact' tenga permisos suficientes.
+
+- "table does not exist"
+  → Para sp_sfrm_baja_pub: crear tabla auditoria_estacionamientos (ver nota 2)
+  → Para otros SPs: verificar que existan pubmain y pubcategoria
+
+================================================================================
+
+✅ CHECKLIST POST-DESPLIEGUE
+----------------------------
+
+□ Desplegados los 4 SPs en la BD
+□ Verificados con \df (cada uno debe aparecer)
+□ Probado spget_lic_grales en BD
+□ Probado spget_lic_detalles en BD
+□ Probado sp_sfrm_baja_pub en BD (con ROLLBACK)
+□ Probado spubreports en BD
+□ Probado ConsultaPublicos.vue (pestaña Licencia)
+□ Probado BajasPublicos.vue
+□ Probado PagosPublicos.vue
+□ Probado ReportesPublicos.vue
+□ Ajustados los montos en spget_lic_detalles (si aplica)
+□ Creada tabla auditoria_estacionamientos (si se requiere auditoría)
+□ Documentación revisada por el equipo
+□ Validado con usuarios finales
+
+================================================================================
+
+📝 HISTORIAL DE CAMBIOS
+-----------------------
+
+2025-11-09
+  - Implementación inicial de los 4 SPs faltantes
+  - Creación de documentación completa
+  - Despliegue exitoso en BD de desarrollo
+  - Verificación de funcionalidad
+
+================================================================================
+
+Generado: 2025-11-09
+Por: Claude Code (Asistente de Desarrollo)
+Módulo: estacionamiento_publico
+Versión: 1.0
+
+================================================================================

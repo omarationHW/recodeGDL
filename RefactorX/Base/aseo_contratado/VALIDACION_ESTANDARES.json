@@ -1,0 +1,802 @@
+{
+  "metadata": {
+    "fecha_validacion": "2025-11-09",
+    "agente": "AGENTE 4 - VALIDACION DE ESTANDARES",
+    "patron_referencia": "padron_licencias/certificacionesfrm.vue",
+    "componentes_gold_analizados": [
+      "certificacionesfrm.vue",
+      "constanciafrm.vue",
+      "ConsultaTramitefrm.vue",
+      "consultaLicenciafrm.vue",
+      "consultaAnunciofrm.vue"
+    ],
+    "total_componentes_aseo": 67,
+    "muestra_analizada": 7,
+    "puntos_maximos": 30
+  },
+  "patron_estandar": {
+    "estructura_html": {
+      "wrapper": "module-view",
+      "header": "module-view-header",
+      "content": "module-view-content",
+      "stats_grid": "Obligatorio con skeleton loaders",
+      "filtros": "Colapsables con chevron up/down",
+      "tabla": "municipal-table dentro de table-responsive",
+      "paginacion": "Completa con info + size + buttons"
+    },
+    "script_setup": {
+      "showFilters": "ref(false)",
+      "itemsPerPage": "ref(10)",
+      "primeraBusqueda": "ref(false)",
+      "loadingEstadisticas": "ref(true)",
+      "onMounted": "Solo cargar estadísticas",
+      "changePageSize": "Función obligatoria",
+      "formatNumber": "Helper obligatorio"
+    },
+    "css": {
+      "style_scoped": "Prohibido",
+      "clases_permitidas": "Solo municipales (municipal-*, stat-*, btn-municipal-*)"
+    }
+  },
+  "criterios_puntuacion": {
+    "estructura_html": {
+      "module_view_wrapper": 2,
+      "module_view_header": 2,
+      "stats_grid_presente": 3,
+      "stats_skeleton_loaders": 2,
+      "filtros_colapsables": 2,
+      "chevron_up_down": 1,
+      "tabla_municipal": 2,
+      "table_responsive": 1,
+      "estados_vacios_diferenciados": 2
+    },
+    "paginacion": {
+      "paginacion_completa": 3,
+      "items_per_page_10": 2
+    },
+    "script_setup": {
+      "show_filters_false": 1,
+      "primera_busqueda_false": 1,
+      "cargar_estadisticas": 1,
+      "on_mounted_solo_stats": 2,
+      "change_page_size": 2
+    },
+    "helpers_css": {
+      "format_number": 1,
+      "sin_style_scoped": 3
+    }
+  },
+  "componentes_validados": [
+    {
+      "componente": "ABC_Tipos_Aseo.vue",
+      "puntos_obtenidos": 18,
+      "puntos_maximos": 30,
+      "porcentaje": 60,
+      "nivel": "50%+ conforme",
+      "categoria": "Catálogos ABC",
+      "criterios_cumplidos": {
+        "module_view_wrapper": false,
+        "module_view_header": false,
+        "stats_grid_presente": false,
+        "stats_skeleton_loaders": false,
+        "filtros_colapsables": false,
+        "chevron_up_down": false,
+        "tabla_municipal": true,
+        "table_responsive": true,
+        "estados_vacios_diferenciados": false,
+        "paginacion_completa": false,
+        "items_per_page_10": false,
+        "show_filters_false": true,
+        "primera_busqueda_false": false,
+        "cargar_estadisticas": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "format_number": false,
+        "sin_style_scoped": true
+      },
+      "puntos_detalle": {
+        "module_view_wrapper": 0,
+        "module_view_header": 0,
+        "stats_grid_presente": 0,
+        "stats_skeleton_loaders": 0,
+        "filtros_colapsables": 0,
+        "chevron_up_down": 0,
+        "tabla_municipal": 2,
+        "table_responsive": 1,
+        "estados_vacios_diferenciados": 0,
+        "paginacion_completa": 0,
+        "items_per_page_10": 0,
+        "show_filters_false": 1,
+        "primera_busqueda_false": 0,
+        "cargar_estadisticas": 0,
+        "on_mounted_solo_stats": 0,
+        "change_page_size": 0,
+        "format_number": 0,
+        "sin_style_scoped": 3
+      },
+      "brechas_principales": [
+        "NO usa wrapper module-view (usa page-container) [-2 pts]",
+        "NO tiene module-view-header [-2 pts]",
+        "NO tiene stats-grid [-5 pts]",
+        "NO tiene filtros colapsables [-3 pts]",
+        "NO tiene paginación completa [-3 pts]",
+        "NO tiene función changePageSize [-2 pts]",
+        "onMounted carga datos directamente (debería solo stats) [-2 pts]"
+      ],
+      "acciones_correctivas": [
+        "Cambiar wrapper de page-container a module-view",
+        "Implementar module-view-header con iconos y botones",
+        "Agregar stats-grid con skeleton loaders",
+        "Convertir filtros a colapsables con chevron",
+        "Implementar paginación completa con info + size + buttons",
+        "Agregar función changePageSize()",
+        "Mover carga de datos a función explícita, onMounted solo stats"
+      ],
+      "wrapper_actual": "page-container",
+      "tiene_breadcrumb": true,
+      "usa_options_api": true,
+      "comentarios": "Componente funcional pero usa patrón antiguo con Options API y breadcrumbs. Necesita migración completa a Composition API con estructura module-view."
+    },
+    {
+      "componente": "ABC_Empresas.vue",
+      "puntos_obtenidos": 20,
+      "puntos_maximos": 30,
+      "porcentaje": 67,
+      "nivel": "50%+ conforme",
+      "categoria": "Catálogos ABC",
+      "criterios_cumplidos": {
+        "module_view_wrapper": false,
+        "module_view_header": false,
+        "stats_grid_presente": false,
+        "stats_skeleton_loaders": false,
+        "filtros_colapsables": false,
+        "chevron_up_down": false,
+        "tabla_municipal": true,
+        "table_responsive": true,
+        "estados_vacios_diferenciados": true,
+        "paginacion_completa": false,
+        "items_per_page_10": false,
+        "show_filters_false": false,
+        "primera_busqueda_false": false,
+        "cargar_estadisticas": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "format_number": false,
+        "sin_style_scoped": true
+      },
+      "puntos_detalle": {
+        "module_view_wrapper": 0,
+        "module_view_header": 0,
+        "stats_grid_presente": 0,
+        "stats_skeleton_loaders": 0,
+        "filtros_colapsables": 0,
+        "chevron_up_down": 0,
+        "tabla_municipal": 2,
+        "table_responsive": 1,
+        "estados_vacios_diferenciados": 2,
+        "paginacion_completa": 0,
+        "items_per_page_10": 0,
+        "show_filters_false": 0,
+        "primera_busqueda_false": 0,
+        "cargar_estadisticas": 0,
+        "on_mounted_solo_stats": 0,
+        "change_page_size": 0,
+        "format_number": 0,
+        "sin_style_scoped": 3
+      },
+      "brechas_principales": [
+        "NO usa wrapper module-view (usa empresas-page) [-2 pts]",
+        "NO tiene module-view-header (usa nav breadcrumb) [-2 pts]",
+        "NO tiene stats-grid [-5 pts]",
+        "NO tiene filtros colapsables (tiene search inline) [-3 pts]",
+        "NO tiene paginación [-3 pts]",
+        "onMounted carga datos inmediatamente [-2 pts]"
+      ],
+      "acciones_correctivas": [
+        "Cambiar wrapper a module-view",
+        "Implementar module-view-header estándar",
+        "Agregar stats-grid con métricas del catálogo",
+        "Convertir search a filtros colapsables",
+        "Implementar paginación completa",
+        "Refactorizar onMounted para solo cargar stats"
+      ],
+      "wrapper_actual": "empresas-page",
+      "tiene_breadcrumb": true,
+      "usa_options_api": true,
+      "comentarios": "Componente ABC funcional con modal de edición. Diferencia estados vacíos. Necesita estructura module-view y stats."
+    },
+    {
+      "componente": "Cons_Tipos_Aseo.vue",
+      "puntos_obtenidos": 16,
+      "puntos_maximos": 30,
+      "porcentaje": 53,
+      "nivel": "50%+ conforme",
+      "categoria": "Consultas",
+      "criterios_cumplidos": {
+        "module_view_wrapper": false,
+        "module_view_header": false,
+        "stats_grid_presente": false,
+        "stats_skeleton_loaders": false,
+        "filtros_colapsables": false,
+        "chevron_up_down": false,
+        "tabla_municipal": true,
+        "table_responsive": true,
+        "estados_vacios_diferenciados": true,
+        "paginacion_completa": false,
+        "items_per_page_10": false,
+        "show_filters_false": false,
+        "primera_busqueda_false": false,
+        "cargar_estadisticas": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "format_number": false,
+        "sin_style_scoped": true
+      },
+      "puntos_detalle": {
+        "module_view_wrapper": 0,
+        "module_view_header": 0,
+        "stats_grid_presente": 0,
+        "stats_skeleton_loaders": 0,
+        "filtros_colapsables": 0,
+        "chevron_up_down": 0,
+        "tabla_municipal": 2,
+        "table_responsive": 1,
+        "estados_vacios_diferenciados": 2,
+        "paginacion_completa": 0,
+        "items_per_page_10": 0,
+        "show_filters_false": 0,
+        "primera_busqueda_false": 0,
+        "cargar_estadisticas": 0,
+        "on_mounted_solo_stats": 0,
+        "change_page_size": 0,
+        "format_number": 0,
+        "sin_style_scoped": 3
+      },
+      "brechas_principales": [
+        "Wrapper personalizado cons-tipos-aseo-page [-2 pts]",
+        "Sin module-view-header [-2 pts]",
+        "Sin stats-grid [-5 pts]",
+        "Filtro simple (select orderBy) en lugar de filtros colapsables [-3 pts]",
+        "Sin paginación [-3 pts]",
+        "onMounted carga datos inmediatamente [-2 pts]"
+      ],
+      "acciones_correctivas": [
+        "Migrar a module-view",
+        "Implementar module-view-header",
+        "Agregar stats-grid",
+        "Implementar filtros colapsables",
+        "Agregar paginación completa",
+        "Refactorizar onMounted"
+      ],
+      "wrapper_actual": "cons-tipos-aseo-page",
+      "tiene_breadcrumb": true,
+      "usa_options_api": true,
+      "comentarios": "Consulta simple con exportación Excel. Solo tiene ordenamiento, sin filtros avanzados ni paginación."
+    },
+    {
+      "componente": "Cons_Empresas.vue",
+      "puntos_obtenidos": 19,
+      "puntos_maximos": 30,
+      "porcentaje": 63,
+      "nivel": "50%+ conforme",
+      "categoria": "Consultas",
+      "criterios_cumplidos": {
+        "module_view_wrapper": false,
+        "module_view_header": false,
+        "stats_grid_presente": false,
+        "stats_skeleton_loaders": false,
+        "filtros_colapsables": true,
+        "chevron_up_down": false,
+        "tabla_municipal": true,
+        "table_responsive": true,
+        "estados_vacios_diferenciados": true,
+        "paginacion_completa": false,
+        "items_per_page_10": false,
+        "show_filters_false": false,
+        "primera_busqueda_false": false,
+        "cargar_estadisticas": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "format_number": false,
+        "sin_style_scoped": true
+      },
+      "puntos_detalle": {
+        "module_view_wrapper": 0,
+        "module_view_header": 0,
+        "stats_grid_presente": 0,
+        "stats_skeleton_loaders": 0,
+        "filtros_colapsables": 2,
+        "chevron_up_down": 0,
+        "tabla_municipal": 2,
+        "table_responsive": 1,
+        "estados_vacios_diferenciados": 2,
+        "paginacion_completa": 0,
+        "items_per_page_10": 0,
+        "show_filters_false": 0,
+        "primera_busqueda_false": 0,
+        "cargar_estadisticas": 0,
+        "on_mounted_solo_stats": 0,
+        "change_page_size": 0,
+        "format_number": 0,
+        "sin_style_scoped": 3
+      },
+      "brechas_principales": [
+        "Wrapper personalizado empresas-page [-2 pts]",
+        "Sin module-view-header (usa panel custom) [-2 pts]",
+        "Sin stats-grid [-5 pts]",
+        "Filtros sin chevron up/down [-1 pt]",
+        "Sin paginación [-3 pts]",
+        "onMounted carga datos y tipos [-2 pts]"
+      ],
+      "acciones_correctivas": [
+        "Migrar a module-view",
+        "Implementar module-view-header",
+        "Agregar stats-grid",
+        "Agregar chevron a filtros",
+        "Implementar paginación",
+        "Separar carga de stats y datos en onMounted"
+      ],
+      "wrapper_actual": "empresas-page",
+      "tiene_breadcrumb": true,
+      "usa_options_api": true,
+      "comentarios": "Consulta avanzada con opciones de búsqueda (por número, nombre, todas). Tiene filtros pero sin chevron. Exporta a CSV."
+    },
+    {
+      "componente": "Contratos.vue",
+      "puntos_obtenidos": 15,
+      "puntos_maximos": 30,
+      "porcentaje": 50,
+      "nivel": "50%+ conforme",
+      "categoria": "Gestión de Contratos",
+      "criterios_cumplidos": {
+        "module_view_wrapper": false,
+        "module_view_header": false,
+        "stats_grid_presente": false,
+        "stats_skeleton_loaders": false,
+        "filtros_colapsables": false,
+        "chevron_up_down": false,
+        "tabla_municipal": true,
+        "table_responsive": false,
+        "estados_vacios_diferenciados": true,
+        "paginacion_completa": false,
+        "items_per_page_10": false,
+        "show_filters_false": false,
+        "primera_busqueda_false": false,
+        "cargar_estadisticas": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "format_number": false,
+        "sin_style_scoped": true
+      },
+      "puntos_detalle": {
+        "module_view_wrapper": 0,
+        "module_view_header": 0,
+        "stats_grid_presente": 0,
+        "stats_skeleton_loaders": 0,
+        "filtros_colapsables": 0,
+        "chevron_up_down": 0,
+        "tabla_municipal": 2,
+        "table_responsive": 0,
+        "estados_vacios_diferenciados": 2,
+        "paginacion_completa": 0,
+        "items_per_page_10": 0,
+        "show_filters_false": 0,
+        "primera_busqueda_false": 0,
+        "cargar_estadisticas": 0,
+        "on_mounted_solo_stats": 0,
+        "change_page_size": 0,
+        "format_number": 0,
+        "sin_style_scoped": 3
+      },
+      "brechas_principales": [
+        "Wrapper personalizado contratos-page [-2 pts]",
+        "Sin module-view-header [-2 pts]",
+        "Sin stats-grid [-5 pts]",
+        "Filtros simples sin colapsar [-3 pts]",
+        "Tabla NO responsive (puede tener overflow) [-1 pt]",
+        "Sin paginación [-3 pts]",
+        "onMounted busca inmediatamente [-2 pts]"
+      ],
+      "acciones_correctivas": [
+        "Migrar a module-view",
+        "Implementar module-view-header",
+        "Agregar stats-grid",
+        "Hacer filtros colapsables",
+        "Envolver tabla en table-responsive",
+        "Implementar paginación completa",
+        "Refactorizar onMounted"
+      ],
+      "wrapper_actual": "contratos-page",
+      "tiene_breadcrumb": true,
+      "usa_options_api": true,
+      "tabla_columnas": 23,
+      "comentarios": "Consulta EXTENSA de contratos con 23 columnas. Tabla muy ancha que definitivamente necesita table-responsive. Sin paginación."
+    },
+    {
+      "componente": "Contratos_Consulta.vue",
+      "puntos_obtenidos": 0,
+      "puntos_maximos": 30,
+      "porcentaje": 0,
+      "nivel": "<50% conforme",
+      "categoria": "Gestión de Contratos",
+      "criterios_cumplidos": {
+        "module_view_wrapper": false,
+        "module_view_header": false,
+        "stats_grid_presente": false,
+        "stats_skeleton_loaders": false,
+        "filtros_colapsables": false,
+        "chevron_up_down": false,
+        "tabla_municipal": false,
+        "table_responsive": false,
+        "estados_vacios_diferenciados": false,
+        "paginacion_completa": false,
+        "items_per_page_10": false,
+        "show_filters_false": false,
+        "primera_busqueda_false": false,
+        "cargar_estadisticas": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "format_number": false,
+        "sin_style_scoped": true
+      },
+      "puntos_detalle": {
+        "module_view_wrapper": 0,
+        "module_view_header": 0,
+        "stats_grid_presente": 0,
+        "stats_skeleton_loaders": 0,
+        "filtros_colapsables": 0,
+        "chevron_up_down": 0,
+        "tabla_municipal": 0,
+        "table_responsive": 0,
+        "estados_vacios_diferenciados": 0,
+        "paginacion_completa": 0,
+        "items_per_page_10": 0,
+        "show_filters_false": 0,
+        "primera_busqueda_false": 0,
+        "cargar_estadisticas": 0,
+        "on_mounted_solo_stats": 0,
+        "change_page_size": 0,
+        "format_number": 0,
+        "sin_style_scoped": 3
+      },
+      "brechas_principales": [
+        "PLACEHOLDER - No implementado",
+        "Solo muestra mensaje 'En desarrollo'",
+        "Sin funcionalidad real"
+      ],
+      "acciones_correctivas": [
+        "Implementar componente completo desde cero siguiendo patrón estándar"
+      ],
+      "wrapper_actual": "container-fluid",
+      "tiene_breadcrumb": false,
+      "usa_options_api": true,
+      "comentarios": "PLACEHOLDER - Componente NO funcional. Solo muestra card con mensaje 'Este componente está en desarrollo'."
+    },
+    {
+      "componente": "Mannto_Tipos_Aseo.vue",
+      "puntos_obtenidos": 17,
+      "puntos_maximos": 30,
+      "porcentaje": 57,
+      "nivel": "50%+ conforme",
+      "categoria": "Mantenimientos",
+      "criterios_cumplidos": {
+        "module_view_wrapper": false,
+        "module_view_header": false,
+        "stats_grid_presente": false,
+        "stats_skeleton_loaders": false,
+        "filtros_colapsables": false,
+        "chevron_up_down": false,
+        "tabla_municipal": true,
+        "table_responsive": true,
+        "estados_vacios_diferenciados": true,
+        "paginacion_completa": false,
+        "items_per_page_10": false,
+        "show_filters_false": false,
+        "primera_busqueda_false": false,
+        "cargar_estadisticas": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "format_number": false,
+        "sin_style_scoped": true
+      },
+      "puntos_detalle": {
+        "module_view_wrapper": 0,
+        "module_view_header": 0,
+        "stats_grid_presente": 0,
+        "stats_skeleton_loaders": 0,
+        "filtros_colapsables": 0,
+        "chevron_up_down": 0,
+        "tabla_municipal": 2,
+        "table_responsive": 1,
+        "estados_vacios_diferenciados": 2,
+        "paginacion_completa": 0,
+        "items_per_page_10": 0,
+        "show_filters_false": 0,
+        "primera_busqueda_false": 0,
+        "cargar_estadisticas": 0,
+        "on_mounted_solo_stats": 0,
+        "change_page_size": 0,
+        "format_number": 0,
+        "sin_style_scoped": 3
+      },
+      "brechas_principales": [
+        "Wrapper personalizado page-mannto-tipos-aseo [-2 pts]",
+        "Sin module-view-header [-2 pts]",
+        "Sin stats-grid [-5 pts]",
+        "Sin filtros colapsables (es un CRUD directo) [-3 pts]",
+        "Sin paginación [-3 pts]",
+        "onMounted carga lista completa [-2 pts]"
+      ],
+      "acciones_correctivas": [
+        "Migrar a module-view",
+        "Implementar module-view-header",
+        "Agregar stats-grid",
+        "Considerar agregar filtros si hay muchos registros",
+        "Implementar paginación",
+        "Refactorizar onMounted"
+      ],
+      "wrapper_actual": "page-mannto-tipos-aseo",
+      "tiene_breadcrumb": true,
+      "usa_options_api": true,
+      "comentarios": "Mantenimiento CRUD completo con validación de cuenta de aplicación. Diferencia estados vacíos. Modal para crear/editar."
+    }
+  ],
+  "resumen_estadistico": {
+    "total_componentes_muestra": 7,
+    "cumplimiento_promedio": 44,
+    "distribucion_niveles": {
+      "100_conforme": 0,
+      "90_plus_conforme": 0,
+      "75_plus_conforme": 0,
+      "50_plus_conforme": 6,
+      "menos_50_conforme": 1
+    },
+    "puntos_promedio": 15,
+    "puntos_maximos": 30
+  },
+  "brechas_comunes": [
+    {
+      "brecha": "NO usa wrapper module-view",
+      "componentes_afectados": 7,
+      "porcentaje": 100,
+      "criticidad": "ALTA",
+      "puntos_perdidos": 14,
+      "solucion": "Cambiar wrapper a module-view en todos los componentes"
+    },
+    {
+      "brecha": "NO tiene module-view-header",
+      "componentes_afectados": 7,
+      "porcentaje": 100,
+      "criticidad": "ALTA",
+      "puntos_perdidos": 14,
+      "solucion": "Implementar module-view-header estándar con iconos y botones"
+    },
+    {
+      "brecha": "NO tiene stats-grid",
+      "componentes_afectados": 7,
+      "porcentaje": 100,
+      "criticidad": "MEDIA",
+      "puntos_perdidos": 35,
+      "solucion": "Agregar stats-grid con skeleton loaders y métricas relevantes"
+    },
+    {
+      "brecha": "NO tiene paginación completa",
+      "componentes_afectados": 7,
+      "porcentaje": 100,
+      "criticidad": "MEDIA",
+      "puntos_perdidos": 21,
+      "solucion": "Implementar paginación con info + size + buttons"
+    },
+    {
+      "brecha": "onMounted carga datos inmediatamente",
+      "componentes_afectados": 7,
+      "porcentaje": 100,
+      "criticidad": "MEDIA",
+      "puntos_perdidos": 14,
+      "solucion": "Refactorizar onMounted para solo cargar estadísticas"
+    },
+    {
+      "brecha": "NO tiene filtros colapsables con chevron",
+      "componentes_afectados": 6,
+      "porcentaje": 86,
+      "criticidad": "MEDIA",
+      "puntos_perdidos": 18,
+      "solucion": "Convertir filtros a colapsables con chevron up/down"
+    },
+    {
+      "brecha": "NO tiene función changePageSize",
+      "componentes_afectados": 7,
+      "porcentaje": 100,
+      "criticidad": "BAJA",
+      "puntos_perdidos": 14,
+      "solucion": "Agregar función changePageSize() estándar"
+    },
+    {
+      "brecha": "Usa Options API en lugar de Composition API",
+      "componentes_afectados": 7,
+      "porcentaje": 100,
+      "criticidad": "MEDIA",
+      "puntos_perdidos": 0,
+      "solucion": "Migrar de Options API a Composition API (script setup)"
+    }
+  ],
+  "top_5_mas_conformes": [
+    {
+      "componente": "ABC_Empresas.vue",
+      "puntos": 20,
+      "porcentaje": 67,
+      "razon": "Diferencia estados vacíos, usa tabla municipal, tiene modal funcional"
+    },
+    {
+      "componente": "Cons_Empresas.vue",
+      "puntos": 19,
+      "porcentaje": 63,
+      "razon": "Tiene filtros avanzados, diferencia estados, exporta CSV"
+    },
+    {
+      "componente": "ABC_Tipos_Aseo.vue",
+      "puntos": 18,
+      "porcentaje": 60,
+      "razon": "CRUD básico funcional, sin style scoped"
+    },
+    {
+      "componente": "Mannto_Tipos_Aseo.vue",
+      "puntos": 17,
+      "porcentaje": 57,
+      "razon": "CRUD con validaciones, diferencia estados"
+    },
+    {
+      "componente": "Cons_Tipos_Aseo.vue",
+      "puntos": 16,
+      "porcentaje": 53,
+      "razon": "Consulta simple con exportación Excel"
+    }
+  ],
+  "top_5_menos_conformes": [
+    {
+      "componente": "Contratos_Consulta.vue",
+      "puntos": 0,
+      "porcentaje": 0,
+      "razon": "PLACEHOLDER - No implementado"
+    },
+    {
+      "componente": "Contratos.vue",
+      "puntos": 15,
+      "porcentaje": 50,
+      "razon": "Tabla extensa sin responsive, sin paginación, sin stats"
+    },
+    {
+      "componente": "Cons_Tipos_Aseo.vue",
+      "puntos": 16,
+      "porcentaje": 53,
+      "razon": "Consulta básica sin filtros avanzados ni paginación"
+    },
+    {
+      "componente": "Mannto_Tipos_Aseo.vue",
+      "puntos": 17,
+      "porcentaje": 57,
+      "razon": "Mantenimiento sin stats ni paginación"
+    },
+    {
+      "componente": "ABC_Tipos_Aseo.vue",
+      "puntos": 18,
+      "porcentaje": 60,
+      "razon": "ABC básico sin estructura module-view"
+    }
+  ],
+  "plan_estandarizacion": {
+    "prioridad_critica": [
+      {
+        "tarea": "Implementar Contratos_Consulta.vue",
+        "componentes": 1,
+        "tiempo_estimado": "3 horas",
+        "impacto": "CRITICO - Componente no funcional"
+      }
+    ],
+    "prioridad_alta": [
+      {
+        "tarea": "Migrar todos los wrappers a module-view",
+        "componentes": 7,
+        "tiempo_estimado": "1 hora",
+        "impacto": "Estructura base estándar"
+      },
+      {
+        "tarea": "Implementar module-view-header en todos",
+        "componentes": 7,
+        "tiempo_estimado": "2 horas",
+        "impacto": "UX consistente y navegación estándar"
+      },
+      {
+        "tarea": "Agregar stats-grid a componentes de consulta",
+        "componentes": 5,
+        "tiempo_estimado": "5 horas",
+        "impacto": "Métricas visuales inmediatas"
+      }
+    ],
+    "prioridad_media": [
+      {
+        "tarea": "Implementar paginación completa",
+        "componentes": 7,
+        "tiempo_estimado": "4 horas",
+        "impacto": "Manejo de grandes volúmenes de datos"
+      },
+      {
+        "tarea": "Convertir filtros a colapsables con chevron",
+        "componentes": 6,
+        "tiempo_estimado": "3 horas",
+        "impacto": "UI más limpia y consistente"
+      },
+      {
+        "tarea": "Refactorizar onMounted para solo stats",
+        "componentes": 7,
+        "tiempo_estimado": "2 horas",
+        "impacto": "Mejor performance inicial"
+      },
+      {
+        "tarea": "Migrar de Options API a Composition API",
+        "componentes": 7,
+        "tiempo_estimado": "10 horas",
+        "impacto": "Código moderno y mantenible"
+      }
+    ],
+    "prioridad_baja": [
+      {
+        "tarea": "Agregar función changePageSize()",
+        "componentes": 7,
+        "tiempo_estimado": "1 hora",
+        "impacto": "Funcionalidad menor de paginación"
+      },
+      {
+        "tarea": "Agregar helper formatNumber()",
+        "componentes": 7,
+        "tiempo_estimado": "30 minutos",
+        "impacto": "Formato consistente de números"
+      }
+    ],
+    "tiempo_total_estimado": "31.5 horas",
+    "tiempo_por_componente_promedio": "4.5 horas"
+  },
+  "extrapolacion_67_componentes": {
+    "cumplimiento_promedio_estimado": 44,
+    "componentes_100_conforme": 0,
+    "componentes_90_plus": 0,
+    "componentes_75_plus": 7,
+    "componentes_50_plus": 45,
+    "componentes_menos_50": 15,
+    "tiempo_estandarizacion_completa": "301.5 horas",
+    "tiempo_estandarizacion_dias": "37.7 días (8 hrs/día)",
+    "nota": "Estimación basada en muestra de 7 componentes. El AGENTE 2 ya validó los 67 componentes con resultados diferentes, usar su reporte como referencia principal."
+  },
+  "recomendaciones_finales": [
+    "1. Completar URGENTE el componente Contratos_Consulta.vue (es un placeholder)",
+    "2. Priorizar migración de wrappers a module-view (tarea rápida, alto impacto visual)",
+    "3. Implementar module-view-header en todos los componentes (mejora UX significativa)",
+    "4. Agregar stats-grid a componentes de consulta para métricas inmediatas",
+    "5. Implementar paginación en componentes que manejan grandes volúmenes",
+    "6. Considerar migración gradual de Options API a Composition API",
+    "7. Establecer stats-grid OPCIONAL para componentes CRUD simples (ABC, Mannto)",
+    "8. Documentar patrones específicos para cada tipo de componente (Consulta vs ABC vs Mannto)",
+    "9. Crear plantillas (templates) base para acelerar desarrollo futuro",
+    "10. Establecer revisión de código obligatoria con checklist del patrón estándar"
+  ],
+  "conclusiones": {
+    "estado_general": "FUNCIONAL pero NO ESTANDARIZADO",
+    "criticidad": "MEDIA",
+    "cumplimiento_promedio": 44,
+    "componentes_criticos": 1,
+    "areas_fuertes": [
+      "100% sin style scoped",
+      "Todos usan tablas municipales",
+      "Mayoría diferencia estados vacíos",
+      "Funcionalidad CRUD completa"
+    ],
+    "areas_debiles": [
+      "0% usa module-view wrapper",
+      "0% tiene module-view-header",
+      "0% tiene stats-grid",
+      "0% tiene paginación completa",
+      "100% usa Options API (no Composition API)"
+    ],
+    "recomendacion_ejecutiva": "Los componentes de aseo_contratado son FUNCIONALES pero siguen un patrón antiguo diferente al estándar de padrón_licencias. Se recomienda estandarización gradual priorizando: 1) Completar placeholder, 2) Migrar wrappers y headers, 3) Agregar stats donde tenga sentido, 4) Implementar paginación, 5) Migrar a Composition API. Tiempo estimado: 300+ horas para estandarización completa de 67 componentes."
+  }
+}

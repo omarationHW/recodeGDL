@@ -1,0 +1,284 @@
+{
+  "total": 42,
+  "stored_procedures": [
+    {
+      "name": "sp_cambiar_password",
+      "used_in": [
+        "sfrm_chgpass.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_abc_cementerios",
+      "used_in": [
+        "ABCementer.vue",
+        "ABCementer.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_abc_pagos_por_folio",
+      "used_in": [
+        "ABCPagosxfol.vue",
+        "ABCPagosxfol.vue",
+        "ABCPagosxfol.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_actualizar_titulo_extra",
+      "used_in": [
+        "Titulos.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_baja_folio",
+      "used_in": [
+        "ABCFolio.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_bonificaciones_oficio",
+      "used_in": [
+        "Bonificacion1.vue",
+        "Bonificacion1.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_buscar_bonificacion",
+      "used_in": [
+        "Bonificaciones.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_buscar_duplicados",
+      "used_in": [
+        "Duplicados.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_buscar_folio",
+      "used_in": [
+        "ABCFolio.vue",
+        "Bonificaciones.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_buscar_folio_pagos",
+      "used_in": [
+        "ABCPagos.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_buscar_titulo",
+      "used_in": [
+        "Titulos.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_calcular_liquidacion",
+      "used_in": [
+        "Liquidaciones.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_consultar_cementerio",
+      "used_in": [
+        "Consulta400.vue",
+        "ConsultaGuad.vue",
+        "ConsultaGuad.vue",
+        "ConsultaJardin.vue",
+        "ConsultaJardin.vue",
+        "ConsultaMezq.vue",
+        "ConsultaMezq.vue",
+        "ConsultaSAndres.vue",
+        "ConsultaSAndres.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_consultar_folio",
+      "used_in": [
+        "Bonificacion1.vue",
+        "ConIndividual.vue",
+        "ConIndividual_CORREGIDO.vue",
+        "ConsultaFol.vue",
+        "ConsultaRCM.vue",
+        "TitulosSin.vue",
+        "TrasladoFolSin.vue",
+        "TrasladoFolSin.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_consultar_folios_por_nombre",
+      "used_in": [
+        "MultipleNombre.vue",
+        "MultipleNombre.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_consultar_folios_por_ubicacion",
+      "used_in": [
+        "MultipleRCM.vue",
+        "MultipleRCM.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_consultar_pagos_folio",
+      "used_in": [
+        "ConIndividual.vue",
+        "ConIndividual_CORREGIDO.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_consultar_pagos_por_fecha",
+      "used_in": [
+        "Multiplefecha.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_consultar_por_nombre",
+      "used_in": [
+        "ConsultaNombre.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_eliminar_bonificacion",
+      "used_in": [
+        "Bonificaciones.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_estadisticas_adeudos",
+      "used_in": [
+        "Estad_adeudo.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_generar_titulo",
+      "used_in": [
+        "TitulosSin.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_listar_cementerios",
+      "used_in": [
+        "ABCementer.vue",
+        "ABCFolio.vue",
+        "Liquidaciones.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_listar_movimientos",
+      "used_in": [
+        "List_Mov.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_listar_pagos",
+      "used_in": [
+        "TrasladoFolSin.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_listar_pagos_folio",
+      "used_in": [
+        "ABCPagos.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_listar_titulos",
+      "used_in": [
+        "Titulos.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_modificar_folio",
+      "used_in": [
+        "ABCFolio.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_obtener_adeudos_folio",
+      "used_in": [
+        "ConsultaFol.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_obtener_adeudos_pendientes",
+      "used_in": [
+        "ABCPagos.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_obtener_pagos_folio",
+      "used_in": [
+        "ConsultaFol.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_registrar_bonificacion",
+      "used_in": [
+        "Bonificaciones.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_registrar_pago",
+      "used_in": [
+        "ABCPagos.vue",
+        "ABCPagos.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_reporte_bonificaciones",
+      "used_in": [
+        "Rep_Bon.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_reporte_cuentas_cobrar",
+      "used_in": [
+        "Rep_a_Cobrar.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_reporte_titulos",
+      "used_in": [
+        "RptTitulos.vue",
+        "TitulosSin.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_trasladar_duplicado",
+      "used_in": [
+        "Duplicados.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_trasladar_folio",
+      "used_in": [
+        "TrasladoFolSin.vue"
+      ]
+    },
+    {
+      "name": "sp_cem_verificar_ubicacion_duplicado",
+      "used_in": [
+        "Duplicados.vue"
+      ]
+    },
+    {
+      "name": "sp_registrar_acceso",
+      "used_in": [
+        "Acceso.vue"
+      ]
+    },
+    {
+      "name": "sp_validar_password_actual",
+      "used_in": [
+        "sfrm_chgpass.vue"
+      ]
+    },
+    {
+      "name": "sp_validar_usuario",
+      "used_in": [
+        "Acceso.vue"
+      ]
+    }
+  ]
+}

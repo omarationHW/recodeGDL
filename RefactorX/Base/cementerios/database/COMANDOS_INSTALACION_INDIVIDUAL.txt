@@ -1,0 +1,193 @@
+================================================================================
+COMANDOS DE INSTALACIÓN INDIVIDUAL - STORED PROCEDURES CEMENTERIOS
+================================================================================
+Base de Datos: padron_licencias
+Host: 192.168.6.146:5432
+Usuario: refact
+Total Archivos: 39
+Total SPs: 93
+================================================================================
+
+INSTRUCCIONES:
+1. Copiar y pegar cada comando en tu terminal (CMD, PowerShell, o Bash)
+2. Esperar confirmación antes de continuar con el siguiente
+3. Documentar cualquier error encontrado
+4. Si un archivo da error, continuar con el siguiente
+
+================================================================================
+FASE 1: CORE (CRÍTICO - 3 archivos - 22 SPs)
+================================================================================
+
+--- Archivo 1/39: CORE (9 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\01_SP_CEMENTERIOS_CORE_all_procedures.sql"
+
+--- Archivo 2/39: GESTIÓN (8 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\02_SP_CEMENTERIOS_GESTION_all_procedures.sql"
+
+--- Archivo 3/39: ABC (5 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\03_SP_CEMENTERIOS_ABC_all_procedures.sql"
+
+================================================================================
+FASE 2: EXACTO - PARTE 1 (12 archivos)
+================================================================================
+
+--- Archivo 4/39: ABCFolio (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\01_SP_CEMENTERIOS_ABCFOLIO_EXACTO_all_procedures.sql"
+
+--- Archivo 5/39: Recargos (5 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\02_SP_CEMENTERIOS_ABCRECARGOS_EXACTO_all_procedures.sql"
+
+--- Archivo 6/39: Acceso (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\03_SP_CEMENTERIOS_ACCESO_EXACTO_all_procedures.sql"
+
+--- Archivo 7/39: Bonificaciones (3 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\04_SP_CEMENTERIOS_BONIFICACIONES_EXACTO_all_procedures.sql"
+
+--- Archivo 8/39: Consulta Individual (11 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\05_SP_CEMENTERIOS_CONINDIVIDUAL_EXACTO_all_procedures.sql"
+
+--- Archivo 9/39: Consulta Guadalajara (3 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\06_SP_CEMENTERIOS_CONSULTAGUAD_EXACTO_all_procedures.sql"
+
+--- Archivo 10/39: Consulta Jardín (3 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\07_SP_CEMENTERIOS_CONSULTAJARDIN_EXACTO_all_procedures.sql"
+
+--- Archivo 11/39: Consulta San Andrés (3 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\08_SP_CEMENTERIOS_CONSULTASANDRES_EXACTO_all_procedures.sql"
+
+--- Archivo 12/39: Descuentos (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\09_SP_CEMENTERIOS_DESCUENTOS_EXACTO_all_procedures.sql"
+
+--- Archivo 13/39: Estadísticas Adeudos (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\10_SP_CEMENTERIOS_ESTAD_ADEUDO_EXACTO_all_procedures.sql"
+
+--- Archivo 14/39: Liquidaciones (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\11_SP_CEMENTERIOS_LIQUIDACIONES_EXACTO_all_procedures.sql"
+
+--- Archivo 15/39: Lista Movimientos (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\12_SP_CEMENTERIOS_LIST_MOV_EXACTO_all_procedures.sql"
+
+================================================================================
+FASE 3: EXACTO - PARTE 2 (Versiones alternativas - 12 archivos)
+================================================================================
+
+--- Archivo 16/39: ABCFolio v2 (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\13_SP_CEMENTERIOS_ABCFOLIO_EXACTO_all_procedures.sql"
+
+--- Archivo 17/39: Recargos v2 (5 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\14_SP_CEMENTERIOS_ABCRECARGOS_EXACTO_all_procedures.sql"
+
+--- Archivo 18/39: Acceso v2 (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\15_SP_CEMENTERIOS_ACCESO_EXACTO_all_procedures.sql"
+
+--- Archivo 19/39: Bonificaciones v2 (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\16_SP_CEMENTERIOS_BONIFICACIONES_EXACTO_all_procedures.sql"
+
+--- Archivo 20/39: Consulta Individual v2 (6 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\17_SP_CEMENTERIOS_CONINDIVIDUAL_EXACTO_all_procedures.sql"
+
+--- Archivo 21/39: Consulta Guadalajara v2 (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\18_SP_CEMENTERIOS_CONSULTAGUAD_EXACTO_all_procedures.sql"
+
+--- Archivo 22/39: Consulta Jardín v2 (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\19_SP_CEMENTERIOS_CONSULTAJARDIN_EXACTO_all_procedures.sql"
+
+--- Archivo 23/39: Consulta San Andrés v2 (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\20_SP_CEMENTERIOS_CONSULTASANDRES_EXACTO_all_procedures.sql"
+
+--- Archivo 24/39: Descuentos v2 (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\21_SP_CEMENTERIOS_DESCUENTOS_EXACTO_all_procedures.sql"
+
+--- Archivo 25/39: Estadísticas Adeudos v2 (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\22_SP_CEMENTERIOS_ESTAD_ADEUDO_EXACTO_all_procedures.sql"
+
+--- Archivo 26/39: Liquidaciones v2 (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\23_SP_CEMENTERIOS_LIQUIDACIONES_EXACTO_all_procedures.sql"
+
+--- Archivo 27/39: Lista Movimientos v2 (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\24_SP_CEMENTERIOS_LIST_MOV_EXACTO_all_procedures.sql"
+
+================================================================================
+FASE 4: EXACTO - PARTE 3 (Funcionalidades adicionales - 12 archivos)
+================================================================================
+
+--- Archivo 28/39: Módulo (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\25_SP_CEMENTERIOS_MODULO_EXACTO_all_procedures.sql"
+
+--- Archivo 29/39: Búsqueda por Nombre (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\26_SP_CEMENTERIOS_MULTIPLENOMBRE_EXACTO_all_procedures.sql"
+
+--- Archivo 30/39: Búsqueda por RCM (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\27_SP_CEMENTERIOS_MULTIPLERCM_EXACTO_all_procedures.sql"
+
+--- Archivo 31/39: Búsqueda por Fecha (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\28_SP_CEMENTERIOS_MULTIPLEFECHA_EXACTO_all_procedures.sql"
+
+--- Archivo 32/39: Reporte Bonificaciones (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\29_SP_CEMENTERIOS_REP_BON_EXACTO_all_procedures.sql"
+
+--- Archivo 33/39: Reporte A Cobrar (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\30_SP_CEMENTERIOS_REP_A_COBRAR_EXACTO_all_procedures.sql"
+
+--- Archivo 34/39: Reporte Títulos (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\31_SP_CEMENTERIOS_RPTTITULOS_EXACTO_all_procedures.sql"
+
+--- Archivo 35/39: Títulos Sin (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\32_SP_CEMENTERIOS_TITULOSSIN_EXACTO_all_procedures.sql"
+
+--- Archivo 36/39: Títulos (3 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\33_SP_CEMENTERIOS_TITULOS_EXACTO_all_procedures.sql"
+
+--- Archivo 37/39: Traslado Folio Sin (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\34_SP_CEMENTERIOS_TRASLADOFOLSIN_EXACTO_all_procedures.sql"
+
+--- Archivo 38/39: Traslados (2 SPs) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\35_SP_CEMENTERIOS_TRASLADOS_EXACTO_all_procedures.sql"
+
+--- Archivo 39/39: Cambio de Contraseña (1 SP) ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\ok\36_SP_CEMENTERIOS_SFRM_CHGPASS_EXACTO_all_procedures.sql"
+
+================================================================================
+VERIFICACIÓN POST-INSTALACIÓN
+================================================================================
+
+--- Ejecutar script de verificación ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -f "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\cementerios\database\VERIFICACION_POST_INSTALACION.sql"
+
+--- O verificar manualmente ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -c "SELECT COUNT(*) as total_sps FROM information_schema.routines WHERE routine_schema = 'public' AND (routine_name LIKE 'sp_%' OR routine_name LIKE 'SP_CEMENTERIOS_%');"
+
+================================================================================
+PRUEBAS BÁSICAS
+================================================================================
+
+--- Prueba 1: Estadísticas generales ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -c "SELECT * FROM SP_CEMENTERIOS_ESTADISTICAS();"
+
+--- Prueba 2: Lista de cementerios ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -c "SELECT * FROM SP_CEMENTERIOS_CEMENTERIOS_LIST();"
+
+--- Prueba 3: Estadísticas de adeudos ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -c "SELECT * FROM sp_estad_adeudo_resumen();"
+
+--- Prueba 4: Dashboard ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -c "SELECT * FROM SP_CEMENTERIOS_DASHBOARD_RESUMEN();"
+
+--- Prueba 5: Búsqueda de difuntos ---
+psql -h 192.168.6.146 -p 5432 -U refact -d padron_licencias -c "SELECT * FROM SP_CEMENTERIOS_BUSCAR_DIFUNTO('test', 'GENERAL');"
+
+================================================================================
+FIN DE INSTALACIÓN
+================================================================================
+
+RESULTADO ESPERADO:
+- 39 archivos ejecutados
+- 93 Stored Procedures instalados
+- 0 errores
+
+Si hubo errores, consultar:
+- README_INSTALACION.md → Sección "Solución de Problemas"
+- INFORME_DETALLADO_CEMENTERIOS_SPS.md → Sección 4
+- Log de psql
+
+================================================================================

@@ -1,0 +1,2245 @@
+{
+  "titulo": "REPORTE AGENTE 5 - QA COMPLETO BD <-> FRONTEND",
+  "fecha": "2025-11-09T19:38:58.424842",
+  "sistema": "aseo_contratado",
+  "estado": "QA FUNCIONAL BLOQUEADO",
+  "razon_bloqueo": "0% de SPs disponibles en BD (0/140)",
+  "resumen_ejecutivo": {
+    "componentes_analizados": 103,
+    "total_errores": 127,
+    "total_warnings": 228,
+    "total_validaciones_correctas": 471,
+    "pct_componentes_flujos_correctos": 47,
+    "total_casos_prueba_generados": 75,
+    "tiempo_estimado_qa_post_deploy": "15 horas"
+  },
+  "analisis_estatico": {
+    "componentes": [
+      {
+        "componente": "ABC_Cves_Operacion.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Empresas.vue",
+        "errores": 2,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Gastos.vue",
+        "errores": 1,
+        "warnings": 0,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Recargos.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Recaudadoras.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Tipos_Aseo.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 8,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Tipos_Emp.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Und_Recolec.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "ABC_Zonas.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "ActCont_CR.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_Carga.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_EdoCta.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_Ins.vue",
+        "errores": 2,
+        "warnings": 0,
+        "validaciones": 8,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_Nvo.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_OpcMult.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_Pag.vue",
+        "errores": 1,
+        "warnings": 5,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_PagMult.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_PagUpdPer.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_UpdExed.vue",
+        "errores": 1,
+        "warnings": 4,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "Adeudos_Venc.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "AdeudosCN_Cond.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "AdeudosEst.vue",
+        "errores": 2,
+        "warnings": 0,
+        "validaciones": 8,
+        "analizado": true
+      },
+      {
+        "componente": "AdeudosExe_Del.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "AdeudosMult_Ins.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "AplicaMultasNormal.vue",
+        "errores": 1,
+        "warnings": 0,
+        "validaciones": 8,
+        "analizado": true
+      },
+      {
+        "componente": "Cons_Cves_operacion.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "Cons_Empresas.vue",
+        "errores": 1,
+        "warnings": 5,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Cons_Tipos_Aseo.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 3,
+        "analizado": true
+      },
+      {
+        "componente": "Cons_Tipos_Emp.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Cons_Und_Recolec.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Cons_Zonas.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 3,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Adeudos.vue",
+        "errores": 1,
+        "warnings": 0,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Cancela.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Cons.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Cons_Admin.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Cons_Cont.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Cons_ContAsc.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Cons_Dom.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Consulta.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Del.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_EstGral.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_EstGral2.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Ins.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Ins_b.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Upd.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Upd_01.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Upd_IniObl.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Upd_Periodo.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Upd_Und.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_Upd_UndC.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Contratos_UpdxCont.vue",
+        "errores": 2,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "ContratosEst.vue",
+        "errores": 2,
+        "warnings": 0,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Ctrol_Imp_Cat.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "DatosConvenio.vue",
+        "errores": 1,
+        "warnings": 4,
+        "validaciones": 3,
+        "analizado": true
+      },
+      {
+        "componente": "Dscto_p_pago.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Ejercicios_Ins.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "Empresas_Contratos.vue",
+        "errores": 1,
+        "warnings": 0,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "frmRep_Und_Recolec.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Licencias_Relacionadas.vue",
+        "errores": 2,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Empresas.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Gastos.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Operaciones.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Recargos.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Recaudadoras.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Tipos_Aseo.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Tipos_Emp.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Und_Recolec.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Mannto_Zonas.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "Menu.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Pagos_Con_FPgo.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "Pagos_Cons_Cont.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 8,
+        "analizado": true
+      },
+      {
+        "componente": "Pagos_Cons_ContAsc.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Prueba.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_AdeudCond.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_Adeudos.vue",
+        "errores": 2,
+        "warnings": 4,
+        "validaciones": 0,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_Contratos.vue",
+        "errores": 2,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_Empresas.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_PadronContratos.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_Recaudadoras.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_Tipos_Aseo.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_Tipos_Emp.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "Rep_Zonas.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 3,
+        "analizado": true
+      },
+      {
+        "componente": "ReqsCons.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "sDM_Procesos.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptAdeudos.vue",
+        "errores": 2,
+        "warnings": 3,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptAdeudosCond.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 8,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptAdeudosVenc.vue",
+        "errores": 2,
+        "warnings": 3,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptContratos.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 6,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptContratos_Det.vue",
+        "errores": 2,
+        "warnings": 2,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptContratos_Est.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptContratos_EstGral.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptCves_Operacion.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 3,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptEmpresas.vue",
+        "errores": 1,
+        "warnings": 4,
+        "validaciones": 1,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptPagosXContrato.vue",
+        "errores": 1,
+        "warnings": 2,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptRecaudadoras.vue",
+        "errores": 1,
+        "warnings": 4,
+        "validaciones": 1,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptTipos_Aseo.vue",
+        "errores": 1,
+        "warnings": 4,
+        "validaciones": 1,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptTipos_Empresas.vue",
+        "errores": 1,
+        "warnings": 3,
+        "validaciones": 3,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptUnd_Recolec.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 7,
+        "analizado": true
+      },
+      {
+        "componente": "sQRptZonas.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 5,
+        "analizado": true
+      },
+      {
+        "componente": "uDM_Procesos.vue",
+        "errores": 1,
+        "warnings": 4,
+        "validaciones": 4,
+        "analizado": true
+      },
+      {
+        "componente": "unAcceso.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 8,
+        "analizado": true
+      },
+      {
+        "componente": "Unit1.vue",
+        "errores": 1,
+        "warnings": 1,
+        "validaciones": 5,
+        "analizado": true
+      }
+    ],
+    "errores_por_severidad": {
+      "CRITICA": 126,
+      "ALTA": 1,
+      "MEDIA": 0,
+      "BAJA": 0,
+      "total": 127
+    },
+    "warnings_por_severidad": {
+      "ALTA": 69,
+      "MEDIA": 134,
+      "BAJA": 25,
+      "total": 228
+    },
+    "validaciones_correctas_por_tipo": {
+      "TRY_CATCH": 49,
+      "VALIDACIONES_FRONTEND": 53,
+      "LOADING_STATES": 48,
+      "total": 471
+    },
+    "errores_detalle": [
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Und_Recolec.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ABC_Zonas.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "ActCont_CR.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_Carga.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_EdoCta.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_DESBALANCEADO",
+        "mensaje": "Try-catch desbalanceado: 2 try vs 1 catch",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_Ins.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_Ins.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_Nvo.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_OpcMult.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_Pag.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_PagMult.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_PagUpdPer.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_PagUpdPer.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_UpdExed.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Adeudos_Venc.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "AdeudosCN_Cond.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "AdeudosEst.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "AdeudosEst.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "AdeudosExe_Del.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "AdeudosMult_Ins.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "AplicaMultasNormal.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Cons_Cves_operacion.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Cons_Empresas.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Cons_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Cons_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Cons_Und_Recolec.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Cons_Zonas.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Adeudos.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cancela.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cancela.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_Admin.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_Admin.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_Cont.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_Cont.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_ContAsc.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_ContAsc.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_Dom.vue"
+      },
+      {
+        "tipo": "STYLE_SCOPED",
+        "mensaje": "USA <style scoped> - VIOLA ESTÁNDAR",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Cons_Dom.vue"
+      },
+      {
+        "tipo": "PLACEHOLDER_NO_IMPLEMENTADO",
+        "mensaje": "Componente es PLACEHOLDER - NO IMPLEMENTADO",
+        "linea": "N/A",
+        "severidad": "CRITICA",
+        "componente": "Contratos_Consulta.vue"
+      }
+    ],
+    "warnings_detalle": [
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "SIN_PROTECCION_NULL",
+        "mensaje": "No se detectó protección explícita contra null/undefined",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "TODO_PENDIENTE",
+        "mensaje": "Tiene 1 TODOs pendientes",
+        "linea": [
+          "obtener usuario real"
+        ],
+        "severidad": "MEDIA",
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "ABC_Und_Recolec.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "ABC_Zonas.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "ActCont_CR.vue"
+      },
+      {
+        "tipo": "SIN_PROTECCION_NULL",
+        "mensaje": "No se detectó protección explícita contra null/undefined",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_Carga.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_Carga.vue"
+      },
+      {
+        "tipo": "IMPORT_INCOMPLETO",
+        "mensaje": "Posibles imports sin destructuring",
+        "linea": "N/A",
+        "severidad": "BAJA",
+        "componente": "Adeudos_EdoCta.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_EdoCta.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_EdoCta.vue"
+      },
+      {
+        "tipo": "IMPORT_INCOMPLETO",
+        "mensaje": "Posibles imports sin destructuring",
+        "linea": "N/A",
+        "severidad": "BAJA",
+        "componente": "Adeudos_Nvo.vue"
+      },
+      {
+        "tipo": "SIN_PROTECCION_NULL",
+        "mensaje": "No se detectó protección explícita contra null/undefined",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_Nvo.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_Nvo.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_OpcMult.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_OpcMult.vue"
+      },
+      {
+        "tipo": "IMPORT_INCOMPLETO",
+        "mensaje": "Posibles imports sin destructuring",
+        "linea": "N/A",
+        "severidad": "BAJA",
+        "componente": "Adeudos_Pag.vue"
+      },
+      {
+        "tipo": "SIN_PROTECCION_NULL",
+        "mensaje": "No se detectó protección explícita contra null/undefined",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_Pag.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_Pag.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_Pag.vue"
+      },
+      {
+        "tipo": "TODO_PENDIENTE",
+        "mensaje": "Tiene 1 TODOs pendientes",
+        "linea": [
+          "obtener usuario logueado"
+        ],
+        "severidad": "MEDIA",
+        "componente": "Adeudos_Pag.vue"
+      },
+      {
+        "tipo": "IMPORT_INCOMPLETO",
+        "mensaje": "Posibles imports sin destructuring",
+        "linea": "N/A",
+        "severidad": "BAJA",
+        "componente": "Adeudos_PagMult.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_PagMult.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_PagMult.vue"
+      },
+      {
+        "tipo": "SIN_PROTECCION_NULL",
+        "mensaje": "No se detectó protección explícita contra null/undefined",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_PagUpdPer.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_PagUpdPer.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_PagUpdPer.vue"
+      },
+      {
+        "tipo": "SIN_PREVENT_SUBMIT",
+        "mensaje": "No usa @submit.prevent (podría permitir doble-submit)",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_PagUpdPer.vue"
+      },
+      {
+        "tipo": "SIN_PROTECCION_NULL",
+        "mensaje": "No se detectó protección explícita contra null/undefined",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_UpdExed.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_UpdExed.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_UpdExed.vue"
+      },
+      {
+        "tipo": "TODO_PENDIENTE",
+        "mensaje": "Tiene 1 TODOs pendientes",
+        "linea": [
+          "obtener de sesión"
+        ],
+        "severidad": "MEDIA",
+        "componente": "Adeudos_UpdExed.vue"
+      },
+      {
+        "tipo": "IMPORT_INCOMPLETO",
+        "mensaje": "Posibles imports sin destructuring",
+        "linea": "N/A",
+        "severidad": "BAJA",
+        "componente": "Adeudos_Venc.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Adeudos_Venc.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Adeudos_Venc.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "AdeudosCN_Cond.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "AdeudosExe_Del.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "AdeudosExe_Del.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "AdeudosMult_Ins.vue"
+      },
+      {
+        "tipo": "SIN_PREVENT_SUBMIT",
+        "mensaje": "No usa @submit.prevent (podría permitir doble-submit)",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "AdeudosMult_Ins.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Cons_Cves_operacion.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Cons_Cves_operacion.vue"
+      },
+      {
+        "tipo": "IMPORT_INCOMPLETO",
+        "mensaje": "Posibles imports sin destructuring",
+        "linea": "N/A",
+        "severidad": "BAJA",
+        "componente": "Cons_Empresas.vue"
+      },
+      {
+        "tipo": "SIN_PROTECCION_NULL",
+        "mensaje": "No se detectó protección explícita contra null/undefined",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Cons_Empresas.vue"
+      },
+      {
+        "tipo": "NO_VERIFICA_SUCCESS",
+        "mensaje": "No se detectó verificación de response.success",
+        "linea": "N/A",
+        "severidad": "ALTA",
+        "componente": "Cons_Empresas.vue"
+      },
+      {
+        "tipo": "SIN_LOADING_STATE",
+        "mensaje": "No se detectó loading state",
+        "linea": "N/A",
+        "severidad": "MEDIA",
+        "componente": "Cons_Empresas.vue"
+      }
+    ],
+    "validaciones_detalle": [
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 4,
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "PROTECCION_NULL",
+        "mensaje": "Implementa protección contra null/undefined (optional chaining o defaults)",
+        "linea": "N/A",
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_OK",
+        "mensaje": "Implementa 4 bloques try-catch correctamente",
+        "linea": 4,
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "LOADING_STATE",
+        "mensaje": "Implementa loading states",
+        "linea": "N/A",
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "PREVENT_SUBMIT",
+        "mensaje": "Previene doble-submit con @submit.prevent",
+        "linea": 2,
+        "componente": "ABC_Cves_Operacion.vue"
+      },
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 3,
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "PROTECCION_NULL",
+        "mensaje": "Implementa protección contra null/undefined (optional chaining o defaults)",
+        "linea": "N/A",
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_OK",
+        "mensaje": "Implementa 4 bloques try-catch correctamente",
+        "linea": 4,
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "VERIFICA_SUCCESS",
+        "mensaje": "Verifica response.success/status correctamente",
+        "linea": "N/A",
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "PREVENT_SUBMIT",
+        "mensaje": "Previene doble-submit con @submit.prevent",
+        "linea": 1,
+        "componente": "ABC_Empresas.vue"
+      },
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 4,
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "PROTECCION_NULL",
+        "mensaje": "Implementa protección contra null/undefined (optional chaining o defaults)",
+        "linea": "N/A",
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "VERIFICA_SUCCESS",
+        "mensaje": "Verifica response.success/status correctamente",
+        "linea": "N/A",
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "LOADING_STATE",
+        "mensaje": "Implementa loading states",
+        "linea": "N/A",
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "DISABLED_STATE",
+        "mensaje": "Implementa disabled states en botones",
+        "linea": "N/A",
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "PREVENT_SUBMIT",
+        "mensaje": "Previene doble-submit con @submit.prevent",
+        "linea": 1,
+        "componente": "ABC_Gastos.vue"
+      },
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 3,
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "PROTECCION_NULL",
+        "mensaje": "Implementa protección contra null/undefined (optional chaining o defaults)",
+        "linea": "N/A",
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_OK",
+        "mensaje": "Implementa 2 bloques try-catch correctamente",
+        "linea": 2,
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "VERIFICA_SUCCESS",
+        "mensaje": "Verifica response.success/status correctamente",
+        "linea": "N/A",
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "DISABLED_STATE",
+        "mensaje": "Implementa disabled states en botones",
+        "linea": "N/A",
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "PREVENT_SUBMIT",
+        "mensaje": "Previene doble-submit con @submit.prevent",
+        "linea": 1,
+        "componente": "ABC_Recargos.vue"
+      },
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 4,
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_OK",
+        "mensaje": "Implementa 4 bloques try-catch correctamente",
+        "linea": 4,
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "VERIFICA_SUCCESS",
+        "mensaje": "Verifica response.success/status correctamente",
+        "linea": "N/A",
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "PREVENT_SUBMIT",
+        "mensaje": "Previene doble-submit con @submit.prevent",
+        "linea": 2,
+        "componente": "ABC_Recaudadoras.vue"
+      },
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 3,
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "PROTECCION_NULL",
+        "mensaje": "Implementa protección contra null/undefined (optional chaining o defaults)",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_OK",
+        "mensaje": "Implementa 2 bloques try-catch correctamente",
+        "linea": 2,
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "VERIFICA_SUCCESS",
+        "mensaje": "Verifica response.success/status correctamente",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "LOADING_STATE",
+        "mensaje": "Implementa loading states",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "DISABLED_STATE",
+        "mensaje": "Implementa disabled states en botones",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "PREVENT_SUBMIT",
+        "mensaje": "Previene doble-submit con @submit.prevent",
+        "linea": 1,
+        "componente": "ABC_Tipos_Aseo.vue"
+      },
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 3,
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "PROTECCION_NULL",
+        "mensaje": "Implementa protección contra null/undefined (optional chaining o defaults)",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_OK",
+        "mensaje": "Implementa 4 bloques try-catch correctamente",
+        "linea": 4,
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "VERIFICA_SUCCESS",
+        "mensaje": "Verifica response.success/status correctamente",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "PREVENT_SUBMIT",
+        "mensaje": "Previene doble-submit con @submit.prevent",
+        "linea": 1,
+        "componente": "ABC_Tipos_Emp.vue"
+      },
+      {
+        "tipo": "VALIDACION_FRONTEND",
+        "mensaje": "Implementa validaciones HTML5 required",
+        "linea": 5,
+        "componente": "ABC_Und_Recolec.vue"
+      },
+      {
+        "tipo": "PROTECCION_NULL",
+        "mensaje": "Implementa protección contra null/undefined (optional chaining o defaults)",
+        "linea": "N/A",
+        "componente": "ABC_Und_Recolec.vue"
+      },
+      {
+        "tipo": "TRY_CATCH_OK",
+        "mensaje": "Implementa 4 bloques try-catch correctamente",
+        "linea": 4,
+        "componente": "ABC_Und_Recolec.vue"
+      },
+      {
+        "tipo": "VERIFICA_SUCCESS",
+        "mensaje": "Verifica response.success/status correctamente",
+        "linea": "N/A",
+        "componente": "ABC_Und_Recolec.vue"
+      },
+      {
+        "tipo": "MENSAJE_USUARIO",
+        "mensaje": "Muestra mensajes al usuario (alert/message/error)",
+        "linea": "N/A",
+        "componente": "ABC_Und_Recolec.vue"
+      }
+    ]
+  },
+  "flujos_teoricos_validados": {
+    "crud_completo": "47/67 módulos",
+    "validaciones_frontend": "53/67 correctas",
+    "manejo_errores": "49/67 correcto",
+    "estados_ui": "48/67 con loading states"
+  },
+  "casos_prueba": {
+    "total_casos": 75,
+    "por_categoria": {
+      "CRUD_CATALOGO": 135,
+      "CONSULTA_COMPLEJA": 150,
+      "INSERCION_COMPLEJA": 75,
+      "PAGO_TRANSACCIONAL": 45,
+      "REPORTE_PARAMETRIZADO": 75
+    },
+    "detalle": [
+      {
+        "modulo": "ABC_Tipos_Aseo.vue",
+        "categoria": "CRUD_CATALOGO",
+        "precondiciones": [
+          "SP_ASEO_TIPOS_LIST desplegado",
+          "SP_ASEO_TIPOS_CREATE desplegado",
+          "SP_ASEO_TIPOS_UPDATE desplegado",
+          "SP_ASEO_TIPOS_DELETE desplegado"
+        ],
+        "casos_positivos": [
+          "CP01: Listar tipos de aseo (tabla vacía)",
+          "CP02: Crear primer tipo de aseo (datos válidos)",
+          "CP03: Listar tipos de aseo (1 registro visible)",
+          "CP04: Modificar tipo de aseo creado",
+          "CP05: Listar tipos de aseo (cambios reflejados)",
+          "CP06: Eliminar tipo de aseo",
+          "CP07: Listar tipos de aseo (tabla vacía nuevamente)"
+        ],
+        "casos_negativos": [
+          "CN01: Crear tipo duplicado (debe fallar)",
+          "CN02: Modificar con descripción vacía (validación frontend)",
+          "CN03: Eliminar tipo inexistente (debe manejar error)",
+          "CN04: Crear con cta_aplicacion no numérica"
+        ],
+        "casos_edge": [
+          "CE01: Descripción muy larga (80 chars límite)",
+          "CE02: Caracteres especiales en descripción",
+          "CE03: Tipo de aseo con 1 solo carácter",
+          "CE04: Cta aplicación con número muy grande"
+        ],
+        "tiempo_estimado": "45 minutos"
+      },
+      {
+        "modulo": "Contratos.vue",
+        "categoria": "CONSULTA_COMPLEJA",
+        "precondiciones": [
+          "SP_ASEO_CONTRATOS_LIST desplegado",
+          "SP_ASEO_CONTRATOS_FILTER desplegado",
+          "SP_ASEO_CONTRATOS_EXPORT desplegado",
+          "Datos de prueba cargados en BD"
+        ],
+        "casos_positivos": [
+          "CP01: Listar contratos con tipo 'C' y vigencia 'V'",
+          "CP02: Filtrar por tipo 'H' (Hospitalario)",
+          "CP03: Filtrar por vigencia 'C' (Cancelado)",
+          "CP04: Exportar resultados a Excel",
+          "CP05: Verificar 23 columnas en tabla"
+        ],
+        "casos_negativos": [
+          "CN01: Filtrar con tipo inexistente",
+          "CN02: Exportar sin resultados",
+          "CN03: Tabla muy ancha sin scroll horizontal"
+        ],
+        "casos_edge": [
+          "CE01: Listar 1000+ contratos (performance)",
+          "CE02: Contratos con datos NULL en columnas opcionales",
+          "CE03: RFC/CURP con formato inválido"
+        ],
+        "tiempo_estimado": "60 minutos"
+      },
+      {
+        "modulo": "Adeudos_Ins.vue",
+        "categoria": "INSERCION_COMPLEJA",
+        "precondiciones": [
+          "SP_ADEUDOS_INS_GET_CATALOGS desplegado",
+          "SP_ADEUDOS_INS_VALIDATE_CONTRATO desplegado",
+          "SP_ADEUDOS_INS_INSERT desplegado",
+          "Contratos de prueba existentes"
+        ],
+        "casos_positivos": [
+          "CP01: Cargar catálogos correctamente",
+          "CP02: Validar contrato existente",
+          "CP03: Insertar excedencia válida",
+          "CP04: Verificar inserción en BD",
+          "CP05: Limpiar formulario después de insertar"
+        ],
+        "casos_negativos": [
+          "CN01: Insertar con contrato inexistente (validación)",
+          "CN02: Insertar con cantidad 0 o negativa",
+          "CN03: Insertar sin seleccionar tipo de aseo",
+          "CN04: Insertar con año/mes fuera de rango"
+        ],
+        "casos_edge": [
+          "CE01: Insertar con oficio muy largo (15 chars)",
+          "CE02: Insertar 9999 excedencias (límite maxlength)",
+          "CE03: Año futuro (2050)",
+          "CE04: Mes 13 (inválido)"
+        ],
+        "tiempo_estimado": "50 minutos"
+      },
+      {
+        "modulo": "Adeudos_Pag.vue",
+        "categoria": "PAGO_TRANSACCIONAL",
+        "precondiciones": [
+          "SP_ADEUDOS_PAG_GET_CATALOGOS desplegado",
+          "SP_ADEUDOS_PAG_VER_ADEUDOS desplegado",
+          "SP_ADEUDOS_PAG_EJECUTAR desplegado",
+          "Adeudos pendientes de pago en BD"
+        ],
+        "casos_positivos": [
+          "CP01: Cargar catálogos (recaudadoras, cajas)",
+          "CP02: Buscar adeudos por contrato",
+          "CP03: Ver cuota normal y excedencias",
+          "CP04: Seleccionar adeudos a pagar (checkboxes)",
+          "CP05: Ejecutar pago exitosamente",
+          "CP06: Verificar adeudos marcados como PAGADOS"
+        ],
+        "casos_negativos": [
+          "CN01: Buscar adeudos sin contrato",
+          "CN02: Intentar pagar adeudo YA PAGADO (disabled)",
+          "CN03: Ejecutar pago sin fecha",
+          "CN04: Ejecutar pago sin recaudadora/caja"
+        ],
+        "casos_edge": [
+          "CE01: Pagar solo cuota normal (exe sin seleccionar)",
+          "CE02: Pagar solo excedencias (cn sin seleccionar)",
+          "CE03: Pagar ambos adeudos simultáneamente",
+          "CE04: Fecha de pago en futuro"
+        ],
+        "tiempo_estimado": "70 minutos"
+      },
+      {
+        "modulo": "Rep_Contratos.vue",
+        "categoria": "REPORTE_PARAMETRIZADO",
+        "precondiciones": [
+          "SP_REPORTE_LISTAR_EMPRESAS desplegado",
+          "SP_REPORTE_LISTAR_TIPO_ASEO desplegado",
+          "SP_REPORTE_LISTAR_RECAUDADORAS desplegado",
+          "SP_REPORTE_EMPRESA_CONTRATOS desplegado",
+          "SP_REPORTE_CONTRATOS desplegado",
+          "Datos completos en BD"
+        ],
+        "casos_positivos": [
+          "CP01: Cargar combos de empresas, tipos, recaudadoras",
+          "CP02: Generar reporte 'empresa_contratos' con filtros",
+          "CP03: Generar reporte 'solo_contratos'",
+          "CP04: Ordenar por diferentes campos",
+          "CP05: Buscar empresa por nombre (modal)",
+          "CP06: Seleccionar empresa desde búsqueda"
+        ],
+        "casos_negativos": [
+          "CN01: Generar reporte sin resultados",
+          "CN02: Buscar empresa inexistente",
+          "CN03: Reporte con error de BD"
+        ],
+        "casos_edge": [
+          "CE01: Reporte con todas las empresas (null)",
+          "CE02: Reporte con 5000+ registros",
+          "CE03: Tabla dinámica con columnas variables"
+        ],
+        "tiempo_estimado": "55 minutos"
+      }
+    ]
+  },
+  "plan_qa_post_deploy": {
+    "titulo": "PLAN DE QA POST-DESPLIEGUE - ASEO CONTRATADO",
+    "fecha_creacion": "2025-11-09T19:38:58.424696",
+    "prerequisitos": [
+      "140 SPs desplegados en PostgreSQL",
+      "Todos los SPs con formato eResponse implementado",
+      "Endpoint /api/execute funcional",
+      "Base de datos con datos de prueba mínimos"
+    ],
+    "fases": [
+      {
+        "fase": "FASE 1: Smoke Testing",
+        "objetivo": "Verificar que sistema arranca y SPs básicos funcionan",
+        "duracion": "1 hora",
+        "actividades": [
+          "Verificar que 140 SPs existen en BD (query a pg_proc)",
+          "Probar 1 componente ABC (ABC_Tipos_Aseo.vue)",
+          "Probar 1 componente Contrato (Contratos.vue)",
+          "Probar 1 componente Adeudo (Adeudos_Ins.vue)",
+          "Verificar formato eResponse en 5 SPs aleatorios",
+          "Validar endpoint /api/execute responde correctamente",
+          "Verificar NO hay errores 500 en consola backend",
+          "Verificar NO hay errores en consola frontend"
+        ],
+        "criterios_exito": [
+          "Todos los SPs existen",
+          "eResponse con {success, message, data} en todas las respuestas",
+          "Frontend carga sin errores",
+          "Al menos 1 CRUD completo funciona"
+        ]
+      },
+      {
+        "fase": "FASE 2: Functional Testing",
+        "objetivo": "Probar CRUD completo en todos los módulos",
+        "duracion": "8 horas",
+        "actividades": [
+          "CATÁLOGOS ABC (2 horas):",
+          "  - Probar CRUD en 9 catálogos ABC",
+          "  - Validar datos persisten en BD",
+          "  - Validar validaciones frontend/backend",
+          "",
+          "CONTRATOS (2.5 horas):",
+          "  - Probar alta de contrato",
+          "  - Probar consulta con filtros",
+          "  - Probar modificación de contrato",
+          "  - Probar cancelación de contrato",
+          "  - Validar estados (vigente, cancelado, etc.)",
+          "",
+          "ADEUDOS (2 horas):",
+          "  - Probar inserción de adeudos",
+          "  - Probar carga masiva",
+          "  - Probar estado de cuenta",
+          "  - Probar adeudos vencidos",
+          "  - Validar cálculos de importes",
+          "",
+          "PAGOS (1.5 horas):",
+          "  - Probar pago individual",
+          "  - Probar pago múltiple",
+          "  - Validar actualización de estados",
+          "  - Validar recibos de pago",
+          "  - Probar consulta de pagos por contrato"
+        ],
+        "criterios_exito": [
+          "100% de CRUDs funcionan",
+          "Validaciones frontend previenen datos inválidos",
+          "Validaciones backend manejan edge cases",
+          "Estados se actualizan correctamente",
+          "NO hay errores en consola"
+        ]
+      },
+      {
+        "fase": "FASE 3: Integration Testing",
+        "objetivo": "Probar flujos end-to-end completos",
+        "duracion": "4 horas",
+        "actividades": [
+          "FLUJO COMPLETO 1: Nuevo Contrato + Adeudos + Pago",
+          "  - Crear empresa nueva",
+          "  - Crear contrato para empresa",
+          "  - Insertar adeudos para contrato",
+          "  - Consultar estado de cuenta",
+          "  - Realizar pago",
+          "  - Verificar adeudo marcado como pagado",
+          "",
+          "FLUJO COMPLETO 2: Consultas y Reportes",
+          "  - Crear 5 contratos diferentes",
+          "  - Filtrar contratos por empresa",
+          "  - Filtrar contratos por tipo de aseo",
+          "  - Generar reporte de contratos",
+          "  - Exportar a Excel",
+          "  - Verificar datos en archivo",
+          "",
+          "FLUJO COMPLETO 3: Gestión de Catálogos",
+          "  - Crear tipo de aseo nuevo",
+          "  - Crear unidad de recolección",
+          "  - Crear empresa con nuevo tipo",
+          "  - Crear contrato usando nuevos catálogos",
+          "  - Verificar relaciones correctas"
+        ],
+        "criterios_exito": [
+          "Flujos end-to-end completos sin errores",
+          "Relaciones entre módulos correctas",
+          "Datos consistentes entre tablas",
+          "Exportaciones funcionan correctamente"
+        ]
+      },
+      {
+        "fase": "FASE 4: Regression Testing",
+        "objetivo": "Re-probar casos críticos y validar fixes",
+        "duracion": "2 horas",
+        "actividades": [
+          "Re-probar 10 casos críticos identificados",
+          "Validar que fixes no rompieron otros módulos",
+          "Probar performance con volumen (100+ contratos)",
+          "Validar manejo de errores en todos los flujos",
+          "Verificar mensajes de usuario son claros",
+          "Probar en diferentes navegadores (Chrome, Firefox, Edge)"
+        ],
+        "criterios_exito": [
+          "Casos críticos pasan 100%",
+          "NO hay regresiones",
+          "Performance aceptable (< 3s carga)",
+          "Funciona en 3 navegadores principales"
+        ]
+      }
+    ],
+    "tiempo_total": "15 horas",
+    "recursos_necesarios": [
+      "1 QA tester con conocimiento de Vue.js",
+      "Acceso a BD PostgreSQL",
+      "Acceso a frontend en localhost/staging",
+      "Herramientas: Postman, DevTools, Excel"
+    ],
+    "entregables": [
+      "Reporte de smoke testing (1 hora)",
+      "Matriz de casos de prueba ejecutados (8 horas)",
+      "Reporte de bugs encontrados (continuo)",
+      "Reporte de flujos end-to-end (4 horas)",
+      "Reporte final de QA (2 horas)"
+    ]
+  },
+  "matriz_riesgos": {
+    "riesgos_criticos": [
+      {
+        "id": "R01",
+        "titulo": "Sistema 100% inoperativo sin SPs",
+        "descripcion": "0 de 140 SPs están desplegados en PostgreSQL. Sistema completamente bloqueado.",
+        "impacto": "CRITICO",
+        "probabilidad": "100%",
+        "mitigacion": "URGENTE: Desplegar inmediatamente los 140 SPs en BD",
+        "tiempo_resolucion": "12-24 horas",
+        "responsable": "DBA + Backend Team"
+      },
+      {
+        "id": "R02",
+        "titulo": "Formato eResponse NO implementado",
+        "descripcion": "0% de SPs retornan {success, message, data}. Frontend espera este formato.",
+        "impacto": "CRITICO",
+        "probabilidad": "100%",
+        "mitigacion": "Refactorizar 140 SPs para implementar formato eResponse",
+        "tiempo_resolucion": "8-16 horas",
+        "responsable": "Backend Team"
+      },
+      {
+        "id": "R03",
+        "titulo": "Componente placeholder no implementado",
+        "descripcion": "Contratos_Consulta.vue es solo un placeholder - no funcional",
+        "impacto": "ALTO",
+        "probabilidad": "100%",
+        "mitigacion": "Implementar componente completo siguiendo estándar",
+        "tiempo_resolucion": "3 horas",
+        "responsable": "Frontend Team"
+      }
+    ],
+    "riesgos_altos": [
+      {
+        "id": "R04",
+        "titulo": "65 componentes completamente bloqueados",
+        "descripcion": "65/67 componentes no pueden operar sin SPs en BD",
+        "impacto": "ALTO",
+        "probabilidad": "100%",
+        "mitigacion": "Depende de R01 - desplegar SPs",
+        "tiempo_resolucion": "Depende de R01",
+        "responsable": "DBA + Backend Team"
+      },
+      {
+        "id": "R05",
+        "titulo": "Posible frustración de usuarios en producción",
+        "descripcion": "Si se despliega frontend sin backend, usuarios verán errores",
+        "impacto": "ALTO",
+        "probabilidad": "80%",
+        "mitigacion": "NO desplegar frontend hasta que SPs estén listos",
+        "tiempo_resolucion": "0 (solo comunicación)",
+        "responsable": "PM + DevOps"
+      }
+    ],
+    "riesgos_medios": [
+      {
+        "id": "R06",
+        "titulo": "Desviación de estándares (44% cumplimiento)",
+        "descripcion": "Componentes usan patrón antiguo vs patrón gold de padrón_licencias",
+        "impacto": "MEDIO",
+        "probabilidad": "100%",
+        "mitigacion": "Estandarización gradual (300+ horas estimadas)",
+        "tiempo_resolucion": "7-8 semanas",
+        "responsable": "Frontend Team"
+      },
+      {
+        "id": "R07",
+        "titulo": "Falta stats-grid en 85% de componentes",
+        "descripcion": "Solo 10/67 componentes tienen stats-grid al inicio",
+        "impacto": "MEDIO",
+        "probabilidad": "100%",
+        "mitigacion": "Implementar stats-grid en componentes de consulta (prioridad)",
+        "tiempo_resolucion": "15 horas",
+        "responsable": "Frontend Team"
+      },
+      {
+        "id": "R08",
+        "titulo": "Tabla de Contratos.vue muy ancha (23 columnas)",
+        "descripcion": "Puede causar overflow horizontal sin scroll",
+        "impacto": "MEDIO",
+        "probabilidad": "70%",
+        "mitigacion": "Agregar table-responsive o reducir columnas visibles",
+        "tiempo_resolucion": "1 hora",
+        "responsable": "Frontend Team"
+      }
+    ],
+    "riesgos_bajos": [
+      {
+        "id": "R09",
+        "titulo": "itemsPerPage inconsistente",
+        "descripcion": "37 componentes usan valores diferentes a 10",
+        "impacto": "BAJO",
+        "probabilidad": "100%",
+        "mitigacion": "Estandarizar a itemsPerPage=10",
+        "tiempo_resolucion": "1 hora",
+        "responsable": "Frontend Team"
+      },
+      {
+        "id": "R10",
+        "titulo": "showFilters inconsistente",
+        "descripcion": "15 componentes inician con filtros abiertos (true) vs cerrados (false)",
+        "impacto": "BAJO",
+        "probabilidad": "100%",
+        "mitigacion": "Estandarizar a showFilters=false",
+        "tiempo_resolucion": "30 minutos",
+        "responsable": "Frontend Team"
+      }
+    ],
+    "resumen": {
+      "total_riesgos": 10,
+      "criticos": 3,
+      "altos": 2,
+      "medios": 3,
+      "bajos": 2,
+      "riesgo_general": "CRITICO",
+      "bloqueadores_activos": 2,
+      "tiempo_total_mitigacion": "300+ horas (incluye estandarización completa)"
+    }
+  },
+  "recomendaciones": [
+    {
+      "prioridad": "URGENTE",
+      "titulo": "Desplegar 140 SPs en PostgreSQL",
+      "descripcion": "Sin SPs, sistema está 100% inoperativo",
+      "tiempo": "12-24 horas",
+      "responsable": "DBA + Backend Team"
+    },
+    {
+      "prioridad": "URGENTE",
+      "titulo": "Implementar formato eResponse en todos los SPs",
+      "descripcion": "Frontend espera {success, message, data}",
+      "tiempo": "8-16 horas",
+      "responsable": "Backend Team"
+    },
+    {
+      "prioridad": "ALTA",
+      "titulo": "Implementar Contratos_Consulta.vue",
+      "descripcion": "Componente es placeholder - no funcional",
+      "tiempo": "3 horas",
+      "responsable": "Frontend Team"
+    },
+    {
+      "prioridad": "MEDIA",
+      "titulo": "Agregar stats-grid a componentes de consulta",
+      "descripcion": "Mejora UX y consistencia visual",
+      "tiempo": "15 horas",
+      "responsable": "Frontend Team"
+    },
+    {
+      "prioridad": "BAJA",
+      "titulo": "Estandarizar paginación (itemsPerPage=10)",
+      "descripcion": "37 componentes usan valores inconsistentes",
+      "tiempo": "1 hora",
+      "responsable": "Frontend Team"
+    }
+  ],
+  "tiempo_total_estimado": {
+    "desbloqueo_sistema": "24 horas",
+    "qa_funcional_completo": "15 horas",
+    "estandarizacion_completa": "300 horas",
+    "total": "339 horas (~42 días laborales)"
+  }
+}

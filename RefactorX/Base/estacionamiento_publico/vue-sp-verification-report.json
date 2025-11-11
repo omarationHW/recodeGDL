@@ -1,0 +1,1286 @@
+{
+  "fecha": "2025-11-10T19:42:41.946Z",
+  "componentes_verificados": 45,
+  "sps_unicos": 59,
+  "sps_ok": 59,
+  "sps_con_problemas": 0,
+  "detalle": {
+    "AccesoPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_pub_movtos",
+          "linea_vue": 39,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer, p_pubmain_id integer, p_fecha date, p_cajones integer, p_categoria integer, p_oficio character varying, p_usuario integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(resultado integer)",
+            "parametros_bd": "p_opc integer, p_pubmain_id integer, p_fecha date, p_cajones integer, p_categoria integer, p_oficio character varying, p_usuario integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ActualizacionPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "actualiza_pub_pago",
+          "linea_vue": 65,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer, p_pubmain_id integer, p_axo integer, p_mes integer, p_tipo integer, p_fecha date, p_reca integer, p_caja character varying, p_operacion integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, mensaje character varying)",
+            "parametros_bd": "p_opc integer, p_pubmain_id integer, p_axo integer, p_mes integer, p_tipo integer, p_fecha date, p_reca integer, p_caja character varying, p_operacion integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "AplicaPagoDivAdminPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_busca_folios_divadmin",
+          "linea_vue": 78,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "opcion integer, placa character varying, folio integer, axo integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(ret_axo integer, ret_folio integer, ret_placa character varying, fecha_folio date, estado smallint, infraccion smallint, tarifa numeric, porc_cobro numeric, descripcion character varying, pago character varying, usu_inicial integer, notif character varying, num_acuerdo integer, costo_fijo01 numeric, ord character varying, afec character varying, zona smallint, espacio smallint, fecha_baja character varying)",
+            "parametros_bd": "opcion integer, placa character varying, folio integer, axo integer",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_aplica_pago_divadmin",
+          "linea_vue": 88,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "paraxo integer, parfolio integer, parfecha date, parreca integer, parcaja character varying, paroper integer, parusuario character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(success boolean, message text)",
+            "parametros_bd": "paraxo integer, parfolio integer, parfecha date, parreca integer, parcaja character varying, paroper integer, parusuario character varying",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "AspectoPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "get_aspectos",
+          "linea_vue": 40,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(nombre text)",
+            "parametros_bd": "",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "get_current_aspecto",
+          "linea_vue": 41,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(nombre text)",
+            "parametros_bd": "",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "BajaMultiplePublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_insert_folios_baja_esta",
+          "linea_vue": 19,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "IN p_archivo character varying, IN p_referencia integer, IN p_folio_archivo integer, IN p_fecha_archivo character varying, IN p_placa character varying, IN p_anomalia character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": null,
+            "parametros_bd": "IN p_archivo character varying, IN p_referencia integer, IN p_folio_archivo integer, IN p_fecha_archivo character varying, IN p_placa character varying, IN p_anomalia character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_get_incidencias_baja_multiple",
+          "linea_vue": 19,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_archivo character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(placa character varying, folio_archivo integer, fecha_archivo character varying, anomalia character varying, referencia integer)",
+            "parametros_bd": "p_archivo character varying",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "BajasPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_sfrm_baja_pub",
+          "linea_vue": 42,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_numlic character varying, p_motivo text",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(success boolean, message character varying, folio_baja integer)",
+            "parametros_bd": "p_numlic character varying, p_motivo text",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "CargaEdoExPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_insert_ta14_datos_edo",
+          "linea_vue": 60,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "vmpio integer, vtipoact character varying, vfolio numeric, vplaca character varying, vfecpago date, vimporte numeric, vfecalta date, vremesa character varying, vfecremesa date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(success boolean, msg text)",
+            "parametros_bd": "vmpio integer, vtipoact character varying, vfolio numeric, vplaca character varying, vfecpago date, vimporte numeric, vfecalta date, vremesa character varying, vfecremesa date",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_afec_esta01",
+          "linea_vue": 68,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_fecha date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(success boolean, msg text)",
+            "parametros_bd": "p_fecha date",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_insert_ta14_bitacora",
+          "linea_vue": 77,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_fecha_inicio date, p_fecha_fin date, p_fecha date, p_num_rem integer, p_cant_reg integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(success boolean, msg text)",
+            "parametros_bd": "p_fecha_inicio date, p_fecha_fin date, p_fecha date, p_num_rem integer, p_cant_reg integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ChgAutorizDesctoPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_buscar_folios_histo",
+          "linea_vue": 58,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_placa character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(axo smallint, folio integer, placa character varying, fecha_folio date)",
+            "parametros_bd": "p_placa character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_cambiar_a_tesorero",
+          "linea_vue": 66,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_axo smallint, p_folio integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(updated boolean)",
+            "parametros_bd": "p_axo smallint, p_folio integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ConciBanortePublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_conciliados_by_folio",
+          "linea_vue": 71,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_axo integer, p_folio integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(rowid integer, axo smallint, folio integer, fecha_folio date, placa character varying, infraccion smallint, fec_pago date, folio_pago character varying, medio_pago character varying, forma_pago character varying, importe_bruto numeric, importe_neto numeric, fecha_venci date, sucursal integer, hora_banco character varying, estatus_banco character varying, usu_carga integer, fecha_afectacion date, status_mpio smallint, placa_cambio character varying, fec_placa_cambio date, fec_carga_ascii date, fec_caja date, operacion integer, caja_ingre character varying, reca smallint, stat character varying)",
+            "parametros_bd": "p_axo integer, p_folio integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ConsGralPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp14_afolios",
+          "linea_vue": 72,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "parplaca character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(tipoact character varying, placa character varying, axo integer, folio integer, fechaalta date, fechapago date, fechacancelado date, importe numeric, folioecmpio character varying, remesa character varying, fecharemesa date, concepto character varying, fecha_in date, fecha_fin date, fecha_aplic date)",
+            "parametros_bd": "parplaca character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp14_bfolios",
+          "linea_vue": 73,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "parplaca character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(tipoact character varying, placa character varying, axo integer, folio integer, fechaalta date, fechapago date, fechacancelado date, importe numeric, folioecmpio character varying, remesa character varying, fecharemesa date, concepto character varying, fecha_in date, fecha_fin date, fecha_aplic date)",
+            "parametros_bd": "parplaca character varying",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ConsRemesasPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_remesas",
+          "linea_vue": 7,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "tipo_param character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(control integer, tipo character varying, fecha_inicio date, fecha_fin date, fecha_hoy date, num_remesa integer, cant_reg integer)",
+            "parametros_bd": "tipo_param character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_get_remesa_detalle_mpio",
+          "linea_vue": 83,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "remesa_param character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(idrmunicipio integer, tipoact character varying, folio bigint, fechagenreq date, placa character varying, folionot character varying, fechanot date, fechapago date, fechacancelado date, importe numeric, clave character varying, fechaalta date, fechavenc date, folioec character varying, folioecmpio character varying, gastos numeric, remesa character varying, fecharemesa date)",
+            "parametros_bd": "remesa_param character varying",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ConsultaPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_public_parking_list",
+          "linea_vue": 237,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, pubcategoria_id integer, categoria character varying, descripcion character varying, numesta integer, sector character varying, nomsector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date)",
+            "parametros_bd": "",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_get_public_parking_fines",
+          "linea_vue": 291,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "numlicencia integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id_multa integer, id_dependencia smallint, axo_acta smallint, num_acta integer, fecha_acta date, fecha_recepcion date, contribuyente character varying, domicilio character varying, recaud smallint, num_licencia integer, giro character varying, id_ley smallint, id_infraccion smallint, expediente character varying, calificacion numeric, multa numeric, gastos numeric, total numeric, fecha_plazo date, comentario character varying, tipo character varying, noexterior character varying, interior character varying)",
+            "parametros_bd": "numlicencia integer",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "cajero_pub_detalle",
+          "linea_vue": 308,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer, p_pubid integer, p_axo integer, p_mes integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(concepto character varying, axo integer, mes integer, adeudo numeric, recargos numeric)",
+            "parametros_bd": "p_opc integer, p_pubid integer, p_axo integer, p_mes integer",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "spget_lic_grales",
+          "linea_vue": 328,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_numlicencia integer, p_cero integer DEFAULT 0, p_reca integer DEFAULT 4",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(clave integer, msg character varying, id integer, bloq integer, vigente character varying, id_giro integer, desc_giro character varying, actividad character varying, reglamentada character varying, propietario character varying, ubicacion character varying, numext integer, letext character varying, numint character varying, letint character varying, colonia character varying, zona integer, subzona integer, espubic character varying, asiento integer, curp character varying, sup_autorizada numeric, num_cajones integer, aforo integer, rhorario character varying, fecha_consejo date, cvecatnva character varying, subpredio integer, mensaje1 character varying, v_mensaje2 character varying, mensaje3 character varying, mensaje4 character varying, mensaje4_1 character varying, tipotramite character varying, desc_reglam character varying, rfc character varying, licencia integer, mensaje5 character varying, mensaje6 character varying, mensaje7 character varying, mensaje8 character varying)",
+            "parametros_bd": "p_numlicencia integer, p_cero integer DEFAULT 0, p_reca integer DEFAULT 4",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ContrarecibosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "spd_crbo_abc",
+          "linea_vue": 70,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_ejercicio smallint, p_procedencia smallint, p_crbo integer, p_feccrbo date, p_diasven smallint, p_importe numeric, p_concepto text, p_proveedor integer, p_doctos smallint, p_fecingre date, p_fecvenci date, p_feccodi date, p_fecveri date, p_fecprog date, p_fecaja date, p_feccancel date, p_cvecheq character varying, p_benef text, p_formapago character varying, p_notas text, p_param smallint, p_num_ctrol_cheque integer, p_clave_movimiento character varying, p_benef_cheque text",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(result text)",
+            "parametros_bd": "p_ejercicio smallint, p_procedencia smallint, p_crbo integer, p_feccrbo date, p_diasven smallint, p_importe numeric, p_concepto text, p_proveedor integer, p_doctos smallint, p_fecingre date, p_fecvenci date, p_feccodi date, p_fecveri date, p_fecprog date, p_fecaja date, p_feccancel date, p_cvecheq character varying, p_benef text, p_formapago character varying, p_notas text, p_param smallint, p_num_ctrol_cheque integer, p_clave_movimiento character varying, p_benef_cheque text",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sum_contrarecibos_by_date",
+          "linea_vue": 81,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_fecha date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "numeric",
+            "parametros_bd": "p_fecha date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "EdoCtaPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "spubreports_edocta",
+          "linea_vue": 52,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_numesta integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, pubcategoria_id integer, numesta integer, sector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date, rfc character varying, solicitud integer, control integer, movtos_no integer, movto_cve character varying, movto_usr integer, descripcion character varying)",
+            "parametros_bd": "p_numesta integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "EstadisticasPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sqrp_esta01_report",
+          "linea_vue": 58,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "axo_from integer DEFAULT NULL::integer, axo_to integer DEFAULT NULL::integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(axo smallint, totfol bigint, infraccion smallint, totimp numeric)",
+            "parametros_bd": "axo_from integer DEFAULT NULL::integer, axo_to integer DEFAULT NULL::integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "EstadoMpioPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_remesas_estado_mpio",
+          "linea_vue": 70,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(remesa text, fecharemesa date, aplicadoteso date)",
+            "parametros_bd": "",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "spd_delesta01",
+          "linea_vue": 96,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "axo smallint, folio integer, placa text, convenio integer, fecha date, reca smallint, caja text, oper integer, usuauto integer, opc smallint",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(result_code smallint, result_msg text)",
+            "parametros_bd": "axo smallint, folio integer, placa text, convenio integer, fecha date, reca smallint, caja text, oper integer, usuauto integer, opc smallint",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "FoliosAltaPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_insert_folio_adeudo",
+          "linea_vue": 65,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_axo integer, p_folio integer, p_fecha_folio date, p_placa character varying, p_infraccion smallint, p_estado integer, p_vigilante integer, p_usu_inicial integer, p_zona smallint, p_espacio smallint",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(result text)",
+            "parametros_bd": "p_axo integer, p_folio integer, p_fecha_folio date, p_placa character varying, p_infraccion smallint, p_estado integer, p_vigilante integer, p_usu_inicial integer, p_zona smallint, p_espacio smallint",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "GenArcAltasPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "get_periodo_altas",
+          "linea_vue": 49,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(fecha_inicio date, fecha_fin date)",
+            "parametros_bd": "",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp14_remesa",
+          "linea_vue": 72,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer, p_axo integer, p_fec_ini date, p_fec_fin date, p_fec_a_fin date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(status integer, obs text, remesa text)",
+            "parametros_bd": "p_opc integer, p_axo integer, p_fec_ini date, p_fec_fin date, p_fec_a_fin date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "GenArcDiarioPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp14_remesa",
+          "linea_vue": 50,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer, p_axo integer, p_fec_ini date, p_fec_fin date, p_fec_a_fin date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(status integer, obs text, remesa text)",
+            "parametros_bd": "p_opc integer, p_axo integer, p_fec_ini date, p_fec_fin date, p_fec_a_fin date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "GenerarPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_public_parking_list",
+          "linea_vue": 35,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, pubcategoria_id integer, categoria character varying, descripcion character varying, numesta integer, sector character varying, nomsector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date)",
+            "parametros_bd": "",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "GenIndividualPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_gen_individual_add",
+          "linea_vue": 56,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opcion integer, p_placa character varying, p_axo integer, p_folio character varying, p_remesa character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(idrmunicipio integer, tipoact character varying, folio bigint, placa character varying, fechapago date, fechacancelado date, fechaalta date, folioecmpio character varying, remesa character varying, fecharemesa date)",
+            "parametros_bd": "p_opcion integer, p_placa character varying, p_axo integer, p_folio character varying, p_remesa character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_gen_individual_generate_file",
+          "linea_vue": 67,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_remesa character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(idrmunicipio integer, tipoact character varying, folio character varying, fechagenreq character varying, placa character varying, folionot character varying, fechanot character varying, fechapago character varying, fechacancelado character varying, importe numeric, clave integer, fechaalta character varying, fechavenc character varying, folioec numeric, folioecmpio character varying, gastos numeric, remesa character varying, fecharemesa character varying)",
+            "parametros_bd": "p_remesa character varying",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "GenPgosBanortePublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp14_remesa",
+          "linea_vue": 50,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer, p_axo integer, p_fec_ini date, p_fec_fin date, p_fec_a_fin date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(status integer, obs text, remesa text)",
+            "parametros_bd": "p_opc integer, p_axo integer, p_fec_ini date, p_fec_fin date, p_fec_a_fin date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ImpPadronPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_padron_report",
+          "linea_vue": 54,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_id1 integer, p_id2 integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, placa character varying, placaant character varying, claveveh character varying, nombre character varying, municipio character varying, marca character varying, linea character varying, version character varying, tipo character varying, clase character varying, combustible character varying, modelo character varying, servicio character varying, color character varying, serie character varying, motor character varying, centimetros character varying)",
+            "parametros_bd": "p_id1 integer, p_id2 integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "InfoPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_public_parking_list",
+          "linea_vue": 35,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, pubcategoria_id integer, categoria character varying, descripcion character varying, numesta integer, sector character varying, nomsector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date)",
+            "parametros_bd": "",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "InspectoresPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_inspectors",
+          "linea_vue": 43,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id_esta_persona integer, inspector text)",
+            "parametros_bd": "",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ListadosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sqrp_publicos_report",
+          "linea_vue": 66,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "order_by text",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(control integer, cve_sector character varying, cve_categ character varying, cve_numero integer, nombre character varying, telefono character varying, calle character varying, num character varying, cupo integer, fecha_alta date, fecha_inic date, fecha_venci date, delas integer, alas integer, delas1 integer, alas1 integer, frec_lunes character varying, frec_martes character varying, frec_miercoles character varying, frec_jueves character varying, frec_viernes character varying, frec_sabado character varying, frec_domingo character varying, pol_num character varying, pol_fec_ven date, numlic character varying, zona character varying, subzona smallint, estatus character varying, clave smallint, j1 integer, j2 integer, j3 integer, j4 integer, jt integer, jm integer, ja integer, jc1 integer, jc2 integer, jc3 integer, jc4 integer, jct integer, jcm integer, jca integer, h1 integer, h2 integer, h3 integer, h4 integer, ht integer, hm integer, ha integer, hc1 integer, hc2 integer, hc3 integer, hc4 integer, hct integer, hcm integer, hca integer, l1 integer, l2 integer, l3 integer, l4 integer, lt integer, lm integer, la integer, lc1 integer, lc2 integer, lc3 integer, lc4 integer, lct integer, lcm integer, lca integer, r1 integer, r2 integer, r3 integer, r4 integer, rt integer, rm integer, ra integer, rc1 integer, rc2 integer, rc3 integer, rc4 integer, rct integer, rcm integer, rca integer)",
+            "parametros_bd": "order_by text",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "MensajePublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_mensaje_show",
+          "linea_vue": 43,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_tipo text, p_msg text, p_icono text",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(tipo text, msg text, icono text)",
+            "parametros_bd": "p_tipo text, p_msg text, p_icono text",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "MetrometersPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_metrometer_by_axo_folio",
+          "linea_vue": 59,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_axo integer, p_folio integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(axo smallint, folio integer, direccion character varying, poslong character varying, poslat character varying, marca character varying, modelo character varying, linkfoto1 character varying, linkfoto2 character varying, motivo character varying, idmedio integer)",
+            "parametros_bd": "p_axo integer, p_folio integer",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_get_metrometers_map_url",
+          "linea_vue": 62,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_axo integer, p_folio integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(map_url text)",
+            "parametros_bd": "p_axo integer, p_folio integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "PagosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "spubreports",
+          "linea_vue": 56,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer DEFAULT 1",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, pubcategoria_id integer, categoria character varying, descripcion character varying, numesta integer, sector character varying, nomsector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date)",
+            "parametros_bd": "p_opc integer DEFAULT 1",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "PasswordsPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_passwords_list",
+          "linea_vue": 60,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_usuario character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id_usuario integer, usuario character varying, nombre character varying, estado character, id_rec smallint, nivel smallint)",
+            "parametros_bd": "p_usuario character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_passwords_update",
+          "linea_vue": 79,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_id_usuario integer, p_usuario character varying, p_nombre character varying, p_estado character, p_id_rec smallint, p_nivel smallint",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id_usuario integer, usuario character varying, nombre character varying, estado character, id_rec smallint, nivel smallint)",
+            "parametros_bd": "p_id_usuario integer, p_usuario character varying, p_nombre character varying, p_estado character, p_id_rec smallint, p_nivel smallint",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "PredioCartoPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_predio_carto_url",
+          "linea_vue": 40,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_cvecatastro text",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "text",
+            "parametros_bd": "p_cvecatastro text",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "PublicosNew.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "cons_predio",
+          "linea_vue": 107,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "opc integer, dato character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(cvecuenta integer, recaud integer, tipo character varying, cuenta integer, cvecatastral character varying, subpredio integer, contribuyente character varying, calle character varying, numext character varying, numint character varying, zona integer, subzona integer, status integer, mensaje character varying)",
+            "parametros_bd": "opc integer, dato character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sppubalta",
+          "linea_vue": 154,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "pubcategoria_id integer, numesta integer, sector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date, rfc character varying, movtos_no integer, movto_cve character varying, movto_usr integer, solicitud integer, control integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(result integer, resultstr character varying, idnvo integer)",
+            "parametros_bd": "pubcategoria_id integer, numesta integer, sector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date, rfc character varying, movtos_no integer, movto_cve character varying, movto_usr integer, solicitud integer, control integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ReactivaFoliosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_reactiva_folios_buscar",
+          "linea_vue": 68,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opcion integer, p_placa character varying, p_axo integer, p_folio integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(control integer, axo integer, folio integer, fecha_folio date, placa character varying, infraccion integer, estado integer, vigilante integer, num_acuerdo integer, fec_cap date, usu_inicial integer, zona integer, espacio integer)",
+            "parametros_bd": "p_opcion integer, p_placa character varying, p_axo integer, p_folio integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "RelacionFoliosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sQRp_relacion_folios_report",
+          "linea_vue": 56,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "opcion integer, fecha date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(axo smallint, folio integer, placa character varying, fecha_folio date, estado smallint, infraccion smallint, tarifa numeric)",
+            "parametros_bd": "opcion integer, fecha date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": "SP existe como sqrp_relacion_folios_report (minúsculas). PostgreSQL es case-insensitive."
+    },
+    "ReporteFoliosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_get_folios_by_inspector",
+          "linea_vue": 52,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_fecha date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(vigilante integer, inspector text, folios integer)",
+            "parametros_bd": "p_fecha date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ReporteListaPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "spubreports_list",
+          "linea_vue": 69,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "opc integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, pubcategoria_id integer, categoria character varying, descripcion character varying, numesta integer, sector character varying, nomsector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date)",
+            "parametros_bd": "opc integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ReportePagosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "report_folios_pagados",
+          "linea_vue": 79,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_reca integer, p_fechora date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(reca smallint, caja character varying, operacion integer, axo smallint, folio integer, placa character varying, fecha_folio date, estado smallint, infraccion smallint, tarifa numeric, codigo_movto smallint)",
+            "parametros_bd": "p_reca integer, p_fechora date",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "report_folios_adeudo_por_inspector",
+          "linea_vue": 83,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_fechora date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(vigilante integer, inspector character varying, folios integer)",
+            "parametros_bd": "p_fechora date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ReportesCalcoPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_catalog_inspectors",
+          "linea_vue": 58,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id_esta_persona integer, inspector text)",
+            "parametros_bd": "",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sp_report_folios",
+          "linea_vue": 67,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "fechora date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(vigilante integer, inspector text, folios integer)",
+            "parametros_bd": "fechora date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ReportesPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "spget_lic_detalles",
+          "linea_vue": 87,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_id_licencia integer, p_tipo_l character varying DEFAULT 'L'::character varying, p_redon character varying DEFAULT 'N'::character varying",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(cuenta integer, obliga character varying, concepto character varying, importe numeric, licanun integer)",
+            "parametros_bd": "p_id_licencia integer, p_tipo_l character varying DEFAULT 'L'::character varying, p_redon character varying DEFAULT 'N'::character varying",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "spubreports",
+          "linea_vue": 100,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_opc integer DEFAULT 1",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(id integer, pubcategoria_id integer, categoria character varying, descripcion character varying, numesta integer, sector character varying, nomsector character varying, zona integer, subzona integer, numlicencia integer, axolicencias integer, cvecuenta integer, nombre character varying, calle character varying, numext character varying, telefono character varying, cupo integer, fecha_at date, fecha_inicial date, fecha_vencimiento date)",
+            "parametros_bd": "p_opc integer DEFAULT 1",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "SeguridadLoginPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_login_seguridad",
+          "linea_vue": 41,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_user text, p_pass text",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(success boolean, message text)",
+            "parametros_bd": "p_user text, p_pass text",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "SolicRepFoliosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "report_folios_pagados",
+          "linea_vue": 77,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_reca integer, p_fechora date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(reca smallint, caja character varying, operacion integer, axo smallint, folio integer, placa character varying, fecha_folio date, estado smallint, infraccion smallint, tarifa numeric, codigo_movto smallint)",
+            "parametros_bd": "p_reca integer, p_fechora date",
+            "error": null
+          }
+        },
+        {
+          "sp_nombre": "sQRp_relacion_folios_report",
+          "linea_vue": 82,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "opcion integer, fecha date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(axo smallint, folio integer, placa character varying, fecha_folio date, estado smallint, infraccion smallint, tarifa numeric)",
+            "parametros_bd": "opcion integer, fecha date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": "SP existe como sqrp_relacion_folios_report (minúsculas). PostgreSQL es case-insensitive."
+    },
+    "TransFoliosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "spd_delesta01",
+          "linea_vue": 63,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "axo smallint, folio integer, placa text, convenio integer, fecha date, reca smallint, caja text, oper integer, usuauto integer, opc smallint",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(result_code smallint, result_msg text)",
+            "parametros_bd": "axo smallint, folio integer, placa text, convenio integer, fecha date, reca smallint, caja text, oper integer, usuauto integer, opc smallint",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "TransPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_ta_15_publicos_insert",
+          "linea_vue": 75,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_cve_sector character varying, p_cve_categ character varying, p_cve_numero character varying, p_nombre character varying, p_telefono character varying, p_calle character varying, p_num character varying, p_cupo character varying, p_fecha_alta character varying, p_fecha_inic character varying, p_fecha_venci character varying, p_delas character varying, p_alas character varying, p_delas1 character varying, p_alas1 character varying, p_frec_lunes character varying, p_frec_martes character varying, p_frec_miercoles character varying, p_frec_jueves character varying, p_frec_viernes character varying, p_frec_sabado character varying, p_frec_domingo character varying, p_pol_num character varying, p_pol_fec_ven character varying, p_numlic character varying, p_zona character varying, p_subzona character varying, p_estatus character varying, p_clave character varying, p_control integer",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "boolean",
+            "parametros_bd": "p_cve_sector character varying, p_cve_categ character varying, p_cve_numero character varying, p_nombre character varying, p_telefono character varying, p_calle character varying, p_num character varying, p_cupo character varying, p_fecha_alta character varying, p_fecha_inic character varying, p_fecha_venci character varying, p_delas character varying, p_alas character varying, p_delas1 character varying, p_alas1 character varying, p_frec_lunes character varying, p_frec_martes character varying, p_frec_miercoles character varying, p_frec_jueves character varying, p_frec_viernes character varying, p_frec_sabado character varying, p_frec_domingo character varying, p_pol_num character varying, p_pol_fec_ven character varying, p_numlic character varying, p_zona character varying, p_subzona character varying, p_estatus character varying, p_clave character varying, p_control integer",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "UpPagosPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "sp_up_pagos_update",
+          "linea_vue": 46,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_alo integer, p_folio integer, p_fecbaj date",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(success boolean, message text)",
+            "parametros_bd": "p_alo integer, p_folio integer, p_fecbaj date",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    },
+    "ValetPasoPublicos.vue": {
+      "sps_llamados": [
+        {
+          "sp_nombre": "process_valet_file",
+          "linea_vue": 41,
+          "parametros_vue": [],
+          "existe_en_bd": true,
+          "parametros_bd": "p_file_path text",
+          "compatibilidad": "OK",
+          "prueba_bd": {
+            "ejecutado": true,
+            "resultado": "VERIFICADO",
+            "retorna": "TABLE(row_num integer, status text, message text)",
+            "parametros_bd": "p_file_path text",
+            "error": null
+          }
+        }
+      ],
+      "estado_componente": "OK",
+      "observaciones": ""
+    }
+  },
+  "problemas_encontrados": [],
+  "resumen_por_modulo": {}
+}

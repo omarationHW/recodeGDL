@@ -1,0 +1,301 @@
+================================================================================
+RESUMEN EJECUTIVO - INTEGRACIÓN VUE ↔ BASE DE DATOS
+Módulo: estacionamiento_publico
+Fecha: 2025-11-09
+================================================================================
+
+ESTADO GENERAL
+==============
+
+Componentes Vue analizados:              108
+  - Con Stored Procedures:                45
+  - Sin Stored Procedures:                63
+
+Stored Procedures:
+  - Total SPs únicos llamados por Vue:    59
+  - SPs disponibles en BD:               162
+  - SPs de Vue encontrados en BD:         50 (84.7%)
+  - SPs de Vue faltantes en BD:            9 (15.3%)
+
+Funcionalidad:
+  - Componentes funcionales:              32 (71.11%)
+  - Componentes bloqueados:               13 (28.89%)
+  - SPs funcionales sin errores:          44
+  - SPs con errores que bloquean:          6
+
+
+IMPACTO POR PRIORIDAD
+=====================
+
+COMPONENTES CRÍTICOS (6 total)
+  ✅ Funcionales:    4 (66.67%)
+  ❌ Bloqueados:     2 (33.33%)
+
+  Funcionales:
+    - AccesoPublicos.vue
+    - ConsGralPublicos.vue
+    - PublicosNew.vue
+    - SeguridadLoginPublicos.vue
+
+  Bloqueados:
+    - AplicaPagoDivAdminPublicos.vue (sp_busca_folios_divadmin con error)
+    - ConsultaPublicos.vue (spget_lic_grales faltante)
+
+
+COMPONENTES DE ALTA PRIORIDAD (14 total)
+  ✅ Funcionales:    10 (71.43%)
+  ❌ Bloqueados:      4 (28.57%)
+
+  Bloqueados:
+    - BajasPublicos.vue (sp_sfrm_baja_pub faltante)
+    - ConsRemesasPublicos.vue (sp_get_remesa_detalle_mpio con error)
+    - EdoCtaPublicos.vue (spubreports_edocta con error)
+    - PagosPublicos.vue (spubreports faltante)
+
+
+PROBLEMAS CRÍTICOS A RESOLVER
+==============================
+
+1. ERRORES EN SPs EXISTENTES (6 SPs)
+
+   CRÍTICO:
+   - sp_busca_folios_divadmin
+     Error: parámetro 'axo' duplicado
+     Impacto: AplicaPagoDivAdminPublicos.vue
+     Tiempo: 15 minutos
+
+   ALTO:
+   - sp_get_remesa_detalle_mpio
+     Error: tipo 'ta14_datos_mpio' no existe
+     Impacto: ConsRemesasPublicos.vue
+     Tiempo: 1-2 horas
+
+   - spubreports_edocta
+     Error: parámetro 'numesta' duplicado
+     Impacto: EdoCtaPublicos.vue
+     Tiempo: 15 minutos
+
+   MEDIO:
+   - sp_gen_individual_add
+     Error: sintaxis RETURN NEXT incorrecta
+     Impacto: GenIndividualPublicos.vue
+     Tiempo: 1 hora
+
+   BAJO:
+   - sp_mensaje_show
+     Error: parámetro 'tipo' duplicado
+     Impacto: MensajePublicos.vue
+     Tiempo: 15 minutos
+
+   - process_valet_file
+     Error: sintaxis RETURN NEXT incorrecta
+     Impacto: ValetPasoPublicos.vue
+     Tiempo: 1 hora
+
+
+2. SPs FALTANTES (4 SPs principales)
+
+   CRÍTICO:
+   - spget_lic_grales
+     Impacto: ConsultaPublicos.vue
+     Tiempo: 2-4 horas
+
+   ALTO:
+   - sp_sfrm_baja_pub
+     Impacto: BajasPublicos.vue
+     Tiempo: 2-3 horas
+
+   - spubreports
+     Impacto: PagosPublicos.vue, ReportesPublicos.vue
+     Tiempo: 30min-1h (existe spubreports_list, posible renombrar)
+
+   MEDIO:
+   - spget_lic_detalles
+     Impacto: ReportesPublicos.vue
+     Tiempo: 2 horas
+
+
+3. PROBLEMAS DE DESPLIEGUE (1 SP)
+
+   MEDIO:
+   - sQRp_relacion_folios_report
+     Problema: Se despliega pero no se encuentra
+     Impacto: RelacionFoliosPublicos.vue, SolicRepFoliosPublicos.vue
+     Tiempo: 1 hora
+
+
+PLAN DE TRABAJO RECOMENDADO
+============================
+
+FASE 1: CORRECCIONES CRÍTICAS (1-2 días)
+-----------------------------------------
+Objetivos: Desbloquear componentes críticos
+Tiempo estimado: 4-6 horas
+
+1. Corregir sp_busca_folios_divadmin (15 min)
+   Archivo: AplicaPgo_DivAdmin_sp_busca_folios_divadmin.sql
+   Acción: Eliminar parámetro 'axo' duplicado
+
+2. Implementar spget_lic_grales (2-4 horas)
+   Archivo: Crear nuevo
+   Acción: Desarrollar SP para consulta de licencias generales
+
+
+FASE 2: CORRECCIONES ALTA PRIORIDAD (1 semana)
+-----------------------------------------------
+Objetivos: Desbloquear componentes de alta prioridad
+Tiempo estimado: 6-8 horas
+
+3. Corregir sp_get_remesa_detalle_mpio (1-2 horas)
+   Archivo: ConsRemesas_sp_get_remesa_detalle_mpio.sql
+   Acción: Crear tipo ta14_datos_mpio o modificar SP
+
+4. Corregir spubreports_edocta (15 min)
+   Archivo: spubreports_spubreports_edocta.sql
+   Acción: Eliminar parámetro 'numesta' duplicado
+
+5. Implementar sp_sfrm_baja_pub (2-3 horas)
+   Archivo: Crear nuevo
+   Acción: Desarrollar SP para bajas de públicos
+
+6. Resolver spubreports vs spubreports_list (30min-1h)
+   Acción: Crear alias o modificar llamadas Vue
+
+
+FASE 3: CORRECCIONES MEDIA PRIORIDAD (2 semanas)
+-------------------------------------------------
+Objetivos: Completar funcionalidad restante
+Tiempo estimado: 4-5 horas
+
+7. Corregir sp_gen_individual_add (1 hora)
+8. Implementar spget_lic_detalles (2 horas)
+9. Revisar sQRp_relacion_folios_report (1 hora)
+
+
+FASE 4: CORRECCIONES BAJA PRIORIDAD (cuando haya tiempo)
+---------------------------------------------------------
+Tiempo estimado: 1-2 horas
+
+10. Corregir sp_mensaje_show (15 min)
+11. Corregir process_valet_file (1 hora)
+
+
+TIEMPO TOTAL ESTIMADO: 15-21 horas
+
+
+MÉTRICAS DE PROGRESO
+====================
+
+Estado actual:
+  - 71.11% de componentes funcionales (32/45)
+  - 84.7% de SPs encontrados en BD (50/59)
+  - 74.6% de SPs funcionales (44/59)
+
+Al completar FASE 1:
+  - 75.56% de componentes funcionales (34/45)
+  - 2 componentes críticos desbloqueados
+
+Al completar FASE 2:
+  - 84.44% de componentes funcionales (38/45)
+  - 4 componentes alta prioridad desbloqueados
+
+Al completar FASE 3:
+  - 91.11% de componentes funcionales (41/45)
+  - Funcionalidad casi completa
+
+Al completar FASE 4:
+  - 95.56% de componentes funcionales (43/45)
+  - Sistema completamente operativo
+
+
+COMPONENTES TOTALMENTE FUNCIONALES (32)
+========================================
+
+CRÍTICOS (4):
+  - AccesoPublicos.vue
+  - ConsGralPublicos.vue
+  - PublicosNew.vue
+  - SeguridadLoginPublicos.vue
+
+ALTA PRIORIDAD (10):
+  - ActualizacionPublicos.vue
+  - BajaMultiplePublicos.vue
+  - CargaEdoExPublicos.vue
+  - ConciBanortePublicos.vue
+  - FoliosAltaPublicos.vue
+  - GenArcAltasPublicos.vue
+  - GenArcDiarioPublicos.vue
+  - GenPgosBanortePublicos.vue
+  - ReportePagosPublicos.vue
+
+MEDIA PRIORIDAD (17):
+  - AspectoPublicos.vue
+  - ChgAutorizDesctoPublicos.vue
+  - ContrarecibosPublicos.vue
+  - EstadisticasPublicos.vue
+  - EstadoMpioPublicos.vue
+  - GenerarPublicos.vue
+  - ImpPadronPublicos.vue
+  - InfoPublicos.vue
+  - InspectoresPublicos.vue
+  - ListadosPublicos.vue
+  - MetrometersPublicos.vue
+  - PasswordsPublicos.vue
+  - ReactivaFoliosPublicos.vue
+  - ReporteFoliosPublicos.vue
+  - ReporteListaPublicos.vue
+  - ReportesCalcoPublicos.vue
+  - TransFoliosPublicos.vue
+  - TransPublicos.vue
+  - UpPagosPublicos.vue
+
+BAJA PRIORIDAD (1):
+  - PredioCartoPublicos.vue
+
+
+ARCHIVOS GENERADOS
+==================
+
+1. integration-report.json
+   Reporte detallado en formato JSON con toda la información
+   de componentes, SPs, errores y recomendaciones
+
+2. INTEGRATION-MATRIX.md
+   Matriz de compatibilidad en formato Markdown legible
+   con tablas, estadísticas y plan de acción
+
+3. integration-summary.txt (este archivo)
+   Resumen ejecutivo para toma de decisiones rápida
+
+
+PRÓXIMOS PASOS
+==============
+
+1. Revisar este resumen con el equipo técnico
+2. Priorizar las correcciones según impacto en el negocio
+3. Asignar recursos para Fase 1 (correcciones críticas)
+4. Establecer calendario para Fases 2-4
+5. Realizar pruebas de integración después de cada fase
+6. Documentar cambios realizados
+
+
+CONCLUSIÓN
+==========
+
+El módulo estacionamiento_publico tiene una integración sólida entre
+Vue y PostgreSQL, con 71% de componentes totalmente funcionales.
+
+Los problemas identificados son mayormente:
+  - Parámetros duplicados (fácil de corregir)
+  - SPs faltantes (requiere desarrollo)
+  - Errores de sintaxis menores (fácil de corregir)
+
+Con 15-21 horas de trabajo enfocado, el módulo puede alcanzar
+95% de funcionalidad operativa.
+
+Los componentes críticos (login, consultas principales, altas)
+ya están funcionales, lo que permite operación básica del sistema.
+
+================================================================================
+FIN DEL RESUMEN
+================================================================================

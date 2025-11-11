@@ -1,0 +1,3135 @@
+{
+  "metadata": {
+    "agente": "AGENTE 3 - VALIDACION INTEGRACION SP-VUE",
+    "fecha": "2025-11-09T19:30:06.184407",
+    "version": "1.0"
+  },
+  "metricas": {
+    "fecha_analisis": "2025-11-09T19:30:06.184000",
+    "componentes_vue": {
+      "total": 67,
+      "con_sps": 65,
+      "sin_sps": 2,
+      "funcionales": 0,
+      "parciales": 0,
+      "bloqueados": 65,
+      "porcentaje_funcional": 0.0
+    },
+    "stored_procedures": {
+      "total_requeridos": 140,
+      "disponibles_en_bd": 0,
+      "faltantes": 140,
+      "porcentaje_disponible": 0.0,
+      "con_formato_eresponse": 0,
+      "porcentaje_eresponse": 0
+    },
+    "integracion": {
+      "estado_general": "CRITICO - SISTEMA NO FUNCIONAL",
+      "porcentaje_integracion": 0.0,
+      "bloqueadores_criticos": [
+        "140 SPs faltantes en BD (100.0%)",
+        "0% de SPs con formato eResponse",
+        "65 componentes completamente bloqueados"
+      ]
+    }
+  },
+  "componentes": [
+    {
+      "componente": "ABC_Cves_Operacion.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Cves_Operacion.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CVES_OPERACION_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CVES_OPERACION_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CVES_OPERACION_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CVES_OPERACION_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Empresas.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Empresas.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Gastos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Gastos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_GASTOS_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GASTOS_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GASTOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GASTOS_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Recargos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Recargos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_RECARGOS_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RECARGOS_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RECARGOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RECARGOS_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Recaudadoras.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Recaudadoras.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_RECAUDADORAS_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RECAUDADORAS_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RECAUDADORAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RECAUDADORAS_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Tipos_Aseo.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Tipos_Aseo.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Tipos_Emp.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Tipos_Emp.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_EMP_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_EMP_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_EMP_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_EMP_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Und_Recolec.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Und_Recolec.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ABC_Zonas.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ABC_Zonas.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_DELETE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ActCont_CR.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ActCont_CR.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_ACTIVAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_ACTUALIZAR_PERIODO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_CAMBIAR_UNIDADES",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_CAMBIO_RECARGOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 7,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 7,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_CARGA_MASIVA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_Carga.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_Carga.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_CARGA_MASIVA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_GENERAR_RECARGOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_EdoCta.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_EdoCta.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_Ins.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_Ins.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_INSERTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_Nvo.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_Nvo.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_OpcMult.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_OpcMult.vue",
+      "sps_detectados": [],
+      "total_sps": 0,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 0,
+      "porcentaje_funcional": 0,
+      "estado_integracion": "SIN SPS"
+    },
+    {
+      "componente": "Adeudos_Pag.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_Pag.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_REGISTRAR_PAGO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_PagMult.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_PagMult.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_PENDIENTES",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_POR_PREDIAL",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PAGO_MULTIPLE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_PagUpdPer.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_PagUpdPer.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_ACTUALIZAR_PERIODOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_BUSCAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_HISTORIAL_ACTUALIZACIONES",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_UpdExed.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_UpdExed.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_POR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_APLICAR_EXENCION",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Adeudos_Venc.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Adeudos_Venc.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_VENCIDOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "AdeudosCN_Cond.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\AdeudosCN_Cond.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_CONDONAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos_buscar",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "AdeudosEst.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\AdeudosEst.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "AdeudosExe_Del.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\AdeudosExe_Del.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_PARA_ELIMINAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ELIMINAR_POR_EJECUCION",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos_buscar",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "AdeudosMult_Ins.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\AdeudosMult_Ins.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_INSERTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CVES_OPERACION_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "AplicaMultas.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\AplicaMultas.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_POR_PREDIAL",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_MULTAS_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_MULTA_APLICAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_MULTA_CANCELAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 5,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 5,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Cons_Cont.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Cons_Cont.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONSULTA_CONTRATOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_DETALLE_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Cons_ContAsc.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Cons_ContAsc.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONSULTA_ORDENADA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ACTUALIZAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CANCELAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_INSERTAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 7,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 7,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Adeudos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Adeudos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_POR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Alta.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Alta.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_CREATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Baja.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Baja.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_BAJA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos_buscar",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Cancela.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Cancela.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_POR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CANCELAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_POR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Cons_Admin.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Cons_Admin.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_CONSULTA_ADMIN",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Cons_Dom.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Cons_Dom.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_POR_TIPO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Consulta.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Consulta.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos_buscar",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_EstGral.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_EstGral.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_GENERALES",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_EMPRESA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_TIPO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_ZONA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Mod.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Mod.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_UPDATE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos_buscar",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Upd_Periodo.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Upd_Periodo.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ACTUALIZAR_PERIODOS_CONTRATOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_PARA_UPD_PERIODO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Contratos_Upd_Und.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Contratos_Upd_Und.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ACTUALIZAR_UNIDADES_CONTRATOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_PARA_UPD_UNIDAD",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "ContratosEst.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\ContratosEst.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_CONTRATOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Ctrol_Imp_Cat.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Ctrol_Imp_Cat.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ACTUALIZAR_DESDE_CATASTRO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_SINCRONIZACION",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_VERIFICAR_SINCRONIZACION_CATASTRO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "DatosConvenio.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\DatosConvenio.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_PENDIENTES",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONVENIOS_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONVENIO_CREAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "DescuentosPago.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\DescuentosPago.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_PENDIENTES",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_DESCUENTOS_CONFIG_ACTUALIZAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_DESCUENTOS_CONFIG_INSERTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_DESCUENTOS_CONFIG_LISTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_DESCUENTOS_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_DESCUENTO_APLICAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 7,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 7,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "EjerciciosGestion.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\EjerciciosGestion.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_EJERCICIOS_LISTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EJERCICIO_ACTUALIZAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EJERCICIO_CERRAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EJERCICIO_ESTADISTICAS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EJERCICIO_INSERTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PERIODOS_LISTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PERIODO_ELIMINAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TARIFAS_COPIAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TARIFAS_LISTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TARIFA_ELIMINAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 10,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 10,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Empresas_Contratos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Empresas_Contratos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_POR_EMPRESA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_GET",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "EstGral2.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\EstGral2.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_AVANZADAS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_EMPRESA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_TIPO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "index.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\index.vue",
+      "sps_detectados": [],
+      "total_sps": 0,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 0,
+      "porcentaje_funcional": 0,
+      "estado_integracion": "SIN SPS"
+    },
+    {
+      "componente": "Ins_b.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Ins_b.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_BUSCAR_DATOS_CATASTRO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_INSERTAR_CONTRATO_RAPIDO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_VERIFICAR_CONTRATO_EXISTENTE",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 5,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 5,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Pagos_Con_FPgo.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Pagos_Con_FPgo.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_POR_FORMA_PAGO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 1,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 1,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Pagos_Cons_Cont.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Pagos_Cons_Cont.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_POR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Pagos_Cons_ContAsc.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Pagos_Cons_ContAsc.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_POR_CONTRATO_ASC",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "RelacionContratos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\RelacionContratos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_DESVINCULAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_VINCULAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GRUPOS_LISTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GRUPO_ACTUALIZAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GRUPO_AGREGAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GRUPO_CONTRATOS_LISTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GRUPO_INSERTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_GRUPO_QUITAR_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RELACIONES_CONSULTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_RELACIONES_LISTAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 11,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 11,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rep_AdeudCond.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rep_AdeudCond.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_REPORTE_ADEUDOS_CONDONADOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rep_PadronContratos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rep_PadronContratos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_REPORTE_PADRON_CONTRATOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rep_Recaudadoras.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rep_Recaudadoras.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_RECAUDADORAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_REPORTE_RECAUDADORAS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rep_Tipos_Aseo.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rep_Tipos_Aseo.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_REPORTE_TIPOS_ASEO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rep_Zonas.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rep_Zonas.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_REPORTE_POR_ZONAS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rpt_Adeudos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rpt_Adeudos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_TIPOS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rpt_Contratos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rpt_Contratos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rpt_Empresas.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rpt_Empresas.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 2,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 2,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rpt_EstadoCuenta.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rpt_EstadoCuenta.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_PAGOS_BY_CONTRATO",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "sp16_contratos_buscar",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 3,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 3,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Rpt_Pagos.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Rpt_Pagos.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_RECAUDADORAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 1,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 1,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Upd_01.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Upd_01.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_APLICAR_ACTUALIZACIONES_MASIVAS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_PARA_ACTUALIZAR",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 5,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 5,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Upd_IniObl.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Upd_IniObl.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_SIN_PERIODO_INICIAL",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_INICIALIZAR_OBLIGACIONES",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "Upd_UndC.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\Upd_UndC.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ACTUALIZAR_UNIDAD_POR_COLONIA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_COLONIAS_CON_CONTRATOS",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_CONTRATOS_POR_COLONIA",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 4,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 4,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    },
+    {
+      "componente": "UpdxCont.vue",
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\aseo_contratado\\UpdxCont.vue",
+      "sps_detectados": [
+        {
+          "sp_nombre": "SP_ASEO_ACTUALIZAR_CONTRATO_INDIVIDUAL",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_BUSCAR_CONTRATO_INDIVIDUAL",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        },
+        {
+          "sp_nombre": "SP_ASEO_ZONAS_LIST",
+          "sp_existe_en_bd": false,
+          "formato_eresponse": false,
+          "estado": "BLOQUEADO - SP no existe en BD"
+        }
+      ],
+      "total_sps": 5,
+      "sps_disponibles": 0,
+      "sps_bloqueados": 5,
+      "porcentaje_funcional": 0.0,
+      "estado_integracion": "NO FUNCIONAL"
+    }
+  ],
+  "stored_procedures": [
+    {
+      "sp_nombre": "SP_ASEO_ACTUALIZAR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ACTUALIZAR_CONTRATO_INDIVIDUAL",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ACTUALIZAR_DESDE_CATASTRO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ACTUALIZAR_PERIODOS_CONTRATOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ACTUALIZAR_UNIDADES_CONTRATOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ACTUALIZAR_UNIDAD_POR_COLONIA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_BUSCAR_PARA_ELIMINAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_CARGA_MASIVA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_CONDONAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_ELIMINAR_POR_EJECUCION",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_ESTADO_CUENTA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_GENERAR_RECARGOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_INSERTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_PENDIENTES",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_POR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_REGISTRAR_PAGO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ADEUDOS_VENCIDOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_APLICAR_ACTUALIZACIONES_MASIVAS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_APLICAR_EXENCION",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_BUSCAR_CONTRATO_INDIVIDUAL",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_BUSCAR_DATOS_CATASTRO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CANCELAR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_COLONIAS_CON_CONTRATOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONSULTA_CONTRATOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONSULTA_ORDENADA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_ACTIVAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_ACTUALIZAR_PERIODO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_BAJA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_CAMBIAR_UNIDADES",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_CAMBIO_RECARGOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_CONSULTA_ADMIN",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_DESVINCULAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_PARA_ACTUALIZAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_PARA_UPD_PERIODO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_PARA_UPD_UNIDAD",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_POR_COLONIA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_POR_EMPRESA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_POR_TIPO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_SIN_PERIODO_INICIAL",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATOS_VINCULAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATO_CANCELAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATO_CONSULTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONTRATO_POR_PREDIAL",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONVENIOS_CONSULTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CONVENIO_CREAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CVES_OPERACION_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CVES_OPERACION_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CVES_OPERACION_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_CVES_OPERACION_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_DESCUENTOS_CONFIG_ACTUALIZAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_DESCUENTOS_CONFIG_INSERTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_DESCUENTOS_CONFIG_LISTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_DESCUENTOS_CONSULTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_DESCUENTO_APLICAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_DETALLE_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EJERCICIOS_LISTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EJERCICIO_ACTUALIZAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EJERCICIO_CERRAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EJERCICIO_ESTADISTICAS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EJERCICIO_INSERTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EMPRESAS_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EMPRESAS_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EMPRESAS_GET",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EMPRESAS_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_EMPRESAS_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ESTADISTICAS_AVANZADAS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ESTADISTICAS_CONTRATOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ESTADISTICAS_GENERALES",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_EMPRESA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_TIPO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ESTADISTICAS_POR_ZONA",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ESTADISTICAS_SINCRONIZACION",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GASTOS_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GASTOS_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GASTOS_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GASTOS_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GRUPOS_LISTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GRUPO_ACTUALIZAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GRUPO_AGREGAR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GRUPO_CONTRATOS_LISTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GRUPO_INSERTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_GRUPO_QUITAR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_INICIALIZAR_OBLIGACIONES",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_INSERTAR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_INSERTAR_CONTRATO_RAPIDO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_MULTAS_CONSULTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_MULTA_APLICAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_MULTA_CANCELAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGOS_ACTUALIZAR_PERIODOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGOS_BUSCAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGOS_BY_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGOS_HISTORIAL_ACTUALIZACIONES",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGOS_POR_CONTRATO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGOS_POR_CONTRATO_ASC",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGOS_POR_FORMA_PAGO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PAGO_MULTIPLE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PERIODOS_LISTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_PERIODO_ELIMINAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECARGOS_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECARGOS_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECARGOS_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECARGOS_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECAUDADORAS_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECAUDADORAS_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECAUDADORAS_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RECAUDADORAS_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RELACIONES_CONSULTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_RELACIONES_LISTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_REPORTE_ADEUDOS_CONDONADOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_REPORTE_PADRON_CONTRATOS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_REPORTE_POR_ZONAS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_REPORTE_RECAUDADORAS",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_REPORTE_TIPOS_ASEO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TARIFAS_COPIAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TARIFAS_LISTAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TARIFA_ELIMINAR",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_EMP_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_EMP_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_EMP_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_EMP_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_TIPOS_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_UNIDADES_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_UNIDADES_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_UNIDADES_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_UNIDADES_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_VERIFICAR_CONTRATO_EXISTENTE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_VERIFICAR_SINCRONIZACION_CATASTRO",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ZONAS_CREATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ZONAS_DELETE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ZONAS_LIST",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "SP_ASEO_ZONAS_UPDATE",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "sp16_contratos",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    },
+    {
+      "sp_nombre": "sp16_contratos_buscar",
+      "existe_en_bd": false,
+      "formato_eresponse": false,
+      "componentes_que_lo_usan": [],
+      "estado": "NO EXISTE"
+    }
+  ]
+}

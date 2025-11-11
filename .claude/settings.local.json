@@ -35,7 +35,13 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nAdd: Documento de contexto completo para futuras sesiones\n\nCONTENIDO DEL DOCUMENTO:\n- Contexto previo y objetivo de la sesión\n- Evolución completa del trabajo (6 fases)\n- Todos los scripts creados y su función\n- Problemas encontrados y soluciones aplicadas\n- Métricas finales y estado actual\n- Problemas pendientes identificados\n- Comandos útiles para futuras sesiones\n- Referencias y configuraciones importantes\n\nFASES DOCUMENTADAS:\n1. Fase Inicial: Generación automática (enfoque incorrecto)\n2. Corrección Crítica: Los SPs ya existían\n3. Fase de Despliegue: 591 archivos SQL existentes\n4. Fase de Verificación: Análisis de BD y tablas\n5. Fase de Corrección: 104 SPs con referencias actualizadas\n6. Verificación Final: Integración Vue-API-SP validada\n\nMÉTRICAS FINALES:\n- 1,392 SPs desplegados y funcionales\n- 104 SPs corregidos (100% éxito)\n- 6,558 tablas en 10 schemas diferentes\n- API genérica validada y operacional\n- Integración completa verificada\n\nEste documento contiene TODO el contexto necesario para\ncontinuar el trabajo en futuras sesiones sin pérdida de\ninformación.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(node temp/analyze-modules-status.cjs:*)",
+      "Bash(timeout 5 bash:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(rm:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []

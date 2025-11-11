@@ -1,0 +1,55 @@
+{
+  "fecha_analisis": "2025-11-09",
+  "modulo": "estacionamiento_publico",
+  "metadatos": {
+    "total_archivos": 108,
+    "archivos_base": 61,
+    "archivos_frontend": 47
+  },
+  "resumen": {
+    "con_estilos_inline": 18,
+    "total_estilos_inline": 35,
+    "con_style_scoped": 61,
+    "usan_badge_info": 1,
+    "composition_api": 5,
+    "options_api": 103,
+    "requieren_migracion": 6
+  },
+  "issue_critico": {
+    "badge_info": {
+      "archivo": "ConsultaPublicos.vue",
+      "linea": 48,
+      "actual": "badge-info",
+      "debe_ser": "badge-purple"
+    }
+  },
+  "issues_alta": {
+    "text_transform_inline": {
+      "archivos": 4,
+      "instancias": 8
+    },
+    "estilos_complejos": {
+      "ConsGral.vue": "linea 25",
+      "ConsultaPublicos.vue": "linea 121"
+    }
+  },
+  "recomendaciones": [
+    {
+      "prioridad": "CRITICA",
+      "tarea": "Corregir badge-info a badge-purple",
+      "archivo": "ConsultaPublicos.vue linea 48",
+      "tiempo": "5 min"
+    },
+    {
+      "prioridad": "ALTA",
+      "tarea": "Migrar text-transform a clases",
+      "archivos": 4,
+      "tiempo": "30 min"
+    },
+    {
+      "prioridad": "MEDIA",
+      "tarea": "Implementar variables CSS colores",
+      "tiempo": "2-3 horas"
+    }
+  ]
+}

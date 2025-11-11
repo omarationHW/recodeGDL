@@ -1,0 +1,121 @@
+═══════════════════════════════════════════════════════════════
+    ANÁLISIS DE STORED PROCEDURES EN COMPONENTES VUE
+    Módulo: estacionamiento_publico
+    Fecha: 2025-11-10
+═══════════════════════════════════════════════════════════════
+
+📊 RESUMEN EJECUTIVO
+─────────────────────────────────────────────────────────────
+  Total de componentes Vue:         108
+  Componentes CON SPs:              45
+  Componentes SIN SPs:              63
+  SPs únicos encontrados:           59
+  SPs NO en catálogo:               59 (100%)
+  Endpoints API únicos:             46
+
+🔴 HALLAZGOS CRÍTICOS
+─────────────────────────────────────────────────────────────
+  ❌ TODOS los SPs llamados desde Vue NO están en catálogo
+  ❌ 100% de desconexión entre sp-catalog.json y uso real
+  ⚠️  El catálogo tiene 110 SPs (Delphi legacy)
+  ⚠️  Los componentes Vue usan 59 SPs diferentes
+
+📈 TOP 10 SPs MÁS USADOS
+─────────────────────────────────────────────────────────────
+   1. sp_get_public_parking_list              3 veces
+   2. sp14_remesa                             3 veces
+   3. spd_delesta01                           2 veces
+   4. spubreports                             2 veces
+   5. sQRp_relacion_folios_report             2 veces
+   6. report_folios_pagados                   2 veces
+   7. sp_pub_movtos                           1 veces
+   8. actualiza_pub_pago                      1 veces
+   9. sp_busca_folios_divadmin                1 veces
+  10. sp_aplica_pago_divadmin                 1 veces
+
+🔧 SPs CRÍTICOS DEL NEGOCIO (muestra de 20)
+─────────────────────────────────────────────────────────────
+   1. sp_get_public_parking_list         → Lista principal de estacionamientos
+   2. sp14_afolios / sp14_bfolios        → Consulta general de folios
+   3. cajero_pub_detalle                 → Detalle de operaciones de cajero
+   4. spget_lic_grales                   → Licencias generales
+   5. sp14_remesa                        → Generación de remesas
+   6. actualiza_pub_pago                 → Actualización de pagos
+   7. sp_aplica_pago_divadmin            → Aplicar pagos diversos
+   8. sppubalta                          → Alta de estacionamiento público
+   9. sp_sfrm_baja_pub                   → Baja de público
+  10. cons_predio                        → Consulta de predio
+
+🌐 PATRONES DE LLAMADA DETECTADOS
+─────────────────────────────────────────────────────────────
+  1. apiService.execute (FrontEnd moderno):
+     apiService.execute('sp_nombre', 'modulo', params)
+     Usado en: 40+ componentes en /FrontEnd/
+
+  2. action: (Base legacy):
+     action: 'estacionamientos.nombreAccion'
+     Usado en: componentes en /Base/
+
+📡 ENDPOINTS API (muestra de 20)
+─────────────────────────────────────────────────────────────
+   1. estacionamientos.login
+   2. estacionamientos.getRecaudadoras
+   3. estacionamientos.buscarFolios
+   4. estacionamientos.aplicarPagosDiversosAdmin
+   5. estacionamientos.insert_baja_multiple
+   6. estacionamientos.aplicar_baja_multiple
+   7. estacionamientos.get_incidencias_baja_multiple
+   8. getLastRemesa
+   9. getRemesas
+  10. insertRemesaRecord
+  11. countRemesaRecords
+  12. getRemesaDate
+  13. applyRemesa
+  14. insertBitacora
+  15. estacionamientos.buscarPorPlaca
+  16. estacionamientos.getContrarecibosByDate
+  17. estacionamientos.sumContrarecibosByDate
+  18. estacionamientos.getContrareciboDetalle
+  19. estacionamientos.passwords.list
+  20. estacionamientos.passwords.create
+  ... y 26 más
+
+💡 COMPONENTES DESTACADOS
+─────────────────────────────────────────────────────────────
+   1. ConsultaPublicos.vue               4 SPs
+   2. CargaEdoExPublicos.vue             3 SPs
+   3. AplicaPagoDivAdminPublicos.vue     2 SPs
+   4. AspectoPublicos.vue                2 SPs
+   5. BajaMultiplePublicos.vue           2 SPs
+   6. ChgAutorizDesctoPublicos.vue       2 SPs
+   7. ConsGralPublicos.vue               2 SPs
+   8. ConsRemesasPublicos.vue            2 SPs
+   9. ContrarecibosPublicos.vue          2 SPs
+  10. EstadoMpioPublicos.vue             2 SPs
+  11. GenArcAltasPublicos.vue            2 SPs
+  12. GenIndividualPublicos.vue          2 SPs
+  13. MetrometersPublicos.vue            2 SPs
+  14. PasswordsPublicos.vue              2 SPs
+  15. PublicosNew.vue                    2 SPs
+
+📝 RECOMENDACIONES
+─────────────────────────────────────────────────────────────
+  1. ✅ Actualizar sp-catalog.json con los 59 SPs de Vue
+  2. ✅ Crear sp-catalog-vue.json separado
+  3. ✅ Auditar los 110 SPs legacy del catálogo actual
+  4. ✅ Estandarizar nomenclatura: sp_modulo_accion
+  5. ✅ Documentar parámetros de cada SP
+  6. ✅ Generar API documentation automática
+  7. ✅ Crear matriz de dependencias SP ↔ Componente
+
+📂 ARCHIVOS GENERADOS
+─────────────────────────────────────────────────────────────
+  ✓ vue-sp-usage.json       - Datos completos (1861 líneas)
+  ✓ VUE-SP-ANALYSIS.md      - Análisis markdown
+  ✓ ANALYSIS-SUMMARY.txt    - Este resumen
+
+═══════════════════════════════════════════════════════════════
+  Análisis completado exitosamente
+  Generado por: analyze-vue-sps.js
+═══════════════════════════════════════════════════════════════
+

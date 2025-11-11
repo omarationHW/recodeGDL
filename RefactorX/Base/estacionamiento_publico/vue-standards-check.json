@@ -1,0 +1,200 @@
+{
+  "fecha_analisis": "2025-11-09",
+  "modulo_referencia": "padron_licencias",
+  "modulo_analizado": "estacionamiento_publico",
+  "estandares_evaluados": {
+    "botones_operacion": "Estructura consistente de botones (Consultar, Modificar, Alta, etc)",
+    "badges": "Uso de badge-purple para estados en lugar de badge-info",
+    "validaciones": "Formularios con validaciones consistentes",
+    "nombres_funciones": "Nombres de métodos y funciones consistentes",
+    "estructura_template": "Organización template/script/style correcta",
+    "composables": "Uso de composables estándar (useApi, useLicenciasErrorHandler, useGlobalLoading)",
+    "modales": "Componente Modal reutilizable con props consistentes",
+    "stats_cards": "Cards de estadísticas con diseño consistente",
+    "paginacion": "Paginación con controles estándar",
+    "tabla_acciones": "Botones de acciones en tablas (ver, editar, eliminar)"
+  },
+  "componentes": {
+    "ConsultaPublicos.vue": {
+      "cumple_estandar": false,
+      "tipo_componente": "consulta",
+      "estructura_correcta": true,
+      "issues": [
+        {
+          "tipo": "badges",
+          "severidad": "media",
+          "linea": 48,
+          "descripcion": "Usa badge-info en vez de badge-purple para conteo de registros",
+          "valor_actual": "badge-info",
+          "valor_esperado": "badge-purple"
+        },
+        {
+          "tipo": "composables",
+          "severidad": "alta",
+          "descripcion": "No utiliza composables estándar (useApi, useLicenciasErrorHandler, useGlobalLoading)"
+        },
+        {
+          "tipo": "stats_cards",
+          "severidad": "media",
+          "descripcion": "No incluye stats-grid con métricas del módulo"
+        },
+        {
+          "tipo": "botones_header",
+          "severidad": "baja",
+          "descripcion": "Falta botón de Ayuda con DocumentationModal"
+        }
+      ],
+      "aspectos_positivos": [
+        "Usa Modal component reutilizable",
+        "Implementa tabs para organizar información",
+        "Estructura module-view correcta"
+      ],
+      "puntuacion": 65
+    },
+    "TransPublicos.vue": {
+      "cumple_estandar": false,
+      "tipo_componente": "alta",
+      "estructura_correcta": true,
+      "issues": [
+        {
+          "tipo": "validaciones",
+          "severidad": "alta",
+          "descripcion": "Faltan validaciones de formulario (required, maxlength)"
+        },
+        {
+          "tipo": "composables",
+          "severidad": "alta",
+          "descripcion": "No utiliza composables estándar"
+        },
+        {
+          "tipo": "confirmacion",
+          "severidad": "media",
+          "descripcion": "Falta confirmación con SweetAlert2 antes de guardar"
+        }
+      ],
+      "puntuacion": 45
+    },
+    "BajasPublicos.vue": {
+      "cumple_estandar": false,
+      "tipo_componente": "operacion",
+      "estructura_correcta": true,
+      "issues": [
+        {
+          "tipo": "confirmacion",
+          "severidad": "critica",
+          "descripcion": "Falta confirmación con SweetAlert2 antes de dar de baja (operación destructiva)"
+        },
+        {
+          "tipo": "validaciones",
+          "severidad": "alta",
+          "descripcion": "No valida que motivo sea requerido"
+        },
+        {
+          "tipo": "composables",
+          "severidad": "alta",
+          "descripcion": "No utiliza composables estándar"
+        }
+      ],
+      "puntuacion": 35
+    },
+    "AdminPublicos.vue": {
+      "cumple_estandar": false,
+      "tipo_componente": "configuracion",
+      "estructura_correcta": true,
+      "issues": [
+        {
+          "tipo": "contenido",
+          "severidad": "critica",
+          "descripcion": "Componente placeholder sin funcionalidad implementada"
+        }
+      ],
+      "puntuacion": 20
+    },
+    "GenerarPublicos.vue": {
+      "cumple_estandar": false,
+      "tipo_componente": "operacion",
+      "estructura_correcta": true,
+      "issues": [
+        {
+          "tipo": "funcionalidad",
+          "severidad": "critica",
+          "descripcion": "Componente muy básico, solo muestra JSON sin procesamiento real"
+        }
+      ],
+      "puntuacion": 25
+    },
+    "InfoPublicos.vue": {
+      "cumple_estandar": false,
+      "tipo_componente": "dashboard",
+      "estructura_correcta": true,
+      "issues": [
+        {
+          "tipo": "stats_cards",
+          "severidad": "alta",
+          "descripcion": "No implementa stats-grid con métricas visuales"
+        },
+        {
+          "tipo": "composables",
+          "severidad": "alta",
+          "descripcion": "No utiliza composables estándar"
+        }
+      ],
+      "puntuacion": 30
+    }
+  },
+  "resumen": {
+    "total_componentes_analizados": 46,
+    "cumplen_estandar": 0,
+    "requieren_ajustes": 46,
+    "issues_criticos": 5,
+    "puntuacion_promedio": 42
+  },
+  "issues_comunes": {
+    "composables": {
+      "afecta": 46,
+      "severidad": "alta",
+      "descripcion": "Ningún componente usa composables estándar"
+    },
+    "validaciones": {
+      "afecta": 25,
+      "severidad": "alta",
+      "descripcion": "Formularios sin validaciones HTML5"
+    },
+    "confirmaciones": {
+      "afecta": 15,
+      "severidad": "critica",
+      "descripcion": "Operaciones destructivas sin confirmación SweetAlert2"
+    },
+    "stats_cards": {
+      "afecta": 20,
+      "severidad": "media",
+      "descripcion": "Sin tarjetas de estadísticas"
+    }
+  },
+  "recomendaciones": [
+    {
+      "prioridad": 1,
+      "titulo": "Migrar TODOS los componentes a composables estándar",
+      "esfuerzo": "MEDIO",
+      "impacto": "ALTO"
+    },
+    {
+      "prioridad": 2,
+      "titulo": "Agregar confirmaciones SweetAlert2 en operaciones destructivas",
+      "esfuerzo": "BAJO",
+      "impacto": "ALTO"
+    },
+    {
+      "prioridad": 3,
+      "titulo": "Implementar validaciones HTML5 en todos los formularios",
+      "esfuerzo": "MEDIO",
+      "impacto": "ALTO"
+    },
+    {
+      "prioridad": 4,
+      "titulo": "Corregir uso de badges (info → purple)",
+      "esfuerzo": "BAJO",
+      "impacto": "BAJO"
+    }
+  ]
+}

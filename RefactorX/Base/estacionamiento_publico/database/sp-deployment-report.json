@@ -1,0 +1,1753 @@
+{
+  "fecha": "2025-11-09",
+  "hora_inicio": "2025-11-09T20:26:12.177601",
+  "total_archivos": 182,
+  "archivos_procesados": 182,
+  "sps_ingresados": 181,
+  "sps_exitosos": 162,
+  "sps_con_errores": 20,
+  "detalle": {
+    "Acceso_all_procedures.sql": {
+      "archivo": "Acceso_all_procedures.sql",
+      "sp_nombre": "sp_login",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 4266
+    },
+    "AplicaPgo_DivAdmin_all_procedures.sql": {
+      "archivo": "AplicaPgo_DivAdmin_all_procedures.sql",
+      "sp_nombre": "sp_busca_folios_divadmin",
+      "estado": "error",
+      "mensaje_error": "parameter name \"axo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_busca_folios_divadmin\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 3177
+    },
+    "Bja_Multiple_all_procedures.sql": {
+      "archivo": "Bja_Multiple_all_procedures.sql",
+      "sp_nombre": "sp_get_incidencias_baja_multiple",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2331
+    },
+    "Cga_ArcEdoEx_all_procedures.sql": {
+      "archivo": "Cga_ArcEdoEx_all_procedures.sql",
+      "sp_nombre": "sp_insert_ta14_datos_edo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2925
+    },
+    "ConsGral_all_procedures.sql": {
+      "archivo": "ConsGral_all_procedures.sql",
+      "sp_nombre": "sp14_afolios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3128
+    },
+    "ConsRemesas_all_procedures.sql": {
+      "archivo": "ConsRemesas_all_procedures.sql",
+      "sp_nombre": "sp_get_remesas",
+      "estado": "error",
+      "mensaje_error": "type \"ta14_datos_edo\" does not exist\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1909
+    },
+    "DM_Crbos_all_procedures.sql": {
+      "archivo": "DM_Crbos_all_procedures.sql",
+      "sp_nombre": "spd_crbo_abc",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 7122
+    },
+    "DsDBGasto_all_procedures.sql": {
+      "archivo": "DsDBGasto_all_procedures.sql",
+      "sp_nombre": "sp_login_seguridad",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1686
+    },
+    "Dspasswords_all_procedures.sql": {
+      "archivo": "Dspasswords_all_procedures.sql",
+      "sp_nombre": "sp_passwords_list",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3138
+    },
+    "Gen_ArcAltas_all_procedures.sql": {
+      "archivo": "Gen_ArcAltas_all_procedures.sql",
+      "sp_nombre": "sp14_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3731
+    },
+    "Gen_ArcDiario_all_procedures.sql": {
+      "archivo": "Gen_ArcDiario_all_procedures.sql",
+      "sp_nombre": "sp14_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3978
+    },
+    "Gen_Individual_all_procedures.sql": {
+      "archivo": "Gen_Individual_all_procedures.sql",
+      "sp_nombre": "sp_gen_individual_add",
+      "estado": "error",
+      "mensaje_error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 86:         RETURN NEXT (v_idrmunicipio, v_tipoact, (r.axo*10000...\n                             ^\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 6107
+    },
+    "Gen_PgosBanorte_all_procedures.sql": {
+      "archivo": "Gen_PgosBanorte_all_procedures.sql",
+      "sp_nombre": "sp14_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1913
+    },
+    "Reactiva_Folios_all_procedures.sql": {
+      "archivo": "Reactiva_Folios_all_procedures.sql",
+      "sp_nombre": "sp_reactiva_folios_buscar",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3239
+    },
+    "Reportes_Folios_all_procedures.sql": {
+      "archivo": "Reportes_Folios_all_procedures.sql",
+      "sp_nombre": "cons14_solicrep",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1686
+    },
+    "SFRM_REPORTES_EXEC_all_procedures.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_all_procedures.sql",
+      "sp_nombre": "sp_get_reportes_exec",
+      "estado": "error",
+      "mensaje_error": "parameter name \"no_exclusivo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_get_estado_cuenta\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 7161
+    },
+    "UNIT9_all_procedures.sql": {
+      "archivo": "UNIT9_all_procedures.sql",
+      "sp_nombre": "sp_unit9_preview_navigate",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3749
+    },
+    "Unit1_all_procedures.sql": {
+      "archivo": "Unit1_all_procedures.sql",
+      "sp_nombre": "report_unit1",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1009
+    },
+    "frmMetrometers_all_procedures.sql": {
+      "archivo": "frmMetrometers_all_procedures.sql",
+      "sp_nombre": "sp_get_metrometer_by_axo_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2250
+    },
+    "mensaje_all_procedures.sql": {
+      "archivo": "mensaje_all_procedures.sql",
+      "sp_nombre": "sp_mensaje_show",
+      "estado": "error",
+      "mensaje_error": "parameter name \"tipo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_mensaje_show\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 857
+    },
+    "sQRp_relacion_folios_all_procedures.sql": {
+      "archivo": "sQRp_relacion_folios_all_procedures.sql",
+      "sp_nombre": "sQRp_relacion_folios_report",
+      "estado": "exitoso",
+      "mensaje_error": "SP no encontrado después de ejecutar",
+      "probado": true,
+      "funciona": false,
+      "sql_content_length": 1515
+    },
+    "sQRt_imp_padron_all_procedures.sql": {
+      "archivo": "sQRt_imp_padron_all_procedures.sql",
+      "sp_nombre": "sp_get_padron_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1418
+    },
+    "s_trans_exclu_all_procedures.sql": {
+      "archivo": "s_trans_exclu_all_procedures.sql",
+      "sp_nombre": "sp_insert_ta_18_exclusivo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2400
+    },
+    "sdmWebService_all_procedures.sql": {
+      "archivo": "sdmWebService_all_procedures.sql",
+      "sp_nombre": "sp_insert_predio_virtual",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2599
+    },
+    "sfolios_alta_all_procedures.sql": {
+      "archivo": "sfolios_alta_all_procedures.sql",
+      "sp_nombre": "sp_insert_folio_adeudo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1191
+    },
+    "sfrmMetrometers_all_procedures.sql": {
+      "archivo": "sfrmMetrometers_all_procedures.sql",
+      "sp_nombre": "sp_get_metrometers_by_axo_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2733
+    },
+    "sfrm_abc_propietario_all_procedures.sql": {
+      "archivo": "sfrm_abc_propietario_all_procedures.sql",
+      "sp_nombre": "check_rfc_exists",
+      "estado": "error",
+      "mensaje_error": "syntax error at or near \"exists\"\nLINE 14: RETURNS TABLE (exists BOOLEAN)\n                        ^\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1972
+    },
+    "sfrm_alta_ubicaciones_all_procedures.sql": {
+      "archivo": "sfrm_alta_ubicaciones_all_procedures.sql",
+      "sp_nombre": "sp_exc_ubicacion",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1558
+    },
+    "sfrm_aspecto_all_procedures.sql": {
+      "archivo": "sfrm_aspecto_all_procedures.sql",
+      "sp_nombre": "get_aspectos",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1756
+    },
+    "sfrm_chg_autorizadescto_all_procedures.sql": {
+      "archivo": "sfrm_chg_autorizadescto_all_procedures.sql",
+      "sp_nombre": "sp_buscar_folios_histo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2041
+    },
+    "sfrm_consultapublicos_all_procedures.sql": {
+      "archivo": "sfrm_consultapublicos_all_procedures.sql",
+      "sp_nombre": "sp_get_public_parking_list",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 6378
+    },
+    "sfrm_prop_exclusivo_all_procedures.sql": {
+      "archivo": "sfrm_prop_exclusivo_all_procedures.sql",
+      "sp_nombre": "ex_propietario_create",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3867
+    },
+    "sfrm_rep_folio_all_procedures.sql": {
+      "archivo": "sfrm_rep_folio_all_procedures.sql",
+      "sp_nombre": "sp_get_inspectors",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 5997
+    },
+    "sfrm_report_pagos_all_procedures.sql": {
+      "archivo": "sfrm_report_pagos_all_procedures.sql",
+      "sp_nombre": "report_folios_pagados",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 4541
+    },
+    "sfrm_reportescalco_all_procedures.sql": {
+      "archivo": "sfrm_reportescalco_all_procedures.sql",
+      "sp_nombre": "sp_catalog_inspectors",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3198
+    },
+    "sfrm_tr_estado_mpio_all_procedures.sql": {
+      "archivo": "sfrm_tr_estado_mpio_all_procedures.sql",
+      "sp_nombre": "sp_get_remesas_estado_mpio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3282
+    },
+    "sfrm_trans_pub_all_procedures.sql": {
+      "archivo": "sfrm_trans_pub_all_procedures.sql",
+      "sp_nombre": "sp_ta_15_publicos_insert",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3913
+    },
+    "sfrm_transfolios_all_procedures.sql": {
+      "archivo": "sfrm_transfolios_all_procedures.sql",
+      "sp_nombre": "sp_altas_folios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3262
+    },
+    "sfrm_up_pagos_all_procedures.sql": {
+      "archivo": "sfrm_up_pagos_all_procedures.sql",
+      "sp_nombre": "sp_up_pagos_update",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1081
+    },
+    "sfrm_valet_paso_all_procedures.sql": {
+      "archivo": "sfrm_valet_paso_all_procedures.sql",
+      "sp_nombre": "process_valet_file",
+      "estado": "error",
+      "mensaje_error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 39:             RETURN NEXT (v_row, 'OK', 'Insertado');\n                                 ^\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1673
+    },
+    "sfrmprediocarto_all_procedures.sql": {
+      "archivo": "sfrmprediocarto_all_procedures.sql",
+      "sp_nombre": "sp_get_predio_carto_url",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 854
+    },
+    "spubActualizacionfrm_all_procedures.sql": {
+      "archivo": "spubActualizacionfrm_all_procedures.sql",
+      "sp_nombre": "sppubmodi",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 5950
+    },
+    "spublicosnewfrm_all_procedures.sql": {
+      "archivo": "spublicosnewfrm_all_procedures.sql",
+      "sp_nombre": "sppubalta",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3684
+    },
+    "spubreports_all_procedures.sql": {
+      "archivo": "spubreports_all_procedures.sql",
+      "sp_nombre": "spubreports_list",
+      "estado": "error",
+      "mensaje_error": "parameter name \"numesta\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"spubreports_edocta\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 7709
+    },
+    "sqrp_esta01_all_procedures.sql": {
+      "archivo": "sqrp_esta01_all_procedures.sql",
+      "sp_nombre": "sqrp_esta01_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1190
+    },
+    "sqrp_publicos_all_procedures.sql": {
+      "archivo": "sqrp_publicos_all_procedures.sql",
+      "sp_nombre": "sqrp_publicos_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 7294
+    },
+    "srfrm_conci_banorte_all_procedures.sql": {
+      "archivo": "srfrm_conci_banorte_all_procedures.sql",
+      "sp_nombre": "sp_conciliados_by_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 6503
+    },
+    "01_catalogs.sql": {
+      "archivo": "01_catalogs.sql",
+      "sp_nombre": "get_periodo_diario",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 503
+    },
+    "02_crud.sql": {
+      "archivo": "02_crud.sql",
+      "sp_nombre": "sp14_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 831
+    },
+    "03_reports.sql": {
+      "archivo": "03_reports.sql",
+      "sp_nombre": "buscar_folios_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1293
+    },
+    "Acceso_sp_get_catalog.sql": {
+      "archivo": "Acceso_sp_get_catalog.sql",
+      "sp_nombre": "sp_get_catalog",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 692
+    },
+    "Acceso_sp_get_folios_report.sql": {
+      "archivo": "Acceso_sp_get_folios_report.sql",
+      "sp_nombre": "sp_get_folios_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1059
+    },
+    "Acceso_sp_get_user_info.sql": {
+      "archivo": "Acceso_sp_get_user_info.sql",
+      "sp_nombre": "sp_get_user_info",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 469
+    },
+    "Acceso_sp_login.sql": {
+      "archivo": "Acceso_sp_login.sql",
+      "sp_nombre": "sp_login",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 712
+    },
+    "Acceso_sp_register_folio.sql": {
+      "archivo": "Acceso_sp_register_folio.sql",
+      "sp_nombre": "sp_register_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1017
+    },
+    "AplicaPgo_DivAdmin_sp_aplica_pago_divadmin.sql": {
+      "archivo": "AplicaPgo_DivAdmin_sp_aplica_pago_divadmin.sql",
+      "sp_nombre": "sp_aplica_pago_divadmin",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1000
+    },
+    "AplicaPgo_DivAdmin_sp_busca_folios_divadmin.sql": {
+      "archivo": "AplicaPgo_DivAdmin_sp_busca_folios_divadmin.sql",
+      "sp_nombre": "sp_busca_folios_divadmin",
+      "estado": "error",
+      "mensaje_error": "parameter name \"axo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_busca_folios_divadmin\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1941
+    },
+    "Bja_Multiple_sp14_ejecuta_sp.sql": {
+      "archivo": "Bja_Multiple_sp14_ejecuta_sp.sql",
+      "sp_nombre": "sp14_ejecuta_sp",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 644
+    },
+    "Bja_Multiple_sp_get_incidencias_baja_multiple.sql": {
+      "archivo": "Bja_Multiple_sp_get_incidencias_baja_multiple.sql",
+      "sp_nombre": "sp_get_incidencias_baja_multiple",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 658
+    },
+    "Bja_Multiple_sp_insert_folios_baja_esta.sql": {
+      "archivo": "Bja_Multiple_sp_insert_folios_baja_esta.sql",
+      "sp_nombre": "sp_insert_folios_baja_esta",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 770
+    },
+    "Cga_ArcEdoEx_sp_afec_esta01.sql": {
+      "archivo": "Cga_ArcEdoEx_sp_afec_esta01.sql",
+      "sp_nombre": "sp_afec_esta01",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 737
+    },
+    "Cga_ArcEdoEx_sp_insert_ta14_bitacora.sql": {
+      "archivo": "Cga_ArcEdoEx_sp_insert_ta14_bitacora.sql",
+      "sp_nombre": "sp_insert_ta14_bitacora",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 809
+    },
+    "Cga_ArcEdoEx_sp_insert_ta14_datos_edo.sql": {
+      "archivo": "Cga_ArcEdoEx_sp_insert_ta14_datos_edo.sql",
+      "sp_nombre": "sp_insert_ta14_datos_edo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1120
+    },
+    "ConsGral_sp14_afolios.sql": {
+      "archivo": "ConsGral_sp14_afolios.sql",
+      "sp_nombre": "sp14_afolios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1783
+    },
+    "ConsGral_sp14_bfolios.sql": {
+      "archivo": "ConsGral_sp14_bfolios.sql",
+      "sp_nombre": "sp14_bfolios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1099
+    },
+    "ConsRemesas_sp_get_remesa_detalle_edo.sql": {
+      "archivo": "ConsRemesas_sp_get_remesa_detalle_edo.sql",
+      "sp_nombre": "sp_get_remesa_detalle_edo",
+      "estado": "error",
+      "mensaje_error": "type \"ta14_datos_edo\" does not exist\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 470
+    },
+    "ConsRemesas_sp_get_remesa_detalle_mpio.sql": {
+      "archivo": "ConsRemesas_sp_get_remesa_detalle_mpio.sql",
+      "sp_nombre": "sp_get_remesa_detalle_mpio",
+      "estado": "error",
+      "mensaje_error": "type \"ta14_datos_mpio\" does not exist\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 474
+    },
+    "ConsRemesas_sp_get_remesas.sql": {
+      "archivo": "ConsRemesas_sp_get_remesas.sql",
+      "sp_nombre": "sp_get_remesas",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 704
+    },
+    "DM_Crbos_get_contrarecibos_by_date.sql": {
+      "archivo": "DM_Crbos_get_contrarecibos_by_date.sql",
+      "sp_nombre": "get_contrarecibos_by_date",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 885
+    },
+    "DM_Crbos_spd_crbo_abc.sql": {
+      "archivo": "DM_Crbos_spd_crbo_abc.sql",
+      "sp_nombre": "spd_crbo_abc",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3000
+    },
+    "DM_Crbos_spd_proveedor_abc.sql": {
+      "archivo": "DM_Crbos_spd_proveedor_abc.sql",
+      "sp_nombre": "spd_proveedor_abc",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2430
+    },
+    "DM_Crbos_sum_contrarecibos_by_date.sql": {
+      "archivo": "DM_Crbos_sum_contrarecibos_by_date.sql",
+      "sp_nombre": "sum_contrarecibos_by_date",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 519
+    },
+    "DsDBGasto_sp_connect_estacion.sql": {
+      "archivo": "DsDBGasto_sp_connect_estacion.sql",
+      "sp_nombre": "sp_connect_estacion",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 767
+    },
+    "DsDBGasto_sp_login_seguridad.sql": {
+      "archivo": "DsDBGasto_sp_login_seguridad.sql",
+      "sp_nombre": "sp_login_seguridad",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 674
+    },
+    "Dspasswords_sp_passwords_create.sql": {
+      "archivo": "Dspasswords_sp_passwords_create.sql",
+      "sp_nombre": "sp_passwords_create",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 868
+    },
+    "Dspasswords_sp_passwords_delete.sql": {
+      "archivo": "Dspasswords_sp_passwords_delete.sql",
+      "sp_nombre": "sp_passwords_delete",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 454
+    },
+    "Dspasswords_sp_passwords_list.sql": {
+      "archivo": "Dspasswords_sp_passwords_list.sql",
+      "sp_nombre": "sp_passwords_list",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 631
+    },
+    "Dspasswords_sp_passwords_update.sql": {
+      "archivo": "Dspasswords_sp_passwords_update.sql",
+      "sp_nombre": "sp_passwords_update",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 906
+    },
+    "Gen_ArcAltas_contar_folios_remesa.sql": {
+      "archivo": "Gen_ArcAltas_contar_folios_remesa.sql",
+      "sp_nombre": "contar_folios_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 480
+    },
+    "Gen_ArcAltas_generar_archivo_remesa.sql": {
+      "archivo": "Gen_ArcAltas_generar_archivo_remesa.sql",
+      "sp_nombre": "generar_archivo_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1323
+    },
+    "Gen_ArcAltas_get_periodo_altas.sql": {
+      "archivo": "Gen_ArcAltas_get_periodo_altas.sql",
+      "sp_nombre": "get_periodo_altas",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 484
+    },
+    "Gen_ArcAltas_sp14_remesa.sql": {
+      "archivo": "Gen_ArcAltas_sp14_remesa.sql",
+      "sp_nombre": "sp14_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1168
+    },
+    "Gen_ArcDiario_buscar_folios_remesa.sql": {
+      "archivo": "Gen_ArcDiario_buscar_folios_remesa.sql",
+      "sp_nombre": "buscar_folios_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 476
+    },
+    "Gen_ArcDiario_generar_archivo_remesa.sql": {
+      "archivo": "Gen_ArcDiario_generar_archivo_remesa.sql",
+      "sp_nombre": "generar_archivo_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1226
+    },
+    "Gen_ArcDiario_get_periodo_altas.sql": {
+      "archivo": "Gen_ArcDiario_get_periodo_altas.sql",
+      "sp_nombre": "get_periodo_altas",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 459
+    },
+    "Gen_ArcDiario_get_periodo_diario.sql": {
+      "archivo": "Gen_ArcDiario_get_periodo_diario.sql",
+      "sp_nombre": "get_periodo_diario",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 459
+    },
+    "Gen_ArcDiario_sp14_remesa.sql": {
+      "archivo": "Gen_ArcDiario_sp14_remesa.sql",
+      "sp_nombre": "sp14_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1069
+    },
+    "Gen_Individual_sp_gen_individual_add.sql": {
+      "archivo": "Gen_Individual_sp_gen_individual_add.sql",
+      "sp_nombre": "sp_gen_individual_add",
+      "estado": "error",
+      "mensaje_error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 80:         RETURN NEXT (v_idrmunicipio, v_tipoact, (r.axo*10000...\n                             ^\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 3253
+    },
+    "Gen_Individual_sp_gen_individual_execute.sql": {
+      "archivo": "Gen_Individual_sp_gen_individual_execute.sql",
+      "sp_nombre": "sp_gen_individual_execute",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1232
+    },
+    "Gen_Individual_sp_gen_individual_generate_file.sql": {
+      "archivo": "Gen_Individual_sp_gen_individual_generate_file.sql",
+      "sp_nombre": "sp_gen_individual_generate_file",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1367
+    },
+    "Gen_PgosBanorte_sp14_remesa.sql": {
+      "archivo": "Gen_PgosBanorte_sp14_remesa.sql",
+      "sp_nombre": "sp14_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1688
+    },
+    "INSTALL_QuickSetup.sql": {
+      "archivo": "INSTALL_QuickSetup.sql",
+      "sp_nombre": "buscar_folios_remesa",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2951
+    },
+    "MASTER_StoredProcedures.sql": {
+      "archivo": "MASTER_StoredProcedures.sql",
+      "sp_nombre": "get_periodo_altas",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 4918
+    },
+    "Reactiva_Folios_sp_reactiva_folios_aplicar.sql": {
+      "archivo": "Reactiva_Folios_sp_reactiva_folios_aplicar.sql",
+      "sp_nombre": "sp_reactiva_folios_aplicar",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1738
+    },
+    "Reactiva_Folios_sp_reactiva_folios_buscar.sql": {
+      "archivo": "Reactiva_Folios_sp_reactiva_folios_buscar.sql",
+      "sp_nombre": "sp_reactiva_folios_buscar",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1262
+    },
+    "Reportes_Folios_cons14_solicrep.sql": {
+      "archivo": "Reportes_Folios_cons14_solicrep.sql",
+      "sp_nombre": "cons14_solicrep",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 938
+    },
+    "Reportes_Folios_cons14_solicrep_c.sql": {
+      "archivo": "Reportes_Folios_cons14_solicrep_c.sql",
+      "sp_nombre": "cons14_solicrep_c",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 509
+    },
+    "SFRM_REPORTES_EXEC_sp_adeudos_detalle.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_sp_adeudos_detalle.sql",
+      "sp_nombre": "sp_adeudos_detalle",
+      "estado": "error",
+      "mensaje_error": "parameter name \"axo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_adeudos_detalle\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 824
+    },
+    "SFRM_REPORTES_EXEC_sp_get_adeudos_exec.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_sp_get_adeudos_exec.sql",
+      "sp_nombre": "sp_get_adeudos_exec",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1638
+    },
+    "SFRM_REPORTES_EXEC_sp_get_deudores_exec.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_sp_get_deudores_exec.sql",
+      "sp_nombre": "sp_get_deudores_exec",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1289
+    },
+    "SFRM_REPORTES_EXEC_sp_get_estado_cuenta.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_sp_get_estado_cuenta.sql",
+      "sp_nombre": "sp_get_estado_cuenta",
+      "estado": "error",
+      "mensaje_error": "parameter name \"no_exclusivo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_get_estado_cuenta\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1373
+    },
+    "SFRM_REPORTES_EXEC_sp_get_reportes_exec.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_sp_get_reportes_exec.sql",
+      "sp_nombre": "sp_get_reportes_exec",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1768
+    },
+    "UNIT9_sp_unit9_preview_load.sql": {
+      "archivo": "UNIT9_sp_unit9_preview_load.sql",
+      "sp_nombre": "sp_unit9_preview_load",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 500
+    },
+    "UNIT9_sp_unit9_preview_navigate.sql": {
+      "archivo": "UNIT9_sp_unit9_preview_navigate.sql",
+      "sp_nombre": "sp_unit9_preview_navigate",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1053
+    },
+    "UNIT9_sp_unit9_preview_onepage.sql": {
+      "archivo": "UNIT9_sp_unit9_preview_onepage.sql",
+      "sp_nombre": "sp_unit9_preview_onepage",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 341
+    },
+    "UNIT9_sp_unit9_preview_pagewidth.sql": {
+      "archivo": "UNIT9_sp_unit9_preview_pagewidth.sql",
+      "sp_nombre": "sp_unit9_preview_pagewidth",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 358
+    },
+    "UNIT9_sp_unit9_preview_print.sql": {
+      "archivo": "UNIT9_sp_unit9_preview_print.sql",
+      "sp_nombre": "sp_unit9_preview_print",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 368
+    },
+    "UNIT9_sp_unit9_preview_save.sql": {
+      "archivo": "UNIT9_sp_unit9_preview_save.sql",
+      "sp_nombre": "sp_unit9_preview_save",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 418
+    },
+    "UNIT9_sp_unit9_preview_zoom.sql": {
+      "archivo": "UNIT9_sp_unit9_preview_zoom.sql",
+      "sp_nombre": "sp_unit9_preview_zoom",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 342
+    },
+    "Unit1_report_unit1.sql": {
+      "archivo": "Unit1_report_unit1.sql",
+      "sp_nombre": "report_unit1",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 784
+    },
+    "frmMetrometers_sp_get_metrometer_by_axo_folio.sql": {
+      "archivo": "frmMetrometers_sp_get_metrometer_by_axo_folio.sql",
+      "sp_nombre": "sp_get_metrometer_by_axo_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 826
+    },
+    "frmMetrometers_sp_update_metrometer.sql": {
+      "archivo": "frmMetrometers_sp_update_metrometer.sql",
+      "sp_nombre": "sp_update_metrometer",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1184
+    },
+    "mensaje_sp_mensaje_show.sql": {
+      "archivo": "mensaje_sp_mensaje_show.sql",
+      "sp_nombre": "sp_mensaje_show",
+      "estado": "error",
+      "mensaje_error": "parameter name \"tipo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_mensaje_show\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 632
+    },
+    "sQRp_relacion_folios_sQRp_relacion_folios_report.sql": {
+      "archivo": "sQRp_relacion_folios_sQRp_relacion_folios_report.sql",
+      "sp_nombre": "sQRp_relacion_folios_report",
+      "estado": "exitoso",
+      "mensaje_error": "SP no encontrado después de ejecutar",
+      "probado": true,
+      "funciona": false,
+      "sql_content_length": 1290
+    },
+    "sQRt_imp_padron_sp_get_padron_report.sql": {
+      "archivo": "sQRt_imp_padron_sp_get_padron_report.sql",
+      "sp_nombre": "sp_get_padron_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1193
+    },
+    "s_trans_exclu_sp_insert_ta_18_exclusivo.sql": {
+      "archivo": "s_trans_exclu_sp_insert_ta_18_exclusivo.sql",
+      "sp_nombre": "sp_insert_ta_18_exclusivo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1446
+    },
+    "s_trans_exclu_sp_update_ta_15_publicos_fecha_venci.sql": {
+      "archivo": "s_trans_exclu_sp_update_ta_15_publicos_fecha_venci.sql",
+      "sp_nombre": "sp_update_ta_15_publicos_fecha_venci",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 716
+    },
+    "sdmWebService_predio_virtual.sql": {
+      "archivo": "sdmWebService_predio_virtual.sql",
+      "sp_nombre": null,
+      "estado": "error",
+      "mensaje_error": "No se pudo extraer el nombre del procedimiento",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 670
+    },
+    "sdmWebService_sp_insert_predio_virtual.sql": {
+      "archivo": "sdmWebService_sp_insert_predio_virtual.sql",
+      "sp_nombre": "sp_insert_predio_virtual",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1688
+    },
+    "sfolios_alta_sp_insert_folio_adeudo.sql": {
+      "archivo": "sfolios_alta_sp_insert_folio_adeudo.sql",
+      "sp_nombre": "sp_insert_folio_adeudo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 966
+    },
+    "sfrmMetrometers_sp_get_metrometers_by_axo_folio.sql": {
+      "archivo": "sfrmMetrometers_sp_get_metrometers_by_axo_folio.sql",
+      "sp_nombre": "sp_get_metrometers_by_axo_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 827
+    },
+    "sfrmMetrometers_sp_get_metrometers_map_url.sql": {
+      "archivo": "sfrmMetrometers_sp_get_metrometers_map_url.sql",
+      "sp_nombre": "sp_get_metrometers_map_url",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 911
+    },
+    "sfrmMetrometers_sp_get_metrometers_photo.sql": {
+      "archivo": "sfrmMetrometers_sp_get_metrometers_photo.sql",
+      "sp_nombre": "sp_get_metrometers_photo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 742
+    },
+    "sfrm_abc_propietario_check_rfc_exists.sql": {
+      "archivo": "sfrm_abc_propietario_check_rfc_exists.sql",
+      "sp_nombre": "check_rfc_exists",
+      "estado": "error",
+      "mensaje_error": "syntax error at or near \"exists\"\nLINE 8: RETURNS TABLE (exists BOOLEAN)\n                       ^\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 427
+    },
+    "sfrm_abc_propietario_insert_persona.sql": {
+      "archivo": "sfrm_abc_propietario_insert_persona.sql",
+      "sp_nombre": "insert_persona",
+      "estado": "error",
+      "mensaje_error": "input parameters after one with a default value must also have defaults\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1311
+    },
+    "sfrm_alta_ubicaciones_sp_exc_ubicacion.sql": {
+      "archivo": "sfrm_alta_ubicaciones_sp_exc_ubicacion.sql",
+      "sp_nombre": "sp_exc_ubicacion",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1333
+    },
+    "sfrm_aspecto_get_aspectos.sql": {
+      "archivo": "sfrm_aspecto_get_aspectos.sql",
+      "sp_nombre": "get_aspectos",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 476
+    },
+    "sfrm_aspecto_get_current_aspecto.sql": {
+      "archivo": "sfrm_aspecto_get_current_aspecto.sql",
+      "sp_nombre": "get_current_aspecto",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 430
+    },
+    "sfrm_aspecto_set_aspecto.sql": {
+      "archivo": "sfrm_aspecto_set_aspecto.sql",
+      "sp_nombre": "set_aspecto",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 591
+    },
+    "sfrm_chg_autorizadescto_sp_buscar_folios_free.sql": {
+      "archivo": "sfrm_chg_autorizadescto_sp_buscar_folios_free.sql",
+      "sp_nombre": "sp_buscar_folios_free",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 609
+    },
+    "sfrm_chg_autorizadescto_sp_buscar_folios_histo.sql": {
+      "archivo": "sfrm_chg_autorizadescto_sp_buscar_folios_histo.sql",
+      "sp_nombre": "sp_buscar_folios_histo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 602
+    },
+    "sfrm_chg_autorizadescto_sp_cambiar_a_tesorero.sql": {
+      "archivo": "sfrm_chg_autorizadescto_sp_cambiar_a_tesorero.sql",
+      "sp_nombre": "sp_cambiar_a_tesorero",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 593
+    },
+    "sfrm_consultapublicos_sp_get_license_general.sql": {
+      "archivo": "sfrm_consultapublicos_sp_get_license_general.sql",
+      "sp_nombre": "sp_get_license_general",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1977
+    },
+    "sfrm_consultapublicos_sp_get_license_totals.sql": {
+      "archivo": "sfrm_consultapublicos_sp_get_license_totals.sql",
+      "sp_nombre": "sp_get_license_totals",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 732
+    },
+    "sfrm_consultapublicos_sp_get_public_parking_debts.sql": {
+      "archivo": "sfrm_consultapublicos_sp_get_public_parking_debts.sql",
+      "sp_nombre": "sp_get_public_parking_debts",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 638
+    },
+    "sfrm_consultapublicos_sp_get_public_parking_fines.sql": {
+      "archivo": "sfrm_consultapublicos_sp_get_public_parking_fines.sql",
+      "sp_nombre": "sp_get_public_parking_fines",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1293
+    },
+    "sfrm_consultapublicos_sp_get_public_parking_list.sql": {
+      "archivo": "sfrm_consultapublicos_sp_get_public_parking_list.sql",
+      "sp_nombre": "sp_get_public_parking_list",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1481
+    },
+    "sfrm_prop_exclusivo_ex_propietario_by_id.sql": {
+      "archivo": "sfrm_prop_exclusivo_ex_propietario_by_id.sql",
+      "sp_nombre": "ex_propietario_by_id",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 652
+    },
+    "sfrm_prop_exclusivo_ex_propietario_by_rfc.sql": {
+      "archivo": "sfrm_prop_exclusivo_ex_propietario_by_rfc.sql",
+      "sp_nombre": "ex_propietario_by_rfc",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 660
+    },
+    "sfrm_prop_exclusivo_ex_propietario_create.sql": {
+      "archivo": "sfrm_prop_exclusivo_ex_propietario_create.sql",
+      "sp_nombre": "ex_propietario_create",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1151
+    },
+    "sfrm_prop_exclusivo_ex_propietario_update.sql": {
+      "archivo": "sfrm_prop_exclusivo_ex_propietario_update.sql",
+      "sp_nombre": "ex_propietario_update",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1149
+    },
+    "sfrm_rep_folio_sp_get_folios_by_inspector.sql": {
+      "archivo": "sfrm_rep_folio_sp_get_folios_by_inspector.sql",
+      "sp_nombre": "sp_get_folios_by_inspector",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 814
+    },
+    "sfrm_rep_folio_sp_get_folios_report.sql": {
+      "archivo": "sfrm_rep_folio_sp_get_folios_report.sql",
+      "sp_nombre": "sp_get_folios_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 3843
+    },
+    "sfrm_rep_folio_sp_get_inspectors.sql": {
+      "archivo": "sfrm_rep_folio_sp_get_inspectors.sql",
+      "sp_nombre": "sp_get_inspectors",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 575
+    },
+    "sfrm_rep_folio_sp_get_usuarios.sql": {
+      "archivo": "sfrm_rep_folio_sp_get_usuarios.sql",
+      "sp_nombre": "sp_get_usuarios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 495
+    },
+    "sfrm_report_pagos_report_folios_adeudo_por_inspector.sql": {
+      "archivo": "sfrm_report_pagos_report_folios_adeudo_por_inspector.sql",
+      "sp_nombre": "report_folios_adeudo_por_inspector",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 845
+    },
+    "sfrm_report_pagos_report_folios_elaborados_usuario.sql": {
+      "archivo": "sfrm_report_pagos_report_folios_elaborados_usuario.sql",
+      "sp_nombre": "report_folios_elaborados_usuario",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1898
+    },
+    "sfrm_report_pagos_report_folios_pagados.sql": {
+      "archivo": "sfrm_report_pagos_report_folios_pagados.sql",
+      "sp_nombre": "report_folios_pagados",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1549
+    },
+    "sfrm_reportescalco_sp_catalog_inspectors.sql": {
+      "archivo": "sfrm_reportescalco_sp_catalog_inspectors.sql",
+      "sp_nombre": "sp_catalog_inspectors",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 629
+    },
+    "sfrm_reportescalco_sp_report_calcomanias.sql": {
+      "archivo": "sfrm_reportescalco_sp_report_calcomanias.sql",
+      "sp_nombre": "sp_report_calcomanias",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1545
+    },
+    "sfrm_reportescalco_sp_report_folios.sql": {
+      "archivo": "sfrm_reportescalco_sp_report_folios.sql",
+      "sp_nombre": "sp_report_folios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 777
+    },
+    "sfrm_tr_estado_mpio_sp_get_remesas_estado_mpio.sql": {
+      "archivo": "sfrm_tr_estado_mpio_sp_get_remesas_estado_mpio.sql",
+      "sp_nombre": "sp_get_remesas_estado_mpio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 557
+    },
+    "sfrm_tr_estado_mpio_sp_insert_folios_estado_mpio.sql": {
+      "archivo": "sfrm_tr_estado_mpio_sp_insert_folios_estado_mpio.sql",
+      "sp_nombre": "sp_insert_folios_estado_mpio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1688
+    },
+    "sfrm_tr_estado_mpio_spd_delesta01.sql": {
+      "archivo": "sfrm_tr_estado_mpio_spd_delesta01.sql",
+      "sp_nombre": "spd_delesta01",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 792
+    },
+    "sfrm_trans_pub_sp_ta_15_publicos_insert.sql": {
+      "archivo": "sfrm_trans_pub_sp_ta_15_publicos_insert.sql",
+      "sp_nombre": "sp_ta_15_publicos_insert",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2821
+    },
+    "sfrm_trans_pub_sp_ta_15_publicos_update_pol_fec_ven.sql": {
+      "archivo": "sfrm_trans_pub_sp_ta_15_publicos_update_pol_fec_ven.sql",
+      "sp_nombre": "sp_ta_15_publicos_update_pol_fec_ven",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 852
+    },
+    "sfrm_transfolios_sp_altas_calcomanias.sql": {
+      "archivo": "sfrm_transfolios_sp_altas_calcomanias.sql",
+      "sp_nombre": "sp_altas_calcomanias",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 921
+    },
+    "sfrm_transfolios_sp_altas_folios.sql": {
+      "archivo": "sfrm_transfolios_sp_altas_folios.sql",
+      "sp_nombre": "sp_altas_folios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 897
+    },
+    "sfrm_transfolios_sp_bajas_folios.sql": {
+      "archivo": "sfrm_transfolios_sp_bajas_folios.sql",
+      "sp_nombre": "sp_bajas_folios",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1193
+    },
+    "sfrm_up_pagos_sp_up_pagos_update.sql": {
+      "archivo": "sfrm_up_pagos_sp_up_pagos_update.sql",
+      "sp_nombre": "sp_up_pagos_update",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 856
+    },
+    "sfrm_valet_paso_process_valet_file.sql": {
+      "archivo": "sfrm_valet_paso_process_valet_file.sql",
+      "sp_nombre": "process_valet_file",
+      "estado": "error",
+      "mensaje_error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 33:             RETURN NEXT (v_row, 'OK', 'Insertado');\n                                 ^\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1448
+    },
+    "sfrmprediocarto_sp_get_predio_carto_url.sql": {
+      "archivo": "sfrmprediocarto_sp_get_predio_carto_url.sql",
+      "sp_nombre": "sp_get_predio_carto_url",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 629
+    },
+    "spubActualizacionfrm_actualiza_pub_pago.sql": {
+      "archivo": "spubActualizacionfrm_actualiza_pub_pago.sql",
+      "sp_nombre": "actualiza_pub_pago",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 976
+    },
+    "spubActualizacionfrm_cajero_pub_detalle.sql": {
+      "archivo": "spubActualizacionfrm_cajero_pub_detalle.sql",
+      "sp_nombre": "cajero_pub_detalle",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 576
+    },
+    "spubActualizacionfrm_delete_pubadeudo.sql": {
+      "archivo": "spubActualizacionfrm_delete_pubadeudo.sql",
+      "sp_nombre": "delete_pubadeudo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 503
+    },
+    "spubActualizacionfrm_insert_pubadeudo.sql": {
+      "archivo": "spubActualizacionfrm_insert_pubadeudo.sql",
+      "sp_nombre": "insert_pubadeudo",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 636
+    },
+    "spubActualizacionfrm_sp_pub_movtos.sql": {
+      "archivo": "spubActualizacionfrm_sp_pub_movtos.sql",
+      "sp_nombre": "sp_pub_movtos",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 796
+    },
+    "spubActualizacionfrm_sppubbaja.sql": {
+      "archivo": "spubActualizacionfrm_sppubbaja.sql",
+      "sp_nombre": "sppubbaja",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 771
+    },
+    "spubActualizacionfrm_sppubmodi.sql": {
+      "archivo": "spubActualizacionfrm_sppubmodi.sql",
+      "sp_nombre": "sppubmodi",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1413
+    },
+    "spublicosnewfrm_cons_predio.sql": {
+      "archivo": "spublicosnewfrm_cons_predio.sql",
+      "sp_nombre": "cons_predio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 853
+    },
+    "spublicosnewfrm_sp_pubadeudo_forma.sql": {
+      "archivo": "spublicosnewfrm_sp_pubadeudo_forma.sql",
+      "sp_nombre": "sp_pubadeudo_forma",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 932
+    },
+    "spublicosnewfrm_sppubalta.sql": {
+      "archivo": "spublicosnewfrm_sppubalta.sql",
+      "sp_nombre": "sppubalta",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1646
+    },
+    "spubreports_spubreports_adeudos.sql": {
+      "archivo": "spubreports_spubreports_adeudos.sql",
+      "sp_nombre": "spubreports_adeudos",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 2769
+    },
+    "spubreports_spubreports_edocta.sql": {
+      "archivo": "spubreports_spubreports_edocta.sql",
+      "sp_nombre": "spubreports_edocta",
+      "estado": "error",
+      "mensaje_error": "parameter name \"numesta\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"spubreports_edocta\" near line 1\n",
+      "probado": false,
+      "funciona": false,
+      "sql_content_length": 1377
+    },
+    "spubreports_spubreports_list.sql": {
+      "archivo": "spubreports_spubreports_list.sql",
+      "sp_nombre": "spubreports_list",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1818
+    },
+    "spubreports_spubreports_sector_summary.sql": {
+      "archivo": "spubreports_spubreports_sector_summary.sql",
+      "sp_nombre": "spubreports_sector_summary",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1466
+    },
+    "sqrp_esta01_sqrp_esta01_report.sql": {
+      "archivo": "sqrp_esta01_sqrp_esta01_report.sql",
+      "sp_nombre": "sqrp_esta01_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 965
+    },
+    "sqrp_publicos_sqrp_publicos_report.sql": {
+      "archivo": "sqrp_publicos_sqrp_publicos_report.sql",
+      "sp_nombre": "sqrp_publicos_report",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 7069
+    },
+    "srfrm_conci_banorte_sp_conciliados_by_fecha.sql": {
+      "archivo": "srfrm_conci_banorte_sp_conciliados_by_fecha.sql",
+      "sp_nombre": "sp_conciliados_by_fecha",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1924
+    },
+    "srfrm_conci_banorte_sp_conciliados_by_folio.sql": {
+      "archivo": "srfrm_conci_banorte_sp_conciliados_by_folio.sql",
+      "sp_nombre": "sp_conciliados_by_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1964
+    },
+    "srfrm_conci_banorte_sp_histo_by_axo_folio.sql": {
+      "archivo": "srfrm_conci_banorte_sp_histo_by_axo_folio.sql",
+      "sp_nombre": "sp_histo_by_axo_folio",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 992
+    },
+    "srfrm_conci_banorte_spd_chg_conci.sql": {
+      "archivo": "srfrm_conci_banorte_spd_chg_conci.sql",
+      "sp_nombre": "spd_chg_conci",
+      "estado": "exitoso",
+      "mensaje_error": null,
+      "probado": true,
+      "funciona": true,
+      "sql_content_length": 1368
+    }
+  },
+  "errores": [
+    {
+      "archivo": "AplicaPgo_DivAdmin_all_procedures.sql",
+      "sp": "sp_busca_folios_divadmin",
+      "error": "parameter name \"axo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_busca_folios_divadmin\" near line 1\n"
+    },
+    {
+      "archivo": "ConsRemesas_all_procedures.sql",
+      "sp": "sp_get_remesas",
+      "error": "type \"ta14_datos_edo\" does not exist\n"
+    },
+    {
+      "archivo": "Gen_Individual_all_procedures.sql",
+      "sp": "sp_gen_individual_add",
+      "error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 86:         RETURN NEXT (v_idrmunicipio, v_tipoact, (r.axo*10000...\n                             ^\n"
+    },
+    {
+      "archivo": "SFRM_REPORTES_EXEC_all_procedures.sql",
+      "sp": "sp_get_reportes_exec",
+      "error": "parameter name \"no_exclusivo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_get_estado_cuenta\" near line 1\n"
+    },
+    {
+      "archivo": "mensaje_all_procedures.sql",
+      "sp": "sp_mensaje_show",
+      "error": "parameter name \"tipo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_mensaje_show\" near line 1\n"
+    },
+    {
+      "archivo": "sfrm_abc_propietario_all_procedures.sql",
+      "sp": "check_rfc_exists",
+      "error": "syntax error at or near \"exists\"\nLINE 14: RETURNS TABLE (exists BOOLEAN)\n                        ^\n"
+    },
+    {
+      "archivo": "sfrm_valet_paso_all_procedures.sql",
+      "sp": "process_valet_file",
+      "error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 39:             RETURN NEXT (v_row, 'OK', 'Insertado');\n                                 ^\n"
+    },
+    {
+      "archivo": "spubreports_all_procedures.sql",
+      "sp": "spubreports_list",
+      "error": "parameter name \"numesta\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"spubreports_edocta\" near line 1\n"
+    },
+    {
+      "archivo": "AplicaPgo_DivAdmin_sp_busca_folios_divadmin.sql",
+      "sp": "sp_busca_folios_divadmin",
+      "error": "parameter name \"axo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_busca_folios_divadmin\" near line 1\n"
+    },
+    {
+      "archivo": "ConsRemesas_sp_get_remesa_detalle_edo.sql",
+      "sp": "sp_get_remesa_detalle_edo",
+      "error": "type \"ta14_datos_edo\" does not exist\n"
+    },
+    {
+      "archivo": "ConsRemesas_sp_get_remesa_detalle_mpio.sql",
+      "sp": "sp_get_remesa_detalle_mpio",
+      "error": "type \"ta14_datos_mpio\" does not exist\n"
+    },
+    {
+      "archivo": "Gen_Individual_sp_gen_individual_add.sql",
+      "sp": "sp_gen_individual_add",
+      "error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 80:         RETURN NEXT (v_idrmunicipio, v_tipoact, (r.axo*10000...\n                             ^\n"
+    },
+    {
+      "archivo": "SFRM_REPORTES_EXEC_sp_adeudos_detalle.sql",
+      "sp": "sp_adeudos_detalle",
+      "error": "parameter name \"axo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_adeudos_detalle\" near line 1\n"
+    },
+    {
+      "archivo": "SFRM_REPORTES_EXEC_sp_get_estado_cuenta.sql",
+      "sp": "sp_get_estado_cuenta",
+      "error": "parameter name \"no_exclusivo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_get_estado_cuenta\" near line 1\n"
+    },
+    {
+      "archivo": "mensaje_sp_mensaje_show.sql",
+      "sp": "sp_mensaje_show",
+      "error": "parameter name \"tipo\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"sp_mensaje_show\" near line 1\n"
+    },
+    {
+      "archivo": "sdmWebService_predio_virtual.sql",
+      "sp": null,
+      "error": "No se pudo extraer el nombre del procedimiento"
+    },
+    {
+      "archivo": "sfrm_abc_propietario_check_rfc_exists.sql",
+      "sp": "check_rfc_exists",
+      "error": "syntax error at or near \"exists\"\nLINE 8: RETURNS TABLE (exists BOOLEAN)\n                       ^\n"
+    },
+    {
+      "archivo": "sfrm_abc_propietario_insert_persona.sql",
+      "sp": "insert_persona",
+      "error": "input parameters after one with a default value must also have defaults\n"
+    },
+    {
+      "archivo": "sfrm_valet_paso_process_valet_file.sql",
+      "sp": "process_valet_file",
+      "error": "RETURN NEXT cannot have a parameter in function with OUT parameters\nLINE 33:             RETURN NEXT (v_row, 'OK', 'Insertado');\n                                 ^\n"
+    },
+    {
+      "archivo": "spubreports_spubreports_edocta.sql",
+      "sp": "spubreports_edocta",
+      "error": "parameter name \"numesta\" used more than once\nCONTEXT:  compilation of PL/pgSQL function \"spubreports_edocta\" near line 1\n"
+    }
+  ],
+  "hora_fin": "2025-11-09T20:26:32.136763",
+  "duracion_segundos": 19
+}

@@ -1,0 +1,74 @@
+{
+  "fecha": "2025-11-09 21:40:38",
+  "sps_procesados": 11,
+  "sps_exitosos": 11,
+  "sps_con_errores": 0,
+  "detalle": {
+    "AplicaPgo_DivAdmin_sp_busca_folios_divadmin.sql": {
+      "archivo": "AplicaPgo_DivAdmin_sp_busca_folios_divadmin.sql",
+      "sp_nombre": "sp_busca_folios_divadmin",
+      "estado": "OK",
+      "error": null
+    },
+    "spubreports_spubreports_edocta.sql": {
+      "archivo": "spubreports_spubreports_edocta.sql",
+      "sp_nombre": "spubreports_edocta",
+      "estado": "OK",
+      "error": null
+    },
+    "mensaje_sp_mensaje_show.sql": {
+      "archivo": "mensaje_sp_mensaje_show.sql",
+      "sp_nombre": "sp_mensaje_show",
+      "estado": "OK",
+      "error": null
+    },
+    "SFRM_REPORTES_EXEC_sp_get_estado_cuenta.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_sp_get_estado_cuenta.sql",
+      "sp_nombre": "sp_get_estado_cuenta",
+      "estado": "OK",
+      "error": null
+    },
+    "SFRM_REPORTES_EXEC_sp_adeudos_detalle.sql": {
+      "archivo": "SFRM_REPORTES_EXEC_sp_adeudos_detalle.sql",
+      "sp_nombre": "sp_adeudos_detalle",
+      "estado": "OK",
+      "error": null
+    },
+    "ConsRemesas_sp_get_remesa_detalle_edo.sql": {
+      "archivo": "ConsRemesas_sp_get_remesa_detalle_edo.sql",
+      "sp_nombre": "sp_get_remesa_detalle_edo",
+      "estado": "OK",
+      "error": null
+    },
+    "ConsRemesas_sp_get_remesa_detalle_mpio.sql": {
+      "archivo": "ConsRemesas_sp_get_remesa_detalle_mpio.sql",
+      "sp_nombre": "sp_get_remesa_detalle_mpio",
+      "estado": "OK",
+      "error": null
+    },
+    "Gen_Individual_sp_gen_individual_add.sql": {
+      "archivo": "Gen_Individual_sp_gen_individual_add.sql",
+      "sp_nombre": "sp_gen_individual_add",
+      "estado": "OK",
+      "error": null
+    },
+    "sfrm_valet_paso_process_valet_file.sql": {
+      "archivo": "sfrm_valet_paso_process_valet_file.sql",
+      "sp_nombre": "process_valet_file",
+      "estado": "OK",
+      "error": null
+    },
+    "sfrm_abc_propietario_check_rfc_exists.sql": {
+      "archivo": "sfrm_abc_propietario_check_rfc_exists.sql",
+      "sp_nombre": "check_rfc_exists",
+      "estado": "OK",
+      "error": null
+    },
+    "sfrm_abc_propietario_insert_persona.sql": {
+      "archivo": "sfrm_abc_propietario_insert_persona.sql",
+      "sp_nombre": "insert_persona",
+      "estado": "OK",
+      "error": null
+    }
+  }
+}

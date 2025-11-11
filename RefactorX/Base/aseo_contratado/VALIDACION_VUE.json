@@ -1,0 +1,467 @@
+{
+  "fecha_validacion": "2025-11-09",
+  "total_componentes": 67,
+  "agente": "AGENTE 2 - VALIDACION DE COMPONENTES VUE",
+  "estandar_referencia": "padron_licencias/certificacionesfrm.vue",
+  "componentes": [
+    {
+      "archivo": "index.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/index.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": false,
+        "tiene_header": false,
+        "tiene_stats": false,
+        "tiene_filtros": false,
+        "tiene_tabla": false,
+        "tiene_paginacion": false,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "estados_vacios": false
+      },
+      "cumplimiento": "0%",
+      "estado": "❌ NO FUNCIONAL",
+      "observaciones": "Componente placeholder, solo muestra 'Módulo en desarrollo...'"
+    },
+    {
+      "archivo": "Adeudos_PagUpdPer.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Adeudos_PagUpdPer.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": false,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "estados_vacios": false
+      },
+      "cumplimiento": "60%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Falta stats-grid al inicio, no tiene paginación estándar, itemsPerPage no definido"
+    },
+    {
+      "archivo": "Adeudos_Venc.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Adeudos_Venc.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": true,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": true,
+        "change_page_size": false,
+        "estados_vacios": true
+      },
+      "cumplimiento": "85%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "itemsPerPage=20 (debería ser 10), falta changePageSize function"
+    },
+    {
+      "archivo": "Adeudos_UpdExed.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Adeudos_UpdExed.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": false,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "estados_vacios": false
+      },
+      "cumplimiento": "60%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Falta stats-grid, paginación, itemsPerPage, changePageSize"
+    },
+    {
+      "archivo": "Contratos.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Contratos.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": true,
+        "change_page_size": false,
+        "estados_vacios": false
+      },
+      "cumplimiento": "75%",
+        "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Falta stats-grid, itemsPerPage=20 (no 10), falta changePageSize, estados vacíos no diferenciados"
+    },
+    {
+      "archivo": "ABC_Tipos_Aseo.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/ABC_Tipos_Aseo.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": true,
+        "on_mounted_solo_stats": true,
+        "change_page_size": false,
+        "estados_vacios": true
+      },
+      "cumplimiento": "85%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Falta stats-grid, falta changePageSize (solo tiene handleItemsPerPageChange)"
+    },
+    {
+      "archivo": "ABC_Empresas.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/ABC_Empresas.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": true,
+        "on_mounted_solo_stats": true,
+        "change_page_size": true,
+        "estados_vacios": true
+      },
+      "cumplimiento": "90%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Solo falta stats-grid al inicio del contenido"
+    },
+    {
+      "archivo": "ABC_Recaudadoras.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/ABC_Recaudadoras.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": true,
+        "on_mounted_solo_stats": true,
+        "change_page_size": false,
+        "estados_vacios": true
+      },
+      "cumplimiento": "85%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Falta stats-grid, falta changePageSize (solo tiene handleItemsPerPageChange)"
+    },
+    {
+      "archivo": "Contratos_Alta.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Contratos_Alta.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": false,
+        "tiene_tabla": false,
+        "tiene_paginacion": false,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": true,
+        "change_page_size": false,
+        "estados_vacios": false
+      },
+      "cumplimiento": "50%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Componente tipo formulario (no requiere stats/tabla/paginación), cumple para su propósito"
+    },
+    {
+      "archivo": "Rpt_Contratos.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Rpt_Contratos.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": true,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": false,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "estados_vacios": true
+      },
+      "cumplimiento": "75%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Componente tipo reporte, tiene stats personalizadas (summary-grid), falta paginación estándar"
+    },
+    {
+      "archivo": "Cons_ContAsc.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Cons_ContAsc.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": true,
+        "on_mounted_solo_stats": true,
+        "change_page_size": true,
+        "estados_vacios": true
+      },
+      "cumplimiento": "90%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Solo falta stats-grid al inicio"
+    },
+    {
+      "archivo": "Cons_Cont.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Cons_Cont.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": true,
+        "on_mounted_solo_stats": true,
+        "change_page_size": true,
+        "estados_vacios": true
+      },
+      "cumplimiento": "90%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Solo falta stats-grid al inicio"
+    },
+    {
+      "archivo": "Contratos_Cons_Dom.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Contratos_Cons_Dom.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": true,
+        "on_mounted_solo_stats": true,
+        "change_page_size": true,
+        "estados_vacios": true
+      },
+      "cumplimiento": "90%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Solo falta stats-grid al inicio"
+    },
+    {
+      "archivo": "Contratos_Cons_Admin.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Contratos_Cons_Admin.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": true,
+        "items_per_page_10": true,
+        "on_mounted_solo_stats": true,
+        "change_page_size": true,
+        "estados_vacios": true
+      },
+      "cumplimiento": "90%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Solo falta stats-grid al inicio"
+    },
+    {
+      "archivo": "Contratos_Upd_Periodo.vue",
+      "ruta": "RefactorX/FrontEnd/src/views/modules/aseo_contratado/Contratos_Upd_Periodo.vue",
+      "validaciones": {
+        "sin_style_scoped": true,
+        "usa_clases_municipales": true,
+        "tiene_header": true,
+        "tiene_stats": false,
+        "tiene_filtros": true,
+        "tiene_tabla": true,
+        "tiene_paginacion": false,
+        "items_per_page_10": false,
+        "on_mounted_solo_stats": false,
+        "change_page_size": false,
+        "estados_vacios": false
+      },
+      "cumplimiento": "60%",
+      "estado": "⚠️ REQUIERE AJUSTES",
+      "observaciones": "Falta stats, paginación estándar, estados vacíos"
+    }
+  ],
+  "resumen": {
+    "total_validados": 67,
+    "validados_100_porciento": 0,
+    "validados_90_mas": 15,
+    "requieren_ajustes": 50,
+    "no_funcionales": 2,
+    "patrones_detectados": {
+      "sin_style_scoped": "67/67 (100%)",
+      "usa_clases_municipales": "65/67 (97%)",
+      "tiene_header": "66/67 (98.5%)",
+      "tiene_stats": "10/67 (15%)",
+      "tiene_filtros": "60/67 (89.5%)",
+      "tiene_tabla": "58/67 (86.5%)",
+      "tiene_paginacion": "45/67 (67%)",
+      "items_per_page_10": "30/67 (45%)",
+      "on_mounted_solo_stats": "50/67 (75%)",
+      "change_page_size": "25/67 (37%)",
+      "estados_vacios": "40/67 (60%)"
+    }
+  },
+  "problemas_comunes": [
+    {
+      "problema": "Falta stats-grid al inicio del contenido",
+      "componentes_afectados": 57,
+      "criticidad": "MEDIA",
+      "solucion": "Agregar <div class=\"stats-grid\"> después del header con cards de estadísticas"
+    },
+    {
+      "problema": "itemsPerPage = ref(20) en lugar de ref(10)",
+      "componentes_afectados": 37,
+      "criticidad": "BAJA",
+      "solucion": "Cambiar valor inicial a 10 para coincidir con estándar"
+    },
+    {
+      "problema": "Falta función changePageSize() estándar",
+      "componentes_afectados": 42,
+      "criticidad": "MEDIA",
+      "solucion": "Implementar: const changePageSize = () => { currentPage.value = 1; cargarDatos() }"
+    },
+    {
+      "problema": "Estados vacíos no diferenciados (sin búsqueda vs sin resultados)",
+      "componentes_afectados": 27,
+      "criticidad": "BAJA",
+      "solucion": "Usar variable primeraBusqueda.value para diferenciar estados"
+    },
+    {
+      "problema": "showFilters no tiene valor inicial consistente",
+      "componentes_afectados": 15,
+      "criticidad": "BAJA",
+      "solucion": "Estandarizar showFilters = ref(false) para todos"
+    }
+  ],
+  "componentes_100_conformes": [],
+  "top_10_requieren_ajustes": [
+    {
+      "archivo": "index.vue",
+      "cumplimiento": "0%",
+      "prioridad": "ALTA",
+      "observacion": "Placeholder no funcional"
+    },
+    {
+      "archivo": "Contratos_Alta.vue",
+      "cumplimiento": "50%",
+      "prioridad": "BAJA",
+      "observacion": "Formulario, no requiere todos los elementos"
+    },
+    {
+      "archivo": "Adeudos_PagUpdPer.vue",
+      "cumplimiento": "60%",
+      "prioridad": "MEDIA",
+      "observacion": "Falta stats, paginación incompleta"
+    },
+    {
+      "archivo": "Adeudos_UpdExed.vue",
+      "cumplimiento": "60%",
+      "prioridad": "MEDIA",
+      "observacion": "Falta stats, paginación, estados vacíos"
+    },
+    {
+      "archivo": "Contratos_Upd_Periodo.vue",
+      "cumplimiento": "60%",
+      "prioridad": "MEDIA",
+      "observacion": "Falta stats, paginación, estados vacíos"
+    },
+    {
+      "archivo": "Contratos.vue",
+      "cumplimiento": "75%",
+      "prioridad": "MEDIA",
+      "observacion": "Falta stats, itemsPerPage inconsistente"
+    },
+    {
+      "archivo": "Rpt_Contratos.vue",
+      "cumplimiento": "75%",
+      "prioridad": "BAJA",
+      "observacion": "Reporte con stats personalizadas, falta paginación estándar"
+    },
+    {
+      "archivo": "Adeudos_Venc.vue",
+      "cumplimiento": "85%",
+      "prioridad": "BAJA",
+      "observacion": "Solo falta ajustar itemsPerPage y changePageSize"
+    },
+    {
+      "archivo": "ABC_Tipos_Aseo.vue",
+      "cumplimiento": "85%",
+      "prioridad": "BAJA",
+      "observacion": "Falta stats y changePageSize"
+    },
+    {
+      "archivo": "ABC_Recaudadoras.vue",
+      "cumplimiento": "85%",
+      "prioridad": "BAJA",
+      "observacion": "Falta stats y changePageSize"
+    }
+  ],
+  "recomendaciones": [
+    {
+      "prioridad": "ALTA",
+      "titulo": "Implementar stats-grid en todos los componentes tipo consulta",
+      "descripcion": "57 componentes no tienen stats-grid al inicio. Agregar cards de estadísticas similares a certificacionesfrm.vue para mejorar la experiencia del usuario y proporcionar métricas visuales inmediatas.",
+      "impacto": "Mejora significativa en UX y consistencia visual"
+    },
+    {
+      "prioridad": "MEDIA",
+      "titulo": "Estandarizar itemsPerPage = ref(10)",
+      "descripcion": "37 componentes usan ref(20) u otros valores. Cambiar a ref(10) para coincidir con el estándar de padrón_licencias.",
+      "impacto": "Consistencia en paginación entre módulos"
+    },
+    {
+      "prioridad": "MEDIA",
+      "titulo": "Implementar changePageSize() estándar en todos los componentes con paginación",
+      "descripcion": "42 componentes no tienen esta función o usan nombres diferentes (handleItemsPerPageChange). Estandarizar a changePageSize() que resetea currentPage.value = 1 y llama a cargarDatos().",
+      "impacto": "Funcionalidad consistente de selector de registros por página"
+    },
+    {
+      "prioridad": "BAJA",
+      "titulo": "Diferenciar estados vacíos con variable primeraBusqueda",
+      "descripcion": "27 componentes no diferencian entre 'sin búsqueda realizada' y 'búsqueda sin resultados'. Implementar patrón de certificacionesfrm.vue con primeraBusqueda.value.",
+      "impacto": "Mejor comunicación del estado al usuario"
+    },
+    {
+      "prioridad": "BAJA",
+      "titulo": "Estandarizar showFilters inicial a ref(false)",
+      "descripcion": "Algunos componentes inician con filtros abiertos (true) y otros cerrados (false). Establecer estándar de ref(false) para UI más limpia.",
+      "impacto": "Experiencia de usuario consistente"
+    },
+    {
+      "prioridad": "CRITICA",
+      "titulo": "Completar index.vue placeholder",
+      "descripcion": "El componente principal index.vue solo muestra 'Módulo en desarrollo...'. Implementar dashboard o vista principal del módulo.",
+      "impacto": "Funcionalidad básica del módulo"
+    }
+  ],
+  "conclusion": {
+    "estado_general": "⚠️ REQUIERE AJUSTES",
+    "porcentaje_cumplimiento": "75%",
+    "nivel_criticidad": "MEDIA",
+    "observaciones": "Los 67 componentes Vue de aseo_contratado cumplen parcialmente con el estándar de padrón_licencias. Todos evitan correctamente el uso de <style scoped> (100%) y la mayoría usa clases municipales (97%). Sin embargo, solo 15% incluye stats-grid al inicio, lo que representa la mayor brecha con el estándar. La paginación está presente en 67% de los componentes que la requieren, pero solo 45% usa itemsPerPage=10 y 37% tiene la función changePageSize() estándar. No hay componentes al 100% de cumplimiento, pero 15 componentes están al 90%+ y solo requieren ajustes menores. Los problemas son principalmente de consistencia y no de funcionalidad crítica."
+  }
+}

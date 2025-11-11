@@ -1,0 +1,33 @@
+{
+  "fecha_analisis": "2025-11-09",
+  "modulo": "estacionamiento_publico",
+  "ubicacion_fuentes": "C:\Sistemas\RefactorX\Guadalajara\RecodePHP\GDL\RefactorX\Base\estacionamiento_publico\database\database",
+  "total_archivos_sql": 182,
+  "esquemas": ["public", "comun"],
+  "tablas": {
+    "ta14_folios_adeudo": {
+      "tipo": "principal",
+      "esquema": "public",
+      "descripcion": "Folios de adeudo (multas) de estacionómetros vigentes",
+      "columnas": [
+        {"nombre": "axo", "tipo": "integer", "pk": true, "descripcion": "Año del folio"},
+        {"nombre": "folio", "tipo": "integer", "pk": true, "descripcion": "Número de folio"},
+        {"nombre": "placa", "tipo": "varchar(7)", "descripcion": "Placa del vehículo"},
+        {"nombre": "fecha_folio", "tipo": "date", "descripcion": "Fecha del folio"},
+        {"nombre": "infraccion", "tipo": "smallint", "descripcion": "Tipo de infracción"},
+        {"nombre": "estado", "tipo": "smallint", "descripcion": "Estado del folio (1=vigente, 2=pagado, 98/99=baja)"},
+        {"nombre": "vigilante", "tipo": "integer", "descripcion": "ID del inspector/vigilante"},
+        {"nombre": "num_acuerdo", "tipo": "integer", "descripcion": "Número de acuerdo"},
+        {"nombre": "fec_cap", "tipo": "date", "descripcion": "Fecha de captura"},
+        {"nombre": "usu_inicial", "tipo": "integer", "descripcion": "Usuario que capturó"},
+        {"nombre": "zona", "tipo": "smallint", "descripcion": "Zona del estacionamiento"},
+        {"nombre": "espacio", "tipo": "smallint", "descripcion": "Espacio del estacionamiento"}
+      ],
+      "foreign_keys": [
+        {"columna": "infraccion", "referencia": "ta14_tarifas(num_clave)"},
+        {"columna": "vigilante", "referencia": "ta14_personas(id_esta_persona)"},
+        {"columna": "usu_inicial", "referencia": "ta_12_passwords(id_usuario)"}
+      ]
+    }
+  }
+}

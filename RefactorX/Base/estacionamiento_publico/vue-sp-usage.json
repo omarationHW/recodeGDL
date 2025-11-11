@@ -1,0 +1,1862 @@
+{
+  "fecha_analisis": "2025-11-10",
+  "componentes": {
+    "Acceso.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Acceso.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.login",
+          "linea": 68
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "AplicaPgo_DivAdmin.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\AplicaPgo_DivAdmin.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.getRecaudadoras",
+          "linea": 162
+        },
+        {
+          "action": "estacionamientos.buscarFolios",
+          "linea": 184
+        },
+        {
+          "action": "estacionamientos.aplicarPagosDiversosAdmin",
+          "linea": 230
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Bja_Multiple.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Bja_Multiple.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.insert_baja_multiple",
+          "linea": 107
+        },
+        {
+          "action": "estacionamientos.aplicar_baja_multiple",
+          "linea": 126
+        },
+        {
+          "action": "estacionamientos.get_incidencias_baja_multiple",
+          "linea": 146
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Bja_Multiple_Ind.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Bja_Multiple_Ind.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Cga_ArcEdoEx.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Cga_ArcEdoEx.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "getLastRemesa",
+          "linea": 119
+        },
+        {
+          "action": "getRemesas",
+          "linea": 130
+        },
+        {
+          "action": "insertRemesaRecord",
+          "linea": 189
+        },
+        {
+          "action": "countRemesaRecords",
+          "linea": 217
+        },
+        {
+          "action": "getRemesaDate",
+          "linea": 231
+        },
+        {
+          "action": "applyRemesa",
+          "linea": 236
+        },
+        {
+          "action": "insertBitacora",
+          "linea": 247
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "ConsGral.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\ConsGral.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.buscarPorPlaca",
+          "linea": 121
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "ConsRemesas.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\ConsRemesas.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "DM_Crbos.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\DM_Crbos.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.getContrarecibosByDate",
+          "linea": 95
+        },
+        {
+          "action": "estacionamientos.sumContrarecibosByDate",
+          "linea": 105
+        },
+        {
+          "action": "estacionamientos.getContrareciboDetalle",
+          "linea": 119
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "DsDBGasto.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\DsDBGasto.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Dspasswords.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Dspasswords.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.passwords.list",
+          "linea": 116
+        },
+        {
+          "action": "estacionamientos.passwords.create",
+          "linea": 148
+        },
+        {
+          "action": "estacionamientos.passwords.update",
+          "linea": 177
+        },
+        {
+          "action": "estacionamientos.passwords.delete",
+          "linea": 204
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "frmMetrometers.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\frmMetrometers.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.getMetrometerByAxoFolio",
+          "linea": 146
+        },
+        {
+          "action": "estacionamientos.updateMetrometer",
+          "linea": 168
+        },
+        {
+          "action": "estacionamientos.getMetrometerPhoto",
+          "linea": 203
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Gen_ArcAltas.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Gen_ArcAltas.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "get_periodos",
+          "linea": 95
+        },
+        {
+          "action": "ejecutar_remesa",
+          "linea": 138
+        },
+        {
+          "action": "contar_folios",
+          "linea": 169
+        },
+        {
+          "action": "generar_archivo",
+          "linea": 193
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Gen_ArcDiario.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Gen_ArcDiario.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Gen_Individual.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Gen_Individual.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Gen_Individual_b.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Gen_Individual_b.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Gen_PgosBanorte.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Gen_PgosBanorte.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "mensaje.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\mensaje.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.show_message",
+          "linea": 78
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Reactiva_Folios.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Reactiva_Folios.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Reportes_Folios.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Reportes_Folios.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "getInfracciones",
+          "linea": 111
+        },
+        {
+          "action": "getReportesFolios",
+          "linea": 150
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sdmWebService.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sdmWebService.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "estacionamientos.consultaPredio",
+          "linea": 88
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfolios_alta.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfolios_alta.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrmMetrometers.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrmMetrometers.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrmprediocarto.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrmprediocarto.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "getPredioCartoUrl",
+          "linea": 65
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_abc_propietario.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_abc_propietario.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_alta_ubicaciones.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_alta_ubicaciones.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_aspecto.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_aspecto.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_chg_autorizadescto.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_chg_autorizadescto.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_consultapublicos.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_consultapublicos.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sFrm_consulta_folios.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sFrm_consulta_folios.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sFrm_datos_oficio.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sFrm_datos_oficio.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_excConsulta.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_excConsulta.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_EXC_alta.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_EXC_alta.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_exc_mod_contrato.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_exc_mod_contrato.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sFrm_menu.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sFrm_menu.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_modif_folios.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_modif_folios.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_nva_calco.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_nva_calco.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_pagosestadorel.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_pagosestadorel.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sFrm_pasar_padron.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sFrm_pasar_padron.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_pdfviewer.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_pdfviewer.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_prop_exclusivo.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_prop_exclusivo.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_reportescalco.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_reportescalco.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "SFRM_REPORTES_EXEC.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\SFRM_REPORTES_EXEC.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_report_pagos.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_report_pagos.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_rep_folio.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_rep_folio.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_transfolios.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_transfolios.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sFrm_trans_exclu.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sFrm_trans_exclu.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "import_exclusivo_file",
+          "linea": 125
+        },
+        {
+          "action": "insert_exclusivo_row",
+          "linea": 154
+        },
+        {
+          "action": "update_publicos_fecha_venci",
+          "linea": 177
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_trans_pub.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_trans_pub.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_tr_estado_mpio.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_tr_estado_mpio.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sFrm_UpExclus.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sFrm_UpExclus.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_up_pagos.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_up_pagos.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "up_pagos_upload",
+          "linea": 97
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sfrm_valet_paso.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sfrm_valet_paso.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "process_valet_data",
+          "linea": 111
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "spubActualizacionfrm.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\spubActualizacionfrm.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "spublicosnewfrm.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\spublicosnewfrm.vue",
+      "sps_llamados": [],
+      "endpoints_api": [
+        {
+          "action": "buscar_persona_rfc",
+          "linea": 186
+        },
+        {
+          "action": "listar_categorias",
+          "linea": 204
+        },
+        {
+          "action": "ultimo_num_estacionamiento",
+          "linea": 214
+        },
+        {
+          "action": "consultar_predio",
+          "linea": 230
+        },
+        {
+          "action": "costo_forma",
+          "linea": 282
+        },
+        {
+          "action": "alta_estacionamiento",
+          "linea": 313
+        },
+        {
+          "action": "alta_adeudo_forma",
+          "linea": 327
+        }
+      ],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "spubreports.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\spubreports.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sqrp_esta01.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sqrp_esta01.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sqrp_publicos.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sqrp_publicos.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sQRp_relacion_folios.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sQRp_relacion_folios.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "sQRt_imp_padron.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\sQRt_imp_padron.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "srfrm_conci_banorte.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\srfrm_conci_banorte.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "Unit1.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\Unit1.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "UNIT9.vue": {
+      "ruta": "RefactorX\\Base\\estacionamiento_publico\\UNIT9.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "AccesoPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\AccesoPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_pub_movtos",
+          "metodo": "ref",
+          "linea": 39,
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_pub_movtos"
+      ]
+    },
+    "ActualizacionPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ActualizacionPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "actualiza_pub_pago",
+          "metodo": "apiService",
+          "linea": 65,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "actualiza_pub_pago"
+      ]
+    },
+    "AdminPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\AdminPublicos.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "AplicaPagoDivAdminPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\AplicaPagoDivAdminPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_busca_folios_divadmin",
+          "metodo": "apiService",
+          "linea": 78,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_aplica_pago_divadmin",
+          "metodo": "apiService",
+          "linea": 88,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_busca_folios_divadmin",
+        "sp_aplica_pago_divadmin"
+      ]
+    },
+    "AspectoPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\AspectoPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "get_aspectos",
+          "metodo": "apiService",
+          "linea": 40,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "get_current_aspecto",
+          "metodo": "apiService",
+          "linea": 41,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "get_aspectos",
+        "get_current_aspecto"
+      ]
+    },
+    "BajaMultiplePublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\BajaMultiplePublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_insert_folios_baja_esta",
+          "metodo": "ref",
+          "linea": 19,
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_get_incidencias_baja_multiple",
+          "metodo": "ref",
+          "linea": 19,
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_insert_folios_baja_esta",
+        "sp_get_incidencias_baja_multiple"
+      ]
+    },
+    "BajasPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\BajasPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_sfrm_baja_pub",
+          "metodo": "apiService",
+          "linea": 42,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_sfrm_baja_pub"
+      ]
+    },
+    "CargaEdoExPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\CargaEdoExPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_insert_ta14_datos_edo",
+          "metodo": "apiService",
+          "linea": 60,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_afec_esta01",
+          "metodo": "apiService",
+          "linea": 68,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_insert_ta14_bitacora",
+          "metodo": "apiService",
+          "linea": 77,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 3,
+      "sps_faltantes": [
+        "sp_insert_ta14_datos_edo",
+        "sp_afec_esta01",
+        "sp_insert_ta14_bitacora"
+      ]
+    },
+    "ChgAutorizDesctoPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ChgAutorizDesctoPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_buscar_folios_histo",
+          "metodo": "apiService",
+          "linea": 58,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_cambiar_a_tesorero",
+          "metodo": "apiService",
+          "linea": 66,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_buscar_folios_histo",
+        "sp_cambiar_a_tesorero"
+      ]
+    },
+    "ConciBanortePublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ConciBanortePublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_conciliados_by_folio",
+          "metodo": "apiService",
+          "linea": 71,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_conciliados_by_folio"
+      ]
+    },
+    "ConsGralPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ConsGralPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp14_afolios",
+          "metodo": "apiService",
+          "linea": 72,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp14_bfolios",
+          "metodo": "apiService",
+          "linea": 73,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp14_afolios",
+        "sp14_bfolios"
+      ]
+    },
+    "ConsRemesasPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ConsRemesasPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_remesas",
+          "metodo": "ref",
+          "linea": 7,
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_get_remesa_detalle_mpio",
+          "metodo": "apiService",
+          "linea": 83,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_get_remesas",
+        "sp_get_remesa_detalle_mpio"
+      ]
+    },
+    "ConsultaPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ConsultaPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_public_parking_list",
+          "metodo": "apiService",
+          "linea": 237,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_get_public_parking_fines",
+          "metodo": "apiService",
+          "linea": 291,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "cajero_pub_detalle",
+          "metodo": "apiService",
+          "linea": 308,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "spget_lic_grales",
+          "metodo": "apiService",
+          "linea": 328,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 4,
+      "sps_faltantes": [
+        "sp_get_public_parking_list",
+        "sp_get_public_parking_fines",
+        "cajero_pub_detalle",
+        "spget_lic_grales"
+      ]
+    },
+    "ContrarecibosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ContrarecibosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "spd_crbo_abc",
+          "metodo": "apiService",
+          "linea": 70,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sum_contrarecibos_by_date",
+          "metodo": "apiService",
+          "linea": 81,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "spd_crbo_abc",
+        "sum_contrarecibos_by_date"
+      ]
+    },
+    "EdoCtaPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\EdoCtaPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "spubreports_edocta",
+          "metodo": "apiService",
+          "linea": 52,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "spubreports_edocta"
+      ]
+    },
+    "EstadisticasPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\EstadisticasPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sqrp_esta01_report",
+          "metodo": "apiService",
+          "linea": 58,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sqrp_esta01_report"
+      ]
+    },
+    "EstadoMpioPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\EstadoMpioPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_remesas_estado_mpio",
+          "metodo": "apiService",
+          "linea": 70,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "spd_delesta01",
+          "metodo": "apiService",
+          "linea": 96,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_get_remesas_estado_mpio",
+        "spd_delesta01"
+      ]
+    },
+    "FoliosAltaPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\FoliosAltaPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_insert_folio_adeudo",
+          "metodo": "apiService",
+          "linea": 65,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_insert_folio_adeudo"
+      ]
+    },
+    "GenArcAltasPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\GenArcAltasPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "get_periodo_altas",
+          "metodo": "apiService",
+          "linea": 49,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp14_remesa",
+          "metodo": "apiService",
+          "linea": 72,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "get_periodo_altas",
+        "sp14_remesa"
+      ]
+    },
+    "GenArcDiarioPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\GenArcDiarioPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp14_remesa",
+          "metodo": "apiService",
+          "linea": 50,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp14_remesa"
+      ]
+    },
+    "GenerarPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\GenerarPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_public_parking_list",
+          "metodo": "apiService",
+          "linea": 35,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_get_public_parking_list"
+      ]
+    },
+    "GenIndividualPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\GenIndividualPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_gen_individual_add",
+          "metodo": "apiService",
+          "linea": 56,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_gen_individual_generate_file",
+          "metodo": "apiService",
+          "linea": 67,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_gen_individual_add",
+        "sp_gen_individual_generate_file"
+      ]
+    },
+    "GenPgosBanortePublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\GenPgosBanortePublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp14_remesa",
+          "metodo": "apiService",
+          "linea": 50,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp14_remesa"
+      ]
+    },
+    "ImpPadronPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ImpPadronPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_padron_report",
+          "metodo": "apiService",
+          "linea": 54,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_get_padron_report"
+      ]
+    },
+    "index.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\index.vue",
+      "sps_llamados": [],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 0,
+      "sps_faltantes": []
+    },
+    "InfoPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\InfoPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_public_parking_list",
+          "metodo": "apiService",
+          "linea": 35,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_get_public_parking_list"
+      ]
+    },
+    "InspectoresPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\InspectoresPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_inspectors",
+          "metodo": "apiService",
+          "linea": 43,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_get_inspectors"
+      ]
+    },
+    "ListadosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ListadosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sqrp_publicos_report",
+          "metodo": "apiService",
+          "linea": 66,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sqrp_publicos_report"
+      ]
+    },
+    "MensajePublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\MensajePublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_mensaje_show",
+          "metodo": "apiService",
+          "linea": 43,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_mensaje_show"
+      ]
+    },
+    "MetrometersPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\MetrometersPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_metrometer_by_axo_folio",
+          "metodo": "apiService",
+          "linea": 59,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_get_metrometers_map_url",
+          "metodo": "apiService",
+          "linea": 62,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_get_metrometer_by_axo_folio",
+        "sp_get_metrometers_map_url"
+      ]
+    },
+    "PagosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\PagosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "spubreports",
+          "metodo": "apiService",
+          "linea": 56,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "spubreports"
+      ]
+    },
+    "PasswordsPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\PasswordsPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_passwords_list",
+          "metodo": "apiService",
+          "linea": 60,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_passwords_update",
+          "metodo": "apiService",
+          "linea": 79,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_passwords_list",
+        "sp_passwords_update"
+      ]
+    },
+    "PredioCartoPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\PredioCartoPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_predio_carto_url",
+          "metodo": "apiService",
+          "linea": 40,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_get_predio_carto_url"
+      ]
+    },
+    "PublicosNew.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\PublicosNew.vue",
+      "sps_llamados": [
+        {
+          "nombre": "cons_predio",
+          "metodo": "apiService",
+          "linea": 107,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sppubalta",
+          "metodo": "apiService",
+          "linea": 154,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "cons_predio",
+        "sppubalta"
+      ]
+    },
+    "ReactivaFoliosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ReactivaFoliosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_reactiva_folios_buscar",
+          "metodo": "apiService",
+          "linea": 68,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_reactiva_folios_buscar"
+      ]
+    },
+    "RelacionFoliosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\RelacionFoliosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sQRp_relacion_folios_report",
+          "metodo": "apiService",
+          "linea": 56,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sQRp_relacion_folios_report"
+      ]
+    },
+    "ReporteFoliosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ReporteFoliosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_get_folios_by_inspector",
+          "metodo": "apiService",
+          "linea": 52,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_get_folios_by_inspector"
+      ]
+    },
+    "ReporteListaPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ReporteListaPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "spubreports_list",
+          "metodo": "apiService",
+          "linea": 69,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "spubreports_list"
+      ]
+    },
+    "ReportePagosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ReportePagosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "report_folios_pagados",
+          "metodo": "apiService",
+          "linea": 79,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "report_folios_adeudo_por_inspector",
+          "metodo": "apiService",
+          "linea": 83,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "report_folios_pagados",
+        "report_folios_adeudo_por_inspector"
+      ]
+    },
+    "ReportesCalcoPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ReportesCalcoPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_catalog_inspectors",
+          "metodo": "apiService",
+          "linea": 58,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sp_report_folios",
+          "metodo": "apiService",
+          "linea": 67,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "sp_catalog_inspectors",
+        "sp_report_folios"
+      ]
+    },
+    "ReportesPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ReportesPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "spget_lic_detalles",
+          "metodo": "apiService",
+          "linea": 87,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "spubreports",
+          "metodo": "apiService",
+          "linea": 100,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "spget_lic_detalles",
+        "spubreports"
+      ]
+    },
+    "SeguridadLoginPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\SeguridadLoginPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_login_seguridad",
+          "metodo": "apiService",
+          "linea": 41,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_login_seguridad"
+      ]
+    },
+    "SolicRepFoliosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\SolicRepFoliosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "report_folios_pagados",
+          "metodo": "apiService",
+          "linea": 77,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        },
+        {
+          "nombre": "sQRp_relacion_folios_report",
+          "metodo": "apiService",
+          "linea": 82,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 2,
+      "sps_faltantes": [
+        "report_folios_pagados",
+        "sQRp_relacion_folios_report"
+      ]
+    },
+    "TransFoliosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\TransFoliosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "spd_delesta01",
+          "metodo": "apiService",
+          "linea": 63,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "spd_delesta01"
+      ]
+    },
+    "TransPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\TransPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_ta_15_publicos_insert",
+          "metodo": "apiService",
+          "linea": 75,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_ta_15_publicos_insert"
+      ]
+    },
+    "UpPagosPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\UpPagosPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "sp_up_pagos_update",
+          "metodo": "apiService",
+          "linea": 46,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "sp_up_pagos_update"
+      ]
+    },
+    "ValetPasoPublicos.vue": {
+      "ruta": "RefactorX\\FrontEnd\\src\\views\\modules\\estacionamiento_publico\\ValetPasoPublicos.vue",
+      "sps_llamados": [
+        {
+          "nombre": "process_valet_file",
+          "metodo": "apiService",
+          "linea": 41,
+          "modulo": "estacionamiento_publico",
+          "existe_en_catalogo": false
+        }
+      ],
+      "endpoints_api": [],
+      "tablas_usadas": [],
+      "total_sps": 1,
+      "sps_faltantes": [
+        "process_valet_file"
+      ]
+    }
+  },
+  "resumen": {
+    "total_componentes": 108,
+    "componentes_con_sps": 45,
+    "total_sps_unicos": 59,
+    "sps_no_en_catalogo": 59,
+    "endpoints_unicos": 46
+  },
+  "sps_frecuentes": {
+    "sp_get_public_parking_list": 3,
+    "sp14_remesa": 3,
+    "spd_delesta01": 2,
+    "spubreports": 2,
+    "sQRp_relacion_folios_report": 2,
+    "report_folios_pagados": 2,
+    "sp_pub_movtos": 1,
+    "actualiza_pub_pago": 1,
+    "sp_busca_folios_divadmin": 1,
+    "sp_aplica_pago_divadmin": 1,
+    "get_aspectos": 1,
+    "get_current_aspecto": 1,
+    "sp_insert_folios_baja_esta": 1,
+    "sp_get_incidencias_baja_multiple": 1,
+    "sp_sfrm_baja_pub": 1,
+    "sp_insert_ta14_datos_edo": 1,
+    "sp_afec_esta01": 1,
+    "sp_insert_ta14_bitacora": 1,
+    "sp_buscar_folios_histo": 1,
+    "sp_cambiar_a_tesorero": 1
+  },
+  "sps_no_en_catalogo": [
+    "sp_pub_movtos",
+    "actualiza_pub_pago",
+    "sp_busca_folios_divadmin",
+    "sp_aplica_pago_divadmin",
+    "get_aspectos",
+    "get_current_aspecto",
+    "sp_insert_folios_baja_esta",
+    "sp_get_incidencias_baja_multiple",
+    "sp_sfrm_baja_pub",
+    "sp_insert_ta14_datos_edo",
+    "sp_afec_esta01",
+    "sp_insert_ta14_bitacora",
+    "sp_buscar_folios_histo",
+    "sp_cambiar_a_tesorero",
+    "sp_conciliados_by_folio",
+    "sp14_afolios",
+    "sp14_bfolios",
+    "sp_get_remesas",
+    "sp_get_remesa_detalle_mpio",
+    "sp_get_public_parking_list",
+    "sp_get_public_parking_fines",
+    "cajero_pub_detalle",
+    "spget_lic_grales",
+    "spd_crbo_abc",
+    "sum_contrarecibos_by_date",
+    "spubreports_edocta",
+    "sqrp_esta01_report",
+    "sp_get_remesas_estado_mpio",
+    "spd_delesta01",
+    "sp_insert_folio_adeudo",
+    "get_periodo_altas",
+    "sp14_remesa",
+    "sp_gen_individual_add",
+    "sp_gen_individual_generate_file",
+    "sp_get_padron_report",
+    "sp_get_inspectors",
+    "sqrp_publicos_report",
+    "sp_mensaje_show",
+    "sp_get_metrometer_by_axo_folio",
+    "sp_get_metrometers_map_url",
+    "spubreports",
+    "sp_passwords_list",
+    "sp_passwords_update",
+    "sp_get_predio_carto_url",
+    "cons_predio",
+    "sppubalta",
+    "sp_reactiva_folios_buscar",
+    "sQRp_relacion_folios_report",
+    "sp_get_folios_by_inspector",
+    "spubreports_list",
+    "report_folios_pagados",
+    "report_folios_adeudo_por_inspector",
+    "sp_catalog_inspectors",
+    "sp_report_folios",
+    "spget_lic_detalles",
+    "sp_login_seguridad",
+    "sp_ta_15_publicos_insert",
+    "sp_up_pagos_update",
+    "process_valet_file"
+  ],
+  "sps_en_catalogo_no_usados": [
+    "sp_actualizaexcpago",
+    "sp_actualizaexcpagoid",
+    "sp_actualizaexcpagomensaje",
+    "sp_actualizapubpago",
+    "sp_actualizapubpagoid",
+    "sp_actualizapubpagomensaje",
+    "sp_adeudos",
+    "sp_adeudosadeudo",
+    "sp_adeudosaxo",
+    "sp_adeudoscalcfields",
+    "sp_adeudosconcepto",
+    "sp_adeudosdescto_recgos",
+    "sp_adeudosid_adeudo",
+    "sp_adeudosmes",
+    "sp_adeudosrecargos",
+    "sp_adeudostipo",
+    "sp_adeudostotal",
+    "sp_altacontrato",
+    "sp_altacontratoid",
+    "sp_altacontratomensaje",
+    "sp_cambio",
+    "sp_cambioclave",
+    "sp_cons14_solicrep",
+    "sp_cons14_solicrep_c",
+    "sp_conspredio",
+    "sp_consprediocalle",
+    "sp_consprediocontribuyente",
+    "sp_consprediocuenta",
+    "sp_consprediocvecatastral",
+    "sp_consprediocvecuenta"
+  ],
+  "endpoints": [
+    "estacionamientos.login",
+    "estacionamientos.getRecaudadoras",
+    "estacionamientos.buscarFolios",
+    "estacionamientos.aplicarPagosDiversosAdmin",
+    "estacionamientos.insert_baja_multiple",
+    "estacionamientos.aplicar_baja_multiple",
+    "estacionamientos.get_incidencias_baja_multiple",
+    "getLastRemesa",
+    "getRemesas",
+    "insertRemesaRecord",
+    "countRemesaRecords",
+    "getRemesaDate",
+    "applyRemesa",
+    "insertBitacora",
+    "estacionamientos.buscarPorPlaca",
+    "estacionamientos.getContrarecibosByDate",
+    "estacionamientos.sumContrarecibosByDate",
+    "estacionamientos.getContrareciboDetalle",
+    "estacionamientos.passwords.list",
+    "estacionamientos.passwords.create",
+    "estacionamientos.passwords.update",
+    "estacionamientos.passwords.delete",
+    "estacionamientos.getMetrometerByAxoFolio",
+    "estacionamientos.updateMetrometer",
+    "estacionamientos.getMetrometerPhoto",
+    "get_periodos",
+    "ejecutar_remesa",
+    "contar_folios",
+    "generar_archivo",
+    "estacionamientos.show_message",
+    "getInfracciones",
+    "getReportesFolios",
+    "estacionamientos.consultaPredio",
+    "getPredioCartoUrl",
+    "import_exclusivo_file",
+    "insert_exclusivo_row",
+    "update_publicos_fecha_venci",
+    "up_pagos_upload",
+    "process_valet_data",
+    "buscar_persona_rfc",
+    "listar_categorias",
+    "ultimo_num_estacionamiento",
+    "consultar_predio",
+    "costo_forma",
+    "alta_estacionamiento",
+    "alta_adeudo_forma"
+  ]
+}

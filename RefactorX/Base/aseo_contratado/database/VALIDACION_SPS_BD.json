@@ -1,0 +1,639 @@
+{
+    "fecha_validacion": "2025-11-10 01:20:57",
+    "base_datos": {
+        "host": "192.168.6.146",
+        "port": "5432",
+        "database": "padron_licencias"
+    },
+    "total_sps_en_bd": 39,
+    "total_archivos_sql": 483,
+    "esquemas_encontrados": [
+        "catastro_gdl",
+        "cnx_com",
+        "cnx_merca",
+        "comun",
+        "comunX",
+        "db_egresos",
+        "db_gasto2002",
+        "db_ingresos",
+        "dbestacion",
+        "dbingresosvw",
+        "informix",
+        "informix_migration",
+        "public",
+        "publicX"
+    ],
+    "stored_procedures": [
+        {
+            "nombre": "sp_bajalicencia_adeudos",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "p_licencia integer",
+            "retorno": "TABLE(axo integer, derechos numeric, anuncios numeric, recargos numeric, gastos numeric, multas numeric, formas numeric, saldo numeric)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_bajalicencia_adeudos(p_licencia integer)\n RETURNS TABLE(axo integer, derechos numeric, anuncios numeric, recargos numeric, gastos numeric, multas numeric, formas numeric, saldo numeric)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    RETURN QUERY\n    SELECT\n        a.axo,\n        COALESCE(a.derechos, 0) AS derechos,\n        COALESCE(a.anuncios, 0) AS anuncios,\n        COALESCE(a.recargos, 0) AS recargos,\n        COALESCE(a.gastos, 0) AS gastos,\n        COALES..."
+        },
+        {
+            "nombre": "sp_consultalicencia_get_adeudos",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "p_licencia integer, p_tipo character varying DEFAULT 'L'::character varying",
+            "retorno": "TABLE(axo integer, derechos numeric, recargos numeric, formas numeric, saldo numeric)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_consultalicencia_get_adeudos(p_licencia integer, p_tipo character varying DEFAULT 'L'::character varying)\n RETURNS TABLE(axo integer, derechos numeric, recargos numeric, formas numeric, saldo numeric)\n LANGUAGE plpgsql\nAS $function$\n    BEGIN\n        RETURN QUERY\n        SELECT\n            a.axo,\n            a.derechos,\n            a.recargos,\n            a.formas,\n            a.saldo\n        FROM informix.adeudos a\n        WHERE a.licencia = p_licencia..."
+        },
+        {
+            "nombre": "sp_empresas_list",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "p_rfc text DEFAULT NULL::text, p_razon_social text DEFAULT NULL::text, p_nombre_comercial text DEFAULT NULL::text, p_activo text DEFAULT NULL::text, p_limite integer DEFAULT 100, p_offset integer DEFAULT 0",
+            "retorno": "TABLE(id text, rfc text, razon_social text, nombre_comercial text, telefono text, email text, direccion text, genero text, activo text, observaciones text, total_registros integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_empresas_list(p_rfc text DEFAULT NULL::text, p_razon_social text DEFAULT NULL::text, p_nombre_comercial text DEFAULT NULL::text, p_activo text DEFAULT NULL::text, p_limite integer DEFAULT 100, p_offset integer DEFAULT 0)\n RETURNS TABLE(id text, rfc text, razon_social text, nombre_comercial text, telefono text, email text, direccion text, genero text, activo text, observaciones text, total_registros integer)\n LANGUAGE plpgsql\nAS $function$\n      DECLARE\n..."
+        },
+        {
+            "nombre": "sp_empresas_list",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(id integer, rfc character varying, razon_social character varying, nombre_comercial character varying, telefono character varying, email character varying, direccion text, observaciones text, activo character, usuario_creacion character varying, created_at timestamp without time zone)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_empresas_list()\n RETURNS TABLE(id integer, rfc character varying, razon_social character varying, nombre_comercial character varying, telefono character varying, email character varying, direccion text, observaciones text, activo character, usuario_creacion character varying, created_at timestamp without time zone)\n LANGUAGE plpgsql\nAS $function$\n            BEGIN\n                RETURN QUERY\n                SELECT\n                    e.id,\n            ..."
+        },
+        {
+            "nombre": "sp_empresas_search",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "p_busqueda character varying DEFAULT NULL::character varying, p_activo character varying DEFAULT NULL::character varying",
+            "retorno": "TABLE(id integer, rfc character varying, razon_social character varying, nombre_comercial character varying, telefono character varying, email character varying, direccion text, observaciones text, activo character, usuario_creacion character varying, created_at timestamp without time zone)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_empresas_search(p_busqueda character varying DEFAULT NULL::character varying, p_activo character varying DEFAULT NULL::character varying)\n RETURNS TABLE(id integer, rfc character varying, razon_social character varying, nombre_comercial character varying, telefono character varying, email character varying, direccion text, observaciones text, activo character, usuario_creacion character varying, created_at timestamp without time zone)\n LANGUAGE plpgsql\n..."
+        },
+        {
+            "nombre": "sp_giros_adeudo_report",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "p_anio integer",
+            "retorno": "TABLE(licencia integer, propietarionvo text, domcompleto text, descripcion text, axo integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_giros_adeudo_report(p_anio integer)\n RETURNS TABLE(licencia integer, propietarionvo text, domcompleto text, descripcion text, axo integer)\n LANGUAGE plpgsql\nAS $function$\n      BEGIN\n        RETURN QUERY\n        SELECT\n          t.id_licencia as licencia,\n          TRIM(t.propietario)::text as propietarionvo,\n          (TRIM(t.ubicacion) || ' ' ||\n           COALESCE(t.numext_ubic::text, '') || ' ' ||\n           COALESCE(TRIM(t.colonia_ubic), ''))::text..."
+        },
+        {
+            "nombre": "sp_licencia_adeudos",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "p_id_licencia integer",
+            "retorno": "TABLE(concepto character varying, importe numeric)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_licencia_adeudos(p_id_licencia integer)\n RETURNS TABLE(concepto character varying, importe numeric)\n LANGUAGE plpgsql\nAS $function$\n            BEGIN\n                RETURN QUERY\n                SELECT\n                    a.concepto,\n                    a.importe\n                FROM informix.adeudos_licencias a\n                WHERE a.id_licencia = p_id_licencia\n                AND a.estado = 'P'\n                ORDER BY a.concepto;\n            END;\n  ..."
+        },
+        {
+            "nombre": "sp_zonas_list",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(zona text, total_licencias bigint)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_zonas_list()\n RETURNS TABLE(zona text, total_licencias bigint)\n LANGUAGE plpgsql\nAS $function$\n      BEGIN\n        RETURN QUERY\n        SELECT\n          CASE\n            WHEN t.zona IS NOT NULL THEN 'Zona ' || t.zona::text\n            ELSE 'Sin zona'\n          END::text as zona,\n          COUNT(DISTINCT t.id_licencia) as total_licencias\n        FROM informix.tramites t\n        WHERE\n          t.id_licencia IS NOT NULL\n          AND t.estatus IN ('A', 'V..."
+        },
+        {
+            "nombre": "sp_zonas_modificar_list",
+            "esquema": "catastro_gdl",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(zona_id smallint, zona_descripcion text, total_licencias bigint)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION catastro_gdl.sp_zonas_modificar_list()\n RETURNS TABLE(zona_id smallint, zona_descripcion text, total_licencias bigint)\n LANGUAGE plpgsql\nAS $function$\n      BEGIN\n        RETURN QUERY\n        SELECT\n          t.zona as zona_id,\n          ('Zona ' || t.zona::text)::text as zona_descripcion,\n          COUNT(DISTINCT t.id_licencia) as total_licencias\n        FROM informix.tramites t\n        WHERE\n          t.id_licencia IS NOT NULL\n          AND t.estatus IN ('A', 'V', 'S..."
+        },
+        {
+            "nombre": "sp_empresas_create",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "p_propietario character, p_ubicacion character, p_rfc character DEFAULT NULL::bpchar, p_curp character DEFAULT NULL::bpchar, p_domicilio character DEFAULT NULL::bpchar, p_email character DEFAULT NULL::bpchar, p_telefono character DEFAULT NULL::bpchar, p_numext_ubic integer DEFAULT NULL::integer, p_numint_ubic character DEFAULT NULL::bpchar, p_colonia_ubic character DEFAULT NULL::bpchar, p_cp integer DEFAULT NULL::integer, p_sup_construida numeric DEFAULT NULL::numeric, p_sup_autorizada numeric DEFAULT NULL::numeric, p_num_empleados integer DEFAULT NULL::integer, p_aforo integer DEFAULT NULL::integer, p_zona integer DEFAULT NULL::integer, p_subzona integer DEFAULT NULL::integer, p_vigente character DEFAULT 'S'::bpchar, p_usuario character DEFAULT NULL::bpchar",
+            "retorno": "TABLE(empresa integer, mensaje text, success boolean)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.sp_empresas_create(p_propietario character, p_ubicacion character, p_rfc character DEFAULT NULL::bpchar, p_curp character DEFAULT NULL::bpchar, p_domicilio character DEFAULT NULL::bpchar, p_email character DEFAULT NULL::bpchar, p_telefono character DEFAULT NULL::bpchar, p_numext_ubic integer DEFAULT NULL::integer, p_numint_ubic character DEFAULT NULL::bpchar, p_colonia_ubic character DEFAULT NULL::bpchar, p_cp integer DEFAULT NULL::integer, p_sup_construida numer..."
+        },
+        {
+            "nombre": "sp_empresas_delete",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "p_empresa integer, p_usuario character DEFAULT NULL::bpchar",
+            "retorno": "TABLE(success boolean, mensaje text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.sp_empresas_delete(p_empresa integer, p_usuario character DEFAULT NULL::bpchar)\n RETURNS TABLE(success boolean, mensaje text)\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    v_rows INTEGER;\r\nBEGIN\r\n    -- Validar que la empresa existe\r\n    IF NOT EXISTS (SELECT 1 FROM comun.empresas WHERE empresa = p_empresa) THEN\r\n        RETURN QUERY SELECT FALSE::BOOLEAN, 'Empresa no encontrada'::TEXT;\r\n        RETURN;\r\n    END IF;\r\n\r\n    -- Eliminar lógicamente (marcar como no..."
+        },
+        {
+            "nombre": "sp_empresas_estadisticas",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(total_empresas bigint, empresas_vigentes bigint, empresas_no_vigentes bigint, empresas_con_rfc bigint, promedio_empleados numeric, promedio_superficie numeric, total_zonas bigint, empresas_mes_actual bigint)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.sp_empresas_estadisticas()\n RETURNS TABLE(total_empresas bigint, empresas_vigentes bigint, empresas_no_vigentes bigint, empresas_con_rfc bigint, promedio_empleados numeric, promedio_superficie numeric, total_zonas bigint, empresas_mes_actual bigint)\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    RETURN QUERY\r\n    SELECT\r\n        COUNT(*)::BIGINT as total_empresas,\r\n        COUNT(CASE WHEN e.vigente = 'S' THEN 1 END)::BIGINT as empresas_vigentes,\r\n        COUNT(CASE ..."
+        },
+        {
+            "nombre": "sp_empresas_get",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "p_empresa integer",
+            "retorno": "TABLE(empresa integer, propietario character, rfc character, curp character, domicilio character, email character, telefono character, ubicacion character, numext_ubic integer, numint_ubic character, colonia_ubic character, cp integer, sup_construida numeric, sup_autorizada numeric, num_empleados integer, aforo integer, zona integer, subzona integer, vigente character, fecha_registro timestamp without time zone, fecha_modificacion timestamp without time zone)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.sp_empresas_get(p_empresa integer)\n RETURNS TABLE(empresa integer, propietario character, rfc character, curp character, domicilio character, email character, telefono character, ubicacion character, numext_ubic integer, numint_ubic character, colonia_ubic character, cp integer, sup_construida numeric, sup_autorizada numeric, num_empleados integer, aforo integer, zona integer, subzona integer, vigente character, fecha_registro timestamp without time zone, fecha_m..."
+        },
+        {
+            "nombre": "sp_empresas_list",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "p_page integer DEFAULT 1, p_page_size integer DEFAULT 10, p_empresa integer DEFAULT NULL::integer, p_propietario text DEFAULT NULL::text, p_rfc text DEFAULT NULL::text, p_vigente character DEFAULT NULL::bpchar",
+            "retorno": "TABLE(empresa integer, propietario character, rfc character, curp character, domicilio character, email character, telefono character, ubicacion character, numext_ubic integer, numint_ubic character, colonia_ubic character, cp integer, sup_construida numeric, sup_autorizada numeric, num_empleados integer, aforo integer, zona integer, subzona integer, vigente character, fecha_registro timestamp without time zone, fecha_modificacion timestamp without time zone, total_count bigint)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.sp_empresas_list(p_page integer DEFAULT 1, p_page_size integer DEFAULT 10, p_empresa integer DEFAULT NULL::integer, p_propietario text DEFAULT NULL::text, p_rfc text DEFAULT NULL::text, p_vigente character DEFAULT NULL::bpchar)\n RETURNS TABLE(empresa integer, propietario character, rfc character, curp character, domicilio character, email character, telefono character, ubicacion character, numext_ubic integer, numint_ubic character, colonia_ubic character, cp int..."
+        },
+        {
+            "nombre": "sp_empresas_update",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "p_empresa integer, p_propietario character, p_rfc character DEFAULT NULL::bpchar, p_email character DEFAULT NULL::bpchar, p_telefono character DEFAULT NULL::bpchar, p_ubicacion character DEFAULT NULL::bpchar, p_numext_ubic integer DEFAULT NULL::integer, p_colonia_ubic character DEFAULT NULL::bpchar, p_zona integer DEFAULT NULL::integer, p_subzona integer DEFAULT NULL::integer, p_vigente character DEFAULT 'S'::bpchar, p_usuario character DEFAULT NULL::bpchar",
+            "retorno": "TABLE(success boolean, mensaje text, rows_affected integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.sp_empresas_update(p_empresa integer, p_propietario character, p_rfc character DEFAULT NULL::bpchar, p_email character DEFAULT NULL::bpchar, p_telefono character DEFAULT NULL::bpchar, p_ubicacion character DEFAULT NULL::bpchar, p_numext_ubic integer DEFAULT NULL::integer, p_colonia_ubic character DEFAULT NULL::bpchar, p_zona integer DEFAULT NULL::integer, p_subzona integer DEFAULT NULL::integer, p_vigente character DEFAULT 'S'::bpchar, p_usuario character DEFAULT..."
+        },
+        {
+            "nombre": "sp_modlic_recalcular_adeudo_anuncio",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "p_id_anuncio integer, p_id_licencia integer",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.sp_modlic_recalcular_adeudo_anuncio(p_id_anuncio integer, p_id_licencia integer)\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    v_cvecuenta INTEGER;\r\nBEGIN\r\n    -- Obtener cvecuenta de la licencia asociada\r\n    SELECT cvecuenta INTO v_cvecuenta FROM comun.licencias WHERE id_licencia = p_id_licencia;\r\n\r\n    IF v_cvecuenta IS NULL THEN\r\n        RETURN QUERY SELECT FALSE, 'Licencia asociada no encontrada'::TEXT;\r\n        ..."
+        },
+        {
+            "nombre": "tramitebajalic_spget_lic_adeudos",
+            "esquema": "comun",
+            "existe_en_bd": true,
+            "parametros": "v_id integer, v_tipo character varying",
+            "retorno": "TABLE(id_licencia integer, axo integer, licencia integer, anuncio integer, formas numeric, desc_formas numeric, derechos numeric, desc_derechos numeric, derechos2 numeric, recargos numeric, desc_recargos numeric, gastos numeric, multas numeric, actualizacion numeric, saldo numeric, concepto character varying, bloq character varying)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION comun.tramitebajalic_spget_lic_adeudos(v_id integer, v_tipo character varying)\n RETURNS TABLE(id_licencia integer, axo integer, licencia integer, anuncio integer, formas numeric, desc_formas numeric, derechos numeric, desc_derechos numeric, derechos2 numeric, recargos numeric, desc_recargos numeric, gastos numeric, multas numeric, actualizacion numeric, saldo numeric, concepto character varying, bloq character varying)\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n  IF v_tip..."
+        },
+        {
+            "nombre": "sp_empresas_create",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_empresas_create()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_empresas_delete",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_empresas_delete()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_empresas_estadisticas",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_empresas_estadisticas()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_empresas_list",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_empresas_list()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_empresas_update",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_empresas_update()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_get_recaudadoras",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_get_recaudadoras()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_get_subzonas",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(cvezona integer, cvesubzona integer, descsubzon character varying, feccap date, capturista character varying)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_get_subzonas(p_id integer)\n RETURNS TABLE(cvezona integer, cvesubzona integer, descsubzon character varying, feccap date, capturista character varying)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    RETURN QUERY\n    SELECT\n        t.cvezona,\n        t.cvesubzona,\n        t.descsubzon,\n        t.feccap,\n        t.capturista\n    FROM public.c_subzonas t\n    WHERE t.id = p_id;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_get_zonas",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id smallint",
+            "retorno": "TABLE(cvezona smallint, cvepoblacion integer, zona character varying, feccap date, capturista character varying)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_get_zonas(p_id smallint)\n RETURNS TABLE(cvezona smallint, cvepoblacion integer, zona character varying, feccap date, capturista character varying)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    RETURN QUERY\n    SELECT\n        t.cvezona,\n        t.cvepoblacion,\n        t.zona,\n        t.feccap,\n        t.capturista\n    FROM public.c_zonas t\n    WHERE t.id = p_id;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "sp_giros_dcon_adeudo",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_year integer DEFAULT NULL::integer, p_giro character varying DEFAULT NULL::character varying, p_min_debt numeric DEFAULT NULL::numeric, p_page integer DEFAULT 1, p_limit integer DEFAULT 10",
+            "retorno": "TABLE(giro character varying, total_licencias integer, licencias_con_adeudo integer, porcentaje_adeudo numeric, monto_total_adeudo numeric, promedio_adeudo numeric, total_records bigint)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_giros_dcon_adeudo(p_year integer DEFAULT NULL::integer, p_giro character varying DEFAULT NULL::character varying, p_min_debt numeric DEFAULT NULL::numeric, p_page integer DEFAULT 1, p_limit integer DEFAULT 10)\n RETURNS TABLE(giro character varying, total_licencias integer, licencias_con_adeudo integer, porcentaje_adeudo numeric, monto_total_adeudo numeric, promedio_adeudo numeric, total_records bigint)\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    v_offset IN..."
+        },
+        {
+            "nombre": "sp_licencia_adeudos",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id_licencia integer",
+            "retorno": "TABLE(concepto character varying, importe numeric, ejercicio smallint, cvepago integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_licencia_adeudos(p_id_licencia integer)\n RETURNS TABLE(concepto character varying, importe numeric, ejercicio smallint, cvepago integer)\n LANGUAGE plpgsql\nAS $function$\r\n    BEGIN\r\n        -- Retornar adeudos desglosados por concepto\r\n        -- La tabla detsal_lic tiene columnas: derechos, recargos, forma, actualizacion, saldo\r\n        RETURN QUERY\r\n        SELECT\r\n            'Derechos'::VARCHAR as concepto,\r\n            d.derechos as importe,\r\n            ..."
+        },
+        {
+            "nombre": "sp_modlic_recalcular_adeudo_anuncio",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character varying, colonia_ubic character varying, id_fabricante integer, texto_anuncio character varying, vigente character varying, feccap date, capturista character varying, asiento integer, espubic character varying, fecha_baja date, axo_baja integer, folio_baja integer, bloqueado smallint, cp integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_modlic_recalcular_adeudo_anuncio(p_id integer)\n RETURNS TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_u..."
+        },
+        {
+            "nombre": "sp_report_giros_dcon_adeudo",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_year integer DEFAULT NULL::integer, p_giro character varying DEFAULT NULL::character varying, p_min_debt numeric DEFAULT NULL::numeric",
+            "retorno": "TABLE(giro character varying, total_licencias integer, licencias_con_adeudo integer, porcentaje_adeudo numeric, monto_total_adeudo numeric, promedio_adeudo numeric)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_report_giros_dcon_adeudo(p_year integer DEFAULT NULL::integer, p_giro character varying DEFAULT NULL::character varying, p_min_debt numeric DEFAULT NULL::numeric)\n RETURNS TABLE(giro character varying, total_licencias integer, licencias_con_adeudo integer, porcentaje_adeudo numeric, monto_total_adeudo numeric, promedio_adeudo numeric)\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    -- Consulta completa optimizada sin paginación\r\n    RETURN QUERY\r\n    WITH adeudo..."
+        },
+        {
+            "nombre": "sp_save_licencias_zona",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(id_licencia integer, licencia integer, empresa integer, recaud smallint, id_giro integer, x numeric, y numeric, zona smallint, subzona smallint, tipo_registro character varying, actividad character varying, cvecuenta integer, fecha_otorgamiento date, propietario character varying, primer_ap character varying, segundo_ap character varying, rfc character varying, curp character varying, domicilio character varying, numext_prop integer, numint_prop character varying, colonia_prop character varying, telefono_prop character varying, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character varying, colonia_ubic character varying, sup_construida numeric, sup_autorizada numeric, num_cajones smallint, num_empleados smallint, aforo smallint, inversion numeric, rhorario character varying, fecha_consejo date, bloqueado smallint, asiento smallint, vigente character varying, espubic character varying, feccap date, capturista character varying, fecha_baja date, axo_baja integer, folio_baja integer, cp integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_save_licencias_zona(p_id integer)\n RETURNS TABLE(id_licencia integer, licencia integer, empresa integer, recaud smallint, id_giro integer, x numeric, y numeric, zona smallint, subzona smallint, tipo_registro character varying, actividad character varying, cvecuenta integer, fecha_otorgamiento date, propietario character varying, primer_ap character varying, segundo_ap character varying, rfc character varying, curp character varying, domicilio character varyin..."
+        },
+        {
+            "nombre": "sp_zonaanuncio_create",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character varying, colonia_ubic character varying, id_fabricante integer, texto_anuncio character varying, vigente character varying, feccap date, capturista character varying, asiento integer, espubic character varying, fecha_baja date, axo_baja integer, folio_baja integer, bloqueado smallint, cp integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_zonaanuncio_create(p_id integer)\n RETURNS TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character ..."
+        },
+        {
+            "nombre": "sp_zonaanuncio_delete",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character varying, colonia_ubic character varying, id_fabricante integer, texto_anuncio character varying, vigente character varying, feccap date, capturista character varying, asiento integer, espubic character varying, fecha_baja date, axo_baja integer, folio_baja integer, bloqueado smallint, cp integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_zonaanuncio_delete(p_id integer)\n RETURNS TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character ..."
+        },
+        {
+            "nombre": "sp_zonaanuncio_list",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character varying, colonia_ubic character varying, id_fabricante integer, texto_anuncio character varying, vigente character varying, feccap date, capturista character varying, asiento integer, espubic character varying, fecha_baja date, axo_baja integer, folio_baja integer, bloqueado smallint, cp integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_zonaanuncio_list(p_id integer)\n RETURNS TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character va..."
+        },
+        {
+            "nombre": "sp_zonaanuncio_update",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character varying, colonia_ubic character varying, id_fabricante integer, texto_anuncio character varying, vigente character varying, feccap date, capturista character varying, asiento integer, espubic character varying, fecha_baja date, axo_baja integer, folio_baja integer, bloqueado smallint, cp integer)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.sp_zonaanuncio_update(p_id integer)\n RETURNS TABLE(id_anuncio integer, anuncio integer, recaud smallint, id_giro integer, id_licencia integer, zona smallint, subzona smallint, fecha_otorgamiento date, misma_forma character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, numint_ubic character varying, letraint_ubic character ..."
+        },
+        {
+            "nombre": "tramitebajalic_spget_lic_adeudos",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "p_id integer",
+            "retorno": "TABLE(id_tramite integer, folio integer, tipo_tramite character varying, id_giro integer, x numeric, y numeric, zona smallint, subzona smallint, actividad character varying, cvecuenta integer, recaud smallint, licencia_ref integer, tramita_apoderado character varying, propietario character varying, primer_ap character varying, segundo_ap character varying, rfc character varying, curp character varying, domicilio character varying, numext_prop integer, numint_prop character varying, colonia_prop character varying, telefono_prop character varying, email character varying, cvecalle integer, ubicacion character varying, numext_ubic integer, letraext_ubic character varying, letraint_ubic character varying, colonia_ubic character varying, espubic character varying, documentos text, sup_construida numeric, sup_autorizada numeric, num_cajones smallint, num_empleados smallint, aforo smallint, inversion numeric, costo numeric, fecha_consejo date, id_fabricante integer, texto_anuncio character varying, medidas1 numeric, medidas2 numeric, area_anuncio numeric, num_caras smallint, calificacion numeric, usr_califica character varying, estatus character varying, id_licencia integer, id_anuncio integer, feccap date, capturista character varying, numint_ubic character varying, bloqueado smallint, dictamen smallint, observaciones text, rhorario character varying, cp integer, fecmov timestamp without time zone, usuariomov character varying)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.tramitebajalic_spget_lic_adeudos(p_id integer)\n RETURNS TABLE(id_tramite integer, folio integer, tipo_tramite character varying, id_giro integer, x numeric, y numeric, zona smallint, subzona smallint, actividad character varying, cvecuenta integer, recaud smallint, licencia_ref integer, tramita_apoderado character varying, propietario character varying, primer_ap character varying, segundo_ap character varying, rfc character varying, curp character varying, domi..."
+        },
+        {
+            "nombre": "unidadimg_get_ruta_dir",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.unidadimg_get_ruta_dir()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "unidadimg_get_unidad_img",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.unidadimg_get_unidad_img()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "unidadimg_rutadir",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.unidadimg_rutadir()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        },
+        {
+            "nombre": "unidadimg_set_unidad_img",
+            "esquema": "public",
+            "existe_en_bd": true,
+            "parametros": "Sin parámetros",
+            "retorno": "TABLE(success boolean, message text)",
+            "formato_eresponse": false,
+            "definicion_parcial": "CREATE OR REPLACE FUNCTION public.unidadimg_set_unidad_img()\n RETURNS TABLE(success boolean, message text)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- TODO: Implementar lógica del SP\n    RETURN QUERY SELECT TRUE, 'SP stub - requiere implementación'::TEXT;\nEND;\n$function$\n..."
+        }
+    ],
+    "archivos_sql": [
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/01_catalogs.sql",
+            "nombre": "01_catalogs.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/02_crud.sql",
+            "nombre": "02_crud.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/03_reports.sql",
+            "nombre": "03_reports.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Cves_Operacion_all_procedures.sql",
+            "nombre": "ABC_Cves_Operacion_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Cves_Operacion_sp_cves_operacion_delete.sql",
+            "nombre": "ABC_Cves_Operacion_sp_cves_operacion_delete.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Cves_Operacion_sp_cves_operacion_get.sql",
+            "nombre": "ABC_Cves_Operacion_sp_cves_operacion_get.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Cves_Operacion_sp_cves_operacion_insert.sql",
+            "nombre": "ABC_Cves_Operacion_sp_cves_operacion_insert.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Cves_Operacion_sp_cves_operacion_list.sql",
+            "nombre": "ABC_Cves_Operacion_sp_cves_operacion_list.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Cves_Operacion_sp_cves_operacion_update.sql",
+            "nombre": "ABC_Cves_Operacion_sp_cves_operacion_update.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_all_procedures.sql",
+            "nombre": "ABC_Empresas_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_sp_empresas_create.sql",
+            "nombre": "ABC_Empresas_sp_empresas_create.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_sp_empresas_delete.sql",
+            "nombre": "ABC_Empresas_sp_empresas_delete.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_sp_empresas_get.sql",
+            "nombre": "ABC_Empresas_sp_empresas_get.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_sp_empresas_list.sql",
+            "nombre": "ABC_Empresas_sp_empresas_list.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_sp_empresas_search.sql",
+            "nombre": "ABC_Empresas_sp_empresas_search.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_sp_empresas_update.sql",
+            "nombre": "ABC_Empresas_sp_empresas_update.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Empresas_sp_tipos_emp_list.sql",
+            "nombre": "ABC_Empresas_sp_tipos_emp_list.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Gastos_all_procedures.sql",
+            "nombre": "ABC_Gastos_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Gastos_sp_gastos_delete_all.sql",
+            "nombre": "ABC_Gastos_sp_gastos_delete_all.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Gastos_sp_gastos_insert.sql",
+            "nombre": "ABC_Gastos_sp_gastos_insert.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recargos_all_procedures.sql",
+            "nombre": "ABC_Recargos_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recargos_sp_recargos_create.sql",
+            "nombre": "ABC_Recargos_sp_recargos_create.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recargos_sp_recargos_delete.sql",
+            "nombre": "ABC_Recargos_sp_recargos_delete.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recargos_sp_recargos_list.sql",
+            "nombre": "ABC_Recargos_sp_recargos_list.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recargos_sp_recargos_update.sql",
+            "nombre": "ABC_Recargos_sp_recargos_update.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recaudadoras_all_procedures.sql",
+            "nombre": "ABC_Recaudadoras_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recaudadoras_sp_delete_recaudadora.sql",
+            "nombre": "ABC_Recaudadoras_sp_delete_recaudadora.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recaudadoras_sp_insert_recaudadora.sql",
+            "nombre": "ABC_Recaudadoras_sp_insert_recaudadora.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Recaudadoras_sp_update_recaudadora.sql",
+            "nombre": "ABC_Recaudadoras_sp_update_recaudadora.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Aseo_all_procedures.sql",
+            "nombre": "ABC_Tipos_Aseo_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Aseo_sp_tipos_aseo_create.sql",
+            "nombre": "ABC_Tipos_Aseo_sp_tipos_aseo_create.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Aseo_sp_tipos_aseo_delete.sql",
+            "nombre": "ABC_Tipos_Aseo_sp_tipos_aseo_delete.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Aseo_sp_tipos_aseo_update.sql",
+            "nombre": "ABC_Tipos_Aseo_sp_tipos_aseo_update.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Emp_all_procedures.sql",
+            "nombre": "ABC_Tipos_Emp_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Emp_sp_tipos_emp_create.sql",
+            "nombre": "ABC_Tipos_Emp_sp_tipos_emp_create.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Emp_sp_tipos_emp_delete.sql",
+            "nombre": "ABC_Tipos_Emp_sp_tipos_emp_delete.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Emp_sp_tipos_emp_get.sql",
+            "nombre": "ABC_Tipos_Emp_sp_tipos_emp_get.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Emp_sp_tipos_emp_list.sql",
+            "nombre": "ABC_Tipos_Emp_sp_tipos_emp_list.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Tipos_Emp_sp_tipos_emp_update.sql",
+            "nombre": "ABC_Tipos_Emp_sp_tipos_emp_update.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Und_Recolec_all_procedures.sql",
+            "nombre": "ABC_Und_Recolec_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Und_Recolec_sp_unidades_recoleccion_create.sql",
+            "nombre": "ABC_Und_Recolec_sp_unidades_recoleccion_create.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Und_Recolec_sp_unidades_recoleccion_delete.sql",
+            "nombre": "ABC_Und_Recolec_sp_unidades_recoleccion_delete.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Und_Recolec_sp_unidades_recoleccion_list.sql",
+            "nombre": "ABC_Und_Recolec_sp_unidades_recoleccion_list.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Und_Recolec_sp_unidades_recoleccion_update.sql",
+            "nombre": "ABC_Und_Recolec_sp_unidades_recoleccion_update.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Zonas_all_procedures.sql",
+            "nombre": "ABC_Zonas_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Zonas_sp_zonas_create.sql",
+            "nombre": "ABC_Zonas_sp_zonas_create.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Zonas_sp_zonas_delete.sql",
+            "nombre": "ABC_Zonas_sp_zonas_delete.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ABC_Zonas_sp_zonas_update.sql",
+            "nombre": "ABC_Zonas_sp_zonas_update.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ActCont_CR_all_procedures.sql",
+            "nombre": "ActCont_CR_all_procedures.sql",
+            "directorio": "database"
+        },
+        {
+            "ruta": "C:\/Sistemas\/RefactorX\/Guadalajara\/RecodePHP\/GDL\/RefactorX\/Base\/aseo_contratado\/database\/database\/ActCont_CR_get_ta_catalog.sql",
+            "nombre": "ActCont_CR_get_ta_catalog.sql",
+            "directorio": "database"
+        }
+    ],
+    "resumen": {
+        "sps_en_bd": 39,
+        "archivos_sql_database": 364,
+        "archivos_sql_ok": 119,
+        "total_archivos": 483,
+        "sps_con_eresponse": 0
+    },
+    "estado": "SPs ENCONTRADOS"
+}

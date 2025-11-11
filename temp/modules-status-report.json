@@ -1,0 +1,134 @@
+{
+  "timestamp": "2025-11-11T17:11:36.262Z",
+  "summary": {
+    "components": 559,
+    "withUseApi": 389,
+    "withExecute": 426,
+    "totalSPCalls": 295,
+    "totalLOC": 168667,
+    "totalSPs": 2508,
+    "modulesWithDB": 8
+  },
+  "modules": [
+    {
+      "name": "aseo_contratado",
+      "health": {
+        "score": 99.02985074626866,
+        "status": "Excelente",
+        "color": "green"
+      },
+      "components": 67,
+      "withUseApi": 67,
+      "withExecute": 65,
+      "spCalls": 184,
+      "spCount": 368,
+      "hasDatabase": true,
+      "linesOfCode": 32775
+    },
+    {
+      "name": "padron_licencias",
+      "health": {
+        "score": 97.73684210526315,
+        "status": "Excelente",
+        "color": "green"
+      },
+      "components": 95,
+      "withUseApi": 92,
+      "withExecute": 93,
+      "spCalls": 0,
+      "spCount": 591,
+      "hasDatabase": true,
+      "linesOfCode": 69811
+    },
+    {
+      "name": "otras_obligaciones",
+      "health": {
+        "score": 95.55555555555556,
+        "status": "Excelente",
+        "color": "green"
+      },
+      "components": 27,
+      "withUseApi": 26,
+      "withExecute": 24,
+      "spCalls": 0,
+      "spCount": 167,
+      "hasDatabase": true,
+      "linesOfCode": 18044
+    },
+    {
+      "name": "estacionamiento_exclusivo",
+      "health": {
+        "score": 93.91304347826087,
+        "status": "Excelente",
+        "color": "green"
+      },
+      "components": 69,
+      "withUseApi": 63,
+      "withExecute": 63,
+      "spCalls": 0,
+      "spCount": 224,
+      "hasDatabase": true,
+      "linesOfCode": 4198
+    },
+    {
+      "name": "multas_reglamentos",
+      "health": {
+        "score": 83.47222222222223,
+        "status": "Excelente",
+        "color": "green"
+      },
+      "components": 108,
+      "withUseApi": 105,
+      "withExecute": 105,
+      "spCalls": 0,
+      "spCount": 355,
+      "hasDatabase": true,
+      "linesOfCode": 3648
+    },
+    {
+      "name": "cementerios",
+      "health": {
+        "score": 78.8157894736842,
+        "status": "Bueno",
+        "color": "cyan"
+      },
+      "components": 38,
+      "withUseApi": 36,
+      "withExecute": 31,
+      "spCalls": 44,
+      "spCount": 94,
+      "hasDatabase": true,
+      "linesOfCode": 16179
+    },
+    {
+      "name": "estacionamiento_publico",
+      "health": {
+        "score": 53.93617021276596,
+        "status": "Regular",
+        "color": "yellow"
+      },
+      "components": 47,
+      "withUseApi": 0,
+      "withExecute": 45,
+      "spCalls": 67,
+      "spCount": 186,
+      "hasDatabase": true,
+      "linesOfCode": 3652
+    },
+    {
+      "name": "mercados",
+      "health": {
+        "score": 20.09259259259259,
+        "status": "Necesita trabajo",
+        "color": "red"
+      },
+      "components": 108,
+      "withUseApi": 0,
+      "withExecute": 0,
+      "spCalls": 0,
+      "spCount": 523,
+      "hasDatabase": true,
+      "linesOfCode": 20360
+    }
+  ]
+}

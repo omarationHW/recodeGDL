@@ -1,9 +1,0 @@
-{
-  "eRequest": {
-    "Operacion": "CATALOGO_ACTIVIDADES_LIST",
-    "Base": "padron_licencias",
-    "Tenant": "guadalajara",
-    "Esquema": "comun",
-    "Parametros": []
-  }
-}

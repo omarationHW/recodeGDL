@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-chart-bar"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="chart-bar" />
         Estadísticas de Adeudos
       </h1>
       <DocumentationModal
@@ -12,16 +12,16 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Filtros
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
-            <label class="form-label">Cementerio</label>
-            <select v-model="filtros.cementerio" class="form-control">
+            <label class="municipal-form-label">Cementerio</label>
+            <select v-model="filtros.cementerio" class="municipal-form-control">
               <option value="">-- Todos los Cementerios --</option>
               <option v-for="cem in cementerios" :key="cem.cementerio" :value="cem.cementerio">
                 {{ cem.nombre }}
@@ -30,7 +30,7 @@
           </div>
           <div class="form-actions">
             <button @click="generarEstadisticas" class="btn-municipal-primary">
-              <i class="fas fa-chart-line"></i>
+              <font-awesome-icon icon="chart-line" />
               Generar Estadísticas
             </button>
           </div>
@@ -39,15 +39,15 @@
     </div>
 
     <!-- Estadísticas -->
-    <div v-if="estadisticas.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-chart-pie"></i>
+    <div v-if="estadisticas.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="chart-pie" />
         Estadísticas por Cementerio
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Cementerio</th>
                 <th>Total Folios</th>
@@ -105,7 +105,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron estadísticas
     </div>
   </div>
@@ -114,11 +114,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
   cementerio: ''
@@ -146,11 +153,21 @@ const helpSections = [
 
 const generarEstadisticas = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_ESTADISTICAS_ADEUDOS', {
-      p_cementerio: filtros.cementerio || null
-    })
+    const params = [
+      {
+        nombre: 'p_cementerio',
+        valor: filtros.cementerio || null,
+        tipo: 'string'
+      }
+    ]
 
-    estadisticas.value = response.data || []
+    const response = await execute('sp_cem_estadisticas_adeudos', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    estadisticas.value = response.result || []
     busquedaRealizada.value = true
 
     if (estadisticas.value.length > 0) {
@@ -166,8 +183,8 @@ const generarEstadisticas = async () => {
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_CEMENTERIOS', {})
-    cementerios.value = response.data || []
+    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
+    cementerios.value = response.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
   }
@@ -192,16 +209,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.text-success {
-  color: var(--color-success);
-  font-weight: bold;
-}
-
-.text-danger {
-  color: var(--color-danger);
-  font-weight: bold;
-}
-
+/* Layout único de estadísticas y barras de progreso - Justificado mantener scoped */
 .totals-row {
   background-color: var(--color-bg-secondary);
   font-weight: bold;

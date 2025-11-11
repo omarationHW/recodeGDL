@@ -19,7 +19,10 @@ BEGIN
     -- Open file
     v_fd := pg_read_file(p_file_path, 0, 0);
     IF v_fd IS NULL THEN
-        RETURN QUERY SELECT 0, 'ERROR', 'No se pudo abrir el archivo';
+        row_num := 0;
+        status := 'ERROR';
+        message := 'No se pudo abrir el archivo';
+        RETURN NEXT;
         RETURN;
     END IF;
     FOR v_line IN EXECUTE format('COPY (SELECT * FROM pg_read_file(%L, 0, 1000000)) TO STDOUT', p_file_path)
@@ -30,11 +33,17 @@ BEGIN
             -- Ajustar los campos según la estructura real
             INSERT INTO valet_data(col1, col2, col3) VALUES (v_fields[1], v_fields[2], v_fields[3]);
             v_inserted := v_inserted + 1;
-            RETURN NEXT (v_row, 'OK', 'Insertado');
+            row_num := v_row;
+            status := 'OK';
+            message := 'Insertado';
+            RETURN NEXT;
         EXCEPTION WHEN OTHERS THEN
             v_failed := v_failed + 1;
             v_error := SQLERRM;
-            RETURN NEXT (v_row, 'ERROR', v_error);
+            row_num := v_row;
+            status := 'ERROR';
+            message := v_error;
+            RETURN NEXT;
         END;
     END LOOP;
     RETURN;

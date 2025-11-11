@@ -63,11 +63,11 @@ BEGIN
         (SELECT descrip FROM ta_15_claves WHERE clave=a.clave_secuestro::varchar AND tipo_clave=2) AS sec_descrip,
         (SELECT descrip FROM ta_15_claves WHERE clave=a.clave_remate AND tipo_clave=3) AS rem_descrip,
         (SELECT descrip FROM ta_15_claves WHERE clave=a.vigencia AND tipo_clave=5) AS vig_descrip,
-        (SELECT nombre FROM ta_12_passwords WHERE id_usuario=a.usuario) AS usu_descrip,
+        (SELECT nombre FROM padron_licencias.comun.ta_12_passwords WHERE id_usuario=a.usuario) AS usu_descrip,
         (SELECT nombre FROM ta_15_ejecutores WHERE cve_eje=a.ejecutor AND id_rec=a.zona) AS nombre_eje,
         a.hora_practicado,
         a.importe_actualizacion,
-        (SELECT descripcion FROM ta_12_modulos WHERE id_modulo=a.modulo) AS modulo_desc
+        (SELECT descripcion FROM padron_licencias.comun.ta_12_modulos WHERE id_modulo=a.modulo) AS modulo_desc
     FROM ta_15_apremios a
     WHERE a.modulo = p_modulo AND a.folio = p_folio AND a.zona = p_recaudadora
     LIMIT 1;
@@ -178,7 +178,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sp_catalog_recaudadoras()
 RETURNS TABLE (id integer, descripcion varchar) AS $$
 BEGIN
-    RETURN QUERY SELECT id_rec, recaudadora FROM ta_12_recaudadoras ORDER BY id_rec;
+    RETURN QUERY SELECT id_rec, recaudadora FROM padron_licencias.comun.ta_12_recaudadoras ORDER BY id_rec;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -83,7 +83,7 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-const BASE_DB = 'INFORMIX' // TODO confirmar
+const BASE_DB = 'multas_reglamentos' // TODO confirmar
 const OP_CONSULTA_SALDOS = 'RECAUDADORA_CONSULTA_SDOS_FAVOR' // TODO confirmar
 const OP_APLICA_SALDOS = 'RECAUDADORA_APLICA_SDOS_FAVOR' // TODO confirmar
 

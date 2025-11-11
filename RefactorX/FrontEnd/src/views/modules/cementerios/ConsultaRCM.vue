@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-search-location"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="search-location" />
         Consulta RCM por Número
       </h1>
       <DocumentationModal
@@ -12,19 +12,19 @@
     </div>
 
     <!-- Búsqueda -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-search"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="search" />
         Búsqueda de Control RCM
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Número de Control RCM</label>
             <input
               v-model.number="controlRCM"
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Ingrese número de control..."
               @keyup.enter="buscarRCM"
               autofocus
@@ -32,7 +32,7 @@
           </div>
           <div class="form-actions">
             <button @click="buscarRCM" class="btn-municipal-primary">
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar
             </button>
           </div>
@@ -41,34 +41,34 @@
     </div>
 
     <!-- Resultado -->
-    <div v-if="folio" class="card">
-      <div class="card-header">
-        <i class="fas fa-info-circle"></i>
+    <div v-if="folio" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="info-circle" />
         Información del RCM {{ folio.control_rcm }}
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="rcm-info-grid">
           <div class="info-section">
-            <h5><i class="fas fa-user"></i> Titular</h5>
+            <h5><font-awesome-icon icon="user" /> Titular</h5>
             <p class="info-value">{{ folio.nombre }}</p>
           </div>
           <div class="info-section">
-            <h5><i class="fas fa-map-marked-alt"></i> Cementerio</h5>
+            <h5><font-awesome-icon icon="map-marked-alt" /> Cementerio</h5>
             <p class="info-value">{{ folio.cementerio_nombre || folio.cementerio }}</p>
           </div>
           <div class="info-section">
-            <h5><i class="fas fa-map-pin"></i> Ubicación</h5>
+            <h5><font-awesome-icon icon="map-pin" /> Ubicación</h5>
             <p class="info-value">{{ formatearUbicacion(folio) }}</p>
           </div>
           <div class="info-section">
-            <h5><i class="fas fa-calendar-alt"></i> Año Pagado</h5>
+            <h5><font-awesome-icon icon="calendar-alt" /> Año Pagado</h5>
             <p class="info-value highlight">{{ folio.axo_pagado }}</p>
           </div>
         </div>
 
         <div class="form-actions mt-3">
           <button @click="verDetalleCompleto" class="btn-municipal-primary">
-            <i class="fas fa-eye"></i>
+            <font-awesome-icon icon="eye" />
             Ver Detalle Completo
           </button>
         </div>
@@ -76,7 +76,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-warning">
-      <i class="fas fa-exclamation-triangle"></i>
+      <font-awesome-icon icon="exclamation-triangle" />
       No se encontró el control RCM especificado
     </div>
   </div>
@@ -85,12 +85,19 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
 
 const controlRCM = ref(null)
@@ -120,14 +127,24 @@ const buscarRCM = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIO', {
-      p_control_rcm: controlRCM.value
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: controlRCM.value,
+        tipo: 'string'
+      }
+    ]
+
+    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
 
     busquedaRealizada.value = true
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'N') {
         folio.value = null

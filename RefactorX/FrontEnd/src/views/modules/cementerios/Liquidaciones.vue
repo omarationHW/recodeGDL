@@ -1,28 +1,28 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
+  <div class="module-view">
+    <div class="module-view-header">
       <div class="module-title-section">
-        <i class="fas fa-file-invoice-dollar module-icon"></i>
+        <font-awesome-icon icon="file-invoice-dollar module-icon" />
         <div>
-          <h1 class="module-title">Liquidaciones de Cementerios</h1>
+          <h1 class="module-view-info">Liquidaciones de Cementerios</h1>
           <p class="module-subtitle">Cálculo de liquidaciones de cuotas de mantenimiento</p>
         </div>
       </div>
       <div class="module-actions">
         <button @click="showHelp = true" class="btn-icon" title="Ayuda">
-          <i class="fas fa-question-circle"></i>
+          <font-awesome-icon icon="question-circle" />
         </button>
       </div>
     </div>
 
     <div class="module-content">
       <!-- Formulario de Cálculo -->
-      <div class="card">
-        <div class="card-header">
-          <i class="fas fa-calculator"></i>
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="calculator" />
           Datos para Liquidación
         </div>
-        <div class="card-body">
+        <div class="municipal-card-body">
           <div class="form-grid-three">
             <!-- Cementerio -->
             <div class="form-group">
@@ -30,7 +30,7 @@
               <select
                 id="cementerio"
                 v-model="formData.cementerio"
-                class="form-control"
+                class="municipal-form-control"
               >
                 <option value="">Seleccione...</option>
                 <option
@@ -52,14 +52,14 @@
                 type="number"
                 step="0.01"
                 min="0"
-                class="form-control"
+                class="municipal-form-control"
                 placeholder="0.00"
               />
             </div>
 
             <!-- Checkbox Nuevo -->
             <div class="form-group">
-              <label class="form-label">&nbsp;</label>
+              <label class="municipal-form-label">&nbsp;</label>
               <div class="checkbox-group">
                 <label class="checkbox-label">
                   <input
@@ -122,7 +122,7 @@
                 type="number"
                 min="1990"
                 :max="currentYear"
-                class="form-control"
+                class="municipal-form-control"
               />
             </div>
 
@@ -134,7 +134,7 @@
                 type="number"
                 min="1990"
                 :max="currentYear"
-                class="form-control"
+                class="municipal-form-control"
               />
             </div>
           </div>
@@ -146,14 +146,14 @@
               class="btn-municipal-primary"
               :disabled="!formValid"
             >
-              <i class="fas fa-calculator"></i>
+              <font-awesome-icon icon="calculator" />
               Calcular Liquidación
             </button>
             <button
               @click="limpiarFormulario"
               class="btn-municipal-secondary"
             >
-              <i class="fas fa-eraser"></i>
+              <font-awesome-icon icon="eraser" />
               Limpiar
             </button>
           </div>
@@ -161,16 +161,16 @@
       </div>
 
       <!-- Resultados -->
-      <div v-if="resultados.length > 0" class="card mt-3">
-        <div class="card-header">
-          <i class="fas fa-list"></i>
+      <div v-if="resultados.length > 0" class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="list" />
           Detalle de Liquidación
         </div>
-        <div class="card-body">
+        <div class="municipal-card-body">
           <!-- Tabla de Resultados -->
           <div class="table-responsive">
-            <table class="data-table">
-              <thead>
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>Año</th>
                   <th class="text-right">Mantenimiento</th>
@@ -203,7 +203,7 @@
               @click="imprimirLiquidacion"
               class="btn-municipal-primary"
             >
-              <i class="fas fa-print"></i>
+              <font-awesome-icon icon="print" />
               Imprimir
             </button>
           </div>
@@ -259,10 +259,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showSuccess, showError, showWarning } = useToast()
 
 // Estado
@@ -304,13 +306,16 @@ const formValid = computed(() => {
 const cargarCementerios = async () => {
   try {
     const response = await execute(
-      'SP_CEM_LISTAR_CEMENTERIOS',
+      'sp_cem_listar_cementerios',
       'cementerios',
-      {}
+      {},
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.data) {
-      cementerios.value = response.data
+    if (response && response.result) {
+      cementerios.value = response.result
     }
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
@@ -340,7 +345,7 @@ const calcularLiquidacion = async () => {
 
   try {
     const response = await execute(
-      'SP_CEM_CALCULAR_LIQUIDACION',
+      'sp_cem_calcular_liquidacion',
       'cementerios',
       {
         p_cementerio: formData.value.cementerio,
@@ -350,11 +355,14 @@ const calcularLiquidacion = async () => {
         p_axo_hasta: formData.value.axoHasta,
         p_es_nuevo: formData.value.esNuevo ? 1 : 0,
         p_mes_actual: currentMonth
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.resultado === 'S' && response.data && response.data.length > 0) {
-      resultados.value = response.data
+    if (response && response.resultado === 'S' && response.result && response.result.length > 0) {
+      resultados.value = response.result
       calcularTotales()
       showSuccess('Liquidación calculada exitosamente')
     } else if (response && response.resultado === 'E') {
@@ -487,7 +495,7 @@ const imprimirLiquidacion = () => {
       </div>
 
       <table>
-        <thead>
+        <thead class="municipal-table-header">
           <tr>
             <th>Año</th>
             <th class="text-right">Mantenimiento</th>

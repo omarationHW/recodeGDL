@@ -2,7 +2,7 @@
   <div class="chgpass-container">
     <div class="chgpass-card">
       <div class="chgpass-header">
-        <i class="fas fa-key"></i>
+        <font-awesome-icon icon="key" />
         <h2>Cambiar Contraseña</h2>
         <p>Actualización de clave de acceso al sistema</p>
       </div>
@@ -16,14 +16,14 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-lock"></i>
+            <label class="municipal-form-label">
+              <font-awesome-icon icon="lock" />
               Contraseña Actual
             </label>
             <input
               v-model="formulario.password_actual"
               type="password"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Ingrese su contraseña actual"
               maxlength="20"
               autocomplete="current-password"
@@ -34,7 +34,7 @@
           </div>
 
           <button @click="validarPasswordActual" class="btn-municipal-primary btn-block">
-            <i class="fas fa-check"></i>
+            <font-awesome-icon icon="check" />
             Validar Contraseña
           </button>
         </div>
@@ -47,14 +47,14 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-key"></i>
+            <label class="municipal-form-label">
+              <font-awesome-icon icon="key" />
               Nueva Contraseña
             </label>
             <input
               v-model="formulario.password_nueva"
               type="password"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Ingrese su nueva contraseña"
               maxlength="20"
               autocomplete="new-password"
@@ -65,7 +65,7 @@
 
           <div class="password-requirements">
             <p class="requirements-title">
-              <i class="fas fa-info-circle"></i>
+              <font-awesome-icon icon="info-circle" />
               Requisitos de la contraseña:
             </p>
             <ul>
@@ -89,7 +89,7 @@
           </div>
 
           <button @click="validarPasswordNueva" class="btn-municipal-primary btn-block">
-            <i class="fas fa-arrow-right"></i>
+            <font-awesome-icon icon="arrow-right" />
             Continuar
           </button>
         </div>
@@ -102,14 +102,14 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-check-double"></i>
+            <label class="municipal-form-label">
+              <font-awesome-icon icon="check-double" />
               Confirmar Contraseña
             </label>
             <input
               v-model="formulario.password_confirmar"
               type="password"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Confirme su nueva contraseña"
               maxlength="20"
               autocomplete="new-password"
@@ -119,17 +119,17 @@
           </div>
 
           <div v-if="formulario.password_confirmar && !passwordsCoinciden" class="alert-danger mb-3">
-            <i class="fas fa-exclamation-triangle"></i>
+            <font-awesome-icon icon="exclamation-triangle" />
             Las contraseñas no coinciden
           </div>
 
           <div v-if="passwordsCoinciden" class="alert-success mb-3">
-            <i class="fas fa-check-circle"></i>
+            <font-awesome-icon icon="check-circle" />
             Las contraseñas coinciden
           </div>
 
           <button @click="cambiarPassword" class="btn-municipal-primary btn-block" :disabled="!passwordsCoinciden">
-            <i class="fas fa-save"></i>
+            <font-awesome-icon icon="save" />
             Cambiar Contraseña
           </button>
         </div>
@@ -144,22 +144,37 @@
 
         <!-- Botón Cancelar -->
         <button @click="cancelar" class="btn-municipal-secondary btn-block mt-3">
-          <i class="fas fa-times"></i>
+          <font-awesome-icon icon="times" />
           Cancelar
         </button>
       </div>
     </div>
   </div>
+
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'sfrm_chgpass'"
+    :moduleName="'cementerios'"
+    @close="closeDocumentation"
+  />
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
 
 const paso = ref(1)
@@ -212,12 +227,22 @@ const validarPasswordActual = async () => {
   mensaje.value = ''
 
   try {
-    const response = await api.callStoredProcedure('SP_VALIDAR_PASSWORD_ACTUAL', {
-      p_password: formulario.password_actual
-    })
+    const params = [
+      {
+        nombre: 'p_password',
+        valor: formulario.password_actual,
+        tipo: 'string'
+      }
+    ]
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    const response = await execute('sp_validar_password_actual', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'S') {
         paso.value = 2
@@ -290,13 +315,27 @@ const cambiarPassword = async () => {
   mensaje.value = ''
 
   try {
-    const response = await api.callStoredProcedure('SP_CAMBIAR_PASSWORD', {
-      p_password_actual: formulario.password_actual,
-      p_password_nueva: formulario.password_nueva
-    })
+    const params = [
+      {
+        nombre: 'p_password_actual',
+        valor: formulario.password_actual,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_password_nueva',
+        valor: formulario.password_nueva,
+        tipo: 'string'
+      }
+    ]
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    const response = await execute('sp_cambiar_password', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'S') {
         mensaje.value = 'Contraseña cambiada exitosamente'
@@ -501,10 +540,6 @@ const cancelar = () => {
   color: var(--color-text-secondary);
 }
 
-.btn-block {
-  width: 100%;
-}
-
 .alert-danger,
 .alert-success {
   padding: 0.875rem 1rem;
@@ -525,13 +560,5 @@ const cancelar = () => {
   background-color: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-.mt-3 {
-  margin-top: 1rem;
 }
 </style>

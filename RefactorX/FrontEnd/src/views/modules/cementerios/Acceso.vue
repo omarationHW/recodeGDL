@@ -3,7 +3,7 @@
     <div class="acceso-card">
       <div class="acceso-header">
         <div class="acceso-logo">
-          <i class="fas fa-landmark"></i>
+          <font-awesome-icon icon="landmark" />
         </div>
         <h2 class="acceso-title">Control de Acceso - Cementerios</h2>
         <p class="acceso-subtitle">Sistema Municipal de Ingresos</p>
@@ -11,14 +11,14 @@
 
       <form @submit.prevent="handleLogin" class="acceso-form">
         <div class="form-group">
-          <label class="form-label">
-            <i class="fas fa-user"></i>
+          <label class="municipal-form-label">
+            <font-awesome-icon icon="user" />
             Usuario
           </label>
           <input
             v-model="credentials.usuario"
             type="text"
-            class="form-control"
+            class="municipal-form-control"
             placeholder="Ingrese su usuario"
             :disabled="loading"
             autocomplete="username"
@@ -28,14 +28,14 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">
-            <i class="fas fa-lock"></i>
+          <label class="municipal-form-label">
+            <font-awesome-icon icon="lock" />
             Contraseña
           </label>
           <input
             v-model="credentials.password"
             type="password"
-            class="form-control"
+            class="municipal-form-control"
             placeholder="Ingrese su contraseña"
             :disabled="loading"
             autocomplete="current-password"
@@ -44,45 +44,60 @@
         </div>
 
         <div v-if="error" class="alert-danger">
-          <i class="fas fa-exclamation-circle"></i>
+          <font-awesome-icon icon="exclamation-circle" />
           {{ error }}
         </div>
 
         <div v-if="loading" class="alert-info">
-          <i class="fas fa-spinner fa-spin"></i>
+          <font-awesome-icon icon="spinner fa-spin" />
           Conectando con el servidor...
         </div>
 
         <div class="form-actions">
           <button type="submit" class="btn-municipal-primary" :disabled="loading || !isFormValid">
-            <i class="fas fa-sign-in-alt"></i>
+            <font-awesome-icon icon="sign-in-alt" />
             Ingresar
           </button>
           <button type="button" @click="handleCancel" class="btn-municipal-secondary" :disabled="loading">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cancelar
           </button>
         </div>
 
         <div class="acceso-info">
           <p class="text-muted">
-            <i class="fas fa-info-circle"></i>
+            <font-awesome-icon icon="info-circle" />
             Intentos restantes: {{ intentosRestantes }}
           </p>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'Acceso'"
+    :moduleName="'cementerios'"
+    @close="closeDocumentation"
+  />
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
 
 const credentials = ref({
@@ -113,13 +128,27 @@ const handleLogin = async () => {
 
   try {
     // Validar credenciales con el servidor
-    const response = await api.callStoredProcedure('SP_VALIDAR_USUARIO', {
-      p_usuario: credentials.value.usuario.trim(),
-      p_password: credentials.value.password.trim()
-    })
+    const params = [
+      {
+        nombre: 'p_usuario',
+        valor: credentials.value.usuario.trim(),
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_password',
+        valor: credentials.value.password.trim(),
+        tipo: 'string'
+      }
+    ]
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    const response = await execute('sp_validar_usuario', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'S') {
         // Login exitoso
@@ -164,11 +193,29 @@ const handleLogin = async () => {
 
 const registrarAcceso = async (idUsuario) => {
   try {
-    await api.callStoredProcedure('SP_REGISTRAR_ACCESO', {
-      p_id_usuario: idUsuario,
-      p_modulo: 'CEMENTERIOS',
-      p_accion: 'LOGIN'
-    })
+    const params = [
+      {
+        nombre: 'p_id_usuario',
+        valor: idUsuario,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_modulo',
+        valor: 'CEMENTERIOS',
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_accion',
+        valor: 'LOGIN',
+        tipo: 'string'
+      }
+    ]
+
+    const response = await execute('sp_registrar_acceso', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
   } catch (err) {
     console.error('Error al registrar acceso:', err)
   }

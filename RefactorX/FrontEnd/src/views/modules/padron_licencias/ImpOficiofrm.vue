@@ -324,7 +324,7 @@ const searchTramite = async () => {
   try {
     // SP_GET_TRAMITE_INFO
     const response = await execute(
-      '\1',
+      'sp_get_tramite_info',
       'padron_licencias',
       [
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' },
@@ -357,7 +357,7 @@ const loadImpresiones = async () => {
   try {
     // SP_IMP_OFICIO_TRAMITE_INFO (obtener historial)
     const response = await execute(
-      '\1',
+      'sp_imp_oficio_tramite_info',
       'padron_licencias',
       [
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' }
@@ -477,11 +477,11 @@ const registerOficio = async () => {
   try {
     // SP_IMP_OFICIO_REGISTER
     const response = await execute(
-      '\1',
+      'sp_imp_oficio_register',
       'padron_licencias',
       [
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' },
-        { nombre: 'p_tipodocumento', valor: '\1', tipo: 'string' },
+        { nombre: 'p_tipodocumento', valor: 'OFICIO', tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' },
         { nombre: 'p_observaciones', valor: 'Impresión generada', tipo: 'string' }
       ],
@@ -517,10 +517,10 @@ const clearFilters = () => {
 // Utilidades
 const getEstadoBadgeClass = (estado) => {
   const estados = {
-    '\1': 'badge-success',
+    'APROBADO': 'badge-success',
     'EN PROCESO': 'badge-warning',
-    '\1': 'badge-danger',
-    '\1': 'badge-secondary'
+    'RECHAZADO': 'badge-danger',
+    'CANCELADO': 'badge-secondary'
   }
   return estados[estado] || 'badge-secondary'
 }

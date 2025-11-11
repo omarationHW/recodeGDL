@@ -70,22 +70,20 @@
                 <label class="municipal-form-label required">Número de Local</label>
                 <input
                   type="text"
-                  class="municipal-form-control"
+                  class="municipal-form-control input-numero-mercado"
                   v-model="formData.numeroLocal"
                   @keyup.enter="focusLetra"
                   placeholder="Número"
                   maxlength="3"
-                  style="width: 150px; display: inline-block; margin-right: 10px;"
                   ref="numeroLocalInput"
                 >
                 <input
                   type="text"
-                  class="municipal-form-control"
+                  class="municipal-form-control input-letra-mercado"
                   v-model="formData.letra"
                   @keyup.enter="focusConcesionario"
                   placeholder="Letra (opcional)"
                   maxlength="1"
-                  style="width: 100px; display: inline-block;"
                   ref="letraInput"
                 >
               </div>
@@ -509,7 +507,7 @@ const focusTipoLocal = () => {
 const loadEtiquetas = async () => {
   try {
     const response = await execute(
-      'SP_GNUEVOS_ETIQUETAS_GET',
+      'sp_otras_oblig_get_etiquetas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value.toString(), tipo: 'string' }],
       'guadalajara'
@@ -527,7 +525,7 @@ const loadEtiquetas = async () => {
 const loadTablas = async () => {
   try {
     const response = await execute(
-      'SP_GNUEVOS_TABLAS_GET',
+      'sp_otras_oblig_get_tablas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value.toString(), tipo: 'string' }],
       'guadalajara'
@@ -661,7 +659,7 @@ const aplicarAlta = async () => {
     const superficie = mostrarSuperficie.value ? formData.value.superficie : 1
 
     const response = await execute(
-      'SP_GNUEVOS_INSERT',
+      'sp_gnuevos_alta',
       'otras_obligaciones',
       [
         { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
@@ -771,3 +769,64 @@ onMounted(async () => {
   })
 })
 </script>
+
+<style scoped>
+.input-numero-mercado {
+  width: 150px;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.input-letra-mercado {
+  width: 100px;
+  display: inline-block;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  color: #ea8215;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #ea8215;
+}
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.input-group-text {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  font-weight: bold;
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-right: none;
+  border-radius: 0.25rem 0 0 0.25rem;
+}
+
+.input-group .municipal-form-control {
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+
+.form-text {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+</style>

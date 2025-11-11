@@ -64,8 +64,8 @@ DECLARE
 BEGIN
     sql := 'SELECT a.*, b.nombre, c.recaudadora AS recaudadora_1, d.zona AS zona_1, '''' AS datos FROM ta_15_apremios a '
         || 'LEFT JOIN ta_15_ejecutores b ON a.zona = b.id_rec '
-        || 'LEFT JOIN ta_12_recaudadoras c ON a.zona = c.id_rec '
-        || 'LEFT JOIN ta_12_zonas d ON c.id_zona = d.id_zona '
+        || 'LEFT JOIN padron_licencias.comun.ta_12_recaudadoras c ON a.zona = c.id_rec '
+        || 'LEFT JOIN padron_licencias.comun.ta_12_zonas d ON c.id_zona = d.id_zona '
         || 'WHERE a.zona = $1';
 
     IF vmod IS NOT NULL AND vmod <> 99 THEN

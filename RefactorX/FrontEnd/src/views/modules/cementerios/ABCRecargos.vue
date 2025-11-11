@@ -1,86 +1,90 @@
 <template>
-  <div class="module-container">
+  <div class="module-view">
     <!-- Header -->
-    <div class="module-header">
-      <div class="module-title-section">
-        <i class="fas fa-percent module-icon"></i>
-        <div>
-          <h1 class="module-title">ABC de Recargos</h1>
-          <p class="module-subtitle">Gestión de porcentajes de recargos mensuales</p>
-        </div>
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="percent" />
       </div>
-      <div class="module-actions">
-        <button class="btn-help" @click="mostrarAyuda = true">
-          <i class="fas fa-question-circle"></i>
-          Ayuda
-        </button>
+      <div class="module-view-info">
+        <h1>ABC de Recargos</h1>
+        <p>Gestión de porcentajes de recargos mensuales</p>
       </div>
+      <button class="btn-municipal-info" @click="mostrarAyuda = true">
+        <font-awesome-icon icon="question-circle" />
+        Ayuda
+      </button>
     </div>
 
-    <!-- Búsqueda de Período -->
-    <div class="card">
-      <div class="card-header">
-        <i class="fas fa-calendar-alt"></i>
-        Búsqueda de Período
-      </div>
-      <div class="card-body">
-        <div class="form-grid-three">
+    <div class="module-view-content">
+      <!-- Búsqueda de Período -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="calendar-alt" />
+            Búsqueda de Período
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+        <div class="form-row">
           <div class="form-group">
-            <label class="form-label required">Año</label>
+            <label class="municipal-form-label required">Año</label>
             <input
               type="number"
               v-model.number="busqueda.axo"
-              class="form-input"
+              class="municipal-form-control"
               :min="1994"
               :max="currentYear"
               placeholder="Año"
             />
           </div>
           <div class="form-group">
-            <label class="form-label required">Mes</label>
-            <select v-model.number="busqueda.mes" class="form-input">
+            <label class="municipal-form-label required">Mes</label>
+            <select v-model.number="busqueda.mes" class="municipal-form-control">
               <option :value="0">-- Seleccione --</option>
               <option v-for="mes in meses" :key="mes.valor" :value="mes.valor">
                 {{ mes.nombre }}
               </option>
             </select>
           </div>
-          <div class="form-group align-end">
+          <div class="form-group">
+            <label class="municipal-form-label">&nbsp;</label>
             <button
               class="btn-municipal-primary"
               @click="verificarPeriodo"
               :disabled="!busquedaValida"
             >
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Verificar
             </button>
           </div>
         </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Formulario de Recargo -->
-    <div v-if="mostrarFormulario" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-edit"></i>
-        {{ modoEdicion ? 'Modificar Recargo' : 'Registrar Nuevo Recargo' }}
-      </div>
-      <div class="card-body">
-        <div class="alert-info mb-3">
-          <i class="fas fa-info-circle"></i>
+      <!-- Formulario de Recargo -->
+      <div v-if="mostrarFormulario" class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="edit" />
+            {{ modoEdicion ? 'Modificar Recargo' : 'Registrar Nuevo Recargo' }}
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="alert-info">
+            <font-awesome-icon icon="info-circle" />
           <span>
             {{ modoEdicion ? 'Modifique el porcentaje mensual' : 'Ingrese el nuevo porcentaje mensual' }}
           </span>
         </div>
 
-        <div class="form-grid-two">
+        <div class="form-row">
           <div class="form-group">
-            <label class="form-label required">Porcentaje Mensual (%)</label>
+            <label class="municipal-form-label required">Porcentaje Mensual (%)</label>
             <input
               ref="porcentajeInput"
               type="number"
               v-model.number="formulario.porcentaje_parcial"
-              class="form-input"
+              class="municipal-form-control"
               step="0.01"
               min="0.01"
               max="100"
@@ -89,11 +93,11 @@
             <small class="form-help">Porcentaje que se aplica en este mes específico</small>
           </div>
           <div class="form-group">
-            <label class="form-label">Porcentaje Acumulado (%)</label>
+            <label class="municipal-form-label">Porcentaje Acumulado (%)</label>
             <input
               type="number"
               v-model.number="formulario.porcentaje_global"
-              class="form-input"
+              class="municipal-form-control"
               disabled
               placeholder="0.00"
             />
@@ -121,7 +125,7 @@
             class="btn-municipal-secondary"
             @click="cancelarFormulario"
           >
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cancelar
           </button>
           <button
@@ -129,43 +133,46 @@
             @click="guardarRecargo"
             :disabled="!formularioValido"
           >
-            <i class="fas fa-save"></i>
+            <font-awesome-icon icon="save" />
             {{ modoEdicion ? 'Modificar' : 'Guardar' }}
           </button>
         </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Historial de Recargos del Mes -->
-    <div v-if="recargosDelMes.length > 0" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-history"></i>
-        Historial de {{ nombreMes(busqueda.mes) }}
-      </div>
-      <div class="card-body">
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Año</th>
-                <th>Mes</th>
-                <th>% Mensual</th>
-                <th>% Acumulado</th>
-                <th>Usuario</th>
-                <th>Fecha Modificación</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="recargo in recargosDelMes" :key="`${recargo.axo}-${recargo.mes}`">
-                <td>{{ recargo.axo }}</td>
-                <td>{{ nombreMes(recargo.mes) }}</td>
-                <td class="text-bold">{{ formatPorcentaje(recargo.porcentaje_parcial) }}</td>
-                <td class="text-bold primary">{{ formatPorcentaje(recargo.porcentaje_global) }}</td>
-                <td>{{ recargo.usuario || 'N/A' }}</td>
-                <td>{{ formatDate(recargo.fecha_mov) }}</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Historial de Recargos del Mes -->
+      <div v-if="recargosDelMes.length > 0" class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="history" />
+            Historial de {{ nombreMes(busqueda.mes) }}
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th>% Mensual</th>
+                  <th>% Acumulado</th>
+                  <th>Usuario</th>
+                  <th>Fecha Modificación</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="recargo in recargosDelMes" :key="`${recargo.axo}-${recargo.mes}`">
+                  <td>{{ recargo.axo }}</td>
+                  <td>{{ nombreMes(recargo.mes) }}</td>
+                  <td class="text-bold">{{ formatPorcentaje(recargo.porcentaje_parcial) }}</td>
+                  <td class="text-bold primary">{{ formatPorcentaje(recargo.porcentaje_global) }}</td>
+                  <td>{{ recargo.usuario || 'N/A' }}</td>
+                  <td>{{ formatDate(recargo.fecha_mov) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -178,7 +185,7 @@
     >
       <div class="help-content">
         <section class="help-section">
-          <h3><i class="fas fa-info-circle"></i> Descripción</h3>
+          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
           <p>
             Este módulo permite gestionar los porcentajes de recargos mensuales que se aplican
             a los adeudos de cementerios. Los recargos se calculan de forma acumulativa.
@@ -186,7 +193,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-calculator"></i> Porcentajes</h3>
+          <h3><font-awesome-icon icon="calculator" /> Porcentajes</h3>
           <ul>
             <li><strong>Porcentaje Mensual:</strong> Es el porcentaje que se aplica específicamente en ese mes</li>
             <li><strong>Porcentaje Acumulado:</strong> Es la suma de todos los porcentajes mensuales desde 1994</li>
@@ -195,7 +202,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-list-ol"></i> Proceso</h3>
+          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
           <ol>
             <li>Seleccione el año y mes que desea configurar</li>
             <li>Presione "Verificar" para buscar si existe un registro</li>
@@ -208,7 +215,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-cogs"></i> Cálculo Automático</h3>
+          <h3><font-awesome-icon icon="cogs" /> Cálculo Automático</h3>
           <p>
             Al guardar o modificar un recargo, el sistema automáticamente:
           </p>
@@ -220,7 +227,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-table"></i> Historial</h3>
+          <h3><font-awesome-icon icon="table" /> Historial</h3>
           <p>
             La tabla muestra todos los años que tienen configurado un porcentaje para el mes seleccionado,
             ordenados del más reciente al más antiguo.
@@ -234,6 +241,7 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
@@ -303,7 +311,7 @@ const verificarPeriodo = async () => {
 
   try {
     // Buscar recargo específico
-    const result = await callProcedure('SP_CEM_BUSCAR_RECARGO', {
+    const result = await callProcedure('sp_cem_buscar_recargo', {
       p_axo: busqueda.value.axo,
       p_mes: busqueda.value.mes
     })
@@ -345,7 +353,7 @@ const verificarPeriodo = async () => {
 // Cargar recargos del mes seleccionado
 const cargarRecargosDelMes = async () => {
   try {
-    const result = await callProcedure('SP_CEM_LISTAR_RECARGOS_MES', {
+    const result = await callProcedure('sp_cem_listar_recargos_mes', {
       p_mes: busqueda.value.mes
     })
 
@@ -365,7 +373,7 @@ const guardarRecargo = async () => {
 
   try {
     // Guardar o modificar recargo
-    const resultRegistro = await callProcedure('SP_CEM_REGISTRAR_RECARGO', {
+    const resultRegistro = await callProcedure('sp_cem_registrar_recargo', {
       p_operacion: modoEdicion.value ? 2 : 1,
       p_axo: busqueda.value.axo,
       p_mes: busqueda.value.mes,
@@ -375,7 +383,7 @@ const guardarRecargo = async () => {
 
     if (resultRegistro.resultado === 'S') {
       // Calcular acumulados
-      const resultAcumulado = await callProcedure('SP_CEM_CALCULAR_ACUMULADO_RECARGOS', {
+      const resultAcumulado = await callProcedure('sp_cem_calcular_acumulado_recargos', {
         p_axo: busqueda.value.axo,
         p_mes: busqueda.value.mes
       })
@@ -432,10 +440,6 @@ const formatDate = (date) => {
 </script>
 
 <style scoped>
-.align-end {
-  align-self: flex-end;
-}
-
 .text-bold {
   font-weight: 600;
 }
@@ -444,22 +448,57 @@ const formatDate = (date) => {
   color: var(--color-primary);
 }
 
-.warning {
-  color: var(--color-warning);
-}
-
-.mt-3 {
-  margin-top: 1rem;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
 .form-help {
   display: block;
   margin-top: 0.25rem;
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+}
+
+.summary-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-bg-secondary);
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 2rem;
+}
+
+.summary-item {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.summary-label {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.summary-value {
+  font-weight: 700;
+}
+
+.alert-info {
+  padding: 1rem;
+  background: #d1ecf1;
+  color: #0c5460;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.help-content {
+  line-height: 1.6;
+}
+
+.help-section {
+  margin-bottom: 2rem;
+}
+
+.help-section h3 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
 }
 </style>

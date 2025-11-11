@@ -9,12 +9,14 @@
         <h1>Reporte de Padrón con Adeudos</h1>
         <p>Otras Obligaciones - Generación de reporte de padrón con adeudos</p>
       </div>
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button class="btn-municipal-secondary" @click="goBack">
-          <font-awesome-icon icon="arrow-left" /> Salir
+          <font-awesome-icon icon="arrow-left" />
+          Salir
         </button>
       </div>
     </div>
@@ -26,10 +28,13 @@
           <h5><font-awesome-icon icon="filter" /> Filtros del Reporte</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Vigencia Contrato:</label>
-              <select v-model="formData.vigencia_cont" class="municipal-form-control">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-check" class="me-1" />
+                Vigencia Contrato:
+              </label>
+              <select v-model="formData.vigencia_cont" class="municipal-form-control" :disabled="loadingVigencias">
                 <option value="TODOS">TODOS</option>
                 <option
                   v-for="vig in vigencias"
@@ -41,8 +46,11 @@
               </select>
             </div>
 
-            <div class="form-group">
-              <label class="municipal-form-label">Tipo de Adeudos:</label>
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="coins" class="me-1" />
+                Tipo de Adeudos:
+              </label>
               <select v-model="formData.tipo_adeudos" class="municipal-form-control" @change="handleTipoAdeudosChange">
                 <option value="V">Vencidos</option>
                 <option value="A">Acumulados al Periodo</option>
@@ -50,29 +58,35 @@
             </div>
           </div>
 
-          <div class="form-row" v-if="formData.tipo_adeudos === 'A'">
-            <div class="form-group">
-              <label class="municipal-form-label">Año:</label>
+          <div class="row g-3 mt-2" v-if="formData.tipo_adeudos === 'A'">
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-alt" class="me-1" />
+                Año:
+              </label>
               <input type="number" v-model.number="formData.anio" class="municipal-form-control" :min="2000" :max="2099" />
             </div>
 
-            <div class="form-group">
-              <label class="municipal-form-label">Mes:</label>
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-day" class="me-1" />
+                Mes:
+              </label>
               <select v-model.number="formData.mes" class="municipal-form-control">
                 <option v-for="mes in meses" :key="mes.value" :value="mes.value">{{ mes.label }}</option>
               </select>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <button class="btn-municipal-primary" @click="handleGenerarReporte" :disabled="loading">
-                <font-awesome-icon icon="print" /> Generar Reporte
-              </button>
-              <button class="btn-municipal-secondary" @click="handleExportar" :disabled="loading || padronData.length === 0" style="margin-left: 10px;">
-                <font-awesome-icon icon="download" /> Exportar Excel
-              </button>
-            </div>
+          <div class="button-group mt-4">
+            <button class="btn-municipal-primary" @click="handleGenerarReporte" :disabled="loading">
+              <font-awesome-icon icon="file-alt" />
+              Generar Reporte
+            </button>
+            <button class="btn-municipal-success" @click="handleExportar" :disabled="loading || padronData.length === 0">
+              <font-awesome-icon icon="file-excel" />
+              Exportar Excel
+            </button>
           </div>
         </div>
       </div>
@@ -80,21 +94,25 @@
       <!-- Tabla de resultados -->
       <div class="municipal-card mt-3" v-if="padronData.length > 0">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="list" /> {{ nombreTabla }}</h5>
+          <h5>
+            <font-awesome-icon icon="list" />
+            {{ nombreTabla }}
+            <span class="badge badge-purple ms-2">{{ padronData.length }} registro(s)</span>
+          </h5>
         </div>
         <div class="municipal-card-body">
           <div class="table-responsive">
-            <table class="table table-municipal">
-              <thead>
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>{{ etiquetas.etiq_control }}</th>
                   <th>{{ etiquetas.concesionario }}</th>
                   <th>{{ etiquetas.ubicacion }}</th>
-                  <th>{{ etiquetas.superficie }}</th>
-                  <th>{{ etiquetas.licencia }}</th>
+                  <th class="text-end">{{ etiquetas.superficie }}</th>
+                  <th class="text-center">{{ etiquetas.licencia }}</th>
                   <th>{{ etiquetas.sector }}</th>
-                  <th>{{ etiquetas.zona }}</th>
-                  <th class="text-right">Adeudo</th>
+                  <th class="text-center">{{ etiquetas.zona }}</th>
+                  <th class="text-end">Adeudo</th>
                   <th class="text-center">Opciones</th>
                 </tr>
               </thead>
@@ -103,13 +121,13 @@
                   <td>{{ item.control }}</td>
                   <td>{{ item.concesionario }}</td>
                   <td>{{ item.ubicacion }}</td>
-                  <td class="text-right">{{ item.superficie }}</td>
+                  <td class="text-end">{{ item.superficie }}</td>
                   <td class="text-center">{{ item.licencia }}</td>
                   <td>{{ item.sector }}</td>
                   <td class="text-center">{{ item.zona }}</td>
-                  <td class="text-right">{{ formatCurrency(item.total_adeudo) }}</td>
+                  <td class="text-end fw-bold text-success">{{ formatCurrency(item.total_adeudo) }}</td>
                   <td class="text-center">
-                    <button class="btn-icon-info" @click="verDetalle(item)" title="Ver Detalle">
+                    <button class="btn btn-sm btn-info" @click="verDetalle(item)" title="Ver Detalle">
                       <font-awesome-icon icon="eye" />
                     </button>
                   </td>
@@ -118,8 +136,12 @@
             </table>
           </div>
 
-          <div class="totales-container">
-            <strong>Total General: {{ formatCurrency(totalGeneral) }}</strong>
+          <div class="alert alert-success mt-3 d-flex align-items-center justify-content-between">
+            <div>
+              <font-awesome-icon icon="calculator" class="me-2" />
+              <strong>Total General:</strong>
+            </div>
+            <h4 class="mb-0">{{ formatCurrency(totalGeneral) }}</h4>
           </div>
         </div>
       </div>
@@ -174,6 +196,15 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de documentación -->
     <DocumentationModal
       :show="showDocumentation"
@@ -189,14 +220,22 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import * as XLSX from 'xlsx'
 
 const router = useRouter()
-const { callApi } = useApi()
-const { handleError, showToast } = useLicenciasErrorHandler()
-
-const loading = ref(false)
+const { execute } = useApi()
+const {
+  loading,
+  setLoading,
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 const showDocumentation = ref(false)
 const dialogDetalle = ref(false)
 const padronData = ref([])
@@ -204,9 +243,11 @@ const detalleAdeudos = ref([])
 const vigencias = ref([])
 const nombreTabla = ref('PADRÓN CON ADEUDOS')
 const selectedRow = ref(null)
+const loadingVigencias = ref(false)
+const loadingEtiquetas = ref(false)
 
 const formData = reactive({
-  tabla: '3',
+  tabla: 3,
   vigencia_cont: 'TODOS',
   tipo_adeudos: 'V',
   anio: new Date().getFullYear(),
@@ -259,26 +300,57 @@ const handleTipoAdeudosChange = () => {
 }
 
 const cargarVigencias = async () => {
+  loadingVigencias.value = true
+  const startTime = performance.now()
+
   try {
-    const response = await callApi('SP_GREP_PADRON_VIGENCIAS', {
-      par_tab: formData.tabla
-    })
-    vigencias.value = response.data || []
+    const response = await execute(
+      'sp_padron_vigencias',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tab', valor: formData.tabla, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
+
+    if (response && response.result) {
+      vigencias.value = response.result || []
+      showToast('success', `${vigencias.value.length} vigencia(s) cargada(s) (${duration}s)`)
+    }
   } catch (error) {
-    handleError(error, 'Error al cargar vigencias')
+    handleApiError(error)
+    vigencias.value = []
+  } finally {
+    loadingVigencias.value = false
   }
 }
 
 const cargarEtiquetas = async () => {
+  loadingEtiquetas.value = true
+  const startTime = performance.now()
+
   try {
-    const response = await callApi('SP_GREP_PADRON_ETIQUETAS', {
-      par_tab: formData.tabla
-    })
-    if (response.data && response.data.length > 0) {
-      etiquetas.value = response.data[0]
+    const response = await execute(
+      'sp_padron_etiquetas',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tab', valor: formData.tabla, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
+
+    if (response && response.result && response.result.length > 0) {
+      etiquetas.value = response.result[0]
+      showToast('success', `Etiquetas cargadas (${duration}s)`)
     }
   } catch (error) {
-    handleError(error, 'Error al cargar etiquetas')
+    handleApiError(error)
+  } finally {
+    loadingEtiquetas.value = false
   }
 }
 
@@ -288,43 +360,66 @@ const handleGenerarReporte = async () => {
     return
   }
 
-  loading.value = true
+  setLoading(true, 'Generando reporte...')
+  showLoading('Consultando padrón de concesiones...')
+  const startTime = performance.now()
+
   try {
-    const response = await callApi('SP_GREP_PADRON_OBTENER', {
-      par_tabla: formData.tabla,
-      par_Vigencia: formData.vigencia_cont
-    })
+    // Obtener concesiones
+    const response = await execute(
+      'sp_padron_concesiones_get',
+      'otras_obligaciones',
+      [
+        { nombre: 'p_vigencia', valor: formData.vigencia_cont === 'TODOS' ? 'T' : formData.vigencia_cont, tipo: 'string' },
+        { nombre: 'p_tipo_adeudo', valor: formData.tipo_adeudos, tipo: 'string' },
+        { nombre: 'p_anio', valor: formData.anio, tipo: 'integer' },
+        { nombre: 'p_mes', valor: String(formData.mes).padStart(2, '0'), tipo: 'string' }
+      ],
+      'guadalajara'
+    )
 
-    if (response.data && response.data.length > 0) {
-      padronData.value = response.data
+    if (response && response.result && response.result.length > 0) {
+      padronData.value = response.result
 
-      for (const item of padronData.value) {
+      // Obtener adeudos para cada concesión
+      for (let i = 0; i < padronData.value.length; i++) {
+        const item = padronData.value[i]
+        showLoading(`Calculando adeudos... ${i + 1}/${padronData.value.length}`)
+
         const fecha = `${formData.anio}-${String(formData.mes).padStart(2, '0')}`
-        const adeudosResponse = await callApi('SP_GREP_PADRON_ADEUDOS', {
-          par_tab: formData.tabla,
-          par_Control: item.id_34_datos,
-          par_Rep: formData.tipo_adeudos,
-          par_Fecha: fecha
-        })
 
-        const adeudos = adeudosResponse.data || []
+        const adeudosResponse = await execute(
+          'sp_padron_adeudos_get',
+          'otras_obligaciones',
+          [
+            { nombre: 'p_control', valor: item.id_34_datos, tipo: 'integer' },
+            { nombre: 'p_tipo', valor: formData.tipo_adeudos, tipo: 'string' },
+            { nombre: 'p_fecha', valor: fecha, tipo: 'string' }
+          ],
+          'guadalajara'
+        )
+
+        const adeudos = adeudosResponse?.result || []
         item.total_adeudo = adeudos.reduce((sum, ade) =>
-          sum + (ade.importe_adeudos || 0) + (ade.importe_recargos || 0) +
-          (ade.importe_multa || 0) + (ade.importe_gastos || 0) +
-          (ade.importe_actualizacion || 0), 0
+          sum + (ade.adeudo || 0) + (ade.recargo || 0), 0
         )
         item.adeudos = adeudos
       }
 
-      showToast('success', 'Reporte generado exitosamente')
+      const duration = ((performance.now() - startTime) / 1000).toFixed(2)
+      hideLoading()
+      showToast('success', `Reporte generado: ${padronData.value.length} registro(s) (${duration}s)`)
     } else {
+      hideLoading()
       showToast('info', 'No se encontraron registros')
       padronData.value = []
     }
   } catch (error) {
-    handleError(error, 'Error al generar reporte')
+    hideLoading()
+    handleApiError(error)
+    padronData.value = []
   } finally {
-    loading.value = false
+    setLoading(false)
   }
 }
 

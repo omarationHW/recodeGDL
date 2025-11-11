@@ -102,7 +102,7 @@
 import { ref, watch } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-const BASE_DB = 'INFORMIX' // TODO confirmar
+const BASE_DB = 'multas_reglamentos' // TODO confirmar
 const OP_CATASTRO_DM = 'RECAUDADORA_CATASTRO_DM' // TODO confirmar
 
 const { loading, execute } = useApi()

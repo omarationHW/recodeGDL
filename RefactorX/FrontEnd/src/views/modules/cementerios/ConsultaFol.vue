@@ -389,9 +389,11 @@ import { ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast } = useToast()
 
 // Estado
@@ -423,15 +425,18 @@ const buscarFolio = async () => {
   try {
     // Consultar datos del folio
     const response = await execute(
-      'SP_CEM_CONSULTAR_FOLIO',
+      'sp_cem_consultar_folio',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.length > 0) {
-      const result = response[0]
+    if (response && response.result && response.result.length > 0) {
+      const result = response.result[0]
       if (result.resultado === 'S') {
         datosfolio.value = result
         showToast(result.mensaje, 'success')
@@ -461,14 +466,17 @@ const buscarFolio = async () => {
 const cargarPagos = async () => {
   try {
     const response = await execute(
-      'SP_CEM_OBTENER_PAGOS_FOLIO',
+      'sp_cem_obtener_pagos_folio',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    pagos.value = response || []
+    pagos.value = response.result || []
   } catch (error) {
     console.error('Error al cargar pagos:', error)
     pagos.value = []
@@ -478,11 +486,14 @@ const cargarPagos = async () => {
 const cargarAdeudos = async () => {
   try {
     const response = await execute(
-      'SP_CEM_OBTENER_ADEUDOS_FOLIO',
+      'sp_cem_obtener_adeudos_folio',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
     adeudos.value = response || []

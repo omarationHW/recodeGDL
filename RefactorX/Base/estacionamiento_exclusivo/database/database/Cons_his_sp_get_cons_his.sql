@@ -57,7 +57,7 @@ BEGIN
         (SELECT descrip FROM ta_15_claves WHERE clave=a.clave_secuestro::varchar AND tipo_clave=2 LIMIT 1) AS sec_descrip,
         (SELECT descrip FROM ta_15_claves WHERE clave=a.clave_remate AND tipo_clave=3 LIMIT 1) AS rem_descrip,
         (SELECT descrip FROM ta_15_claves WHERE clave=a.clave_mov AND tipo_clave=5 LIMIT 1) AS vig_descrip,
-        (SELECT nombre FROM ta_12_passwords WHERE id_usuario=a.usuario LIMIT 1) AS usu_descrip,
+        (SELECT nombre FROM padron_licencias.comun.ta_12_passwords WHERE id_usuario=a.usuario LIMIT 1) AS usu_descrip,
         (SELECT nombre FROM ta_15_ejecutores WHERE cve_eje=a.ejecutor AND id_rec=a.zona LIMIT 1) AS nombre_eje
     FROM ta_15_historia a
     WHERE a.id_control = p_control

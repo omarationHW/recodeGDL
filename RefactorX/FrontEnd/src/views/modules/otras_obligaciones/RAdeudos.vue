@@ -29,9 +29,23 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Control:</label>
-              <input type="text" v-model="formData.numero" class="municipal-form-control" placeholder="Número" maxlength="3" style="width: 120px; display: inline-block; margin-right: 10px;" />
-              <span style="margin: 0 10px;">-</span>
-              <input type="text" v-model="formData.letra" class="municipal-form-control" placeholder="Letra" maxlength="2" style="width: 100px; display: inline-block;" />
+              <div class="control-input-group">
+                <input
+                  type="text"
+                  v-model="formData.numero"
+                  class="municipal-form-control control-numero"
+                  placeholder="Número"
+                  maxlength="10"
+                />
+                <span class="control-separator">-</span>
+                <input
+                  type="text"
+                  v-model="formData.letra"
+                  class="municipal-form-control control-letra"
+                  placeholder="Letra"
+                  maxlength="5"
+                />
+              </div>
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Tipo Adeudos:</label>
@@ -117,47 +131,71 @@
         <div class="municipal-card-body">
           <!-- Tabla concentrada -->
           <div v-if="vistaDetalle === 'concentrado'" class="table-responsive">
-            <table class="table table-municipal">
-              <thead>
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>Concepto</th>
-                  <th class="text-right">Adeudo</th>
-                  <th class="text-right">Recargos</th>
-                  <th class="text-right">Total</th>
+                  <th class="text-center">Periodos</th>
+                  <th class="text-right">Importe Total</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, index) in adeudosConcentrado" :key="index">
+                <tr v-for="(row, index) in adeudosConcentrado" :key="index" class="row-hover">
                   <td>{{ row.concepto }}</td>
-                  <td class="text-right">{{ formatCurrency(row.importe_adeudo) }}</td>
-                  <td class="text-right">{{ formatCurrency(row.importe_recargo) }}</td>
-                  <td class="text-right">{{ formatCurrency(row.importe_adeudo + row.importe_recargo) }}</td>
+                  <td class="text-center">
+                    <span class="badge-purple">{{ row.cuenta }}</span>
+                  </td>
+                  <td class="text-right font-weight-bold">{{ formatCurrency(row.importe) }}</td>
                 </tr>
               </tbody>
+              <tfoot class="municipal-table-footer">
+                <tr>
+                  <td class="font-weight-bold" colspan="2">TOTAL A PAGAR:</td>
+                  <td class="text-right font-weight-bold total-amount">
+                    {{ formatCurrency(totalAdeudos) }}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 
           <!-- Tabla desglosada -->
           <div v-else class="table-responsive">
-            <table class="table table-municipal">
-              <thead>
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>Concepto</th>
                   <th class="text-center">Año</th>
                   <th class="text-center">Mes</th>
                   <th class="text-right">Importe</th>
                   <th class="text-right">Recargos</th>
+                  <th class="text-right">Descto. Importe</th>
+                  <th class="text-right">Descto. Recargos</th>
+                  <th class="text-right">Actualización</th>
+                  <th class="text-right">Total</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, index) in adeudosDesglosado" :key="index">
+                <tr v-for="(row, index) in adeudosDesglosado" :key="index" class="row-hover">
                   <td>{{ row.concepto }}</td>
                   <td class="text-center">{{ row.axo }}</td>
-                  <td class="text-center">{{ row.mes }}</td>
+                  <td class="text-center">{{ getNombreMes(row.mes) }}</td>
                   <td class="text-right">{{ formatCurrency(row.importe_pagar) }}</td>
                   <td class="text-right">{{ formatCurrency(row.recargos_pagar) }}</td>
+                  <td class="text-right">{{ formatCurrency(row.dscto_importe) }}</td>
+                  <td class="text-right">{{ formatCurrency(row.dscto_recargos) }}</td>
+                  <td class="text-right">{{ formatCurrency(row.actualizacion_pagar) }}</td>
+                  <td class="text-right font-weight-bold">{{ formatCurrency(row.total_periodo) }}</td>
                 </tr>
               </tbody>
+              <tfoot class="municipal-table-footer">
+                <tr>
+                  <td class="font-weight-bold" colspan="8">TOTAL:</td>
+                  <td class="text-right font-weight-bold total-amount">
+                    {{ formatCurrency(totalAdeudos) }}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 
@@ -171,19 +209,36 @@
       <div v-if="loading" class="loading-overlay">
         <div class="loading-spinner">
           <div class="spinner"></div>
-          <p>Cargando datos...</p>
+          <p>{{ loadingMessage }}</p>
         </div>
       </div>
     </div>
+    <!-- /module-view-content -->
 
-    <!-- Modal de documentación -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'RAdeudos'"
-      :moduleName="'otras_obligaciones'"
-      @close="closeDocumentation"
-    />
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" />
+          {{ toast.duration }}
+        </span>
+      </div>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
+  <!-- /module-view -->
+
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'RAdeudos'"
+    :moduleName="'otras_obligaciones'"
+    @close="closeDocumentation"
+  />
 </template>
 
 <script setup>
@@ -192,15 +247,33 @@ import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import * as XLSX from 'xlsx'
 
+// Router
 const router = useRouter()
-const { callApi } = useApi()
-const { handleError, showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
+// Composables
 const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
+// Estado local de loading
+const loading = ref(false)
+const loadingMessage = ref('Cargando...')
+
+// Estado
 const datosLocal = ref({})
 const adeudosConcentrado = ref([])
 const adeudosDesglosado = ref([])
@@ -232,10 +305,10 @@ const meses = [
 const totalAdeudos = computed(() => {
   if (vistaDetalle.value === 'concentrado') {
     return adeudosConcentrado.value.reduce((sum, item) =>
-      sum + item.importe_adeudo + item.importe_recargo, 0)
+      sum + (item.importe || 0), 0)
   } else {
     return adeudosDesglosado.value.reduce((sum, item) =>
-      sum + item.importe_pagar + item.recargos_pagar, 0)
+      sum + (item.total_periodo || 0), 0)
   }
 })
 
@@ -257,84 +330,182 @@ const handleTipoChange = () => {
 
 const handleImprimir = async () => {
   if (!formData.numero) {
-    showToast('warning', 'Debe ingresar el número de control')
+    showToast('warning', 'Debe ingresar el número de control', null)
     return
   }
 
   if (formData.tipoAdeudos === 'A' && (!formData.anio || !formData.mes)) {
-    showToast('warning', 'Debe especificar año y mes')
+    showToast('warning', 'Debe especificar año y mes', null)
     return
   }
 
+  const startTime = performance.now()
   loading.value = true
-  try {
-    const control = `${formData.numero}-${formData.letra || ''}`
-    const localResponse = await callApi('SP_RADEUDOS_BUSCAR_CONTROL', {
-      p_cve: '3',
-      p_control: control
-    })
+  loadingMessage.value = 'Generando reporte...'
+  showLoading('Consultando adeudos...', 'Procesando datos')
 
-    if (!localResponse.data || localResponse.data.length === 0) {
-      showToast('warning', 'No se encontró el local')
+  try {
+    const control = `${formData.numero}${formData.letra ? '-' + formData.letra : ''}`
+
+    // Buscar datos del local
+    const localResponse = await execute(
+      'sp_otras_oblig_buscar_cont',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tab', valor: 3, tipo: 'integer' },
+        { nombre: 'par_control', valor: control, tipo: 'varchar' }
+      ],
+      '',
+      null,
+      'public'
+    )
+
+    if (!localResponse || !localResponse.result || localResponse.result.length === 0 || localResponse.result[0].status === 1) {
+      showToast('warning', 'No se encontró el local especificado', null)
       return
     }
 
-    datosLocal.value = localResponse.data[0]
-    const fecha = `${formData.anio}-${String(formData.mes).padStart(2, '0')}`
+    datosLocal.value = localResponse.result[0]
+    const anoActual = formData.anio
+    const mesActual = formData.mes
 
+    // Cargar adeudos concentrados y desglosados en paralelo
     const [concentradoResponse, desglosadoResponse] = await Promise.all([
-      callApi('SP_RADEUDOS_DETALLE_CONCENTRADO', {
-        par_Control: datosLocal.value.id_34_datos,
-        par_Rep: formData.tipoAdeudos,
-        par_Fecha: fecha
-      }),
-      callApi('SP_RADEUDOS_DETALLE_DESGLOSADO', {
-        par_Control: datosLocal.value.id_34_datos,
-        par_Rep: formData.tipoAdeudos,
-        par_Fecha: fecha
-      })
+      execute(
+        'sp_otras_oblig_buscar_totales',
+        'otras_obligaciones',
+        [
+          { nombre: 'par_tabla', valor: 3, tipo: 'integer' },
+          { nombre: 'par_id_datos', valor: datosLocal.value.id_datos, tipo: 'integer' },
+          { nombre: 'par_aso', valor: anoActual, tipo: 'integer' },
+          { nombre: 'par_mes', valor: mesActual, tipo: 'integer' }
+        ],
+        '',
+        null,
+        'public'
+      ),
+      execute(
+        'sp_otras_oblig_buscar_adeudos',
+        'otras_obligaciones',
+        [
+          { nombre: 'par_tabla', valor: 3, tipo: 'integer' },
+          { nombre: 'par_id_datos', valor: datosLocal.value.id_datos, tipo: 'integer' },
+          { nombre: 'par_aso', valor: anoActual, tipo: 'integer' },
+          { nombre: 'par_mes', valor: mesActual, tipo: 'integer' }
+        ],
+        '',
+        null,
+        'public'
+      )
     ])
 
-    adeudosConcentrado.value = concentradoResponse.data || []
-    adeudosDesglosado.value = desglosadoResponse.data || []
+    adeudosConcentrado.value = (concentradoResponse && concentradoResponse.result) ? concentradoResponse.result.filter(r => r.concepto) : []
+    adeudosDesglosado.value = (desglosadoResponse && desglosadoResponse.result) ? desglosadoResponse.result.filter(r => r.concepto) : []
 
-    showToast('success', 'Reporte generado')
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1
+      ? `${(duration * 1000).toFixed(0)}ms`
+      : `${duration}s`
+
+    if (adeudosConcentrado.value.length > 0 || adeudosDesglosado.value.length > 0) {
+      showToast('success', 'Reporte generado correctamente', timeMessage)
+    } else {
+      showToast('info', 'No se encontraron adeudos para este control', timeMessage)
+    }
   } catch (error) {
-    handleError(error, 'Error al generar reporte')
+    handleApiError(error)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
 const handleExportar = () => {
   if (adeudosConcentrado.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('warning', 'No hay datos para exportar', null)
     return
   }
 
-  const dataExport = adeudosConcentrado.value.map(item => ({
-    'Concepto': item.concepto,
-    'Adeudo': item.importe_adeudo,
-    'Recargos': item.importe_recargo,
-    'Total': item.importe_adeudo + item.importe_recargo
-  }))
+  try {
+    const dataExport = adeudosConcentrado.value.map(item => ({
+      'Concepto': item.concepto,
+      'Periodos': item.cuenta,
+      'Importe': item.importe
+    }))
 
-  const ws = XLSX.utils.json_to_sheet(dataExport)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Adeudos')
-  XLSX.writeFile(wb, `Adeudos_${Date.now()}.xlsx`)
-  showToast('success', 'Exportación exitosa')
-}
+    // Agregar fila de total
+    dataExport.push({
+      'Concepto': 'TOTAL',
+      'Periodos': '',
+      'Importe': totalAdeudos.value
+    })
 
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
+    const ws = XLSX.utils.json_to_sheet(dataExport)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Adeudos')
 
-const closeDocumentation = () => {
-  showDocumentation.value = false
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19)
+    XLSX.writeFile(wb, `RAdeudos_${datosLocal.value.control}_${timestamp}.xlsx`)
+
+    showToast('success', 'Archivo exportado correctamente', null)
+  } catch (error) {
+    console.error('Error al exportar:', error)
+    showToast('error', 'Error al exportar el archivo', null)
+  }
 }
 
 const goBack = () => {
   router.push('/otras_obligaciones')
 }
+
+// Utilidades
+const getNombreMes = (mes) => {
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ]
+  return meses[mes - 1] || mes
+}
 </script>
+
+<style scoped>
+/* Control input group */
+.control-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-numero {
+  flex: 0 0 120px;
+  max-width: 120px;
+}
+
+.control-letra {
+  flex: 0 0 100px;
+  max-width: 100px;
+}
+
+.control-separator {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Toast duration */
+.toast-duration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-left: 8px;
+}
+
+/* Table improvements */
+.total-amount {
+  color: #ea8215;
+  font-size: 1.1rem;
+}
+</style>

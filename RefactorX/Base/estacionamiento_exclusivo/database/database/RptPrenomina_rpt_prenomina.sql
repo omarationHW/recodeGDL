@@ -37,8 +37,8 @@ BEGIN
         d.zona AS zona_1
     FROM ta_15_apremios a
     JOIN ta_15_ejecutores b ON a.ejecutor = b.cve_eje
-    JOIN ta_12_recaudadoras c ON a.zona = c.id_rec AND b.id_rec = c.id_rec
-    JOIN ta_12_zonas d ON c.id_zona = d.id_zona
+    JOIN padron_licencias.comun.ta_12_recaudadoras c ON a.zona = c.id_rec AND b.id_rec = c.id_rec
+    JOIN padron_licencias.comun.ta_12_zonas d ON c.id_zona = d.id_zona
     WHERE (a.fecha_pago >= fec1 AND a.fecha_pago <= fec2)
       AND (a.vigencia = '2' OR a.vigencia = 'P')
       AND a.clave_practicado = 'P'

@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="redo" />
       </div>
@@ -10,15 +10,15 @@
         <p v-if="nombreTabla">{{ nombreTabla }}</p>
         <p v-else>Otras Obligaciones - Reactivación de Registros</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -31,16 +31,58 @@
     </div>
 
     <div class="module-view-content">
+      <!-- Panel de Estadísticas -->
+      <div class="stats-grid" v-if="loadingEstadisticas">
+        <div class="stat-card stat-card-loading" v-for="n in 2" :key="`loading-${n}`">
+          <div class="stat-content">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-number"></div>
+            <div class="skeleton-label"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards de estadísticas con datos -->
+      <div class="stats-grid" v-else-if="!loadingEstadisticas && registroEncontrado">
+        <div class="stat-card stat-activos">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="file-alt" />
+            </div>
+            <h3 class="stat-number">1</h3>
+            <p class="stat-label">Registro Encontrado</p>
+          </div>
+        </div>
+
+        <div class="stat-card stat-pendientes">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="sync-alt" />
+            </div>
+            <h3 class="stat-number">
+              <span :class="getBadgeClass(datosRegistro.statusregistro)">
+                {{ datosRegistro.statusregistro || 'N/A' }}
+              </span>
+            </h3>
+            <p class="stat-label">Estado Actual</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Panel de búsqueda -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header clickable" @click="toggleBusqueda">
           <h5>
             <font-awesome-icon icon="search" />
             Búsqueda de Registro
           </h5>
+          <font-awesome-icon
+            :icon="showBusqueda ? 'chevron-up' : 'chevron-down'"
+            class="accordion-icon"
+          />
         </div>
 
-        <div class="municipal-card-body">
+        <div class="municipal-card-body" v-show="showBusqueda">
           <!-- Para Mercados (tabla 3): Local + Letra -->
           <div v-if="tablaActual === '3'" class="form-row">
             <div class="form-group">
@@ -65,7 +107,7 @@
                 maxlength="5"
               >
             </div>
-            <div class="form-group" style="display: flex; align-items: flex-end;">
+            <div class="form-group align-self-end">
               <button
                 class="btn-municipal-primary"
                 @click="buscarRegistro"
@@ -92,7 +134,7 @@
                 maxlength="10"
               >
             </div>
-            <div class="form-group" style="display: flex; align-items: flex-end;">
+            <div class="form-group align-self-end">
               <button
                 class="btn-municipal-primary"
                 @click="buscarRegistro"
@@ -113,46 +155,66 @@
             <font-awesome-icon icon="info-circle" />
             Información del Registro
           </h5>
+          <span class="badge badge-purple ms-auto">
+            <font-awesome-icon icon="check-circle" />
+            Registro Activo
+          </span>
         </div>
 
         <div class="municipal-card-body">
           <!-- Status del registro -->
           <div class="alert" :class="getStatusClass(datosRegistro.statusregistro)">
+            <font-awesome-icon :icon="getStatusIcon(datosRegistro.statusregistro)" class="me-2" />
             <strong>STATUS:</strong> {{ datosRegistro.statusregistro || 'N/A' }}
           </div>
 
           <!-- Datos generales -->
           <div class="form-row">
             <div class="form-group full-width">
-              <label class="municipal-form-label">{{ etiquetas.concesionario || 'Concesionario' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="user" class="me-1" />
+                {{ etiquetas.concesionario || 'Concesionario' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.concesionario || 'N/A' }}</div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label class="municipal-form-label">{{ etiquetas.ubicacion || 'Ubicación' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="map-marker-alt" class="me-1" />
+                {{ etiquetas.ubicacion || 'Ubicación' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.ubicacion || 'N/A' }}</div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label class="municipal-form-label">{{ etiquetas.nombre_comercial || 'Nombre Comercial' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="store" class="me-1" />
+                {{ etiquetas.nombre_comercial || 'Nombre Comercial' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.nomcomercial || 'N/A' }}</div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label class="municipal-form-label">{{ etiquetas.lugar || 'Lugar' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="building" class="me-1" />
+                {{ etiquetas.lugar || 'Lugar' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.lugar || 'N/A' }}</div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label class="municipal-form-label">{{ etiquetas.obs || 'Observaciones' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="comment-alt" class="me-1" />
+                {{ etiquetas.obs || 'Observaciones' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.obs || 'N/A' }}</div>
             </div>
           </div>
@@ -160,41 +222,65 @@
           <!-- Datos adicionales en dos columnas -->
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.unidad || 'Tipo' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="tag" class="me-1" />
+                {{ etiquetas.unidad || 'Tipo' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.unidades || 'N/A' }}</div>
             </div>
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.fecha_inicio || 'Inicio Oblig.' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-check" class="me-1" />
+                {{ etiquetas.fecha_inicio || 'Inicio Oblig.' }}
+              </label>
               <div class="form-control-static">{{ formatDate(datosRegistro.fechainicio) }}</div>
             </div>
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.fecha_fin || 'Fin Oblig.' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-times" class="me-1" />
+                {{ etiquetas.fecha_fin || 'Fin Oblig.' }}
+              </label>
               <div class="form-control-static">{{ formatDate(datosRegistro.fechafin) }}</div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.licencia || 'No. Licencia' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="id-card" class="me-1" />
+                {{ etiquetas.licencia || 'No. Licencia' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.licencia || 'N/A' }}</div>
             </div>
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.superficie || 'Superficie Mts.2' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="ruler-combined" class="me-1" />
+                {{ etiquetas.superficie || 'Superficie Mts.2' }}
+              </label>
               <div class="form-control-static">{{ formatNumber(datosRegistro.superficie) }}</div>
             </div>
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.sector || 'Sector' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="city" class="me-1" />
+                {{ etiquetas.sector || 'Sector' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.sector || 'N/A' }}</div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.recaudadora || 'Recaudadora' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="cash-register" class="me-1" />
+                {{ etiquetas.recaudadora || 'Recaudadora' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.recaudadora || 'N/A' }}</div>
             </div>
             <div class="form-group">
-              <label class="municipal-form-label">{{ etiquetas.zona || 'Zona' }}</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="map" class="me-1" />
+                {{ etiquetas.zona || 'Zona' }}
+              </label>
               <div class="form-control-static">{{ datosRegistro.zona || 'N/A' }}</div>
             </div>
           </div>
@@ -246,12 +332,11 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando...</p>
-        </div>
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="!registroEncontrado && !loading" class="empty-state">
+        <font-awesome-icon icon="search" class="empty-icon" />
+        <h3>Buscar Registro</h3>
+        <p>Ingrese los datos de búsqueda para localizar el registro a reactivar</p>
       </div>
     </div>
     <!-- /module-view-content -->
@@ -259,7 +344,13 @@
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <small v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" />
+          {{ formatDuration(toast.duration) }}
+        </small>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -281,6 +372,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -294,6 +386,7 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { isLoading: globalLoading, setLoading: setGlobalLoading } = useGlobalLoading()
 const {
   loading,
   setLoading,
@@ -307,6 +400,8 @@ const {
 // Estado
 const tablaActual = ref('')
 const nombreTabla = ref('')
+const loadingEstadisticas = ref(false)
+const showBusqueda = ref(true)
 const etiquetas = ref({
   concesionario: 'Concesionario',
   ubicacion: 'Ubicación',
@@ -341,6 +436,10 @@ const goBack = () => {
   router.push('/otras_obligaciones')
 }
 
+const toggleBusqueda = () => {
+  showBusqueda.value = !showBusqueda.value
+}
+
 // Obtener número de tabla del query param
 const obtenerTabla = () => {
   const tabla = route.query.tabla || route.params.tabla
@@ -355,12 +454,15 @@ const obtenerTabla = () => {
 
 // Cargar información de la tabla y etiquetas
 const cargarDatosIniciales = async () => {
+  const startTime = performance.now()
   setLoading(true, 'Cargando configuración...')
+  setGlobalLoading(true)
+  loadingEstadisticas.value = true
 
   try {
     // Cargar información de la tabla
     const responseTabla = await execute(
-      'SP_GADEUDOS_OPCMULT_TABLAS_GET',
+      'SP_GADEUDOS_OPCMULT_RA_TABLAS_GET',
       'otras_obligaciones',
       [
         { nombre: 'par_tab', valor: tablaActual.value, tipo: 'string' }
@@ -375,7 +477,7 @@ const cargarDatosIniciales = async () => {
 
     // Cargar etiquetas
     const responseEtiq = await execute(
-      'SP_GADEUDOS_OPCMULT_ETIQUETAS_GET',
+      'SP_GADEUDOS_OPCMULT_RA_ETIQUETAS_GET',
       'otras_obligaciones',
       [
         { nombre: 'par_tab', valor: tablaActual.value, tipo: 'string' }
@@ -401,10 +503,16 @@ const cargarDatosIniciales = async () => {
         zona: etiq.zona || 'Zona'
       }
     }
+
+    const endTime = performance.now()
+    const duration = endTime - startTime
+    showToast('success', 'Configuración cargada correctamente', duration)
   } catch (error) {
     handleApiError(error)
   } finally {
     setLoading(false)
+    setGlobalLoading(false)
+    loadingEstadisticas.value = false
   }
 }
 
@@ -439,11 +547,13 @@ const buscarRegistro = async () => {
     return
   }
 
+  const startTime = performance.now()
   setLoading(true, 'Buscando registro...')
+  setGlobalLoading(true)
 
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPCMULT_DATOS_GET',
+      'SP_GADEUDOS_OPCMULT_RA_DATOS_GET',
       'otras_obligaciones',
       [
         { nombre: 'par_tab', valor: tablaActual.value, tipo: 'string' },
@@ -462,7 +572,9 @@ const buscarRegistro = async () => {
       } else {
         datosRegistro.value = data
         registroEncontrado.value = true
-        showToast('success', 'Registro encontrado')
+        const endTime = performance.now()
+        const duration = endTime - startTime
+        showToast('success', 'Registro encontrado', duration)
       }
     } else {
       showToast('error', 'No se encontró el registro')
@@ -475,6 +587,7 @@ const buscarRegistro = async () => {
     datosRegistro.value = {}
   } finally {
     setLoading(false)
+    setGlobalLoading(false)
   }
 }
 
@@ -497,12 +610,12 @@ const ejecutarOperacion = async () => {
     html: `
       <div style="text-align: left; padding: 0 20px;">
         <p style="margin-bottom: 10px;">¿Está seguro de reactivar este registro?</p>
-        <p style="font-weight: bold; color: #ea8215; margin: 10px 0;">Concesionario: ${datosRegistro.value.concesionario || 'N/A'}</p>
+        <p style="font-weight: bold; color: #7c3aed; margin: 10px 0;">Concesionario: ${datosRegistro.value.concesionario || 'N/A'}</p>
         <p style="font-size: 0.9em; color: #666;">Esta acción cambiará el status del registro y sus adeudos asociados.</p>
       </div>
     `,
     showCancelButton: true,
-    confirmButtonColor: '#ea8215',
+    confirmButtonColor: '#7c3aed',
     cancelButtonColor: '#6c757d',
     confirmButtonText: 'Sí, reactivar',
     cancelButtonText: 'Cancelar'
@@ -512,11 +625,13 @@ const ejecutarOperacion = async () => {
     return
   }
 
+  const startTime = performance.now()
   procesando.value = true
+  setGlobalLoading(true)
 
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPCMULT_REACTIVAR',
+      'SP_GADEUDOS_OPCMULT_RA_REACTIVAR',
       'otras_obligaciones',
       [
         { nombre: 'p_id_datos', valor: datosRegistro.value.id_datos, tipo: 'integer' },
@@ -530,14 +645,18 @@ const ejecutarOperacion = async () => {
       const result = response.result[0]
 
       if (result.success === 1) {
+        const endTime = performance.now()
+        const duration = endTime - startTime
+
         await Swal.fire({
           icon: 'success',
           title: 'Reactivación Exitosa',
           text: result.message || 'El registro ha sido reactivado correctamente',
-          confirmButtonColor: '#ea8215',
+          confirmButtonColor: '#7c3aed',
           timer: 3000
         })
 
+        showToast('success', 'Registro reactivado correctamente', duration)
         // Recargar datos del registro
         buscarRegistro()
       } else {
@@ -545,7 +664,7 @@ const ejecutarOperacion = async () => {
           icon: 'error',
           title: 'Error al Reactivar',
           text: result.message || 'No se pudo reactivar el registro',
-          confirmButtonColor: '#ea8215'
+          confirmButtonColor: '#7c3aed'
         })
       }
     } else {
@@ -553,7 +672,7 @@ const ejecutarOperacion = async () => {
         icon: 'error',
         title: 'Error',
         text: 'Respuesta inesperada del servidor',
-        confirmButtonColor: '#ea8215'
+        confirmButtonColor: '#7c3aed'
       })
     }
   } catch (error) {
@@ -562,10 +681,11 @@ const ejecutarOperacion = async () => {
       icon: 'error',
       title: 'Error de Conexión',
       text: 'No se pudo reactivar el registro',
-      confirmButtonColor: '#ea8215'
+      confirmButtonColor: '#7c3aed'
     })
   } finally {
     procesando.value = false
+    setGlobalLoading(false)
   }
 }
 
@@ -595,6 +715,36 @@ const getStatusClass = (status) => {
   return 'alert-info'
 }
 
+// Obtener icono según el status
+const getStatusIcon = (status) => {
+  if (!status) return 'info-circle'
+
+  const statusUpper = status.toUpperCase()
+  if (statusUpper.includes('BAJA') || statusUpper.includes('CANCELADO')) {
+    return 'times-circle'
+  } else if (statusUpper.includes('ADEUDO')) {
+    return 'exclamation-triangle'
+  } else if (statusUpper.includes('PAGADO') || statusUpper.includes('CORRIENTE')) {
+    return 'check-circle'
+  }
+  return 'info-circle'
+}
+
+// Obtener clase de badge según el status
+const getBadgeClass = (status) => {
+  if (!status) return 'badge badge-secondary'
+
+  const statusUpper = status.toUpperCase()
+  if (statusUpper.includes('BAJA') || statusUpper.includes('CANCELADO')) {
+    return 'badge badge-danger'
+  } else if (statusUpper.includes('ADEUDO')) {
+    return 'badge badge-warning'
+  } else if (statusUpper.includes('PAGADO') || statusUpper.includes('CORRIENTE')) {
+    return 'badge badge-success'
+  }
+  return 'badge badge-purple'
+}
+
 // Formatear fecha
 const formatDate = (date) => {
   if (!date) return 'N/A'
@@ -616,8 +766,56 @@ const formatNumber = (num) => {
   }
 }
 
+// Formatear duración (ms -> s o ms)
+const formatDuration = (ms) => {
+  if (!ms) return ''
+  return ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${ms.toFixed(0)}ms`
+}
+
 // Lifecycle
 onMounted(() => {
   obtenerTabla()
 })
 </script>
+
+<style scoped>
+.align-self-end {
+  align-self: flex-end;
+}
+
+.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.accordion-icon {
+  transition: transform 0.3s ease;
+  color: #7c3aed;
+}
+
+.toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toast-duration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.8;
+  font-size: 0.85em;
+}
+
+.me-1 {
+  margin-right: 0.25rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.ms-auto {
+  margin-left: auto;
+}
+</style>

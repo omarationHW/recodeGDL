@@ -308,7 +308,7 @@ const searchLicencia = async () => {
   try {
     // SP_BUSCAR_LICENCIA
     const response = await execute(
-      '\1',
+      'sp_buscar_licencia',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -343,11 +343,11 @@ const getReciboInfo = async () => {
   try {
     // SP_GET_LICENCIA_RECIBO
     const response = await execute(
-      '\1',
+      'sp_get_licencia_recibo',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' },
-        { nombre: 'p_tiporecibo', valor: filters.value.tipoRecibo || '\1', tipo: 'string' }
+        { nombre: 'p_tiporecibo', valor: filters.value.tipoRecibo || 'NORMAL', tipo: 'string' }
       ],
       'guadalajara'
     )
@@ -369,7 +369,7 @@ const getParametrosRecibo = async () => {
   try {
     // SP_GET_PARAMETROS_RECIBO
     const response = await execute(
-      '\1',
+      'sp_get_parametros_recibo',
       'padron_licencias',
       [],
       'guadalajara'
@@ -387,7 +387,7 @@ const convertirMontoALetras = async (monto) => {
   try {
     // SP_NUMERO_A_LETRAS
     const response = await execute(
-      '\1',
+      'sp_numero_a_letras',
       'padron_licencias',
       [
         { nombre: 'p_numero', valor: monto, tipo: 'decimal' }
@@ -431,7 +431,7 @@ const generateReciboPreview = () => {
         </div>
         <div style="text-align: right;">
           <p style="margin: 5px 0;"><strong>Folio Pago:</strong> ${filters.value.folioPago || 'POR ASIGNAR'}</p>
-          <p style="margin: 5px 0;"><strong>Tipo:</strong> ${filters.value.tipoRecibo || '\1'}</p>
+          <p style="margin: 5px 0;"><strong>Tipo:</strong> ${filters.value.tipoRecibo || 'NORMAL'}</p>
         </div>
       </div>
 
@@ -581,7 +581,7 @@ const formatCurrency = (value) => {
   if (!value) return '$0.00'
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
-    currency: '\1'
+    currency: 'MXN'
   }).format(value)
 }
 

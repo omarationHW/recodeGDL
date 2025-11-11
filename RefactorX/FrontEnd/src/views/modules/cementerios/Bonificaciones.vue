@@ -1,28 +1,28 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
+  <div class="module-view">
+    <div class="module-view-header">
       <div class="module-title-section">
-        <i class="fas fa-hand-holding-usd module-icon"></i>
+        <font-awesome-icon icon="hand-holding-usd module-icon" />
         <div>
-          <h1 class="module-title">Bonificaciones de Cementerios</h1>
+          <h1 class="module-view-info">Bonificaciones de Cementerios</h1>
           <p class="module-subtitle">Gestión de bonificaciones y descuentos por oficio</p>
         </div>
       </div>
       <div class="module-actions">
         <button @click="showHelp = true" class="btn-icon" title="Ayuda">
-          <i class="fas fa-question-circle"></i>
+          <font-awesome-icon icon="question-circle" />
         </button>
       </div>
     </div>
 
     <div class="module-content">
       <!-- Paso 1: Datos del Oficio -->
-      <div class="card">
-        <div class="card-header">
-          <i class="fas fa-file-signature"></i>
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="file-signature" />
           Paso 1: Datos del Oficio
         </div>
-        <div class="card-body">
+        <div class="municipal-card-body">
           <div class="form-grid-three">
             <div class="form-group">
               <label for="oficio" class="form-label required">Número de Oficio</label>
@@ -31,7 +31,7 @@
                 v-model.number="datosOficio.oficio"
                 type="number"
                 min="1"
-                class="form-control"
+                class="municipal-form-control"
                 :disabled="pasoActual > 1"
               />
             </div>
@@ -44,7 +44,7 @@
                 type="number"
                 :min="currentYear - 10"
                 :max="currentYear"
-                class="form-control"
+                class="municipal-form-control"
                 :disabled="pasoActual > 1"
               />
             </div>
@@ -56,7 +56,7 @@
                 v-model="datosOficio.doble"
                 type="text"
                 maxlength="1"
-                class="form-control"
+                class="municipal-form-control"
                 placeholder="0-9"
                 :disabled="pasoActual > 1"
               />
@@ -70,7 +70,7 @@
               class="btn-municipal-primary"
               :disabled="!oficioValid"
             >
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar Oficio
             </button>
             <button
@@ -78,7 +78,7 @@
               @click="nuevoOficio"
               class="btn-municipal-secondary"
             >
-              <i class="fas fa-redo"></i>
+              <font-awesome-icon icon="redo" />
               Nuevo Oficio
             </button>
           </div>
@@ -86,12 +86,12 @@
       </div>
 
       <!-- Paso 2: Datos del Folio (solo si se encontró o es nuevo oficio) -->
-      <div v-if="pasoActual >= 2" class="card mt-3">
-        <div class="card-header">
-          <i class="fas fa-folder"></i>
+      <div v-if="pasoActual >= 2" class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="folder" />
           Paso 2: Folio a Bonificar
         </div>
-        <div class="card-body">
+        <div class="municipal-card-body">
           <div class="form-grid-two">
             <div class="form-group">
               <label for="folio" class="form-label required">Folio (Control RCM)</label>
@@ -99,20 +99,20 @@
                 id="folio"
                 v-model.number="folioBuscar"
                 type="number"
-                class="form-control"
+                class="municipal-form-control"
                 :disabled="pasoActual === 3 || modoModificacion"
                 @keyup.enter="buscarFolio"
               />
             </div>
             <div class="form-group">
-              <label class="form-label">&nbsp;</label>
+              <label class="municipal-form-label">&nbsp;</label>
               <button
                 v-if="!modoModificacion && pasoActual === 2"
                 @click="buscarFolio"
                 class="btn-municipal-primary"
                 :disabled="!folioBuscar"
               >
-                <i class="fas fa-search"></i>
+                <font-awesome-icon icon="search" />
                 Buscar Folio
               </button>
             </div>
@@ -146,12 +146,12 @@
       </div>
 
       <!-- Paso 3: Datos de la Bonificación -->
-      <div v-if="pasoActual === 3" class="card mt-3">
-        <div class="card-header">
-          <i class="fas fa-calculator"></i>
+      <div v-if="pasoActual === 3" class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="calculator" />
           Datos de la Bonificación
         </div>
-        <div class="card-body">
+        <div class="municipal-card-body">
           <div class="form-grid-two">
             <div class="form-group">
               <label for="fechaOficio" class="form-label required">Fecha del Oficio</label>
@@ -159,7 +159,7 @@
                 id="fechaOficio"
                 v-model="formBonificacion.fecha_ofic"
                 type="date"
-                class="form-control"
+                class="municipal-form-control"
               />
             </div>
 
@@ -171,7 +171,7 @@
                 type="number"
                 step="0.01"
                 min="0"
-                class="form-control"
+                class="municipal-form-control"
                 @blur="calcularPendiente"
               />
             </div>
@@ -179,26 +179,26 @@
 
           <div class="form-grid-two">
             <div class="form-group">
-              <label for="importeBonificado" class="form-label">Importe Bonificado</label>
+              <label for="importeBonificado" class="municipal-form-label">Importe Bonificado</label>
               <input
                 id="importeBonificado"
                 v-model.number="formBonificacion.importe_bonificado"
                 type="number"
                 step="0.01"
                 min="0"
-                class="form-control"
+                class="municipal-form-control"
                 @blur="calcularPendiente"
               />
             </div>
 
             <div class="form-group">
-              <label for="importePendiente" class="form-label">Pendiente por Bonificar</label>
+              <label for="importePendiente" class="municipal-form-label">Pendiente por Bonificar</label>
               <input
                 id="importePendiente"
                 v-model.number="formBonificacion.importe_resto"
                 type="number"
                 step="0.01"
-                class="form-control"
+                class="municipal-form-control"
                 disabled
               />
             </div>
@@ -227,7 +227,7 @@
               class="btn-municipal-primary"
               :disabled="!bonificacionValid"
             >
-              <i class="fas fa-save"></i>
+              <font-awesome-icon icon="save" />
               {{ modoModificacion ? 'Guardar Cambios' : 'Registrar Bonificación' }}
             </button>
             <button
@@ -235,14 +235,14 @@
               @click="confirmarEliminacion"
               class="btn-danger"
             >
-              <i class="fas fa-trash"></i>
+              <font-awesome-icon icon="trash" />
               Eliminar
             </button>
             <button
               @click="cancelar"
               class="btn-municipal-secondary"
             >
-              <i class="fas fa-times"></i>
+              <font-awesome-icon icon="times" />
               Cancelar
             </button>
           </div>
@@ -301,11 +301,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showSuccess, showError, showWarning } = useToast()
 
 // Estado
@@ -375,18 +377,21 @@ const buscarOficio = async () => {
 
   try {
     const response = await execute(
-      'SP_CEM_BUSCAR_BONIFICACION',
+      'sp_cem_buscar_bonificacion',
       'cementerios',
       {
         p_oficio: datosOficio.value.oficio,
         p_axo: datosOficio.value.axo,
         p_doble: datosOficio.value.doble
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.resultado === 'S' && response.data && response.data.length > 0) {
+    if (response && response.resultado === 'S' && response.result && response.result.length > 0) {
       // Bonificación existe - modo modificación
-      const bonif = response.data[0]
+      const bonif = response.result[0]
       modoModificacion.value = true
       pasoActual.value = 3
       folioBuscar.value = bonif.control_rcm
@@ -439,13 +444,16 @@ const buscarFolio = async () => {
 
   try {
     const response = await execute(
-      'SP_CEM_BUSCAR_FOLIO',
+      'sp_cem_buscar_folio',
       'cementerios',
-      { p_control_rcm: folioBuscar.value }
+      { p_control_rcm: folioBuscar.value },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.resultado === 'S' && response.data && response.data.length > 0) {
-      const folio = response.data[0]
+    if (response && response.resultado === 'S' && response.result && response.result.length > 0) {
+      const folio = response.result[0]
 
       if (folio.vigencia === 'B') {
         showWarning('Este folio está dado de baja')
@@ -493,7 +501,7 @@ const guardarBonificacion = async () => {
 
   try {
     const response = await execute(
-      'SP_CEM_REGISTRAR_BONIFICACION',
+      'sp_cem_registrar_bonificacion',
       'cementerios',
       {
         p_operacion: modoModificacion.value ? 2 : 1,
@@ -506,7 +514,10 @@ const guardarBonificacion = async () => {
         p_importe_bonificado: formBonificacion.value.importe_bonificado,
         p_importe_resto: formBonificacion.value.importe_resto,
         p_usuario: 1 // TODO: Obtener del contexto de usuario
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
     if (response && response.resultado === 'S') {
@@ -548,13 +559,16 @@ const confirmarEliminacion = async () => {
 const eliminarBonificacion = async () => {
   try {
     const response = await execute(
-      'SP_CEM_ELIMINAR_BONIFICACION',
+      'sp_cem_eliminar_bonificacion',
       'cementerios',
       {
         p_oficio: datosOficio.value.oficio,
         p_axo: datosOficio.value.axo,
         p_doble: datosOficio.value.doble
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
     if (response && response.resultado === 'S') {

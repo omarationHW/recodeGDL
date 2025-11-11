@@ -11,9 +11,9 @@ CREATE OR REPLACE FUNCTION sp_busca_folios_divadmin(
     axo integer
 )
 RETURNS TABLE (
-    axo integer,
-    folio integer,
-    placa varchar,
+    ret_axo integer,
+    ret_folio integer,
+    ret_placa varchar,
     fecha_folio date,
     estado smallint,
     infraccion smallint,

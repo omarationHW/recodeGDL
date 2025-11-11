@@ -10,7 +10,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
-const { loading, execute } = useApi(); const BASE_DB='INFORMIX'; const OP='RECAUDADORA_DDERECHOSLIC'; const filters=ref({ licencia:'' }); const rows=ref([]); const cols=ref([])
+const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_DDERECHOSLIC'; const filters=ref({ licencia:'' }); const rows=ref([]); const cols=ref([])
 async function reload(){ try{ const data=await execute(OP, BASE_DB, [ { name:'licencia', type:'C', value:String(filters.value.licencia||'') } ]); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; cols.value=[] } }
 </script>
 

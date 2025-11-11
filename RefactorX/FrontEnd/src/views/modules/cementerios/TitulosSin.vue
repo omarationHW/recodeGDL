@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-file-contract"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="file-contract" />
         Generación de Títulos sin Número
       </h1>
       <DocumentationModal
@@ -12,26 +12,26 @@
     </div>
 
     <!-- Búsqueda de Folio -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-search"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="search" />
         Buscar Folio para Generar Título
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Número de Folio</label>
             <input
               v-model.number="folioABuscar"
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               @keyup.enter="buscarFolio"
               autofocus
             />
           </div>
           <div class="form-actions">
             <button @click="buscarFolio" class="btn-municipal-primary">
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar
             </button>
           </div>
@@ -40,15 +40,15 @@
     </div>
 
     <!-- Información del Folio y Generación de Título -->
-    <div v-if="folio" class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-info-circle"></i>
+    <div v-if="folio" class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="info-circle" />
         Información del Folio {{ folio.control_rcm }}
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="folio-details-grid">
           <div class="detail-section">
-            <h5><i class="fas fa-user"></i> Datos del Titular</h5>
+            <h5><font-awesome-icon icon="user" /> Datos del Titular</h5>
             <div class="detail-item">
               <label>Nombre:</label>
               <span>{{ folio.nombre }}</span>
@@ -60,7 +60,7 @@
           </div>
 
           <div class="detail-section">
-            <h5><i class="fas fa-map-marker-alt"></i> Ubicación</h5>
+            <h5><font-awesome-icon icon="map-marker-alt" /> Ubicación</h5>
             <div class="detail-item">
               <label>Cementerio:</label>
               <span>{{ folio.cementerio }}</span>
@@ -78,25 +78,25 @@
 
         <!-- Datos para el Título -->
         <div class="titulo-form-section mt-3">
-          <h5><i class="fas fa-file-signature"></i> Datos del Título</h5>
+          <h5><font-awesome-icon icon="file-signature" /> Datos del Título</h5>
           <div class="form-grid-three">
             <div class="form-group">
               <label class="form-label required">Fecha de Emisión</label>
-              <input v-model="tituloData.fecha_emision" type="date" class="form-control" />
+              <input v-model="tituloData.fecha_emision" type="date" class="municipal-form-control" />
             </div>
             <div class="form-group">
               <label class="form-label required">Importe</label>
               <input
                 v-model.number="tituloData.importe"
                 type="number"
-                class="form-control"
+                class="municipal-form-control"
                 step="0.01"
                 min="0"
               />
             </div>
             <div class="form-group">
-              <label class="form-label">Recaudación</label>
-              <select v-model="tituloData.recaudacion" class="form-control">
+              <label class="municipal-form-label">Recaudación</label>
+              <select v-model="tituloData.recaudacion" class="municipal-form-control">
                 <option value="">-- Seleccione --</option>
                 <option v-for="rec in recaudaciones" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.nombre }}
@@ -105,10 +105,10 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Observaciones</label>
+            <label class="municipal-form-label">Observaciones</label>
             <textarea
               v-model="tituloData.observaciones"
-              class="form-control"
+              class="municipal-form-control"
               rows="3"
               maxlength="255"
             ></textarea>
@@ -117,11 +117,11 @@
 
         <div class="form-actions mt-3">
           <button @click="generarTitulo" class="btn-municipal-primary">
-            <i class="fas fa-file-alt"></i>
+            <font-awesome-icon icon="file-alt" />
             Generar Título
           </button>
           <button @click="limpiar" class="btn-municipal-secondary">
-            <i class="fas fa-eraser"></i>
+            <font-awesome-icon icon="eraser" />
             Limpiar
           </button>
         </div>
@@ -129,15 +129,15 @@
     </div>
 
     <!-- Historial de Títulos Generados -->
-    <div v-if="titulos.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-history"></i>
+    <div v-if="titulos.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="history" />
         Títulos Generados Recientemente
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Título #</th>
                 <th>Folio</th>
@@ -156,7 +156,7 @@
                 <td>${{ formatearMoneda(titulo.importe) }}</td>
                 <td>
                   <button @click="imprimirTitulo(titulo.titulo)" class="btn-municipal-secondary btn-sm">
-                    <i class="fas fa-print"></i>
+                    <font-awesome-icon icon="print" />
                   </button>
                 </td>
               </tr>
@@ -171,11 +171,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const folioABuscar = ref(null)
 const folio = ref(null)
@@ -215,12 +222,22 @@ const buscarFolio = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIO', {
-      p_control_rcm: folioABuscar.value
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: folioABuscar.value,
+        tipo: 'string'
+      }
+    ]
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'N') {
         folio.value = null
@@ -244,8 +261,8 @@ const buscarFolio = async () => {
 
 const cargarRecaudaciones = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_RECAUDACIONES', {})
-    recaudaciones.value = response.data || []
+    const response = await api.callStoredProcedure('sp_cem_listar_recaudaciones', {})
+    recaudaciones.value = response.result || []
   } catch (error) {
     console.error('Error al cargar recaudaciones:', error)
   }
@@ -258,13 +275,31 @@ const cargarTitulosRecientes = async () => {
     fechaHaceMes.setMonth(fechaHaceMes.getMonth() - 1)
     const fechaDesde = fechaHaceMes.toISOString().split('T')[0]
 
-    const response = await api.callStoredProcedure('SP_CEM_REPORTE_TITULOS', {
-      p_fecha_desde: fechaDesde,
-      p_fecha_hasta: fechaHoy,
-      p_cementerio: null
-    })
+    const params = [
+      {
+        nombre: 'p_fecha_desde',
+        valor: fechaDesde,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_fecha_hasta',
+        valor: fechaHoy,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_cementerio',
+        valor: null,
+        tipo: 'string'
+      }
+    ]
 
-    titulos.value = response.data?.slice(0, 10) || []
+    const response = await execute('sp_cem_reporte_titulos', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    titulos.value = response.result?.slice(0, 10) || []
   } catch (error) {
     console.error('Error al cargar títulos recientes:', error)
     titulos.value = []
@@ -278,17 +313,47 @@ const generarTitulo = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_GENERAR_TITULO', {
-      p_control_rcm: folioABuscar.value,
-      p_fecha: tituloData.fecha_emision,
-      p_importe: tituloData.importe,
-      p_recaudacion: tituloData.recaudacion || 1,
-      p_observaciones: tituloData.observaciones || '',
-      p_usuario: 1
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: folioABuscar.value,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_fecha',
+        valor: tituloData.fecha_emision,
+        tipo: 'date'
+      },
+      {
+        nombre: 'p_importe',
+        valor: tituloData.importe,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_recaudacion',
+        valor: tituloData.recaudacion || 1,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_observaciones',
+        valor: tituloData.observaciones || '',
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_usuario',
+        valor: 1,
+        tipo: 'string'
+      }
+    ]
 
-    if (response.data && response.data[0]?.resultado === 'S') {
-      const numeroTitulo = response.data[0].titulo
+    const response = await execute('sp_cem_generar_titulo', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    if (response.result && response.result[0]?.resultado === 'S') {
+      const numeroTitulo = response.result[0].titulo
       toast.success(`Título #${numeroTitulo} generado exitosamente`)
 
       // Limpiar formulario
@@ -299,7 +364,7 @@ const generarTitulo = async () => {
 
       await cargarTitulosRecientes()
     } else {
-      toast.error(response.data[0]?.mensaje || 'Error al generar título')
+      toast.error(response.result[0]?.mensaje || 'Error al generar título')
     }
   } catch (error) {
     console.error('Error al generar título:', error)
@@ -356,6 +421,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Layout único de títulos y detalles - Justificado mantener scoped */
 .folio-details-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -411,16 +477,5 @@ onMounted(() => {
   gap: 0.5rem;
   margin-bottom: 1rem;
   color: var(--color-primary);
-}
-
-.form-grid-three {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.btn-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
 }
 </style>

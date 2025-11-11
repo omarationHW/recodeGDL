@@ -4,7 +4,7 @@
 -- Generado para formulario: SFRM_REPORTES_EXEC
 -- Fecha: 2025-08-27 14:25:55
 
-CREATE OR REPLACE FUNCTION sp_get_estado_cuenta(no_exclusivo INT)
+CREATE OR REPLACE FUNCTION sp_get_estado_cuenta(p_no_exclusivo INT)
 RETURNS TABLE(
     id INT,
     ex_propietario_id INT,
@@ -44,7 +44,7 @@ BEGIN
     FROM ex_contrato a
     JOIN ex_propietario b ON a.ex_propietario_id = b.id
     JOIN ex_clasificacion c ON c.id = a.id_clasificacion
-    WHERE a.no_exclusivo = no_exclusivo
+    WHERE a.no_exclusivo = p_no_exclusivo
       AND a.estatus <> 'C'
       AND a.id_clasificacion IN (1,3)
     ORDER BY c.concepto, a.no_exclusivo;

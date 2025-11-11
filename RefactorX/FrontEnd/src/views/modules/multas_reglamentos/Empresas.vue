@@ -83,7 +83,7 @@ import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import Modal from '@/components/common/Modal.vue'
 
-const BASE_DB = 'INFORMIX'
+const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_EMPRESAS' // TODO confirmar
 
 const { loading, execute } = useApi()

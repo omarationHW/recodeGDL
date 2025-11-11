@@ -45,7 +45,7 @@
         <div class="municipal-card-header">
           <h5>
             <font-awesome-icon icon="list" /> Resultados
-            <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
+            <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
           </h5>
           <div v-if="loading" class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
         </div>

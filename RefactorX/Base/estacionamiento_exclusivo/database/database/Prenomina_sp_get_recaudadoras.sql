@@ -9,7 +9,7 @@ RETURNS TABLE(id_rec smallint, nombre text, recaudadora text) AS $$
 BEGIN
   RETURN QUERY
     SELECT id_rec, nombre, recaudadora
-    FROM ta_12_recaudadoras
+    FROM padron_licencias.comun.ta_12_recaudadoras
     WHERE id_rec < 8
     ORDER BY id_rec;
 END;

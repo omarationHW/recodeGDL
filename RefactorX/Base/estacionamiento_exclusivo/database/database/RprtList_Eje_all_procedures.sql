@@ -87,7 +87,7 @@ BEGIN
     sql := $$
     SELECT a.id_control, a.zona, a.modulo, a.control_otr, a.folio, a.diligencia, a.importe_global, a.importe_multa, a.importe_recargo, a.importe_gastos, a.zona_apremio, a.fecha_emision, a.clave_practicado, a.fecha_practicado, a.fecha_entrega1, a.fecha_entrega2, a.fecha_citatorio, a.hora, a.ejecutor, a.clave_secuestro, a.clave_remate, a.fecha_remate, a.porcentaje_multa, a.observaciones, a.fecha_pago, a.recaudadora, a.caja, a.operacion, a.importe_pago, a.vigencia, a.fecha_actualiz, a.usuario, a.clave_mov, a.hora_practicado, b.nombre,
       g.gtos_requer,
-      COALESCE((SELECT importe FROM ta_12_recibos WHERE fecha=a.fecha_pago AND id_rec=a.recaudadora AND caja=a.caja AND operacion=a.operacion),0) AS totcer,
+      COALESCE((SELECT importe FROM padron_licencias.comun.ta_12_recibos WHERE fecha=a.fecha_pago AND id_rec=a.recaudadora AND caja=a.caja AND operacion=a.operacion),0) AS totcer,
       (a.fecha_pago - a.fecha_practicado) AS diaspas,
       NULL::TEXT AS datos,
       NULL::TEXT AS aplicacion,

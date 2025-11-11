@@ -1,34 +1,34 @@
 <template>
-  <div class="module-container">
+  <div class="module-view">
     <!-- Header -->
-    <div class="module-header">
+    <div class="module-view-header">
       <div class="module-title-section">
-        <i class="fas fa-map-marked-alt module-icon"></i>
+        <font-awesome-icon icon="map-marked-alt module-icon" />
         <div>
-          <h1 class="module-title">Traslados por Ubicación</h1>
+          <h1 class="module-view-info">Traslados por Ubicación</h1>
           <p class="module-subtitle">Traslado de pagos entre ubicaciones físicas</p>
         </div>
       </div>
       <div class="module-actions">
         <button class="btn-help" @click="mostrarAyuda = true">
-          <i class="fas fa-question-circle"></i>
+          <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
       </div>
     </div>
 
     <!-- Ubicaciones -->
-    <div class="card">
-      <div class="card-header">
-        <i class="fas fa-map-pin"></i>
+    <div class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="map-pin" />
         Ubicaciones Físicas
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="ubicaciones-grid">
           <!-- Ubicación Origen -->
           <div class="ubicacion-form">
             <h3 class="ubicacion-title origin">
-              <i class="fas fa-arrow-right"></i>
+              <font-awesome-icon icon="arrow-right" />
               Ubicación Origen
             </h3>
 
@@ -48,7 +48,7 @@
                 <input type="number" v-model.number="origen.clase" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Clase Alfa</label>
+                <label class="municipal-form-label">Clase Alfa</label>
                 <input v-model="origen.clase_alfa" class="form-input" maxlength="2" />
               </div>
             </div>
@@ -59,7 +59,7 @@
                 <input type="number" v-model.number="origen.seccion" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Sección Alfa</label>
+                <label class="municipal-form-label">Sección Alfa</label>
                 <input v-model="origen.seccion_alfa" class="form-input" maxlength="2" />
               </div>
             </div>
@@ -70,7 +70,7 @@
                 <input type="number" v-model.number="origen.linea" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Línea Alfa</label>
+                <label class="municipal-form-label">Línea Alfa</label>
                 <input v-model="origen.linea_alfa" class="form-input" maxlength="2" />
               </div>
             </div>
@@ -81,20 +81,20 @@
                 <input type="number" v-model.number="origen.fosa" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Fosa Alfa</label>
+                <label class="municipal-form-label">Fosa Alfa</label>
                 <input v-model="origen.fosa_alfa" class="form-input" maxlength="4" />
               </div>
             </div>
           </div>
 
           <div class="transfer-arrow">
-            <i class="fas fa-arrow-circle-right"></i>
+            <font-awesome-icon icon="arrow-circle-right" />
           </div>
 
           <!-- Ubicación Destino -->
           <div class="ubicacion-form">
             <h3 class="ubicacion-title destination">
-              <i class="fas fa-arrow-left"></i>
+              <font-awesome-icon icon="arrow-left" />
               Ubicación Destino
             </h3>
 
@@ -114,7 +114,7 @@
                 <input type="number" v-model.number="destino.clase" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Clase Alfa</label>
+                <label class="municipal-form-label">Clase Alfa</label>
                 <input v-model="destino.clase_alfa" class="form-input" maxlength="2" />
               </div>
             </div>
@@ -125,7 +125,7 @@
                 <input type="number" v-model.number="destino.seccion" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Sección Alfa</label>
+                <label class="municipal-form-label">Sección Alfa</label>
                 <input v-model="destino.seccion_alfa" class="form-input" maxlength="2" />
               </div>
             </div>
@@ -136,7 +136,7 @@
                 <input type="number" v-model.number="destino.linea" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Línea Alfa</label>
+                <label class="municipal-form-label">Línea Alfa</label>
                 <input v-model="destino.linea_alfa" class="form-input" maxlength="2" />
               </div>
             </div>
@@ -147,7 +147,7 @@
                 <input type="number" v-model.number="destino.fosa" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Fosa Alfa</label>
+                <label class="municipal-form-label">Fosa Alfa</label>
                 <input v-model="destino.fosa_alfa" class="form-input" maxlength="4" />
               </div>
             </div>
@@ -156,7 +156,7 @@
 
         <div class="form-actions mt-3">
           <button class="btn-municipal-primary" @click="verificarUbicaciones" :disabled="!ubicacionesValidas">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon icon="search" />
             Verificar Ubicaciones
           </button>
         </div>
@@ -164,22 +164,22 @@
     </div>
 
     <!-- Pagos Encontrados -->
-    <div v-if="pagosOrigen.length > 0" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="pagosOrigen.length > 0" class="municipal-card mt-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Pagos en Ubicación Origen ({{ pagosOrigen.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div v-if="folioDestino" class="alert-info mb-3">
-          <i class="fas fa-info-circle"></i>
+          <font-awesome-icon icon="info-circle" />
           <span>
             Destino: Folio {{ folioDestino.control_rcm }} - {{ folioDestino.nombre }}
           </span>
         </div>
 
         <div class="table-container">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Control ID</th>
                 <th>Folio</th>
@@ -208,11 +208,11 @@
 
         <div class="form-actions mt-3">
           <button class="btn-municipal-secondary" @click="cancelar">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cancelar
           </button>
           <button class="btn-municipal-primary" @click="confirmarTraslado">
-            <i class="fas fa-exchange-alt"></i>
+            <font-awesome-icon icon="exchange-alt" />
             Trasladar {{ pagosOrigen.length }} Pago(s)
           </button>
         </div>
@@ -227,7 +227,7 @@
     >
       <div class="help-content">
         <section class="help-section">
-          <h3><i class="fas fa-info-circle"></i> Descripción</h3>
+          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
           <p>
             Este módulo traslada TODOS los pagos de una ubicación física completa
             (cementerio-clase-sección-línea-fosa) a otra ubicación física.
@@ -235,7 +235,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-exclamation-triangle"></i> Diferencia con Traslado de Folios</h3>
+          <h3><font-awesome-icon icon="exclamation-triangle" /> Diferencia con Traslado de Folios</h3>
           <ul>
             <li><strong>Traslado de Folios:</strong> Mueve pagos seleccionados entre folios</li>
             <li><strong>Traslado por Ubicación:</strong> Mueve TODOS los pagos de una ubicación física a otra</li>
@@ -243,7 +243,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-list-ol"></i> Proceso</h3>
+          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
           <ol>
             <li>Complete la ubicación origen (cementerio, clase, sección, línea, fosa)</li>
             <li>Complete la ubicación destino</li>
@@ -260,6 +260,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
@@ -305,7 +306,7 @@ const ubicacionesValidas = computed(() => {
 
 onMounted(async () => {
   try {
-    const result = await callProcedure('SP_CEM_LISTAR_CEMENTERIOS', {})
+    const result = await callProcedure('sp_cem_listar_cementerios', {})
     cementerios.value = result.data || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
@@ -315,7 +316,7 @@ onMounted(async () => {
 const verificarUbicaciones = async () => {
   try {
     // Buscar pagos en ubicación origen
-    const resultPagos = await callProcedure('SP_CEM_BUSCAR_PAGOS_POR_UBICACION', {
+    const resultPagos = await callProcedure('sp_cem_buscar_pagos_por_ubicacion', {
       p_cementerio: origen.value.cementerio,
       p_clase: origen.value.clase,
       p_clase_alfa: origen.value.clase_alfa || null,
@@ -335,7 +336,7 @@ const verificarUbicaciones = async () => {
     }
 
     // Buscar folio destino
-    const resultFolio = await callProcedure('SP_CEM_BUSCAR_FOLIO_POR_UBICACION', {
+    const resultFolio = await callProcedure('sp_cem_buscar_folio_por_ubicacion', {
       p_cementerio: destino.value.cementerio,
       p_clase: destino.value.clase,
       p_clase_alfa: destino.value.clase_alfa || null,
@@ -376,7 +377,7 @@ const confirmarTraslado = async () => {
   if (!result.isConfirmed) return
 
   try {
-    const resultTraslado = await callProcedure('SP_CEM_TRASLADAR_PAGOS_UBICACION', {
+    const resultTraslado = await callProcedure('sp_cem_trasladar_pagos_ubicacion', {
       p_cem_origen: origen.value.cementerio,
       p_clase_origen: origen.value.clase,
       p_clase_alfa_origen: origen.value.clase_alfa || null,
@@ -430,6 +431,7 @@ const formatDate = (date) => {
 </script>
 
 <style scoped>
+/* Layout único de traslado por ubicaciones - Justificado mantener scoped */
 .ubicaciones-grid {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -464,18 +466,6 @@ const formatDate = (date) => {
   font-size: 3rem;
   color: var(--color-primary);
   align-self: center;
-}
-
-.text-bold {
-  font-weight: 600;
-}
-
-.mt-3 {
-  margin-top: 1rem;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
 }
 
 @media (max-width: 768px) {

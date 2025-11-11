@@ -9,6 +9,6 @@ CREATE OR REPLACE FUNCTION sp_autorizades_catalogo_oficina() RETURNS TABLE (
     nombre TEXT
 ) AS $$
 BEGIN
-    RETURN QUERY SELECT id_rec, zona as nombre FROM ta_12_recaudadoras a JOIN ta_12_zonas b ON a.id_zona = b.id_zona;
+    RETURN QUERY SELECT id_rec, zona as nombre FROM padron_licencias.comun.ta_12_recaudadoras a JOIN padron_licencias.comun.ta_12_zonas b ON a.id_zona = b.id_zona;
 END;
 $$ LANGUAGE plpgsql;

@@ -19,7 +19,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
-const BASE_DB = 'INFORMIX'
+const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_RESOLUCION_JUEZ' // TODO confirmar
 const { loading, execute } = useApi()
 const filters = ref({ cuenta: '', folio: null })

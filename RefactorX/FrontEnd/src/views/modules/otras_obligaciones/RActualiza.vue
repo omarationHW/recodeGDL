@@ -9,12 +9,22 @@
         <h1>Reporte de Actualizaciones</h1>
         <p>Otras Obligaciones - Actualización de datos de contratos</p>
       </div>
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
-        <button class="btn-municipal-secondary" @click="goBack">
-          <font-awesome-icon icon="arrow-left" /> Salir
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda y documentación del módulo"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+        <button
+          class="btn-municipal-secondary"
+          @click="goBack"
+          :disabled="isLoading"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Salir
         </button>
       </div>
     </div>
@@ -23,19 +33,47 @@
       <!-- Búsqueda -->
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="search" /> Búsqueda de Local</h5>
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Local
+          </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Número de Control:</label>
-              <input type="text" v-model="formData.numero" class="municipal-form-control" placeholder="Número" maxlength="3" style="width: 120px; display: inline-block; margin-right: 10px;" />
-              <span style="margin: 0 10px;">-</span>
-              <input type="text" v-model="formData.letra" class="municipal-form-control" placeholder="Letra" maxlength="2" style="width: 100px; display: inline-block;" />
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="hashtag" class="me-1" />
+                Número de Control:
+              </label>
+              <input
+                type="text"
+                v-model="formData.numero"
+                class="municipal-form-control"
+                placeholder="Número"
+                maxlength="3"
+              />
             </div>
-            <div class="form-group">
-              <button class="btn-municipal-primary" @click="handleBuscar" :disabled="loading">
-                <font-awesome-icon icon="search" /> Buscar
+            <div class="col-md-2">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="font" class="me-1" />
+                Letra:
+              </label>
+              <input
+                type="text"
+                v-model="formData.letra"
+                class="municipal-form-control"
+                placeholder="Letra"
+                maxlength="2"
+              />
+            </div>
+            <div class="col-md-3">
+              <button
+                class="btn-municipal-primary w-100"
+                @click="handleBuscar"
+                :disabled="isLoading"
+              >
+                <font-awesome-icon icon="search" />
+                Buscar
               </button>
             </div>
           </div>
@@ -45,36 +83,61 @@
       <!-- Datos del local encontrado -->
       <div class="municipal-card" v-if="datosLocal.control">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="info-circle" /> Datos del Local</h5>
+          <h5>
+            <font-awesome-icon icon="info-circle" />
+            Datos del Local
+          </h5>
+          <span class="badge badge-purple">{{ datosLocal.control }}</span>
         </div>
         <div class="municipal-card-body">
           <div class="info-grid">
             <div class="info-item">
-              <strong>Control:</strong>
+              <label>
+                <font-awesome-icon icon="hashtag" class="me-1" />
+                Control:
+              </label>
               <span>{{ datosLocal.control }}</span>
             </div>
             <div class="info-item">
-              <strong>Status:</strong>
-              <span>{{ datosLocal.descrip_stat }}</span>
+              <label>
+                <font-awesome-icon icon="flag" class="me-1" />
+                Status:
+              </label>
+              <span>{{ datosLocal.status }}</span>
             </div>
             <div class="info-item">
-              <strong>Concesionario:</strong>
+              <label>
+                <font-awesome-icon icon="user" class="me-1" />
+                Concesionario:
+              </label>
               <span>{{ datosLocal.concesionario }}</span>
             </div>
             <div class="info-item">
-              <strong>Ubicación:</strong>
+              <label>
+                <font-awesome-icon icon="map-marker-alt" class="me-1" />
+                Ubicación:
+              </label>
               <span>{{ datosLocal.ubicacion }}</span>
             </div>
             <div class="info-item">
-              <strong>Superficie:</strong>
+              <label>
+                <font-awesome-icon icon="ruler-combined" class="me-1" />
+                Superficie:
+              </label>
               <span>{{ datosLocal.superficie }}</span>
             </div>
             <div class="info-item">
-              <strong>Licencia:</strong>
+              <label>
+                <font-awesome-icon icon="file-alt" class="me-1" />
+                Licencia:
+              </label>
               <span>{{ datosLocal.licencia }}</span>
             </div>
             <div class="info-item">
-              <strong>Unidades:</strong>
+              <label>
+                <font-awesome-icon icon="tag" class="me-1" />
+                Unidades:
+              </label>
               <span>{{ datosLocal.unidades }}</span>
             </div>
           </div>
@@ -84,68 +147,156 @@
       <!-- Formulario de actualización -->
       <div class="municipal-card" v-if="datosLocal.control">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="edit" /> Tipo de Actualización</h5>
+          <h5>
+            <font-awesome-icon icon="edit" />
+            Tipo de Actualización
+          </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="form-group">
-            <label class="municipal-form-label">Seleccione qué desea actualizar:</label>
-            <div class="radio-group">
-              <label class="radio-label">
-                <input type="radio" name="tipoAct" value="0" v-model="formData.tipoActualizacion" @change="handleTipoChange" />
+          <div class="mb-3">
+            <label class="municipal-form-label">
+              <font-awesome-icon icon="tasks" class="me-1" />
+              Seleccione qué desea actualizar:
+            </label>
+            <div class="d-flex flex-column gap-2">
+              <label class="form-check-label">
+                <input
+                  type="radio"
+                  name="tipoAct"
+                  value="0"
+                  v-model="formData.tipoActualizacion"
+                  @change="handleTipoChange"
+                  class="form-check-input me-2"
+                />
+                <font-awesome-icon icon="user" class="me-1" />
                 <span>Concesionario</span>
               </label>
-              <label class="radio-label">
-                <input type="radio" name="tipoAct" value="1" v-model="formData.tipoActualizacion" @change="handleTipoChange" />
+              <label class="form-check-label">
+                <input
+                  type="radio"
+                  name="tipoAct"
+                  value="1"
+                  v-model="formData.tipoActualizacion"
+                  @change="handleTipoChange"
+                  class="form-check-input me-2"
+                />
+                <font-awesome-icon icon="map-marker-alt" class="me-1" />
                 <span>Ubicación</span>
               </label>
-              <label class="radio-label">
-                <input type="radio" name="tipoAct" value="2" v-model="formData.tipoActualizacion" @change="handleTipoChange" />
+              <label class="form-check-label">
+                <input
+                  type="radio"
+                  name="tipoAct"
+                  value="2"
+                  v-model="formData.tipoActualizacion"
+                  @change="handleTipoChange"
+                  class="form-check-input me-2"
+                />
+                <font-awesome-icon icon="file-alt" class="me-1" />
                 <span>Licencia</span>
               </label>
-              <label class="radio-label">
-                <input type="radio" name="tipoAct" value="3" v-model="formData.tipoActualizacion" @change="handleTipoChange" />
+              <label class="form-check-label">
+                <input
+                  type="radio"
+                  name="tipoAct"
+                  value="3"
+                  v-model="formData.tipoActualizacion"
+                  @change="handleTipoChange"
+                  class="form-check-input me-2"
+                />
+                <font-awesome-icon icon="ruler-combined" class="me-1" />
                 <span>Superficie</span>
               </label>
-              <label class="radio-label">
-                <input type="radio" name="tipoAct" value="4" v-model="formData.tipoActualizacion" @change="handleTipoChange" />
+              <label class="form-check-label">
+                <input
+                  type="radio"
+                  name="tipoAct"
+                  value="4"
+                  v-model="formData.tipoActualizacion"
+                  @change="handleTipoChange"
+                  class="form-check-input me-2"
+                />
+                <font-awesome-icon icon="tag" class="me-1" />
                 <span>Tipo de Local</span>
               </label>
-              <label class="radio-label">
-                <input type="radio" name="tipoAct" value="5" v-model="formData.tipoActualizacion" @change="handleTipoChange" />
+              <label class="form-check-label">
+                <input
+                  type="radio"
+                  name="tipoAct"
+                  value="5"
+                  v-model="formData.tipoActualizacion"
+                  @change="handleTipoChange"
+                  class="form-check-input me-2"
+                />
+                <font-awesome-icon icon="calendar-alt" class="me-1" />
                 <span>Inicio de Obligación</span>
               </label>
             </div>
           </div>
 
           <!-- Campos de edición según tipo -->
-          <div v-if="mostrarCampoEdicion" class="update-form">
+          <div v-if="mostrarCampoEdicion" class="mt-4">
             <!-- Concesionario -->
-            <div v-if="formData.tipoActualizacion === '0'" class="form-group">
-              <label class="municipal-form-label">Nuevo Concesionario:</label>
-              <input type="text" v-model="formData.nuevoConcesionario" class="municipal-form-control" />
+            <div v-if="formData.tipoActualizacion === '0'" class="mb-3">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="user" class="me-1" />
+                Nuevo Concesionario:
+              </label>
+              <input
+                type="text"
+                v-model="formData.nuevoConcesionario"
+                class="municipal-form-control"
+              />
             </div>
 
             <!-- Ubicación -->
-            <div v-if="formData.tipoActualizacion === '1'" class="form-group">
-              <label class="municipal-form-label">Nueva Ubicación:</label>
-              <input type="text" v-model="formData.nuevaUbicacion" class="municipal-form-control" />
+            <div v-if="formData.tipoActualizacion === '1'" class="mb-3">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="map-marker-alt" class="me-1" />
+                Nueva Ubicación:
+              </label>
+              <input
+                type="text"
+                v-model="formData.nuevaUbicacion"
+                class="municipal-form-control"
+              />
             </div>
 
             <!-- Licencia -->
-            <div v-if="formData.tipoActualizacion === '2'" class="form-group">
-              <label class="municipal-form-label">Nueva Licencia:</label>
-              <input type="number" v-model.number="formData.nuevaLicencia" class="municipal-form-control" :min="0" />
+            <div v-if="formData.tipoActualizacion === '2'" class="mb-3">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="file-alt" class="me-1" />
+                Nueva Licencia:
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.nuevaLicencia"
+                class="municipal-form-control"
+                :min="0"
+              />
             </div>
 
             <!-- Superficie -->
-            <div v-if="formData.tipoActualizacion === '3'" class="form-group">
-              <label class="municipal-form-label">Nueva Superficie:</label>
-              <input type="number" v-model.number="formData.nuevaSuperficie" class="municipal-form-control" :min="0" step="0.01" />
+            <div v-if="formData.tipoActualizacion === '3'" class="mb-3">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="ruler-combined" class="me-1" />
+                Nueva Superficie:
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.nuevaSuperficie"
+                class="municipal-form-control"
+                :min="0"
+                step="0.01"
+              />
             </div>
 
             <!-- Tipo Local -->
-            <div v-if="formData.tipoActualizacion === '4'" class="form-group">
-              <label class="municipal-form-label">Tipo de Local:</label>
+            <div v-if="formData.tipoActualizacion === '4'" class="mb-3">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="tag" class="me-1" />
+                Tipo de Local:
+              </label>
               <select v-model="formData.nuevoTipoLocal" class="municipal-form-control">
                 <option value="INTERNO">INTERNO</option>
                 <option value="EXTERNO">EXTERNO</option>
@@ -153,37 +304,52 @@
             </div>
 
             <!-- Año y Mes para opciones 3, 4, 5 -->
-            <div v-if="['3', '4', '5'].includes(formData.tipoActualizacion)" class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Año de Inicio:</label>
-                <input type="number" v-model.number="formData.anioInicio" class="municipal-form-control" :min="2000" :max="2099" />
+            <div v-if="['3', '4', '5'].includes(formData.tipoActualizacion)" class="row g-3">
+              <div class="col-md-6">
+                <label class="municipal-form-label">
+                  <font-awesome-icon icon="calendar-alt" class="me-1" />
+                  Año de Inicio:
+                </label>
+                <input
+                  type="number"
+                  v-model.number="formData.anioInicio"
+                  class="municipal-form-control"
+                  :min="2000"
+                  :max="2099"
+                />
               </div>
-              <div class="form-group">
-                <label class="municipal-form-label">Mes de Inicio:</label>
+              <div class="col-md-6">
+                <label class="municipal-form-label">
+                  <font-awesome-icon icon="calendar" class="me-1" />
+                  Mes de Inicio:
+                </label>
                 <select v-model.number="formData.mesInicio" class="municipal-form-control">
-                  <option v-for="mes in meses" :key="mes.value" :value="mes.value">{{ mes.label }}</option>
+                  <option v-for="mes in meses" :key="mes.value" :value="mes.value">
+                    {{ mes.label }}
+                  </option>
                 </select>
               </div>
             </div>
 
             <!-- Botones -->
-            <div class="form-row">
-              <button class="btn-municipal-primary" @click="handleAplicar" :disabled="loading">
-                <font-awesome-icon icon="check" /> Aplicar Cambios
+            <div class="d-flex gap-2 mt-4">
+              <button
+                class="btn-municipal-primary"
+                @click="handleAplicar"
+                :disabled="isLoading"
+              >
+                <font-awesome-icon icon="check" />
+                Aplicar Cambios
               </button>
-              <button class="btn-municipal-secondary" @click="handleCancelar" style="margin-left: 10px;">
-                <font-awesome-icon icon="times" /> Cancelar
+              <button
+                class="btn-municipal-secondary"
+                @click="handleCancelar"
+              >
+                <font-awesome-icon icon="times" />
+                Cancelar
               </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Procesando...</p>
         </div>
       </div>
     </div>
@@ -203,14 +369,15 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const router = useRouter()
-const { callApi } = useApi()
-const { handleError, showToast } = useLicenciasErrorHandler()
+const { execute } = useApi()
+const { isLoading, startLoading, stopLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const datosLocal = ref({})
 const mostrarCampoEdicion = ref(false)
@@ -249,15 +416,20 @@ const handleBuscar = async () => {
     return
   }
 
-  loading.value = true
+  startLoading('Buscando local...')
   try {
     const control = `${formData.numero}-${formData.letra || ''}`
-    const response = await callApi('SP_RACTUALIZA_BUSCAR', {
-      p_control: control
-    })
+    const response = await execute(
+      'buscar_concesion',
+      'otras_obligaciones',
+      [
+        { nombre: 'control', valor: control, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
 
-    if (response.data && response.data.length > 0) {
-      datosLocal.value = response.data[0]
+    if (response && response.result && response.result.length > 0) {
+      datosLocal.value = response.result[0]
       formData.tipoActualizacion = ''
       mostrarCampoEdicion.value = false
       showToast('success', 'Local encontrado')
@@ -266,9 +438,9 @@ const handleBuscar = async () => {
       datosLocal.value = {}
     }
   } catch (error) {
-    handleError(error, 'Error al buscar local')
+    handleApiError(error)
   } finally {
-    loading.value = false
+    stopLoading()
   }
 }
 
@@ -323,15 +495,24 @@ const handleAplicar = async () => {
 
   // Verificar pagos si es necesario (opciones 3, 4, 5)
   if (['3', '4', '5'].includes(formData.tipoActualizacion)) {
-    const periodo = `${formData.anioInicio}-${String(formData.mesInicio).padStart(2, '0')}`
-    const pagosResponse = await callApi('SP_RACTUALIZA_VERIFICAR_PAGOS', {
-      p_id_datos: datosLocal.value.id_34_datos,
-      p_periodo: periodo
-    })
+    try {
+      const periodo = `${formData.anioInicio}-${String(formData.mesInicio).padStart(2, '0')}`
+      const pagosResponse = await execute(
+        'verificar_pagos',
+        'otras_obligaciones',
+        [
+          { nombre: 'id_datos', valor: datosLocal.value.id_34_datos, tipo: 'integer' },
+          { nombre: 'periodo', valor: periodo, tipo: 'string' }
+        ],
+        'guadalajara'
+      )
 
-    if (pagosResponse.data && pagosResponse.data[0].total_pagos > 0) {
-      showToast('warning', 'Existe(n) pago(s) realizado(s) a partir de este periodo')
-      return
+      if (pagosResponse && pagosResponse.result && pagosResponse.result.length > 0) {
+        showToast('warning', 'Existe(n) pago(s) realizado(s) a partir de este periodo')
+        return
+      }
+    } catch (error) {
+      console.warn('Error al verificar pagos:', error)
     }
   }
 
@@ -347,26 +528,36 @@ const handleAplicar = async () => {
   })
 
   if (result.isConfirmed) {
-    loading.value = true
+    startLoading('Aplicando cambios...')
     try {
-      const response = await callApi('SP_RACTUALIZA_ACTUALIZAR', {
-        par_Opc: parseInt(formData.tipoActualizacion),
-        par_Id_34_datos: datosLocal.value.id_34_datos,
-        par_Conces: formData.nuevoConcesionario || '',
-        par_Ubica: formData.nuevaUbicacion || '',
-        par_Lic: formData.nuevaLicencia || 0,
-        par_Sup: formData.nuevaSuperficie || 0,
-        par_Descrip: formData.nuevoTipoLocal || '',
-        par_Aso_Ini: formData.anioInicio,
-        par_Mes_Ini: formData.mesInicio
-      })
+      const response = await execute(
+        'actualizar_concesion',
+        'otras_obligaciones',
+        [
+          { nombre: 'opc', valor: parseInt(formData.tipoActualizacion), tipo: 'integer' },
+          { nombre: 'id_34_datos', valor: datosLocal.value.id_34_datos, tipo: 'integer' },
+          { nombre: 'concesionario', valor: formData.nuevoConcesionario || '', tipo: 'string' },
+          { nombre: 'ubicacion', valor: formData.nuevaUbicacion || '', tipo: 'string' },
+          { nombre: 'licencia', valor: formData.nuevaLicencia || 0, tipo: 'integer' },
+          { nombre: 'superficie', valor: formData.nuevaSuperficie || 0, tipo: 'numeric' },
+          { nombre: 'descrip', valor: formData.nuevoTipoLocal || '', tipo: 'string' },
+          { nombre: 'aso_ini', valor: formData.anioInicio, tipo: 'integer' },
+          { nombre: 'mes_ini', valor: formData.mesInicio, tipo: 'integer' }
+        ],
+        'guadalajara'
+      )
 
-      showToast('success', 'Actualización realizada correctamente')
-      handleCancelar()
+      if (response && response.result && response.result[0]?.resultado === 0) {
+        showToast('success', 'Actualización realizada correctamente')
+        handleCancelar()
+      } else {
+        const mensaje = response?.result?.[0]?.mensaje || 'Error al actualizar'
+        showToast('error', mensaje)
+      }
     } catch (error) {
-      handleError(error, 'Error al actualizar')
+      handleApiError(error)
     } finally {
-      loading.value = false
+      stopLoading()
     }
   }
 }

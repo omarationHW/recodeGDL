@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="file-invoice-dollar" />
       </div>
@@ -47,8 +47,8 @@
                 <label class="municipal-form-label">
                   {{ etiquetaControl }} <span class="required">*</span>
                 </label>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                  <span v-if="etiquetas.abreviatura" style="font-weight: bold; font-size: 1.1rem;">
+                <div class="input-with-prefix">
+                  <span v-if="etiquetas.abreviatura" class="input-prefix">
                     {{ etiquetas.abreviatura }}
                   </span>
                   <input
@@ -81,11 +81,10 @@
                 <label class="municipal-form-label">Letra</label>
                 <input
                   type="text"
-                  class="municipal-form-control"
+                  class="municipal-form-control input-uppercase"
                   v-model="letraLocal"
                   placeholder="Letra"
                   maxlength="1"
-                  style="text-transform: uppercase;"
                 >
               </div>
             </div>
@@ -291,8 +290,8 @@
           </div>
 
           <!-- Nota especial para Estacionamientos (tabla 5) -->
-          <div v-if="tipoTabla === '5'" class="alert-info" style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-left: 4px solid #2196f3;">
-            <p style="margin: 0; font-size: 0.9rem; line-height: 1.6;">
+          <div v-if="tipoTabla === '5'" class="alert-info-legal">
+            <p class="legal-text">
               <strong>Nota Legal:</strong> Las cantidades mencionadas corresponden al adeudo que tiene con el Municipio de Guadalajara,
               con fundamento en el artículo 42, 43, 44, 45, 46, 47, y 48 del Reglamento de Estacionamientos en el Municipio de Guadalajara.
               De acuerdo al capítulo I, sección primera, artículo 40 fracción V y VI.<br><br>
@@ -482,7 +481,7 @@ const cargarConfiguracion = async () => {
   try {
     // Cargar etiquetas
     const responseEtiq = await execute(
-      'SP_GADEUDOS_ETIQUETAS_GET',
+      'sp_otras_oblig_get_etiquetas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -494,7 +493,7 @@ const cargarConfiguracion = async () => {
 
     // Cargar información de la tabla
     const responseTabla = await execute(
-      'SP_GADEUDOS_TABLAS_GET',
+      'sp_otras_oblig_get_tablas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -740,3 +739,33 @@ onMounted(() => {
   cargarConfiguracion()
 })
 </script>
+
+<style scoped>
+.input-with-prefix {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-prefix {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.input-uppercase {
+  text-transform: uppercase;
+}
+
+.alert-info-legal {
+  margin-top: 20px;
+  padding: 15px;
+  background: #e7f3ff;
+  border-left: 4px solid #2196f3;
+}
+
+.legal-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+</style>

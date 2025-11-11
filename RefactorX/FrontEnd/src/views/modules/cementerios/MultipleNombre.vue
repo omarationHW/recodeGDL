@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-user-tag"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="user-tag" />
         Consulta de Folios por Nombre
       </h1>
       <DocumentationModal
@@ -12,25 +12,25 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Criterios de Búsqueda
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Nombre del Titular</label>
             <input
               v-model="filtros.nombre"
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Ingrese nombre a buscar"
               @keyup.enter="buscarFolios"
             />
           </div>
           <div class="form-group">
-            <label class="form-label">Filtro de Cementerio</label>
+            <label class="municipal-form-label">Filtro de Cementerio</label>
             <div class="radio-group">
               <label class="radio-option">
                 <input type="radio" v-model="filtros.tipoBusqueda" value="todos" />
@@ -45,8 +45,8 @@
         </div>
 
         <div v-if="filtros.tipoBusqueda === 'especifico'" class="form-group">
-          <label class="form-label">Seleccione Cementerio</label>
-          <select v-model="filtros.cementerio" class="form-control">
+          <label class="municipal-form-label">Seleccione Cementerio</label>
+          <select v-model="filtros.cementerio" class="municipal-form-control">
             <option value="">-- Seleccione --</option>
             <option
               v-for="cem in cementerios"
@@ -60,11 +60,11 @@
 
         <div class="form-actions">
           <button @click="buscarFolios" class="btn-municipal-primary">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon icon="search" />
             Buscar Folios
           </button>
           <button @click="limpiarFiltros" class="btn-municipal-secondary">
-            <i class="fas fa-eraser"></i>
+            <font-awesome-icon icon="eraser" />
             Limpiar
           </button>
         </div>
@@ -72,15 +72,15 @@
     </div>
 
     <!-- Resultados -->
-    <div v-if="folios.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="folios.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Folios Encontrados ({{ folios.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Folio</th>
                 <th>Nombre</th>
@@ -107,7 +107,7 @@
                     class="btn-municipal-secondary btn-sm"
                     title="Ver detalle del folio"
                   >
-                    <i class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                     Detalle
                   </button>
                 </td>
@@ -119,7 +119,7 @@
         <!-- Botón cargar más -->
         <div v-if="hayMasResultados" class="text-center mt-3">
           <button @click="cargarMasFolios" class="btn-municipal-primary">
-            <i class="fas fa-chevron-down"></i>
+            <font-awesome-icon icon="chevron-down" />
             Cargar Más Resultados
           </button>
         </div>
@@ -127,7 +127,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron folios con el nombre especificado
     </div>
 
@@ -136,23 +136,23 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>
-            <i class="fas fa-file-alt"></i>
+            <font-awesome-icon icon="file-alt" />
             Detalle del Folio {{ folioSeleccionado }}
           </h3>
           <button @click="cerrarDetalle" class="btn-close">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
           </button>
         </div>
         <div class="modal-body">
           <div class="alert-info">
-            <i class="fas fa-info-circle"></i>
+            <font-awesome-icon icon="info-circle" />
             El detalle completo del folio se implementará en el componente ConIndividual
           </div>
           <p><strong>Folio:</strong> {{ folioSeleccionado }}</p>
         </div>
         <div class="modal-footer">
           <button @click="cerrarDetalle" class="btn-municipal-secondary">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cerrar
           </button>
         </div>
@@ -164,11 +164,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
   nombre: '',
@@ -233,15 +240,41 @@ const buscarFolios = async () => {
       cemFin = filtros.cementerio
     }
 
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIOS_POR_NOMBRE', {
-      p_nombre: patron,
-      p_cementerio_inicio: cemInicio,
-      p_cementerio_fin: cemFin,
-      p_ultimo_folio: 0,
-      p_limite: LIMITE_RESULTADOS
-    })
+    const params = [
+      {
+        nombre: 'p_nombre',
+        valor: patron,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_cementerio_inicio',
+        valor: cemInicio,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_cementerio_fin',
+        valor: cemFin,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_ultimo_folio',
+        valor: 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_limite',
+        valor: LIMITE_RESULTADOS,
+        tipo: 'string'
+      }
+    ]
 
-    folios.value = response.data || []
+    const response = await execute('sp_cem_consultar_folios_por_nombre', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    folios.value = response.result || []
     busquedaRealizada.value = true
     hayMasResultados.value = folios.value.length === LIMITE_RESULTADOS
 
@@ -269,15 +302,41 @@ const cargarMasFolios = async () => {
       cemFin = filtros.cementerio
     }
 
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIOS_POR_NOMBRE', {
-      p_nombre: patron,
-      p_cementerio_inicio: cemInicio,
-      p_cementerio_fin: cemFin,
-      p_ultimo_folio: ultimoFolio.value,
-      p_limite: LIMITE_RESULTADOS
-    })
+    const params = [
+      {
+        nombre: 'p_nombre',
+        valor: patron,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_cementerio_inicio',
+        valor: cemInicio,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_cementerio_fin',
+        valor: cemFin,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_ultimo_folio',
+        valor: ultimoFolio.value,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_limite',
+        valor: LIMITE_RESULTADOS,
+        tipo: 'string'
+      }
+    ]
 
-    const nuevosFolios = response.data || []
+    const response = await execute('sp_cem_consultar_folios_por_nombre', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    const nuevosFolios = response.result || []
 
     if (nuevosFolios.length === 0) {
       hayMasResultados.value = false
@@ -316,8 +375,8 @@ const cerrarDetalle = () => {
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_CEMENTERIOS', {})
-    cementerios.value = response.data || []
+    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
+    cementerios.value = response.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
     toast.error('Error al cargar cementerios')

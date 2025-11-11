@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-user-search"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="user-search" />
         Consulta por Nombre del Titular
       </h1>
       <DocumentationModal
@@ -12,19 +12,19 @@
     </div>
 
     <!-- Búsqueda -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-search"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="search" />
         Buscar por Nombre
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Nombre del Titular</label>
             <input
               v-model="nombreBuscar"
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Ingrese nombre o parte del nombre..."
               @keyup.enter="buscarPorNombre"
               autofocus
@@ -32,7 +32,7 @@
           </div>
           <div class="form-actions">
             <button @click="buscarPorNombre" class="btn-municipal-primary">
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar
             </button>
           </div>
@@ -41,15 +41,15 @@
     </div>
 
     <!-- Resultados -->
-    <div v-if="folios.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="folios.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Folios Encontrados ({{ folios.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Folio</th>
                 <th>Nombre</th>
@@ -69,14 +69,14 @@
                 <td>{{ formatearUbicacion(folio) }}</td>
                 <td>{{ folio.tipo || 'N/A' }}</td>
                 <td>
-                  <span :class="getAnioPagadoClass(folio.axo_pagado)">
+                  <span :class="`badge badge-${getAnioPagadoBadge(folio.axo_pagado)}`">
                     {{ folio.axo_pagado }}
                   </span>
                 </td>
                 <td>{{ formatearDomicilio(folio) }}</td>
                 <td>
                   <button @click="verDetalle(folio.control_rcm)" class="btn-municipal-secondary btn-sm">
-                    <i class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                   </button>
                 </td>
               </tr>
@@ -87,7 +87,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron folios con el nombre especificado
     </div>
   </div>
@@ -96,12 +96,19 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
 
 const nombreBuscar = ref('')
@@ -137,11 +144,21 @@ const buscarPorNombre = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_POR_NOMBRE', {
-      p_nombre: nombreBuscar.value.trim()
-    })
+    const params = [
+      {
+        nombre: 'p_nombre',
+        valor: nombreBuscar.value.trim(),
+        tipo: 'string'
+      }
+    ]
 
-    folios.value = response.data || []
+    const response = await execute('sp_cem_consultar_por_nombre', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    folios.value = response.result || []
     busquedaRealizada.value = true
 
     if (folios.value.length > 0) {
@@ -181,34 +198,12 @@ const formatearDomicilio = (folio) => {
   return partes.join(' ') || 'No especificado'
 }
 
-const getAnioPagadoClass = (anioPagado) => {
+const getAnioPagadoBadge = (anioPagado) => {
   const anioActual = new Date().getFullYear()
   const aniosAtrasados = anioActual - anioPagado
 
-  if (aniosAtrasados <= 0) return 'status-success'
-  if (aniosAtrasados <= 2) return 'status-warning'
-  return 'status-danger'
+  if (aniosAtrasados <= 0) return 'success'
+  if (aniosAtrasados <= 2) return 'warning'
+  return 'danger'
 }
 </script>
-
-<style scoped>
-.btn-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-}
-
-.status-success {
-  color: var(--color-success);
-  font-weight: 600;
-}
-
-.status-warning {
-  color: var(--color-warning);
-  font-weight: 600;
-}
-
-.status-danger {
-  color: var(--color-danger);
-  font-weight: 600;
-}
-</style>

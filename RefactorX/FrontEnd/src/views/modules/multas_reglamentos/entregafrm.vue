@@ -8,7 +8,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
-const { loading, execute } = useApi(); const BASE_DB='INFORMIX'; const OP='RECAUDADORA_ENTREGAFRM'; const jsonPayload=ref('')
+const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_ENTREGAFRM'; const jsonPayload=ref('')
 async function guardar(){ try{ await execute(OP, BASE_DB, [ { name:'datos', type:'C', value: jsonPayload.value } ]) }catch(e){} }
 </script>
 

@@ -5,9 +5,34 @@
 -- Fecha: 2025-08-27 13:30:41
 
 CREATE OR REPLACE FUNCTION sp_get_remesa_detalle_mpio(remesa_param character varying)
-RETURNS SETOF ta14_datos_mpio AS $$
+RETURNS TABLE(
+    idrmunicipio integer,
+    tipoact varchar,
+    folio bigint,
+    fechagenreq date,
+    placa varchar,
+    folionot varchar,
+    fechanot date,
+    fechapago date,
+    fechacancelado date,
+    importe numeric,
+    clave varchar,
+    fechaalta date,
+    fechavenc date,
+    folioec varchar,
+    folioecmpio varchar,
+    gastos numeric,
+    remesa varchar,
+    fecharemesa date
+) AS $$
 BEGIN
     RETURN QUERY
-    SELECT * FROM ta14_datos_mpio WHERE remesa = remesa_param;
+    SELECT
+        t.idrmunicipio, t.tipoact, t.folio, t.fechagenreq, t.placa,
+        t.folionot, t.fechanot, t.fechapago, t.fechacancelado, t.importe,
+        t.clave, t.fechaalta, t.fechavenc, t.folioec, t.folioecmpio,
+        t.gastos, t.remesa, t.fecharemesa
+    FROM ta14_datos_mpio t
+    WHERE t.remesa = remesa_param;
 END;
 $$ LANGUAGE plpgsql;

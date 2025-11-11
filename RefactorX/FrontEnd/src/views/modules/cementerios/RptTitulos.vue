@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-file-certificate"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="file-certificate" />
         Reporte de Títulos de Propiedad
       </h1>
       <DocumentationModal
@@ -12,24 +12,24 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Criterios de Búsqueda
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-three">
           <div class="form-group">
             <label class="form-label required">Fecha Desde</label>
-            <input v-model="filtros.fecha_desde" type="date" class="form-control" />
+            <input v-model="filtros.fecha_desde" type="date" class="municipal-form-control" />
           </div>
           <div class="form-group">
             <label class="form-label required">Fecha Hasta</label>
-            <input v-model="filtros.fecha_hasta" type="date" class="form-control" />
+            <input v-model="filtros.fecha_hasta" type="date" class="municipal-form-control" />
           </div>
           <div class="form-group">
-            <label class="form-label">Cementerio</label>
-            <select v-model="filtros.cementerio" class="form-control">
+            <label class="municipal-form-label">Cementerio</label>
+            <select v-model="filtros.cementerio" class="municipal-form-control">
               <option value="">-- Todos --</option>
               <option v-for="cem in cementerios" :key="cem.cementerio" :value="cem.cementerio">
                 {{ cem.nombre }}
@@ -39,11 +39,11 @@
         </div>
         <div class="form-actions">
           <button @click="generarReporte" class="btn-municipal-primary">
-            <i class="fas fa-file-alt"></i>
+            <font-awesome-icon icon="file-alt" />
             Generar Reporte
           </button>
           <button @click="exportarPDF" :disabled="titulos.length === 0" class="btn-municipal-secondary">
-            <i class="fas fa-file-pdf"></i>
+            <font-awesome-icon icon="file-pdf" />
             Exportar a PDF
           </button>
         </div>
@@ -51,18 +51,18 @@
     </div>
 
     <!-- Reporte de Títulos -->
-    <div v-if="titulos.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="titulos.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Títulos Emitidos ({{ titulos.length }})
         <span class="float-right total-label">
           Total: ${{ calcularTotal().toFixed(2) }}
         </span>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Título</th>
                 <th>Fecha</th>
@@ -99,7 +99,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron títulos emitidos en el rango de fechas especificado
     </div>
   </div>
@@ -108,11 +108,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
   fecha_desde: '',
@@ -151,13 +158,31 @@ const generarReporte = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_REPORTE_TITULOS', {
-      p_fecha_desde: filtros.fecha_desde,
-      p_fecha_hasta: filtros.fecha_hasta,
-      p_cementerio: filtros.cementerio || null
-    })
+    const params = [
+      {
+        nombre: 'p_fecha_desde',
+        valor: filtros.fecha_desde,
+        tipo: 'date'
+      },
+      {
+        nombre: 'p_fecha_hasta',
+        valor: filtros.fecha_hasta,
+        tipo: 'date'
+      },
+      {
+        nombre: 'p_cementerio',
+        valor: filtros.cementerio || null,
+        tipo: 'string'
+      }
+    ]
 
-    titulos.value = response.data || []
+    const response = await execute('sp_cem_reporte_titulos', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    titulos.value = response.result || []
     busquedaRealizada.value = true
 
     if (titulos.value.length > 0) {
@@ -173,8 +198,8 @@ const generarReporte = async () => {
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_CEMENTERIOS', {})
-    cementerios.value = response.data || []
+    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
+    cementerios.value = response.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
   }
@@ -220,17 +245,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.float-right {
-  float: right;
-}
-
+/* Estilos únicos de totales de reporte - Justificado mantener scoped */
 .total-label {
   font-weight: bold;
   color: var(--color-primary);
-}
-
-.text-right {
-  text-align: right;
 }
 
 .total-row {
@@ -240,11 +258,5 @@ onMounted(() => {
 
 .total-row td {
   padding: 1rem;
-}
-
-.form-grid-three {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
 }
 </style>

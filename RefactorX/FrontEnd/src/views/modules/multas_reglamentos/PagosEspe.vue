@@ -26,7 +26,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
-const BASE_DB = 'INFORMIX'
+const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_PAGOS_ESPE' // TODO confirmar
 const { loading, execute } = useApi()
 const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear() })

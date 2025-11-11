@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-list-alt"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="list-alt" />
         Listado de Movimientos
       </h1>
       <DocumentationModal
@@ -12,24 +12,24 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Filtros de Búsqueda
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-three">
           <div class="form-group">
             <label class="form-label required">Fecha Inicio</label>
-            <input v-model="filtros.fecha_inicio" type="date" class="form-control" />
+            <input v-model="filtros.fecha_inicio" type="date" class="municipal-form-control" />
           </div>
           <div class="form-group">
             <label class="form-label required">Fecha Fin</label>
-            <input v-model="filtros.fecha_fin" type="date" class="form-control" />
+            <input v-model="filtros.fecha_fin" type="date" class="municipal-form-control" />
           </div>
           <div class="form-group">
-            <label class="form-label">Cementerio</label>
-            <select v-model="filtros.cementerio" class="form-control">
+            <label class="municipal-form-label">Cementerio</label>
+            <select v-model="filtros.cementerio" class="municipal-form-control">
               <option value="">-- Todos --</option>
               <option v-for="cem in cementerios" :key="cem.cementerio" :value="cem.cementerio">
                 {{ cem.nombre }}
@@ -39,11 +39,11 @@
         </div>
         <div class="form-actions">
           <button @click="buscarMovimientos" class="btn-municipal-primary">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon icon="search" />
             Buscar Movimientos
           </button>
           <button @click="limpiar" class="btn-municipal-secondary">
-            <i class="fas fa-eraser"></i>
+            <font-awesome-icon icon="eraser" />
             Limpiar
           </button>
         </div>
@@ -51,15 +51,15 @@
     </div>
 
     <!-- Resultados -->
-    <div v-if="movimientos.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="movimientos.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Movimientos Encontrados ({{ movimientos.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Fecha</th>
                 <th>Folio</th>
@@ -85,7 +85,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron movimientos en el rango de fechas especificado
     </div>
   </div>
@@ -94,11 +94,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
   fecha_inicio: '',
@@ -143,13 +150,31 @@ const buscarMovimientos = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_MOVIMIENTOS', {
-      p_fecha_inicio: filtros.fecha_inicio,
-      p_fecha_fin: filtros.fecha_fin,
-      p_cementerio: filtros.cementerio || null
-    })
+    const params = [
+      {
+        nombre: 'p_fecha_inicio',
+        valor: filtros.fecha_inicio,
+        tipo: 'date'
+      },
+      {
+        nombre: 'p_fecha_fin',
+        valor: filtros.fecha_fin,
+        tipo: 'date'
+      },
+      {
+        nombre: 'p_cementerio',
+        valor: filtros.cementerio || null,
+        tipo: 'string'
+      }
+    ]
 
-    movimientos.value = response.data || []
+    const response = await execute('sp_cem_listar_movimientos', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    movimientos.value = response.result || []
     busquedaRealizada.value = true
 
     if (movimientos.value.length > 0) {
@@ -173,8 +198,8 @@ const limpiar = () => {
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_CEMENTERIOS', {})
-    cementerios.value = response.data || []
+    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
+    cementerios.value = response.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
   }
@@ -198,11 +223,3 @@ onMounted(() => {
   filtros.fecha_inicio = haceUnMes.toISOString().split('T')[0]
 })
 </script>
-
-<style scoped>
-.form-grid-three {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-</style>

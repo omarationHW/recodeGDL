@@ -396,10 +396,12 @@ import { ref, onMounted, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast } = useToast()
 
 // Estado
@@ -447,7 +449,7 @@ const cargarTitulos = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_LISTAR_TITULOS',
+      'sp_cem_listar_titulos',
       'cementerios',
       {
         p_page: currentPage.value,
@@ -455,12 +457,15 @@ const cargarTitulos = async () => {
         p_search: null,
         p_cementerio: null,
         p_order_by: 'fecha'
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.length > 0) {
-      titulos.value = response
-      totalRecords.value = response[0].total_records || response.length
+    if (response && response.result && response.result.length > 0) {
+      titulos.value = response.result
+      totalRecords.value = response.result[0].total_records || response.length
     } else {
       titulos.value = []
       totalRecords.value = 0
@@ -482,16 +487,19 @@ const buscarTitulo = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_BUSCAR_TITULO',
+      'sp_cem_buscar_titulo',
       'cementerios',
       {
         p_folio: busqueda.value.folio,
         p_operacion: busqueda.value.operacion
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.length > 0) {
-      const result = response[0]
+    if (response && response.result && response.result.length > 0) {
+      const result = response.result[0]
       if (result.resultado === 'S') {
         tituloActual.value = result
         tituloGuardado.value = false
@@ -541,7 +549,7 @@ const guardarTitulo = async () => {
   guardando.value = true
   try {
     const response = await execute(
-      'SP_CEM_ACTUALIZAR_TITULO_EXTRA',
+      'sp_cem_actualizar_titulo_extra',
       'cementerios',
       {
         p_control_rcm: tituloActual.value.control_rcm,
@@ -555,11 +563,14 @@ const guardarTitulo = async () => {
         p_col_ben: formData.value.col_ben,
         p_tel_ben: formData.value.tel_ben,
         p_partida: formData.value.partida || ''
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
     if (response && response[0]) {
-      const result = response[0]
+      const result = response.result[0]
       if (result.resultado === 'S') {
         showToast(result.mensaje, 'success')
         tituloGuardado.value = true

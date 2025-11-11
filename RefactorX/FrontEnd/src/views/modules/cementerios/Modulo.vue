@@ -1,41 +1,46 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-cog"></i>
-        Módulo General del Sistema
-      </h1>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="cog" />
+      </div>
+      <div class="module-view-info">
+        <h1>Módulo General del Sistema</h1>
+      </div>
       <DocumentationModal
         title="Ayuda - Módulo General"
         :sections="helpSections"
       />
     </div>
 
-    <!-- Validar Usuario -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-user-check"></i>
-        Validar Usuario
-      </div>
-      <div class="card-body">
+    <div class="module-view-content">
+      <!-- Validar Usuario -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="user-check" />
+            Validar Usuario
+          </h5>
+        </div>
+        <div class="municipal-card-body">
         <form @submit.prevent="validarUsuario">
           <div class="form-grid-two">
             <div class="form-group">
-              <label class="form-label required">Usuario</label>
+              <label class="municipal-form-label required">Usuario</label>
               <input
                 v-model="formUsuario.usuario"
                 type="text"
-                class="form-control"
+                class="municipal-form-control"
                 placeholder="Nombre de usuario"
                 required
               />
             </div>
             <div class="form-group">
-              <label class="form-label required">Contraseña</label>
+              <label class="municipal-form-label required">Contraseña</label>
               <input
                 v-model="formUsuario.clave"
                 type="password"
-                class="form-control"
+                class="municipal-form-control"
                 placeholder="Contraseña"
                 required
               />
@@ -43,7 +48,7 @@
           </div>
           <div class="form-actions">
             <button type="submit" class="btn-municipal-primary">
-              <i class="fas fa-check"></i>
+              <font-awesome-icon icon="check" />
               Validar
             </button>
           </div>
@@ -51,105 +56,112 @@
 
         <div v-if="resultadoUsuario" class="mt-3">
           <div :class="resultadoUsuario.success ? 'alert-success' : 'alert-danger'">
-            <i :class="resultadoUsuario.success ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+            <font-awesome-icon :icon="resultadoUsuario.success ? 'check-circle' : 'times-circle'" />
             {{ resultadoUsuario.mensaje }}
           </div>
         </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Consultar Hora del Servidor -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-clock"></i>
-        Hora del Servidor
-      </div>
-      <div class="card-body">
+      <!-- Consultar Hora del Servidor -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="clock" />
+            Hora del Servidor
+          </h5>
+        </div>
+        <div class="municipal-card-body">
         <button @click="consultarHora" class="btn-municipal-secondary">
-          <i class="fas fa-sync-alt"></i>
+          <font-awesome-icon icon="sync-alt" />
           Obtener Hora Actual
         </button>
 
         <div v-if="horaServidor" class="server-time-display">
-          <i class="fas fa-server"></i>
+          <font-awesome-icon icon="server" />
           <div class="time-info">
             <span class="time-label">Hora del Servidor:</span>
             <span class="time-value">{{ horaServidor }}</span>
           </div>
         </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Verificar Versión del Sistema -->
-    <div class="card">
-      <div class="card-header">
-        <i class="fas fa-code-branch"></i>
-        Verificar Versión del Sistema
-      </div>
-      <div class="card-body">
-        <form @submit.prevent="verificarVersion">
-          <div class="form-grid-two">
-            <div class="form-group">
-              <label class="form-label required">Proyecto</label>
-              <input
-                v-model="formVersion.proyecto"
-                type="text"
-                class="form-control"
-                placeholder="Nombre del proyecto"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label required">Versión Actual</label>
-              <input
-                v-model="formVersion.version"
-                type="text"
-                class="form-control"
-                placeholder="Ej: 1.0.0"
-                required
-              />
+      <!-- Verificar Versión del Sistema -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="code-branch" />
+            Verificar Versión del Sistema
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="verificarVersion">
+            <div class="form-grid-two">
+              <div class="form-group">
+                <label class="municipal-form-label required">Proyecto</label>
+                <input
+                  v-model="formVersion.proyecto"
+                  type="text"
+                  class="municipal-form-control"
+                  placeholder="Nombre del proyecto"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label required">Versión Actual</label>
+                <input
+                  v-model="formVersion.version"
+                  type="text"
+                  class="municipal-form-control"
+                  placeholder="Ej: 1.0.0"
+                  required
+                />
             </div>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn-municipal-primary">
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Verificar
             </button>
           </div>
-        </form>
+          </form>
 
-        <div v-if="resultadoVersion" class="mt-3">
-          <div :class="resultadoVersion.hayNueva ? 'alert-warning' : 'alert-success'">
-            <i :class="resultadoVersion.hayNueva ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'"></i>
-            {{ resultadoVersion.mensaje }}
+          <div v-if="resultadoVersion" class="mt-3">
+            <div :class="resultadoVersion.hayNueva ? 'alert-warning' : 'alert-success'">
+              <font-awesome-icon :icon="resultadoVersion.hayNueva ? 'exclamation-triangle' : 'check-circle'" />
+              {{ resultadoVersion.mensaje }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Información del Sistema -->
-    <div class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-info-circle"></i>
-        Información del Sistema
-      </div>
-      <div class="card-body">
-        <div class="system-info-grid">
-          <div class="info-item">
-            <span class="info-label">Módulo:</span>
-            <span class="info-value">Cementerios</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Versión:</span>
-            <span class="info-value">2.0.0</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Base de Datos:</span>
-            <span class="info-value">Informix</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Framework:</span>
-            <span class="info-value">Vue 3</span>
+      <!-- Información del Sistema -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="info-circle" />
+            Información del Sistema
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="system-info-grid">
+            <div class="info-item">
+              <span class="info-label">Módulo:</span>
+              <span class="info-value">Cementerios</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Versión:</span>
+              <span class="info-value">2.0.0</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Base de Datos:</span>
+              <span class="info-value">Informix</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Framework:</span>
+              <span class="info-value">Vue 3</span>
+            </div>
           </div>
         </div>
       </div>
@@ -320,11 +332,6 @@ const verificarVersion = async () => {
   gap: 1rem;
 }
 
-.server-time-display i {
-  font-size: 2rem;
-  color: var(--color-primary);
-}
-
 .time-info {
   display: flex;
   flex-direction: column;
@@ -394,5 +401,9 @@ const verificarVersion = async () => {
   background-color: #fff3cd;
   color: #856404;
   border: 1px solid #ffeaa7;
+}
+
+.mt-3 {
+  margin-top: 1rem;
 }
 </style>

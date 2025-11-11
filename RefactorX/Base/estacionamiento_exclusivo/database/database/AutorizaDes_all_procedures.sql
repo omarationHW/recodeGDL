@@ -203,7 +203,7 @@ CREATE OR REPLACE FUNCTION sp_autorizades_catalogo_aplicacion() RETURNS TABLE (
     aplicacion TEXT
 ) AS $$
 BEGIN
-    RETURN QUERY SELECT id_modulo, descripcion, aplicacion FROM ta_12_modulos WHERE id_modulo IN (11,13,14,16,24,28);
+    RETURN QUERY SELECT id_modulo, descripcion, aplicacion FROM padron_licencias.comun.ta_12_modulos WHERE id_modulo IN (11,13,14,16,24,28);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -219,7 +219,7 @@ CREATE OR REPLACE FUNCTION sp_autorizades_catalogo_oficina() RETURNS TABLE (
     nombre TEXT
 ) AS $$
 BEGIN
-    RETURN QUERY SELECT id_rec, zona as nombre FROM ta_12_recaudadoras a JOIN ta_12_zonas b ON a.id_zona = b.id_zona;
+    RETURN QUERY SELECT id_rec, zona as nombre FROM padron_licencias.comun.ta_12_recaudadoras a JOIN padron_licencias.comun.ta_12_zonas b ON a.id_zona = b.id_zona;
 END;
 $$ LANGUAGE plpgsql;
 

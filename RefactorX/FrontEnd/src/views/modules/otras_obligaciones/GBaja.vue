@@ -50,23 +50,21 @@
               <label class="municipal-form-label">Número de Local</label>
               <input
                 type="text"
-                class="municipal-form-control"
+                class="municipal-form-control input-local-numero"
                 v-model="busqueda.numeroLocal"
                 @keyup.enter="focusLetra"
                 placeholder="Número"
                 maxlength="3"
-                style="width: 150px; display: inline-block; margin-right: 10px;"
                 ref="localInput"
               >
               <input
                 type="text"
-                class="municipal-form-control"
+                class="municipal-form-control input-local-letra"
                 v-model="busqueda.letra"
                 ref="letraInput"
                 @keyup.enter="buscarRegistro"
                 placeholder="Letra"
                 maxlength="1"
-                style="width: 80px; display: inline-block;"
               >
             </div>
 
@@ -445,7 +443,7 @@ const formatCurrency = (value) => {
 const loadEtiquetas = async () => {
   try {
     const response = await execute(
-      'SP_GACTUALIZA_ETIQUETAS_GET',
+      'sp_otras_oblig_get_etiquetas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -462,7 +460,7 @@ const loadEtiquetas = async () => {
 const loadTablas = async () => {
   try {
     const response = await execute(
-      'SP_GACTUALIZA_TABLAS_GET',
+      'sp_otras_oblig_get_tablas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -672,9 +670,9 @@ const aplicarBaja = async () => {
     icon: 'warning',
     title: '¿Confirmar cancelación?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
+      <div class="swal-confirm-content">
         <p><strong>Se dará de baja el siguiente registro:</strong></p>
-        <ul style="list-style: none; padding: 0;">
+        <ul class="swal-info-list">
           <li><strong>Concesionario:</strong> ${registroActual.value.concesionario}</li>
           <li><strong>Ubicación:</strong> ${registroActual.value.ubicacion}</li>
           <li><strong>Fecha de fin:</strong> ${bajaForm.value.mesFin}/${bajaForm.value.axoFin}</li>
@@ -757,3 +755,98 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.input-local-numero {
+  width: 150px;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.input-local-letra {
+  width: 80px;
+  display: inline-block;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.info-item {
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #ea8215;
+}
+
+.info-item strong {
+  display: block;
+  color: #666;
+  font-size: 0.875rem;
+  margin-bottom: 5px;
+}
+
+.info-item span {
+  color: #333;
+  font-size: 1rem;
+}
+
+.baja-form {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #dc3545;
+}
+
+.baja-form h6 {
+  color: #dc3545;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* SweetAlert custom classes */
+:deep(.swal-confirm-content) {
+  text-align: left;
+  padding: 0 20px;
+}
+
+:deep(.swal-info-list) {
+  list-style: none;
+  padding: 0;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+</style>

@@ -59,7 +59,7 @@ BEGIN
         (SELECT descrip FROM ta_15_claves WHERE clave=a.clave_secuestro AND tipo_clave=2) AS sec_descrip,
         (SELECT descrip FROM ta_15_claves WHERE clave=a.clave_remate AND tipo_clave=3) AS rem_descrip,
         (SELECT descrip FROM ta_15_claves WHERE clave=a.vigencia AND tipo_clave=5) AS vig_descrip,
-        (SELECT nombre FROM ta_12_passwords WHERE id_usuario=a.usuario) AS usu_descrip,
+        (SELECT nombre FROM padron_licencias.comun.ta_12_passwords WHERE id_usuario=a.usuario) AS usu_descrip,
         (SELECT nombre FROM ta_15_ejecutores WHERE cve_eje=a.ejecutor AND id_rec=a.zona) AS nombre_eje,
         a.hora_practicado,
         -- Calculated fields:

@@ -22,7 +22,7 @@
       <div class="row mb-3">
         <div class="col-md-3" v-if="opcion == 0">
           <label for="placa">Placa</label>
-          <input id="placa" v-model="placa" class="form-control" maxlength="7" style="text-transform:uppercase" />
+          <input id="placa" v-model="placa" class="form-control text-uppercase" maxlength="7" />
         </div>
         <div class="col-md-2" v-if="opcion == 1">
           <label for="axo">Año</label>

@@ -76,7 +76,7 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-const BASE_DB = 'INFORMIX'
+const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_MULTAS_DM' // TODO confirmar
 
 const { loading, execute } = useApi()

@@ -167,7 +167,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sp_listxFec_get_recaudadoras()
 RETURNS TABLE(id_rec INT, recaudadora VARCHAR) AS $$
 BEGIN
-  RETURN QUERY SELECT id_rec, recaudadora FROM ta_12_recaudadoras ORDER BY id_rec;
+  RETURN QUERY SELECT id_rec, recaudadora FROM padron_licencias.comun.ta_12_recaudadoras ORDER BY id_rec;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -233,8 +233,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.id_usuario, a.usuario, a.nombre, a.estado, a.id_rec, b.id_zona, b.recaudadora, b.domicilio, b.tel, b.recaudador, a.nivel
-    FROM ta_12_passwords a
-    JOIN ta_12_recaudadoras b ON a.id_rec = b.id_rec
+    FROM padron_licencias.comun.ta_12_passwords a
+    JOIN padron_licencias.comun.ta_12_recaudadoras b ON a.id_rec = b.id_rec
     WHERE a.usuario = p_usuario
       AND a.clave = p_clave
       AND a.estado = 'A';
@@ -424,7 +424,7 @@ BEGIN
         CASE WHEN a.modulo=11 THEN CONCAT('MERCADO ', m.num_mercado, '-', m.categoria, '-', m.seccion, '-', m.local, '-', m.letra_local, '-', m.bloque)
              WHEN a.modulo=16 THEN CONCAT('ASEO ', aseo.tipo_aseo, '-', aseo.num_contrato)
              ELSE '' END AS r_datos
-    FROM ta_12_recibos p
+    FROM padron_licencias.comun.ta_12_recibos p
     JOIN ta_15_apremios a ON a.fecha_pago = p.fecha AND a.recaudadora = p.id_rec AND a.caja = p.caja AND a.operacion = p.operacion
     LEFT JOIN ta_15_ejecutores e ON a.ejecutor = e.cve_eje AND a.zona = e.id_rec
     LEFT JOIN ta_11_locales m ON a.control_otr = m.id_local AND a.modulo = 11
@@ -481,7 +481,7 @@ BEGIN
         CASE WHEN a.modulo=11 THEN CONCAT('MERCADO ', m.num_mercado, '-', m.categoria, '-', m.seccion, '-', m.local, '-', m.letra_local, '-', m.bloque)
              WHEN a.modulo=16 THEN CONCAT('ASEO ', aseo.tipo_aseo, '-', aseo.num_contrato)
              ELSE '' END AS r_datos
-    FROM ta_12_recibos p
+    FROM padron_licencias.comun.ta_12_recibos p
     JOIN ta_15_apremios a ON a.fecha_pago = p.fecha AND a.recaudadora = p.id_rec AND a.caja = p.caja AND a.operacion = p.operacion
     LEFT JOIN ta_15_ejecutores e ON a.ejecutor = e.cve_eje AND a.zona = e.id_rec
     LEFT JOIN ta_11_locales m ON a.control_otr = m.id_local AND a.modulo = 11

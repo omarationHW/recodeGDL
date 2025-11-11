@@ -271,10 +271,12 @@ import { ref, onMounted, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast } = useToast()
 
 // Estado
@@ -308,19 +310,33 @@ const cargarCementerios = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_LISTAR_CEMENTERIOS',
+      'sp_cem_listar_cementerios',
       'cementerios',
-      {
-        p_page: currentPage.value,
-        p_page_size: pageSize.value,
-        p_search: searchText.value || null,
-        p_order_by: 'cementerio'
-      }
+      {},
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.length > 0) {
-      cementerios.value = response
-      totalRecords.value = response[0].total_records || response.length
+    if (response && response.result && response.result.length > 0) {
+      let data = response.result
+
+      // Filtrar por búsqueda si hay texto de búsqueda
+      if (searchText.value && searchText.value.trim()) {
+        const search = searchText.value.toLowerCase()
+        data = data.filter(c =>
+          (c.cementerio && c.cementerio.toLowerCase().includes(search)) ||
+          (c.nombre && c.nombre.toLowerCase().includes(search)) ||
+          (c.direccion && c.direccion.toLowerCase().includes(search))
+        )
+      }
+
+      totalRecords.value = data.length
+
+      // Paginación manual del lado del cliente
+      const start = (currentPage.value - 1) * pageSize.value
+      const end = start + pageSize.value
+      cementerios.value = data.slice(start, end)
     } else {
       cementerios.value = []
       totalRecords.value = 0
@@ -381,7 +397,7 @@ const guardarCementerio = async () => {
   try {
     const operacion = modalMode.value === 'create' ? 'A' : 'C'
     const response = await execute(
-      'SP_CEM_ABC_CEMENTERIOS',
+      'sp_cem_abc_cementerios',
       'cementerios',
       {
         p_operacion: operacion,
@@ -389,11 +405,14 @@ const guardarCementerio = async () => {
         p_nombre: formData.value.nombre,
         p_domicilio: formData.value.domicilio,
         p_usuario: 1 // TODO: Obtener usuario actual del sistema
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
     if (response && response[0]) {
-      const result = response[0]
+      const result = response.result[0]
       if (result.resultado === 'S') {
         showToast(result.mensaje, 'success')
         cerrarModal()
@@ -423,19 +442,22 @@ const eliminarCementerio = async (cem) => {
   if (result.isConfirmed) {
     try {
       const response = await execute(
-        'SP_CEM_ABC_CEMENTERIOS',
-        'cementerios',
-        {
+      'sp_cem_abc_cementerios',
+      'cementerios',
+      {
           p_operacion: 'B',
           p_cementerio: cem.cementerio,
           p_nombre: '',
           p_domicilio: '',
           p_usuario: 1
-        }
-      )
+        },
+      '',
+      null,
+      'comun'
+    )
 
       if (response && response[0]) {
-        const result = response[0]
+        const result = response.result[0]
         if (result.resultado === 'S') {
           showToast(result.mensaje, 'success')
           cargarCementerios()

@@ -14,7 +14,7 @@
         <form @submit.prevent="onSubmit">
           <div class="form-group mb-3">
             <label for="rfc">R.F.C</label>
-            <input type="text" v-model="form.rfc" id="rfc" maxlength="13" class="form-control" :class="{'is-invalid': errors.rfc}" @blur="checkRfc" style="text-transform:uppercase" required>
+            <input type="text" v-model="form.rfc" id="rfc" maxlength="13" class="form-control text-uppercase" :class="{'is-invalid': errors.rfc}" @blur="checkRfc" required>
             <div class="invalid-feedback" v-if="errors.rfc">{{ errors.rfc }}</div>
           </div>
           <div class="form-group mb-3">
@@ -24,26 +24,26 @@
           </div>
           <div class="form-group mb-3">
             <label for="nombre">Nombre o Razón Social</label>
-            <input type="text" v-model="form.nombre" id="nombre" maxlength="60" class="form-control" :class="{'is-invalid': errors.nombre}" style="text-transform:uppercase" required>
+            <input type="text" v-model="form.nombre" id="nombre" maxlength="60" class="form-control text-uppercase" :class="{'is-invalid': errors.nombre}" required>
             <div class="invalid-feedback" v-if="errors.nombre">{{ errors.nombre }}</div>
           </div>
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="ap_pater">Paterno</label>
-              <input type="text" v-model="form.ap_pater" id="ap_pater" maxlength="15" class="form-control" style="text-transform:uppercase">
+              <input type="text" v-model="form.ap_pater" id="ap_pater" maxlength="15" class="form-control text-uppercase">
             </div>
             <div class="col-md-6">
               <label for="ap_mater">Materno</label>
-              <input type="text" v-model="form.ap_mater" id="ap_mater" maxlength="15" class="form-control" style="text-transform:uppercase">
+              <input type="text" v-model="form.ap_mater" id="ap_mater" maxlength="15" class="form-control text-uppercase">
             </div>
           </div>
           <div class="form-group mb-3">
             <label for="ife">IFE</label>
-            <input type="text" v-model="form.ife" id="ife" maxlength="15" class="form-control" style="text-transform:uppercase">
+            <input type="text" v-model="form.ife" id="ife" maxlength="15" class="form-control text-uppercase">
           </div>
           <div class="form-group mb-3">
             <label for="direccion">Dirección</label>
-            <input type="text" v-model="form.direccion" id="direccion" maxlength="255" class="form-control" style="text-transform:uppercase">
+            <input type="text" v-model="form.direccion" id="direccion" maxlength="255" class="form-control text-uppercase">
           </div>
           <div class="d-flex justify-content-end">
             <button type="submit" class="btn btn-success me-2" :disabled="loading">Aceptar</button>

@@ -81,7 +81,7 @@
             class="badge"
             :class="licenciaData.bloqueada ? 'badge-danger' : 'badge-success'"
           >
-            {{ licenciaData.bloqueada ? '\1' : '\1' }}
+            {{ licenciaData.bloqueada ? 'BLOQUEADA' : 'ACTIVA' }}
           </span>
         </h5>
       </div>
@@ -293,7 +293,7 @@ const searchLicencia = async () => {
   try {
     // GETLICENCIAREGLAMENTADA
     const response = await execute(
-      '\1',
+      'sp_get_licencia_reglamentada',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -330,7 +330,7 @@ const checkLicenciaBloqueada = async () => {
   try {
     // CHECKLICENCIABLOQUEADA
     const response = await execute(
-      '\1',
+      'sp_check_licencia_bloqueada',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -353,7 +353,7 @@ const calcularAdeudo = async () => {
   try {
     // CALC_ADEUDOLIC
     const response = await execute(
-      '\1',
+      'sp_calcular_adeudo_licencia',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -373,7 +373,7 @@ const obtenerSaldo = async () => {
   try {
     // DETSALDO_LICENCIA
     const response = await execute(
-      '\1',
+      'sp_detalle_saldo_licencia',
       'padron_licencias',
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
@@ -469,7 +469,7 @@ const formatCurrency = (value) => {
   if (!value) return '$0.00'
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
-    currency: '\1'
+    currency: 'MXN'
   }).format(value)
 }
 

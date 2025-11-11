@@ -87,7 +87,7 @@
           <h5>
             <font-awesome-icon icon="table" />
             Padrón de Concesionarios
-            <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
+            <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
           </h5>
           <div v-if="loading" class="spinner-border" role="status">
             <span class="visually-hidden">Cargando...</span>
@@ -171,8 +171,7 @@
               <label class="municipal-form-label">Registros por página:</label>
               <select
                 v-model="itemsPerPage"
-                class="municipal-form-control"
-                style="width: auto; display: inline-block; margin-left: 10px;"
+                class="municipal-form-control pagination-select"
               >
                 <option :value="10">10</option>
                 <option :value="25">25</option>
@@ -227,6 +226,7 @@ import { useRoute, useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Router
@@ -239,15 +239,17 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+// Estado local de loading
+const loading = ref(false)
 
 // Estado
 const tablaId = ref(route.params.tablaId || route.query.tablaId || 3)
@@ -360,7 +362,9 @@ const loadVigencias = async () => {
 
 // Cargar padrón
 const loadPadron = async () => {
-  setLoading(true, 'Cargando padrón...')
+  const startTime = performance.now()
+  loading.value = true
+  showLoading('Cargando padrón...', 'Consultando registros')
 
   try {
     const response = await execute(
@@ -373,27 +377,34 @@ const loadPadron = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1
+      ? `${(duration * 1000).toFixed(0)}ms`
+      : `${duration}s`
+
     if (response && response.result) {
       padronData.value = response.result
       totalRecords.value = padronData.value.length
       currentPage.value = 1
 
       if (totalRecords.value > 0) {
-        showToast('success', `${totalRecords.value} registro(s) encontrado(s)`)
+        showToast('success', `${totalRecords.value} registro(s) encontrado(s)`, timeMessage)
       } else {
-        showToast('info', 'No se encontraron registros con los filtros seleccionados')
+        showToast('info', 'No se encontraron registros con los filtros seleccionados', timeMessage)
       }
     } else {
       padronData.value = []
       totalRecords.value = 0
-      showToast('info', 'No se encontraron registros')
+      showToast('info', 'No se encontraron registros', timeMessage)
     }
   } catch (error) {
     handleApiError(error)
     padronData.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -486,7 +497,8 @@ const getStatusClass = (status) => {
 
 // Lifecycle
 onMounted(async () => {
-  setLoading(true, 'Inicializando...')
+  loading.value = true
+  showLoading('Inicializando...', 'Cargando configuración')
 
   try {
     await loadTablaInfo()
@@ -496,7 +508,27 @@ onMounted(async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 })
 </script>
+
+<style scoped>
+/* Pagination select */
+.pagination-select {
+  width: auto;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+/* Toast duration */
+.toast-duration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-left: 8px;
+}
+</style>

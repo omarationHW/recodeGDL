@@ -85,7 +85,7 @@ BEGIN
     SELECT *,
       (
         SELECT COALESCE(SUM(porcentaje_mes),0)
-        FROM ta_12_recargos
+        FROM padron_licencias.comun.ta_12_recargos
         WHERE (
           (axo = base.axo AND mes >= base.periodo)
           OR (axo = vaxo AND mes <= (CASE WHEN vdia <= 12 THEN vmes-1 ELSE vmes END))

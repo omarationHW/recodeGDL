@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-calendar-check"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="calendar-check" />
         Consulta de Pagos por Fecha
       </h1>
       <DocumentationModal
@@ -12,19 +12,19 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Criterios de Búsqueda
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-three">
           <div class="form-group">
             <label class="form-label required">Fecha de Ingreso</label>
             <input
               v-model="filtros.fecha"
               type="date"
-              class="form-control"
+              class="municipal-form-control"
               @keyup.enter="buscarPagos"
             />
           </div>
@@ -33,7 +33,7 @@
             <input
               v-model.number="filtros.recibo"
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               min="1"
               @keyup.enter="buscarPagos"
             />
@@ -43,7 +43,7 @@
             <input
               v-model="filtros.caja"
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               maxlength="1"
               @keyup.enter="buscarPagos"
             />
@@ -51,11 +51,11 @@
         </div>
         <div class="form-actions">
           <button @click="buscarPagos" class="btn-municipal-primary">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon icon="search" />
             Buscar Pagos
           </button>
           <button @click="limpiarFiltros" class="btn-municipal-secondary">
-            <i class="fas fa-eraser"></i>
+            <font-awesome-icon icon="eraser" />
             Limpiar
           </button>
         </div>
@@ -63,15 +63,15 @@
     </div>
 
     <!-- Resultados -->
-    <div v-if="pagos.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="pagos.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Pagos Encontrados ({{ pagos.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Folio</th>
                 <th>Ubicación</th>
@@ -106,7 +106,7 @@
                     class="btn-municipal-secondary btn-sm"
                     title="Ver detalle del folio"
                   >
-                    <i class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                     Ver Detalle
                   </button>
                 </td>
@@ -138,7 +138,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron pagos con los criterios especificados
     </div>
 
@@ -147,16 +147,16 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>
-            <i class="fas fa-file-alt"></i>
+            <font-awesome-icon icon="file-alt" />
             Detalle del Folio {{ folioSeleccionado }}
           </h3>
           <button @click="cerrarDetalle" class="btn-close">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
           </button>
         </div>
         <div class="modal-body">
           <div class="alert-info">
-            <i class="fas fa-info-circle"></i>
+            <font-awesome-icon icon="info-circle" />
             El detalle completo del folio se implementará en el componente ConIndividual
           </div>
           <p><strong>Folio:</strong> {{ folioSeleccionado }}</p>
@@ -164,7 +164,7 @@
         </div>
         <div class="modal-footer">
           <button @click="cerrarDetalle" class="btn-municipal-secondary">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cerrar
           </button>
         </div>
@@ -176,11 +176,18 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
   fecha: '',
@@ -248,13 +255,31 @@ const buscarPagos = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_PAGOS_POR_FECHA', {
-      p_fecha: filtros.fecha,
-      p_recibo: filtros.recibo,
-      p_caja: filtros.caja.toUpperCase()
-    })
+    const params = [
+      {
+        nombre: 'p_fecha',
+        valor: filtros.fecha,
+        tipo: 'date'
+      },
+      {
+        nombre: 'p_recibo',
+        valor: filtros.recibo,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_caja',
+        valor: filtros.caja.toUpperCase(),
+        tipo: 'string'
+      }
+    ]
 
-    pagos.value = response.data || []
+    const response = await execute('sp_cem_consultar_pagos_por_fecha', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    pagos.value = response.result || []
     busquedaRealizada.value = true
 
     if (pagos.value.length === 0) {

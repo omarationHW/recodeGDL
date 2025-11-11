@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="list-check" />
       </div>
@@ -9,19 +9,19 @@
         <h1>{{ tituloModulo }}</h1>
         <p>Otras Obligaciones - Opciones Múltiples de Adeudos</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda y documentación del módulo"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
-          :disabled="loading"
+          :disabled="isLoading"
         >
           <font-awesome-icon icon="arrow-left" />
           Salir
@@ -40,17 +40,18 @@
         </div>
 
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+          <div class="row g-3">
+            <div class="col-md-6">
               <label class="municipal-form-label">
-                <strong>Tabla:</strong>
+                <font-awesome-icon icon="table" class="me-1" />
+                Tabla:
                 <span class="required">*</span>
               </label>
               <select
                 v-model="selectedTabla"
                 @change="onTablaChange"
                 class="municipal-form-control"
-                :disabled="loading"
+                :disabled="isLoading"
               >
                 <option value="">-- Seleccione una tabla --</option>
                 <option
@@ -63,22 +64,31 @@
               </select>
             </div>
 
-            <div class="form-group" style="flex: 1;">
+            <div class="col-md-6">
               <label class="municipal-form-label">
-                <strong>Opción:</strong>
+                <font-awesome-icon icon="tasks" class="me-1" />
+                Opción:
                 <span class="required">*</span>
               </label>
               <select
                 v-model="selectedOpcion"
                 @change="onOpcionChange"
                 class="municipal-form-control"
-                :disabled="loading"
+                :disabled="isLoading"
               >
                 <option value="">-- Seleccione una opción --</option>
-                <option value="1">P - DAR DE PAGADO</option>
-                <option value="2">S - CONDONAR</option>
-                <option value="3">C - CANCELAR</option>
-                <option value="4">R - PRESCRIBIR</option>
+                <option value="1">
+                  <font-awesome-icon icon="check-circle" /> P - DAR DE PAGADO
+                </option>
+                <option value="2">
+                  <font-awesome-icon icon="hand-holding-heart" /> S - CONDONAR
+                </option>
+                <option value="3">
+                  <font-awesome-icon icon="ban" /> C - CANCELAR
+                </option>
+                <option value="4">
+                  <font-awesome-icon icon="clock" /> R - PRESCRIBIR
+                </option>
               </select>
             </div>
           </div>
@@ -96,14 +106,16 @@
 
         <div class="municipal-card-body">
           <!-- Búsqueda por Número de Expediente (Tablas 1, 2, 4, 5) -->
-          <div v-if="selectedTabla !== '3'" class="form-row">
-            <div class="form-group" style="flex: 0 0 250px;">
+          <div v-if="selectedTabla !== '3'" class="row g-3 align-items-end">
+            <div class="col-md-4">
               <label class="municipal-form-label">
-                <strong>{{ etiquetas.etiq_control }}:</strong>
+                <font-awesome-icon icon="hashtag" class="me-1" />
+                {{ etiquetas.etiq_control }}:
                 <span class="required">*</span>
               </label>
               <div class="input-group">
                 <span class="input-group-text" v-if="etiquetas.abreviatura">
+                  <font-awesome-icon icon="tag" class="me-1" />
                   {{ etiquetas.abreviatura }}
                 </span>
                 <input
@@ -116,13 +128,12 @@
                 />
               </div>
             </div>
-            <div class="form-group" style="flex: 0;">
-              <label class="municipal-form-label" style="visibility: hidden;">Buscar</label>
+            <div class="col-md-2">
               <button
                 type="button"
-                class="btn-municipal-primary"
+                class="btn-municipal-primary w-100"
                 @click="buscarConcesion"
-                :disabled="!busqueda.numExpediente || loading"
+                :disabled="!busqueda.numExpediente || isLoading"
               >
                 <font-awesome-icon icon="search" />
                 Buscar
@@ -131,10 +142,11 @@
           </div>
 
           <!-- Búsqueda por Número de Local (Tabla 3) -->
-          <div v-else class="form-row">
-            <div class="form-group" style="flex: 0 0 150px;">
+          <div v-else class="row g-3 align-items-end">
+            <div class="col-md-3">
               <label class="municipal-form-label">
-                <strong>Número de Local:</strong>
+                <font-awesome-icon icon="building" class="me-1" />
+                Número de Local:
                 <span class="required">*</span>
               </label>
               <input
@@ -146,9 +158,10 @@
                 @keyup.enter="focusLetra"
               />
             </div>
-            <div class="form-group" style="flex: 0 0 100px;">
+            <div class="col-md-2">
               <label class="municipal-form-label">
-                <strong>Letra:</strong>
+                <font-awesome-icon icon="font" class="me-1" />
+                Letra:
               </label>
               <input
                 ref="letraInput"
@@ -160,13 +173,12 @@
                 @keyup.enter="buscarConcesion"
               />
             </div>
-            <div class="form-group" style="flex: 0;">
-              <label class="municipal-form-label" style="visibility: hidden;">Buscar</label>
+            <div class="col-md-2">
               <button
                 type="button"
-                class="btn-municipal-primary"
+                class="btn-municipal-primary w-100"
                 @click="buscarConcesion"
-                :disabled="!busqueda.numLocal || loading"
+                :disabled="!busqueda.numLocal || isLoading"
               >
                 <font-awesome-icon icon="search" />
                 Buscar
@@ -183,7 +195,10 @@
             <font-awesome-icon icon="info-circle" />
             Datos de la Concesión
           </h5>
-          <span class="badge-info">{{ datosGenerales.statusregistro === 'A' ? 'ACTIVO' : 'INACTIVO' }}</span>
+          <span class="badge-purple">
+            <font-awesome-icon :icon="datosGenerales.statusregistro === 'A' ? 'check-circle' : 'times-circle'" />
+            {{ datosGenerales.statusregistro === 'A' ? 'ACTIVO' : 'INACTIVO' }}
+          </span>
         </div>
 
         <div class="municipal-card-body">
@@ -238,11 +253,12 @@
           <div class="button-group mt-3" v-if="tienePagados">
             <button
               type="button"
-              class="btn-municipal-secondary"
+              class="btn-municipal-purple"
               @click="verPagados"
             >
               <font-awesome-icon icon="history" />
               Ver Historial de Pagados
+              <span class="badge-purple ms-2">{{ pagados.length }}</span>
             </button>
           </div>
         </div>
@@ -258,10 +274,11 @@
         </div>
 
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+          <div class="row g-3">
+            <div class="col-md-6">
               <label class="municipal-form-label">
-                <strong>Fecha de Pago:</strong>
+                <font-awesome-icon icon="calendar-day" class="me-1" />
+                Fecha de Pago:
                 <span class="required">*</span>
               </label>
               <input
@@ -270,9 +287,10 @@
                 class="municipal-form-control"
               />
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="col-md-6">
               <label class="municipal-form-label">
-                <strong>Recaudadora:</strong>
+                <font-awesome-icon icon="store" class="me-1" />
+                Recaudadora:
                 <span class="required">*</span>
               </label>
               <select
@@ -291,10 +309,11 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+          <div class="row g-3 mt-2">
+            <div class="col-md-4">
               <label class="municipal-form-label">
-                <strong>Caja:</strong>
+                <font-awesome-icon icon="cash-register" class="me-1" />
+                Caja:
                 <span class="required">*</span>
               </label>
               <input
@@ -305,9 +324,10 @@
                 placeholder="Caja"
               />
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="col-md-4">
               <label class="municipal-form-label">
-                <strong>Consecutivo Operación:</strong>
+                <font-awesome-icon icon="sort-numeric-up" class="me-1" />
+                Consecutivo Operación:
                 <span class="required">*</span>
               </label>
               <input
@@ -318,9 +338,10 @@
                 placeholder="Consecutivo"
               />
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="col-md-4">
               <label class="municipal-form-label">
-                <strong>Folio Recibo:</strong>
+                <font-awesome-icon icon="receipt" class="me-1" />
+                Folio Recibo:
                 <span class="required">*</span>
               </label>
               <input
@@ -341,13 +362,16 @@
           <h5>
             <font-awesome-icon icon="list-alt" />
             Adeudos Disponibles
-            <span class="badge-info">{{ adeudosSeleccionados.length }} / {{ adeudos.length }} seleccionados</span>
+            <span class="badge-purple ms-2">
+              <font-awesome-icon icon="check-square" />
+              {{ adeudosSeleccionados.length }} / {{ adeudos.length }} seleccionados
+            </span>
           </h5>
         </div>
 
         <div class="municipal-card-body">
-          <div class="alert alert-info mb-3">
-            <font-awesome-icon icon="info-circle" />
+          <div class="alert alert-purple mb-3">
+            <font-awesome-icon icon="info-circle" class="me-2" />
             <strong>Instrucciones:</strong> Seleccione los adeudos que desea procesar marcando las casillas de verificación.
           </div>
 
@@ -356,20 +380,39 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th style="width: 5%;">
+                  <th class="text-center" style="width: 50px;">
                     <input
                       type="checkbox"
                       :checked="todosSeleccionados"
                       @change="toggleTodos"
                       title="Seleccionar todos"
+                      class="form-check-input"
                     />
                   </th>
-                  <th style="width: 20%;">Concepto</th>
-                  <th style="width: 10%;">Año</th>
-                  <th style="width: 10%;">Mes</th>
-                  <th style="width: 15%; text-align: right;">Importe</th>
-                  <th style="width: 15%; text-align: right;">Recargos</th>
-                  <th style="width: 15%; text-align: right;">Total</th>
+                  <th>
+                    <font-awesome-icon icon="tag" class="me-1" />
+                    Concepto
+                  </th>
+                  <th class="text-center">
+                    <font-awesome-icon icon="calendar-alt" class="me-1" />
+                    Año
+                  </th>
+                  <th class="text-center">
+                    <font-awesome-icon icon="calendar" class="me-1" />
+                    Mes
+                  </th>
+                  <th class="text-end">
+                    <font-awesome-icon icon="dollar-sign" class="me-1" />
+                    Importe
+                  </th>
+                  <th class="text-end">
+                    <font-awesome-icon icon="percentage" class="me-1" />
+                    Recargos
+                  </th>
+                  <th class="text-end">
+                    <font-awesome-icon icon="coins" class="me-1" />
+                    Total
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -378,24 +421,31 @@
                     <input
                       type="checkbox"
                       v-model="adeudo.seleccionado"
+                      class="form-check-input"
                     />
                   </td>
-                  <td>{{ adeudo.concepto }}</td>
-                  <td>{{ adeudo.axo }}</td>
-                  <td>{{ getMesNombre(adeudo.mes) }}</td>
-                  <td class="text-right">{{ formatCurrency(adeudo.importe_pagar) }}</td>
-                  <td class="text-right">{{ formatCurrency(adeudo.recargos_pagar) }}</td>
-                  <td class="text-right">
-                    <strong>{{ formatCurrency(adeudo.importe_pagar + adeudo.recargos_pagar) }}</strong>
+                  <td>
+                    <font-awesome-icon icon="file-invoice-dollar" class="me-2 text-muted" />
+                    {{ adeudo.concepto }}
+                  </td>
+                  <td class="text-center">{{ adeudo.axo }}</td>
+                  <td class="text-center">{{ getMesNombre(adeudo.mes) }}</td>
+                  <td class="text-end">{{ formatCurrency(adeudo.importe_pagar) }}</td>
+                  <td class="text-end">{{ formatCurrency(adeudo.recargos_pagar) }}</td>
+                  <td class="text-end fw-bold">
+                    {{ formatCurrency(adeudo.importe_pagar + adeudo.recargos_pagar) }}
                   </td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr class="municipal-table-footer">
-                  <td colspan="4" class="text-right"><strong>TOTALES:</strong></td>
-                  <td class="text-right"><strong>{{ formatCurrency(totalImporte) }}</strong></td>
-                  <td class="text-right"><strong>{{ formatCurrency(totalRecargos) }}</strong></td>
-                  <td class="text-right"><strong>{{ formatCurrency(totalGeneral) }}</strong></td>
+                  <td colspan="4" class="text-end fw-bold">
+                    <font-awesome-icon icon="calculator" class="me-2" />
+                    TOTALES:
+                  </td>
+                  <td class="text-end fw-bold">{{ formatCurrency(totalImporte) }}</td>
+                  <td class="text-end fw-bold">{{ formatCurrency(totalRecargos) }}</td>
+                  <td class="text-end fw-bold text-purple">{{ formatCurrency(totalGeneral) }}</td>
                 </tr>
               </tfoot>
             </table>
@@ -405,11 +455,11 @@
           <div class="button-group mt-4">
             <button
               type="button"
-              class="btn-municipal-primary"
+              class="btn-municipal-success"
               @click="ejecutarAccion"
               :disabled="!canEjecutar || saving"
             >
-              <font-awesome-icon :icon="saving ? 'spinner' : 'check'" :spin="saving" />
+              <font-awesome-icon :icon="saving ? 'spinner' : 'check-circle'" :spin="saving" />
               {{ saving ? 'Procesando...' : textoBotonEjecutar }}
             </button>
             <button
@@ -418,8 +468,8 @@
               @click="limpiarBusqueda"
               :disabled="saving"
             >
-              <font-awesome-icon icon="times" />
-              Cancelar
+              <font-awesome-icon icon="times-circle" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -428,31 +478,14 @@
       <!-- Mensaje cuando no hay adeudos -->
       <div class="municipal-card" v-else-if="datosGenerales && buscado">
         <div class="municipal-card-body">
-          <div class="text-center text-muted">
-            <font-awesome-icon icon="info-circle" size="2x" class="empty-icon" />
-            <p>No se encontraron adeudos para esta concesión.</p>
+          <div class="text-center text-muted py-5">
+            <font-awesome-icon icon="inbox" size="3x" class="text-muted mb-3" />
+            <p class="mb-0">No se encontraron adeudos para esta concesión.</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
         </div>
       </div>
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -522,6 +555,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -534,9 +568,8 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { isLoading, showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -692,17 +725,23 @@ const toggleTodos = () => {
 
 // Cargar tablas disponibles
 const loadTablas = async () => {
+  const startTime = performance.now()
+  showLoading('Cargando tablas disponibles...')
+
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPC_MULT_TABLAS_GET',
+      'get_tablas',
       'otras_obligaciones',
       [],
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result && response.result.length > 0) {
       tablas.value = response.result
-      showToast('success', `${tablas.value.length} tabla(s) disponible(s)`)
+      showToast('success', `${tablas.value.length} tabla(s) disponible(s) (${duration}s)`)
     } else {
       tablas.value = []
       showToast('info', 'No se encontraron tablas disponibles')
@@ -710,6 +749,8 @@ const loadTablas = async () => {
   } catch (error) {
     handleApiError(error)
     tablas.value = []
+  } finally {
+    hideLoading()
   }
 }
 
@@ -745,11 +786,12 @@ const onTablaChange = async () => {
     return
   }
 
-  setLoading(true, 'Cargando etiquetas...')
+  const startTime = performance.now()
+  showLoading('Cargando etiquetas...')
 
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPC_MULT_ETIQUETAS_GET',
+      'get_etiquetas',
       'otras_obligaciones',
       [
         { nombre: 'par_tab', valor: selectedTabla.value, tipo: 'string' }
@@ -757,9 +799,12 @@ const onTablaChange = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result && response.result.length > 0) {
       etiquetas.value = response.result[0]
-      showToast('success', 'Etiquetas cargadas')
+      showToast('success', `Etiquetas cargadas (${duration}s)`)
     } else {
       etiquetas.value = {}
       showToast('warning', 'No se encontraron etiquetas para esta tabla')
@@ -768,7 +813,7 @@ const onTablaChange = async () => {
     handleApiError(error)
     etiquetas.value = {}
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 
   limpiarBusqueda()
@@ -807,12 +852,13 @@ const buscarConcesion = async () => {
     control = `${etiquetas.value.abreviatura || ''}${busqueda.value.numExpediente}`
   }
 
-  setLoading(true, 'Buscando concesión...')
+  const startTime = performance.now()
+  showLoading('Buscando concesión...')
 
   try {
     // Buscar datos generales
     const response = await execute(
-      'SP_GADEUDOS_OPC_MULT_DATOS_GENERALES_GET',
+      'cob34_gdatosg_02',
       'otras_obligaciones',
       [
         { nombre: 'par_tab', valor: selectedTabla.value, tipo: 'string' },
@@ -820,6 +866,9 @@ const buscarConcesion = async () => {
       ],
       'guadalajara'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result.length > 0) {
       const resultado = response.result[0]
@@ -834,7 +883,7 @@ const buscarConcesion = async () => {
 
       datosGenerales.value = resultado
       buscado.value = true
-      showToast('success', 'Concesión encontrada')
+      showToast('success', `Concesión encontrada (${duration}s)`)
 
       // Buscar adeudos
       await buscarAdeudos(resultado.id_datos)
@@ -853,7 +902,7 @@ const buscarConcesion = async () => {
     adeudos.value = []
     buscado.value = true
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -862,10 +911,11 @@ const buscarAdeudos = async (idDatos) => {
   const fechaActual = new Date()
   const axoActual = fechaActual.getFullYear()
   const mesActual = 12 // Diciembre por defecto
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPC_MULT_ADEUDOS_GET',
+      'cob34_gdetade_01',
       'otras_obligaciones',
       [
         { nombre: 'par_tabla', valor: selectedTabla.value, tipo: 'string' },
@@ -876,12 +926,15 @@ const buscarAdeudos = async (idDatos) => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+
     if (response && response.result && response.result.length > 0) {
       adeudos.value = response.result.map(a => ({
         ...a,
         seleccionado: false
       }))
-      showToast('success', `${adeudos.value.length} adeudo(s) encontrado(s)`)
+      showToast('success', `${adeudos.value.length} adeudo(s) encontrado(s) (${duration}s)`)
     } else {
       adeudos.value = []
       showToast('info', 'No se encontraron adeudos')
@@ -896,7 +949,7 @@ const buscarAdeudos = async (idDatos) => {
 const verificarPagados = async (idDatos) => {
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPC_MULT_PAGADOS_GET',
+      'sp_get_pagados',
       'otras_obligaciones',
       [
         { nombre: 'p_control', valor: idDatos, tipo: 'integer' }
@@ -1000,7 +1053,7 @@ const ejecutarAccion = async () => {
         ]
 
         const response = await execute(
-          'SP_GADEUDOS_OPC_MULT_UPDATE_ADEUDO',
+          'upd34_gen_adeudos_ind',
           'otras_obligaciones',
           params,
           'guadalajara'

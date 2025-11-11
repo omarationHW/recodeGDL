@@ -3,55 +3,106 @@
     <!-- Header -->
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="file-invoice" />
+        <font-awesome-icon icon="file-invoice-dollar" />
       </div>
       <div class="module-view-info">
         <h1>Facturación</h1>
-        <p>Otras Obligaciones - Generación de reportes de facturación por período</p>
+        <p>Generación de reportes de facturación por período</p>
       </div>
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button class="btn-municipal-secondary" @click="goBack">
-          <font-awesome-icon icon="arrow-left" /> Salir
+          <font-awesome-icon icon="arrow-left" />
+          Salir
         </button>
       </div>
     </div>
 
     <div class="module-view-content">
-      <!-- Información de la tabla -->
-      <div class="municipal-card" v-if="nombreTabla">
-        <div class="municipal-card-body">
-          <div class="alert alert-info">
-            <strong>{{ nombreTabla }}</strong>
+      <!-- Panel de Estadísticas -->
+      <div class="stats-grid" v-if="loadingEstadisticas">
+        <div class="stat-card stat-card-loading" v-for="n in 3" :key="`loading-${n}`">
+          <div class="stat-content">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-number"></div>
+            <div class="skeleton-label"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards de estadísticas con datos -->
+      <div class="stats-grid" v-else-if="nombreTabla">
+        <div class="stat-card stat-primary">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="building" />
+            </div>
+            <h3 class="stat-number">{{ nombreTabla }}</h3>
+            <p class="stat-label">Tabla Seleccionada</p>
+          </div>
+        </div>
+
+        <div class="stat-card stat-info">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="calendar-alt" />
+            </div>
+            <h3 class="stat-number">{{ filtros.axo }}</h3>
+            <p class="stat-label">Año Consulta</p>
+          </div>
+        </div>
+
+        <div class="stat-card stat-warning">
+          <div class="stat-content">
+            <div class="stat-icon">
+              <font-awesome-icon icon="clock" />
+            </div>
+            <h3 class="stat-number">{{ getMesNombre(filtros.mes) }}</h3>
+            <p class="stat-label">Mes Consulta</p>
           </div>
         </div>
       </div>
 
       <!-- Filtros de búsqueda -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header" @click="toggleFiltros" style="cursor: pointer;">
           <h5>
-            <font-awesome-icon icon="filter" />
+            <font-awesome-icon :icon="showFiltros ? 'chevron-up' : 'chevron-down'" />
             Criterios de Búsqueda
           </h5>
+          <span class="badge badge-purple">
+            <font-awesome-icon icon="filter" />
+            {{ contadorFiltros }} filtro(s) activo(s)
+          </span>
         </div>
 
-        <div class="municipal-card-body">
+        <div class="municipal-card-body" v-show="showFiltros">
           <div class="form-row">
             <!-- Período -->
             <div class="form-group">
-              <label class="municipal-form-label">Período</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-check" class="me-1" />
+                Período
+              </label>
               <select class="municipal-form-control" v-model="filtros.periodo" @change="cambiarPeriodo">
-                <option value="vencidos">Vencidos</option>
-                <option value="especifico">Período Específico</option>
+                <option value="vencidos">
+                  <font-awesome-icon icon="exclamation-triangle" /> Vencidos
+                </option>
+                <option value="especifico">
+                  <font-awesome-icon icon="calendar-day" /> Período Específico
+                </option>
               </select>
             </div>
 
             <!-- Año (solo visible si es período específico) -->
             <div class="form-group" v-show="filtros.periodo === 'especifico'">
-              <label class="municipal-form-label">Año</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar" class="me-1" />
+                Año
+              </label>
               <input
                 type="number"
                 class="municipal-form-control"
@@ -65,7 +116,10 @@
 
             <!-- Mes (solo visible si es período específico) -->
             <div class="form-group" v-show="filtros.periodo === 'especifico'">
-              <label class="municipal-form-label">Mes</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-alt" class="me-1" />
+                Mes
+              </label>
               <select class="municipal-form-control" v-model.number="filtros.mes">
                 <option :value="1">01 - Enero</option>
                 <option :value="2">02 - Febrero</option>
@@ -86,38 +140,54 @@
           <div class="form-row">
             <!-- Estado de Adeudos -->
             <div class="form-group">
-              <label class="municipal-form-label">Estado de Adeudos</label>
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="list-check" class="me-1" />
+                Estado de Adeudos
+              </label>
               <select class="municipal-form-control" v-model="filtros.estado" @change="cambiarEstado">
-                <option value="A">Adeudos</option>
-                <option value="B">Pagados</option>
-                <option value="C">Cancelados</option>
+                <option value="A">
+                  <font-awesome-icon icon="exclamation-circle" /> Adeudos
+                </option>
+                <option value="B">
+                  <font-awesome-icon icon="check-circle" /> Pagados
+                </option>
+                <option value="C">
+                  <font-awesome-icon icon="times-circle" /> Cancelados
+                </option>
               </select>
             </div>
 
             <!-- Recargos -->
             <div class="form-group" v-show="filtros.estado !== 'C'">
-              <label class="municipal-form-label">
+              <label class="municipal-form-label d-flex align-items-center">
                 <input
                   type="checkbox"
                   v-model="filtros.conRecargos"
-                  style="margin-right: 8px;"
+                  class="form-check-input me-2"
                 >
+                <font-awesome-icon icon="percentage" class="me-1" />
                 Incluir Recargos
               </label>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <button
-                class="btn-municipal-primary"
-                @click="generarReporte"
-                :disabled="loading || generando"
-              >
-                <font-awesome-icon :icon="generando ? 'spinner' : 'print'" :spin="generando" />
-                {{ generando ? 'Generando...' : 'Generar Reporte' }}
-              </button>
-            </div>
+          <div class="button-group mt-3">
+            <button
+              class="btn-municipal-primary"
+              @click="generarReporte"
+              :disabled="loading || generando"
+            >
+              <font-awesome-icon :icon="generando ? 'spinner' : 'file-invoice-dollar'" :spin="generando" />
+              {{ generando ? 'Generando...' : 'Generar Reporte' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="limpiarFiltros"
+              :disabled="loading || generando"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar Filtros
+            </button>
           </div>
         </div>
       </div>
@@ -129,15 +199,23 @@
             <font-awesome-icon icon="table" />
             Resultados de Facturación
           </h5>
-          <span class="badge badge-info">
-            {{ datosFacturacion.length }} registro(s)
-          </span>
+          <div class="d-flex gap-2">
+            <span class="badge badge-purple">
+              <font-awesome-icon icon="list-ol" />
+              {{ datosFacturacion.length }} registro(s)
+            </span>
+            <span class="badge badge-success" v-if="performanceTime">
+              <font-awesome-icon icon="clock" />
+              {{ performanceTime }}
+            </span>
+          </div>
         </div>
 
         <div class="municipal-card-body">
           <!-- Título del reporte -->
-          <div class="report-title">
-            <h6>{{ tituloReporte }}</h6>
+          <div class="alert alert-primary d-flex align-items-center mb-3">
+            <font-awesome-icon icon="file-invoice" class="me-2" />
+            <strong>{{ tituloReporte }}</strong>
           </div>
 
           <!-- Tabla de datos -->
@@ -145,12 +223,30 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>{{ etiquetas.etiq_control || 'Control' }}</th>
-                  <th>{{ etiquetas.concesionario || 'Concesionario' }}</th>
-                  <th v-if="tipoTabla !== '5'">{{ etiquetas.superficie || 'Superficie' }}</th>
-                  <th>{{ etiquetas.unidad || 'Unidades' }}</th>
-                  <th>{{ etiquetas.licencia || 'Licencia' }}</th>
-                  <th class="text-right">Importe</th>
+                  <th>
+                    <font-awesome-icon icon="hashtag" class="me-1" />
+                    {{ etiquetas.etiq_control || 'Control' }}
+                  </th>
+                  <th>
+                    <font-awesome-icon icon="user" class="me-1" />
+                    {{ etiquetas.concesionario || 'Concesionario' }}
+                  </th>
+                  <th v-if="tipoTabla !== '5'">
+                    <font-awesome-icon icon="ruler-combined" class="me-1" />
+                    {{ etiquetas.superficie || 'Superficie' }}
+                  </th>
+                  <th>
+                    <font-awesome-icon icon="box" class="me-1" />
+                    {{ etiquetas.unidad || 'Unidades' }}
+                  </th>
+                  <th>
+                    <font-awesome-icon icon="id-card" class="me-1" />
+                    {{ etiquetas.licencia || 'Licencia' }}
+                  </th>
+                  <th class="text-end">
+                    <font-awesome-icon icon="dollar-sign" class="me-1" />
+                    Importe
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -160,15 +256,18 @@
                   <td v-if="tipoTabla !== '5'">{{ formatNumber(item.superficie, 2) }}</td>
                   <td>{{ item.tipo }}</td>
                   <td>{{ item.licencia || '-' }}</td>
-                  <td class="text-right">{{ formatCurrency(item.importe) }}</td>
+                  <td class="text-end">{{ formatCurrency(item.importe) }}</td>
                 </tr>
               </tbody>
               <tfoot class="municipal-table-footer">
                 <tr>
-                  <td :colspan="tipoTabla !== '5' ? 5 : 4" class="text-right">
-                    <strong>Total:</strong>
+                  <td :colspan="tipoTabla !== '5' ? 5 : 4" class="text-end">
+                    <strong>
+                      <font-awesome-icon icon="calculator" class="me-1" />
+                      Total:
+                    </strong>
                   </td>
-                  <td class="text-right">
+                  <td class="text-end">
                     <strong>{{ formatCurrency(totalImporte) }}</strong>
                   </td>
                 </tr>
@@ -177,19 +276,15 @@
           </div>
 
           <!-- Botones de acción -->
-          <div class="form-row mt-3">
-            <div class="form-group">
-              <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading">
-                <font-awesome-icon icon="file-excel" />
-                Exportar a Excel
-              </button>
-            </div>
-            <div class="form-group">
-              <button class="btn-municipal-info" @click="imprimirReporte" :disabled="loading">
-                <font-awesome-icon icon="print" />
-                Imprimir
-              </button>
-            </div>
+          <div class="button-group mt-3">
+            <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading">
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+            <button class="btn-municipal-info" @click="imprimirReporte" :disabled="loading">
+              <font-awesome-icon icon="print" />
+              Imprimir
+            </button>
           </div>
         </div>
       </div>
@@ -197,23 +292,15 @@
       <!-- Mensaje cuando no hay resultados -->
       <div class="municipal-card" v-if="!loading && datosFacturacion.length === 0 && busquedaRealizada">
         <div class="municipal-card-body">
-          <div class="alert alert-warning">
-            <font-awesome-icon icon="exclamation-triangle" />
-            No se encontraron registros para los criterios especificados.
+          <div class="alert alert-warning d-flex align-items-center">
+            <font-awesome-icon icon="exclamation-triangle" class="me-2" />
+            <span>No se encontraron registros para los criterios especificados.</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
         </div>
       </div>
     </div>
 
-    <!-- Toast Notifications -->
+    <!-- Toast Notifications con performance timing -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
       <span class="toast-message">{{ toast.message }}</span>
@@ -236,6 +323,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 import * as XLSX from 'xlsx'
@@ -247,6 +335,7 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { showGlobalLoading, hideGlobalLoading } = useGlobalLoading()
 const {
   loading,
   setLoading,
@@ -264,6 +353,9 @@ const etiquetas = ref({})
 const datosFacturacion = ref([])
 const busquedaRealizada = ref(false)
 const generando = ref(false)
+const loadingEstadisticas = ref(true)
+const showFiltros = ref(true)
+const performanceTime = ref('')
 
 // Filtros
 const filtros = ref({
@@ -276,11 +368,7 @@ const filtros = ref({
 
 // Computed
 const tituloReporte = computed(() => {
-  const meses = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ]
-  const mesNombre = meses[filtros.value.mes - 1]
+  const mesNombre = getMesNombre(filtros.value.mes)
   return `Facturación por el mes de ${mesNombre} del ${filtros.value.axo} de: ${nombreTabla.value}`
 })
 
@@ -288,9 +376,29 @@ const totalImporte = computed(() => {
   return datosFacturacion.value.reduce((sum, item) => sum + (item.importe || 0), 0)
 })
 
+const contadorFiltros = computed(() => {
+  let count = 0
+  if (filtros.value.periodo === 'especifico') count++
+  if (filtros.value.estado !== 'A') count++
+  if (filtros.value.conRecargos) count++
+  return count
+})
+
 // Métodos
 const goBack = () => {
   router.push('/otras_obligaciones')
+}
+
+const toggleFiltros = () => {
+  showFiltros.value = !showFiltros.value
+}
+
+const getMesNombre = (mes) => {
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ]
+  return meses[mes - 1] || 'N/A'
 }
 
 const cambiarPeriodo = () => {
@@ -311,6 +419,19 @@ const cambiarEstado = () => {
   }
 }
 
+const limpiarFiltros = () => {
+  filtros.value = {
+    periodo: 'vencidos',
+    axo: new Date().getFullYear(),
+    mes: new Date().getMonth() + 1,
+    estado: 'A',
+    conRecargos: false
+  }
+  datosFacturacion.value = []
+  busquedaRealizada.value = false
+  showToast('info', 'Filtros limpiados correctamente')
+}
+
 const formatNumber = (value, decimals = 2) => {
   if (value === null || value === undefined) return '0.00'
   return parseFloat(value).toFixed(decimals)
@@ -329,7 +450,7 @@ const formatCurrency = (value) => {
 const loadEtiquetas = async () => {
   try {
     const response = await execute(
-      'SP_GACTUALIZA_ETIQUETAS_GET',
+      'sp_otras_oblig_get_etiquetas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -340,13 +461,14 @@ const loadEtiquetas = async () => {
     }
   } catch (error) {
     console.error('Error al cargar etiquetas:', error)
+    handleApiError(error)
   }
 }
 
 const loadTablas = async () => {
   try {
     const response = await execute(
-      'SP_GACTUALIZA_TABLAS_GET',
+      'sp_otras_oblig_get_tablas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -357,6 +479,7 @@ const loadTablas = async () => {
     }
   } catch (error) {
     console.error('Error al cargar tablas:', error)
+    handleApiError(error)
   }
 }
 
@@ -386,8 +509,10 @@ const generarReporte = async () => {
   }
 
   generando.value = true
-  setLoading(true, 'Generando reporte...')
+  showGlobalLoading('Generando reporte de facturación...')
   busquedaRealizada.value = true
+
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -403,12 +528,22 @@ const generarReporte = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const totalTime = endTime - startTime
+
+    // Calcular tiempo en formato apropiado
+    if (totalTime < 1000) {
+      performanceTime.value = `${totalTime.toFixed(0)}ms`
+    } else {
+      performanceTime.value = `${(totalTime / 1000).toFixed(2)}s`
+    }
+
     if (response && response.result) {
       // Filtrar resultados exitosos (status = 0)
       datosFacturacion.value = response.result.filter(r => r.status === 0)
 
       if (datosFacturacion.value.length > 0) {
-        showToast('success', `Se encontraron ${datosFacturacion.value.length} registro(s)`)
+        showToast('success', `Se encontraron ${datosFacturacion.value.length} registro(s) en ${performanceTime.value}`)
       } else {
         await Swal.fire({
           icon: 'info',
@@ -432,7 +567,7 @@ const generarReporte = async () => {
     datosFacturacion.value = []
   } finally {
     generando.value = false
-    setLoading(false)
+    hideGlobalLoading()
   }
 }
 
@@ -507,8 +642,18 @@ const imprimirReporte = () => {
 
 // Lifecycle
 onMounted(async () => {
-  await loadEtiquetas()
-  await loadTablas()
+  loadingEstadisticas.value = true
+
+  try {
+    await Promise.all([
+      loadEtiquetas(),
+      loadTablas()
+    ])
+  } catch (error) {
+    console.error('Error al cargar datos iniciales:', error)
+  } finally {
+    loadingEstadisticas.value = false
+  }
 
   // Inicializar con período actual
   const now = new Date()
@@ -516,3 +661,4 @@ onMounted(async () => {
   filtros.value.mes = now.getMonth() + 1
 })
 </script>
+

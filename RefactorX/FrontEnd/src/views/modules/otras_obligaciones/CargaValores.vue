@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="dollar-sign" />
       </div>
@@ -9,15 +9,15 @@
         <h1>Carga de Valores</h1>
         <p>Otras Obligaciones - Carga de Valores para Unidades</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -43,11 +43,11 @@
         </div>
 
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+          <div class="row g-3">
+            <div class="col-12">
               <label class="municipal-form-label">
                 <strong>Tabla a Cargar Valores:</strong>
-                <span class="required">*</span>
+                <span class="text-danger">*</span>
               </label>
               <select
                 v-model="selectedTabla"
@@ -75,7 +75,7 @@
           <h5>
             <font-awesome-icon icon="list-alt" />
             Valores a Cargar
-            <span class="badge-info" v-if="valores.length > 0">{{ valores.length }} filas</span>
+            <span class="badge badge-purple" v-if="valores.length > 0">{{ valores.length }} filas</span>
           </h5>
           <div v-if="loading" class="spinner-border spinner-border-sm" role="status">
             <span class="visually-hidden">Cargando...</span>
@@ -88,12 +88,12 @@
             <table class="municipal-table table-editable">
               <thead class="municipal-table-header">
                 <tr>
-                  <th style="width: 10%;">Ejercicio <span class="required">*</span></th>
-                  <th style="width: 12%;">Cve Und <span class="required">*</span></th>
-                  <th style="width: 12%;">Cve Oper <span class="required">*</span></th>
-                  <th style="width: 40%;">Descripción <span class="required">*</span></th>
-                  <th style="width: 16%;">$ Costo <span class="required">*</span></th>
-                  <th style="width: 10%;">Acciones</th>
+                  <th class="text-center" style="width: 10%;">Ejercicio <span class="text-danger">*</span></th>
+                  <th class="text-center" style="width: 12%;">Cve Und <span class="text-danger">*</span></th>
+                  <th class="text-center" style="width: 12%;">Cve Oper <span class="text-danger">*</span></th>
+                  <th style="width: 40%;">Descripción <span class="text-danger">*</span></th>
+                  <th class="text-end" style="width: 16%;">Costo <span class="text-danger">*</span></th>
+                  <th class="text-center" style="width: 10%;">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,12 +179,15 @@
           </div>
 
           <!-- Información de validación -->
-          <div class="alert alert-info mt-3" v-if="valores.length > 0">
-            <font-awesome-icon icon="info-circle" />
-            <strong>Información:</strong> Se insertarán {{ filasValidas }} de {{ valores.length }} filas.
-            <span v-if="filasInvalidas > 0" class="text-warning">
-              ({{ filasInvalidas }} fila(s) incompleta(s) serán omitidas)
-            </span>
+          <div class="alert alert-info d-flex align-items-center mt-3" v-if="valores.length > 0">
+            <font-awesome-icon icon="info-circle" class="me-2" />
+            <div>
+              <strong>Información:</strong> Se insertarán {{ filasValidas }} de {{ valores.length }} filas.
+              <span v-if="filasInvalidas > 0" class="text-warning ms-2">
+                <font-awesome-icon icon="exclamation-triangle" class="me-1" />
+                {{ filasInvalidas }} fila(s) incompleta(s) serán omitidas
+              </span>
+            </div>
           </div>
 
           <!-- Botones de acción -->
@@ -214,9 +217,9 @@
       <!-- Mensaje cuando no hay tabla seleccionada -->
       <div class="municipal-card" v-else-if="!loadingTablas">
         <div class="municipal-card-body">
-          <div class="text-center text-muted">
-            <font-awesome-icon icon="info-circle" size="2x" class="empty-icon" />
-            <p>Por favor seleccione una tabla para cargar valores.</p>
+          <div class="text-center text-muted py-5">
+            <font-awesome-icon icon="table" size="3x" class="mb-3 opacity-50" />
+            <p class="mb-0">Por favor seleccione una tabla para cargar valores.</p>
           </div>
         </div>
       </div>
@@ -338,10 +341,11 @@ const goBack = () => {
 // Cargar tablas disponibles
 const loadTablas = async () => {
   loadingTablas.value = true
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'SP_CARGAVALORES_TABLAS_GET',
+      'sp_get_tablas',
       'otras_obligaciones',
       [],
       'guadalajara'
@@ -351,12 +355,11 @@ const loadTablas = async () => {
       tablas.value = response.result.map(tabla => ({
         id_34_tab: tabla.id_34_tab,
         cve_tab: tabla.cve_tab,
-        nombre: tabla.nombre,
-        cajero: tabla.cajero,
-        auto_tab: tabla.auto_tab
+        nombre: tabla.nombre
       }))
 
-      showToast('success', `${tablas.value.length} tabla(s) disponible(s)`)
+      const duration = ((performance.now() - startTime) / 1000).toFixed(2)
+      showToast('success', `${tablas.value.length} tabla(s) disponible(s) (${duration}s)`)
     } else {
       tablas.value = []
       showToast('info', 'No se encontraron tablas disponibles')
@@ -377,16 +380,19 @@ const onTablaChange = async () => {
   }
 
   setLoading(true, 'Cargando unidades...')
+  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'SP_CARGAVALORES_UNIDADES_GET',
+      'sp_get_unidades_by_tabla',
       'otras_obligaciones',
       [
-        { nombre: 'par_cve_tab', valor: selectedTabla.value, tipo: 'string' }
+        { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result.length > 0) {
       // Pre-cargar con los datos del ejercicio actual + 1
@@ -398,7 +404,7 @@ const onTablaChange = async () => {
         costo: 0 // Costo en 0 para que el usuario lo capture
       }))
 
-      showToast('success', `${valores.value.length} unidad(es) cargada(s) para el ejercicio ${currentYear + 1}`)
+      showToast('success', `${valores.value.length} unidad(es) cargada(s) para el ejercicio ${currentYear + 1} (${duration}s)`)
     } else {
       // Si no hay datos, crear filas vacías
       valores.value = Array.from({ length: 10 }, () => createEmptyRow())
@@ -487,55 +493,59 @@ const aplicaValores = async () => {
   let insertados = 0
   let errores = 0
   const mensajesError = []
+  const startTime = performance.now()
 
   try {
-    // Insertar cada fila de forma individual
-    for (let i = 0; i < filasParaInsertar.length; i++) {
-      const row = filasParaInsertar[i]
+    // Preparar el array JSON con las unidades
+    const unidadesJSON = filasParaInsertar.map(row => ({
+      ejercicio: row.ejercicio,
+      cve_unidad: row.cve_unidad.trim(),
+      cve_operatividad: row.cve_operatividad.trim(),
+      descripcion: row.descripcion.trim(),
+      costo: row.costo
+    }))
 
-      try {
-        const response = await execute(
-          'SP_CARGAVALORES_INSERT',
-          'otras_obligaciones',
-          [
-            { nombre: 'par_ejercicio', valor: row.ejercicio, tipo: 'integer' },
-            { nombre: 'par_cve_unidad', valor: row.cve_unidad.trim(), tipo: 'string' },
-            { nombre: 'par_cve_operatividad', valor: row.cve_operatividad.trim(), tipo: 'string' },
-            { nombre: 'par_descripcion', valor: row.descripcion.trim(), tipo: 'string' },
-            { nombre: 'par_costo', valor: row.costo, tipo: 'decimal' },
-            { nombre: 'par_cve_tab', valor: selectedTabla.value, tipo: 'string' }
-          ],
-          'guadalajara'
-        )
+    // Insertar todas las filas en una sola llamada
+    try {
+      const response = await execute(
+        'sp_insert_unidades',
+        'otras_obligaciones',
+        [
+          { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'string' },
+          { nombre: 'p_unidades', valor: JSON.stringify(unidadesJSON), tipo: 'jsonb' }
+        ],
+        'guadalajara'
+      )
 
-        if (response && response.result && response.result[0]?.success === 1) {
-          insertados++
-        } else {
-          errores++
-          const mensaje = response?.result?.[0]?.message || 'Error desconocido'
-          mensajesError.push(`Fila ${i + 1}: ${mensaje}`)
-        }
-      } catch (error) {
-        errores++
-        mensajesError.push(`Fila ${i + 1}: ${error.message || 'Error al insertar'}`)
+      if (response && response.result) {
+        insertados = filasParaInsertar.length
+      } else {
+        errores = filasParaInsertar.length
+        mensajesError.push('Error al insertar las unidades')
       }
+    } catch (error) {
+      errores = filasParaInsertar.length
+      mensajesError.push(error.message || 'Error al insertar las unidades')
     }
+
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
     // Mostrar resultado
     if (insertados > 0 && errores === 0) {
       await Swal.fire({
         icon: 'success',
-        title: '¡Inserción exitosa!',
+        title: 'Inserción exitosa',
         html: `
           <div style="text-align: center;">
             <p style="font-size: 1.1em; margin: 10px 0;">Se insertaron correctamente <strong>${insertados}</strong> valor(es).</p>
+            <p style="font-size: 0.9em; color: #6c757d;">Tiempo: ${duration}s</p>
           </div>
         `,
         confirmButtonColor: '#ea8215',
         timer: 3000
       })
 
-      showToast('success', `${insertados} valor(es) insertado(s) correctamente`)
+      showToast('success', `${insertados} valor(es) insertado(s) correctamente (${duration}s)`)
 
       // Recargar las unidades
       await onTablaChange()

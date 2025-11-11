@@ -8,12 +8,22 @@
         <h1>Reporte de Bajas</h1>
         <p>Otras Obligaciones - Dar de baja contratos</p>
       </div>
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
-        <button class="btn-municipal-secondary" @click="goBack">
-          <font-awesome-icon icon="arrow-left" /> Salir
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda y documentación del módulo"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+        <button
+          class="btn-municipal-secondary"
+          @click="goBack"
+          :disabled="isLoading"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Salir
         </button>
       </div>
     </div>
@@ -21,19 +31,47 @@
     <div class="module-view-content">
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="search" /> Búsqueda de Local</h5>
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Local
+          </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Control:</label>
-              <input type="text" v-model="formData.numero" class="municipal-form-control" placeholder="Número" maxlength="3" style="width: 120px; display: inline-block; margin-right: 10px;" />
-              <span style="margin: 0 10px;">-</span>
-              <input type="text" v-model="formData.letra" class="municipal-form-control" placeholder="Letra" maxlength="2" style="width: 100px; display: inline-block;" />
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="hashtag" class="me-1" />
+                Control:
+              </label>
+              <input
+                type="text"
+                v-model="formData.numero"
+                class="municipal-form-control"
+                placeholder="Número"
+                maxlength="3"
+              />
             </div>
-            <div class="form-group">
-              <button class="btn-municipal-primary" @click="handleBuscar" :disabled="loading">
-                <font-awesome-icon icon="search" /> Buscar
+            <div class="col-md-2">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="font" class="me-1" />
+                Letra:
+              </label>
+              <input
+                type="text"
+                v-model="formData.letra"
+                class="municipal-form-control"
+                placeholder="Letra"
+                maxlength="2"
+              />
+            </div>
+            <div class="col-md-3">
+              <button
+                class="btn-municipal-primary w-100"
+                @click="handleBuscar"
+                :disabled="isLoading"
+              >
+                <font-awesome-icon icon="search" />
+                Buscar
               </button>
             </div>
           </div>
@@ -42,39 +80,66 @@
 
       <div class="municipal-card" v-if="datosLocal.control">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="info-circle" /> Datos del Local</h5>
-          <span class="badge" :class="datosLocal.cve_stat === 'V' ? 'badge-success' : 'badge-danger'">
+          <h5>
+            <font-awesome-icon icon="info-circle" />
+            Datos del Local
+          </h5>
+          <span
+            class="badge"
+            :class="datosLocal.cve_stat === 'V' ? 'badge-success' : 'badge-danger'"
+          >
             {{ datosLocal.descrip_stat }}
           </span>
         </div>
         <div class="municipal-card-body">
           <div class="info-grid">
             <div class="info-item">
-              <strong>Control:</strong>
+              <label>
+                <font-awesome-icon icon="hashtag" class="me-1" />
+                Control:
+              </label>
               <span>{{ datosLocal.control }}</span>
             </div>
             <div class="info-item">
-              <strong>Concesionario:</strong>
+              <label>
+                <font-awesome-icon icon="user" class="me-1" />
+                Concesionario:
+              </label>
               <span>{{ datosLocal.concesionario }}</span>
             </div>
             <div class="info-item">
-              <strong>Ubicación:</strong>
+              <label>
+                <font-awesome-icon icon="map-marker-alt" class="me-1" />
+                Ubicación:
+              </label>
               <span>{{ datosLocal.ubicacion }}</span>
             </div>
             <div class="info-item">
-              <strong>Superficie:</strong>
+              <label>
+                <font-awesome-icon icon="ruler-combined" class="me-1" />
+                Superficie:
+              </label>
               <span>{{ datosLocal.superficie }}</span>
             </div>
             <div class="info-item">
-              <strong>Licencia:</strong>
+              <label>
+                <font-awesome-icon icon="file-alt" class="me-1" />
+                Licencia:
+              </label>
               <span>{{ datosLocal.licencia }}</span>
             </div>
             <div class="info-item">
-              <strong>Sector:</strong>
+              <label>
+                <font-awesome-icon icon="building" class="me-1" />
+                Sector:
+              </label>
               <span>{{ datosLocal.sector }}</span>
             </div>
             <div class="info-item">
-              <strong>Zona:</strong>
+              <label>
+                <font-awesome-icon icon="map" class="me-1" />
+                Zona:
+              </label>
               <span>{{ datosLocal.id_zona }}</span>
             </div>
           </div>
@@ -83,27 +148,53 @@
 
       <div class="municipal-card" v-if="datosLocal.control && datosLocal.cve_stat === 'V'">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="calendar" /> Datos de Baja</h5>
+          <h5>
+            <font-awesome-icon icon="calendar" />
+            Datos de Baja
+          </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Año de Baja:</label>
-              <input type="number" v-model.number="formData.anioBaja" class="municipal-form-control" :min="2000" :max="2099" />
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-alt" class="me-1" />
+                Año de Baja:
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.anioBaja"
+                class="municipal-form-control"
+                :min="2000"
+                :max="2099"
+              />
             </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Mes de Baja:</label>
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar" class="me-1" />
+                Mes de Baja:
+              </label>
               <select v-model.number="formData.mesBaja" class="municipal-form-control">
-                <option v-for="mes in meses" :key="mes.value" :value="mes.value">{{ mes.label }}</option>
+                <option v-for="mes in meses" :key="mes.value" :value="mes.value">
+                  {{ mes.label }}
+                </option>
               </select>
             </div>
           </div>
-          <div class="form-row">
-            <button class="btn-municipal-danger" @click="handleDarBaja" :disabled="loading">
-              <font-awesome-icon icon="times-circle" /> Dar de Baja
+          <div class="d-flex gap-2 mt-4">
+            <button
+              class="btn-municipal-danger"
+              @click="handleDarBaja"
+              :disabled="isLoading"
+            >
+              <font-awesome-icon icon="times-circle" />
+              Dar de Baja
             </button>
-            <button class="btn-municipal-secondary" @click="handleCancelar" style="margin-left: 10px;">
-              <font-awesome-icon icon="times" /> Cancelar
+            <button
+              class="btn-municipal-secondary"
+              @click="handleCancelar"
+            >
+              <font-awesome-icon icon="times" />
+              Cancelar
             </button>
           </div>
         </div>
@@ -112,16 +203,9 @@
       <div class="municipal-card" v-if="datosLocal.control && datosLocal.cve_stat !== 'V'">
         <div class="municipal-card-body">
           <div class="alert alert-warning">
-            <font-awesome-icon icon="exclamation-triangle" />
+            <font-awesome-icon icon="exclamation-triangle" class="me-2" />
             Este local está en SUSPENSIÓN o CANCELADO, no se puede dar de baja
           </div>
-        </div>
-      </div>
-
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Procesando...</p>
         </div>
       </div>
     </div>
@@ -140,14 +224,15 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const router = useRouter()
-const { callApi } = useApi()
-const { handleError, showToast } = useLicenciasErrorHandler()
+const { execute } = useApi()
+const { isLoading, startLoading, stopLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const datosLocal = ref({})
 
@@ -179,24 +264,29 @@ const handleBuscar = async () => {
     return
   }
 
-  loading.value = true
+  startLoading('Buscando local...')
   try {
-    const control = `${formData.numero}-${formData.letra || ''}`
-    const response = await callApi('SP_RBAJA_BUSCAR', {
-      p_control: control
-    })
+    const response = await execute(
+      'sp_rbaja_buscar_local',
+      'otras_obligaciones',
+      [
+        { nombre: 'p_numero', valor: formData.numero, tipo: 'string' },
+        { nombre: 'p_letra', valor: formData.letra || '', tipo: 'string' }
+      ],
+      'guadalajara'
+    )
 
-    if (response.data && response.data.length > 0) {
-      datosLocal.value = response.data[0]
+    if (response && response.result && response.result.length > 0) {
+      datosLocal.value = response.result[0]
       showToast('success', 'Local encontrado')
     } else {
       showToast('warning', 'No se encontró el local')
       datosLocal.value = {}
     }
   } catch (error) {
-    handleError(error, 'Error al buscar local')
+    handleApiError(error)
   } finally {
-    loading.value = false
+    stopLoading()
   }
 }
 
@@ -206,19 +296,26 @@ const handleDarBaja = async () => {
     return
   }
 
-  loading.value = true
+  startLoading('Verificando adeudos...')
   try {
     const periodo = `${formData.anioBaja}-${String(formData.mesBaja).padStart(2, '0')}`
-    const verificarResponse = await callApi('SP_RBAJA_VERIFICAR_ADEUDOS', {
-      p_id_datos: datosLocal.value.id_34_datos,
-      p_periodo: periodo
-    })
+    const verificarResponse = await execute(
+      'sp_rbaja_verificar_adeudos_post',
+      'otras_obligaciones',
+      [
+        { nombre: 'p_id_34_datos', valor: datosLocal.value.id_34_datos, tipo: 'integer' },
+        { nombre: 'p_periodo', valor: periodo, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
 
-    if (verificarResponse.data && verificarResponse.data[0].total_adeudos_vigentes > 0) {
+    if (verificarResponse && verificarResponse.result && verificarResponse.result.length > 0) {
       showToast('error', 'No es posible dar de baja. Tiene adeudos vigentes o posteriores')
-      loading.value = false
+      stopLoading()
       return
     }
+
+    stopLoading()
 
     const result = await Swal.fire({
       title: 'Confirmación',
@@ -232,20 +329,30 @@ const handleDarBaja = async () => {
     })
 
     if (result.isConfirmed) {
-      const response = await callApi('SP_RBAJA_CANCELAR', {
-        par_id_34_datos: datosLocal.value.id_34_datos,
-        par_Axo_Fin: formData.anioBaja,
-        par_Mes_Fin: formData.mesBaja
-      })
+      startLoading('Procesando baja...')
+      const response = await execute(
+        'sp_rbaja_cancelar_local',
+        'otras_obligaciones',
+        [
+          { nombre: 'p_id_34_datos', valor: datosLocal.value.id_34_datos, tipo: 'integer' },
+          { nombre: 'p_axo_fin', valor: formData.anioBaja, tipo: 'integer' },
+          { nombre: 'p_mes_fin', valor: formData.mesBaja, tipo: 'integer' }
+        ],
+        'guadalajara'
+      )
 
-      showToast('success', 'Baja realizada correctamente')
-      handleCancelar()
+      if (response && response.result && response.result[0]?.codigo === 0) {
+        showToast('success', 'Baja realizada correctamente')
+        handleCancelar()
+      } else {
+        const mensaje = response?.result?.[0]?.mensaje || 'Error al dar de baja'
+        showToast('error', mensaje)
+      }
+      stopLoading()
     }
-
-    loading.value = false
   } catch (error) {
-    handleError(error, 'Error al dar de baja')
-    loading.value = false
+    handleApiError(error)
+    stopLoading()
   }
 }
 

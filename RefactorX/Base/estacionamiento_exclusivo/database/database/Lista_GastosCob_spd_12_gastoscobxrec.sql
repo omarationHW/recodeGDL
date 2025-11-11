@@ -42,7 +42,7 @@ BEGIN
         CASE WHEN a.modulo=11 THEN CONCAT('MERCADO ', m.num_mercado, '-', m.categoria, '-', m.seccion, '-', m.local, '-', m.letra_local, '-', m.bloque)
              WHEN a.modulo=16 THEN CONCAT('ASEO ', aseo.tipo_aseo, '-', aseo.num_contrato)
              ELSE '' END AS r_datos
-    FROM ta_12_recibos p
+    FROM padron_licencias.comun.ta_12_recibos p
     JOIN ta_15_apremios a ON a.fecha_pago = p.fecha AND a.recaudadora = p.id_rec AND a.caja = p.caja AND a.operacion = p.operacion
     LEFT JOIN ta_15_ejecutores e ON a.ejecutor = e.cve_eje AND a.zona = e.id_rec
     LEFT JOIN ta_11_locales m ON a.control_otr = m.id_local AND a.modulo = 11

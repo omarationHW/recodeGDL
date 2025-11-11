@@ -19,7 +19,7 @@
       <div class="form-row">
         <div v-if="opcion == 0 || opcion == 1" class="form-group">
           <label>Placa</label>
-          <input type="text" v-model="form.placa" maxlength="7" class="form-control" style="text-transform:uppercase" />
+          <input type="text" v-model="form.placa" maxlength="7" class="form-control text-uppercase" />
         </div>
         <div v-if="opcion == 2" class="form-group">
           <label>Año</label>

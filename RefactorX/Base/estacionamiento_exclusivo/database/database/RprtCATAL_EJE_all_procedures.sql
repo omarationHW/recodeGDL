@@ -33,8 +33,8 @@ BEGIN
     SELECT a.id_ejecutor, a.cve_eje, a.ini_rfc, a.fec_rfc, a.hom_rfc, a.nombre, a.id_rec, a.categoria, a.observacion, a.oficio, a.fecinic, a.fecterm, a.vigencia,
            b.recaudadora_1, d.zona
     FROM ta_15_ejecutores a
-    JOIN ta_12_recaudadoras b ON a.id_rec = b.id_rec
-    JOIN ta_12_zonas d ON b.id_zona = d.id_zona
+    JOIN padron_licencias.comun.ta_12_recaudadoras b ON a.id_rec = b.id_rec
+    JOIN padron_licencias.comun.ta_12_zonas d ON b.id_zona = d.id_zona
     WHERE a.id_rec = p_id_rec
       AND (p_vigencia IS NULL OR p_vigencia = '' OR a.vigencia = p_vigencia)
     ORDER BY a.cve_eje;

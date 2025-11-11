@@ -27,9 +27,11 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Control:</label>
-              <input type="text" v-model="formData.numero" class="municipal-form-control" placeholder="Número" style="width: 120px; display: inline-block; margin-right: 10px;" />
-              <span style="margin: 0 10px;">-</span>
-              <input type="text" v-model="formData.letra" class="municipal-form-control" placeholder="Letra" style="width: 100px; display: inline-block;" />
+              <div class="control-inputs">
+                <input type="text" v-model="formData.numero" class="municipal-form-control" placeholder="Número" />
+                <span class="separator">-</span>
+                <input type="text" v-model="formData.letra" class="municipal-form-control" placeholder="Letra" />
+              </div>
             </div>
             <div class="form-group">
               <button class="btn-municipal-primary" @click="handleBuscar" :disabled="loading">
@@ -102,12 +104,14 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import * as XLSX from 'xlsx'
 
 const router = useRouter()
 const { callApi } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { handleError, showToast } = useLicenciasErrorHandler()
 
 const loading = ref(false)
@@ -138,7 +142,10 @@ const handleBuscar = async () => {
     return
   }
 
+  const startTime = performance.now()
   loading.value = true
+  showLoading('Buscando pagos del local...')
+
   try {
     const control = `${formData.numero}-${formData.letra || ''}`
     const localResponse = await callApi('SP_RCONSULTA_OBTENER', {
@@ -147,6 +154,8 @@ const handleBuscar = async () => {
 
     if (!localResponse.data || localResponse.data.length === 0) {
       showToast('warning', 'No se encontró el local')
+      loading.value = false
+      hideLoading()
       return
     }
 
@@ -158,19 +167,28 @@ const handleBuscar = async () => {
 
     pagos.value = pagosResponse.data || []
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1
+      ? `${(duration * 1000).toFixed(0)}ms`
+      : `${duration}s`
+
     if (pagos.value.length === 0) {
-      showToast('info', 'No hay pagos registrados para este local')
+      showToast('info', 'No hay pagos registrados para este local', timeMessage)
     } else {
-      showToast('success', `Se encontraron ${pagos.value.length} pagos`)
+      showToast('success', `Se encontraron ${pagos.value.length} pagos`, timeMessage)
     }
   } catch (error) {
     handleError(error, 'Error al buscar pagos')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
 const handleExportar = () => {
+  const startTime = performance.now()
+
   const dataExport = pagos.value.map(pago => ({
     'Periodo': pago.periodo,
     'Importe': pago.importe,
@@ -186,7 +204,14 @@ const handleExportar = () => {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Pagos')
   XLSX.writeFile(wb, `Pagos_${Date.now()}.xlsx`)
-  showToast('success', 'Exportación exitosa')
+
+  const endTime = performance.now()
+  const duration = ((endTime - startTime) / 1000).toFixed(2)
+  const timeMessage = duration < 1
+    ? `${(duration * 1000).toFixed(0)}ms`
+    : `${duration}s`
+
+  showToast('success', 'Exportación exitosa', timeMessage)
 }
 
 const openDocumentation = () => {
@@ -201,3 +226,33 @@ const goBack = () => {
   router.push('/otras_obligaciones')
 }
 </script>
+
+<style scoped>
+.control-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-inputs input {
+  width: 120px;
+}
+
+.separator {
+  font-weight: bold;
+  color: #6c757d;
+}
+
+.totales-container {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  text-align: right;
+}
+
+.totales-container strong {
+  font-size: 1.1rem;
+  color: #28a745;
+}
+</style>

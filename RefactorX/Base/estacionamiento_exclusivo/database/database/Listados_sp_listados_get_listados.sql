@@ -74,9 +74,9 @@ BEGIN
       0 as imp_pagado
     FROM ta_15_apremios a
       LEFT JOIN ta_15_ejecutores b ON a.ejecutor = b.cve_eje AND a.zona = b.id_rec
-      LEFT JOIN ta_12_recaudadoras c ON a.zona = c.id_rec
-      LEFT JOIN ta_12_zonas d ON c.id_zona = d.id_zona
-      LEFT JOIN ta_12_modulos e ON a.modulo = e.id_modulo
+      LEFT JOIN padron_licencias.comun.ta_12_recaudadoras c ON a.zona = c.id_rec
+      LEFT JOIN padron_licencias.comun.ta_12_zonas d ON c.id_zona = d.id_zona
+      LEFT JOIN padron_licencias.comun.ta_12_modulos e ON a.modulo = e.id_modulo
     WHERE a.zona = $1 AND a.modulo = $2 AND a.folio BETWEEN $3 AND $4';
 
   IF p_clave IS NOT NULL AND p_clave <> 'todas' THEN

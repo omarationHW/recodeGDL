@@ -19,7 +19,7 @@ BEGIN
     -- Suma de porcentaje de recargos
     SELECT COALESCE(SUM(porcentaje_mes), 0)
       INTO vporcentaje
-      FROM ta_12_recargos
+      FROM padron_licencias.comun.ta_12_recargos
      WHERE (axo = varaxoper AND mes >= varperiodo)
         OR (axo = vaxo AND mes <= (CASE WHEN vdia <= 12 THEN vmes - 1 ELSE vmes END))
         OR (axo > varaxoper AND axo < vaxo);

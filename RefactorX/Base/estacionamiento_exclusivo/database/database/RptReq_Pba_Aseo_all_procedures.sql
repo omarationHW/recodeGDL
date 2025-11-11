@@ -83,7 +83,7 @@ BEGIN
         -- Calcular recargos
         vporcentaje := 0;
         SELECT COALESCE(SUM(porcentaje_mes),0) INTO vporcentaje
-        FROM ta_12_recargos
+        FROM padron_licencias.comun.ta_12_recargos
         WHERE (axo = EXTRACT(YEAR FROM r.aso_mes_pago)::INTEGER AND mes >= EXTRACT(MONTH FROM r.aso_mes_pago)::INTEGER)
            OR (axo = vaxo AND mes <= vmes)
            OR (axo > EXTRACT(YEAR FROM r.aso_mes_pago)::INTEGER AND axo < vaxo);
@@ -173,7 +173,7 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT SUM(porcentaje_mes) AS porcentaje
-    FROM ta_12_recargos
+    FROM padron_licencias.comun.ta_12_recargos
     WHERE (axo = p_axo_inicio AND mes >= p_mes_inicio)
        OR (axo = p_axo_fin AND mes <= EXTRACT(MONTH FROM CURRENT_DATE))
        OR (axo > p_axo_inicio AND axo < p_axo_fin);
@@ -226,9 +226,9 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.id_rec, a.id_zona, a.recaudadora, a.domicilio, a.tel, a.recaudador, a.sector, b.recing, b.nomre, c.id_zona AS id_zona_1, c.zona
-    FROM ta_12_recaudadoras a
-    JOIN ta_12_nombrerec b ON a.id_rec = b.recing
-    JOIN ta_12_zonas c ON a.id_zona = c.id_zona
+    FROM padron_licencias.comun.ta_12_recaudadoras a
+    JOIN padron_licencias.comun.ta_12_nombrerec b ON a.id_rec = b.recing
+    JOIN padron_licencias.comun.ta_12_zonas c ON a.id_zona = c.id_zona
     WHERE a.id_rec = p_id_rec;
 END;
 $$ LANGUAGE plpgsql;

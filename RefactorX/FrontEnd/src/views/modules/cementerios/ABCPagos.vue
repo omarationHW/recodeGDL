@@ -374,10 +374,12 @@ import { ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast } = useToast()
 
 // Estado
@@ -415,15 +417,18 @@ const buscarFolio = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_BUSCAR_FOLIO_PAGOS',
+      'sp_cem_buscar_folio_pagos',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.length > 0) {
-      datosFolio.value = response[0]
+    if (response && response.result && response.result.length > 0) {
+      datosFolio.value = response.result[0]
       showToast('Folio encontrado', 'success')
     } else {
       showToast('Folio no encontrado', 'error')
@@ -451,11 +456,14 @@ const cargarAdeudosPendientes = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_OBTENER_ADEUDOS_PENDIENTES',
+      'sp_cem_obtener_adeudos_pendientes',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
     adeudosPendientes.value = response || []
@@ -471,11 +479,14 @@ const cargarPagosRegistrados = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_LISTAR_PAGOS_FOLIO',
+      'sp_cem_listar_pagos_folio',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
     pagosRegistrados.value = response || []
@@ -542,7 +553,7 @@ const guardarPago = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_REGISTRAR_PAGO',
+      'sp_cem_registrar_pago',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value,
@@ -556,11 +567,14 @@ const guardarPago = async () => {
         p_id_usuario: 1, // TODO: Obtener del contexto de usuario
         p_operacion_tipo: 1, // Alta
         p_control_id: null
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.length > 0) {
-      const result = response[0]
+    if (response && response.result && response.result.length > 0) {
+      const result = response.result[0]
       if (result.par_ok === 1) {
         showToast(result.par_observ, 'success')
         cancelarOperacion()
@@ -600,7 +614,7 @@ const confirmarBajaPago = async (pago) => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_CEM_REGISTRAR_PAGO',
+      'sp_cem_registrar_pago',
       'cementerios',
       {
         p_control_rcm: folioABuscar.value,
@@ -614,11 +628,14 @@ const confirmarBajaPago = async (pago) => {
         p_id_usuario: 1, // TODO: Obtener del contexto de usuario
         p_operacion_tipo: 2, // Baja
         p_control_id: pago.control_id
-      }
+      },
+      '',
+      null,
+      'comun'
     )
 
-    if (response && response.length > 0) {
-      const result = response[0]
+    if (response && response.result && response.result.length > 0) {
+      const result = response.result[0]
       if (result.par_ok === 1) {
         showToast(result.par_observ, 'success')
         await cargarPagosRegistrados() // Recargar listado

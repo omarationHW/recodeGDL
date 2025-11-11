@@ -11,6 +11,6 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_rec, recaudadora FROM ta_12_recaudadoras ORDER BY id_rec;
+    SELECT id_rec, recaudadora FROM padron_licencias.comun.ta_12_recaudadoras ORDER BY id_rec;
 END;
 $$ LANGUAGE plpgsql;

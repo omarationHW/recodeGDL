@@ -1,18 +1,29 @@
 <template>
   <div class="module-view module-layout">
-    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="list" /></div><div class="module-view-info"><h1>Listados</h1></div></div>
+    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="list" /></div><div class="module-view-info"><h1>Listados Generales</h1><p>Listado completo de registros</p></div><div class="button-group ms-auto"><button class="btn-municipal-primary" @click="reload"><font-awesome-icon icon="sync-alt" /> Actualizar</button></div></div>
     <div class="module-view-content">
-      <div class="municipal-card"><div class="municipal-card-body table-container"><div class="table-responsive">
-        <table class="municipal-table"><thead class="municipal-table-header"><tr><th v-for="c in cols" :key="c">{{ c }}</th></tr></thead>
-          <tbody><tr v-for="(r,i) in rows" :key="i"><td v-for="c in cols" :key="c">{{ r[c] }}</td></tr><tr v-if="rows.length===0"><td :colspan="cols.length" class="text-center text-muted">Sin datos</td></tr></tbody>
-        </table>
-      </div></div></div>
+      <div class="stats-grid" v-if="loadingEstadisticas"><div class="stat-card stat-card-loading" v-for="n in 6" :key="`loading-${n}`"><div class="stat-content"><div class="skeleton-icon"></div><div class="skeleton-number"></div><div class="skeleton-label"></div><div class="skeleton-percentage"></div></div></div></div>
+      <div class="stats-grid" v-else-if="estadisticas.length > 0"><div class="stat-card" v-for="stat in estadisticas" :key="stat.categoria" :class="`stat-${stat.clase}`"><div class="stat-content"><div class="stat-icon"><font-awesome-icon :icon="getStatIcon(stat.categoria)" /></div><h3 class="stat-number">{{ getStatValue(stat) }}</h3><p class="stat-label">{{ stat.descripcion }}</p><small class="stat-percentage" v-if="stat.porcentaje > 0">{{ stat.porcentaje.toFixed(1) }}%</small></div></div></div>
+      <div class="municipal-card"><div class="municipal-card-header"><div class="header-with-badge"><h5><font-awesome-icon icon="list" /> Listado Completo</h5><span class="badge-purple" v-if="totalResultados > 0">{{ formatNumber(totalResultados) }} registros totales</span></div><div v-if="loading" class="spinner-border"></div></div><div class="municipal-card-body table-container" v-if="!loading"><div v-if="rows.length === 0" class="empty-state"><font-awesome-icon icon="inbox" size="3x" class="empty-icon" /><p>Sin registros</p></div><div v-else class="table-responsive"><table class="municipal-table"><thead class="municipal-table-header"><tr><th v-for="c in cols" :key="c">{{ formatLabel(c) }}</th></tr></thead><tbody><tr v-for="(r,i) in paginatedRows" :key="i" class="clickable-row"><td v-for="c in cols" :key="c">{{ formatValue(r[c]) }}</td></tr></tbody></table></div><div v-if="rows.length > 0" class="pagination-controls"><div class="pagination-info"><span class="text-muted">Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }} a {{ Math.min(currentPage * itemsPerPage, totalResultados) }} de {{ totalResultados }} registros</span></div><div class="pagination-size"><label class="municipal-form-label me-2">Por página:</label><select class="municipal-form-control form-control-sm" v-model="itemsPerPage" @change="currentPage=1"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option></select></div><div class="pagination-buttons"><button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"><font-awesome-icon icon="angle-double-left" /></button><button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"><font-awesome-icon icon="angle-left" /></button><button v-for="page in visiblePages" :key="page" class="btn-sm" :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'" @click="goToPage(page)">{{ page }}</button><button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"><font-awesome-icon icon="angle-right" /></button><button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages"><font-awesome-icon icon="angle-double-right" /></button></div></div></div></div>
     </div>
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
-const { loading, execute } = useApi(); const BASE_DB='INFORMIX'; const OP='APREMIOSSVN_LISTADOS'
-const rows=ref([]); const cols=ref([]); async function load(){ try{ const data=await execute(OP, BASE_DB, []); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; cols.value=[] } } load()
+import { ref, computed, onMounted } from 'vue'; import { useApi } from '@/composables/useApi'; import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+const BASE_DB='estacionamiento_exclusivo', OP_QUERY='sp_listados_get_listados', OP_STATS='apremiossvn_apremios_estadisticas'
+const { loading, execute } = useApi(); const { showToast, handleApiError } = useLicenciasErrorHandler()
+const rows=ref([]), cols=ref([]), loadingEstadisticas=ref(true), estadisticas=ref([]), currentPage=ref(1), itemsPerPage=ref(25)
+const totalResultados = computed(()=>rows.value.length)
+const totalPages = computed(()=>Math.ceil(totalResultados.value/itemsPerPage.value))
+const paginatedRows = computed(()=>{ const start=(currentPage.value-1)*itemsPerPage.value; return rows.value.slice(start, start+itemsPerPage.value) })
+const visiblePages = computed(()=>{ const pages=[]; const start=Math.max(1,currentPage.value-2); const end=Math.min(totalPages.value,currentPage.value+2); for(let i=start; i<=end; i++) pages.push(i); return pages })
+const goToPage = (p) => { if(p>=1 && p<=totalPages.value) currentPage.value=p }
+const cargarEstadisticas = async () => { loadingEstadisticas.value=true; try{ const result=await execute(OP_STATS, BASE_DB, []); estadisticas.value=Array.isArray(result?.rows)?result.rows:Array.isArray(result)?result:[] }catch(e){ estadisticas.value=[] }finally{ loadingEstadisticas.value=false } }
+const reload = async () => { currentPage.value=1; const t0=performance.now(); try{ const data=await execute(OP_QUERY, BASE_DB, []); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[]; const dur=performance.now()-t0, txt=dur<1000?`${Math.round(dur)}ms`:`${(dur/1000).toFixed(2)}s`; showToast('success',`${rows.value.length} registro(s) en ${txt}`) }catch(e){ rows.value=[]; cols.value=[]; handleApiError(e) } }
+const formatNumber = (n) => new Intl.NumberFormat('es-MX').format(n); const formatMoney = (v) => Number(v||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'})
+const formatLabel = (k) => k.replace(/_/g,' ').replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()).trim()
+const formatValue = (v) => v===null||v===undefined?'-':typeof v==='boolean'?(v?'Sí':'No'):String(v)
+const getStatIcon = (c) => ({'TOTAL':'chart-bar','VIGENTES':'check-circle','VENCIDOS':'times-circle','CON_EJECUTOR':'user-check','SIN_EJECUTOR':'user-times','IMPORTE_TOTAL':'coins'}[c]||'info-circle')
+const getStatValue = (s) => s.categoria==='IMPORTE_TOTAL'?formatMoney(s.total):formatNumber(s.total)
+onMounted(()=>{ cargarEstadisticas(); reload() })
 </script>
-

@@ -38,7 +38,7 @@
             <button class="btn-municipal-primary" @click="handleGenerar" :disabled="loading">
               <font-awesome-icon icon="print" /> Generar Reporte
             </button>
-            <button class="btn-municipal-secondary" @click="handleExportar" :disabled="loading || padron.length === 0" style="margin-left: 10px;">
+            <button class="btn-municipal-secondary" @click="handleExportar" :disabled="loading || padron.length === 0">
               <font-awesome-icon icon="download" /> Exportar Excel
             </button>
           </div>
@@ -48,7 +48,7 @@
       <div class="municipal-card" v-if="padron.length > 0">
         <div class="municipal-card-header">
           <h5><font-awesome-icon icon="list" /> Padrón</h5>
-          <span class="badge badge-info">Total: {{ padron.length }} registros</span>
+          <span class="badge-purple">Total: {{ padron.length }} registros</span>
         </div>
         <div class="municipal-card-body">
           <div class="table-responsive">
@@ -101,12 +101,14 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import * as XLSX from 'xlsx'
 
 const router = useRouter()
 const { callApi } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { handleError, showToast } = useLicenciasErrorHandler()
 
 const loading = ref(false)
@@ -118,7 +120,10 @@ const formData = reactive({
 })
 
 const handleGenerar = async () => {
+  const startTime = performance.now()
   loading.value = true
+  showLoading('Generando reporte de padrón...')
+
   try {
     const response = await callApi('SP_RREP_PADRON_OBTENER', {
       par_Vigencia: formData.vigencia
@@ -126,15 +131,22 @@ const handleGenerar = async () => {
 
     padron.value = response.data || []
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1
+      ? `${(duration * 1000).toFixed(0)}ms`
+      : `${duration}s`
+
     if (padron.value.length > 0) {
-      showToast('success', `Se encontraron ${padron.value.length} registros`)
+      showToast('success', `Se encontraron ${padron.value.length} registros`, timeMessage)
     } else {
-      showToast('info', 'No se encontraron registros')
+      showToast('info', 'No se encontraron registros', timeMessage)
     }
   } catch (error) {
     handleError(error, 'Error al generar reporte')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -143,6 +155,8 @@ const handleExportar = () => {
     showToast('warning', 'No hay datos para exportar')
     return
   }
+
+  const startTime = performance.now()
 
   const dataExport = padron.value.map(item => ({
     'Control': item.control,
@@ -158,7 +172,14 @@ const handleExportar = () => {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Padrón')
   XLSX.writeFile(wb, `Padron_${Date.now()}.xlsx`)
-  showToast('success', 'Exportación exitosa')
+
+  const endTime = performance.now()
+  const duration = ((endTime - startTime) / 1000).toFixed(2)
+  const timeMessage = duration < 1
+    ? `${(duration * 1000).toFixed(0)}ms`
+    : `${duration}s`
+
+  showToast('success', 'Exportación exitosa', timeMessage)
 }
 
 const openDocumentation = () => {

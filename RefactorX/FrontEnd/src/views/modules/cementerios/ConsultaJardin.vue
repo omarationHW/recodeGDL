@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-leaf"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="leaf" />
         Consulta Cementerio Jardín
       </h1>
       <DocumentationModal
@@ -12,39 +12,39 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Filtros de Consulta
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
-            <label class="form-label">Buscar por Titular</label>
+            <label class="municipal-form-label">Buscar por Titular</label>
             <input
               v-model="filtros.nombre"
               type="text"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Nombre del titular..."
             />
           </div>
           <div class="form-group">
-            <label class="form-label">Buscar por Folio</label>
+            <label class="municipal-form-label">Buscar por Folio</label>
             <input
               v-model.number="filtros.folio"
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Número de folio..."
             />
           </div>
         </div>
         <div class="form-actions">
           <button @click="buscarFolios" class="btn-municipal-primary">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon icon="search" />
             Buscar
           </button>
           <button @click="limpiarFiltros" class="btn-municipal-secondary">
-            <i class="fas fa-eraser"></i>
+            <font-awesome-icon icon="eraser" />
             Limpiar
           </button>
         </div>
@@ -52,15 +52,15 @@
     </div>
 
     <!-- Resultados -->
-    <div v-if="folios.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="folios.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Folios del Cementerio Jardín ({{ folios.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Folio</th>
                 <th>Titular</th>
@@ -84,7 +84,7 @@
                     @click="verDetalle(folio.control_rcm)"
                     class="btn-municipal-secondary btn-sm"
                   >
-                    <i class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                     Ver
                   </button>
                 </td>
@@ -95,7 +95,7 @@
 
         <div v-if="hayMasResultados" class="text-center mt-3">
           <button @click="cargarMas" class="btn-municipal-primary">
-            <i class="fas fa-chevron-down"></i>
+            <font-awesome-icon icon="chevron-down" />
             Cargar Más Resultados
           </button>
         </div>
@@ -103,7 +103,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron folios en este cementerio
     </div>
   </div>
@@ -112,12 +112,19 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
 
 const CEMENTERIO_CODIGO = 'JARDIN'
@@ -153,13 +160,31 @@ const buscarFolios = async () => {
     ultimoFolio.value = 0
     folios.value = []
 
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_CEMENTERIO', {
-      p_cementerio: CEMENTERIO_CODIGO,
-      p_ultimo_folio: 0,
-      p_limite: LIMITE_RESULTADOS
-    })
+    const params = [
+      {
+        nombre: 'p_cementerio',
+        valor: CEMENTERIO_CODIGO,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_ultimo_folio',
+        valor: 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_limite',
+        valor: LIMITE_RESULTADOS,
+        tipo: 'string'
+      }
+    ]
 
-    let resultados = response.data || []
+    const response = await execute('sp_cem_consultar_cementerio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    let resultados = response.result || []
 
     if (filtros.nombre.trim()) {
       const nombreBusqueda = filtros.nombre.toLowerCase()
@@ -190,13 +215,31 @@ const buscarFolios = async () => {
 
 const cargarMas = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_CEMENTERIO', {
-      p_cementerio: CEMENTERIO_CODIGO,
-      p_ultimo_folio: ultimoFolio.value,
-      p_limite: LIMITE_RESULTADOS
-    })
+    const params = [
+      {
+        nombre: 'p_cementerio',
+        valor: CEMENTERIO_CODIGO,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_ultimo_folio',
+        valor: ultimoFolio.value,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_limite',
+        valor: LIMITE_RESULTADOS,
+        tipo: 'string'
+      }
+    ]
 
-    const nuevosFolios = response.data || []
+    const response = await execute('sp_cem_consultar_cementerio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    const nuevosFolios = response.result || []
 
     if (nuevosFolios.length === 0) {
       hayMasResultados.value = false
@@ -244,14 +287,3 @@ const formatearDomicilio = (folio) => {
   return partes.filter(p => p).join(', ')
 }
 </script>
-
-<style scoped>
-.btn-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-}
-
-.text-center {
-  text-align: center;
-}
-</style>

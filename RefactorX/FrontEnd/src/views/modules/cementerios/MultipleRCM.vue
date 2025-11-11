@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-map-marker-alt"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="map-marker-alt" />
         Consulta de Folios por Ubicación
       </h1>
       <DocumentationModal
@@ -11,15 +11,15 @@
       />
     </div>
 
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Criterios de Búsqueda
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-group">
           <label class="form-label required">Cementerio</label>
-          <select v-model="filtros.cementerio" class="form-control">
+          <select v-model="filtros.cementerio" class="municipal-form-control">
             <option value="">-- Seleccione --</option>
             <option v-for="cem in cementerios" :key="cem.cementerio" :value="cem.cementerio">
               {{ cem.nombre }}
@@ -29,64 +29,64 @@
 
         <div class="form-grid-four">
           <div class="form-group">
-            <label class="form-label">Clase >=</label>
-            <input v-model.number="filtros.clase" type="number" class="form-control" min="0" />
+            <label class="municipal-form-label">Clase >=</label>
+            <input v-model.number="filtros.clase" type="number" class="municipal-form-control" min="0" />
           </div>
           <div class="form-group">
-            <label class="form-label">Clase Alfa</label>
-            <input v-model="filtros.clase_alfa" type="text" class="form-control" maxlength="2" />
+            <label class="municipal-form-label">Clase Alfa</label>
+            <input v-model="filtros.clase_alfa" type="text" class="municipal-form-control" maxlength="2" />
           </div>
           <div class="form-group">
-            <label class="form-label">Sección >=</label>
-            <input v-model.number="filtros.seccion" type="number" class="form-control" min="0" />
+            <label class="municipal-form-label">Sección >=</label>
+            <input v-model.number="filtros.seccion" type="number" class="municipal-form-control" min="0" />
           </div>
           <div class="form-group">
-            <label class="form-label">Sección Alfa</label>
-            <input v-model="filtros.seccion_alfa" type="text" class="form-control" maxlength="2" />
+            <label class="municipal-form-label">Sección Alfa</label>
+            <input v-model="filtros.seccion_alfa" type="text" class="municipal-form-control" maxlength="2" />
           </div>
         </div>
 
         <div class="form-grid-four">
           <div class="form-group">
-            <label class="form-label">Línea >=</label>
-            <input v-model.number="filtros.linea" type="number" class="form-control" min="0" />
+            <label class="municipal-form-label">Línea >=</label>
+            <input v-model.number="filtros.linea" type="number" class="municipal-form-control" min="0" />
           </div>
           <div class="form-group">
-            <label class="form-label">Línea Alfa</label>
-            <input v-model="filtros.linea_alfa" type="text" class="form-control" maxlength="2" />
+            <label class="municipal-form-label">Línea Alfa</label>
+            <input v-model="filtros.linea_alfa" type="text" class="municipal-form-control" maxlength="2" />
           </div>
           <div class="form-group">
-            <label class="form-label">Fosa >=</label>
-            <input v-model.number="filtros.fosa" type="number" class="form-control" min="0" />
+            <label class="municipal-form-label">Fosa >=</label>
+            <input v-model.number="filtros.fosa" type="number" class="municipal-form-control" min="0" />
           </div>
           <div class="form-group">
-            <label class="form-label">Fosa Alfa</label>
-            <input v-model="filtros.fosa_alfa" type="text" class="form-control" maxlength="4" />
+            <label class="municipal-form-label">Fosa Alfa</label>
+            <input v-model="filtros.fosa_alfa" type="text" class="municipal-form-control" maxlength="4" />
           </div>
         </div>
 
         <div class="form-actions">
           <button @click="buscarFolios" class="btn-municipal-primary">
-            <i class="fas fa-search"></i>
+            <font-awesome-icon icon="search" />
             Buscar Folios
           </button>
           <button @click="limpiarFiltros" class="btn-municipal-secondary">
-            <i class="fas fa-eraser"></i>
+            <font-awesome-icon icon="eraser" />
             Limpiar
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="folios.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="folios.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Folios Encontrados ({{ folios.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Folio</th>
                 <th>Nombre</th>
@@ -105,7 +105,7 @@
                 <td>{{ folio.metros }}</td>
                 <td>
                   <button @click="verDetalleFolio(folio.control_rcm)" class="btn-municipal-secondary btn-sm">
-                    <i class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                     Detalle
                   </button>
                 </td>
@@ -116,7 +116,7 @@
 
         <div v-if="hayMasResultados" class="text-center mt-3">
           <button @click="cargarMasFolios" class="btn-municipal-primary">
-            <i class="fas fa-chevron-down"></i>
+            <font-awesome-icon icon="chevron-down" />
             Cargar Más Resultados
           </button>
         </div>
@@ -124,7 +124,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-info">
-      <i class="fas fa-info-circle"></i>
+      <font-awesome-icon icon="info-circle" />
       No se encontraron folios con los criterios especificados
     </div>
   </div>
@@ -133,11 +133,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
   cementerio: '',
@@ -181,21 +188,71 @@ const buscarFolios = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIOS_POR_UBICACION', {
-      p_cementerio: filtros.cementerio,
-      p_clase: filtros.clase || 0,
-      p_clase_alfa: filtros.clase_alfa || null,
-      p_seccion: filtros.seccion || 0,
-      p_seccion_alfa: filtros.seccion_alfa || null,
-      p_linea: filtros.linea || 0,
-      p_linea_alfa: filtros.linea_alfa || null,
-      p_fosa: filtros.fosa || 0,
-      p_fosa_alfa: filtros.fosa_alfa || null,
-      p_ultimo_folio: 0,
-      p_limite: LIMITE_RESULTADOS
-    })
+    const params = [
+      {
+        nombre: 'p_cementerio',
+        valor: filtros.cementerio,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_clase',
+        valor: filtros.clase || 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_clase_alfa',
+        valor: filtros.clase_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_seccion',
+        valor: filtros.seccion || 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_seccion_alfa',
+        valor: filtros.seccion_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_linea',
+        valor: filtros.linea || 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_linea_alfa',
+        valor: filtros.linea_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_fosa',
+        valor: filtros.fosa || 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_fosa_alfa',
+        valor: filtros.fosa_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_ultimo_folio',
+        valor: 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_limite',
+        valor: LIMITE_RESULTADOS,
+        tipo: 'string'
+      }
+    ]
 
-    folios.value = response.data || []
+    const response = await execute('sp_cem_consultar_folios_por_ubicacion', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    folios.value = response.result || []
     busquedaRealizada.value = true
     hayMasResultados.value = folios.value.length === LIMITE_RESULTADOS
 
@@ -217,21 +274,71 @@ const cargarMasFolios = async () => {
     // Actualizar filtros con la última ubicación encontrada
     const ultimaUbicacion = folios.value[folios.value.length - 1]
 
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIOS_POR_UBICACION', {
-      p_cementerio: filtros.cementerio,
-      p_clase: ultimaUbicacion.clase,
-      p_clase_alfa: ultimaUbicacion.clase_alfa || null,
-      p_seccion: ultimaUbicacion.seccion,
-      p_seccion_alfa: ultimaUbicacion.seccion_alfa || null,
-      p_linea: ultimaUbicacion.linea,
-      p_linea_alfa: ultimaUbicacion.linea_alfa || null,
-      p_fosa: ultimaUbicacion.fosa,
-      p_fosa_alfa: ultimaUbicacion.fosa_alfa || null,
-      p_ultimo_folio: ultimoFolio.value,
-      p_limite: LIMITE_RESULTADOS
-    })
+    const params = [
+      {
+        nombre: 'p_cementerio',
+        valor: filtros.cementerio,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_clase',
+        valor: ultimaUbicacion.clase,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_clase_alfa',
+        valor: ultimaUbicacion.clase_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_seccion',
+        valor: ultimaUbicacion.seccion,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_seccion_alfa',
+        valor: ultimaUbicacion.seccion_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_linea',
+        valor: ultimaUbicacion.linea,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_linea_alfa',
+        valor: ultimaUbicacion.linea_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_fosa',
+        valor: ultimaUbicacion.fosa,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_fosa_alfa',
+        valor: ultimaUbicacion.fosa_alfa || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_ultimo_folio',
+        valor: ultimoFolio.value,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_limite',
+        valor: LIMITE_RESULTADOS,
+        tipo: 'string'
+      }
+    ]
 
-    const nuevosFolios = response.data || []
+    const response = await execute('sp_cem_consultar_folios_por_ubicacion', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    const nuevosFolios = response.result || []
 
     if (nuevosFolios.length === 0) {
       hayMasResultados.value = false
@@ -271,8 +378,8 @@ const verDetalleFolio = (controlRcm) => {
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_CEMENTERIOS', {})
-    cementerios.value = response.data || []
+    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
+    cementerios.value = response.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
     toast.error('Error al cargar cementerios')

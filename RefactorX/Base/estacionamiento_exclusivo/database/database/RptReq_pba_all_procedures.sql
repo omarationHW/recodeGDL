@@ -113,7 +113,7 @@ BEGIN
     -- Suma de porcentaje de recargos
     SELECT COALESCE(SUM(porcentaje_mes), 0)
       INTO vporcentaje
-      FROM ta_12_recargos
+      FROM padron_licencias.comun.ta_12_recargos
      WHERE (axo = varaxoper AND mes >= varperiodo)
         OR (axo = vaxo AND mes <= (CASE WHEN vdia <= 12 THEN vmes - 1 ELSE vmes END))
         OR (axo > varaxoper AND axo < vaxo);
@@ -192,7 +192,7 @@ CREATE OR REPLACE FUNCTION rptreq_pba_get_recargos(
 BEGIN
     RETURN QUERY
     SELECT COALESCE(SUM(porcentaje_mes), 0) as porcentaje
-    FROM ta_12_recargos
+    FROM padron_licencias.comun.ta_12_recargos
     WHERE (axo = axo AND mes >= periodo)
        OR (axo = vaxo AND mes <= (CASE WHEN vdia <= 12 THEN vmes - 1 ELSE vmes END))
        OR (axo > axo AND axo < vaxo);
@@ -224,9 +224,9 @@ CREATE OR REPLACE FUNCTION rptreq_pba_get_recaudadora(
 BEGIN
     RETURN QUERY
     SELECT a.id_rec, a.id_zona, a.recaudadora, a.domicilio, a.tel, a.recaudador, a.sector, b.recing, b.nomre, c.id_zona, c.zona
-    FROM ta_12_recaudadoras a
-    JOIN ta_12_nombrerec b ON a.id_rec = b.recing
-    JOIN ta_12_zonas c ON a.id_zona = c.id_zona
+    FROM padron_licencias.comun.ta_12_recaudadoras a
+    JOIN padron_licencias.comun.ta_12_nombrerec b ON a.id_rec = b.recing
+    JOIN padron_licencias.comun.ta_12_zonas c ON a.id_zona = c.id_zona
     WHERE a.id_rec = reca;
 END;
 $$ LANGUAGE plpgsql;

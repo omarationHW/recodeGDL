@@ -501,6 +501,7 @@ onMounted(() => {
 })
 </script>
 
+<style scoped>
 .semaforo-container {
   display: flex;
   flex-direction: column;

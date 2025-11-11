@@ -16,7 +16,7 @@ CREATE OR REPLACE FUNCTION rptreq_pba_get_recargos(
 BEGIN
     RETURN QUERY
     SELECT COALESCE(SUM(porcentaje_mes), 0) as porcentaje
-    FROM ta_12_recargos
+    FROM padron_licencias.comun.ta_12_recargos
     WHERE (axo = axo AND mes >= periodo)
        OR (axo = vaxo AND mes <= (CASE WHEN vdia <= 12 THEN vmes - 1 ELSE vmes END))
        OR (axo > axo AND axo < vaxo);

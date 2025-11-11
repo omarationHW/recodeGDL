@@ -10,6 +10,6 @@ CREATE OR REPLACE FUNCTION sp_autorizades_catalogo_aplicacion() RETURNS TABLE (
     aplicacion TEXT
 ) AS $$
 BEGIN
-    RETURN QUERY SELECT id_modulo, descripcion, aplicacion FROM ta_12_modulos WHERE id_modulo IN (11,13,14,16,24,28);
+    RETURN QUERY SELECT id_modulo, descripcion, aplicacion FROM padron_licencias.comun.ta_12_modulos WHERE id_modulo IN (11,13,14,16,24,28);
 END;
 $$ LANGUAGE plpgsql;

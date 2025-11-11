@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-exchange-alt"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="exchange-alt" />
         Traslado de Folios sin Número
       </h1>
       <DocumentationModal
@@ -12,25 +12,25 @@
     </div>
 
     <!-- Folio Origen -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-file-export"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="file-export" />
         Folio de Origen
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Número de Folio Origen</label>
             <input
               v-model.number="folioOrigen"
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               @keyup.enter="buscarFolioOrigen"
             />
           </div>
           <div class="form-actions">
             <button @click="buscarFolioOrigen" class="btn-municipal-primary">
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar
             </button>
           </div>
@@ -67,10 +67,10 @@
 
           <!-- Pagos del Folio Origen -->
           <div v-if="pagosOrigen.length > 0" class="mt-3">
-            <h6><i class="fas fa-list"></i> Pagos Registrados ({{ pagosOrigen.length }})</h6>
+            <h6><font-awesome-icon icon="list" /> Pagos Registrados ({{ pagosOrigen.length }})</h6>
             <div class="table-responsive">
-              <table class="data-table">
-                <thead>
+              <table class="municipal-table">
+                <thead class="municipal-table-header">
                   <tr>
                     <th>Año</th>
                     <th>Fecha</th>
@@ -94,25 +94,25 @@
     </div>
 
     <!-- Folio Destino -->
-    <div v-if="datosOrigen" class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-file-import"></i>
+    <div v-if="datosOrigen" class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="file-import" />
         Folio de Destino
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Número de Folio Destino</label>
             <input
               v-model.number="folioDestino"
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               @keyup.enter="buscarFolioDestino"
             />
           </div>
           <div class="form-actions">
             <button @click="buscarFolioDestino" class="btn-municipal-primary">
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar
             </button>
           </div>
@@ -143,12 +143,12 @@
     </div>
 
     <!-- Opciones de Traslado -->
-    <div v-if="datosOrigen && datosDestino" class="card">
-      <div class="card-header">
-        <i class="fas fa-tasks"></i>
+    <div v-if="datosOrigen && datosDestino" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="tasks" />
         Opciones de Traslado
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-group">
           <div class="checkbox-group">
             <label class="checkbox-label">
@@ -165,10 +165,10 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Observaciones del Traslado</label>
+          <label class="municipal-form-label">Observaciones del Traslado</label>
           <textarea
             v-model="opcionesTraslado.observaciones"
-            class="form-control"
+            class="municipal-form-control"
             rows="3"
             maxlength="255"
             placeholder="Motivo o detalles del traslado..."
@@ -176,18 +176,18 @@
         </div>
 
         <div class="alert-warning mb-3">
-          <i class="fas fa-exclamation-triangle"></i>
+          <font-awesome-icon icon="exclamation-triangle" />
           <strong>Advertencia:</strong> El traslado es una operación delicada. Verifique cuidadosamente
           los folios de origen y destino antes de continuar.
         </div>
 
         <div class="form-actions">
           <button @click="ejecutarTraslado" class="btn-municipal-primary">
-            <i class="fas fa-exchange-alt"></i>
+            <font-awesome-icon icon="exchange-alt" />
             Ejecutar Traslado
           </button>
           <button @click="limpiar" class="btn-municipal-secondary">
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cancelar
           </button>
         </div>
@@ -199,12 +199,19 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const folioOrigen = ref(null)
 const folioDestino = ref(null)
@@ -249,12 +256,22 @@ const buscarFolioOrigen = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIO', {
-      p_control_rcm: folioOrigen.value
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: folioOrigen.value,
+        tipo: 'string'
+      }
+    ]
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'N') {
         datosOrigen.value = null
@@ -288,12 +305,22 @@ const buscarFolioDestino = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIO', {
-      p_control_rcm: folioDestino.value
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: folioDestino.value,
+        tipo: 'string'
+      }
+    ]
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'N') {
         datosDestino.value = null
@@ -316,11 +343,21 @@ const buscarFolioDestino = async () => {
 
 const cargarPagosOrigen = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_PAGOS', {
-      p_control_rcm: folioOrigen.value
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: folioOrigen.value,
+        tipo: 'string'
+      }
+    ]
 
-    pagosOrigen.value = response.data || []
+    const response = await execute('sp_cem_listar_pagos', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    pagosOrigen.value = response.result || []
   } catch (error) {
     console.error('Error al cargar pagos origen:', error)
     pagosOrigen.value = []
@@ -353,20 +390,50 @@ const ejecutarTraslado = async () => {
 
   if (result.isConfirmed) {
     try {
-      const response = await api.callStoredProcedure('SP_CEM_TRASLADAR_FOLIO', {
-        p_folio_origen: folioOrigen.value,
-        p_folio_destino: folioDestino.value,
-        p_trasladar_pagos: opcionesTraslado.trasladarPagos ? 1 : 0,
-        p_trasladar_datos: opcionesTraslado.trasladarDatos ? 1 : 0,
-        p_observaciones: opcionesTraslado.observaciones || '',
-        p_usuario: 1
-      })
+      const params = [
+      {
+        nombre: 'p_folio_origen',
+        valor: folioOrigen.value,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_folio_destino',
+        valor: folioDestino.value,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_trasladar_pagos',
+        valor: opcionesTraslado.trasladarPagos ? 1 : 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_trasladar_datos',
+        valor: opcionesTraslado.trasladarDatos ? 1 : 0,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_observaciones',
+        valor: opcionesTraslado.observaciones || '',
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_usuario',
+        valor: 1,
+        tipo: 'string'
+      }
+    ]
 
-      if (response.data && response.data[0]?.resultado === 'S') {
+    const response = await execute('sp_cem_trasladar_folio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+      if (response.result && response.result[0]?.resultado === 'S') {
         toast.success('Traslado ejecutado exitosamente')
         limpiar()
       } else {
-        toast.error(response.data[0]?.mensaje || 'Error al ejecutar traslado')
+        toast.error(response.result[0]?.mensaje || 'Error al ejecutar traslado')
       }
     } catch (error) {
       console.error('Error al ejecutar traslado:', error)
@@ -407,6 +474,7 @@ const formatearMoneda = (valor) => {
 </script>
 
 <style scoped>
+/* Layout único de información de folio con checkboxes personalizados - Justificado mantener scoped */
 .folio-info {
   padding: 1rem;
   background-color: var(--color-bg-secondary);

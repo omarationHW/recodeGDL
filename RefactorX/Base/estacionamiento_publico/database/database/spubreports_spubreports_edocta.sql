@@ -4,7 +4,7 @@
 -- Generado para formulario: spubreports
 -- Fecha: 2025-08-27 14:52:31
 
-CREATE OR REPLACE FUNCTION spubreports_edocta(numesta integer)
+CREATE OR REPLACE FUNCTION spubreports_edocta(p_numesta integer)
 RETURNS TABLE (
     id integer,
     pubcategoria_id integer,
@@ -38,6 +38,6 @@ BEGIN
            a.rfc, a.solicitud, a.control, a.movtos_no, a.movto_cve, a.movto_usr, b.descripcion
     FROM pubmain a
     JOIN pubcategoria b ON b.id = a.pubcategoria_id
-    WHERE a.numesta = numesta AND a.movto_cve <> 'C';
+    WHERE a.numesta = p_numesta AND a.movto_cve <> 'C';
 END;
 $$ LANGUAGE plpgsql;

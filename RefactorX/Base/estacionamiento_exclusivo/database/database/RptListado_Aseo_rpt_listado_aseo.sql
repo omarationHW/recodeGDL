@@ -110,7 +110,7 @@ BEGIN
         END IF;
 
         SELECT COALESCE(SUM(porcentaje_mes),0) INTO vporcentaje
-        FROM ta_12_recargos
+        FROM padron_licencias.comun.ta_12_recargos
         WHERE (axo = varaxoper AND mes >= varperiodo)
            OR (axo = vaxo AND mes <= vxmes::int)
            OR (axo > varaxoper AND axo < vaxo);

@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="clipboard-list" />
       </div>
@@ -9,19 +9,19 @@
         <h1>{{ tituloModulo }}</h1>
         <p>Reporte de Opciones Múltiples de Adeudos - Otras Obligaciones</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda y documentación del módulo"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
-          :disabled="loading"
+          :disabled="isLoading"
         >
           <font-awesome-icon icon="arrow-left" />
           Salir
@@ -40,9 +40,10 @@
         </div>
 
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+          <div class="row g-3">
+            <div class="col-12">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="tasks" class="me-1" />
                 <strong>Opción de Proceso:</strong>
                 <span class="required">*</span>
               </label>
@@ -50,13 +51,21 @@
                 v-model="selectedOpcion"
                 @change="onOpcionChange"
                 class="municipal-form-control"
-                :disabled="loading"
+                :disabled="isLoading"
               >
                 <option value="">-- Seleccione una opción --</option>
-                <option value="1">P - DAR DE PAGADO</option>
-                <option value="2">S - CONDONAR</option>
-                <option value="3">C - CANCELAR</option>
-                <option value="4">R - PRESCRIBIR</option>
+                <option value="1">
+                  <font-awesome-icon icon="check-circle" /> P - DAR DE PAGADO
+                </option>
+                <option value="2">
+                  <font-awesome-icon icon="hand-holding-heart" /> S - CONDONAR
+                </option>
+                <option value="3">
+                  <font-awesome-icon icon="ban" /> C - CANCELAR
+                </option>
+                <option value="4">
+                  <font-awesome-icon icon="clock" /> R - PRESCRIBIR
+                </option>
               </select>
             </div>
           </div>
@@ -73,9 +82,10 @@
         </div>
 
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group" style="flex: 0 0 150px;">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="hashtag" class="me-1" />
                 <strong>Número de Local:</strong>
                 <span class="required">*</span>
               </label>
@@ -89,8 +99,9 @@
                 @input="validateNumLocal"
               />
             </div>
-            <div class="form-group" style="flex: 0 0 100px;">
+            <div class="col-md-2">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="font" class="me-1" />
                 <strong>Letra:</strong>
               </label>
               <input
@@ -103,13 +114,12 @@
                 @keyup.enter="buscarConcesion"
               />
             </div>
-            <div class="form-group" style="flex: 0;">
-              <label class="municipal-form-label" style="visibility: hidden;">Buscar</label>
+            <div class="col-md-3">
               <button
                 type="button"
-                class="btn-municipal-primary"
+                class="btn-municipal-primary w-100"
                 @click="buscarConcesion"
-                :disabled="!busqueda.numLocal || busqueda.numLocal === '0' || loading"
+                :disabled="!busqueda.numLocal || busqueda.numLocal === '0' || isLoading"
               >
                 <font-awesome-icon icon="search" />
                 Buscar
@@ -126,46 +136,73 @@
             <font-awesome-icon icon="info-circle" />
             Datos del Local
           </h5>
-          <span class="badge-info">{{ datosGenerales.control }}</span>
+          <span class="badge badge-purple">{{ datosGenerales.control }}</span>
         </div>
 
         <div class="municipal-card-body">
           <div class="info-grid">
             <div class="info-item" v-if="datosGenerales.concesionario">
-              <label>Concesionario:</label>
+              <label>
+                <font-awesome-icon icon="user" class="me-1" />
+                Concesionario:
+              </label>
               <span>{{ datosGenerales.concesionario }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.ubicacion">
-              <label>Ubicación:</label>
+              <label>
+                <font-awesome-icon icon="map-marker-alt" class="me-1" />
+                Ubicación:
+              </label>
               <span>{{ datosGenerales.ubicacion }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.superficie">
-              <label>Superficie:</label>
+              <label>
+                <font-awesome-icon icon="ruler-combined" class="me-1" />
+                Superficie:
+              </label>
               <span>{{ datosGenerales.superficie }} m²</span>
             </div>
             <div class="info-item" v-if="datosGenerales.fecha_inicio">
-              <label>Fecha de Inicio:</label>
+              <label>
+                <font-awesome-icon icon="calendar-alt" class="me-1" />
+                Fecha de Inicio:
+              </label>
               <span>{{ formatDate(datosGenerales.fecha_inicio) }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.sector">
-              <label>Sector:</label>
+              <label>
+                <font-awesome-icon icon="building" class="me-1" />
+                Sector:
+              </label>
               <span>{{ datosGenerales.sector }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.id_zona">
-              <label>Zona:</label>
+              <label>
+                <font-awesome-icon icon="map" class="me-1" />
+                Zona:
+              </label>
               <span>{{ datosGenerales.id_zona }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.licencia">
-              <label>Licencia:</label>
+              <label>
+                <font-awesome-icon icon="file-alt" class="me-1" />
+                Licencia:
+              </label>
               <span>{{ datosGenerales.licencia }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.descrip_unidad">
-              <label>Tipo de Unidad:</label>
+              <label>
+                <font-awesome-icon icon="tag" class="me-1" />
+                Tipo de Unidad:
+              </label>
               <span>{{ datosGenerales.descrip_unidad }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.descrip_stat">
-              <label>Estado:</label>
-              <span class="badge-info">{{ datosGenerales.descrip_stat }}</span>
+              <label>
+                <font-awesome-icon icon="flag" class="me-1" />
+                Estado:
+              </label>
+              <span class="badge badge-purple">{{ datosGenerales.descrip_stat }}</span>
             </div>
           </div>
         </div>
@@ -181,9 +218,10 @@
         </div>
 
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+          <div class="row g-3">
+            <div class="col-md-6">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar" class="me-1" />
                 <strong>Fecha de Pago:</strong>
                 <span class="required">*</span>
               </label>
@@ -193,8 +231,9 @@
                 class="municipal-form-control"
               />
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="col-md-6">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="building" class="me-1" />
                 <strong>Recaudadora:</strong>
                 <span class="required">*</span>
               </label>
@@ -214,9 +253,10 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+          <div class="row g-3 mt-2">
+            <div class="col-md-4">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="cash-register" class="me-1" />
                 <strong>Caja:</strong>
                 <span class="required">*</span>
               </label>
@@ -234,8 +274,9 @@
                 </option>
               </select>
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="col-md-4">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="sort-numeric-up" class="me-1" />
                 <strong>Consecutivo Operación:</strong>
                 <span class="required">*</span>
               </label>
@@ -247,8 +288,9 @@
                 placeholder="Consecutivo"
               />
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="col-md-4">
               <label class="municipal-form-label">
+                <font-awesome-icon icon="receipt" class="me-1" />
                 <strong>Folio Recibo:</strong>
                 <span class="required">*</span>
               </label>
@@ -270,13 +312,13 @@
           <h5>
             <font-awesome-icon icon="list-alt" />
             Adeudos Disponibles
-            <span class="badge-info">{{ adeudosSeleccionados.length }} / {{ adeudos.length }} seleccionados</span>
           </h5>
+          <span class="badge badge-purple">{{ adeudosSeleccionados.length }} / {{ adeudos.length }} seleccionados</span>
         </div>
 
         <div class="municipal-card-body">
           <div class="alert alert-info mb-3">
-            <font-awesome-icon icon="info-circle" />
+            <font-awesome-icon icon="info-circle" class="me-2" />
             <strong>Instrucciones:</strong> Seleccione los adeudos que desea procesar marcando las casillas de verificación.
           </div>
 
@@ -293,12 +335,30 @@
                       title="Seleccionar todos"
                     />
                   </th>
-                  <th style="width: 10%;">Año</th>
-                  <th style="width: 15%;">Mes</th>
-                  <th style="width: 15%;">Periodo</th>
-                  <th style="width: 20%; text-align: right;">Importe</th>
-                  <th style="width: 20%; text-align: right;">Recargos</th>
-                  <th style="width: 15%; text-align: right;">Total</th>
+                  <th style="width: 10%;">
+                    <font-awesome-icon icon="calendar-alt" class="me-1" />
+                    Año
+                  </th>
+                  <th style="width: 15%;">
+                    <font-awesome-icon icon="calendar" class="me-1" />
+                    Mes
+                  </th>
+                  <th style="width: 15%;">
+                    <font-awesome-icon icon="clock" class="me-1" />
+                    Periodo
+                  </th>
+                  <th style="width: 20%; text-align: right;">
+                    <font-awesome-icon icon="dollar-sign" class="me-1" />
+                    Importe
+                  </th>
+                  <th style="width: 20%; text-align: right;">
+                    <font-awesome-icon icon="percent" class="me-1" />
+                    Recargos
+                  </th>
+                  <th style="width: 15%; text-align: right;">
+                    <font-awesome-icon icon="calculator" class="me-1" />
+                    Total
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -312,26 +372,26 @@
                   <td>{{ adeudo.axo }}</td>
                   <td>{{ getMesNombre(adeudo.mes) }}</td>
                   <td>{{ formatDate(adeudo.periodo) }}</td>
-                  <td class="text-right">{{ formatCurrency(adeudo.importe) }}</td>
-                  <td class="text-right">{{ formatCurrency(adeudo.recargo) }}</td>
-                  <td class="text-right">
+                  <td class="text-end">{{ formatCurrency(adeudo.importe) }}</td>
+                  <td class="text-end">{{ formatCurrency(adeudo.recargo) }}</td>
+                  <td class="text-end">
                     <strong>{{ formatCurrency(adeudo.importe + adeudo.recargo) }}</strong>
                   </td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr class="municipal-table-footer">
-                  <td colspan="4" class="text-right"><strong>TOTALES:</strong></td>
-                  <td class="text-right"><strong>{{ formatCurrency(totalImporte) }}</strong></td>
-                  <td class="text-right"><strong>{{ formatCurrency(totalRecargos) }}</strong></td>
-                  <td class="text-right"><strong>{{ formatCurrency(totalGeneral) }}</strong></td>
+                  <td colspan="4" class="text-end"><strong>TOTALES:</strong></td>
+                  <td class="text-end"><strong>{{ formatCurrency(totalImporte) }}</strong></td>
+                  <td class="text-end"><strong>{{ formatCurrency(totalRecargos) }}</strong></td>
+                  <td class="text-end"><strong>{{ formatCurrency(totalGeneral) }}</strong></td>
                 </tr>
               </tfoot>
             </table>
           </div>
 
           <!-- Botones de acción -->
-          <div class="button-group mt-4">
+          <div class="d-flex gap-2 mt-4">
             <button
               type="button"
               class="btn-municipal-primary"
@@ -357,41 +417,24 @@
       <!-- Mensaje cuando no hay adeudos -->
       <div class="municipal-card" v-else-if="datosGenerales && buscado">
         <div class="municipal-card-body">
-          <div class="text-center text-muted">
-            <font-awesome-icon icon="info-circle" size="2x" class="empty-icon" />
-            <p>No se encontraron adeudos para este local.</p>
+          <div class="text-center text-muted py-5">
+            <font-awesome-icon icon="info-circle" size="3x" class="mb-3 text-secondary" />
+            <p class="mb-0">No se encontraron adeudos para este local.</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
         </div>
       </div>
     </div>
     <!-- /module-view-content -->
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      :componentName="'RAdeudos_OpcMult'"
+      :moduleName="'otras_obligaciones'"
+      @close="closeDocumentation"
+    />
   </div>
   <!-- /module-view -->
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'RAdeudos_OpcMult'"
-    :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -399,6 +442,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -406,22 +450,12 @@ import Swal from 'sweetalert2'
 const router = useRouter()
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
 const { execute } = useApi()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { isLoading, startLoading, stopLoading } = useGlobalLoading()
+const { toast, showToast, hideToast, handleApiError } = useLicenciasErrorHandler()
 
 // Estado
+const showDocumentation = ref(false)
 const recaudadoras = ref([])
 const cajas = ref([])
 const selectedOpcion = ref('')
@@ -512,6 +546,14 @@ const goBack = () => {
   router.push('/otras_obligaciones')
 }
 
+const openDocumentation = () => {
+  showDocumentation.value = true
+}
+
+const closeDocumentation = () => {
+  showDocumentation.value = false
+}
+
 const focusLetra = () => {
   if (letraInput.value) {
     letraInput.value.focus()
@@ -558,7 +600,7 @@ const toggleTodos = () => {
 const loadRecaudadoras = async () => {
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPC_MULT_RECAUDADORAS_GET',
+      'con34_rdetade_021',
       'otras_obligaciones',
       [],
       'guadalajara'
@@ -573,7 +615,7 @@ const loadRecaudadoras = async () => {
       recaudadoras.value = []
     }
   } catch (error) {
-    handleApiError(error)
+    console.warn('Error al cargar recaudadoras:', error)
     recaudadoras.value = []
   }
 }
@@ -581,26 +623,11 @@ const loadRecaudadoras = async () => {
 // Cargar cajas
 const loadCajas = async () => {
   try {
-    // Usar el mismo SP que GAdeudos si existe, o crear uno específico
-    const response = await execute(
-      'SP_RADEUDOS_OPC_MULT_CAJAS_GET',
-      'otras_obligaciones',
-      [],
-      'guadalajara'
-    )
-
-    if (response && response.result && response.result.length > 0) {
-      cajas.value = response.result
-      if (cajas.value.length > 0) {
-        parametros.value.caja = cajas.value[0].caja
-      }
-    } else {
-      cajas.value = []
-    }
-  } catch (error) {
-    // Si no existe el SP, usar valores por defecto
+    // Usar valores por defecto
     cajas.value = [{ caja: '01' }, { caja: '02' }]
     parametros.value.caja = '01'
+  } catch (error) {
+    console.warn('Error al cargar cajas:', error)
   }
 }
 
@@ -627,12 +654,12 @@ const buscarConcesion = async () => {
     ? `${busqueda.value.numLocal}-${busqueda.value.letra}`
     : busqueda.value.numLocal
 
-  setLoading(true, 'Buscando local...')
+  startLoading('Buscando local...')
 
   try {
     // Buscar datos generales (usando la tabla 3 para mercados)
     const response = await execute(
-      'SP_RADEUDOS_OPC_MULT_CONCESION_GET',
+      'con34_1datos_03',
       'otras_obligaciones',
       [
         { nombre: 'par_control', valor: control, tipo: 'string' }
@@ -664,7 +691,7 @@ const buscarConcesion = async () => {
     adeudos.value = []
     buscado.value = true
   } finally {
-    setLoading(false)
+    stopLoading()
   }
 }
 
@@ -672,7 +699,7 @@ const buscarConcesion = async () => {
 const buscarAdeudos = async (idDatos) => {
   try {
     const response = await execute(
-      'SP_RADEUDOS_OPC_MULT_DETALLE_ADEUDOS_GET',
+      'con34_rdetade_021',
       'otras_obligaciones',
       [
         { nombre: 'p_id_datos', valor: idDatos, tipo: 'integer' }
@@ -768,7 +795,7 @@ const ejecutarAccion = async () => {
         ]
 
         const response = await execute(
-          'SP_RADEUDOS_OPC_MULT_UPDATE_ADEUDO',
+          'upd34_ade_01',
           'otras_obligaciones',
           params,
           'guadalajara'

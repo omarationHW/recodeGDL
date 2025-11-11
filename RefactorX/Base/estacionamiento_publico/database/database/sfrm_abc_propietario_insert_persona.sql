@@ -6,13 +6,13 @@
 
 CREATE OR REPLACE FUNCTION insert_persona(
     p_nombre VARCHAR,
+    p_rfc VARCHAR,
+    p_sociedad CHAR(1),
+    p_usu_inicial INTEGER,
     p_ap_pater VARCHAR DEFAULT NULL,
     p_ap_mater VARCHAR DEFAULT NULL,
-    p_rfc VARCHAR,
     p_ife VARCHAR DEFAULT NULL,
-    p_sociedad CHAR(1),
-    p_direccion VARCHAR DEFAULT NULL,
-    p_usu_inicial INTEGER
+    p_direccion VARCHAR DEFAULT NULL
 )
 RETURNS TABLE (id_esta_persona INTEGER, msg TEXT)
 LANGUAGE plpgsql

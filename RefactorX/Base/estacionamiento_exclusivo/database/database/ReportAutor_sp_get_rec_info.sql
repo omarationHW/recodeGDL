@@ -13,9 +13,9 @@ RETURNS TABLE (
 BEGIN
   RETURN QUERY
   SELECT a.id_rec, b.zona, c.nomre
-  FROM ta_12_recaudadoras a
-  JOIN ta_12_zonas b ON a.id_zona = b.id_zona
-  JOIN ta_12_nombrerec c ON a.id_rec = c.recing
+  FROM padron_licencias.comun.ta_12_recaudadoras a
+  JOIN padron_licencias.comun.ta_12_zonas b ON a.id_zona = b.id_zona
+  JOIN padron_licencias.comun.ta_12_nombrerec c ON a.id_rec = c.recing
   WHERE a.id_rec = p_reca;
 END;
 $$ LANGUAGE plpgsql;

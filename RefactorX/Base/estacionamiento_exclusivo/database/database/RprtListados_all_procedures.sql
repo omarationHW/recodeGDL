@@ -69,8 +69,8 @@ BEGIN
         SELECT a.*, b.nombre, c.recaudadora AS recaudadora_1, d.zona AS zona_1
         FROM ta_15_apremios a
         LEFT JOIN ta_15_ejecutores b ON a.zona = b.id_rec
-        JOIN ta_12_recaudadoras c ON a.zona = c.id_rec
-        JOIN ta_12_zonas d ON c.id_zona = d.id_zona
+        JOIN padron_licencias.comun.ta_12_recaudadoras c ON a.zona = c.id_rec
+        JOIN padron_licencias.comun.ta_12_zonas d ON c.id_zona = d.id_zona
         WHERE a.zona = vrec
           AND a.modulo = vmod
           AND a.folio BETWEEN vfol1 AND vfol2

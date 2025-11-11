@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-file-invoice-dollar"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="file-invoice-dollar" />
         Reporte de Cuentas por Cobrar
       </h1>
       <DocumentationModal
@@ -12,16 +12,16 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-filter"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="filter" />
         Parámetros del Reporte
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
-            <label class="form-label">Cementerio</label>
-            <select v-model="filtros.cementerio" class="form-control">
+            <label class="municipal-form-label">Cementerio</label>
+            <select v-model="filtros.cementerio" class="municipal-form-control">
               <option value="">-- Todos los Cementerios --</option>
               <option v-for="cem in cementerios" :key="cem.cementerio" :value="cem.cementerio">
                 {{ cem.nombre }}
@@ -30,16 +30,16 @@
           </div>
           <div class="form-group">
             <label class="form-label required">Año de Referencia</label>
-            <input v-model.number="filtros.anio" type="number" class="form-control" :min="2000" :max="2100" />
+            <input v-model.number="filtros.anio" type="number" class="municipal-form-control" :min="2000" :max="2100" />
           </div>
         </div>
         <div class="form-actions">
           <button @click="generarReporte" class="btn-municipal-primary">
-            <i class="fas fa-file-pdf"></i>
+            <font-awesome-icon icon="file-pdf" />
             Generar Reporte
           </button>
           <button @click="exportarExcel" class="btn-municipal-success" v-if="cuentas.length > 0">
-            <i class="fas fa-file-excel"></i>
+            <font-awesome-icon icon="file-excel" />
             Exportar a Excel
           </button>
         </div>
@@ -47,15 +47,15 @@
     </div>
 
     <!-- Resultados -->
-    <div v-if="cuentas.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="cuentas.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Cuentas por Cobrar ({{ cuentas.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Folio</th>
                 <th>Cementerio</th>
@@ -104,7 +104,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada" class="alert-success">
-      <i class="fas fa-check-circle"></i>
+      <font-awesome-icon icon="check-circle" />
       No hay cuentas por cobrar en el período especificado
     </div>
   </div>
@@ -113,11 +113,18 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
   cementerio: '',
@@ -155,12 +162,26 @@ const generarReporte = async () => {
   }
 
   try {
-    const response = await api.callStoredProcedure('SP_CEM_REPORTE_CUENTAS_COBRAR', {
-      p_cementerio: filtros.cementerio || null,
-      p_anio: filtros.anio
-    })
+    const params = [
+      {
+        nombre: 'p_cementerio',
+        valor: filtros.cementerio || null,
+        tipo: 'string'
+      },
+      {
+        nombre: 'p_anio',
+        valor: filtros.anio,
+        tipo: 'integer'
+      }
+    ]
 
-    cuentas.value = response.data || []
+    const response = await execute('sp_cem_reporte_cuentas_cobrar', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    cuentas.value = response.result || []
     busquedaRealizada.value = true
 
     if (cuentas.value.length > 0) {
@@ -180,8 +201,8 @@ const exportarExcel = () => {
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_LISTAR_CEMENTERIOS', {})
-    cementerios.value = response.data || []
+    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
+    cementerios.value = response.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
   }
@@ -204,6 +225,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Estilos únicos de resalte de adeudos y resumen - Justificado mantener scoped */
 .row-warning {
   background-color: #fff3cd;
 }
@@ -214,16 +236,6 @@ onMounted(() => {
 
 .row-danger-dark {
   background-color: #f5c6cb;
-  font-weight: bold;
-}
-
-.text-warning {
-  color: var(--color-warning);
-  font-weight: bold;
-}
-
-.text-danger {
-  color: var(--color-danger);
   font-weight: bold;
 }
 

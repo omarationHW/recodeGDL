@@ -7,6 +7,6 @@
 CREATE OR REPLACE FUNCTION sp_listxFec_get_recaudadoras()
 RETURNS TABLE(id_rec INT, recaudadora VARCHAR) AS $$
 BEGIN
-  RETURN QUERY SELECT id_rec, recaudadora FROM ta_12_recaudadoras ORDER BY id_rec;
+  RETURN QUERY SELECT id_rec, recaudadora FROM padron_licencias.comun.ta_12_recaudadoras ORDER BY id_rec;
 END;
 $$ LANGUAGE plpgsql;

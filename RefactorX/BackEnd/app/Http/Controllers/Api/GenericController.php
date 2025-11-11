@@ -33,14 +33,14 @@ class GenericController
                 'allowed_schemas' => ['public']
             ],
             'cementerio' => [
-                'database' => 'cementerio',
+                'database' => 'padron_licencias',
                 'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'allowed_schemas' => ['public', 'comun']
             ],
             'cementerios' => [
-                'database' => 'cementerio',
+                'database' => 'padron_licencias',
                 'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'allowed_schemas' => ['public', 'comun']
             ],
             'estacionamiento_exclusivo' => [
                 'database' => 'estacionamiento_exclusivo',
@@ -48,14 +48,14 @@ class GenericController
                 'allowed_schemas' => ['public']
             ],
             'estacionamiento_publico' => [
-                'database' => 'estacionamiento_publico',
+                'database' => 'padron_licencias',
                 'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'allowed_schemas' => ['public', 'comun']
             ],
             'estacionamientos' => [
-                'database' => 'estacionamiento_publico',
+                'database' => 'padron_licencias',
                 'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'allowed_schemas' => ['public', 'comun']
             ],
             'mercados' => [
                 'database' => 'mercados',

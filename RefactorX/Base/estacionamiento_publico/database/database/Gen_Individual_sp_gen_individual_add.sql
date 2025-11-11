@@ -77,7 +77,19 @@ BEGIN
             v_idrmunicipio, v_tipoact, (r.axo*10000000)+r.folio, NULL, r.placa, NULL, NULL, v_fechapago, r.fecha_movto, NULL, NULL, r.fecha_folio, NULL, NULL, v_folioecmpio, NULL, p_remesa, v_fecharemesa
         )
         ON CONFLICT DO NOTHING;
-        RETURN NEXT (v_idrmunicipio, v_tipoact, (r.axo*10000000)+r.folio, r.placa, v_fechapago, r.fecha_movto, r.fecha_folio, v_folioecmpio, p_remesa, v_fecharemesa);
+
+        -- Retornar registro insertado
+        idrmunicipio := v_idrmunicipio;
+        tipoact := v_tipoact;
+        folio := (r.axo*10000000)+r.folio;
+        placa := r.placa;
+        fechapago := v_fechapago;
+        fechacancelado := r.fecha_movto;
+        fechaalta := r.fecha_folio;
+        folioecmpio := v_folioecmpio;
+        remesa := p_remesa;
+        fecharemesa := v_fecharemesa;
+        RETURN NEXT;
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;

@@ -1,31 +1,31 @@
 <template>
-  <div class="module-container">
+  <div class="module-view">
     <!-- Header -->
-    <div class="module-header">
+    <div class="module-view-header">
       <div class="module-title-section">
-        <i class="fas fa-exchange-alt module-icon"></i>
+        <font-awesome-icon icon="exchange-alt module-icon" />
         <div>
-          <h1 class="module-title">Traslado de Folios</h1>
+          <h1 class="module-view-info">Traslado de Folios</h1>
           <p class="module-subtitle">Traslado de pagos entre folios</p>
         </div>
       </div>
       <div class="module-actions">
         <button class="btn-help" @click="mostrarAyuda = true">
-          <i class="fas fa-question-circle"></i>
+          <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
       </div>
     </div>
 
     <!-- Búsqueda de Folios -->
-    <div class="card">
-      <div class="card-header">
-        <i class="fas fa-search"></i>
+    <div class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="search" />
         Selección de Folios
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="alert-info mb-3">
-          <i class="fas fa-info-circle"></i>
+          <font-awesome-icon icon="info-circle" />
           <span>Ingrese el folio origen (de donde se trasladarán los pagos) y el folio destino</span>
         </div>
 
@@ -58,7 +58,7 @@
               @click="verificarFolios"
               :disabled="!foliosValidos"
             >
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Verificar
             </button>
           </div>
@@ -67,17 +67,17 @@
     </div>
 
     <!-- Información de Folios -->
-    <div v-if="datosOrigen && datosDestino" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-info-circle"></i>
+    <div v-if="datosOrigen && datosDestino" class="municipal-card mt-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="info-circle" />
         Información de Folios
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="folio-comparison">
           <!-- Folio Origen -->
           <div class="folio-info">
             <h3 class="folio-title origin">
-              <i class="fas fa-arrow-right"></i>
+              <font-awesome-icon icon="arrow-right" />
               Folio Origen
             </h3>
             <div class="info-section">
@@ -106,13 +106,13 @@
 
           <!-- Flecha de traslado -->
           <div class="transfer-arrow">
-            <i class="fas fa-arrow-circle-right"></i>
+            <font-awesome-icon icon="arrow-circle-right" />
           </div>
 
           <!-- Folio Destino -->
           <div class="folio-info">
             <h3 class="folio-title destination">
-              <i class="fas fa-arrow-left"></i>
+              <font-awesome-icon icon="arrow-left" />
               Folio Destino
             </h3>
             <div class="info-section">
@@ -143,31 +143,31 @@
     </div>
 
     <!-- Tabla de Pagos para Trasladar -->
-    <div v-if="pagosOrigen.length > 0" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-list-check"></i>
+    <div v-if="pagosOrigen.length > 0" class="municipal-card mt-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list-check" />
         Pagos a Trasladar ({{ pagosSeleccionados.length }} seleccionados)
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="alert-warning mb-3">
-          <i class="fas fa-exclamation-triangle"></i>
+          <font-awesome-icon icon="exclamation-triangle" />
           <span>Seleccione los pagos que desea trasladar del folio {{ folioOrigen }} al folio {{ folioDestino }}</span>
         </div>
 
         <div class="table-actions mb-3">
           <button class="btn-municipal-secondary" @click="seleccionarTodos">
-            <i class="fas fa-check-square"></i>
+            <font-awesome-icon icon="check-square" />
             Seleccionar Todos
           </button>
           <button class="btn-municipal-secondary" @click="deseleccionarTodos">
-            <i class="fas fa-square"></i>
+            <font-awesome-icon icon="square" />
             Deseleccionar Todos
           </button>
         </div>
 
         <div class="table-container">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>
                   <input
@@ -230,7 +230,7 @@
             class="btn-municipal-secondary"
             @click="cancelar"
           >
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cancelar
           </button>
           <button
@@ -238,7 +238,7 @@
             @click="confirmarTraslado"
             :disabled="pagosSeleccionados.length === 0"
           >
-            <i class="fas fa-exchange-alt"></i>
+            <font-awesome-icon icon="exchange-alt" />
             Trasladar Pagos ({{ pagosSeleccionados.length }})
           </button>
         </div>
@@ -253,7 +253,7 @@
     >
       <div class="help-content">
         <section class="help-section">
-          <h3><i class="fas fa-info-circle"></i> Descripción</h3>
+          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
           <p>
             Este módulo permite trasladar pagos de un folio a otro. Es útil cuando se necesita
             corregir errores en la asignación de pagos o cuando se fusionan folios.
@@ -261,7 +261,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-list-ol"></i> Proceso</h3>
+          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
           <ol>
             <li>Ingrese el <strong>Folio Origen</strong> (desde donde se trasladarán los pagos)</li>
             <li>Ingrese el <strong>Folio Destino</strong> (hacia donde se trasladarán los pagos)</li>
@@ -274,7 +274,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-exclamation-triangle"></i> Importante</h3>
+          <h3><font-awesome-icon icon="exclamation-triangle" /> Importante</h3>
           <ul>
             <li>Ambos folios deben existir en el sistema</li>
             <li>Solo se trasladarán los pagos seleccionados</li>
@@ -286,7 +286,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-shield-alt"></i> Seguridad</h3>
+          <h3><font-awesome-icon icon="shield-alt" /> Seguridad</h3>
           <p>
             Se recomienda verificar cuidadosamente los folios antes de realizar el traslado,
             ya que esta operación afecta el historial de pagos y puede tener implicaciones
@@ -301,6 +301,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
@@ -342,7 +343,7 @@ const verificarFolios = async () => {
 
   try {
     // Buscar folio origen
-    const resultOrigen = await callProcedure('SP_CEM_BUSCAR_FOLIO', {
+    const resultOrigen = await callProcedure('sp_cem_buscar_folio', {
       p_control_rcm: folioOrigen.value
     })
 
@@ -354,7 +355,7 @@ const verificarFolios = async () => {
     datosOrigen.value = resultOrigen.data
 
     // Buscar folio destino
-    const resultDestino = await callProcedure('SP_CEM_BUSCAR_FOLIO', {
+    const resultDestino = await callProcedure('sp_cem_buscar_folio', {
       p_control_rcm: folioDestino.value
     })
 
@@ -377,7 +378,7 @@ const verificarFolios = async () => {
 // Cargar pagos del folio origen
 const cargarPagosOrigen = async () => {
   try {
-    const result = await callProcedure('SP_CEM_LISTAR_PAGOS_FOLIO', {
+    const result = await callProcedure('sp_cem_listar_pagos_folio', {
       p_control_rcm: folioOrigen.value
     })
 
@@ -440,7 +441,7 @@ const confirmarTraslado = async () => {
   try {
     // Trasladar pagos
     const controlIds = pagosSeleccionados.value.join(',')
-    const resultTraslado = await callProcedure('SP_CEM_TRASLADAR_PAGOS', {
+    const resultTraslado = await callProcedure('sp_cem_trasladar_pagos', {
       p_control_ids: controlIds,
       p_folio_destino: folioDestino.value,
       p_usuario: 1 // TODO: Obtener de sesión
@@ -448,7 +449,7 @@ const confirmarTraslado = async () => {
 
     if (resultTraslado.resultado === 'S') {
       // Actualizar año pagado del folio origen
-      await callProcedure('SP_CEM_ACTUALIZAR_AXO_PAGADO', {
+      await callProcedure('sp_cem_actualizar_axo_pagado', {
         p_control_rcm: folioOrigen.value,
         p_usuario: 1
       })
@@ -493,6 +494,7 @@ const formatDate = (date) => {
 </script>
 
 <style scoped>
+/* Layout único de comparación de folios - Justificado mantener scoped */
 .folio-comparison {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -531,41 +533,6 @@ const formatDate = (date) => {
 .table-actions {
   display: flex;
   gap: 0.5rem;
-}
-
-.align-end {
-  align-self: flex-end;
-}
-
-.text-bold {
-  font-weight: 600;
-}
-
-.primary {
-  color: var(--color-primary);
-}
-
-.success {
-  color: var(--color-success);
-}
-
-.mt-3 {
-  margin-top: 1rem;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-.full-width {
-  grid-column: 1 / -1;
-}
-
-.form-help {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
 }
 
 @media (max-width: 768px) {

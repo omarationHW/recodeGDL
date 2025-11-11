@@ -9675,3 +9675,13 @@ div[class*="modal-usuario"] .modal-content {
   color: #6c757d;
   font-size: 0.875em;
 }
+
+/* ====================================
+   PRE-WRAP UTILITY
+   Para elementos <pre> que necesitan
+   wrap de texto largo (JSON, código)
+   ==================================== */
+.pre-wrap {
+  white-space: pre-wrap;
+}
+

@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="search" />
       </div>
@@ -17,7 +17,7 @@
       >
         <font-awesome-icon icon="question-circle" />
       </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -36,6 +36,9 @@
           <h5>
             <font-awesome-icon icon="search" />
             {{ etiquetaBusqueda }}
+            <span class="badge badge-purple ms-2" v-if="datosContrato">
+              Registro encontrado
+            </span>
           </h5>
         </div>
 
@@ -47,8 +50,8 @@
                 <label class="municipal-form-label">
                   {{ etiquetaControl }} <span class="required">*</span>
                 </label>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                  <span v-if="etiquetas.abreviatura" style="font-weight: bold; font-size: 1.1rem;">
+                <div class="d-flex gap-2 align-items-center">
+                  <span v-if="etiquetas.abreviatura" class="fw-bold fs-5">
                     {{ etiquetas.abreviatura }}
                   </span>
                   <input
@@ -84,11 +87,10 @@
                 <input
                   ref="letraInput"
                   type="text"
-                  class="municipal-form-control"
+                  class="municipal-form-control text-uppercase"
                   v-model="letraLocal"
                   placeholder="Letra"
                   maxlength="1"
-                  style="text-transform: uppercase;"
                   @keyup.enter="buscarRegistro"
                 >
               </div>
@@ -228,16 +230,27 @@
       </div>
 
       <!-- Tabla de adeudos pendientes -->
-      <div class="municipal-card" v-if="adeudos.length > 0">
+      <div class="municipal-card" v-if="datosContrato">
         <div class="municipal-card-header">
           <h5>
             <font-awesome-icon icon="list" />
             Adeudos Pendientes
+            <span class="badge badge-purple ms-2" v-if="adeudos.length > 0">
+              {{ adeudos.length }} {{ adeudos.length === 1 ? 'adeudo' : 'adeudos' }}
+            </span>
           </h5>
         </div>
 
         <div class="municipal-card-body">
-          <div class="table-responsive">
+          <!-- Empty state cuando no hay adeudos -->
+          <div v-if="adeudos.length === 0" class="empty-state">
+            <font-awesome-icon icon="check-circle" size="3x" class="text-success" />
+            <h3>Sin Adeudos Pendientes</h3>
+            <p>Este registro no tiene adeudos pendientes de pago</p>
+          </div>
+
+          <!-- Tabla con adeudos -->
+          <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -256,9 +269,8 @@
                 <tr
                   v-for="(adeudo, index) in adeudos"
                   :key="index"
-                  class="row-hover"
+                  class="row-hover cursor-pointer"
                   @dblclick="expandirAdeudo(adeudo)"
-                  style="cursor: pointer;"
                 >
                   <td>{{ adeudo.concepto }}</td>
                   <td class="text-center">{{ adeudo.axo }}</td>
@@ -270,39 +282,39 @@
                   <td class="text-right">
                     {{ formatCurrency(calcularDescuentos(adeudo)) }}
                   </td>
-                  <td class="text-right font-weight-bold">
+                  <td class="text-right fw-bold">
                     {{ formatCurrency(calcularTotalAdeudo(adeudo)) }}
                   </td>
                 </tr>
               </tbody>
               <tfoot class="municipal-table-footer">
                 <tr>
-                  <td colspan="3" class="font-weight-bold">TOTAL GENERAL:</td>
-                  <td class="text-right font-weight-bold">{{ formatCurrency(totalImporte) }}</td>
-                  <td class="text-right font-weight-bold">{{ formatCurrency(totalRecargos) }}</td>
-                  <td class="text-right font-weight-bold">{{ formatCurrency(totalActualizacion) }}</td>
-                  <td class="text-right font-weight-bold">{{ formatCurrency(totalMulta) }}</td>
-                  <td class="text-right font-weight-bold">{{ formatCurrency(totalDescuentos) }}</td>
-                  <td class="text-right font-weight-bold" style="font-size: 1.2rem;">
+                  <td colspan="3" class="fw-bold">TOTAL GENERAL:</td>
+                  <td class="text-right fw-bold">{{ formatCurrency(totalImporte) }}</td>
+                  <td class="text-right fw-bold">{{ formatCurrency(totalRecargos) }}</td>
+                  <td class="text-right fw-bold">{{ formatCurrency(totalActualizacion) }}</td>
+                  <td class="text-right fw-bold">{{ formatCurrency(totalMulta) }}</td>
+                  <td class="text-right fw-bold">{{ formatCurrency(totalDescuentos) }}</td>
+                  <td class="text-right fw-bold fs-5">
                     {{ formatCurrency(totalGeneral) }}
                   </td>
                 </tr>
               </tfoot>
             </table>
-          </div>
 
-          <div class="alert-info" style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-left: 4px solid #2196f3;">
-            <p style="margin: 0; font-size: 0.9rem;">
-              <font-awesome-icon icon="info-circle" />
-              <strong>Nota:</strong> Haga doble clic en un adeudo para ver el detalle de periodos anteriores.
-            </p>
+            <div class="alert alert-info mt-3 border-start border-info border-4">
+              <p class="mb-0 small">
+                <font-awesome-icon icon="info-circle" />
+                <strong>Nota:</strong> Haga doble clic en un adeudo para ver el detalle de periodos anteriores.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Modal de pagos realizados -->
       <div v-if="showModalPagos" class="modal-overlay" @click.self="closeModalPagos">
-        <div class="modal-container" style="max-width: 900px;">
+        <div class="modal-container modal-lg">
           <div class="modal-header">
             <h3>
               <font-awesome-icon icon="money-bill-wave" />
@@ -340,9 +352,9 @@
                 </tbody>
                 <tfoot class="municipal-table-footer">
                   <tr>
-                    <td colspan="2" class="font-weight-bold">TOTAL PAGADO:</td>
-                    <td class="text-right font-weight-bold">{{ formatCurrency(totalPagosImporte) }}</td>
-                    <td class="text-right font-weight-bold">{{ formatCurrency(totalPagosRecargo) }}</td>
+                    <td colspan="2" class="fw-bold">TOTAL PAGADO:</td>
+                    <td class="text-right fw-bold">{{ formatCurrency(totalPagosImporte) }}</td>
+                    <td class="text-right fw-bold">{{ formatCurrency(totalPagosRecargo) }}</td>
                     <td colspan="3"></td>
                   </tr>
                 </tfoot>
@@ -393,6 +405,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -406,6 +419,7 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
   loading,
   setLoading,
@@ -507,7 +521,7 @@ const getStatusClass = (status) => {
   const statusLower = status.toLowerCase()
   if (statusLower.includes('activ')) return 'badge-success'
   if (statusLower.includes('suspend') || statusLower.includes('cancel')) return 'badge-danger'
-  return 'badge-info'
+  return 'badge-purple'
 }
 
 const focusLetra = () => {
@@ -520,9 +534,9 @@ const cargarConfiguracion = async () => {
   setLoading(true, 'Cargando configuración...')
 
   try {
-    // Cargar etiquetas (reutiliza SP de GAdeudos)
+    // Cargar etiquetas
     const responseEtiq = await execute(
-      'SP_GADEUDOS_ETIQUETAS_GET',
+      'sp_otras_oblig_get_etiquetas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -532,9 +546,9 @@ const cargarConfiguracion = async () => {
       etiquetas.value = responseEtiq.result[0]
     }
 
-    // Cargar información de la tabla (reutiliza SP de GAdeudos)
+    // Cargar información de la tabla
     const responseTabla = await execute(
-      'SP_GADEUDOS_TABLAS_GET',
+      'sp_otras_oblig_get_tablas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -583,6 +597,8 @@ const buscarRegistro = async () => {
     control = `${etiquetas.value.abreviatura || ''}${numExpediente.value}`
   }
 
+  const startTime = performance.now()
+  showLoading()
   setLoading(true, 'Buscando registro...')
 
   try {
@@ -623,7 +639,10 @@ const buscarRegistro = async () => {
     // Verificar si tiene pagos
     await verificarPagos(datosContrato.value.id_datos)
 
-    showToast('success', 'Registro cargado correctamente')
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
+    showToast('success', 'Registro cargado correctamente', timeMessage)
 
   } catch (error) {
     handleApiError(error)
@@ -633,6 +652,7 @@ const buscarRegistro = async () => {
     tienePagos.value = false
   } finally {
     setLoading(false)
+    hideLoading()
   }
 }
 
@@ -696,7 +716,7 @@ const expandirAdeudo = async (adeudo) => {
     icon: 'info',
     title: 'Detalle de Adeudo',
     html: `
-      <div style="text-align: left;">
+      <div class="text-start">
         <p><strong>Concepto:</strong> ${adeudo.concepto}</p>
         <p><strong>Periodo:</strong> ${getNombreMes(adeudo.mes)} ${adeudo.axo}</p>
         <hr>
@@ -706,7 +726,7 @@ const expandirAdeudo = async (adeudo) => {
         <p><strong>Multa:</strong> ${formatCurrency(adeudo.multa_pagar)}</p>
         ${calcularDescuentos(adeudo) > 0 ? `<p><strong>Descuentos:</strong> ${formatCurrency(calcularDescuentos(adeudo))}</p>` : ''}
         <hr>
-        <p style="font-size: 1.2rem;"><strong>Total:</strong> ${formatCurrency(calcularTotalAdeudo(adeudo))}</p>
+        <p class="fs-5"><strong>Total:</strong> ${formatCurrency(calcularTotalAdeudo(adeudo))}</p>
       </div>
     `,
     confirmButtonColor: '#ea8215',

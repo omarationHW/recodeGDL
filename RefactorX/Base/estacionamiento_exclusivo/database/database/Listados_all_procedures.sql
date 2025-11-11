@@ -41,7 +41,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sp_listados_get_recaudadoras()
 RETURNS TABLE(id_rec smallint, id_zona integer, recaudadora varchar, domicilio varchar, tel varchar, recaudador varchar, sector varchar) AS $$
 BEGIN
-  RETURN QUERY SELECT id_rec, id_zona, recaudadora, domicilio, tel, recaudador, sector FROM ta_12_recaudadoras ORDER BY id_rec;
+  RETURN QUERY SELECT id_rec, id_zona, recaudadora, domicilio, tel, recaudador, sector FROM padron_licencias.comun.ta_12_recaudadoras ORDER BY id_rec;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -122,9 +122,9 @@ BEGIN
       0 as imp_pagado
     FROM ta_15_apremios a
       LEFT JOIN ta_15_ejecutores b ON a.ejecutor = b.cve_eje AND a.zona = b.id_rec
-      LEFT JOIN ta_12_recaudadoras c ON a.zona = c.id_rec
-      LEFT JOIN ta_12_zonas d ON c.id_zona = d.id_zona
-      LEFT JOIN ta_12_modulos e ON a.modulo = e.id_modulo
+      LEFT JOIN padron_licencias.comun.ta_12_recaudadoras c ON a.zona = c.id_rec
+      LEFT JOIN padron_licencias.comun.ta_12_zonas d ON c.id_zona = d.id_zona
+      LEFT JOIN padron_licencias.comun.ta_12_modulos e ON a.modulo = e.id_modulo
     WHERE a.zona = $1 AND a.modulo = $2 AND a.folio BETWEEN $3 AND $4';
 
   IF p_clave IS NOT NULL AND p_clave <> 'todas' THEN

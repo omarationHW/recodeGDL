@@ -31,7 +31,7 @@ import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const { loading, execute } = useApi()
-const BASE_DB = 'INFORMIX'
+const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_SFRM_CHGPASS'
 const form = ref({ usuario:'', password:'' })
 

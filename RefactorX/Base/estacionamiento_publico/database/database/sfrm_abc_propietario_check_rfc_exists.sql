@@ -5,7 +5,7 @@
 -- Fecha: 2025-08-27 14:05:45
 
 CREATE OR REPLACE FUNCTION check_rfc_exists(p_rfc VARCHAR)
-RETURNS TABLE (exists BOOLEAN)
+RETURNS TABLE (rfc_exists BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN

@@ -147,7 +147,7 @@ import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 // Configuración (ajustar según tu backend genérico)
-const BASE_DB = 'INFORMIX' // TODO: confirmar alias de base
+const BASE_DB = 'multas_reglamentos' // TODO: confirmar alias de base
 const OP_GET_EJECUTORES = 'RECAUDADORA_GET_EJECUTORES' // TODO: confirmar nombre
 const OP_PARSE_FILE = 'RECAUDADORA_PARSE_FILE' // TODO: confirmar nombre
 const OP_APLICA_FECHAS = 'RECAUDADORA_ACTUALIZA_FECHAS' // TODO: confirmar nombre

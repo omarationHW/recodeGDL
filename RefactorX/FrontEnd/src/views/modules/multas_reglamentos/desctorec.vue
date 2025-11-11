@@ -8,7 +8,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
-const { loading, execute } = useApi(); const BASE_DB='INFORMIX'; const OP='RECAUDADORA_DESCTOREC'; const filters=ref({ cuenta:'' })
+const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_DESCTOREC'; const filters=ref({ cuenta:'' })
 async function aplicar(){ try{ await execute(OP, BASE_DB, [ { name:'clave_cuenta', type:'C', value:String(filters.value.cuenta||'') } ]) }catch(e){} }
 </script>
 

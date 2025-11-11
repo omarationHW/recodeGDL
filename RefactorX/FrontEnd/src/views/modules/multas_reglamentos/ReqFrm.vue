@@ -19,7 +19,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
-const BASE_DB = 'INFORMIX'
+const BASE_DB = 'multas_reglamentos'
 const OP_SAVE = 'RECAUDADORA_REQ_FRM_SAVE' // TODO confirmar
 const { loading, execute } = useApi()
 const form = ref({ clave_cuenta: '', folio: null, ejercicio: new Date().getFullYear() })

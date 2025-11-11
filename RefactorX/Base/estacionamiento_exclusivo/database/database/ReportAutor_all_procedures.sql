@@ -75,8 +75,8 @@ BEGIN
     CASE WHEN b.modulo = 16 THEN 'No. Contrato ' || coalesce((SELECT tipo_aseo FROM ta_16_contratos WHERE control_contrato = b.control_otr LIMIT 1),'') || '-' || coalesce((SELECT num_contrato FROM ta_16_contratos WHERE control_contrato = b.control_otr LIMIT 1),'')
          WHEN b.modulo = 11 THEN 'Mercado No. ' || coalesce((SELECT num_mercado FROM ta_11_locales WHERE id_local = b.control_otr LIMIT 1),'') || ' Categoria ' || coalesce((SELECT categoria FROM ta_11_locales WHERE id_local = b.control_otr LIMIT 1),'') || ' Secc. ' || coalesce((SELECT seccion FROM ta_11_locales WHERE id_local = b.control_otr LIMIT 1),'') || ' Local ' || coalesce((SELECT local FROM ta_11_locales WHERE id_local = b.control_otr LIMIT 1),'') || '-' || coalesce((SELECT letra_local FROM ta_11_locales WHERE id_local = b.control_otr LIMIT 1),'') || '-' || coalesce((SELECT bloque FROM ta_11_locales WHERE id_local = b.control_otr LIMIT 1),'')
          ELSE '' END AS datos,
-    (SELECT nombre FROM ta_12_passwords WHERE id_usuario = a.id_usuarioa) AS usu_alta,
-    (SELECT nombre FROM ta_12_passwords WHERE id_usuario = a.id_usuario) AS usu_mod,
+    (SELECT nombre FROM padron_licencias.comun.ta_12_passwords WHERE id_usuario = a.id_usuarioa) AS usu_alta,
+    (SELECT nombre FROM padron_licencias.comun.ta_12_passwords WHERE id_usuario = a.id_usuario) AS usu_mod,
     (SELECT quien FROM ta_15_quienautor WHERE cveaut = a.cveaut) AS quien,
     (SELECT descrip FROM ta_15_claves WHERE clave = b.vigencia AND tipo_clave = 5) AS estadofis,
     CASE WHEN b.vigencia = '2' THEN 'PAGADO' WHEN b.estado = 1 THEN 'ALTA' ELSE 'CANCELADO' END AS vigautoriza,
@@ -84,7 +84,7 @@ BEGIN
          WHEN b.modulo = 11 THEN (SELECT nombre FROM ta_11_locales WHERE id_local = b.control_otr LIMIT 1)
          ELSE '' END AS contrib,
     (SELECT nombre FROM ta_15_quienautor WHERE cveaut = a.cveaut) AS nomquien,
-    (SELECT totcertificado FROM ta_12_ingreso WHERE fecing = b.fecha_pago AND recing = b.recaudadora AND cajing = b.caja AND opcaja = b.operacion LIMIT 1) AS importe_pago_1
+    (SELECT totcertificado FROM padron_licencias.comun.ta_12_ingreso WHERE fecing = b.fecha_pago AND recing = b.recaudadora AND cajing = b.caja AND opcaja = b.operacion LIMIT 1) AS importe_pago_1
   FROM ta_15_autorizados a
   JOIN ta_15_apremios b ON a.control = b.id_control
   WHERE b.recaudadora = p_rec
@@ -110,9 +110,9 @@ RETURNS TABLE (
 BEGIN
   RETURN QUERY
   SELECT a.id_rec, b.zona, c.nomre
-  FROM ta_12_recaudadoras a
-  JOIN ta_12_zonas b ON a.id_zona = b.id_zona
-  JOIN ta_12_nombrerec c ON a.id_rec = c.recing
+  FROM padron_licencias.comun.ta_12_recaudadoras a
+  JOIN padron_licencias.comun.ta_12_zonas b ON a.id_zona = b.id_zona
+  JOIN padron_licencias.comun.ta_12_nombrerec c ON a.id_rec = c.recing
   WHERE a.id_rec = p_reca;
 END;
 $$ LANGUAGE plpgsql;

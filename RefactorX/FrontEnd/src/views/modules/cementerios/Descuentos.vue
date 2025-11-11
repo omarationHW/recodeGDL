@@ -1,29 +1,29 @@
 <template>
-  <div class="module-container">
+  <div class="module-view">
     <!-- Header -->
-    <div class="module-header">
+    <div class="module-view-header">
       <div class="module-title-section">
-        <i class="fas fa-percentage module-icon"></i>
+        <font-awesome-icon icon="percentage module-icon" />
         <div>
-          <h1 class="module-title">Descuentos</h1>
+          <h1 class="module-view-info">Descuentos</h1>
           <p class="module-subtitle">Aplicación de descuentos a folios</p>
         </div>
       </div>
       <div class="module-actions">
         <button class="btn-help" @click="mostrarAyuda = true">
-          <i class="fas fa-question-circle"></i>
+          <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
       </div>
     </div>
 
     <!-- Paso 1: Búsqueda de Folio -->
-    <div class="card">
-      <div class="card-header">
-        <i class="fas fa-search"></i>
+    <div class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="search" />
         Paso 1: Búsqueda de Folio
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Folio</label>
@@ -41,7 +41,7 @@
               @click="buscarFolio"
               :disabled="!folioSearch || folioSearch <= 0"
             >
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar Folio
             </button>
           </div>
@@ -50,12 +50,12 @@
     </div>
 
     <!-- Paso 2: Información del Folio -->
-    <div v-if="folioData" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-info-circle"></i>
+    <div v-if="folioData" class="municipal-card mt-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="info-circle" />
         Paso 2: Información del Folio
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="info-section">
           <h3 class="info-title">Datos del Folio</h3>
           <div class="info-grid">
@@ -106,8 +106,8 @@
         <div v-if="adeudos.length > 0" class="mt-3">
           <h3 class="info-title">Adeudos Vigentes</h3>
           <div class="table-container">
-            <table class="data-table">
-              <thead>
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>Año</th>
                   <th>Importe</th>
@@ -138,7 +138,7 @@
                       @click="seleccionarAdeudo(adeudo)"
                       title="Aplicar descuento"
                     >
-                      <i class="fas fa-plus"></i>
+                      <font-awesome-icon icon="plus" />
                     </button>
                     <span v-else class="badge-success">Con descuento</span>
                   </td>
@@ -150,7 +150,7 @@
 
         <!-- Sin adeudos - Opción de reactivar -->
         <div v-if="adeudos.length === 0" class="alert-info mt-3">
-          <i class="fas fa-info-circle"></i>
+          <font-awesome-icon icon="info-circle" />
           <div>
             <strong>Sin adeudos vigentes</strong>
             <p>Este folio no tiene adeudos vigentes. Puede reactivarlo si es necesario.</p>
@@ -165,7 +165,7 @@
               class="btn-municipal-primary mt-2"
               @click="reactivarFolio"
             >
-              <i class="fas fa-redo"></i>
+              <font-awesome-icon icon="redo" />
               Reactivar Folio
             </button>
           </div>
@@ -174,14 +174,14 @@
     </div>
 
     <!-- Paso 3: Aplicar Descuento -->
-    <div v-if="adeudoSeleccionado" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-tag"></i>
+    <div v-if="adeudoSeleccionado" class="municipal-card mt-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="tag" />
         Paso 3: Aplicar Descuento al Año {{ adeudoSeleccionado.axo_adeudo }}
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="alert-info mb-3">
-          <i class="fas fa-info-circle"></i>
+          <font-awesome-icon icon="info-circle" />
           <span>Seleccione el tipo de descuento a aplicar</span>
         </div>
 
@@ -239,7 +239,7 @@
             class="btn-municipal-secondary"
             @click="cancelarDescuento"
           >
-            <i class="fas fa-times"></i>
+            <font-awesome-icon icon="times" />
             Cancelar
           </button>
           <button
@@ -247,7 +247,7 @@
             @click="aplicarDescuento"
             :disabled="!descuentoSeleccionado"
           >
-            <i class="fas fa-save"></i>
+            <font-awesome-icon icon="save" />
             Aplicar Descuento
           </button>
         </div>
@@ -255,15 +255,15 @@
     </div>
 
     <!-- Paso 4: Descuentos Aplicados -->
-    <div v-if="descuentosAplicados.length > 0" class="card mt-3">
-      <div class="card-header">
-        <i class="fas fa-list"></i>
+    <div v-if="descuentosAplicados.length > 0" class="municipal-card mt-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="list" />
         Descuentos Aplicados
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-container">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Año</th>
                 <th>Tipo</th>
@@ -295,7 +295,7 @@
                     @click="eliminarDescuento(desc)"
                     title="Cancelar descuento"
                   >
-                    <i class="fas fa-trash"></i>
+                    <font-awesome-icon icon="trash" />
                   </button>
                 </td>
               </tr>
@@ -313,7 +313,7 @@
     >
       <div class="help-content">
         <section class="help-section">
-          <h3><i class="fas fa-info-circle"></i> Descripción</h3>
+          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
           <p>
             Este módulo permite aplicar descuentos a los adeudos de folios de cementerio.
             Los descuentos se aplican por año y tipo de descuento según el catálogo configurado.
@@ -321,7 +321,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-list-ol"></i> Proceso</h3>
+          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
           <ol>
             <li>Ingrese el número de folio y presione "Buscar Folio"</li>
             <li>El sistema mostrará la información del folio y sus adeudos vigentes</li>
@@ -334,7 +334,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-exclamation-triangle"></i> Restricciones</h3>
+          <h3><font-awesome-icon icon="exclamation-triangle" /> Restricciones</h3>
           <ul>
             <li>Solo se puede aplicar un descuento por año por folio</li>
             <li>El folio debe tener adeudos vigentes para aplicar descuentos</li>
@@ -344,7 +344,7 @@
         </section>
 
         <section class="help-section">
-          <h3><i class="fas fa-redo"></i> Reactivación</h3>
+          <h3><font-awesome-icon icon="redo" /> Reactivación</h3>
           <p>
             Si un folio no tiene adeudos vigentes, puede marcarse como reactivado.
             Active la casilla "Reactivar folio" y presione el botón de reactivación.
@@ -358,6 +358,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
@@ -385,7 +386,7 @@ const buscarFolio = async () => {
 
   try {
     // Buscar folio
-    const result = await callProcedure('SP_CEM_BUSCAR_FOLIO', {
+    const result = await callProcedure('sp_cem_buscar_folio', {
       p_control_rcm: folioSearch.value
     })
 
@@ -408,7 +409,7 @@ const buscarFolio = async () => {
 // Cargar adeudos del folio
 const cargarAdeudos = async () => {
   try {
-    const result = await callProcedure('SP_CEM_LISTAR_ADEUDOS_FOLIO', {
+    const result = await callProcedure('sp_cem_listar_adeudos_folio', {
       p_control_rcm: folioSearch.value
     })
 
@@ -422,7 +423,7 @@ const cargarAdeudos = async () => {
 // Cargar descuentos aplicados
 const cargarDescuentos = async () => {
   try {
-    const result = await callProcedure('SP_CEM_LISTAR_DESCUENTOS_FOLIO', {
+    const result = await callProcedure('sp_cem_listar_descuentos_folio', {
       p_control_rcm: folioSearch.value
     })
 
@@ -437,7 +438,7 @@ const cargarDescuentos = async () => {
 const cargarTiposDescuento = async () => {
   try {
     const currentYear = new Date().getFullYear()
-    const result = await callProcedure('SP_CEM_LISTAR_TIPOS_DESCUENTO', {
+    const result = await callProcedure('sp_cem_listar_tipos_descuento', {
       p_axo: currentYear
     })
 
@@ -486,7 +487,7 @@ const aplicarDescuento = async () => {
   }
 
   try {
-    const result = await callProcedure('SP_CEM_GESTIONAR_DESCUENTO', {
+    const result = await callProcedure('sp_cem_gestionar_descuento', {
       p_operacion: 1, // Alta
       p_control_rcm: folioSearch.value,
       p_axo: adeudoSeleccionado.value.axo_adeudo,
@@ -532,7 +533,7 @@ const eliminarDescuento = async (descuento) => {
   if (!result.isConfirmed) return
 
   try {
-    const response = await callProcedure('SP_CEM_GESTIONAR_DESCUENTO', {
+    const response = await callProcedure('sp_cem_gestionar_descuento', {
       p_operacion: 2, // Baja
       p_control_rcm: folioSearch.value,
       p_axo: descuento.axo_descto,
@@ -561,7 +562,7 @@ const reactivarFolio = async () => {
 
   try {
     const currentYear = new Date().getFullYear()
-    const result = await callProcedure('SP_CEM_GESTIONAR_DESCUENTO', {
+    const result = await callProcedure('sp_cem_gestionar_descuento', {
       p_operacion: 4, // Reactivar
       p_control_rcm: folioSearch.value,
       p_axo: currentYear,
@@ -609,29 +610,3 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('es-MX')
 }
 </script>
-
-<style scoped>
-.align-end {
-  align-self: flex-end;
-}
-
-.text-bold {
-  font-weight: 600;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
-.mt-3 {
-  margin-top: 1rem;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-.full-width {
-  grid-column: 1 / -1;
-}
-</style>

@@ -71,8 +71,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.id_usuario, a.usuario, a.nombre, a.estado, a.id_rec, b.id_zona, b.recaudadora, b.domicilio, b.tel, b.recaudador, a.nivel
-    FROM ta_12_passwords a
-    JOIN ta_12_recaudadoras b ON a.id_rec = b.id_rec
+    FROM padron_licencias.comun.ta_12_passwords a
+    JOIN padron_licencias.comun.ta_12_recaudadoras b ON a.id_rec = b.id_rec
     WHERE a.usuario = p_usuario
       AND a.clave = p_clave
       AND a.estado = 'A';

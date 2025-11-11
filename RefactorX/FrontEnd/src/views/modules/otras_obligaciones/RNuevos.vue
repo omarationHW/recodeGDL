@@ -8,12 +8,22 @@
         <h1>Reporte de Nuevos</h1>
         <p>Otras Obligaciones - Alta de nuevos contratos</p>
       </div>
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
-        <button class="btn-municipal-secondary" @click="goBack">
-          <font-awesome-icon icon="arrow-left" /> Salir
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda y documentación del módulo"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+        <button
+          class="btn-municipal-secondary"
+          @click="goBack"
+          :disabled="isLoading"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Salir
         </button>
       </div>
     </div>
@@ -21,93 +31,199 @@
     <div class="module-view-content">
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="plus" /> Crear Nuevo Local</h5>
+          <h5>
+            <font-awesome-icon icon="plus" />
+            Crear Nuevo Local
+          </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Control: <span class="required">*</span></label>
-              <input type="text" v-model="formData.numero" class="municipal-form-control" placeholder="Número" maxlength="3" style="width: 120px; display: inline-block; margin-right: 10px;" />
-              <span style="margin: 0 10px;">-</span>
-              <input type="text" v-model="formData.letra" class="municipal-form-control" placeholder="Letra" maxlength="2" style="width: 100px; display: inline-block;" />
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="hashtag" class="me-1" />
+                Control:
+                <span class="required">*</span>
+              </label>
+              <div class="d-flex gap-2">
+                <input
+                  type="text"
+                  v-model="formData.numero"
+                  class="municipal-form-control"
+                  placeholder="Número"
+                  maxlength="3"
+                  style="flex: 1;"
+                />
+                <span class="align-self-center">-</span>
+                <input
+                  type="text"
+                  v-model="formData.letra"
+                  class="municipal-form-control"
+                  placeholder="Letra"
+                  maxlength="2"
+                  style="flex: 1;"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="user" class="me-1" />
+                Concesionario:
+                <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                v-model="formData.concesionario"
+                class="municipal-form-control"
+              />
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Concesionario: <span class="required">*</span></label>
-              <input type="text" v-model="formData.concesionario" class="municipal-form-control" />
+          <div class="row g-3 mt-2">
+            <div class="col-12">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="map-marker-alt" class="me-1" />
+                Ubicación:
+              </label>
+              <input
+                type="text"
+                v-model="formData.ubicacion"
+                class="municipal-form-control"
+              />
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Ubicación:</label>
-              <input type="text" v-model="formData.ubicacion" class="municipal-form-control" />
+          <div class="row g-3 mt-2">
+            <div class="col-md-4">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="ruler-combined" class="me-1" />
+                Superficie:
+                <span class="required">*</span>
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.superficie"
+                class="municipal-form-control"
+                :min="0"
+                step="0.01"
+              />
             </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Superficie: <span class="required">*</span></label>
-              <input type="number" v-model.number="formData.superficie" class="municipal-form-control" :min="0" step="0.01" />
+            <div class="col-md-4">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="file-alt" class="me-1" />
+                Licencia:
+                <span class="required">*</span>
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.licencia"
+                class="municipal-form-control"
+                :min="0"
+              />
             </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Licencia: <span class="required">*</span></label>
-              <input type="number" v-model.number="formData.licencia" class="municipal-form-control" :min="0" />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Tipo Local: <span class="required">*</span></label>
-              <select v-model="formData.tipoLocal" class="municipal-form-control">
+            <div class="col-md-4">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="tag" class="me-1" />
+                Tipo Local:
+                <span class="required">*</span>
+              </label>
+              <select
+                v-model="formData.tipoLocal"
+                class="municipal-form-control"
+              >
                 <option value="INTERNO">INTERNO</option>
                 <option value="EXTERNO">EXTERNO</option>
               </select>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Oficina:</label>
-              <input type="number" v-model.number="formData.oficina" class="municipal-form-control" :min="0" />
+          <div class="row g-3 mt-2">
+            <div class="col-md-4">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="building" class="me-1" />
+                Oficina:
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.oficina"
+                class="municipal-form-control"
+                :min="0"
+              />
             </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Sector:</label>
-              <input type="text" v-model="formData.sector" class="municipal-form-control" />
+            <div class="col-md-4">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="building" class="me-1" />
+                Sector:
+              </label>
+              <input
+                type="text"
+                v-model="formData.sector"
+                class="municipal-form-control"
+              />
             </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Zona:</label>
-              <input type="number" v-model.number="formData.zona" class="municipal-form-control" :min="0" />
+            <div class="col-md-4">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="map" class="me-1" />
+                Zona:
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.zona"
+                class="municipal-form-control"
+                :min="0"
+              />
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Año Inicio: <span class="required">*</span></label>
-              <input type="number" v-model.number="formData.anioInicio" class="municipal-form-control" :min="2000" :max="2099" />
+          <div class="row g-3 mt-2">
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar-alt" class="me-1" />
+                Año Inicio:
+                <span class="required">*</span>
+              </label>
+              <input
+                type="number"
+                v-model.number="formData.anioInicio"
+                class="municipal-form-control"
+                :min="2000"
+                :max="2099"
+              />
             </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Mes Inicio: <span class="required">*</span></label>
-              <select v-model.number="formData.mesInicio" class="municipal-form-control">
-                <option v-for="mes in meses" :key="mes.value" :value="mes.value">{{ mes.label }}</option>
+            <div class="col-md-6">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="calendar" class="me-1" />
+                Mes Inicio:
+                <span class="required">*</span>
+              </label>
+              <select
+                v-model.number="formData.mesInicio"
+                class="municipal-form-control"
+              >
+                <option v-for="mes in meses" :key="mes.value" :value="mes.value">
+                  {{ mes.label }}
+                </option>
               </select>
             </div>
           </div>
 
-          <div class="form-row">
-            <button class="btn-municipal-primary" @click="handleGuardar" :disabled="loading">
-              <font-awesome-icon icon="check" /> Crear Local
+          <div class="d-flex gap-2 mt-4">
+            <button
+              class="btn-municipal-primary"
+              @click="handleGuardar"
+              :disabled="isLoading"
+            >
+              <font-awesome-icon icon="check" />
+              Crear Local
             </button>
-            <button class="btn-municipal-secondary" @click="handleLimpiar" style="margin-left: 10px;">
-              <font-awesome-icon icon="eraser" /> Limpiar
+            <button
+              class="btn-municipal-secondary"
+              @click="handleLimpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
-        </div>
-      </div>
-
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Creando local...</p>
         </div>
       </div>
     </div>
@@ -125,14 +241,15 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const router = useRouter()
-const { callApi } = useApi()
-const { handleError, showToast } = useLicenciasErrorHandler()
+const { execute } = useApi()
+const { isLoading, startLoading, stopLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 
 const formData = reactive({
@@ -171,30 +288,40 @@ const handleGuardar = async () => {
     return
   }
 
-  loading.value = true
+  startLoading('Creando local...')
   try {
     const control = `${formData.numero}-${formData.letra || ''}`
-    await callApi('SP_RNUEVOS_INSERTAR', {
-      par_tabla: '3',
-      par_control: control,
-      par_conces: formData.concesionario,
-      par_ubica: formData.ubicacion,
-      par_sup: formData.superficie,
-      par_Axo_Ini: formData.anioInicio,
-      par_Mes_Ini: formData.mesInicio,
-      par_ofna: formData.oficina,
-      par_sector: formData.sector,
-      par_zona: formData.zona,
-      par_lic: formData.licencia,
-      par_Descrip: formData.tipoLocal
-    })
+    const response = await execute(
+      'sp_ins34_rastro_01',
+      'otras_obligaciones',
+      [
+        { nombre: 'par_tabla', valor: 3, tipo: 'integer' },
+        { nombre: 'par_control', valor: control, tipo: 'string' },
+        { nombre: 'par_conces', valor: formData.concesionario, tipo: 'string' },
+        { nombre: 'par_ubica', valor: formData.ubicacion, tipo: 'string' },
+        { nombre: 'par_sup', valor: formData.superficie, tipo: 'numeric' },
+        { nombre: 'par_axo_ini', valor: formData.anioInicio, tipo: 'integer' },
+        { nombre: 'par_mes_ini', valor: formData.mesInicio, tipo: 'integer' },
+        { nombre: 'par_ofna', valor: formData.oficina, tipo: 'integer' },
+        { nombre: 'par_sector', valor: formData.sector, tipo: 'string' },
+        { nombre: 'par_zona', valor: formData.zona, tipo: 'integer' },
+        { nombre: 'par_lic', valor: formData.licencia, tipo: 'integer' },
+        { nombre: 'par_descrip', valor: formData.tipoLocal, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
 
-    showToast('success', 'Local creado exitosamente')
-    handleLimpiar()
+    if (response && response.result && response.result[0]?.expression === 0) {
+      showToast('success', 'Local creado exitosamente')
+      handleLimpiar()
+    } else {
+      const mensaje = response?.result?.[0]?.expression_1 || 'Error al crear local'
+      showToast('error', mensaje)
+    }
   } catch (error) {
-    handleError(error, 'Error al crear local')
+    handleApiError(error)
   } finally {
-    loading.value = false
+    stopLoading()
   }
 }
 

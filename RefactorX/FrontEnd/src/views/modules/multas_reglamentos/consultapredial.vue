@@ -10,7 +10,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
-const { loading, execute } = useApi(); const BASE_DB='INFORMIX'; const OP='RECAUDADORA_CONSULTAPREDIAL'; const filters=ref({ cvecat:'' }); const data=ref(null)
+const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_CONSULTAPREDIAL'; const filters=ref({ cvecat:'' }); const data=ref(null)
 async function consultar(){ try{ data.value=await execute(OP, BASE_DB, [ { name:'cvecat', type:'C', value:String(filters.value.cvecat||'') } ]) }catch(e){ data.value=null } }
 </script>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="search-plus" />
       </div>
@@ -9,15 +9,14 @@
         <h1>Consulta 2 - Búsqueda Avanzada</h1>
         <p>{{ tituloTabla }}</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -139,7 +138,7 @@
           </div>
 
           <!-- Navegador de coincidencias -->
-          <div class="d-flex justify-content-center align-items-center mt-3" v-if="coincidencias.length > 0">
+          <div class="pagination-nav" v-if="coincidencias.length > 0">
             <button
               class="btn-municipal-secondary btn-sm"
               @click="navegarCoincidencia(-1)"
@@ -148,7 +147,7 @@
               <font-awesome-icon icon="chevron-left" />
               Anterior
             </button>
-            <span style="margin: 0 15px; font-weight: bold;">
+            <span class="badge-purple">
               {{ coincidenciaActualIndex + 1 }} de {{ coincidencias.length }}
             </span>
             <button
@@ -222,7 +221,7 @@
               <label>{{ etiquetas.unidad || 'Unidades' }}:</label>
               <span>{{ datosContrato.unidades }}</span>
             </div>
-            <div class="info-item" style="grid-column: 1 / -1;">
+            <div class="info-item full-width">
               <label>Status:</label>
               <span :class="statusClass">{{ datosContrato.statusregistro }}</span>
             </div>
@@ -259,7 +258,7 @@
               <tfoot class="municipal-table-footer">
                 <tr>
                   <td class="font-weight-bold" colspan="2">TOTAL A PAGAR:</td>
-                  <td class="text-right font-weight-bold" style="font-size: 1.2rem;">
+                  <td class="text-right font-weight-bold total-amount">
                     {{ formatCurrency(totalAPagar) }}
                   </td>
                 </tr>
@@ -268,11 +267,9 @@
           </div>
 
           <!-- Mensaje si hay Gastos o Multas -->
-          <div v-if="tieneGastosOMultas" class="alert-warning" style="margin-top: 15px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107;">
-            <p style="margin: 0;">
-              <font-awesome-icon icon="exclamation-triangle" />
-              <strong>Nota:</strong> Existen conceptos de Gastos o Multas. Pueden consultarse en el módulo de Apremios.
-            </p>
+          <div v-if="tieneGastosOMultas" class="alert alert-warning">
+            <font-awesome-icon icon="exclamation-triangle" />
+            <strong>Nota:</strong> Existen conceptos de Gastos o Multas. Pueden consultarse en el módulo de Apremios.
           </div>
         </div>
       </div>
@@ -363,7 +360,13 @@
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" />
+          {{ toast.duration }}
+        </span>
+      </div>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
@@ -386,6 +389,7 @@ import { useRoute, useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Router
@@ -398,15 +402,17 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+// Estado local de loading (para deshabilitar botones)
+const loading = ref(false)
 
 // Estado
 const tipoTabla = ref(route.params.tabla || route.query.tabla || '1')
@@ -460,15 +466,19 @@ const statusClass = computed(() => {
 
 // Métodos
 const cargarConfiguracion = async () => {
-  setLoading(true, 'Cargando configuración...')
+  const startTime = performance.now()
+  loading.value = true
+  showLoading('Cargando configuración...', 'Consultando etiquetas y tablas')
 
   try {
     // Cargar etiquetas
     const responseEtiq = await execute(
-      'SP_GADEUDOS_ETIQUETAS_GET',
+      'sp_otras_oblig_get_etiquetas',
       'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
-      'guadalajara'
+      [{ nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' }],
+      '',
+      null,
+      'public'
     )
 
     if (responseEtiq && responseEtiq.result && responseEtiq.result.length > 0) {
@@ -477,20 +487,31 @@ const cargarConfiguracion = async () => {
 
     // Cargar información de la tabla
     const responseTabla = await execute(
-      'SP_GADEUDOS_TABLAS_GET',
+      'sp_otras_oblig_get_tablas',
       'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
-      'guadalajara'
+      [{ nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' }],
+      '',
+      null,
+      'public'
     )
 
     if (responseTabla && responseTabla.result && responseTabla.result.length > 0) {
       infoTabla.value = responseTabla.result[0]
     }
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1
+      ? `${(duration * 1000).toFixed(0)}ms`
+      : `${duration}s`
+
+    showToast('success', 'Configuración cargada correctamente', timeMessage)
+
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -505,19 +526,29 @@ const buscarCoincidencias = async () => {
     return
   }
 
-  setLoading(true, 'Buscando coincidencias...')
+  const startTime = performance.now()
+  loading.value = true
+  showLoading('Buscando coincidencias...', 'Procesando búsqueda')
 
   try {
     const response = await execute(
-      'SP_GCONSULTA2_BUSCAR_COINCIDENCIAS',
+      'sp_otras_oblig_buscar_coincide',
       'otras_obligaciones',
       [
-        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
-        { nombre: 'par_criterio', valor: criterioBusqueda.value, tipo: 'integer' },
-        { nombre: 'par_datos', valor: datoBusqueda.value, tipo: 'string' }
+        { nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' },
+        { nombre: 'tipo_busqueda', valor: criterioBusqueda.value, tipo: 'integer' },
+        { nombre: 'dato_busqueda', valor: datoBusqueda.value, tipo: 'varchar' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1
+      ? `${(duration * 1000).toFixed(0)}ms`
+      : `${duration}s`
 
     if (response && response.result && response.result.length > 0) {
       coincidencias.value = response.result
@@ -526,12 +557,14 @@ const buscarCoincidencias = async () => {
 
       // Si solo hay una coincidencia, seleccionarla automáticamente
       if (coincidencias.value.length === 1) {
+        showToast('success', `1 coincidencia encontrada`, timeMessage)
         await seleccionarControl(coincidencias.value[0].control)
       } else {
-        showToast('success', `Se encontraron ${coincidencias.value.length} coincidencias`)
+        showToast('success', `${coincidencias.value.length} coincidencias encontradas`, timeMessage)
       }
     } else {
       coincidencias.value = []
+      showToast('info', 'No se encontraron coincidencias', timeMessage)
       await Swal.fire({
         icon: 'info',
         title: 'Sin resultados',
@@ -544,7 +577,8 @@ const buscarCoincidencias = async () => {
     handleApiError(error)
     coincidencias.value = []
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -558,18 +592,22 @@ const navegarCoincidencia = async (direccion) => {
 
 const seleccionarControl = async (control) => {
   controlSeleccionado.value = control
-  setLoading(true, 'Cargando datos del control...')
+  const startTime = performance.now()
+  loading.value = true
+  showLoading('Cargando datos del control...', 'Consultando información')
 
   try {
     // Buscar datos del contrato
     const responseDatos = await execute(
-      'SP_GCONSULTA2_DATOS_GET',
+      'sp_otras_oblig_buscar_cont',
       'otras_obligaciones',
       [
-        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
-        { nombre: 'par_control', valor: control, tipo: 'string' }
+        { nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' },
+        { nombre: 'par_control', valor: control, tipo: 'varchar' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
     if (!responseDatos || !responseDatos.result || responseDatos.result[0]?.status === 1) {
@@ -592,13 +630,21 @@ const seleccionarControl = async (control) => {
       await Swal.fire({
         icon: 'warning',
         title: 'Advertencia',
-        text: 'LOCAL EN SUSPENSION O CANCELADO, inténtalo de nuevo',
+        text: 'LOCAL EN SUSPENSION O CANCELADO',
         confirmButtonColor: '#ea8215'
       })
     }
 
     // Cargar adeudos
     await cargarAdeudos()
+
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const timeMessage = duration < 1
+      ? `${(duration * 1000).toFixed(0)}ms`
+      : `${duration}s`
+
+    showToast('success', 'Datos del control cargados correctamente', timeMessage)
 
   } catch (error) {
     handleApiError(error)
@@ -607,7 +653,8 @@ const seleccionarControl = async (control) => {
     adeudosTotales.value = []
     adeudosDetalle.value = []
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -621,15 +668,17 @@ const cargarAdeudos = async () => {
   try {
     // Cargar totales
     const responseTotales = await execute(
-      'SP_GCONSULTA2_ADEUDOS_TOTALES',
+      'sp_otras_oblig_buscar_totales',
       'otras_obligaciones',
       [
-        { nombre: 'par_tabla', valor: tipoTabla.value, tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' },
         { nombre: 'par_aso', valor: anoActual, tipo: 'integer' },
         { nombre: 'par_mes', valor: mesActual, tipo: 'integer' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
     if (responseTotales && responseTotales.result) {
@@ -640,15 +689,17 @@ const cargarAdeudos = async () => {
 
     // Cargar detalle
     const responseDetalle = await execute(
-      'SP_GCONSULTA2_ADEUDOS_DETALLE',
+      'sp_otras_oblig_buscar_adeudos',
       'otras_obligaciones',
       [
-        { nombre: 'par_tabla', valor: tipoTabla.value, tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' },
         { nombre: 'par_aso', valor: anoActual, tipo: 'integer' },
         { nombre: 'par_mes', valor: mesActual, tipo: 'integer' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
     if (responseDetalle && responseDetalle.result) {
@@ -659,10 +710,12 @@ const cargarAdeudos = async () => {
 
     // Verificar si hay pagados
     const responsePagados = await execute(
-      'SP_GCONSULTA2_PAGADOS_GET',
+      'sp_otras_oblig_buscar_pagados',
       'otras_obligaciones',
-      [{ nombre: 'par_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
-      'guadalajara'
+      [{ nombre: 'p_Control', valor: datosContrato.value.id_datos, tipo: 'integer' }],
+      '',
+      null,
+      'public'
     )
 
     tienePagados.value = responsePagados && responsePagados.result && responsePagados.result.length > 0

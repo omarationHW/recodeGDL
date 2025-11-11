@@ -16,7 +16,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
-const BASE_DB='INFORMIX'
+const BASE_DB = 'multas_reglamentos'
 const OP_CODIF='RECAUDADORA_CODIFICAFRM' // TODO confirmar
 const { loading, execute } = useApi()
 const form=ref({ texto:'' })

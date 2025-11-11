@@ -15,7 +15,7 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT SUM(porcentaje_mes) AS porcentaje
-    FROM ta_12_recargos
+    FROM padron_licencias.comun.ta_12_recargos
     WHERE (axo = p_axo_inicio AND mes >= p_mes_inicio)
        OR (axo = p_axo_fin AND mes <= EXTRACT(MONTH FROM CURRENT_DATE))
        OR (axo > p_axo_inicio AND axo < p_axo_fin);

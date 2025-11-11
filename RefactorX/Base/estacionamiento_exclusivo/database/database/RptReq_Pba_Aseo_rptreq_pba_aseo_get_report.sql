@@ -77,7 +77,7 @@ BEGIN
         -- Calcular recargos
         vporcentaje := 0;
         SELECT COALESCE(SUM(porcentaje_mes),0) INTO vporcentaje
-        FROM ta_12_recargos
+        FROM padron_licencias.comun.ta_12_recargos
         WHERE (axo = EXTRACT(YEAR FROM r.aso_mes_pago)::INTEGER AND mes >= EXTRACT(MONTH FROM r.aso_mes_pago)::INTEGER)
            OR (axo = vaxo AND mes <= vmes)
            OR (axo > EXTRACT(YEAR FROM r.aso_mes_pago)::INTEGER AND axo < vaxo);

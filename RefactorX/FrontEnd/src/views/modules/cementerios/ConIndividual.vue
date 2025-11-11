@@ -1,8 +1,8 @@
 <template>
-  <div class="module-container">
-    <div class="module-header">
-      <h1 class="module-title">
-        <i class="fas fa-file-alt"></i>
+  <div class="module-view">
+    <div class="module-view-header">
+      <h1 class="module-view-info">
+        <font-awesome-icon icon="file-alt" />
         Consulta Individual de Folios
       </h1>
       <DocumentationModal
@@ -12,19 +12,19 @@
     </div>
 
     <!-- Búsqueda de Folio -->
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-search"></i>
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="search" />
         Buscar Folio
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="form-grid-three">
           <div class="form-group">
             <label class="form-label required">Número de Folio</label>
             <input
               v-model.number="folioABuscar"
               type="number"
-              class="form-control"
+              class="municipal-form-control"
               placeholder="Ingrese número de folio"
               @keyup.enter="buscarFolio"
               min="1"
@@ -32,11 +32,11 @@
           </div>
           <div class="form-actions">
             <button @click="buscarFolio" class="btn-municipal-primary">
-              <i class="fas fa-search"></i>
+              <font-awesome-icon icon="search" />
               Buscar
             </button>
             <button @click="limpiar" class="btn-municipal-secondary">
-              <i class="fas fa-eraser"></i>
+              <font-awesome-icon icon="eraser" />
               Limpiar
             </button>
           </div>
@@ -45,17 +45,17 @@
     </div>
 
     <!-- Datos del Folio -->
-    <div v-if="folio" class="card mb-3">
-      <div class="card-header">
-        <i class="fas fa-info-circle"></i>
+    <div v-if="folio" class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="info-circle" />
         Información del Folio {{ folio.control_rcm }}
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="info-sections">
           <!-- Datos del Titular -->
           <div class="info-section">
             <h3 class="section-title">
-              <i class="fas fa-user"></i>
+              <font-awesome-icon icon="user" />
               Datos del Titular
             </h3>
             <div class="info-grid">
@@ -73,7 +73,7 @@
           <!-- Ubicación -->
           <div class="info-section">
             <h3 class="section-title">
-              <i class="fas fa-map-marker-alt"></i>
+              <font-awesome-icon icon="map-marker-alt" />
               Ubicación
             </h3>
             <div class="info-grid">
@@ -107,7 +107,7 @@
           <!-- Estado de Pago -->
           <div class="info-section">
             <h3 class="section-title">
-              <i class="fas fa-calendar-check"></i>
+              <font-awesome-icon icon="calendar-check" />
               Estado de Pago
             </h3>
             <div class="info-grid">
@@ -125,7 +125,7 @@
           <!-- Observaciones -->
           <div v-if="folio.observaciones" class="info-section">
             <h3 class="section-title">
-              <i class="fas fa-comment"></i>
+              <font-awesome-icon icon="comment" />
               Observaciones
             </h3>
             <p class="observaciones-text">{{ folio.observaciones }}</p>
@@ -134,7 +134,7 @@
           <!-- Última Actualización -->
           <div class="info-section">
             <h3 class="section-title">
-              <i class="fas fa-clock"></i>
+              <font-awesome-icon icon="clock" />
               Última Actualización
             </h3>
             <div class="info-grid">
@@ -153,15 +153,15 @@
     </div>
 
     <!-- Historial de Pagos -->
-    <div v-if="folio && pagos.length > 0" class="card">
-      <div class="card-header">
-        <i class="fas fa-money-bill-wave"></i>
+    <div v-if="folio && pagos.length > 0" class="municipal-card">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="money-bill-wave" />
         Historial de Pagos ({{ pagos.length }})
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
               <tr>
                 <th>Año</th>
                 <th>Fecha</th>
@@ -204,7 +204,7 @@
     </div>
 
     <div v-else-if="busquedaRealizada && !folio" class="alert-warning">
-      <i class="fas fa-exclamation-triangle"></i>
+      <font-awesome-icon icon="exclamation-triangle" />
       No se encontró el folio especificado
     </div>
   </div>
@@ -213,11 +213,18 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const api = useApi()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 const folioABuscar = ref(null)
 const folio = ref(null)
@@ -255,14 +262,24 @@ const buscarFolio = async () => {
 
   try {
     // Consultar datos del folio
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_FOLIO', {
-      p_control_rcm: folioABuscar.value
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: folioABuscar.value,
+        tipo: 'string'
+      }
+    ]
+
+    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
 
     busquedaRealizada.value = true
 
-    if (response.data && response.data.length > 0) {
-      const result = response.data[0]
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
       if (result.resultado === 'N') {
         folio.value = null
@@ -291,11 +308,21 @@ const buscarFolio = async () => {
 
 const cargarPagos = async () => {
   try {
-    const response = await api.callStoredProcedure('SP_CEM_CONSULTAR_PAGOS_FOLIO', {
-      p_control_rcm: folioABuscar.value
-    })
+    const params = [
+      {
+        nombre: 'p_control_rcm',
+        valor: folioABuscar.value,
+        tipo: 'string'
+      }
+    ]
 
-    pagos.value = response.data || []
+    const response = await execute('sp_cem_consultar_pagos_folio', 'cementerios', params,
+      'cementerios',
+      null,
+      'public'
+    , '', null, 'comun')
+
+    pagos.value = response.result || []
   } catch (error) {
     console.error('Error al cargar pagos:', error)
     toast.error('Error al cargar historial de pagos')

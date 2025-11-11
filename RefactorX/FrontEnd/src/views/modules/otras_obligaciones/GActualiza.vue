@@ -49,22 +49,20 @@
               <label class="municipal-form-label">Número de Local</label>
               <input
                 type="text"
-                class="municipal-form-control"
+                class="municipal-form-control input-numero-local"
                 v-model="busqueda.numeroLocal"
                 @keyup.enter="focusLetra"
                 placeholder="Número"
                 maxlength="3"
-                style="width: 150px; display: inline-block; margin-right: 10px;"
               >
               <input
                 type="text"
-                class="municipal-form-control"
+                class="municipal-form-control input-letra-local"
                 v-model="busqueda.letra"
                 ref="letraInput"
                 @keyup.enter="buscarRegistro"
                 placeholder="Letra"
                 maxlength="1"
-                style="width: 80px; display: inline-block;"
               >
             </div>
 
@@ -636,6 +634,7 @@ import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const router = useRouter()
@@ -654,6 +653,7 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const tipoTabla = ref(route.params.tipo || route.query.tipo || 1) // 1=Tianguis, 2=VíaPública, 3=Mercados, 4=Centrales, 5=Otros
@@ -749,7 +749,7 @@ const formatDate = (dateString) => {
 const loadEtiquetas = async () => {
   try {
     const response = await execute(
-      'SP_GACTUALIZA_ETIQUETAS_GET',
+      'sp_otras_oblig_get_etiquetas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -766,7 +766,7 @@ const loadEtiquetas = async () => {
 const loadTablas = async () => {
   try {
     const response = await execute(
-      'SP_GACTUALIZA_TABLAS_GET',
+      'sp_otras_oblig_get_tablas',
       'otras_obligaciones',
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
@@ -983,7 +983,9 @@ const aplicarCambio = async () => {
     return
   }
 
+  const startTime = performance.now()
   saving.value = true
+  showLoading('Aplicando cambios...')
 
   try {
     let spName = ''
@@ -1046,6 +1048,12 @@ const aplicarCambio = async () => {
     if (response && response.result && response.result[0]) {
       const data = response.result[0]
 
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const timeMessage = duration < 1
+        ? `${(duration * 1000).toFixed(0)}ms`
+        : `${duration}s`
+
       if (data.status === 0) {
         await Swal.fire({
           icon: 'success',
@@ -1055,7 +1063,7 @@ const aplicarCambio = async () => {
           timer: 2000
         })
 
-        showToast('success', 'Cambio aplicado correctamente')
+        showToast('success', `Cambio aplicado correctamente (${timeMessage})`)
 
         // Recargar registro
         await buscarRegistro()
@@ -1072,6 +1080,7 @@ const aplicarCambio = async () => {
     handleApiError(error)
   } finally {
     saving.value = false
+    hideLoading()
   }
 }
 
@@ -1206,9 +1215,9 @@ const crearSuspension = async () => {
     icon: 'warning',
     title: '¿Confirmar suspensión?',
     html: `
-      <div style="text-align: left; padding: 0 20px;">
+      <div class="swal-confirm-content">
         <p>Se suspenderá el registro a partir de:</p>
-        <ul style="list-style: none; padding: 0;">
+        <ul class="swal-info-list">
           <li><strong>Período:</strong> ${suspensionForm.value.mes}/${suspensionForm.value.axo}</li>
           <li><strong>Fecha:</strong> ${suspensionForm.value.fechaSuspension}</li>
         </ul>
@@ -1403,8 +1412,8 @@ onMounted(async () => {
   color: white;
 }
 
-.badge-info {
-  background-color: #17a2b8;
+.badge-purple {
+  background-color: #6f42c1;
   color: white;
   margin-left: 10px;
   padding: 3px 8px;
@@ -1480,5 +1489,27 @@ onMounted(async () => {
 
 .mt-3 {
   margin-top: 1rem;
+}
+
+.input-numero-local {
+  width: 150px;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.input-letra-local {
+  width: 80px;
+  display: inline-block;
+}
+
+/* SweetAlert custom classes */
+:deep(.swal-confirm-content) {
+  text-align: left;
+  padding: 0 20px;
+}
+
+:deep(.swal-info-list) {
+  list-style: none;
+  padding: 0;
 }
 </style>

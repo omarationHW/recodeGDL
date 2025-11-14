@@ -616,6 +616,37 @@ const router = createRouter({
       name: 'mercados',
       component: () => import('@/views/modules/mercados/index.vue')
     },
+    // Rutas de Mercados habilitadas específicamente
+    {
+      path: '/mercados/adeudos-locales',
+      name: 'mercados-adeudos-locales',
+      component: () => import('@/views/modules/mercados/AdeudosLocales.vue')
+    },
+    {
+      path: '/mercados/adeudos-energia',
+      name: 'mercados-adeudos-energia',
+      component: () => import('@/views/modules/mercados/AdeudosEnergia.vue')
+    },
+    {
+      path: '/mercados/ade-global-locales',
+      name: 'mercados-ade-global-locales',
+      component: () => import('@/views/modules/mercados/AdeGlobalLocales.vue')
+    },
+    {
+      path: '/mercados/ade-energia-grl',
+      name: 'mercados-ade-energia-grl',
+      component: () => import('@/views/modules/mercados/AdeEnergiaGrl.vue')
+    },
+    {
+      path: '/mercados/adeudos-loc-grl',
+      name: 'mercados-adeudos-loc-grl',
+      component: () => import('@/views/modules/mercados/AdeudosLocGrl.vue')
+    },
+    {
+      path: '/mercados/recaudadoras-mercados',
+      name: 'mercados-recaudadoras-mercados',
+      component: () => import('@/views/modules/mercados/RecaudadorasMercados.vue')
+    },
     // RUTAS DE MERCADOS COMENTADAS - Archivos no existen
     /*
     {
@@ -712,12 +743,12 @@ const router = createRouter({
       path: '/mercados/secciones',
       name: 'mercados-secciones',
       component: () => import('@/views/modules/mercados/Secciones.vue')
-    },
+    },*/
     {
       path: '/mercados/recaudadoras-mercados',
       name: 'mercados-recaudadoras-mercados',
       component: () => import('@/views/modules/mercados/RecaudadorasMercados.vue')
-    },
+    },/*
     {
       path: '/mercados/zonas-mercados',
       name: 'mercados-zonas-mercados',

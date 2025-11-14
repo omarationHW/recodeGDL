@@ -1,237 +1,580 @@
 <template>
-  <div class="adeudos-loc-grl-page">
-    <h1>Adeudos Generales del Mercado</h1>
-    <div class="breadcrumb">
-      <router-link to="/">Inicio</router-link> / Adeudos Generales
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="store" />
+      </div>
+      <div class="module-view-info">
+        <h1>Adeudos Generales de Locales</h1>
+        <p>Inicio > Reportes > Adeudos Generales de Locales</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || adeudos.length === 0">
+          <font-awesome-icon icon="file-excel" />
+          Exportar Excel
+        </button>
+        <button class="btn-municipal-primary" @click="imprimir" :disabled="loading || adeudos.length === 0">
+          <font-awesome-icon icon="print" />
+          Imprimir
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
-    <form @submit.prevent="buscar">
-      <div class="form-row">
-        <label>Oficina:</label>
-        <select v-model="selectedRec" @change="onRecChange">
-          <option value="">Seleccione</option>
-          <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
-        </select>
-        <label>Mercado:</label>
-        <select v-model="selectedMercado">
-          <option value="">000-TODOS LOS MERCADOS</option>
-          <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.num_mercado_nvo }} - {{ merc.descripcion }}</option>
-        </select>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Consulta
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+        </div>
+
+        <div v-show="showFilters" class="municipal-card-body">
+          <!-- Filtros en una sola fila -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado</label>
+              <select class="municipal-form-control" v-model="selectedMercado" :disabled="!selectedRec || loading">
+                <option value="">Todos los mercados</option>
+                <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                  {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Año Hasta <span class="required">*</span></label>
+              <input type="number" class="municipal-form-control" v-model.number="axo" min="1995" max="2999"
+                placeholder="Año" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Mes Hasta <span class="required">*</span></label>
+              <input type="number" class="municipal-form-control" v-model.number="mes" min="1" max="12"
+                placeholder="Mes" :disabled="loading" />
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="text-end">
+                <button class="btn-municipal-primary me-2" @click="buscar" :disabled="loading">
+                  <font-awesome-icon icon="search" />
+                  Buscar
+                </button>
+                <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                  <font-awesome-icon icon="eraser" />
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Año:</label>
-        <input type="number" v-model.number="axo" min="1995" max="2999" />
-        <label>Mes:</label>
-        <input type="number" v-model.number="mes" min="1" max="12" />
-        <button type="submit">Buscar</button>
-        <button type="button" @click="exportarExcel">Exportar Excel</button>
+
+      <!-- Tabla de resultados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Resultados de Adeudos de Locales
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="adeudos.length > 0">
+              {{ formatNumber(adeudos.length) }} registros
+            </span>
+          </div>
+        </div>
+
+        <div class="municipal-card-body table-container">
+          <!-- Mensaje de loading -->
+          <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando datos, por favor espere...</p>
+          </div>
+
+          <!-- Mensaje de error -->
+          <div v-else-if="error" class="alert alert-danger" role="alert">
+            <font-awesome-icon icon="exclamation-triangle" />
+            {{ error }}
+          </div>
+
+          <!-- Tabla -->
+          <div v-else class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Rec.</th>
+                  <th>Merc.</th>
+                  <th>Cat.</th>
+                  <th>Sec.</th>
+                  <th>Local</th>
+                  <th>Letra</th>
+                  <th>Bloque</th>
+                  <th>Nombre</th>
+                  <th>Superficie</th>
+                  <th>Clave Cuota</th>
+                  <th>Adeudo</th>
+                  <th>Recaudadora</th>
+                  <th>Descripción</th>
+                  <th>Meses</th>
+                  <th>Renta</th>
+                  <th>Año</th>
+                  <th>Folios</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="adeudos.length === 0 && !searchPerformed">
+                  <td colspan="17" class="text-center text-muted">
+                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <p>Utiliza los filtros de búsqueda para consultar adeudos de locales</p>
+                  </td>
+                </tr>
+                <tr v-else-if="adeudos.length === 0">
+                  <td colspan="17" class="text-center text-muted">
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No se encontraron adeudos con los criterios especificados</p>
+                  </td>
+                </tr>
+                <tr v-else v-for="(row, index) in paginatedAdeudos" :key="index" @click="selectedAdeudo = row"
+                  :class="{ 'table-row-selected': selectedAdeudo === row }" class="row-hover">
+                  <td>{{ row.oficina }}</td>
+                  <td>{{ row.num_mercado }}</td>
+                  <td>{{ row.categoria }}</td>
+                  <td>{{ row.seccion }}</td>
+                  <td><strong class="text-primary">{{ row.local }}</strong></td>
+                  <td>{{ row.letra_local }}</td>
+                  <td>{{ row.bloque }}</td>
+                  <td>{{ row.nombre }}</td>
+                  <td class="text-end">{{ row.superficie }}</td>
+                  <td>{{ row.clave_cuota }}</td>
+                  <td class="text-end">
+                    <strong class="text-danger">{{ formatCurrency(row.adeudo) }}</strong>
+                  </td>
+                  <td>{{ row.recaudadora }}</td>
+                  <td>{{ row.descripcion }}</td>
+                  <td>{{ row.meses }}</td>
+                  <td class="text-end">
+                    <strong class="text-success">{{ formatCurrency(row.renta) }}</strong>
+                  </td>
+                  <td>{{ row.axo }}</td>
+                  <td>{{ row.folios }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="adeudos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select class="municipal-form-control form-control-sm" :value="itemsPerPage"
+                @change="changePageSize($event.target.value)" style="width: auto; display: inline-block;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"
+                title="Primera página">
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1" title="Página anterior">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button v-for="page in visiblePages" :key="page" class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages" title="Página siguiente">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages" title="Última página">
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </form>
-    <div v-if="loading" class="loading">Cargando...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <table v-if="adeudos.length" class="adeudos-table">
-      <thead>
-        <tr>
-          <th>Oficina</th>
-          <th>Mercado</th>
-          <th>Cat.</th>
-          <th>Sección</th>
-          <th>Local</th>
-          <th>Letra</th>
-          <th>Bloque</th>
-          <th>Nombre</th>
-          <th>Superficie</th>
-          <th>Clave Cuota</th>
-          <th>Adeudo</th>
-          <th>Recaudadora</th>
-          <th>Descripción</th>
-          <th>Meses</th>
-          <th>Renta</th>
-          <th>Folios Req.</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in adeudos" :key="row.id_local + '-' + row.axo">
-          <td>{{ row.oficina }}</td>
-          <td>{{ row.num_mercado }}</td>
-          <td>{{ row.categoria }}</td>
-          <td>{{ row.seccion }}</td>
-          <td>{{ row.local }}</td>
-          <td>{{ row.letra_local }}</td>
-          <td>{{ row.bloque }}</td>
-          <td>{{ row.nombre }}</td>
-          <td>{{ row.superficie }}</td>
-          <td>{{ row.clave_cuota }}</td>
-          <td>{{ row.adeudo | currency }}</td>
-          <td>{{ row.recaudadora }}</td>
-          <td>{{ row.descripcion }}</td>
-          <td>{{ row.meses }}</td>
-          <td>{{ row.renta | currency }}</td>
-          <td>{{ row.folios }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-if="!loading && !adeudos.length && searched">No se encontraron resultados.</div>
+
+    </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AdeudosLocGrlPage',
-  data() {
-    return {
-      recaudadoras: [],
-      mercados: [],
-      selectedRec: '',
-      selectedMercado: '',
-      axo: new Date().getFullYear(),
-      mes: new Date().getMonth() + 1,
-      adeudos: [],
-      loading: false,
-      error: '',
-      searched: false
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+
+// Estado
+const showFilters = ref(true)
+const recaudadoras = ref([])
+const mercados = ref([])
+const selectedRec = ref('')
+const selectedMercado = ref('')
+const axo = ref(new Date().getFullYear())
+const mes = ref(new Date().getMonth() + 1)
+const adeudos = ref([])
+const selectedAdeudo = ref(null)
+const loading = ref(false)
+const error = ref('')
+const searchPerformed = ref(false)
+
+// Toast
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(25)
+const totalRecords = computed(() => adeudos.value.length)
+
+// Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
+const mostrarAyuda = () => {
+  showToast('info', 'Ayuda: Seleccione una oficina, año y mes para consultar los adeudos de locales. El mercado es opcional (puede dejar vacío para todos)')
+}
+
+const showToast = (type, message) => {
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+  setTimeout(() => {
+    hideToast()
+  }, 5000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'times-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+const fetchRecaudadoras = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+
+    if (res.data.eResponse.success === true) {
+      recaudadoras.value = res.data.eResponse.data.result || []
+      if (recaudadoras.value.length > 0) {
+        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+      }
+    } else {
+      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+      showToast('error', error.value)
     }
-  },
-  filters: {
-    currency(val) {
-      if (typeof val === 'number') return '$' + val.toLocaleString('es-MX', {minimumFractionDigits: 2});
-      return val;
-    }
-  },
-  created() {
-    this.fetchRecaudadoras();
-  },
-  methods: {
-    async fetchRecaudadoras() {
-      this.loading = true;
-      this.error = '';
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getRecaudadoras' })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.recaudadoras = data.data;
-        } else {
-          this.error = data.message || 'Error al cargar recaudadoras';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async onRecChange() {
-      this.selectedMercado = '';
-      if (!this.selectedRec) {
-        this.mercados = [];
-        return;
-      }
-      this.loading = true;
-      this.error = '';
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getMercadosByRecaudadora', params: { id_rec: this.selectedRec } })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.mercados = data.data;
-        } else {
-          this.error = data.message || 'Error al cargar mercados';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async buscar() {
-      this.loading = true;
-      this.error = '';
-      this.adeudos = [];
-      this.searched = false;
-      try {
-        if (!this.selectedRec) {
-          this.error = 'Debe seleccionar una recaudadora';
-          this.loading = false;
-          return;
-        }
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getAdeudosLocalesGrl',
-            params: {
-              id_rec: this.selectedRec,
-              num_mercado: this.selectedMercado || null,
-              axo: this.axo,
-              mes: this.mes
-            }
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.adeudos = data.data;
-        } else {
-          this.error = data.message || 'Error al consultar adeudos';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-        this.searched = true;
-      }
-    },
-    exportarExcel() {
-      alert('Exportación a Excel debe implementarse en backend o como descarga CSV en frontend.');
-    }
+  } catch (err) {
+    error.value = 'Error de conexión al cargar recaudadoras'
+    console.error('Error al cargar recaudadoras:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
   }
 }
+
+const onRecChange = async () => {
+  selectedMercado.value = ''
+  mercados.value = []
+  if (!selectedRec.value) return
+
+  loading.value = true
+  error.value = ''
+  let p_nivel_usuario = 1; // Nivel de usuario fijo para este contexto
+  try {
+    const res = await axios.post('/api/generic', {
+       eRequest: {
+            Operacion: 'sp_get_catalogo_mercados',
+            Base: 'padron_licencias',
+            Parametros: [
+              { nombre: 'p_oficina', tipo: 'integer', valor: selectedRec.value },
+              { nombre: 'p_nivel_usuario', tipo: 'integer', valor: p_nivel_usuario }
+            ]
+          }
+      // eRequest: {
+      //   Operacion: 'sp_get_mercados_by_recaudadora',
+      //   Base: 'mercados',
+      //   Parametros: [
+      //     { nombre: 'p_id_rec', valor: selectedRec.value, tipo: 'integer' }
+      //   ]
+      // }
+    })
+    if (res.data.eResponse && res.data.eResponse.success === true) {
+      mercados.value = res.data.eResponse.data.result || []
+      if (mercados.value.length > 0) {
+        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+      } else {
+        showToast('info', 'No se encontraron mercados para esta oficina')
+      }
+    } else {
+      error.value = res.data.eResponse?.message || 'Error al cargar mercados'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al cargar mercados'
+    console.error('Error al cargar mercados:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const buscar = async () => {
+  if (!selectedRec.value || !axo.value || !mes.value) {
+    error.value = 'Debe seleccionar oficina, año y mes'
+    showToast('warning', error.value)
+    return
+  }
+
+  if (mes.value < 1 || mes.value > 12) {
+    error.value = 'El mes debe estar entre 1 y 12'
+    showToast('warning', error.value)
+    return
+  }
+
+  if (axo.value < 1995 || axo.value > 2999) {
+    error.value = 'El año debe estar entre 1995 y 2999'
+    showToast('warning', error.value)
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+  adeudos.value = []
+  selectedAdeudo.value = null
+  searchPerformed.value = true
+  currentPage.value = 1
+
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_adeudos_loc_grl',
+        Base: 'mercados',
+        Parametros: [
+          { nombre: 'p_id_rec', valor: selectedRec.value, tipo: 'integer' },
+          { nombre: 'p_num_mercado', valor: selectedMercado.value || null, tipo: 'integer' },
+          { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
+          { nombre: 'p_mes', valor: mes.value, tipo: 'integer' }
+        ]
+      }
+    })
+    if (res.data.eResponse && res.data.eResponse.success === true) {
+      adeudos.value = res.data.eResponse.data.result || []
+      if (adeudos.value.length > 0) {
+        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`)
+        showFilters.value = false
+      } else {
+        showToast('info', 'No se encontraron adeudos con los criterios especificados')
+      }
+    } else {
+      error.value = res.data.eResponse?.message || 'Error al consultar adeudos'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al consultar adeudos'
+    console.error('Error al buscar adeudos:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const limpiarFiltros = () => {
+  selectedRec.value = ''
+  selectedMercado.value = ''
+  mercados.value = []
+  axo.value = new Date().getFullYear()
+  mes.value = new Date().getMonth() + 1
+  adeudos.value = []
+  selectedAdeudo.value = null
+  error.value = ''
+  searchPerformed.value = false
+  currentPage.value = 1
+  showToast('info', 'Filtros limpiados')
+}
+
+const exportarExcel = () => {
+  if (adeudos.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+  // TODO: Implementar exportación a Excel
+  showToast('info', 'Funcionalidad de exportación a Excel en desarrollo')
+}
+
+const imprimir = () => {
+  if (adeudos.value.length === 0) {
+    showToast('warning', 'No hay datos para imprimir')
+    return
+  }
+  // TODO: Implementar impresión
+  showToast('info', 'Funcionalidad de impresión en desarrollo')
+}
+
+// Utilidades
+const formatCurrency = (val) => {
+  if (val === null || val === undefined || val === '') return 'N/A'
+  const num = typeof val === 'number' ? val : parseFloat(val)
+  if (isNaN(num)) return 'N/A'
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
+// Paginación - Computed
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
+})
+
+const paginatedAdeudos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return adeudos.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedAdeudo.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedAdeudo.value = null
+}
+
+// Lifecycle
+onMounted(() => {
+  fetchRecaudadoras()
+})
 </script>
 
 <style scoped>
-.adeudos-loc-grl-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-.breadcrumb {
-  margin-bottom: 1rem;
-  font-size: 0.95em;
-}
-.form-row {
-  display: flex;
-  align-items: center;
+/* Los estilos están definidos en municipal-theme.css */
+/* Estilos adicionales específicos del componente si son necesarios */
+
+.empty-icon {
+  color: #ccc;
   margin-bottom: 1rem;
 }
-.form-row label {
-  margin-right: 0.5rem;
+
+.text-end {
+  text-align: right;
 }
-.form-row select, .form-row input {
-  margin-right: 1.5rem;
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
 }
-.adeudos-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1.5rem;
+
+.table-row-selected {
+  background-color: #fff3cd !important;
 }
-.adeudos-table th, .adeudos-table td {
-  border: 1px solid #ccc;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.95em;
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+  cursor: pointer;
 }
-.adeudos-table th {
-  background: #f0f0f0;
+
+.required {
+  color: #dc3545;
 }
-.loading {
-  color: #007bff;
-  font-weight: bold;
-}
-.error {
-  color: #c00;
-  font-weight: bold;
+
+/* Override para columnas numéricas */
+.municipal-table td.text-end,
+.municipal-table th.text-end {
+  text-align: right;
 }
 </style>

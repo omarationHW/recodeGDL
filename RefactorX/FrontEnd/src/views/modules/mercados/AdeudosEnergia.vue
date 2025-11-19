@@ -343,7 +343,7 @@ const buscar = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_adeudos_energia',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [
           { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
           { nombre: 'p_oficina', valor: selectedOficina.value, tipo: 'integer' }

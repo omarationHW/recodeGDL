@@ -1108,7 +1108,7 @@ const menuItems = [
           },
           {
             path: '/mercados/catalogo-mntto',
-            label: '** Catálogo de Mercados (Mntto)',
+            label: '* Catálogo de Mercados (Mntto)',
             icon: 'edit'
           },
           {
@@ -1186,22 +1186,22 @@ const menuItems = [
           },
           {
             path: '/mercados/cons-captura-energia',
-            label: 'Consulta Captura Energía',
+            label: '** Consulta Captura Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/cons-captura-fecha',
-            label: 'Consulta Captura por Fecha',
+            label: '** Consulta Captura por Fecha',
             icon: 'calendar-check'
           },
           {
             path: '/mercados/cons-captura-fecha-energia',
-            label: 'Consulta Energía por Fecha',
+            label: '** Consulta Energía por Fecha',
             icon: 'calendar-days'
           },
           {
             path: '/mercados/cons-captura-merc',
-            label: 'Consulta por Mercado',
+            label: '** Consulta por Mercado',
             icon: 'shopping-cart'
           },
           // LOTE 15: Consultas y Condonaciones
@@ -1499,7 +1499,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-catalogo-merc',
-            label: '** Catálogo de Mercados (Reporte)',
+            label: '* Catálogo de Mercados (Reporte)',
             icon: 'building'
           },
           // Paso de Datos

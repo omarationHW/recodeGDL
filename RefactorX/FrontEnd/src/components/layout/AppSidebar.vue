@@ -952,12 +952,12 @@ const menuItems = [
           },
           {
             path: '/mercados/adeudos-locales',
-            label: 'Adeudos de Locales',
+            label: '* Adeudos de Locales',
             icon: 'file-invoice-dollar'
           },
           {
             path: '/mercados/alta-pagos',
-            label: 'Alta de Pagos',
+            label: '* Alta de Pagos',
             icon: 'cash-register'
           },
           {
@@ -972,7 +972,7 @@ const menuItems = [
           },
           {
             path: '/mercados/carga-pag-locales',
-            label: 'Carga de Pagos',
+            label: '* Carga de Pagos',
             icon: 'file-import'
           },
           {
@@ -997,7 +997,7 @@ const menuItems = [
           },
           {
             path: '/mercados/adeudos-energia',
-            label: 'Adeudos de Energía Eléctrica',
+            label: '* Adeudos de Energía Eléctrica',
             icon: 'file-invoice-dollar'
           },
           {
@@ -1037,7 +1037,7 @@ const menuItems = [
           },
           {
             path: '/mercados/recaudadoras-mercados',
-            label: 'Administración de Recaudadoras',
+            label: '* Administración de Recaudadoras',
             icon: 'building-columns'
           },
           {
@@ -1123,54 +1123,54 @@ const menuItems = [
           },
           {
             path: '/mercados/ade-global-locales',
-            label: 'Adeudo Global de Locales',
+            label: '* Adeudo Global de Locales',
             icon: 'file-invoice-dollar'
           },
           // LOTE 12: Reportes de Adeudos Generales y Autorización
           {
             path: '/mercados/ade-energia-grl',
-            label: 'Adeudos Generales de Energía',
+            label: '* Adeudos Generales de Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/adeudos-loc-grl',
-            label: 'Adeudos Generales del Mercado',
+            label: '* Adeudos Generales del Mercado',
             icon: 'exclamation-circle'
           },
           {
             path: '/mercados/aut-carga-pagos',
-            label: 'Autorizar Carga de Pagos',
+            label: '* Autorizar Carga de Pagos',
             icon: 'lock'
           },
           {
             path: '/mercados/aut-carga-pagos-mtto',
-            label: 'Autorizar Fecha de Ingreso',
+            label: '* Autorizar Fecha de Ingreso',
             icon: 'calendar-check'
           },
           {
             path: '/mercados/carga-diversos-esp',
-            label: 'Carga Especial Pagos Diversos',
+            label: '* Carga Especial Pagos Diversos',
             icon: 'upload'
           },
           // LOTE 13: Carga de Pagos y Importación
           {
             path: '/mercados/carga-pag-energia',
-            label: 'Carga Pagos de Energía',
+            label: '* Carga Pagos de Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/carga-pag-energia-elec',
-            label: 'Carga Pagos Energía (Rango)',
+            label: '* Carga Pagos Energía (Rango)',
             icon: 'bolt'
           },
           {
             path: '/mercados/carga-pag-especial',
-            label: 'Carga Especial Años Anteriores',
+            label: '* Carga Especial Años Anteriores',
             icon: 'calendar-alt'
           },
           {
             path: '/mercados/carga-pag-mercado',
-            label: 'Carga Pagos por Mercado',
+            label: '* Carga Pagos por Mercado',
             icon: 'store'
           },
           {

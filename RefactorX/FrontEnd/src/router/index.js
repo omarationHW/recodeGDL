@@ -663,12 +663,12 @@ const router = createRouter({
       path: '/mercados/adeudos-locales',
       name: 'mercados-adeudos-locales',
       component: () => import('@/views/modules/mercados/AdeudosLocales.vue')
-    },
+    },*/
     {
       path: '/mercados/alta-pagos',
       name: 'mercados-alta-pagos',
       component: () => import('@/views/modules/mercados/AltaPagos.vue')
-    },
+    },/*
     {
       path: '/mercados/emision-locales',
       name: 'mercados-emision-locales',
@@ -678,12 +678,12 @@ const router = createRouter({
       path: '/mercados/estad-pagos-adeudos',
       name: 'mercados-estad-pagos-adeudos',
       component: () => import('@/views/modules/mercados/EstadPagosyAdeudos.vue')
-    },
+    },*/
     {
       path: '/mercados/carga-pag-locales',
       name: 'mercados-carga-pag-locales',
       component: () => import('@/views/modules/mercados/CargaPagLocales.vue')
-    },
+    },/*
     {
       path: '/mercados/listados-locales',
       name: 'mercados-listados-locales',
@@ -698,12 +698,12 @@ const router = createRouter({
       path: '/mercados/padron-energia',
       name: 'mercados-padron-energia',
       component: () => import('@/views/modules/mercados/PadronEnergia.vue')
-    },
+    },*/
     {
       path: '/mercados/energia-mtto',
       name: 'mercados-energia-mtto',
       component: () => import('@/views/modules/mercados/EnergiaMtto.vue')
-    },
+    },/*
     {
       path: '/mercados/adeudos-energia',
       name: 'mercados-adeudos-energia',
@@ -845,7 +845,7 @@ const router = createRouter({
       path: '/mercados/adeudos-loc-grl',
       name: 'mercados-adeudos-loc-grl',
       component: () => import('@/views/modules/mercados/AdeudosLocGrl.vue')
-    },
+    },*/
     {
       path: '/mercados/aut-carga-pagos',
       name: 'mercados-aut-carga-pagos',
@@ -881,7 +881,7 @@ const router = createRouter({
       path: '/mercados/carga-pag-mercado',
       name: 'mercados-carga-pag-mercado',
       component: () => import('@/views/modules/mercados/CargaPagMercado.vue')
-    },
+    },/*
     {
       path: '/mercados/carga-pagos-texto',
       name: 'mercados-carga-pagos-texto',

@@ -1,210 +1,273 @@
 <template>
-  <div class="cons-captura-fecha-energia">
-    <div class="breadcrumb">
-      <router-link to="/">Inicio</router-link> / Consulta de Pagos Capturados de Energía Eléctrica
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta Captura Energía por Fecha</h1>
+        <p>Mercados - Detalle de Pagos de Energía por Fecha</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-danger" @click="cerrar">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </div>
     </div>
-    <h1>Detalle de Pagos Capturados de Energía Eléctrica</h1>
-    <div class="form-row">
-      <label>Fecha de Pago:</label>
-      <input type="date" v-model="filters.fecha_pago" />
-      <label>Oficina:</label>
-      <select v-model="filters.oficina_pago">
-        <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">{{ of.id_rec }} - {{ of.recaudadora }}</option>
-      </select>
-      <label>Caja:</label>
-      <select v-model="filters.caja_pago">
-        <option v-for="caja in cajas" :key="caja.caja" :value="caja.caja">{{ caja.caja }}</option>
-      </select>
-      <label>Operación:</label>
-      <input type="number" v-model="filters.operacion_pago" />
-      <button @click="buscarPagos">Buscar</button>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Criterios de Búsqueda
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="buscarPagos">
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Fecha Pago *</label>
+                <input type="date" class="form-control" v-model="form.fecha" required />
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Oficina *</label>
+                <select class="form-select" v-model="form.oficina" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">
+                    {{ of.id_rec }} - {{ of.recaudadora }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Caja *</label>
+                <input type="text" class="form-control" v-model="form.caja" required maxlength="10" />
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Operación *</label>
+                <input type="number" class="form-control" v-model.number="form.operacion" required min="1" />
+              </div>
+            </div>
+            <button type="submit" class="btn-municipal-primary" :disabled="loading">
+              <font-awesome-icon icon="search" />
+              Buscar
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Pagos de Energía Encontrados
+            <span v-if="pagos.length > 0" class="badge bg-primary ms-2">{{ pagos.length }}</span>
+          </h5>
+          <button v-if="selected.length > 0" class="btn btn-sm btn-danger ms-auto" @click="borrarPagos">
+            <font-awesome-icon icon="trash" />
+            Borrar ({{ selected.length }})
+          </button>
+        </div>
+        <div class="municipal-card-body">
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+
+          <div v-else-if="pagos.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">
+                    <input type="checkbox" class="form-check-input" v-model="selectAll" @change="toggleAll" />
+                  </th>
+                  <th>ID Pago</th>
+                  <th>Datos Local</th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th>Fecha</th>
+                  <th>Oficina</th>
+                  <th>Caja</th>
+                  <th>Oper.</th>
+                  <th>Importe</th>
+                  <th>Folio</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="pago in pagos" :key="pago.id_pago_energia">
+                  <td><input type="checkbox" class="form-check-input" v-model="selected" :value="pago" /></td>
+                  <td>{{ pago.id_pago_energia }}</td>
+                  <td>{{ pago.datoslocal }}</td>
+                  <td>{{ pago.axo }}</td>
+                  <td>{{ pago.periodo }}</td>
+                  <td>{{ pago.fecha_pago }}</td>
+                  <td>{{ pago.oficina_pago }}</td>
+                  <td>{{ pago.caja_pago }}</td>
+                  <td>{{ pago.operacion_pago }}</td>
+                  <td>{{ formatCurrency(pago.importe_pago) }}</td>
+                  <td>{{ pago.folio }}</td>
+                  <td>{{ pago.usuario }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else class="text-center py-4 text-muted">
+            <font-awesome-icon icon="inbox" size="3x" class="mb-3" />
+            <p>No hay pagos de energía para los criterios seleccionados</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" /></th>
-            <th>Control</th>
-            <th>Datos Local</th>
-            <th>Año</th>
-            <th>Mes</th>
-            <th>Fecha</th>
-            <th>Rec</th>
-            <th>Caja</th>
-            <th>Oper.</th>
-            <th>Cuota Energía</th>
-            <th>Partida</th>
-            <th>Actualización</th>
-            <th>Usuario</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="pago in pagos" :key="pago.id_pago_energia">
-            <td><input type="checkbox" v-model="selected" :value="pago.id_pago_energia" /></td>
-            <td>{{ pago.id_energia }}</td>
-            <td>{{ pago.datoslocal }}</td>
-            <td>{{ pago.axo }}</td>
-            <td>{{ pago.periodo }}</td>
-            <td>{{ pago.fecha_pago }}</td>
-            <td>{{ pago.oficina_pago }}</td>
-            <td>{{ pago.caja_pago }}</td>
-            <td>{{ pago.operacion_pago }}</td>
-            <td>{{ pago.importe_pago }}</td>
-            <td>{{ pago.folio }}</td>
-            <td>{{ pago.fecha_modificacion }}</td>
-            <td>{{ pago.usuario }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="actions">
-      <button @click="borrarPagos" :disabled="selected.length === 0">Borrar Pago(s)</button>
-      <button @click="$router.push('/')">Salir</button>
-    </div>
-    <div v-if="message" class="alert" :class="{'alert-success': success, 'alert-danger': !success}">{{ message }}</div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ConsCapturaFechaEnergia',
-  data() {
-    return {
-      filters: {
-        fecha_pago: '',
-        oficina_pago: '',
-        caja_pago: '',
-        operacion_pago: ''
-      },
-      oficinas: [],
-      cajas: [],
-      pagos: [],
-      selected: [],
-      selectAll: false,
-      message: '',
-      success: true
-    };
-  },
-  watch: {
-    'filters.oficina_pago'(val) {
-      this.loadCajas();
-    }
-  },
-  created() {
-    this.loadOficinas();
-  },
-  methods: {
-    async loadOficinas() {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getOficinas' })
-      });
-      const data = await res.json();
-      if (data.success) this.oficinas = data.data;
-    },
-    async loadCajas() {
-      if (!this.filters.oficina_pago) return;
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getCajasByOficina', params: { oficina: this.filters.oficina_pago } })
-      });
-      const data = await res.json();
-      if (data.success) this.cajas = data.data;
-    },
-    async buscarPagos() {
-      this.message = '';
-      this.success = true;
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'getPagosByFecha',
-          params: this.filters
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        this.pagos = data.data;
-        this.selected = [];
-        this.selectAll = false;
-      } else {
-        this.message = data.message || 'Error al buscar pagos';
-        this.success = false;
-      }
-    },
-    toggleSelectAll() {
-      if (this.selectAll) {
-        this.selected = this.pagos.map(p => p.id_pago_energia);
-      } else {
-        this.selected = [];
-      }
-    },
-    async borrarPagos() {
-      if (!confirm('¿Está seguro de borrar los pagos seleccionados?')) return;
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'deletePagosEnergia',
-          params: {
-            pagos_ids: this.selected,
-            fecha_pago: this.filters.fecha_pago,
-            oficina_pago: this.filters.oficina_pago,
-            operacion_pago: this.filters.operacion_pago
-          }
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        this.message = 'Pago(s) eliminado(s) correctamente';
-        this.success = true;
-        this.buscarPagos();
-      } else {
-        this.message = data.message || 'Error al borrar pagos';
-        this.success = false;
-      }
-    }
-  }
-};
-</script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useRouter } from 'vue-router';
 
-<style scoped>
-.cons-captura-fecha-energia {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+const router = useRouter();
+
+const loading = ref(false);
+const form = ref({
+  fecha: '',
+  oficina: '',
+  caja: '',
+  operacion: ''
+});
+const oficinas = ref([]);
+const pagos = ref([]);
+const selected = ref([]);
+const selectAll = ref(false);
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0);
+};
+
+const showToast = (type, message) => {
+  Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
+};
+
+const cerrar = () => router.push('/mercados');
+
+async function cargarOficinas() {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cons_captura_fecha_get_oficinas',
+        Base: 'mercados',
+        Parametros: []
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      oficinas.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error cargando oficinas:', error);
+  }
 }
-.breadcrumb {
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
+
+async function buscarPagos() {
+  if (!form.value.fecha || !form.value.oficina || !form.value.caja || !form.value.operacion) {
+    showToast('warning', 'Complete todos los campos');
+    return;
+  }
+
+  loading.value = true;
+  pagos.value = [];
+  selected.value = [];
+  selectAll.value = false;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cons_captura_fecha_energia_get_pagos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_fecha', Valor: form.value.fecha, tipo: 'date' },
+          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
+          { Nombre: 'p_caja', Valor: form.value.caja },
+          { Nombre: 'p_operacion', Valor: form.value.operacion, tipo: 'integer' }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      pagos.value = response.data.eResponse.data.result || [];
+      if (pagos.value.length === 0) {
+        showToast('info', 'No se encontraron pagos');
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al buscar pagos');
+  } finally {
+    loading.value = false;
+  }
 }
-.form-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+
+function toggleAll() {
+  if (selectAll.value) {
+    selected.value = [...pagos.value];
+  } else {
+    selected.value = [];
+  }
 }
-.table-responsive {
-  overflow-x: auto;
+
+async function borrarPagos() {
+  if (selected.value.length === 0) {
+    showToast('warning', 'Seleccione al menos un pago');
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: '¿Borrar pagos de energía?',
+    text: `Se eliminarán ${selected.value.length} pago(s) y se regenerarán los adeudos`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'Sí, borrar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  loading.value = true;
+  let exitosos = 0;
+
+  try {
+    for (const pago of selected.value) {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_cons_captura_fecha_energia_delete',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_id_pago_energia', Valor: pago.id_pago_energia, tipo: 'integer' },
+            { Nombre: 'p_usuario', Valor: 1, tipo: 'integer' }
+          ]
+        }
+      });
+
+      if (response.data?.eResponse?.success) {
+        exitosos++;
+      }
+    }
+
+    showToast('success', `${exitosos} pago(s) de energía eliminado(s)`);
+    buscarPagos();
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al borrar pagos');
+  } finally {
+    loading.value = false;
+  }
 }
-.actions {
-  margin-top: 1rem;
-  display: flex;
-  gap: 1rem;
-}
-.alert {
-  margin-top: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 4px;
-}
-.alert-success {
-  background: #e6ffed;
-  color: #1a7f37;
-}
-.alert-danger {
-  background: #ffeaea;
-  color: #a94442;
-}
-</style>
+
+onMounted(() => cargarOficinas());
+</script>

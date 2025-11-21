@@ -1,225 +1,275 @@
 <template>
-  <div class="cons-captura-fecha-page">
-    <div class="breadcrumb">
-      <router-link to="/">Inicio</router-link> / Consulta de Pagos Capturados por Mercado
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="calendar-alt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta Captura por Fecha</h1>
+        <p>Mercados - Detalle de Pagos Capturados por Fecha</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-danger" @click="cerrar">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </div>
     </div>
-    <h2>Detalle de Pagos Capturados</h2>
-    <form class="form-inline" @submit.prevent="buscarPagos">
-      <label>Fecha Pago:
-        <input type="date" v-model="form.fecha" required />
-      </label>
-      <label>Oficina:
-        <select v-model="form.oficina" @change="cargarCajas" required>
-          <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">{{ of.recaudadora }}</option>
-        </select>
-      </label>
-      <label>Caja:
-        <select v-model="form.caja" required>
-          <option v-for="cj in cajas" :key="cj.caja" :value="cj.caja">{{ cj.caja }}</option>
-        </select>
-      </label>
-      <label>Operación:
-        <input type="number" v-model="form.operacion" required />
-      </label>
-      <button type="submit">Buscar</button>
-    </form>
-    <div v-if="loading" class="loading">Cargando...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="pagos.length">
-      <table class="pagos-table">
-        <thead>
-          <tr>
-            <th><input type="checkbox" v-model="selectAll" @change="toggleAll" /></th>
-            <th>Control</th>
-            <th>Datos Local</th>
-            <th>Año</th>
-            <th>Mes</th>
-            <th>Fecha</th>
-            <th>Rec</th>
-            <th>Caja</th>
-            <th>Oper.</th>
-            <th>Renta</th>
-            <th>Partida</th>
-            <th>Actualización</th>
-            <th>Usuario</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(pago, idx) in pagos" :key="pago.id_local + '-' + pago.axo + '-' + pago.periodo">
-            <td><input type="checkbox" v-model="selected" :value="pago" /></td>
-            <td>{{ pago.id_local }}</td>
-            <td>{{ pago.datoslocal }}</td>
-            <td>{{ pago.axo }}</td>
-            <td>{{ pago.periodo }}</td>
-            <td>{{ pago.fecha_pago | date }}</td>
-            <td>{{ pago.oficina_pago }}</td>
-            <td>{{ pago.caja_pago }}</td>
-            <td>{{ pago.operacion_pago }}</td>
-            <td>{{ pago.importe_pago | currency }}</td>
-            <td>{{ pago.folio }}</td>
-            <td>{{ pago.fecha_modificacion | datetime }}</td>
-            <td>{{ pago.usuario }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <button @click="borrarPagos" :disabled="!selected.length">Borrar Pago(s)</button>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Criterios de Búsqueda
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="buscarPagos">
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Fecha Pago *</label>
+                <input type="date" class="form-control" v-model="form.fecha" required />
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Oficina *</label>
+                <select class="form-select" v-model="form.oficina" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">
+                    {{ of.id_rec }} - {{ of.recaudadora }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Caja *</label>
+                <input type="text" class="form-control" v-model="form.caja" required maxlength="10" />
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Operación *</label>
+                <input type="number" class="form-control" v-model.number="form.operacion" required min="1" />
+              </div>
+            </div>
+            <button type="submit" class="btn-municipal-primary" :disabled="loading">
+              <font-awesome-icon icon="search" />
+              Buscar
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Pagos Encontrados
+            <span v-if="pagos.length > 0" class="badge bg-primary ms-2">{{ pagos.length }}</span>
+          </h5>
+          <button v-if="selected.length > 0" class="btn btn-sm btn-danger ms-auto" @click="borrarPagos">
+            <font-awesome-icon icon="trash" />
+            Borrar ({{ selected.length }})
+          </button>
+        </div>
+        <div class="municipal-card-body">
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+
+          <div v-else-if="pagos.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">
+                    <input type="checkbox" class="form-check-input" v-model="selectAll" @change="toggleAll" />
+                  </th>
+                  <th>ID</th>
+                  <th>Datos Local</th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th>Fecha</th>
+                  <th>Oficina</th>
+                  <th>Caja</th>
+                  <th>Oper.</th>
+                  <th>Importe</th>
+                  <th>Folio</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="pago in pagos" :key="`${pago.id_local}-${pago.axo}-${pago.periodo}`">
+                  <td><input type="checkbox" class="form-check-input" v-model="selected" :value="pago" /></td>
+                  <td>{{ pago.id_local }}</td>
+                  <td>{{ pago.datoslocal }}</td>
+                  <td>{{ pago.axo }}</td>
+                  <td>{{ pago.periodo }}</td>
+                  <td>{{ pago.fecha_pago }}</td>
+                  <td>{{ pago.oficina_pago }}</td>
+                  <td>{{ pago.caja_pago }}</td>
+                  <td>{{ pago.operacion_pago }}</td>
+                  <td>{{ formatCurrency(pago.importe_pago) }}</td>
+                  <td>{{ pago.folio }}</td>
+                  <td>{{ pago.usuario }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else class="text-center py-4 text-muted">
+            <font-awesome-icon icon="inbox" size="3x" class="mb-3" />
+            <p>No hay pagos para los criterios seleccionados</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div v-else-if="!loading">No hay pagos para los criterios seleccionados.</div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ConsCapturaFechaPage',
-  data() {
-    return {
-      form: {
-        fecha: '',
-        oficina: '',
-        caja: '',
-        operacion: ''
-      },
-      oficinas: [],
-      cajas: [],
-      pagos: [],
-      selected: [],
-      selectAll: false,
-      loading: false,
-      error: ''
-    };
-  },
-  created() {
-    this.cargarOficinas();
-  },
-  methods: {
-    async cargarOficinas() {
-      this.loading = true;
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'getOficinas' }
-        });
-        this.oficinas = res.data.eResponse.data;
-      } catch (e) {
-        this.error = 'Error cargando oficinas';
-      } finally {
-        this.loading = false;
-      }
-    },
-    async cargarCajas() {
-      if (!this.form.oficina) return;
-      this.loading = true;
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: { action: 'getCajasByOficina', params: { oficina: this.form.oficina } }
-        });
-        this.cajas = res.data.eResponse.data;
-      } catch (e) {
-        this.error = 'Error cargando cajas';
-      } finally {
-        this.loading = false;
-      }
-    },
-    async buscarPagos() {
-      this.loading = true;
-      this.error = '';
-      this.pagos = [];
-      this.selected = [];
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'getPagosByFecha',
-            params: {
-              fecha: this.form.fecha,
-              oficina: this.form.oficina,
-              caja: this.form.caja,
-              operacion: this.form.operacion
-            }
-          }
-        });
-        this.pagos = res.data.eResponse.data || [];
-      } catch (e) {
-        this.error = 'Error consultando pagos';
-      } finally {
-        this.loading = false;
-      }
-    },
-    toggleAll() {
-      if (this.selectAll) {
-        this.selected = [...this.pagos];
-      } else {
-        this.selected = [];
-      }
-    },
-    async borrarPagos() {
-      if (!confirm('¿Está seguro de borrar los pagos seleccionados?')) return;
-      this.loading = true;
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'deletePagos',
-            params: {
-              pagos: this.selected,
-              usuario: this.$store.state.usuario.id_usuario
-            }
-          }
-        });
-        this.buscarPagos();
-      } catch (e) {
-        this.error = 'Error borrando pagos';
-      } finally {
-        this.loading = false;
-      }
-    }
-  },
-  filters: {
-    date(val) {
-      if (!val) return '';
-      return new Date(val).toLocaleDateString();
-    },
-    datetime(val) {
-      if (!val) return '';
-      return new Date(val).toLocaleString();
-    },
-    currency(val) {
-      if (val == null) return '';
-      return '$' + Number(val).toLocaleString('es-MX', { minimumFractionDigits: 2 });
-    }
-  }
-};
-</script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useRouter } from 'vue-router';
 
-<style scoped>
-.cons-captura-fecha-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
+const router = useRouter();
+
+const loading = ref(false);
+const form = ref({
+  fecha: '',
+  oficina: '',
+  caja: '',
+  operacion: ''
+});
+const oficinas = ref([]);
+const pagos = ref([]);
+const selected = ref([]);
+const selectAll = ref(false);
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0);
+};
+
+const showToast = (type, message) => {
+  Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
+};
+
+const cerrar = () => router.push('/mercados');
+
+async function cargarOficinas() {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cons_captura_fecha_get_oficinas',
+        Base: 'mercados',
+        Parametros: []
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      oficinas.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error cargando oficinas:', error);
+  }
 }
-.breadcrumb {
-  margin-bottom: 1rem;
-  color: #888;
+
+async function buscarPagos() {
+  if (!form.value.fecha || !form.value.oficina || !form.value.caja || !form.value.operacion) {
+    showToast('warning', 'Complete todos los campos');
+    return;
+  }
+
+  loading.value = true;
+  pagos.value = [];
+  selected.value = [];
+  selectAll.value = false;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cons_captura_fecha_get_pagos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_fecha', Valor: form.value.fecha, tipo: 'date' },
+          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
+          { Nombre: 'p_caja', Valor: form.value.caja },
+          { Nombre: 'p_operacion', Valor: form.value.operacion, tipo: 'integer' }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      pagos.value = response.data.eResponse.data.result || [];
+      if (pagos.value.length === 0) {
+        showToast('info', 'No se encontraron pagos');
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al buscar pagos');
+  } finally {
+    loading.value = false;
+  }
 }
-.form-inline label {
-  margin-right: 1rem;
+
+function toggleAll() {
+  if (selectAll.value) {
+    selected.value = [...pagos.value];
+  } else {
+    selected.value = [];
+  }
 }
-.pagos-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+
+async function borrarPagos() {
+  if (selected.value.length === 0) {
+    showToast('warning', 'Seleccione al menos un pago');
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: '¿Borrar pagos?',
+    text: `Se eliminarán ${selected.value.length} pago(s) y se regenerarán los adeudos`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'Sí, borrar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  loading.value = true;
+  let exitosos = 0;
+
+  try {
+    for (const pago of selected.value) {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_cons_captura_fecha_delete',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_id_local', Valor: pago.id_local, tipo: 'integer' },
+            { Nombre: 'p_axo', Valor: pago.axo, tipo: 'integer' },
+            { Nombre: 'p_periodo', Valor: pago.periodo, tipo: 'integer' },
+            { Nombre: 'p_usuario', Valor: 1, tipo: 'integer' }
+          ]
+        }
+      });
+
+      if (response.data?.eResponse?.success) {
+        exitosos++;
+      }
+    }
+
+    showToast('success', `${exitosos} pago(s) eliminado(s)`);
+    buscarPagos();
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al borrar pagos');
+  } finally {
+    loading.value = false;
+  }
 }
-.pagos-table th, .pagos-table td {
-  border: 1px solid #ccc;
-  padding: 0.3rem 0.5rem;
-  text-align: left;
-}
-.pagos-table th {
-  background: #f0f0f0;
-}
-.loading {
-  color: #007bff;
-  margin: 1rem 0;
-}
-.error {
-  color: #c00;
-  margin: 1rem 0;
-}
-</style>
+
+onMounted(() => cargarOficinas());
+</script>

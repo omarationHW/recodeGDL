@@ -1002,7 +1002,7 @@ const menuItems = [
           },
           {
             path: '/mercados/catalogo-mercados',
-            label: 'Catálogo de Mercados',
+            label: '* Catálogo de Mercados',
             icon: 'building'
           },
           {
@@ -1022,7 +1022,7 @@ const menuItems = [
           },
           {
             path: '/mercados/categoria',
-            label: 'Catálogo de Categorías',
+            label: '* Catálogo de Categorías',
             icon: 'tags'
           },
           {
@@ -1108,7 +1108,7 @@ const menuItems = [
           },
           {
             path: '/mercados/catalogo-mntto',
-            label: 'Catálogo de Mercados',
+            label: '** Catálogo de Mercados (Mntto)',
             icon: 'edit'
           },
           {
@@ -1181,7 +1181,7 @@ const menuItems = [
           // LOTE 14: Componentes de Consulta y Captura
           {
             path: '/mercados/categoria-mntto',
-            label: 'Mantenimiento de Categorías',
+            label: '* Mantenimiento de Categorías',
             icon: 'tags'
           },
           {
@@ -1499,7 +1499,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-catalogo-merc',
-            label: 'Catálogo de Mercados (Reporte)',
+            label: '** Catálogo de Mercados (Reporte)',
             icon: 'building'
           },
           // Paso de Datos

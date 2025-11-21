@@ -260,9 +260,14 @@ class GenericController
             $paramMap = [];
 
             foreach ($parametros as $param) {
-                if (isset($param['nombre']) && array_key_exists('valor', $param)) {
-                    $valor = $param['valor'];
-                    $tipo = $param['tipo'] ?? 'string';
+                // Soportar tanto minúsculas (nombre/valor) como mayúsculas (Nombre/Valor)
+                $paramNombre = $param['nombre'] ?? $param['Nombre'] ?? null;
+                $paramValor = array_key_exists('valor', $param) ? $param['valor'] : (array_key_exists('Valor', $param) ? $param['Valor'] : null);
+                $hasValor = array_key_exists('valor', $param) || array_key_exists('Valor', $param);
+
+                if ($paramNombre !== null && $hasValor) {
+                    $valor = $paramValor;
+                    $tipo = $param['tipo'] ?? $param['Tipo'] ?? 'string';
 
                     if ($valor !== null) {
                         switch ($tipo) {
@@ -303,13 +308,14 @@ class GenericController
                     }
                     // Mantener null como null para que el SP pueda usar sus valores por defecto
 
-                    $paramMap[$param['nombre']] = $valor;
+                    $paramMap[$paramNombre] = $valor;
                 }
             }
 
             foreach ($parametros as $param) {
-                if (isset($param['nombre'])) {
-                    $spParametros[] = $paramMap[$param['nombre']];
+                $paramNombre = $param['nombre'] ?? $param['Nombre'] ?? null;
+                if ($paramNombre !== null) {
+                    $spParametros[] = $paramMap[$paramNombre];
                 }
             }
 

@@ -1,307 +1,338 @@
 <template>
-  <div class="catalogo-mercados-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Catálogo de Mercados</li>
-      </ol>
-    </nav>
-    <h2>Catálogo de Mercados</h2>
-    <div class="mb-3">
-      <button class="btn btn-primary" @click="showForm('create')">Agregar Mercado</button>
-      <button class="btn btn-secondary ml-2" @click="fetchData">Refrescar</button>
-      <button class="btn btn-info ml-2" @click="showReport">Reporte</button>
-    </div>
-    <div v-if="showFormMode">
-      <div class="card mb-3">
-        <div class="card-header">
-          {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
-        </div>
-        <div class="card-body">
-          <form @submit.prevent="submitForm">
-            <div class="form-row">
-              <div class="form-group col-md-2">
-                <label>Oficina</label>
-                <input type="number" v-model.number="form.oficina" class="form-control" required :readonly="formMode==='update'" />
-              </div>
-              <div class="form-group col-md-2">
-                <label>Núm. Mercado</label>
-                <input type="number" v-model.number="form.num_mercado_nvo" class="form-control" required :readonly="formMode==='update'" />
-              </div>
-              <div class="form-group col-md-2">
-                <label>Categoría</label>
-                <input type="number" v-model.number="form.categoria" class="form-control" required />
-              </div>
-              <div class="form-group col-md-6">
-                <label>Descripción</label>
-                <input type="text" v-model="form.descripcion" class="form-control" required maxlength="30" />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group col-md-3">
-                <label>Cuenta Ingreso</label>
-                <input type="number" v-model.number="form.cuenta_ingreso" class="form-control" required />
-              </div>
-              <div class="form-group col-md-3">
-                <label>Cuenta Energía</label>
-                <input type="number" v-model.number="form.cuenta_energia" class="form-control" />
-              </div>
-              <div class="form-group col-md-3">
-                <label>ID Zona</label>
-                <input type="number" v-model.number="form.id_zona" class="form-control" required />
-              </div>
-              <div class="form-group col-md-3">
-                <label>Tipo Emisión</label>
-                <select v-model="form.tipo_emision" class="form-control" required>
-                  <option value="M">Masiva</option>
-                  <option value="D">Disquette</option>
-                  <option value="B">Baja</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <button type="submit" class="btn btn-success">Guardar</button>
-              <button type="button" class="btn btn-secondary ml-2" @click="cancelForm">Cancelar</button>
-            </div>
-          </form>
-        </div>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="store" />
+      </div>
+      <div class="module-view-info">
+        <h1>Catálogo de Mercados</h1>
+        <p>Mercados - Administración del Catálogo de Mercados</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-success" @click="showModal('create')">
+          <font-awesome-icon icon="plus" />
+          Agregar
+        </button>
+        <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
+          <font-awesome-icon icon="sync" />
+          Refrescar
+        </button>
+        <button class="btn-municipal-danger" @click="cerrar">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
       </div>
     </div>
-    <div v-if="!showFormMode">
-      <table class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>Oficina</th>
-            <th>Núm. Mercado</th>
-            <th>Categoría</th>
-            <th>Descripción</th>
-            <th>Cuenta Ingreso</th>
-            <th>Cuenta Energía</th>
-            <th>ID Zona</th>
-            <th>Tipo Emisión</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in rows" :key="row.oficina + '-' + row.num_mercado_nvo">
-            <td>{{ row.oficina }}</td>
-            <td>{{ row.num_mercado_nvo }}</td>
-            <td>{{ row.categoria }}</td>
-            <td>{{ row.descripcion }}</td>
-            <td>{{ row.cuenta_ingreso }}</td>
-            <td>{{ row.cuenta_energia }}</td>
-            <td>{{ row.id_zona }}</td>
-            <td>{{ tipoEmisionLabel(row.tipo_emision) }}</td>
-            <td>
-              <button class="btn btn-sm btn-warning" @click="showForm('update', row)">Editar</button>
-              <button class="btn btn-sm btn-danger ml-1" @click="deleteRow(row)">Eliminar</button>
-            </td>
-          </tr>
-          <tr v-if="rows.length === 0">
-            <td colspan="9" class="text-center">No hay registros</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div v-if="showReportDialog">
-      <div class="modal-backdrop show"></div>
-      <div class="modal d-block" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Reporte Catálogo de Mercados</h5>
-              <button type="button" class="close" @click="showReportDialog=false">&times;</button>
+
+    <div class="module-view-content">
+      <!-- Tabla de Mercados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Listado de Mercados
+            <span v-if="rows.length > 0" class="badge bg-primary ms-2">{{ rows.length }}</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <!-- Loading -->
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
             </div>
-            <div class="modal-body">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
-                    <th>Oficina</th>
-                    <th>Núm. Mercado</th>
-                    <th>Categoría</th>
-                    <th>Descripción</th>
-                    <th>Cuenta Ingreso</th>
-                    <th>Cuenta Energía</th>
-                    <th>ID Zona</th>
-                    <th>Tipo Emisión</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="row in reportRows" :key="row.oficina + '-' + row.num_mercado_nvo">
-                    <td>{{ row.oficina }}</td>
-                    <td>{{ row.num_mercado_nvo }}</td>
-                    <td>{{ row.categoria }}</td>
-                    <td>{{ row.descripcion }}</td>
-                    <td>{{ row.cuenta_ingreso }}</td>
-                    <td>{{ row.cuenta_energia }}</td>
-                    <td>{{ row.id_zona }}</td>
-                    <td>{{ tipoEmisionLabel(row.tipo_emision) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showReportDialog=false">Cerrar</button>
-            </div>
+          </div>
+
+          <!-- Tabla -->
+          <div v-else-if="rows.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Oficina</th>
+                  <th>Núm. Mercado</th>
+                  <th>Descripción</th>
+                  <th>Zona</th>
+                  <th>Vigencia</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in rows" :key="row.id_mercado"
+                    :class="{ 'table-active': selectedRow?.id_mercado === row.id_mercado }"
+                    @click="selectedRow = row">
+                  <td>{{ row.id_mercado }}</td>
+                  <td>{{ row.oficina }}</td>
+                  <td>{{ row.num_mercado_nvo }}</td>
+                  <td>{{ row.descripcion }}</td>
+                  <td>{{ row.id_zona || '-' }}</td>
+                  <td>
+                    <span :class="row.vigencia === 'A' ? 'badge bg-success' : 'badge bg-danger'">
+                      {{ row.vigencia === 'A' ? 'Activo' : 'Baja' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-warning me-1" @click.stop="showModal('update', row)">
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                    <button class="btn btn-sm btn-danger" @click.stop="deleteRow(row)">
+                      <font-awesome-icon icon="trash" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Sin datos -->
+          <div v-else class="text-center py-4 text-muted">
+            <font-awesome-icon icon="inbox" size="3x" class="mb-3" />
+            <p>No hay mercados registrados</p>
           </div>
         </div>
       </div>
     </div>
-    <div v-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
-    <div v-if="successMessage" class="alert alert-success mt-3">{{ successMessage }}</div>
+
+    <!-- Modal Crear/Editar -->
+    <div v-if="showFormModal" class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
+              {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
+            </h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="submitForm">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Oficina *</label>
+                  <input type="number" class="form-control" v-model.number="form.oficina"
+                         required :disabled="formMode === 'update'" min="1" />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Núm. Mercado *</label>
+                  <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
+                         required :disabled="formMode === 'update'" min="1" />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Descripción *</label>
+                <input type="text" class="form-control" v-model="form.descripcion"
+                       required maxlength="100" />
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Domicilio</label>
+                  <input type="text" class="form-control" v-model="form.domicilio" maxlength="200" />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Zona</label>
+                  <input type="number" class="form-control" v-model.number="form.zona" min="0" />
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
+            <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
+              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="showFormModal" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'CatalogoMercadosPage',
-  data() {
-    return {
-      rows: [],
-      reportRows: [],
-      showFormMode: false,
-      formMode: 'create',
-      form: {
-        oficina: '',
-        num_mercado_nvo: '',
-        categoria: '',
-        descripcion: '',
-        cuenta_ingreso: '',
-        cuenta_energia: '',
-        id_zona: '',
-        tipo_emision: 'M'
-      },
-      errorMessage: '',
-      successMessage: '',
-      showReportDialog: false
-    }
-  },
-  created() {
-    this.fetchData();
-  },
-  methods: {
-    tipoEmisionLabel(val) {
-      if (val === 'M') return 'Masiva';
-      if (val === 'D') return 'Disquette';
-      if (val === 'B') return 'Baja';
-      return val;
-    },
-    fetchData() {
-      this.errorMessage = '';
-      this.successMessage = '';
-      fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'list', module: 'catalogo_mercados' })
-      })
-        .then(r => r.json())
-        .then(json => {
-          if (json.success) {
-            this.rows = json.data;
-          } else {
-            this.errorMessage = json.message || 'Error al cargar datos';
-          }
-        })
-        .catch(() => this.errorMessage = 'Error de red');
-    },
-    showForm(mode, row = null) {
-      this.formMode = mode;
-      this.showFormMode = true;
-      this.errorMessage = '';
-      this.successMessage = '';
-      if (mode === 'create') {
-        this.form = {
-          oficina: '',
-          num_mercado_nvo: '',
-          categoria: '',
-          descripcion: '',
-          cuenta_ingreso: '',
-          cuenta_energia: '',
-          id_zona: '',
-          tipo_emision: 'M'
-        };
-      } else if (mode === 'update' && row) {
-        this.form = { ...row };
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+// State
+const rows = ref([]);
+const selectedRow = ref(null);
+const loading = ref(false);
+const showFormModal = ref(false);
+const formMode = ref('create');
+const form = ref({
+  id_mercado: null,
+  oficina: '',
+  num_mercado_nvo: '',
+  descripcion: '',
+  domicilio: '',
+  zona: ''
+});
+
+// Toast
+const showToast = (type, message) => {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: type,
+    title: message,
+    showConfirmButton: false,
+    timer: 3000
+  });
+};
+
+// Cerrar
+const cerrar = () => {
+  router.push('/mercados');
+};
+
+// Cargar datos
+async function fetchData() {
+  loading.value = true;
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_catalogo_mercados_list',
+        Base: 'mercados',
+        Parametros: []
       }
-    },
-    cancelForm() {
-      this.showFormMode = false;
-    },
-    submitForm() {
-      this.errorMessage = '';
-      this.successMessage = '';
-      const action = this.formMode === 'create' ? 'create' : 'update';
-      fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, module: 'catalogo_mercados', payload: this.form })
-      })
-        .then(r => r.json())
-        .then(json => {
-          if (json.success) {
-            this.successMessage = 'Guardado correctamente';
-            this.showFormMode = false;
-            this.fetchData();
-          } else {
-            this.errorMessage = json.message || 'Error al guardar';
-          }
-        })
-        .catch(() => this.errorMessage = 'Error de red');
-    },
-    deleteRow(row) {
-      if (!confirm('¿Está seguro de eliminar este mercado?')) return;
-      fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', module: 'catalogo_mercados', payload: { oficina: row.oficina, num_mercado_nvo: row.num_mercado_nvo } })
-      })
-        .then(r => r.json())
-        .then(json => {
-          if (json.success) {
-            this.successMessage = 'Eliminado correctamente';
-            this.fetchData();
-          } else {
-            this.errorMessage = json.message || 'Error al eliminar';
-          }
-        })
-        .catch(() => this.errorMessage = 'Error de red');
-    },
-    showReport() {
-      this.showReportDialog = true;
-      fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'report', module: 'catalogo_mercados', payload: { oficina: null } })
-      })
-        .then(r => r.json())
-        .then(json => {
-          if (json.success) {
-            this.reportRows = json.data;
-          } else {
-            this.reportRows = [];
-          }
-        });
+    });
+
+    if (response.data?.eResponse?.success) {
+      rows.value = response.data.eResponse.data.result || [];
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
     }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al cargar mercados');
+  } finally {
+    loading.value = false;
   }
 }
-</script>
 
-<style scoped>
-.catalogo-mercados-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+// Modal
+function showModal(mode, row = null) {
+  formMode.value = mode;
+  if (mode === 'create') {
+    form.value = {
+      id_mercado: null,
+      oficina: '',
+      num_mercado_nvo: '',
+      descripcion: '',
+      domicilio: '',
+      zona: ''
+    };
+  } else if (row) {
+    form.value = {
+      id_mercado: row.id_mercado,
+      oficina: row.oficina,
+      num_mercado_nvo: row.num_mercado_nvo,
+      descripcion: row.descripcion,
+      domicilio: row.domicilio || '',
+      zona: row.id_zona || ''
+    };
+  }
+  showFormModal.value = true;
 }
-.table th, .table td {
-  vertical-align: middle;
+
+function closeModal() {
+  showFormModal.value = false;
 }
-.modal-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.3);
-  z-index: 1040;
+
+// Guardar
+async function submitForm() {
+  if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion) {
+    showToast('warning', 'Complete los campos requeridos');
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const sp = formMode.value === 'create' ? 'sp_catalogo_mercados_create' : 'sp_catalogo_mercados_update';
+    const params = formMode.value === 'create'
+      ? [
+          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
+          { Nombre: 'p_num_mercado_nvo', Valor: form.value.num_mercado_nvo, tipo: 'integer' },
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
+          { Nombre: 'p_domicilio', Valor: form.value.domicilio || null },
+          { Nombre: 'p_zona', Valor: form.value.zona || null, tipo: 'integer' }
+        ]
+      : [
+          { Nombre: 'p_id_mercado', Valor: form.value.id_mercado, tipo: 'integer' },
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
+          { Nombre: 'p_domicilio', Valor: form.value.domicilio || null },
+          { Nombre: 'p_zona', Valor: form.value.zona || null, tipo: 'integer' }
+        ];
+
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: sp,
+        Base: 'mercados',
+        Parametros: params
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      showToast('success', formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado');
+      closeModal();
+      fetchData();
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al guardar mercado');
+  } finally {
+    loading.value = false;
+  }
 }
-.modal {
-  z-index: 1050;
+
+// Eliminar
+async function deleteRow(row) {
+  const result = await Swal.fire({
+    title: '¿Eliminar mercado?',
+    text: `Se eliminará el mercado ${row.descripcion}`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  loading.value = true;
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_catalogo_mercados_delete',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_mercado', Valor: row.id_mercado, tipo: 'integer' }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      showToast('success', 'Mercado eliminado');
+      fetchData();
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al eliminar mercado');
+  } finally {
+    loading.value = false;
+  }
 }
-</style>
+
+onMounted(() => {
+  fetchData();
+});
+</script>

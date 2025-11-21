@@ -1,235 +1,352 @@
 <template>
-  <div class="catalogo-mercados-page">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Catálogo de Mercados</li>
-      </ol>
-    </nav>
-    <h1>Catálogo de Mercados Municipales</h1>
-    <div class="mb-3">
-      <button class="btn btn-primary" @click="showCreateForm = true">Agregar Mercado</button>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-alt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Reporte Catálogo de Mercados</h1>
+        <p>Mercados - Reporte y Administración del Catálogo</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-success" @click="showModal('create')">
+          <font-awesome-icon icon="plus" />
+          Agregar
+        </button>
+        <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
+          <font-awesome-icon icon="sync" />
+          Refrescar
+        </button>
+        <button class="btn-municipal-danger" @click="cerrar">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </div>
     </div>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Oficina</th>
-          <th>Núm. Mercado</th>
-          <th>Nombre</th>
-          <th>Categoría</th>
-          <th>Cuenta Ingreso</th>
-          <th>Cuenta Energía</th>
-          <th>Zona</th>
-          <th>Tipo Emisión</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="mercado in mercados" :key="mercado.oficina + '-' + mercado.num_mercado_nvo">
-          <td>{{ mercado.oficina }}</td>
-          <td>{{ mercado.num_mercado_nvo }}</td>
-          <td>{{ mercado.descripcion }}</td>
-          <td>{{ mercado.categoria }}</td>
-          <td>{{ mercado.cuenta_ingreso }}</td>
-          <td>{{ mercado.cuenta_energia }}</td>
-          <td>{{ mercado.id_zona }}</td>
-          <td>{{ mercado.tipo_emision }}</td>
-          <td>
-            <button class="btn btn-sm btn-warning" @click="editMercado(mercado)">Editar</button>
-            <button class="btn btn-sm btn-danger" @click="deleteMercado(mercado)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- Crear/Editar Formulario -->
-    <div v-if="showCreateForm || showEditForm" class="modal-mask">
-      <div class="modal-wrapper">
-        <div class="modal-container">
-          <h3>{{ showEditForm ? 'Editar Mercado' : 'Agregar Mercado' }}</h3>
-          <form @submit.prevent="showEditForm ? updateMercado() : createMercado()">
-            <div class="form-group">
-              <label>Oficina</label>
-              <input v-model="form.oficina" type="number" class="form-control" required :readonly="showEditForm">
+
+    <div class="module-view-content">
+      <!-- Tabla de Mercados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Catálogo de Mercados Municipales
+            <span v-if="rows.length > 0" class="badge bg-primary ms-2">{{ rows.length }}</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <!-- Loading -->
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
             </div>
-            <div class="form-group">
-              <label>Núm. Mercado</label>
-              <input v-model="form.num_mercado_nvo" type="number" class="form-control" required :readonly="showEditForm">
-            </div>
-            <div class="form-group">
-              <label>Nombre</label>
-              <input v-model="form.descripcion" type="text" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label>Categoría</label>
-              <input v-model="form.categoria" type="number" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label>Cuenta Ingreso</label>
-              <input v-model="form.cuenta_ingreso" type="number" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label>Cuenta Energía</label>
-              <input v-model="form.cuenta_energia" type="number" class="form-control">
-            </div>
-            <div class="form-group">
-              <label>Zona</label>
-              <input v-model="form.id_zona" type="number" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label>Tipo Emisión</label>
-              <select v-model="form.tipo_emision" class="form-control" required>
-                <option value="M">Masiva</option>
-                <option value="D">Diskette</option>
-                <option value="B">Baja</option>
-              </select>
-            </div>
-            <div class="form-group text-right">
-              <button type="submit" class="btn btn-success">Guardar</button>
-              <button type="button" class="btn btn-secondary" @click="closeForm">Cancelar</button>
-            </div>
-          </form>
+          </div>
+
+          <!-- Tabla -->
+          <div v-else-if="rows.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Oficina</th>
+                  <th>Núm. Mercado</th>
+                  <th>Descripción</th>
+                  <th>Zona</th>
+                  <th>Tipo Emisión</th>
+                  <th>Vigencia</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in rows" :key="row.id_mercado"
+                    :class="{ 'table-active': selectedRow?.id_mercado === row.id_mercado }"
+                    @click="selectedRow = row">
+                  <td>{{ row.id_mercado }}</td>
+                  <td>{{ row.oficina }}</td>
+                  <td>{{ row.num_mercado_nvo }}</td>
+                  <td>{{ row.descripcion }}</td>
+                  <td>{{ row.id_zona || '-' }}</td>
+                  <td>{{ emisionLabel(row.tipo_emision) }}</td>
+                  <td>
+                    <span :class="row.vigencia === 'A' ? 'badge bg-success' : 'badge bg-danger'">
+                      {{ row.vigencia === 'A' ? 'Activo' : 'Baja' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-warning me-1" @click.stop="showModal('update', row)">
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                    <button class="btn btn-sm btn-danger" @click.stop="deleteRow(row)">
+                      <font-awesome-icon icon="trash" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Sin datos -->
+          <div v-else class="text-center py-4 text-muted">
+            <font-awesome-icon icon="inbox" size="3x" class="mb-3" />
+            <p>No hay mercados registrados</p>
+          </div>
         </div>
       </div>
     </div>
-    <!-- Reporte -->
-    <div class="mt-4">
-      <button class="btn btn-info" @click="generarReporte">Generar Reporte PDF</button>
-      <a v-if="reporteUrl" :href="reporteUrl" target="_blank" class="btn btn-success ml-2">Descargar PDF</a>
+
+    <!-- Modal Crear/Editar -->
+    <div v-if="showFormModal" class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
+              {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
+            </h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="submitForm">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Oficina *</label>
+                  <input type="number" class="form-control" v-model.number="form.oficina"
+                         required :disabled="formMode === 'update'" min="1" />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Núm. Mercado *</label>
+                  <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
+                         required :disabled="formMode === 'update'" min="1" />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Descripción *</label>
+                <input type="text" class="form-control" v-model="form.descripcion"
+                       required maxlength="100" />
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Zona</label>
+                  <input type="number" class="form-control" v-model.number="form.id_zona" min="0" />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Tipo Emisión</label>
+                  <select class="form-select" v-model="form.tipo_emision">
+                    <option value="M">Masiva</option>
+                    <option value="D">Diskette</option>
+                    <option value="B">Baja</option>
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
+            <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
+              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+    <div v-if="showFormModal" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'CatalogoMercadosPage',
-  data() {
-    return {
-      mercados: [],
-      showCreateForm: false,
-      showEditForm: false,
-      form: {
-        oficina: '',
-        num_mercado_nvo: '',
-        descripcion: '',
-        categoria: '',
-        cuenta_ingreso: '',
-        cuenta_energia: '',
-        id_zona: '',
-        tipo_emision: 'M',
-        usuario_id: 1 // Simulación, reemplazar por usuario logueado
-      },
-      reporteUrl: ''
-    };
-  },
-  mounted() {
-    this.fetchMercados();
-  },
-  methods: {
-    fetchMercados() {
-      this.$axios.post('/api/execute', {
-        action: 'getCatalogoMercados',
-        params: {}
-      }).then(res => {
-        if (res.data.success) {
-          this.mercados = res.data.data;
-        }
-      });
-    },
-    createMercado() {
-      this.$axios.post('/api/execute', {
-        action: 'createCatalogoMercado',
-        params: this.form
-      }).then(res => {
-        if (res.data.success) {
-          this.fetchMercados();
-          this.closeForm();
-        }
-      });
-    },
-    editMercado(mercado) {
-      this.form = { ...mercado };
-      this.showEditForm = true;
-      this.showCreateForm = false;
-    },
-    updateMercado() {
-      this.$axios.post('/api/execute', {
-        action: 'updateCatalogoMercado',
-        params: this.form
-      }).then(res => {
-        if (res.data.success) {
-          this.fetchMercados();
-          this.closeForm();
-        }
-      });
-    },
-    deleteMercado(mercado) {
-      if (confirm('¿Está seguro de eliminar este mercado?')) {
-        this.$axios.post('/api/execute', {
-          action: 'deleteCatalogoMercado',
-          params: {
-            oficina: mercado.oficina,
-            num_mercado_nvo: mercado.num_mercado_nvo
-          }
-        }).then(res => {
-          if (res.data.success) {
-            this.fetchMercados();
-          }
-        });
-      }
-    },
-    closeForm() {
-      this.showCreateForm = false;
-      this.showEditForm = false;
-      this.form = {
-        oficina: '',
-        num_mercado_nvo: '',
-        descripcion: '',
-        categoria: '',
-        cuenta_ingreso: '',
-        cuenta_energia: '',
-        id_zona: '',
-        tipo_emision: 'M',
-        usuario_id: 1
-      };
-    },
-    generarReporte() {
-      this.$axios.post('/api/execute', {
-        action: 'getCatalogoMercadosReporte',
-        params: {}
-      }).then(res => {
-        if (res.data.success && res.data.data && res.data.data.pdf_url) {
-          this.reporteUrl = res.data.data.pdf_url;
-        } else {
-          alert('No se pudo generar el reporte.');
-        }
-      });
-    }
-  }
-};
-</script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useRouter } from 'vue-router';
 
-<style scoped>
-.catalogo-mercados-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+const router = useRouter();
+
+// State
+const rows = ref([]);
+const selectedRow = ref(null);
+const loading = ref(false);
+const showFormModal = ref(false);
+const formMode = ref('create');
+const form = ref({
+  id_mercado: null,
+  oficina: '',
+  num_mercado_nvo: '',
+  descripcion: '',
+  id_zona: '',
+  tipo_emision: 'M'
+});
+
+// Toast
+const showToast = (type, message) => {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: type,
+    title: message,
+    showConfirmButton: false,
+    timer: 3000
+  });
+};
+
+// Cerrar
+const cerrar = () => {
+  router.push('/mercados');
+};
+
+// Helper para tipo emisión
+const emisionLabel = (val) => {
+  if (val === 'M') return 'Masiva';
+  if (val === 'D') return 'Diskette';
+  if (val === 'B') return 'Baja';
+  return val || '-';
+};
+
+// Cargar datos
+async function fetchData() {
+  loading.value = true;
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_rpt_catalogo_mercados_list',
+        Base: 'mercados',
+        Parametros: []
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      rows.value = response.data.eResponse.data.result || [];
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al cargar mercados');
+  } finally {
+    loading.value = false;
+  }
 }
-.modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+// Modal
+function showModal(mode, row = null) {
+  formMode.value = mode;
+  if (mode === 'create') {
+    form.value = {
+      id_mercado: null,
+      oficina: '',
+      num_mercado_nvo: '',
+      descripcion: '',
+      id_zona: '',
+      tipo_emision: 'M'
+    };
+  } else if (row) {
+    form.value = {
+      id_mercado: row.id_mercado,
+      oficina: row.oficina,
+      num_mercado_nvo: row.num_mercado_nvo,
+      descripcion: row.descripcion,
+      id_zona: row.id_zona || '',
+      tipo_emision: row.tipo_emision || 'M'
+    };
+  }
+  showFormModal.value = true;
 }
-.modal-wrapper {
-  width: 500px;
+
+function closeModal() {
+  showFormModal.value = false;
 }
-.modal-container {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.33);
+
+// Guardar
+async function submitForm() {
+  if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion) {
+    showToast('warning', 'Complete los campos requeridos');
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const sp = formMode.value === 'create' ? 'sp_rpt_catalogo_mercados_create' : 'sp_rpt_catalogo_mercados_update';
+    const params = formMode.value === 'create'
+      ? [
+          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
+          { Nombre: 'p_num_mercado_nvo', Valor: form.value.num_mercado_nvo, tipo: 'integer' },
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
+          { Nombre: 'p_id_zona', Valor: form.value.id_zona || null, tipo: 'integer' },
+          { Nombre: 'p_tipo_emision', Valor: form.value.tipo_emision }
+        ]
+      : [
+          { Nombre: 'p_id_mercado', Valor: form.value.id_mercado, tipo: 'integer' },
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
+          { Nombre: 'p_id_zona', Valor: form.value.id_zona || null, tipo: 'integer' },
+          { Nombre: 'p_tipo_emision', Valor: form.value.tipo_emision }
+        ];
+
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: sp,
+        Base: 'mercados',
+        Parametros: params
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      showToast('success', formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado');
+      closeModal();
+      fetchData();
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al guardar mercado');
+  } finally {
+    loading.value = false;
+  }
 }
-</style>
+
+// Eliminar
+async function deleteRow(row) {
+  const result = await Swal.fire({
+    title: '¿Eliminar mercado?',
+    text: `Se eliminará el mercado ${row.descripcion}`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  loading.value = true;
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_rpt_catalogo_mercados_delete',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_mercado', Valor: row.id_mercado, tipo: 'integer' }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      showToast('success', 'Mercado eliminado');
+      fetchData();
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al eliminar mercado');
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  fetchData();
+});
+</script>

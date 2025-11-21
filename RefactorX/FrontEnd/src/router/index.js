@@ -748,7 +748,7 @@ const router = createRouter({
       path: '/mercados/recaudadoras-mercados',
       name: 'mercados-recaudadoras-mercados',
       component: () => import('@/views/modules/mercados/RecaudadorasMercados.vue')
-    },/*
+    },
     // {
     //   path: '/mercados/zonas-mercados',
     //   name: 'mercados-zonas-mercados',
@@ -764,11 +764,11 @@ const router = createRouter({
     //   name: 'mercados-padron-global',
     //   component: () => import('@/views/modules/mercados/PadronGlobal.vue')
     // },
-    // {
-    //   path: '/mercados/alta-pagos-energia',
-    //   name: 'mercados-alta-pagos-energia',
-    //   component: () => import('@/views/modules/mercados/AltaPagosEnergia.vue')
-    // },
+    {
+      path: '/mercados/alta-pagos-energia',
+      name: 'mercados-alta-pagos-energia',
+      component: () => import('@/views/modules/mercados/AltaPagosEnergia.vue')
+    },
     // {
     //   path: '/mercados/cons-pagos',
     //   name: 'mercados-cons-pagos',
@@ -893,26 +893,26 @@ const router = createRouter({
       name: 'mercados-categoria-mntto',
       component: () => import('@/views/modules/mercados/CategoriaMntto.vue')
     },
-    // {
-    //   path: '/mercados/cons-captura-energia',
-    //   name: 'mercados-cons-captura-energia',
-    //   component: () => import('@/views/modules/mercados/ConsCapturaEnergia.vue')
-    // },
-    // {
-    //   path: '/mercados/cons-captura-fecha',
-    //   name: 'mercados-cons-captura-fecha',
-    //   component: () => import('@/views/modules/mercados/ConsCapturaFecha.vue')
-    // },
-    // {
-    //   path: '/mercados/cons-captura-fecha-energia',
-    //   name: 'mercados-cons-captura-fecha-energia',
-    //   component: () => import('@/views/modules/mercados/ConsCapturaFechaEnergia.vue')
-    // },
-    // {
-    //   path: '/mercados/cons-captura-merc',
-    //   name: 'mercados-cons-captura-merc',
-    //   component: () => import('@/views/modules/mercados/ConsCapturaMerc.vue')
-    // },
+    {
+      path: '/mercados/cons-captura-energia',
+      name: 'mercados-cons-captura-energia',
+      component: () => import('@/views/modules/mercados/ConsCapturaEnergia.vue')
+    },
+    {
+      path: '/mercados/cons-captura-fecha',
+      name: 'mercados-cons-captura-fecha',
+      component: () => import('@/views/modules/mercados/ConsCapturaFecha.vue')
+    },
+    {
+      path: '/mercados/cons-captura-fecha-energia',
+      name: 'mercados-cons-captura-fecha-energia',
+      component: () => import('@/views/modules/mercados/ConsCapturaFechaEnergia.vue')
+    },
+    {
+      path: '/mercados/cons-captura-merc',
+      name: 'mercados-cons-captura-merc',
+      component: () => import('@/views/modules/mercados/ConsCapturaMerc.vue')
+    },
 
     // // LOTE 15: Consultas y Condonaciones
     // {
@@ -930,11 +930,11 @@ const router = createRouter({
     //   name: 'mercados-consulta-general',
     //   component: () => import('@/views/modules/mercados/ConsultaGeneral.vue')
     // },
-    // {
-    //   path: '/mercados/cons-condonacion',
-    //   name: 'mercados-cons-condonacion',
-    //   component: () => import('@/views/modules/mercados/ConsCondonacion.vue')
-    // },
+    {
+      path: '/mercados/cons-condonacion',
+      name: 'mercados-cons-condonacion',
+      component: () => import('@/views/modules/mercados/ConsCondonacion.vue')
+    },
     // {
     //   path: '/mercados/cons-condonacion-energia',
     //   name: 'mercados-cons-condonacion-energia',
@@ -947,11 +947,11 @@ const router = createRouter({
     //   name: 'mercados-cuotas-mdo-mntto',
     //   component: () => import('@/views/modules/mercados/CuotasMdoMntto.vue')
     // },
-    // {
-    //   path: '/mercados/cve-cuota',
-    //   name: 'mercados-cve-cuota',
-    //   component: () => import('@/views/modules/mercados/CveCuota.vue')
-    // },
+    {
+      path: '/mercados/cve-cuota',
+      name: 'mercados-cve-cuota',
+      component: () => import('@/views/modules/mercados/CveCuota.vue')
+    },
     // {
     //   path: '/mercados/cve-diferencias',
     //   name: 'mercados-cve-diferencias',

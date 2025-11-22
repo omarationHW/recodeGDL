@@ -1238,7 +1238,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cve-cuota',
-            label: '** Claves de Cuota',
+            label: '* Claves de Cuota',
             icon: 'key'
           },
           {

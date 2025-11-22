@@ -714,16 +714,16 @@ const router = createRouter({
       name: 'mercados-catalogo-mercados',
       component: () => import('@/views/modules/mercados/CatalogoMercados.vue')
     },
-    // {
-    //   path: '/mercados/consulta-datos-locales',
-    //   name: 'mercados-consulta-datos-locales',
-    //   component: () => import('@/views/modules/mercados/ConsultaDatosLocales.vue')
-    // },
-    // {
-    //   path: '/mercados/consulta-datos-energia',
-    //   name: 'mercados-consulta-datos-energia',
-    //   component: () => import('@/views/modules/mercados/ConsultaDatosEnergia.vue')
-    // },
+    {
+      path: '/mercados/consulta-datos-locales',
+      name: 'mercados-consulta-datos-locales',
+      component: () => import('@/views/modules/mercados/ConsultaDatosLocales.vue')
+    },
+    {
+      path: '/mercados/consulta-datos-energia',
+      name: 'mercados-consulta-datos-energia',
+      component: () => import('@/views/modules/mercados/ConsultaDatosEnergia.vue')
+    },
     // {
     //   path: '/mercados/cuotas-mdo',
     //   name: 'mercados-cuotas-mdo',
@@ -769,11 +769,11 @@ const router = createRouter({
       name: 'mercados-alta-pagos-energia',
       component: () => import('@/views/modules/mercados/AltaPagosEnergia.vue')
     },
-    // {
-    //   path: '/mercados/cons-pagos',
-    //   name: 'mercados-cons-pagos',
-    //   component: () => import('@/views/modules/mercados/ConsPagos.vue')
-    // },
+    {
+      path: '/mercados/cons-pagos',
+      name: 'mercados-cons-pagos',
+      component: () => import('@/views/modules/mercados/ConsPagos.vue')
+    },
     // {
     //   path: '/mercados/pagos-individual',
     //   name: 'mercados-pagos-individual',
@@ -825,11 +825,11 @@ const router = createRouter({
     //   name: 'mercados-cons-requerimientos',
     //   component: () => import('@/views/modules/mercados/ConsRequerimientos.vue')
     // },
-    // {
-    //   path: '/mercados/condonacion',
-    //   name: 'mercados-condonacion',
-    //   component: () => import('@/views/modules/mercados/Condonacion.vue')
-    // },
+    {
+      path: '/mercados/condonacion',
+      name: 'mercados-condonacion',
+      component: () => import('@/views/modules/mercados/Condonacion.vue')
+    },
     // {
     //   path: '/mercados/ade-global-locales',
     //   name: 'mercados-ade-global-locales',
@@ -967,11 +967,11 @@ const router = createRouter({
     //   name: 'mercados-fechas-descuento-mntto',
     //   component: () => import('@/views/modules/mercados/FechasDescuentoMntto.vue')
     // },
-    // {
-    //   path: '/mercados/recargos',
-    //   name: 'mercados-recargos',
-    //   component: () => import('@/views/modules/mercados/Recargos.vue')
-    // },
+    {
+      path: '/mercados/recargos',
+      name: 'mercados-recargos',
+      component: () => import('@/views/modules/mercados/Recargos.vue')
+    },
 
     // // LOTE 17: Datos de Locales y Energía
     // {

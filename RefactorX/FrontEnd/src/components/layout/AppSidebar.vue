@@ -1007,12 +1007,12 @@ const menuItems = [
           },
           {
             path: '/mercados/consulta-datos-locales',
-            label: 'Consulta de Datos de Locales',
+            label: '* Consulta de Datos de Locales',
             icon: 'search'
           },
           {
             path: '/mercados/consulta-datos-energia',
-            label: 'Consulta de Datos de Energía',
+            label: '* Consulta de Datos de Energía',
             icon: 'bolt'
           },
           {
@@ -1057,12 +1057,12 @@ const menuItems = [
           },
           {
             path: '/mercados/alta-pagos-energia',
-            label: 'Alta de Pagos de Energía',
+            label: '* Alta de Pagos de Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/cons-pagos',
-            label: 'Consulta de Pagos',
+            label: '* Consulta de Pagos',
             icon: 'money-bill-wave'
           },
           {
@@ -1118,7 +1118,7 @@ const menuItems = [
           },
           {
             path: '/mercados/condonacion',
-            label: 'Condonación de Adeudos',
+            label: '* Condonación de Adeudos',
             icon: 'hand-holding-usd'
           },
           {
@@ -1186,22 +1186,22 @@ const menuItems = [
           },
           {
             path: '/mercados/cons-captura-energia',
-            label: '** Consulta Captura Energía',
+            label: '* Consulta Captura Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/cons-captura-fecha',
-            label: '** Consulta Captura por Fecha',
+            label: '* Consulta Captura por Fecha',
             icon: 'calendar-check'
           },
           {
             path: '/mercados/cons-captura-fecha-energia',
-            label: '** Consulta Energía por Fecha',
+            label: '* Consulta Energía por Fecha',
             icon: 'calendar-days'
           },
           {
             path: '/mercados/cons-captura-merc',
-            label: '** Consulta por Mercado',
+            label: '* Consulta por Mercado',
             icon: 'shopping-cart'
           },
           // LOTE 15: Consultas y Condonaciones
@@ -1222,7 +1222,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cons-condonacion',
-            label: 'Condonaciones Locales',
+            label: '* Condonaciones Locales',
             icon: 'hand-holding-usd'
           },
           {
@@ -1238,7 +1238,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cve-cuota',
-            label: 'Claves de Cuota',
+            label: '** Claves de Cuota',
             icon: 'key'
           },
           {
@@ -1258,7 +1258,7 @@ const menuItems = [
           },
           {
             path: '/mercados/recargos',
-            label: 'Configuración de Recargos',
+            label: '* Configuración de Recargos',
             icon: 'percent'
           },
           // LOTE 17: Datos de Locales y Energía

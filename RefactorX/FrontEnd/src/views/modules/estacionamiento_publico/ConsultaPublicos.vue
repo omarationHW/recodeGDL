@@ -118,7 +118,7 @@
 
     <Modal :show="showDetails" title="Detalles del Estacionamiento" size="xl" @close="showDetails = false" :showDefaultFooter="false">
       <div v-if="selected">
-        <div class="tab-nav" style="display:flex; gap:8px; margin-bottom:12px;">
+        <div class="tab-nav">
           <button class="btn-municipal-secondary" :class="{ active: detailTab==='info' }" @click="detailTab='info'">Información</button>
           <button class="btn-municipal-secondary" :class="{ active: detailTab==='adeudos' }" @click="detailTab='adeudos'">Adeudos</button>
           <button class="btn-municipal-secondary" :class="{ active: detailTab==='multas' }" @click="detailTab='multas'">Multas</button>
@@ -177,9 +177,9 @@
           </div>
           <div v-show="detailTab==='lic'" class="detail-section">
             <h6 class="section-title">Licencia General</h6>
-            <div class="form-row" style="margin-bottom: 8px;">
+            <div class="form-row mb-2">
               <div class="form-group"><label class="municipal-form-label">Reca</label><input type="number" class="municipal-form-control" v-model.number="licReca" /></div>
-              <div class="form-group"><label class="municipal-form-label" style="visibility:hidden">.</label><button class="btn-municipal-secondary" @click="loadLicGrales" :disabled="loadingLicGrales"><font-awesome-icon icon="sync-alt" /> Cargar</button></div>
+              <div class="form-group"><label class="municipal-form-label invisible">.</label><button class="btn-municipal-secondary" @click="loadLicGrales" :disabled="loadingLicGrales"><font-awesome-icon icon="sync-alt" /> Cargar</button></div>
             </div>
             <div v-if="loadingLicGrales" class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
             <div v-else>

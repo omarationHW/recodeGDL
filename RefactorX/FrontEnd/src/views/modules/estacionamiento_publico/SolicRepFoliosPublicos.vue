@@ -27,7 +27,7 @@
             <div class="form-group"><label class="municipal-form-label">Fecha Inicio</label><input type="date" class="municipal-form-control" v-model="fec_ini" /></div>
             <div class="form-group"><label class="municipal-form-label">Fecha Fin</label><input type="date" class="municipal-form-control" v-model="fec_fin" /></div>
           </div>
-          <div class="alert alert-info" style="margin-top:8px;">
+          <div class="alert alert-info mt-2">
             <small>Nota: cons14_solicrep es PROCEDURE. Esta vista usa funciones equivalentes (relación de folios y pagos). Si requieres el reporte exacto, se recomienda agregar un wrapper FUNCTION en la base o extender el backend para ejecutar CALL.</small>
           </div>
         </div>

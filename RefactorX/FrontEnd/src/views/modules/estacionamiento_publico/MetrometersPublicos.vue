@@ -33,7 +33,7 @@
       <div class="municipal-card" v-if="mapUrl">
         <div class="municipal-card-header"><h5>Mapa</h5></div>
         <div class="municipal-card-body">
-          <img :src="mapUrl" alt="mapa" style="max-width:100%; border:1px solid #ddd;" />
+          <img :src="mapUrl" alt="mapa" class="img-responsive img-bordered" />
         </div>
       </div>
     </div>

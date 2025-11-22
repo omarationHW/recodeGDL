@@ -27,7 +27,7 @@
               <font-awesome-icon icon="list" /> Reportes
             </router-link>
           </div>
-          <p class="text-muted" style="margin-top: 12px;">Selecciona una opción para continuar.</p>
+          <p class="text-muted mt-3">Selecciona una opción para continuar.</p>
         </div>
       </div>
     </div>

@@ -5411,6 +5411,42 @@ body.modal-open {
     font-size: 0.875rem;
   }
 }
+
+/* Result Tabs - Pestañas de resultados (JSON/Estructurado) */
+.result-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #dee2e6;
+  padding-bottom: 0.5rem;
+}
+
+/* Vistas de datos estructurados */
+.structured-view {
+  padding: 1rem 0;
+}
+
+.json-view {
+  padding: 1rem;
+  background: var(--slate-100);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.json-view pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--slate-700);
+}
+
+/* Clase para texto más grande */
+.text-larger {
+  font-size: 1.2em;
+}
+
 /* =================================================================================
    PROFESSIONAL COMPONENTS - Componentes profesionales para módulos
    ================================================================================= */
@@ -9683,5 +9719,38 @@ div[class*="modal-usuario"] .modal-content {
    ==================================== */
 .pre-wrap {
   white-space: pre-wrap;
+}
+
+/* ====================================
+   UTILITY CLASSES - SPACING & VISIBILITY
+   Clases utilitarias Bootstrap-like
+   ==================================== */
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.invisible { visibility: hidden; }
+
+/* ====================================
+   TAB NAVIGATION
+   Navegación por tabs en modales/detalles
+   ==================================== */
+.tab-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* ====================================
+   IMAGE UTILITIES
+   Clases para imágenes responsivas
+   ==================================== */
+.img-responsive {
+  max-width: 100%;
+  height: auto;
+}
+
+.img-bordered {
+  border: 1px solid #ddd;
 }
 

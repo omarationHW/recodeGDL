@@ -300,7 +300,7 @@
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Total</label>
-              <p class="text-success"><strong style="font-size: 1.2em;">{{ formatMoney(selected.monto_pago) }}</strong></p>
+              <p class="text-success"><strong class="text-larger">{{ formatMoney(selected.monto_pago) }}</strong></p>
             </div>
           </div>
           <div class="form-row" v-if="selected.observaciones">

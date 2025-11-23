@@ -336,7 +336,8 @@ async function loadLicGrales() {
   }
 }
 
+const detailTab = ref('info')
+
 onMounted(loadData)
 watch([itemsPerPage], () => { /* handled by changePageSize */ })
 </script>
-const detailTab = ref('info')

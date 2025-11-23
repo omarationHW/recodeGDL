@@ -649,51 +649,51 @@ const router = createRouter({
     },
     // RUTAS DE MERCADOS COMENTADAS - Archivos no existen
     
-    // {
-    //   path: '/mercados/padron-locales',
-    //   name: 'mercados-padron-locales',
-    //   component: () => import('@/views/modules/mercados/PadronLocales.vue')
-    // },
-    // {
-    //   path: '/mercados/locales-mtto',
-    //   name: 'mercados-locales-mtto',
-    //   component: () => import('@/views/modules/mercados/LocalesMtto.vue')
-    // },
-    // {
-    //   path: '/mercados/adeudos-locales',
-    //   name: 'mercados-adeudos-locales',
-    //   component: () => import('@/views/modules/mercados/AdeudosLocales.vue')
-    // },
+    {
+      path: '/mercados/padron-locales',
+      name: 'mercados-padron-locales',
+      component: () => import('@/views/modules/mercados/PadronLocales.vue')
+    },
+    {
+      path: '/mercados/locales-mtto',
+      name: 'mercados-locales-mtto',
+      component: () => import('@/views/modules/mercados/LocalesMtto.vue')
+    },
+    {
+      path: '/mercados/adeudos-locales',
+      name: 'mercados-adeudos-locales',
+      component: () => import('@/views/modules/mercados/AdeudosLocales.vue')
+    },
     {
       path: '/mercados/alta-pagos',
       name: 'mercados-alta-pagos',
       component: () => import('@/views/modules/mercados/AltaPagos.vue')
     },
-    // {
-    //   path: '/mercados/emision-locales',
-    //   name: 'mercados-emision-locales',
-    //   component: () => import('@/views/modules/mercados/EmisionLocales.vue')
-    // },
-    // {
-    //   path: '/mercados/estad-pagos-adeudos',
-    //   name: 'mercados-estad-pagos-adeudos',
-    //   component: () => import('@/views/modules/mercados/EstadPagosyAdeudos.vue')
-    // },
+    {
+      path: '/mercados/emision-locales',
+      name: 'mercados-emision-locales',
+      component: () => import('@/views/modules/mercados/EmisionLocales.vue')
+    },
+    {
+      path: '/mercados/estad-pagos-adeudos',
+      name: 'mercados-estad-pagos-adeudos',
+      component: () => import('@/views/modules/mercados/EstadPagosyAdeudos.vue')
+    },
     {
       path: '/mercados/carga-pag-locales',
       name: 'mercados-carga-pag-locales',
       component: () => import('@/views/modules/mercados/CargaPagLocales.vue')
     },
-    // {
-    //   path: '/mercados/listados-locales',
-    //   name: 'mercados-listados-locales',
-    //   component: () => import('@/views/modules/mercados/ListadosLocales.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-pagos-locales',
-    //   name: 'mercados-rpt-pagos-locales',
-    //   component: () => import('@/views/modules/mercados/RptPagosLocales.vue')
-    // },
+    {
+      path: '/mercados/listados-locales',
+      name: 'mercados-listados-locales',
+      component: () => import('@/views/modules/mercados/ListadosLocales.vue')
+    },
+    {
+      path: '/mercados/rpt-pagos-locales',
+      name: 'mercados-rpt-pagos-locales',
+      component: () => import('@/views/modules/mercados/RptPagosLocales.vue')
+    },
     // {
     //   path: '/mercados/padron-energia',
     //   name: 'mercados-padron-energia',

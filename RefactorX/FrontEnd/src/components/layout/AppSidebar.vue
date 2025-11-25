@@ -1113,7 +1113,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cons-requerimientos',
-            label: 'Consulta de Requerimientos',
+            label: '* Consulta de Requerimientos',
             icon: 'exclamation-triangle'
           },
           {
@@ -1212,12 +1212,12 @@ const menuItems = [
           },
           {
             path: '/mercados/cons-pagos-locales',
-            label: 'Consulta Pagos Locales',
+            label: '* Consulta Pagos Locales',
             icon: 'store'
           },
           {
             path: '/mercados/consulta-general',
-            label: 'Consulta General',
+            label: '*** Consulta General',
             icon: 'search'
           },
           {
@@ -1227,7 +1227,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cons-condonacion-energia',
-            label: 'Condonaciones Energía',
+            label: '* Condonaciones Energía',
             icon: 'bolt'
           },
           // LOTE 16: Configuración y Cuotas Adicionales
@@ -1290,7 +1290,7 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-ene-cons',
-            label: 'Consulta Pagos Energía',
+            label: '*** Consulta Pagos Energía',
             icon: 'file-invoice-dollar'
           },
           {

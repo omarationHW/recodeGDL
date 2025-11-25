@@ -820,11 +820,11 @@ const router = createRouter({
       name: 'mercados-catalogo-mntto',
       component: () => import('@/views/modules/mercados/CatalogoMntto.vue')
     },
-    // {
-    //   path: '/mercados/cons-requerimientos',
-    //   name: 'mercados-cons-requerimientos',
-    //   component: () => import('@/views/modules/mercados/ConsRequerimientos.vue')
-    // },
+    {
+      path: '/mercados/cons-requerimientos',
+      name: 'mercados-cons-requerimientos',
+      component: () => import('@/views/modules/mercados/ConsRequerimientos.vue')
+    },
     {
       path: '/mercados/condonacion',
       name: 'mercados-condonacion',
@@ -915,31 +915,31 @@ const router = createRouter({
     },
 
     // // LOTE 15: Consultas y Condonaciones
-    // {
-    //   path: '/mercados/cons-pagos-energia',
-    //   name: 'mercados-cons-pagos-energia',
-    //   component: () => import('@/views/modules/mercados/ConsPagosEnergia.vue')
-    // },
-    // {
-    //   path: '/mercados/cons-pagos-locales',
-    //   name: 'mercados-cons-pagos-locales',
-    //   component: () => import('@/views/modules/mercados/ConsPagosLocales.vue')
-    // },
-    // {
-    //   path: '/mercados/consulta-general',
-    //   name: 'mercados-consulta-general',
-    //   component: () => import('@/views/modules/mercados/ConsultaGeneral.vue')
-    // },
+    {
+      path: '/mercados/cons-pagos-energia',
+      name: 'mercados-cons-pagos-energia',
+      component: () => import('@/views/modules/mercados/ConsPagosEnergia.vue')
+    },
+    {
+      path: '/mercados/cons-pagos-locales',
+      name: 'mercados-cons-pagos-locales',
+      component: () => import('@/views/modules/mercados/ConsPagosLocales.vue')
+    },
+    {
+      path: '/mercados/consulta-general',
+      name: 'mercados-consulta-general',
+      component: () => import('@/views/modules/mercados/ConsultaGeneral.vue')
+    },
     {
       path: '/mercados/cons-condonacion',
       name: 'mercados-cons-condonacion',
       component: () => import('@/views/modules/mercados/ConsCondonacion.vue')
     },
-    // {
-    //   path: '/mercados/cons-condonacion-energia',
-    //   name: 'mercados-cons-condonacion-energia',
-    //   component: () => import('@/views/modules/mercados/ConsCondonacionEnergia.vue')
-    // },
+    {
+      path: '/mercados/cons-condonacion-energia',
+      name: 'mercados-cons-condonacion-energia',
+      component: () => import('@/views/modules/mercados/ConsCondonacionEnergia.vue')
+    },
 
     // // LOTE 16: Configuración y Cuotas Adicionales
     // {
@@ -1001,11 +1001,11 @@ const router = createRouter({
     //   name: 'mercados-emision-libertad',
     //   component: () => import('@/views/modules/mercados/EmisionLibertad.vue')
     // },
-    // {
-    //   path: '/mercados/pagos-ene-cons',
-    //   name: 'mercados-pagos-ene-cons',
-    //   component: () => import('@/views/modules/mercados/PagosEneCons.vue')
-    // },
+    {
+      path: '/mercados/pagos-ene-cons',
+      name: 'mercados-pagos-ene-cons',
+      component: () => import('@/views/modules/mercados/PagosEneCons.vue')
+    },
     // {
     //   path: '/mercados/pagos-loc-grl',
     //   name: 'mercados-pagos-loc-grl',

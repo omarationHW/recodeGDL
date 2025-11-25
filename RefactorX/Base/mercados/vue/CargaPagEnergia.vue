@@ -13,7 +13,7 @@
         <input v-model="form.categoria" disabled />
         <label>Sección:</label>
         <select v-model="form.seccion">
-          <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">{{ sec.seccion }} - {{ sec.descripcion }}</option>
+          <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">{{ sec.descripcion }} - {{ sec.descripcion }}</option>
         </select>
         <label>Local:</label>
         <input v-model="form.local" />

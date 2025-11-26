@@ -1,30 +1,71 @@
 -- ================================================================
 -- SP: recaudadora_req
 -- Módulo: multas_reglamentos
+-- Descripción: Consultar requerimientos por cuenta y ejercicio
+-- Tabla: catastro_gdl.reqdiftransmision
 -- Autor: Sistema RefactorX
--- Fecha: 2025-11-11
+-- Fecha: 2025-11-25
 -- ================================================================
 
-CREATE OR REPLACE FUNCTION recaudadora_req()
+DROP FUNCTION IF EXISTS recaudadora_req(TEXT, INTEGER);
+
+CREATE OR REPLACE FUNCTION recaudadora_req(
+  p_clave_cuenta TEXT DEFAULT NULL,
+  p_ejercicio INTEGER DEFAULT NULL
+)
 RETURNS TABLE (
-  -- TODO: Definir columnas de retorno basándose en el uso en Vue
-  result JSONB
+  cvereq INTEGER,
+  cvecuenta INTEGER,
+  folioreq INTEGER,
+  axoreq INTEGER,
+  total NUMERIC,
+  vigencia CHARACTER(1),
+  fecemi DATE,
+  feccap DATE,
+  cveproceso CHARACTER(1),
+  recaud INTEGER,
+  impuesto NUMERIC,
+  recargos NUMERIC,
+  multa_imp NUMERIC,
+  multa_ext NUMERIC,
+  actualizacion NUMERIC,
+  gastos NUMERIC,
+  multa NUMERIC,
+  gastos_req NUMERIC
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  -- TODO: Implementar lógica del SP
-  -- Este es un placeholder generado automáticamente
-
+  -- Consultar requerimientos filtrados por cuenta y/o ejercicio
   RETURN QUERY
-  SELECT jsonb_build_object(
-    'success', true,
-    'message', 'SP recaudadora_req pendiente de implementación',
-    'data', '[]'::jsonb
-  );
+  SELECT
+    r.cvereq,
+    r.cvecuenta,
+    r.folioreq,
+    r.axoreq,
+    r.total,
+    r.vigencia,
+    r.fecemi,
+    r.feccap,
+    r.cveproceso,
+    r.recaud,
+    r.impuesto,
+    r.recargos,
+    r.multa_imp,
+    r.multa_ext,
+    r.actualizacion,
+    r.gastos,
+    r.multa,
+    r.gastos_req
+  FROM catastro_gdl.reqdiftransmision r
+  WHERE
+    (p_clave_cuenta IS NULL OR p_clave_cuenta = '' OR r.cvecuenta::TEXT = p_clave_cuenta)
+    AND (p_ejercicio IS NULL OR p_ejercicio = 0 OR r.axoreq = p_ejercicio)
+  ORDER BY r.cvereq DESC
+  LIMIT 100;
 
 END;
 $$;
 
 -- Comentario del SP
-COMMENT ON FUNCTION recaudadora_req() IS 'SP generado automáticamente - REQUIERE IMPLEMENTACIÓN';
+COMMENT ON FUNCTION recaudadora_req(TEXT, INTEGER) IS 'Consultar requerimientos por cuenta y ejercicio';

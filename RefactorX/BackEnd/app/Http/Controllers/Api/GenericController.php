@@ -63,14 +63,14 @@ class GenericController
                 'allowed_schemas' => ['public']
             ],
             'multas_reglamentos' => [
-                'database' => 'multas_reglamentos',
+                'database' => 'padron_licencias',
                 'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'allowed_schemas' => ['public', 'comun']
             ],
             'multas' => [
-                'database' => 'multas_reglamentos',
+                'database' => 'padron_licencias',
                 'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'allowed_schemas' => ['public', 'comun']
             ],
             'otras_obligaciones' => [
                 'database' => 'otras_obligaciones',

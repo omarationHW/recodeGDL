@@ -1,30 +1,40 @@
 -- ================================================================
 -- SP: recaudadora_get_ejecutores
 -- Módulo: multas_reglamentos
+-- Descripción: Obtiene lista de ejecutores (empresas) activos
 -- Autor: Sistema RefactorX
--- Fecha: 2025-11-11
+-- Fecha: 2025-11-24
 -- ================================================================
+
+DROP FUNCTION IF EXISTS recaudadora_get_ejecutores();
 
 CREATE OR REPLACE FUNCTION recaudadora_get_ejecutores()
 RETURNS TABLE (
-  -- TODO: Definir columnas de retorno basándose en el uso en Vue
-  result JSONB
+  cveejecutor SMALLINT,
+  empresa TEXT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  -- TODO: Implementar lógica del SP
-  -- Este es un placeholder generado automáticamente
-
+  -- Retornar ejecutores desde la tabla catastro_gdl.ejecutor
+  -- Se retornan todos los ejecutores vigentes
+  -- La tabla contiene personas (paterno, materno, nombres)
   RETURN QUERY
-  SELECT jsonb_build_object(
-    'success', true,
-    'message', 'SP recaudadora_get_ejecutores pendiente de implementación',
-    'data', '[]'::jsonb
-  );
+  SELECT
+    e.cveejecutor,
+    TRIM(CONCAT_WS(' ',
+      TRIM(e.paterno),
+      TRIM(e.materno),
+      TRIM(e.nombres)
+    )) AS empresa
+  FROM catastro_gdl.ejecutor e
+  WHERE e.vigencia = 'V'  -- Solo ejecutores vigentes
+  ORDER BY e.cveejecutor;
 
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE EXCEPTION 'Error al consultar ejecutores: %', SQLERRM;
 END;
 $$;
 
--- Comentario del SP
-COMMENT ON FUNCTION recaudadora_get_ejecutores() IS 'SP generado automáticamente - REQUIERE IMPLEMENTACIÓN';
+COMMENT ON FUNCTION recaudadora_get_ejecutores() IS 'Obtiene lista de ejecutores (empresas) para el módulo de actualización de fechas';

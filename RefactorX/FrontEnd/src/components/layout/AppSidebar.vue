@@ -942,12 +942,12 @@ const menuItems = [
         children: [
           {
             path: '/mercados/padron-locales',
-            label: '* Padrón de Locales',
+            label: '- Padrón de Locales',
             icon: 'list'
           },
           {
             path: '/mercados/locales-mtto',
-            label: '* Mantenimiento de Locales',
+            label: '- Mantenimiento de Locales',
             icon: 'store-alt'
           },
           {
@@ -962,17 +962,17 @@ const menuItems = [
           },
           {
             path: '/mercados/emision-locales',
-            label: '* Emisión de Recibos',
+            label: '- Emisión de Recibos',
             icon: 'receipt'
           },
           {
             path: '/mercados/estad-pagos-adeudos',
-            label: '* Estadística Pagos/Adeudos',
+            label: '- Estadística Pagos/Adeudos',
             icon: 'chart-bar'
           },
           {
             path: '/mercados/carga-pag-locales',
-            label: '* Carga de Pagos',
+            label: '- Carga de Pagos',
             icon: 'file-import'
           },
           {

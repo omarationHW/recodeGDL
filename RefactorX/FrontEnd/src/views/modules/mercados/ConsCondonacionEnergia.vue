@@ -39,9 +39,13 @@
         </div>
 
         <div v-show="showFilters" class="municipal-card-body">
+          <!-- Primera fila: Recaudadora y Mercado -->
           <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
+            <div class="form-group" style="flex: 1.5;">
+              <label class="municipal-form-label">
+                Oficina Recaudadora <span class="required">*</span>
+                <small class="text-muted">(Obligatorio)</small>
+              </label>
               <select class="municipal-form-control" v-model="form.oficina" @change="cargarMercados" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
@@ -50,10 +54,13 @@
               </select>
             </div>
 
-            <div class="form-group">
-              <label class="municipal-form-label">Mercado <span class="required">*</span></label>
-              <select class="municipal-form-control" v-model="form.num_mercado" :disabled="loading || mercados.length === 0">
-                <option value="">Seleccione...</option>
+            <div class="form-group" style="flex: 2;">
+              <label class="municipal-form-label">
+                Mercado
+                <small class="text-muted">(Opcional - Deje vacío para todos)</small>
+              </label>
+              <select class="municipal-form-control" v-model="form.num_mercado" :disabled="loading || !form.oficina">
+                <option value="">Todos los mercados</option>
                 <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
                   {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
                 </option>
@@ -61,28 +68,48 @@
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Sección <span class="required">*</span></label>
+              <label class="municipal-form-label">
+                Sección
+                <small class="text-muted">(Opcional)</small>
+              </label>
               <select class="municipal-form-control" v-model="form.seccion" :disabled="loading">
-                <option value="">Seleccione...</option>
+                <option value="">Todas las secciones</option>
                 <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">
                   {{ sec.seccion }} - {{ sec.descripcion }}
                 </option>
               </select>
             </div>
+          </div>
 
+          <!-- Segunda fila: Detalles del local (todos opcionales) -->
+          <div class="form-row">
             <div class="form-group" style="flex: 0.8;">
-              <label class="municipal-form-label">Local <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.local" :disabled="loading" />
+              <label class="municipal-form-label">
+                Local
+                <small class="text-muted">(Opcional)</small>
+              </label>
+              <input type="number" class="municipal-form-control" v-model.number="form.local"
+                     placeholder="Todos" :disabled="loading" />
             </div>
 
             <div class="form-group" style="flex: 0.5;">
               <label class="municipal-form-label">Letra</label>
-              <input type="text" class="municipal-form-control" v-model="form.letra_local" maxlength="1" :disabled="loading" />
+              <input type="text" class="municipal-form-control" v-model="form.letra_local"
+                     maxlength="1" placeholder="Cualquiera" :disabled="loading" />
             </div>
 
             <div class="form-group" style="flex: 0.5;">
               <label class="municipal-form-label">Bloque</label>
-              <input type="text" class="municipal-form-control" v-model="form.bloque" maxlength="1" :disabled="loading" />
+              <input type="text" class="municipal-form-control" v-model="form.bloque"
+                     maxlength="1" placeholder="Cualquiera" :disabled="loading" />
+            </div>
+
+            <div class="form-group" style="flex: 2;">
+              <label class="municipal-form-label">&nbsp;</label>
+              <div class="alert alert-info" style="margin-bottom: 0; padding: 0.5rem;">
+                <font-awesome-icon icon="info-circle" class="me-2" />
+                <small>Los campos opcionales permiten búsquedas más amplias</small>
+              </div>
             </div>
           </div>
 
@@ -157,34 +184,50 @@
               <thead class="municipal-table-header">
                 <tr>
                   <th>ID</th>
+                  <th>Mercado</th>
+                  <th>Sec.</th>
+                  <th>Local</th>
+                  <th>Nombre</th>
                   <th>Año</th>
-                  <th>Periodo</th>
+                  <th>Per.</th>
                   <th>Fecha</th>
-                  <th class="text-end">Importe Original</th>
-                  <th class="text-end">Importe Condonado</th>
-                  <th class="text-end">% Condonación</th>
+                  <th class="text-end">Imp. Original</th>
+                  <th class="text-end">Condonado</th>
+                  <th class="text-end">%</th>
                   <th>Motivo</th>
                   <th>Usuario</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="condonaciones.length === 0 && !searched">
-                  <td colspan="9" class="text-center text-muted">
+                  <td colspan="13" class="text-center text-muted">
                     <font-awesome-icon icon="search" size="2x" class="empty-icon" />
                     <p>Utiliza los filtros de búsqueda para consultar condonaciones de energía</p>
                   </td>
                 </tr>
                 <tr v-else-if="condonaciones.length === 0">
-                  <td colspan="9" class="text-center text-muted">
+                  <td colspan="13" class="text-center text-muted">
                     <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
                     <p>No se encontraron condonaciones con los criterios especificados</p>
                   </td>
                 </tr>
                 <tr v-else v-for="c in condonaciones" :key="c.id_condonacion" class="row-hover">
                   <td><strong class="text-primary">{{ c.id_condonacion }}</strong></td>
+                  <td>{{ c.num_mercado }}</td>
+                  <td>{{ c.seccion }}</td>
+                  <td>
+                    {{ c.local }}
+                    <span v-if="c.letra_local" class="text-muted">{{ c.letra_local }}</span>
+                    <span v-if="c.bloque" class="text-muted">{{ c.bloque }}</span>
+                  </td>
+                  <td>
+                    <small>{{ c.nombre_local }}</small>
+                  </td>
                   <td>{{ c.axo }}</td>
                   <td>{{ c.periodo }}</td>
-                  <td>{{ c.fecha_condonacion }}</td>
+                  <td>
+                    <small>{{ formatDate(c.fecha_condonacion) }}</small>
+                  </td>
                   <td class="text-end">
                     <strong class="text-danger">${{ formatNumber(c.importe_original) }}</strong>
                   </td>
@@ -194,13 +237,13 @@
                   <td class="text-end">
                     <strong class="text-info">{{ calcPorcentaje(c.importe_original, c.importe_condonado) }}%</strong>
                   </td>
-                  <td>{{ c.motivo }}</td>
-                  <td>{{ c.usuario }}</td>
+                  <td><small>{{ c.motivo }}</small></td>
+                  <td><small>{{ c.usuario }}</small></td>
                 </tr>
               </tbody>
               <tfoot v-if="condonaciones.length > 0" class="municipal-table-footer">
                 <tr>
-                  <td colspan="4"><strong>TOTALES</strong></td>
+                  <td colspan="8"><strong>TOTALES ({{ condonaciones.length }} registros)</strong></td>
                   <td class="text-end"><strong class="text-danger">${{ formatNumber(totales.original) }}</strong></td>
                   <td class="text-end"><strong class="text-success">${{ formatNumber(totales.condonado) }}</strong></td>
                   <td colspan="3"></td>
@@ -265,7 +308,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina, mercado, sección y local para consultar condonaciones de energía')
+  showToast('info', 'Ayuda: Seleccione al menos una Oficina Recaudadora. Los demás campos son opcionales para búsquedas más amplias.')
 }
 
 const showToast = (type, message) => {
@@ -295,6 +338,12 @@ const getToastIcon = (type) => {
 
 const formatNumber = (num) => {
   return parseFloat(num || 0).toFixed(2)
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 const calcPorcentaje = (original, condonado) => {
@@ -407,8 +456,9 @@ const cargarSecciones = async () => {
 }
 
 const buscarCondonaciones = async () => {
-  if (!form.value.oficina || !form.value.num_mercado || !form.value.seccion || !form.value.local) {
-    showToast('warning', 'Complete los campos requeridos')
+  // Solo la oficina es obligatoria
+  if (!form.value.oficina) {
+    showToast('warning', 'Debe seleccionar una Oficina Recaudadora')
     return
   }
 
@@ -425,10 +475,10 @@ const buscarCondonaciones = async () => {
         Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
+          { Nombre: 'p_num_mercado', Valor: form.value.num_mercado ? parseInt(form.value.num_mercado) : null },
           { Nombre: 'p_categoria', Valor: 1 },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: parseInt(form.value.local) },
+          { Nombre: 'p_seccion', Valor: form.value.seccion || null },
+          { Nombre: 'p_local', Valor: form.value.local ? parseInt(form.value.local) : null },
           { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
           { Nombre: 'p_bloque', Valor: form.value.bloque || null }
         ]
@@ -441,17 +491,30 @@ const buscarCondonaciones = async () => {
       condonaciones.value = response.data.eResponse.data.result || []
 
       if (condonaciones.value.length > 0) {
-        const firstRecord = condonaciones.value[0]
-        localInfo.value = {
-          id_local: firstRecord.id_local,
-          nombre: firstRecord.nombre_local,
-          arrendatario: firstRecord.arrendatario,
-          vigencia: firstRecord.vigencia
+        // Si hay un solo local, mostrar su info
+        if (form.value.local) {
+          const firstRecord = condonaciones.value[0]
+          localInfo.value = {
+            id_local: firstRecord.id_local,
+            nombre: firstRecord.nombre_local,
+            arrendatario: firstRecord.arrendatario,
+            vigencia: firstRecord.vigencia
+          }
         }
-        showToast('success', `Se encontraron ${condonaciones.value.length} condonaciones`)
+
+        const criterios = []
+        if (form.value.num_mercado) criterios.push('Mercado')
+        if (form.value.seccion) criterios.push('Sección')
+        if (form.value.local) criterios.push('Local')
+
+        const msg = criterios.length > 0
+          ? `Se encontraron ${condonaciones.value.length} condonaciones (${criterios.join(', ')})`
+          : `Se encontraron ${condonaciones.value.length} condonaciones en toda la oficina`
+
+        showToast('success', msg)
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron condonaciones para el local especificado')
+        showToast('info', 'No se encontraron condonaciones con los criterios especificados')
       }
     } else {
       error.value = response.data.eResponse?.message || 'Error en la búsqueda'

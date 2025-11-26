@@ -38,13 +38,24 @@
                 </option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="flex: 2;">
               <label class="municipal-form-label">Mercado <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.num_mercado" :disabled="loading" />
+              <select class="municipal-form-control" v-model="form.num_mercado" @change="onMercadoChange"
+                :disabled="!selectedRec || loading">
+                <option value="">Seleccione...</option>
+                <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                  {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                </option>
+              </select>
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Cat. <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.categoria" :disabled="loading" />
+              <select class="municipal-form-control" v-model="form.categoria" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                  {{ cat.categoria }} - {{ cat.descripcion }}
+                </option>
+              </select>
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Sección <span class="required">*</span></label>
@@ -61,11 +72,13 @@
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Letra</label>
-              <input type="text" class="municipal-form-control" v-model="form.letra_local" maxlength="1" :disabled="loading" />
+              <input type="text" class="municipal-form-control" v-model="form.letra_local" maxlength="1"
+                :disabled="loading" />
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Bloque</label>
-              <input type="text" class="municipal-form-control" v-model="form.bloque" maxlength="1" :disabled="loading" />
+              <input type="text" class="municipal-form-control" v-model="form.bloque" maxlength="1"
+                :disabled="loading" />
             </div>
           </div>
 
@@ -99,7 +112,8 @@
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Giro <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.giro" min="1" :disabled="saving" />
+              <input type="number" class="municipal-form-control" v-model.number="form.giro" min="1"
+                :disabled="saving" />
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Sector <span class="required">*</span></label>
@@ -120,7 +134,8 @@
           <div class="form-row mt-3">
             <div class="form-group">
               <label class="municipal-form-label">Superficie <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.superficie" step="0.01" min="0.01" :disabled="saving" />
+              <input type="number" class="municipal-form-control" v-model.number="form.superficie" step="0.01"
+                min="0.01" :disabled="saving" />
             </div>
             <div class="form-group" style="flex: 2;">
               <label class="municipal-form-label">Descripción Local</label>
@@ -150,7 +165,8 @@
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Memo <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.numero_memo" min="1" :disabled="saving" />
+              <input type="number" class="municipal-form-control" v-model.number="form.numero_memo" min="1"
+                :disabled="saving" />
             </div>
           </div>
 
@@ -189,6 +205,8 @@ import axios from 'axios'
 
 // Estado
 const recaudadoras = ref([])
+const mercados = ref([])
+const categorias = ref([])
 const secciones = ref([])
 const zonas = ref([])
 const cuotas = ref([])
@@ -224,43 +242,152 @@ const getToastIcon = (type) => {
 
 const fetchRecaudadoras = async () => {
   try {
+    loading.value = true
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
     })
+
     if (res.data.eResponse.success === true) {
       recaudadoras.value = res.data.eResponse.data.result || []
+    } else {
+      showToast('error', res.data.eResponse?.message || 'Error al cargar recaudadoras')
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    console.error('Error al cargar recaudadoras:', err)
+    showToast('error', 'Error de conexión al cargar recaudadoras')
+  } finally {
+    loading.value = false
   }
 }
 
 const onRecChange = async () => {
-  // Cargar catálogos cuando cambia recaudadora
-  await cargarCatalogos()
+  // Limpiar mercado y categoría al cambiar recaudadora
+  form.value.num_mercado = ''
+  form.value.categoria = ''
+  mercados.value = []
+
+  if (!selectedRec.value) return
+
+  // Cargar mercados
+  loading.value = true
+  try {
+    const nivelUsuario = 1 // TODO: Obtener del store de usuario
+    const oficinaParam = selectedRec.value || null
+
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_catalogo_mercados',
+        Base: 'padron_licencias',
+        Parametros: [
+          { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
+          { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
+        ]
+      }
+    })
+
+    if (res.data.eResponse && res.data.eResponse.success === true) {
+      mercados.value = res.data.eResponse.data.result || []
+      if (mercados.value.length > 0) {
+        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+      } else {
+        showToast('info', 'No se encontraron mercados para esta oficina')
+      }
+    } else {
+      showToast('error', res.data.eResponse?.message || 'Error al cargar mercados')
+      mercados.value = []
+    }
+  } catch (err) {
+    console.error('Error al cargar mercados:', err)
+    showToast('error', 'Error de conexión al cargar mercados')
+    mercados.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+const cargarMercados = async () => {
+  // Esta función ya no es necesaria, se movió la lógica a onRecChange
+  // Se mantiene para evitar errores si se llama desde otro lugar
+  return
+}
+
+const onMercadoChange = () => {
+  const selected = mercados.value.find(m => m.num_mercado_nvo == form.value.num_mercado)
+  if (selected) {
+    form.value.categoria = selected.categoria
+  }
+}
+
+const fetchSecciones = async () => {
+  try {
+    loading.value = true
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_secciones',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+
+    if (response.data?.eResponse?.success) {
+      secciones.value = response.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar secciones:', err)
+    showToast('error', 'Error al cargar secciones')
+  } finally {
+    loading.value = false
+  }
 }
 
 const cargarCatalogos = async () => {
+  console.log('Cargando catálogos...')
   try {
-    // Secciones
-    const secRes = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_secciones', Base: 'padron_licencias', Parametros: [] }
+    loading.value = true
+    // Categorías - Base: mercados
+    const catRes = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Parametros: []
+      }
     })
-    if (secRes.data.eResponse?.success) secciones.value = secRes.data.eResponse.data.result || []
+    if (catRes.data.eResponse?.success) {
+      categorias.value = catRes.data.eResponse.data.result || []
+    }
 
-    // Cuotas
+    // Cuotas - Base: padron_licencias
     const cuoRes = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_cve_cuota_list', Base: 'padron_licencias', Parametros: [] }
+      eRequest: {
+        Operacion: 'sp_cve_cuota_list',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
     })
-    if (cuoRes.data.eResponse?.success) cuotas.value = cuoRes.data.eResponse.data.result || []
+    if (cuoRes.data.eResponse?.success) {
+      cuotas.value = cuoRes.data.eResponse.data.result || []
+    }
 
-    // Zonas
+    // Zonas - Base: padron_licencias
     const zonRes = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_zonas', Base: 'padron_licencias', Parametros: [] }
+      eRequest: {
+        Operacion: 'sp_get_zonas',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
     })
-    if (zonRes.data.eResponse?.success) zonas.value = zonRes.data.eResponse.data.result || []
+    if (zonRes.data.eResponse?.success) {
+      zonas.value = zonRes.data.eResponse.data.result || []
+    }
   } catch (err) {
-    showToast('error', 'Error al cargar catálogos')
+    console.error('Error al cargar catálogos:', err)
+    showToast('error', 'Error de conexión al cargar catálogos')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -373,12 +500,22 @@ const limpiarFormulario = () => {
   form.value.numero_memo = ''
 }
 
-onMounted(() => {
-  fetchRecaudadoras()
-  cargarCatalogos()
+onMounted(async () => {
+  try {
+    await Promise.all([
+      fetchRecaudadoras(),
+      fetchSecciones(),
+      cargarCatalogos()
+    ])
+    showToast('success', 'Catálogos cargados correctamente')
+  } catch (err) {
+    console.error('Error al inicializar:', err)
+  }
 })
 </script>
 
 <style scoped>
-.required { color: #dc3545; }
+.required {
+  color: #dc3545;
+}
 </style>

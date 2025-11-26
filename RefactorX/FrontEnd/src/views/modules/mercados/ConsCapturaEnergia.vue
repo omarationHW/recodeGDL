@@ -1,169 +1,157 @@
 <template>
-  <div class="cons-captura-energia">
-    <div class="breadcrumb">
-      <router-link to="/">Inicio</router-link> /
-      <span>Consulta de Pagos Capturados de Energía Eléctrica</span>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta Captura Energía</h1>
+        <p>Mercados - Detalle de Pagos Capturados de Energía</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
+          <font-awesome-icon icon="sync" />
+          Actualizar
+        </button>
+        <button class="btn-municipal-danger" @click="cerrar">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </div>
     </div>
-    <h1>Detalle de los Pagos Capturados</h1>
-    <div class="actions">
-      <button @click="fetchPagos">Actualizar</button>
-    </div>
-    <table class="pagos-table">
-      <thead>
-        <tr>
-          <th>Control</th>
-          <th>Datos del Local</th>
-          <th>Año</th>
-          <th>Mes</th>
-          <th>Cuota</th>
-          <th>Cantidad</th>
-          <th>Fecha</th>
-          <th>Rec</th>
-          <th>Caja</th>
-          <th>Oper</th>
-          <th>Importe</th>
-          <th>Folio</th>
-          <th>Actualización</th>
-          <th>Usuario</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="pago in pagos" :key="pago.id_pago_energia">
-          <td>{{ pago.id_energia }}</td>
-          <td>{{ pago.datoslocal }}</td>
-          <td>{{ pago.axo }}</td>
-          <td>{{ pago.periodo }}</td>
-          <td>{{ pago.cve_consumo }}</td>
-          <td>{{ pago.cantidad }}</td>
-          <td>{{ pago.fecha_pago }}</td>
-          <td>{{ pago.oficina_pago }}</td>
-          <td>{{ pago.caja_pago }}</td>
-          <td>{{ pago.operacion_pago }}</td>
-          <td>{{ pago.importe_pago }}</td>
-          <td>{{ pago.folio }}</td>
-          <td>{{ pago.fecha_modificacion }}</td>
-          <td>{{ pago.usuario }}</td>
-          <td>
-            <button @click="borrarPago(pago)">Borrar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div class="footer">
-      <button @click="$router.back()">Salir</button>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Pagos de Energía Capturados
+            <span v-if="rows.length > 0" class="badge bg-primary ms-2">{{ rows.length }}</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+
+          <div v-else-if="rows.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Datos Local</th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th>Importe</th>
+                  <th>Fecha Pago</th>
+                  <th>Folio</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in rows" :key="row.id_pago_energia">
+                  <td>{{ row.id_pago_energia }}</td>
+                  <td>{{ row.datoslocal }}</td>
+                  <td>{{ row.axo }}</td>
+                  <td>{{ row.periodo }}</td>
+                  <td>{{ formatCurrency(row.importe_pago) }}</td>
+                  <td>{{ row.fecha_pago }}</td>
+                  <td>{{ row.folio }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-danger" @click="borrarPago(row)">
+                      <font-awesome-icon icon="trash" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else class="text-center py-4 text-muted">
+            <font-awesome-icon icon="inbox" size="3x" class="mb-3" />
+            <p>No hay pagos registrados</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ConsCapturaEnergia',
-  data() {
-    return {
-      pagos: [],
-      error: '',
-      id_energia: null // Se puede obtener de la ruta o props
-    };
-  },
-  created() {
-    // Suponiendo que el id_energia viene por query o params
-    this.id_energia = this.$route.query.id_energia || this.$route.params.id_energia;
-    this.fetchPagos();
-  },
-  methods: {
-    async fetchPagos() {
-      this.error = '';
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'getPagosEnergia',
-            params: { id_energia: this.id_energia }
-          }
-        });
-        if (res.data.eResponse.success) {
-          this.pagos = res.data.eResponse.data;
-        } else {
-          this.error = res.data.eResponse.message || 'Error al cargar pagos';
-        }
-      } catch (e) {
-        this.error = e.message;
-      }
-    },
-    async borrarPago(pago) {
-      if (!confirm('¿Está seguro de borrar este pago?')) return;
-      this.error = '';
-      try {
-        // Primero, intentar restaurar el adeudo si corresponde
-        const restoreRes = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'restoreAdeudoEnergia',
-            params: {
-              id_energia: pago.id_energia,
-              axo: pago.axo,
-              periodo: pago.periodo,
-              cve_consumo: pago.cve_consumo,
-              cantidad: pago.cantidad,
-              importe: pago.importe_pago,
-              usuario_id: pago.id_usuario
-            }
-          }
-        });
-        // Luego, borrar el pago
-        const res = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'deletePagoEnergia',
-            params: {
-              id_energia: pago.id_energia,
-              axo: pago.axo,
-              periodo: pago.periodo,
-              usuario_id: pago.id_usuario
-            }
-          }
-        });
-        if (res.data.eResponse.success) {
-          this.fetchPagos();
-        } else {
-          this.error = res.data.eResponse.message || 'Error al borrar pago';
-        }
-      } catch (e) {
-        this.error = e.message;
-      }
-    }
-  }
-};
-</script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useRouter, useRoute } from 'vue-router';
 
-<style scoped>
-.cons-captura-energia {
-  padding: 24px;
+const router = useRouter();
+const route = useRoute();
+
+const loading = ref(false);
+const rows = ref([]);
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0);
+};
+
+const showToast = (type, message) => {
+  Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
+};
+
+const cerrar = () => router.push('/mercados');
+
+async function fetchData() {
+  loading.value = true;
+  try {
+    const idEnergia = route.query.id_energia || null;
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cons_captura_energia_list',
+        Base: 'mercados',
+        Parametros: idEnergia ? [{ Nombre: 'p_id_energia', Valor: parseInt(idEnergia), tipo: 'integer' }] : []
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      rows.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al cargar datos');
+  } finally {
+    loading.value = false;
+  }
 }
-.breadcrumb {
-  margin-bottom: 12px;
-  font-size: 14px;
+
+async function borrarPago(row) {
+  const result = await Swal.fire({
+    title: '¿Eliminar pago?',
+    text: 'Esta acción no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cons_captura_energia_delete',
+        Base: 'mercados',
+        Parametros: [{ Nombre: 'p_id_pago_energia', Valor: row.id_pago_energia, tipo: 'integer' }]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      showToast('success', 'Pago eliminado');
+      fetchData();
+    }
+  } catch (error) {
+    showToast('error', 'Error al eliminar');
+  }
 }
-.pagos-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 16px;
-}
-.pagos-table th, .pagos-table td {
-  border: 1px solid #ccc;
-  padding: 4px 8px;
-  font-size: 13px;
-}
-.pagos-table th {
-  background: #f0f0f0;
-}
-.actions {
-  margin-bottom: 12px;
-}
-.footer {
-  margin-top: 16px;
-}
-.error {
-  color: red;
-  margin-top: 12px;
-}
-</style>
+
+onMounted(() => fetchData());
+</script>

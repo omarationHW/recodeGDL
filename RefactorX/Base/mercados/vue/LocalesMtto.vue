@@ -11,22 +11,32 @@
       <div class="row">
         <div class="col-md-2">
           <label>Recaudadora</label>
-          <select v-model="form.oficina" class="form-control" required>
-            <option v-for="rec in catalogs.recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
+          <select v-model="form.oficina" class="form-control" required @change="cargarMercados">
+            <option value="">Seleccione...</option>
+            <option v-for="rec in catalogs.recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{
+              rec.recaudadora }}</option>
           </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <label>Mercado</label>
-          <input v-model="form.num_mercado" type="number" class="form-control" required />
+          <select v-model="form.num_mercado" class="form-control" required @change="onMercadoChange"
+            :disabled="mercados.length === 0">
+            <option value="">Seleccione...</option>
+            <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+              {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+            </option>
+          </select>
         </div>
         <div class="col-md-1">
           <label>Cat.</label>
-          <input v-model="form.categoria" type="number" class="form-control" required />
+          <input v-model="form.categoria" type="number" class="form-control" required readonly />
         </div>
         <div class="col-md-2">
           <label>Sección</label>
           <select v-model="form.seccion" class="form-control" required>
-            <option v-for="sec in catalogs.secciones" :key="sec.seccion" :value="sec.seccion">{{ sec.seccion }} - {{ sec.descripcion }}</option>
+            <option value="">Seleccione...</option>
+            <option v-for="sec in catalogs.secciones" :key="sec.seccion" :value="sec.seccion">{{ sec.seccion }} - {{
+              sec.descripcion }}</option>
           </select>
         </div>
         <div class="col-md-1">
@@ -85,13 +95,15 @@
             <div class="col-md-2">
               <label>Zona</label>
               <select v-model="form.zona" class="form-control" required>
-                <option v-for="zona in catalogs.zonas" :key="zona.id_zona" :value="zona.id_zona">{{ zona.id_zona }} - {{ zona.zona }}</option>
+                <option v-for="zona in catalogs.zonas" :key="zona.id_zona" :value="zona.id_zona">{{ zona.id_zona }} - {{
+                  zona.zona }}</option>
               </select>
             </div>
             <div class="col-md-2">
               <label>Clave Cuota</label>
               <select v-model="form.clave_cuota" class="form-control" required>
-                <option v-for="cuota in catalogs.cuotas" :key="cuota.clave_cuota" :value="cuota.clave_cuota">{{ cuota.clave_cuota }} - {{ cuota.descripcion }}</option>
+                <option v-for="cuota in catalogs.cuotas" :key="cuota.clave_cuota" :value="cuota.clave_cuota">{{
+                  cuota.clave_cuota }} - {{ cuota.descripcion }}</option>
               </select>
             </div>
             <div class="col-md-2">
@@ -126,6 +138,7 @@ export default {
         zonas: [],
         cuotas: []
       },
+      mercados: [],
       form: {
         oficina: '',
         num_mercado: '',
@@ -162,6 +175,38 @@ export default {
       const resp = await axios.post('/api/execute', { action: 'get_catalogs' });
       if (resp.data.success) {
         this.catalogs = resp.data.data;
+      }
+    },
+    async cargarMercados() {
+      this.form.num_mercado = '';
+      this.form.categoria = '';
+      this.mercados = [];
+
+      if (!this.form.oficina) return;
+
+      try {
+        const resp = await axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_consulta_locales_get_mercados',
+            Base: 'padron_licencias',
+            Parametros: [
+              { Nombre: 'p_oficina', Valor: parseInt(this.form.oficina) }
+            ]
+          }
+        });
+
+        if (resp.data.eResponse?.success && resp.data.eResponse?.data) {
+          this.mercados = resp.data.eResponse.data.result || [];
+        }
+      } catch (error) {
+        console.error('Error al cargar mercados:', error);
+        this.mercados = [];
+      }
+    },
+    onMercadoChange() {
+      const selected = this.mercados.find(m => m.num_mercado_nvo == this.form.num_mercado);
+      if (selected) {
+        this.form.categoria = selected.categoria;
       }
     },
     async onBuscar() {
@@ -217,8 +262,9 @@ export default {
   padding: 2rem;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
 .breadcrumb {
   background: none;
   padding: 0;

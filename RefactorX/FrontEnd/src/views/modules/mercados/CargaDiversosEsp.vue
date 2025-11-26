@@ -1,146 +1,373 @@
 <template>
-  <div class="carga-diversos-esp">
-    <h1>Carga Especial de Pagos Realizados por Diversos</h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Carga Diversos Especial</li>
-      </ol>
-    </nav>
-    <div class="form-group row">
-      <label class="col-sm-2 col-form-label">Fecha de Pago:</label>
-      <div class="col-sm-3">
-        <input type="date" v-model="fechaPago" class="form-control" />
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-import" />
       </div>
-      <div class="col-sm-2">
-        <button class="btn btn-primary" @click="buscarAdeudos">Buscar</button>
+      <div class="module-view-info">
+        <h1>Carga Diversos Especial</h1>
+        <p>Mercados - Carga Especial de Pagos Realizados por Diversos</p>
       </div>
-      <div class="col-sm-2">
-        <button class="btn btn-success" :disabled="pagos.length === 0" @click="cargarPagos">Grabar</button>
-      </div>
-      <div class="col-sm-2">
-        <button class="btn btn-secondary" @click="$router.push('/')">Salir</button>
-      </div>
-    </div>
-    <div v-if="loading" class="alert alert-info">Cargando...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="adeudos.length > 0">
-      <table class="table table-bordered table-sm mt-3">
-        <thead>
-          <tr>
-            <th v-for="col in columns" :key="col">{{ col }}</th>
-            <th>Partida</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(row, idx) in adeudos" :key="idx">
-            <td v-for="col in columns" :key="col">{{ row[col] }}</td>
-            <td>
-              <input type="text" v-model="pagos[idx].partida" class="form-control form-control-sm" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="alert alert-info">
-        <b>Nota:</b> Solo se grabarán los pagos con número de partida distinto de vacío o cero.
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+        <button
+          class="btn-municipal-danger"
+          @click="cerrar"
+        >
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
       </div>
     </div>
-    <div v-if="successMsg" class="alert alert-success mt-3">{{ successMsg }}</div>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card mb-3">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Adeudos
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="row align-items-end">
+            <div class="col-md-4 mb-3">
+              <label class="municipal-form-label">Fecha de Pago *</label>
+              <input
+                type="date"
+                class="municipal-form-control"
+                v-model="fechaPago"
+                :disabled="loading"
+              />
+            </div>
+            <div class="col-md-8 mb-3">
+              <div class="d-flex gap-2">
+                <button
+                  class="btn-municipal-primary"
+                  @click="buscarAdeudos"
+                  :disabled="!fechaPago || loading"
+                >
+                  <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                  <font-awesome-icon icon="search" v-if="!loading" />
+                  Buscar
+                </button>
+                <button
+                  class="btn-municipal-success"
+                  @click="cargarPagos"
+                  :disabled="!hayPagosValidos || loading"
+                >
+                  <font-awesome-icon icon="save" />
+                  Grabar Pagos
+                </button>
+                <button
+                  class="btn-municipal-secondary"
+                  @click="limpiar"
+                  :disabled="loading"
+                >
+                  <font-awesome-icon icon="eraser" />
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Adeudos -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Adeudos Encontrados
+            <span v-if="adeudos.length > 0" class="badge bg-primary ms-2">{{ adeudos.length }}</span>
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <!-- Loading Spinner -->
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+
+          <!-- Tabla -->
+          <div v-else-if="adeudos.length > 0" class="table-responsive">
+            <table class="municipal-table table-sm">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Rec</th>
+                  <th>Caja</th>
+                  <th>Oper</th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th>Renta</th>
+                  <th>Ofn</th>
+                  <th>Mer</th>
+                  <th>Cat</th>
+                  <th>Sec</th>
+                  <th>Local</th>
+                  <th>Let</th>
+                  <th>Partida</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, idx) in adeudos" :key="idx">
+                  <td>{{ formatDate(row.fecha) }}</td>
+                  <td>{{ row.rec }}</td>
+                  <td>{{ row.caja }}</td>
+                  <td>{{ row.oper }}</td>
+                  <td>{{ row.axo }}</td>
+                  <td>{{ row.mes }}</td>
+                  <td>{{ formatCurrency(row.renta) }}</td>
+                  <td>{{ row.ofn }}</td>
+                  <td>{{ row.mer }}</td>
+                  <td>{{ row.cat }}</td>
+                  <td>{{ row.sec }}</td>
+                  <td>{{ row.local }}</td>
+                  <td>{{ row.let }}</td>
+                  <td>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      v-model="pagos[idx].partida"
+                      placeholder="Partida"
+                      maxlength="20"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="alert alert-info mt-3">
+              <font-awesome-icon icon="info-circle" />
+              <strong>Nota:</strong> Solo se grabarán los pagos con número de partida distinto de vacío o cero.
+            </div>
+          </div>
+
+          <!-- Sin resultados -->
+          <div v-else class="text-center py-4 text-muted">
+            <font-awesome-icon icon="inbox" size="3x" class="mb-3" />
+            <p>No hay adeudos para mostrar. Seleccione una fecha y presione "Buscar".</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'CargaDiversosEsp',
-  data() {
-    return {
-      fechaPago: '',
-      adeudos: [],
-      pagos: [],
-      columns: [
-        'FECHA', 'REC', 'CAJA', 'OPER', 'AÑO', 'MES', 'RENTA', 'OFN', 'MER', 'CAT', 'SEC', 'LOCAL', 'LET'
-      ],
-      loading: false,
-      error: '',
-      successMsg: ''
-    };
-  },
-  methods: {
-    async buscarAdeudos() {
-      this.loading = true;
-      this.error = '';
-      this.successMsg = '';
-      this.adeudos = [];
-      this.pagos = [];
-      try {
-        const resp = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'getAdeudos',
-            data: { fecha_pago: this.fechaPago }
-          }
-        });
-        if (resp.data.eResponse.success) {
-          this.adeudos = resp.data.eResponse.data;
-          this.pagos = this.adeudos.map(row => ({ partida: '' }));
-        } else {
-          this.error = resp.data.eResponse.message || 'Error al buscar adeudos';
-        }
-      } catch (e) {
-        this.error = e.message;
-      }
-      this.loading = false;
-    },
-    async cargarPagos() {
-      this.loading = true;
-      this.error = '';
-      this.successMsg = '';
-      // Solo pagos con partida válida
-      const pagosValidos = this.adeudos.map((row, idx) => {
-        return {
-          ...row,
-          partida: this.pagos[idx].partida
-        };
-      }).filter(p => p.partida && p.partida !== '0');
-      if (pagosValidos.length === 0) {
-        this.error = 'No hay pagos válidos para grabar.';
-        this.loading = false;
-        return;
-      }
-      try {
-        const resp = await this.$axios.post('/api/execute', {
-          eRequest: {
-            action: 'cargarPagos',
-            data: {
-              pagos: pagosValidos,
-              usuario: this.$store.state.usuario_id || 1,
-              fecha_pago: this.fechaPago
-            }
-          }
-        });
-        if (resp.data.eResponse.success) {
-          this.successMsg = 'Pagos cargados correctamente.';
-          this.buscarAdeudos();
-        } else {
-          this.error = resp.data.eResponse.message || 'Error al grabar pagos';
-        }
-      } catch (e) {
-        this.error = e.message;
-      }
-      this.loading = false;
-    }
-  }
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import {
+  faFileImport, faSearch, faList, faSave, faTimes,
+  faQuestionCircle, faEraser, faInfoCircle, faInbox
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
+library.add(
+  faFileImport, faSearch, faList, faSave, faTimes,
+  faQuestionCircle, faEraser, faInfoCircle, faInbox
+);
+
+const router = useRouter();
+
+// Helper para mostrar toasts
+const showToast = (icon, title) => {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon,
+    title,
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true
+  });
 };
+
+// Estados
+const loading = ref(false);
+const fechaPago = ref('');
+const adeudos = ref([]);
+const pagos = ref([]);
+
+// Computed para verificar si hay pagos válidos
+const hayPagosValidos = computed(() => {
+  return pagos.value.some(p => p.partida && p.partida.trim() !== '' && p.partida !== '0');
+});
+
+// Buscar adeudos
+async function buscarAdeudos() {
+  if (!fechaPago.value) {
+    showToast('warning', 'Seleccione una fecha de pago');
+    return;
+  }
+
+  loading.value = true;
+  adeudos.value = [];
+  pagos.value = [];
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_adeudos_diversos_esp',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_fecha_pago', Valor: fechaPago.value }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+      adeudos.value = response.data.eResponse.data.result;
+      // Inicializar array de pagos con partidas vacías
+      pagos.value = adeudos.value.map(() => ({ partida: '' }));
+
+      if (adeudos.value.length === 0) {
+        showToast('info', 'No se encontraron adeudos para esta fecha');
+      } else {
+        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`);
+      }
+    } else {
+      adeudos.value = [];
+      showToast('info', 'No se encontraron adeudos');
+    }
+  } catch (error) {
+    console.error('Error al buscar adeudos:', error);
+    showToast('error', 'Error al buscar adeudos');
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Cargar pagos
+async function cargarPagos() {
+  // Filtrar solo pagos con partida válida
+  const pagosValidos = adeudos.value
+    .map((row, idx) => ({
+      ...row,
+      partida: pagos.value[idx].partida
+    }))
+    .filter(p => p.partida && p.partida.trim() !== '' && p.partida !== '0');
+
+  if (pagosValidos.length === 0) {
+    showToast('warning', 'No hay pagos válidos para grabar');
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: '¿Grabar pagos?',
+    text: `Se grabarán ${pagosValidos.length} pagos`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, grabar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  loading.value = true;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cargar_pagos_diversos_esp',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_pagos', Valor: JSON.stringify(pagosValidos) },
+          { Nombre: 'p_id_usuario', Valor: 1 }, // TODO: Obtener de sesión
+          { Nombre: 'p_fecha_pago', Valor: fechaPago.value }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      showToast('success', `${pagosValidos.length} pagos cargados correctamente`);
+      // Recargar adeudos
+      await buscarAdeudos();
+    }
+  } catch (error) {
+    console.error('Error al cargar pagos:', error);
+    showToast('error', 'Error al cargar pagos');
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Limpiar
+function limpiar() {
+  fechaPago.value = '';
+  adeudos.value = [];
+  pagos.value = [];
+}
+
+// Formato de fecha
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('es-MX');
+}
+
+// Formato de moneda
+function formatCurrency(value) {
+  if (!value && value !== 0) return '$0.00';
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value);
+}
+
+// Mostrar ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Carga Diversos Especial',
+    html: `
+      <div style="text-align: left;">
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione la fecha de pago</li>
+          <li>Presione "Buscar" para obtener los adeudos</li>
+          <li>Ingrese el número de partida para cada pago que desea grabar</li>
+          <li>Solo se grabarán los pagos con partida válida (no vacía ni cero)</li>
+          <li>Presione "Grabar Pagos" para registrar los pagos</li>
+        </ol>
+        <p><strong>Nota:</strong> Los pagos se asociarán automáticamente con el local correspondiente.</p>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
+// Cerrar
+function cerrar() {
+  router.push('/');
+}
 </script>
 
 <style scoped>
-.carga-diversos-esp {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
+.gap-2 {
+  gap: 0.5rem;
 }
-.breadcrumb {
-  background: #f8f9fa;
-  padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
+
+.table-sm td,
+.table-sm th {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.table-sm input.form-control-sm {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
 }
 </style>

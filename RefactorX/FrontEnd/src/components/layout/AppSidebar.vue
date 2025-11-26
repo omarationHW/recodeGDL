@@ -942,47 +942,47 @@ const menuItems = [
         children: [
           {
             path: '/mercados/padron-locales',
-            label: 'Padrón de Locales',
+            label: '- Padrón de Locales',
             icon: 'list'
           },
           {
             path: '/mercados/locales-mtto',
-            label: 'Mantenimiento de Locales',
+            label: '- Mantenimiento de Locales',
             icon: 'store-alt'
           },
           {
             path: '/mercados/adeudos-locales',
-            label: 'Adeudos de Locales',
+            label: '* Adeudos de Locales',
             icon: 'file-invoice-dollar'
           },
           {
             path: '/mercados/alta-pagos',
-            label: 'Alta de Pagos',
+            label: '* Alta de Pagos',
             icon: 'cash-register'
           },
           {
             path: '/mercados/emision-locales',
-            label: 'Emisión de Recibos',
+            label: '- Emisión de Recibos',
             icon: 'receipt'
           },
           {
             path: '/mercados/estad-pagos-adeudos',
-            label: 'Estadística Pagos/Adeudos',
+            label: '- Estadística Pagos/Adeudos',
             icon: 'chart-bar'
           },
           {
             path: '/mercados/carga-pag-locales',
-            label: 'Carga de Pagos',
+            label: '- Carga de Pagos',
             icon: 'file-import'
           },
           {
             path: '/mercados/listados-locales',
-            label: 'Listados de Locales',
+            label: '* Listados de Locales',
             icon: 'table'
           },
           {
             path: '/mercados/rpt-pagos-locales',
-            label: 'Reporte de Pagos de Locales',
+            label: '* Reporte de Pagos de Locales',
             icon: 'file-invoice-dollar'
           },
           {
@@ -997,22 +997,22 @@ const menuItems = [
           },
           {
             path: '/mercados/adeudos-energia',
-            label: 'Adeudos de Energía Eléctrica',
+            label: '* Adeudos de Energía Eléctrica',
             icon: 'file-invoice-dollar'
           },
           {
             path: '/mercados/catalogo-mercados',
-            label: 'Catálogo de Mercados',
+            label: '* Catálogo de Mercados',
             icon: 'building'
           },
           {
             path: '/mercados/consulta-datos-locales',
-            label: 'Consulta de Datos de Locales',
+            label: '* Consulta de Datos de Locales',
             icon: 'search'
           },
           {
             path: '/mercados/consulta-datos-energia',
-            label: 'Consulta de Datos de Energía',
+            label: '* Consulta de Datos de Energía',
             icon: 'bolt'
           },
           {
@@ -1022,7 +1022,7 @@ const menuItems = [
           },
           {
             path: '/mercados/categoria',
-            label: 'Catálogo de Categorías',
+            label: '* Catálogo de Categorías',
             icon: 'tags'
           },
           {
@@ -1037,7 +1037,7 @@ const menuItems = [
           },
           {
             path: '/mercados/recaudadoras-mercados',
-            label: 'Administración de Recaudadoras',
+            label: '* Administración de Recaudadoras',
             icon: 'building-columns'
           },
           {
@@ -1057,12 +1057,12 @@ const menuItems = [
           },
           {
             path: '/mercados/alta-pagos-energia',
-            label: 'Alta de Pagos de Energía',
+            label: '* Alta de Pagos de Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/cons-pagos',
-            label: 'Consulta de Pagos',
+            label: '* Consulta de Pagos',
             icon: 'money-bill-wave'
           },
           {
@@ -1108,69 +1108,69 @@ const menuItems = [
           },
           {
             path: '/mercados/catalogo-mntto',
-            label: 'Catálogo de Mercados',
+            label: '* Catálogo de Mercados (Mntto)',
             icon: 'edit'
           },
           {
             path: '/mercados/cons-requerimientos',
-            label: 'Consulta de Requerimientos',
+            label: '* Consulta de Requerimientos',
             icon: 'exclamation-triangle'
           },
           {
             path: '/mercados/condonacion',
-            label: 'Condonación de Adeudos',
+            label: '* Condonación de Adeudos',
             icon: 'hand-holding-usd'
           },
           {
             path: '/mercados/ade-global-locales',
-            label: 'Adeudo Global de Locales',
+            label: '* Adeudo Global de Locales',
             icon: 'file-invoice-dollar'
           },
           // LOTE 12: Reportes de Adeudos Generales y Autorización
           {
             path: '/mercados/ade-energia-grl',
-            label: 'Adeudos Generales de Energía',
+            label: '* Adeudos Generales de Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/adeudos-loc-grl',
-            label: 'Adeudos Generales del Mercado',
+            label: '* Adeudos Generales del Mercado',
             icon: 'exclamation-circle'
           },
           {
             path: '/mercados/aut-carga-pagos',
-            label: 'Autorizar Carga de Pagos',
+            label: '* Autorizar Carga de Pagos',
             icon: 'lock'
           },
           {
             path: '/mercados/aut-carga-pagos-mtto',
-            label: 'Autorizar Fecha de Ingreso',
+            label: '* Autorizar Fecha de Ingreso',
             icon: 'calendar-check'
           },
           {
             path: '/mercados/carga-diversos-esp',
-            label: 'Carga Especial Pagos Diversos',
+            label: '* Carga Especial Pagos Diversos',
             icon: 'upload'
           },
           // LOTE 13: Carga de Pagos y Importación
           {
             path: '/mercados/carga-pag-energia',
-            label: 'Carga Pagos de Energía',
+            label: '* Carga Pagos de Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/carga-pag-energia-elec',
-            label: 'Carga Pagos Energía (Rango)',
+            label: '* Carga Pagos Energía (Rango)',
             icon: 'bolt'
           },
           {
             path: '/mercados/carga-pag-especial',
-            label: 'Carga Especial Años Anteriores',
+            label: '* Carga Especial Años Anteriores',
             icon: 'calendar-alt'
           },
           {
             path: '/mercados/carga-pag-mercado',
-            label: 'Carga Pagos por Mercado',
+            label: '* Carga Pagos por Mercado',
             icon: 'store'
           },
           {
@@ -1181,27 +1181,27 @@ const menuItems = [
           // LOTE 14: Componentes de Consulta y Captura
           {
             path: '/mercados/categoria-mntto',
-            label: 'Mantenimiento de Categorías',
+            label: '* Mantenimiento de Categorías',
             icon: 'tags'
           },
           {
             path: '/mercados/cons-captura-energia',
-            label: 'Consulta Captura Energía',
+            label: '* Consulta Captura Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/cons-captura-fecha',
-            label: 'Consulta Captura por Fecha',
+            label: '* Consulta Captura por Fecha',
             icon: 'calendar-check'
           },
           {
             path: '/mercados/cons-captura-fecha-energia',
-            label: 'Consulta Energía por Fecha',
+            label: '* Consulta Energía por Fecha',
             icon: 'calendar-days'
           },
           {
             path: '/mercados/cons-captura-merc',
-            label: 'Consulta por Mercado',
+            label: '* Consulta por Mercado',
             icon: 'shopping-cart'
           },
           // LOTE 15: Consultas y Condonaciones
@@ -1212,22 +1212,22 @@ const menuItems = [
           },
           {
             path: '/mercados/cons-pagos-locales',
-            label: 'Consulta Pagos Locales',
+            label: '* Consulta Pagos Locales',
             icon: 'store'
           },
           {
             path: '/mercados/consulta-general',
-            label: 'Consulta General',
+            label: '*** Consulta General',
             icon: 'search'
           },
           {
             path: '/mercados/cons-condonacion',
-            label: 'Condonaciones Locales',
+            label: '* Condonaciones Locales',
             icon: 'hand-holding-usd'
           },
           {
             path: '/mercados/cons-condonacion-energia',
-            label: 'Condonaciones Energía',
+            label: '* Condonaciones Energía',
             icon: 'bolt'
           },
           // LOTE 16: Configuración y Cuotas Adicionales
@@ -1238,7 +1238,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cve-cuota',
-            label: 'Claves de Cuota',
+            label: '* Claves de Cuota',
             icon: 'key'
           },
           {
@@ -1258,7 +1258,7 @@ const menuItems = [
           },
           {
             path: '/mercados/recargos',
-            label: 'Configuración de Recargos',
+            label: '* Configuración de Recargos',
             icon: 'percent'
           },
           // LOTE 17: Datos de Locales y Energía
@@ -1290,7 +1290,7 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-ene-cons',
-            label: 'Consulta Pagos Energía',
+            label: '*** Consulta Pagos Energía',
             icon: 'file-invoice-dollar'
           },
           {
@@ -1499,7 +1499,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-catalogo-merc',
-            label: 'Catálogo de Mercados (Reporte)',
+            label: '* Catálogo de Mercados (Reporte)',
             icon: 'building'
           },
           // Paso de Datos

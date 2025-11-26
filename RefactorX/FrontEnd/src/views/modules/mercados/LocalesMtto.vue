@@ -110,10 +110,14 @@
               <label class="municipal-form-label">Nombre <span class="required">*</span></label>
               <input type="text" class="municipal-form-control" v-model="form.nombre" :disabled="saving" />
             </div>
-            <div class="form-group">
+            <div class="form-group" style="flex: 2;">
               <label class="municipal-form-label">Giro <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.giro" min="1"
-                :disabled="saving" />
+              <select class="municipal-form-control" v-model.number="form.giro" :disabled="saving || giros.length === 0">
+                <option value="">Seleccione...</option>
+                <option v-for="giro in giros" :key="giro.id_giro" :value="giro.id_giro">
+                  {{ giro.id_giro }} - {{ giro.descripcion }}
+                </option>
+              </select>
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Sector <span class="required">*</span></label>
@@ -210,6 +214,7 @@ const categorias = ref([])
 const secciones = ref([])
 const zonas = ref([])
 const cuotas = ref([])
+const giros = ref([])
 const selectedRec = ref('')
 const mostrarFormulario = ref(false)
 const loading = ref(false)
@@ -339,6 +344,28 @@ const fetchSecciones = async () => {
   } catch (err) {
     console.error('Error al cargar secciones:', err)
     showToast('error', 'Error al cargar secciones')
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchGiros = async () => {
+  try {
+    loading.value = true
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_giros_vigentes',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+
+    if (response.data?.eResponse?.success) {
+      giros.value = response.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar giros:', err)
+    showToast('error', 'Error al cargar giros')
   } finally {
     loading.value = false
   }
@@ -505,6 +532,7 @@ onMounted(async () => {
     await Promise.all([
       fetchRecaudadoras(),
       fetchSecciones(),
+      fetchGiros(),
       cargarCatalogos()
     ])
     showToast('success', 'Catálogos cargados correctamente')

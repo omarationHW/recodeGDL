@@ -1017,7 +1017,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cuotas-mdo',
-            label: 'Cuotas de Mercados',
+            label: '***** Cuotas de Mercados',
             icon: 'dollar-sign'
           },
           {
@@ -1067,7 +1067,7 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-individual',
-            label: '**** Consulta Individual de Pagos',
+            label: '* Consulta Individual de Pagos',
             icon: 'file-invoice-dollar'
           },
           {
@@ -1087,12 +1087,12 @@ const menuItems = [
           },
           {
             path: '/mercados/datos-convenio',
-            label: 'Datos de Convenio',
+            label: '***** Datos de Convenio',
             icon: 'handshake'
           },
           {
             path: '/mercados/datos-individuales',
-            label: 'Datos Individuales del Local',
+            label: '***** Datos Individuales del Local',
             icon: 'file-alt'
           },
           {
@@ -1264,12 +1264,12 @@ const menuItems = [
           // LOTE 17: Datos de Locales y Energía
           {
             path: '/mercados/datos-movimientos',
-            label: 'Datos de Movimientos',
+            label: '***** Datos de Movimientos',
             icon: 'exchange-alt'
           },
           {
             path: '/mercados/datos-requerimientos',
-            label: 'Datos de Requerimientos',
+            label: '***** Datos de Requerimientos',
             icon: 'file-invoice'
           },
           {
@@ -1468,7 +1468,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cuenta-publica',
-            label: 'Cuenta Pública',
+            label: '***** Cuenta Pública',
             icon: 'file-invoice-dollar'
           },
           {

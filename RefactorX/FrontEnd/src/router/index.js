@@ -724,11 +724,11 @@ const router = createRouter({
       name: 'mercados-consulta-datos-energia',
       component: () => import('@/views/modules/mercados/ConsultaDatosEnergia.vue')
     },
-    // {
-    //   path: '/mercados/cuotas-mdo',
-    //   name: 'mercados-cuotas-mdo',
-    //   component: () => import('@/views/modules/mercados/CuotasMdo.vue')
-    // },
+    {
+      path: '/mercados/cuotas-mdo',
+      name: 'mercados-cuotas-mdo',
+      component: () => import('@/views/modules/mercados/CuotasMdo.vue')
+    },
     {
       path: '/mercados/categoria',
       name: 'mercados-categoria',
@@ -794,16 +794,16 @@ const router = createRouter({
     //   name: 'mercados-cuotas-energia-mntto',
     //   component: () => import('@/views/modules/mercados/CuotasEnergiaMntto.vue')
     // },
-    // {
-    //   path: '/mercados/datos-convenio/:id_conv?',
-    //   name: 'mercados-datos-convenio',
-    //   component: () => import('@/views/modules/mercados/DatosConvenio.vue')
-    // },
-    // {
-    //   path: '/mercados/datos-individuales',
-    //   name: 'mercados-datos-individuales',
-    //   component: () => import('@/views/modules/mercados/DatosIndividuales.vue')
-    // },
+    {
+      path: '/mercados/datos-convenio/:id_conv?',
+      name: 'mercados-datos-convenio',
+      component: () => import('@/views/modules/mercados/DatosConvenio.vue')
+    },
+    {
+      path: '/mercados/datos-individuales',
+      name: 'mercados-datos-individuales',
+      component: () => import('@/views/modules/mercados/DatosIndividuales.vue')
+    },
     // {
     //   path: '/mercados/estadisticas',
     //   name: 'mercados-estadisticas',
@@ -974,16 +974,16 @@ const router = createRouter({
     },
 
     // // LOTE 17: Datos de Locales y Energía
-    // {
-    //   path: '/mercados/datos-movimientos',
-    //   name: 'mercados-datos-movimientos',
-    //   component: () => import('@/views/modules/mercados/DatosMovimientos.vue')
-    // },
-    // {
-    //   path: '/mercados/datos-requerimientos',
-    //   name: 'mercados-datos-requerimientos',
-    //   component: () => import('@/views/modules/mercados/DatosRequerimientos.vue')
-    // },
+    {
+      path: '/mercados/datos-movimientos',
+      name: 'mercados-datos-movimientos',
+      component: () => import('@/views/modules/mercados/DatosMovimientos.vue')
+    },
+    {
+      path: '/mercados/datos-requerimientos',
+      name: 'mercados-datos-requerimientos',
+      component: () => import('@/views/modules/mercados/DatosRequerimientos.vue')
+    },
     {
       path: '/mercados/locales-modif',
       name: 'mercados-locales-modif',
@@ -1187,11 +1187,11 @@ const router = createRouter({
     //   name: 'mercados-rpt-estadistica-adeudos',
     //   component: () => import('@/views/modules/mercados/RptEstadisticaAdeudos.vue')
     // },
-    // {
-    //   path: '/mercados/cuenta-publica',
-    //   name: 'mercados-cuenta-publica',
-    //   component: () => import('@/views/modules/mercados/CuentaPublica.vue')
-    // },
+    {
+      path: '/mercados/cuenta-publica',
+      name: 'mercados-cuenta-publica',
+      component: () => import('@/views/modules/mercados/CuentaPublica.vue')
+    },
     // {
     //   path: '/mercados/rpt-cuenta-publica',
     //   name: 'mercados-rpt-cuenta-publica',

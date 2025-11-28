@@ -121,7 +121,7 @@ const buscarPago = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'pagos_individual_get',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [
           { Nombre: 'p_id_local', Valor: parseInt(form.value.id_local) },
           { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },

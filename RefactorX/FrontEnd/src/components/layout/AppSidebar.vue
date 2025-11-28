@@ -992,7 +992,7 @@ const menuItems = [
           },
           {
             path: '/mercados/energia-mtto',
-            label: 'Alta de Energía Eléctrica',
+            label: '* Alta de Energía Eléctrica',
             icon: 'plus-circle'
           },
           {
@@ -1052,7 +1052,7 @@ const menuItems = [
           },
           {
             path: '/mercados/padron-global',
-            label: 'Padrón Global de Locales',
+            label: '* Padrón Global de Locales',
             icon: 'table'
           },
           {
@@ -1067,12 +1067,12 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-individual',
-            label: 'Consulta Individual de Pagos',
+            label: '**** Consulta Individual de Pagos',
             icon: 'file-invoice-dollar'
           },
           {
             path: '/mercados/cuotas-energia',
-            label: 'Cuotas de Energía',
+            label: '* Cuotas de Energía',
             icon: 'plug'
           },
           {
@@ -1207,7 +1207,7 @@ const menuItems = [
           // LOTE 15: Consultas y Condonaciones
           {
             path: '/mercados/cons-pagos-energia',
-            label: 'Consulta Pagos Energía',
+            label: '* Consulta Pagos Energía',
             icon: 'bolt'
           },
           {
@@ -1243,7 +1243,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cve-diferencias',
-            label: 'Claves de Diferencias',
+            label: '** Claves de Diferencias',
             icon: 'balance-scale'
           },
           {
@@ -1254,7 +1254,7 @@ const menuItems = [
           {
             path: '/mercados/fechas-descuento-mntto',
             label: 'Mantenimiento Fechas Descuento',
-            icon: 'calendar-edit'
+            icon: 'calendar-check'
           },
           {
             path: '/mercados/recargos',
@@ -1274,7 +1274,7 @@ const menuItems = [
           },
           {
             path: '/mercados/locales-modif',
-            label: 'Modificar Locales',
+            label: '* Modificar Locales',
             icon: 'pen'
           },
           {

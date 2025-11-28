@@ -1,136 +1,164 @@
 <template>
-  <div class="pagos-individual-page">
-    <nav class="breadcrumb">
-      <router-link to="/">Inicio</router-link> /
-      <span>Consulta Individual de Pagos del Local</span>
-    </nav>
-    <h1>Consulta Individual de Pagos del Local</h1>
-    <form @submit.prevent="buscarPago">
-      <div class="form-row">
-        <label for="id_local">ID Local:</label>
-        <input v-model.number="form.id_local" type="number" required />
-        <label for="axo">Año:</label>
-        <input v-model.number="form.axo" type="number" required />
-        <label for="periodo">Mes:</label>
-        <input v-model.number="form.periodo" type="number" min="1" max="12" required />
-        <button type="submit">Buscar</button>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="search-dollar" />
       </div>
-    </form>
-    <div v-if="loading" class="loading">Cargando...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="pago">
-      <h2>Datos del Mercado</h2>
-      <table class="info-table">
-        <tr><th>Oficina</th><td>{{ pago.oficina }}</td></tr>
-        <tr><th>Mercado</th><td>{{ pago.num_mercado }}</td></tr>
-        <tr><th>Categoría</th><td>{{ pago.categoria }}</td></tr>
-        <tr><th>Sección</th><td>{{ pago.seccion }}</td></tr>
-        <tr><th>Local</th><td>{{ pago.local }}</td></tr>
-        <tr><th>Letra</th><td>{{ pago.letra_local }}</td></tr>
-        <tr><th>Bloque</th><td>{{ pago.bloque }}</td></tr>
-        <tr><th>Descripción</th><td>{{ pago.descripcion_local }}</td></tr>
-      </table>
-      <h2>Datos del Pago</h2>
-      <table class="info-table">
-        <tr><th>Control</th><td>{{ pago.id_local }}</td></tr>
-        <tr><th>Año</th><td>{{ pago.axo }}</td></tr>
-        <tr><th>Mes</th><td>{{ pago.periodo }}</td></tr>
-        <tr><th>Fecha de Pago</th><td>{{ pago.fecha_pago }}</td></tr>
-        <tr><th>Oficina de Pago</th><td>{{ pago.oficina_pago }}</td></tr>
-        <tr><th>Caja de Pago</th><td>{{ pago.caja_pago }}</td></tr>
-        <tr><th>Operación de Pago</th><td>{{ pago.operacion_pago }}</td></tr>
-        <tr><th>Importe Pagado</th><td>{{ pago.importe_pago }}</td></tr>
-        <tr><th>Partida</th><td>{{ pago.folio }}</td></tr>
-        <tr><th>Actualización</th><td>{{ pago.fecha_modificacion_1 }}</td></tr>
-        <tr><th>Usuario</th><td>{{ pago.usuario }}</td></tr>
-      </table>
+      <div class="module-view-info">
+        <h1>Consulta Individual de Pagos del Local</h1>
+        <p>Inicio > Mercados > Consulta de Pagos</p>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <h5>Consulta Individual de Pagos del Local</h5>
+      </div>
+      <div class="municipal-card-body">
+        <form @submit.prevent="buscarPago">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="municipal-form-label">ID Local *</label>
+              <input v-model.number="form.id_local" type="number" class="municipal-form-control" required :disabled="loading" />
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="municipal-form-label">Año *</label>
+              <input v-model.number="form.axo" type="number" class="municipal-form-control" required :disabled="loading" />
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="municipal-form-label">Mes *</label>
+              <input v-model.number="form.periodo" type="number" class="municipal-form-control" min="1" max="12" required :disabled="loading" />
+            </div>
+            <div class="col-md-3 mb-3 d-flex align-items-end">
+              <button type="submit" class="btn-municipal-primary w-100" :disabled="loading">
+                <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                Buscar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div v-if="loading" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
+    <div v-if="pago" class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <h5>Datos del Mercado</h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <tbody>
+              <tr><th class="bg-light" style="width: 30%;">Oficina</th><td>{{ pago.oficina }}</td></tr>
+              <tr><th class="bg-light">Mercado</th><td>{{ pago.num_mercado }}</td></tr>
+              <tr><th class="bg-light">Categoría</th><td>{{ pago.categoria }}</td></tr>
+              <tr><th class="bg-light">Sección</th><td>{{ pago.seccion }}</td></tr>
+              <tr><th class="bg-light">Local</th><td>{{ pago.local }}</td></tr>
+              <tr><th class="bg-light">Letra</th><td>{{ pago.letra_local }}</td></tr>
+              <tr><th class="bg-light">Bloque</th><td>{{ pago.bloque }}</td></tr>
+              <tr><th class="bg-light">Descripción</th><td>{{ pago.descripcion_local }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="pago" class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <h5>Datos del Pago</h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <tbody>
+              <tr><th class="bg-light" style="width: 30%;">Control</th><td>{{ pago.id_local }}</td></tr>
+              <tr><th class="bg-light">Año</th><td>{{ pago.axo }}</td></tr>
+              <tr><th class="bg-light">Mes</th><td>{{ pago.periodo }}</td></tr>
+              <tr><th class="bg-light">Fecha de Pago</th><td>{{ formatDate(pago.fecha_pago) }}</td></tr>
+              <tr><th class="bg-light">Oficina de Pago</th><td>{{ pago.oficina_pago }}</td></tr>
+              <tr><th class="bg-light">Caja de Pago</th><td>{{ pago.caja_pago }}</td></tr>
+              <tr><th class="bg-light">Operación de Pago</th><td>{{ pago.operacion_pago }}</td></tr>
+              <tr><th class="bg-light">Importe Pagado</th><td>{{ formatCurrency(pago.importe_pago) }}</td></tr>
+              <tr><th class="bg-light">Partida</th><td>{{ pago.folio }}</td></tr>
+              <tr><th class="bg-light">Actualización</th><td>{{ formatDate(pago.fecha_modificacion_1) }}</td></tr>
+              <tr><th class="bg-light">Usuario</th><td>{{ pago.usuario }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'PagosIndividual',
-  data() {
-    return {
-      form: {
-        id_local: '',
-        axo: '',
-        periodo: ''
-      },
-      pago: null,
-      loading: false,
-      error: ''
-    };
-  },
-  methods: {
-    async buscarPago() {
-      this.loading = true;
-      this.error = '';
-      this.pago = null;
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getPagoIndividual',
-            params: {
-              id_local: this.form.id_local,
-              axo: this.form.axo,
-              periodo: this.form.periodo
-            }
-          })
-        });
-        const json = await res.json();
-        if (json.success && json.data) {
-          this.pago = json.data;
-        } else {
-          this.error = json.message || 'No se encontró el pago.';
-        }
-      } catch (e) {
-        this.error = 'Error de comunicación con el servidor.';
-      } finally {
-        this.loading = false;
+<script setup>
+import { ref } from 'vue'
+import axios from 'axios'
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
+const loading = ref(false)
+const pago = ref(null)
+
+const form = ref({
+  id_local: '',
+  axo: '',
+  periodo: ''
+})
+
+const buscarPago = async () => {
+  loading.value = true
+  pago.value = null
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'pagos_individual_get',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: parseInt(form.value.id_local) },
+          { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
+          { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) }
+        ]
       }
+    })
+
+    if (response.data?.eResponse?.success && response.data.eResponse.data?.result && response.data.eResponse.data.result.length > 0) {
+      pago.value = response.data.eResponse.data.result[0]
+      toast.success('Pago encontrado')
+    } else {
+      toast.warning('No se encontró el pago')
     }
+  } catch (error) {
+    toast.error('Error al buscar el pago')
+    console.error('Error:', error)
+  } finally {
+    loading.value = false
   }
-};
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('es-MX')
+}
+
+const formatCurrency = (value) => {
+  if (!value && value !== 0) return '$0.00'
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value)
+}
 </script>
 
 <style scoped>
-.pagos-individual-page {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-.breadcrumb {
-  margin-bottom: 1rem;
-  font-size: 0.95em;
-}
-.form-row {
-  display: flex;
-  gap: 1em;
-  align-items: center;
-  margin-bottom: 1.5em;
-}
-.info-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 2em;
-}
-.info-table th {
-  text-align: left;
-  background: #f0f0f0;
-  padding: 0.3em 0.7em;
-}
-.info-table td {
-  padding: 0.3em 0.7em;
-}
-.loading {
-  color: #888;
-}
-.error {
-  color: #c00;
-  margin: 1em 0;
-}
+/* Estilos adicionales si son necesarios */
 </style>

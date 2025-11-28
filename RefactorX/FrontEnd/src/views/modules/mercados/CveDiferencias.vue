@@ -1,174 +1,332 @@
 <template>
-  <div class="cve-diferencias-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Clave de Diferencias</li>
-      </ol>
-    </nav>
-    <h2>Clave de Diferencias</h2>
-    <div class="mb-3">
-      <button class="btn btn-primary me-2" @click="showAddModal = true">Agregar</button>
-      <button class="btn btn-secondary me-2" :disabled="!selectedRow" @click="showEditModal = true">Modificar</button>
-      <button class="btn btn-outline-secondary" @click="fetchData">Refrescar</button>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="key" />
+      </div>
+      <div class="module-view-info">
+        <h1>Clave de Diferencias</h1>
+        <p>Inicio > Mercados > Clave de Diferencias</p>
+      </div>
     </div>
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>Clave</th>
-          <th>Descripción</th>
-          <th>Cuenta Ingreso</th>
-          <th>Usuario</th>
-          <th>Fecha Actual</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in rows" :key="row.clave_diferencia" :class="{ 'table-active': selectedRow && selectedRow.clave_diferencia === row.clave_diferencia }" @click="selectRow(row)">
-          <td>{{ row.clave_diferencia }}</td>
-          <td>{{ row.descripcion }}</td>
-          <td>{{ row.cuenta_ingreso }}</td>
-          <td>{{ row.usuario }}</td>
-          <td>{{ formatDate(row.fecha_actual) }}</td>
-        </tr>
-      </tbody>
-    </table>
+
+    <div class="module-view-content">
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <h5>Clave de Diferencias</h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="mb-3 d-flex gap-2">
+          <button class="btn-municipal-primary" @click="openAddModal" :disabled="loading">Agregar</button>
+          <button class="btn-municipal-secondary" :disabled="!selectedRow || loading" @click="openEditModal">Modificar</button>
+          <button class="btn-municipal-info" @click="fetchData" :disabled="loading">
+            <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+            Refrescar
+          </button>
+        </div>
+
+        <div v-if="loading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+
+        <div v-else class="table-responsive">
+          <table class="municipal-table table-hover">
+            <thead>
+              <tr>
+                <th>Clave</th>
+                <th>Descripción</th>
+                <th>Cuenta Ingreso</th>
+                <th>Usuario</th>
+                <th>Fecha Actual</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in rows" :key="row.clave_diferencia"
+                  :class="{ 'table-active': selectedRow && selectedRow.clave_diferencia === row.clave_diferencia }"
+                  @click="selectRow(row)"
+                  style="cursor: pointer;">
+                <td>{{ row.clave_diferencia }}</td>
+                <td>{{ row.descripcion }}</td>
+                <td>{{ row.cuenta_ingreso }}</td>
+                <td>{{ row.usuario }}</td>
+                <td>{{ formatDate(row.fecha_actual) }}</td>
+              </tr>
+              <tr v-if="rows.length === 0">
+                <td colspan="5" class="text-center">No hay datos disponibles</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
     <!-- Add Modal -->
-    <b-modal v-model="showAddModal" title="Agregar Clave de Diferencia" @ok="addCveDiferencia">
-      <form @submit.prevent="addCveDiferencia">
-        <div class="mb-3">
-          <label>Descripción</label>
-          <input v-model="form.descripcion" type="text" class="form-control" maxlength="60" required />
+    <div v-if="showAddModal" class="modal-backdrop show"></div>
+    <div v-if="showAddModal" class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Agregar Clave de Diferencia</h5>
+            <button type="button" class="btn-close" @click="closeAddModal"></button>
+          </div>
+          <form @submit.prevent="addCveDiferencia">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="municipal-form-label">Descripción *</label>
+                <input v-model="form.descripcion" type="text" class="municipal-form-control" maxlength="60" required />
+              </div>
+              <div class="mb-3">
+                <label class="municipal-form-label">Cuenta Ingreso *</label>
+                <select v-model="form.cuenta_ingreso" class="municipal-form-control" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="cuenta in cuentasIngreso" :key="cuenta.cta_aplicacion" :value="cuenta.cta_aplicacion">
+                    {{ cuenta.cta_aplicacion }} - {{ cuenta.descripcion }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-municipal-secondary" @click="closeAddModal">Cancelar</button>
+              <button type="submit" class="btn-municipal-success" :disabled="loading">
+                <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                Guardar
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="mb-3">
-          <label>Cuenta Ingreso</label>
-          <select v-model="form.cuenta_ingreso" class="form-control" required>
-            <option v-for="cuenta in cuentasIngreso" :key="cuenta.cta_aplicacion" :value="cuenta.cta_aplicacion">
-              {{ cuenta.cta_aplicacion }} - {{ cuenta.descripcion }}
-            </option>
-          </select>
-        </div>
-      </form>
-    </b-modal>
+      </div>
+    </div>
 
     <!-- Edit Modal -->
-    <b-modal v-model="showEditModal" title="Modificar Clave de Diferencia" @ok="updateCveDiferencia">
-      <form @submit.prevent="updateCveDiferencia">
-        <div class="mb-3">
-          <label>Descripción</label>
-          <input v-model="form.descripcion" type="text" class="form-control" maxlength="60" required />
+    <div v-if="showEditModal" class="modal-backdrop show"></div>
+    <div v-if="showEditModal" class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modificar Clave de Diferencia</h5>
+            <button type="button" class="btn-close" @click="closeEditModal"></button>
+          </div>
+          <form @submit.prevent="updateCveDiferencia">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="municipal-form-label">Descripción *</label>
+                <input v-model="form.descripcion" type="text" class="municipal-form-control" maxlength="60" required />
+              </div>
+              <div class="mb-3">
+                <label class="municipal-form-label">Cuenta Ingreso *</label>
+                <select v-model="form.cuenta_ingreso" class="municipal-form-control" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="cuenta in cuentasIngreso" :key="cuenta.cta_aplicacion" :value="cuenta.cta_aplicacion">
+                    {{ cuenta.cta_aplicacion }} - {{ cuenta.descripcion }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-municipal-secondary" @click="closeEditModal">Cancelar</button>
+              <button type="submit" class="btn-municipal-success" :disabled="loading">
+                <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                Actualizar
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="mb-3">
-          <label>Cuenta Ingreso</label>
-          <select v-model="form.cuenta_ingreso" class="form-control" required>
-            <option v-for="cuenta in cuentasIngreso" :key="cuenta.cta_aplicacion" :value="cuenta.cta_aplicacion">
-              {{ cuenta.cta_aplicacion }} - {{ cuenta.descripcion }}
-            </option>
-          </select>
-        </div>
-      </form>
-    </b-modal>
-
-    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+      </div>
+    </div>
+    </div>
   </div>
 </template>
 
-<script>
-import axios from 'axios';
-export default {
-  name: 'CveDiferenciasPage',
-  data() {
-    return {
-      rows: [],
-      cuentasIngreso: [],
-      selectedRow: null,
-      showAddModal: false,
-      showEditModal: false,
-      form: {
-        descripcion: '',
-        cuenta_ingreso: ''
-      },
-      error: ''
-    };
-  },
-  mounted() {
-    this.fetchData();
-    this.fetchCuentasIngreso();
-  },
-  methods: {
-    fetchData() {
-      axios.post('/api/execute', {
-        eRequest: { action: 'getCveDiferencias' }
-      }).then(res => {
-        this.rows = res.data.eResponse.data;
-      }).catch(err => {
-        this.error = err.response?.data?.eResponse?.message || err.message;
-      });
-    },
-    fetchCuentasIngreso() {
-      axios.post('/api/execute', {
-        eRequest: { action: 'getCuentasIngreso' }
-      }).then(res => {
-        this.cuentasIngreso = res.data.eResponse.data;
-      });
-    },
-    selectRow(row) {
-      this.selectedRow = row;
-      this.form.descripcion = row.descripcion;
-      this.form.cuenta_ingreso = row.cuenta_ingreso;
-    },
-    addCveDiferencia() {
-      axios.post('/api/execute', {
-        eRequest: {
-          action: 'addCveDiferencia',
-          params: {
-            descripcion: this.form.descripcion,
-            cuenta_ingreso: this.form.cuenta_ingreso,
-            id_usuario: this.$store.state.user.id_usuario // Asume Vuex auth
-          }
-        }
-      }).then(() => {
-        this.showAddModal = false;
-        this.fetchData();
-      }).catch(err => {
-        this.error = err.response?.data?.eResponse?.message || err.message;
-      });
-    },
-    updateCveDiferencia() {
-      if (!this.selectedRow) return;
-      axios.post('/api/execute', {
-        eRequest: {
-          action: 'updateCveDiferencia',
-          params: {
-            clave_diferencia: this.selectedRow.clave_diferencia,
-            descripcion: this.form.descripcion,
-            cuenta_ingreso: this.form.cuenta_ingreso,
-            id_usuario: this.$store.state.user.id_usuario
-          }
-        }
-      }).then(() => {
-        this.showEditModal = false;
-        this.fetchData();
-      }).catch(err => {
-        this.error = err.response?.data?.eResponse?.message || err.message;
-      });
-    },
-    formatDate(dt) {
-      if (!dt) return '';
-      return new Date(dt).toLocaleString();
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
+const loading = ref(false)
+const rows = ref([])
+const cuentasIngreso = ref([])
+const selectedRow = ref(null)
+const showAddModal = ref(false)
+const showEditModal = ref(false)
+
+const form = ref({
+  descripcion: '',
+  cuenta_ingreso: ''
+})
+
+const fetchData = async () => {
+  loading.value = true
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_cve_diferencias',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+
+    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+      rows.value = response.data.eResponse.data.result
+    } else {
+      rows.value = []
     }
+  } catch (error) {
+    toast.error('Error al cargar claves de diferencias')
+    console.error('Error:', error)
+    rows.value = []
+  } finally {
+    loading.value = false
   }
-};
+}
+
+const fetchCuentasIngreso = async () => {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_cuentas_ingreso',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+
+    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+      cuentasIngreso.value = response.data.eResponse.data.result
+    }
+  } catch (error) {
+    toast.error('Error al cargar cuentas de ingreso')
+    console.error('Error:', error)
+  }
+}
+
+const selectRow = (row) => {
+  selectedRow.value = row
+  form.value.descripcion = row.descripcion
+  form.value.cuenta_ingreso = row.cuenta_ingreso
+}
+
+const openAddModal = () => {
+  form.value = {
+    descripcion: '',
+    cuenta_ingreso: ''
+  }
+  showAddModal.value = true
+}
+
+const closeAddModal = () => {
+  showAddModal.value = false
+  form.value = {
+    descripcion: '',
+    cuenta_ingreso: ''
+  }
+}
+
+const openEditModal = () => {
+  if (!selectedRow.value) return
+  form.value.descripcion = selectedRow.value.descripcion
+  form.value.cuenta_ingreso = selectedRow.value.cuenta_ingreso
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+}
+
+const addCveDiferencia = async () => {
+  loading.value = true
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_add_cve_diferencia',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
+          { Nombre: 'p_cuenta_ingreso', Valor: form.value.cuenta_ingreso },
+          { Nombre: 'p_id_usuario', Valor: 1 } // TODO: Obtener de sesión
+        ]
+      }
+    })
+
+    if (response.data?.eResponse?.success) {
+      toast.success('Clave de diferencia agregada correctamente')
+      closeAddModal()
+      await fetchData()
+    } else {
+      toast.error(response.data?.eResponse?.message || 'Error al agregar')
+    }
+  } catch (error) {
+    toast.error('Error al agregar clave de diferencia')
+    console.error('Error:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const updateCveDiferencia = async () => {
+  if (!selectedRow.value) return
+
+  loading.value = true
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_update_cve_diferencia',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_clave_diferencia', Valor: parseInt(selectedRow.value.clave_diferencia) },
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
+          { Nombre: 'p_cuenta_ingreso', Valor: form.value.cuenta_ingreso },
+          { Nombre: 'p_id_usuario', Valor: 1 } // TODO: Obtener de sesión
+        ]
+      }
+    })
+
+    if (response.data?.eResponse?.success) {
+      toast.success('Clave de diferencia actualizada correctamente')
+      closeEditModal()
+      await fetchData()
+      selectedRow.value = null
+    } else {
+      toast.error(response.data?.eResponse?.message || 'Error al actualizar')
+    }
+  } catch (error) {
+    toast.error('Error al actualizar clave de diferencia')
+    console.error('Error:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatDate = (dt) => {
+  if (!dt) return ''
+  return new Date(dt).toLocaleString('es-MX')
+}
+
+onMounted(() => {
+  fetchData()
+  fetchCuentasIngreso()
+})
 </script>
 
 <style scoped>
-.cve-diferencias-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+.gap-2 {
+  gap: 0.5rem;
 }
-.table-hover tbody tr:hover {
-  background-color: #f5f5f5;
-  cursor: pointer;
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1040;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  opacity: 0.5;
+}
+
+.modal.show {
+  display: block;
 }
 </style>

@@ -759,11 +759,11 @@ const router = createRouter({
     //   name: 'mercados-reporte-general-mercados',
     //   component: () => import('@/views/modules/mercados/ReporteGeneralMercados.vue')
     // },
-    // {
-    //   path: '/mercados/padron-global',
-    //   name: 'mercados-padron-global',
-    //   component: () => import('@/views/modules/mercados/PadronGlobal.vue')
-    // },
+    {
+      path: '/mercados/padron-global',
+      name: 'mercados-padron-global',
+      component: () => import('@/views/modules/mercados/PadronGlobal.vue')
+    },
     {
       path: '/mercados/alta-pagos-energia',
       name: 'mercados-alta-pagos-energia',
@@ -774,16 +774,16 @@ const router = createRouter({
       name: 'mercados-cons-pagos',
       component: () => import('@/views/modules/mercados/ConsPagos.vue')
     },
-    // {
-    //   path: '/mercados/pagos-individual',
-    //   name: 'mercados-pagos-individual',
-    //   component: () => import('@/views/modules/mercados/PagosIndividual.vue')
-    // },
-    // {
-    //   path: '/mercados/cuotas-energia',
-    //   name: 'mercados-cuotas-energia',
-    //   component: () => import('@/views/modules/mercados/CuotasEnergia.vue')
-    // },
+    {
+      path: '/mercados/pagos-individual',
+      name: 'mercados-pagos-individual',
+      component: () => import('@/views/modules/mercados/PagosIndividual.vue')
+    },
+    {
+      path: '/mercados/cuotas-energia',
+      name: 'mercados-cuotas-energia',
+      component: () => import('@/views/modules/mercados/CuotasEnergia.vue')
+    },
     // {
     //   path: '/mercados/emision-energia',
     //   name: 'mercados-emision-energia',
@@ -952,11 +952,11 @@ const router = createRouter({
       name: 'mercados-cve-cuota',
       component: () => import('@/views/modules/mercados/CveCuota.vue')
     },
-    // {
-    //   path: '/mercados/cve-diferencias',
-    //   name: 'mercados-cve-diferencias',
-    //   component: () => import('@/views/modules/mercados/CveDiferencias.vue')
-    // },
+    {
+      path: '/mercados/cve-diferencias',
+      name: 'mercados-cve-diferencias',
+      component: () => import('@/views/modules/mercados/CveDiferencias.vue')
+    },
     // {
     //   path: '/mercados/fecha-descuento',
     //   name: 'mercados-fecha-descuento',
@@ -984,11 +984,11 @@ const router = createRouter({
     //   name: 'mercados-datos-requerimientos',
     //   component: () => import('@/views/modules/mercados/DatosRequerimientos.vue')
     // },
-    // {
-    //   path: '/mercados/locales-modif',
-    //   name: 'mercados-locales-modif',
-    //   component: () => import('@/views/modules/mercados/LocalesModif.vue')
-    // },
+    {
+      path: '/mercados/locales-modif',
+      name: 'mercados-locales-modif',
+      component: () => import('@/views/modules/mercados/LocalesModif.vue')
+    },
     // {
     //   path: '/mercados/energia-modif',
     //   name: 'mercados-energia-modif',

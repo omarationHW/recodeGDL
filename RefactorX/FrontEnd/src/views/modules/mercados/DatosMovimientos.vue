@@ -1,178 +1,407 @@
 <template>
-  <div class="datos-movimientos-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Consulta de Movimientos</li>
-      </ol>
-    </nav>
-    <div class="card mb-3">
-      <div class="card-header bg-primary text-white">Movimientos del Local</div>
-      <div class="card-body">
-        <div class="row mb-2">
-          <div class="col-md-4">
-            <label for="id_local">ID Local</label>
-            <input v-model="id_local" type="number" class="form-control" id="id_local" placeholder="Ingrese el ID del local" />
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="exchange-alt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta de Movimientos</h1>
+        <p>Inicio > Mercados > Movimientos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-secondary" @click="$router.back()">
+          <font-awesome-icon icon="arrow-left" />
+          Regresar
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Movimientos
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">ID Local <span class="required">*</span></label>
+              <input v-model.number="id_local" type="number" class="municipal-form-control"
+                placeholder="Ingrese el ID del local" :disabled="loading" />
+            </div>
+            <div class="form-group align-self-end">
+              <button class="btn-municipal-primary" @click="fetchMovimientos" :disabled="loading || !id_local">
+                <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" />
+                Buscar
+              </button>
+            </div>
           </div>
-          <div class="col-md-2 align-self-end">
-            <button class="btn btn-success" @click="fetchMovimientos">Buscar</button>
+        </div>
+      </div>
+
+      <!-- Tabla de Movimientos -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Movimientos del Local
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="movimientos.length > 0">
+              {{ movimientos.length }} registros
+            </span>
           </div>
         </div>
-        <div v-if="movimientos.length > 0">
-          <table class="table table-bordered table-sm">
-            <thead class="thead-light">
-              <tr>
-                <th>Control</th>
-                <th>Año</th>
-                <th>Número</th>
-                <th>Actualización</th>
-                <th>Nombre</th>
-                <th>Sector</th>
-                <th>Zona</th>
-                <th>Descripción</th>
-                <th>Superficie</th>
-                <th>Giro</th>
-                <th>Fec. Alta</th>
-                <th>Fec. Baja</th>
-                <th>Vigencia</th>
-                <th>Usuario</th>
-                <th>Clave Cuota</th>
-                <th>Renta</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="mov in movimientos" :key="mov.id_local + '-' + mov.numero_memo">
-                <td>{{ mov.id_local }}</td>
-                <td>{{ mov.axo_memo }}</td>
-                <td>{{ mov.numero_memo }}</td>
-                <td>{{ mov.fecha }}</td>
-                <td>{{ mov.nombre }}</td>
-                <td>{{ mov.sector }}</td>
-                <td>{{ mov.zona }}</td>
-                <td>{{ mov.drescripcion_local }}</td>
-                <td>{{ mov.superficie }}</td>
-                <td>{{ mov.giro }}</td>
-                <td>{{ mov.fecha_alta }}</td>
-                <td>{{ mov.fecha_baja }}</td>
-                <td>{{ mov.vigdescripcion }}</td>
-                <td>{{ mov.usuario }}</td>
-                <td>{{ mov.clave_cuota }}</td>
-                <td>{{ mov.renta }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="municipal-card-body table-container">
+          <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando movimientos...</p>
+          </div>
+
+          <div v-else-if="movimientos.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Control</th>
+                  <th>Año</th>
+                  <th>Número</th>
+                  <th>Actualización</th>
+                  <th>Nombre</th>
+                  <th>Sector</th>
+                  <th>Zona</th>
+                  <th>Descripción</th>
+                  <th>Superficie</th>
+                  <th>Giro</th>
+                  <th>Fec. Alta</th>
+                  <th>Fec. Baja</th>
+                  <th>Vigencia</th>
+                  <th>Usuario</th>
+                  <th>Clave Cuota</th>
+                  <th class="text-end">Renta</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="mov in movimientos" :key="mov.id_local + '-' + mov.numero_memo" class="row-hover">
+                  <td>{{ mov.id_local }}</td>
+                  <td>{{ mov.axo_memo }}</td>
+                  <td>{{ mov.numero_memo }}</td>
+                  <td>{{ mov.fecha }}</td>
+                  <td>{{ mov.nombre }}</td>
+                  <td>{{ mov.sector }}</td>
+                  <td>{{ mov.zona }}</td>
+                  <td>{{ mov.drescripcion_local }}</td>
+                  <td>{{ mov.superficie }}</td>
+                  <td>{{ mov.giro }}</td>
+                  <td>{{ mov.fecha_alta }}</td>
+                  <td>{{ mov.fecha_baja }}</td>
+                  <td>{{ mov.vigdescripcion }}</td>
+                  <td>{{ mov.usuario }}</td>
+                  <td>{{ mov.clave_cuota }}</td>
+                  <td class="text-end">{{ formatCurrency(mov.renta) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else-if="searched" class="text-center text-muted py-4">
+            <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+            <p>No se encontraron movimientos para el local indicado</p>
+          </div>
+
+          <div v-else class="text-center text-muted py-4">
+            <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+            <p>Ingrese un ID de local para buscar movimientos</p>
+          </div>
         </div>
-        <div v-else-if="searched">
-          <div class="alert alert-warning">No se encontraron movimientos para el local indicado.</div>
+      </div>
+
+      <!-- Catálogos en fila -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="municipal-card">
+            <div class="municipal-card-header header-with-badge">
+              <h5>
+                <font-awesome-icon icon="tags" />
+                Claves de Movimiento
+              </h5>
+              <div class="header-right">
+                <span class="badge-green" v-if="clavesMov.length > 0">
+                  {{ clavesMov.length }}
+                </span>
+              </div>
+            </div>
+            <div class="municipal-card-body" style="max-height: 300px; overflow-y: auto;">
+              <ul class="catalog-list" v-if="clavesMov.length > 0">
+                <li v-for="c in clavesMov" :key="c.clave_movimiento">
+                  <span class="catalog-key">{{ c.clave_movimiento }}</span>
+                  <span class="catalog-desc">{{ c.descripcion }}</span>
+                </li>
+              </ul>
+              <p v-else class="text-muted text-center">Sin datos</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="municipal-card">
+            <div class="municipal-card-header header-with-badge">
+              <h5>
+                <font-awesome-icon icon="receipt" />
+                Claves de Cuota
+              </h5>
+              <div class="header-right">
+                <span class="badge-green" v-if="cveCuotas.length > 0">
+                  {{ cveCuotas.length }}
+                </span>
+              </div>
+            </div>
+            <div class="municipal-card-body" style="max-height: 300px; overflow-y: auto;">
+              <ul class="catalog-list" v-if="cveCuotas.length > 0">
+                <li v-for="c in cveCuotas" :key="c.clave_cuota">
+                  <span class="catalog-key">{{ c.clave_cuota }}</span>
+                  <span class="catalog-desc">{{ c.descripcion }}</span>
+                </li>
+              </ul>
+              <p v-else class="text-muted text-center">Sin datos</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="card mb-3">
-      <div class="card-header">Catálogo de Claves de Movimiento</div>
-      <div class="card-body">
-        <ul>
-          <li v-for="c in clavesMov" :key="c.clave_movimiento">{{ c.clave_movimiento }} - {{ c.descripcion }}</li>
-        </ul>
-      </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
-    <div class="card mb-3">
-      <div class="card-header">Catálogo de Claves de Cuota</div>
-      <div class="card-body">
-        <ul>
-          <li v-for="c in cveCuotas" :key="c.clave_cuota">{{ c.clave_cuota }} - {{ c.descripcion }}</li>
-        </ul>
-      </div>
-    </div>
-    <button class="btn btn-secondary" @click="$router.back()">Regresar</button>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'DatosMovimientosPage',
-  data() {
-    return {
-      id_local: '',
-      movimientos: [],
-      clavesMov: [],
-      cveCuotas: [],
-      searched: false
-    };
-  },
-  methods: {
-    async fetchMovimientos() {
-      if (!this.id_local) return;
-      this.searched = false;
-      // 1. Movimientos
-      const movResp = await this.$axios.post('/api/execute', {
-        action: 'get_movimientos_by_local',
-        params: { id_local: this.id_local }
-      });
-      let movs = movResp.data.data || [];
-      // 2. Calcular vigdescripcion y renta para cada movimiento
-      for (let mov of movs) {
-        // Vigencia descripción
-        const vigResp = await this.$axios.post('/api/execute', {
-          action: 'calc_vigencia_descripcion',
-          params: { vigencia: mov.vigencia }
-        });
-        mov.vigdescripcion = vigResp.data.data;
-        // Obtener cuota
-        const cuotaResp = await this.$axios.post('/api/execute', {
-          action: 'get_cuota_by_params',
-          params: {
-            vaxo: mov.axo_memo,
-            vcat: mov.categoria,
-            vsec: mov.seccion,
-            vcuo: mov.clave_cuota
-          }
-        });
-        let cuota = cuotaResp.data.data && cuotaResp.data.data[0];
-        // Calcular renta
-        if (cuota) {
-          const rentaResp = await this.$axios.post('/api/execute', {
-            action: 'calc_renta',
-            params: {
-              superficie: mov.superficie,
-              importe_cuota: cuota.importe_cuota,
-              seccion: mov.seccion,
-              clave_cuota: mov.clave_cuota
-            }
-          });
-          mov.renta = rentaResp.data.data;
-        } else {
-          mov.renta = null;
-        }
-      }
-      this.movimientos = movs;
-      this.searched = true;
-    },
-    async fetchCatalogs() {
-      // Claves de movimiento
-      const claveMovResp = await this.$axios.post('/api/execute', {
-        action: 'get_clave_movimientos'
-      });
-      this.clavesMov = claveMovResp.data.data || [];
-      // Claves de cuota
-      const cveCuotaResp = await this.$axios.post('/api/execute', {
-        action: 'get_cve_cuotas'
-      });
-      this.cveCuotas = cveCuotaResp.data.data || [];
-    }
-  },
-  mounted() {
-    this.fetchCatalogs();
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+// Estado
+const id_local = ref('')
+const movimientos = ref([])
+const clavesMov = ref([])
+const cveCuotas = ref([])
+const searched = ref(false)
+const loading = ref(false)
+
+// Toast
+const toast = ref({ show: false, type: 'info', message: '' })
+
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => hideToast(), 5000)
+}
+
+const hideToast = () => { toast.value.show = false }
+
+const getToastIcon = (type) => {
+  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
+  return icons[type] || 'info-circle'
+}
+
+const formatCurrency = (val) => {
+  if (val == null) return '-'
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2
+  }).format(parseFloat(val))
+}
+
+const mostrarAyuda = () => {
+  showToast('info', 'Consulta de movimientos históricos de un local de mercado')
+}
+
+// Función para calcular descripción de vigencia en frontend
+const getVigenciaDesc = (vigencia) => {
+  const vigencias = {
+    'A': 'ALTA',
+    'B': 'BAJA',
+    'V': 'VIGENTE',
+    'C': 'CANCELADO',
+    '1': 'VIGENTE',
+    '0': 'BAJA'
   }
-};
+  return vigencias[vigencia] || vigencia || '-'
+}
+
+// Función para calcular renta en frontend
+const calcularRenta = (superficie, importeCuota, seccion) => {
+  if (!importeCuota) return null
+  // Para sección 'F' (fija), la renta es el importe de cuota
+  // Para otras secciones, renta = superficie * importe_cuota
+  if (seccion === 'F' || seccion === 'f') {
+    return importeCuota
+  }
+  return (superficie || 1) * importeCuota
+}
+
+const fetchMovimientos = async () => {
+  if (!id_local.value) {
+    showToast('warning', 'Ingrese un ID de local')
+    return
+  }
+
+  loading.value = true
+  searched.value = false
+
+  try {
+    // 1. Movimientos
+    const movResp = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_movimientos_by_local',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: id_local.value }
+        ]
+      }
+    })
+    let movs = movResp.data?.eResponse?.data?.result || []
+
+    // 2. Calcular vigdescripcion y renta para cada movimiento
+    for (let mov of movs) {
+      // Vigencia descripción (cálculo en frontend)
+      mov.vigdescripcion = getVigenciaDesc(mov.vigencia)
+
+      // Obtener cuota
+      try {
+        const cuotaResp = await axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_get_cuota_by_params',
+            Base: 'mercados',
+            Parametros: [
+              { Nombre: 'p_vaxo', Valor: mov.axo_memo },
+              { Nombre: 'p_vcat', Valor: mov.categoria },
+              { Nombre: 'p_vsec', Valor: mov.seccion },
+              { Nombre: 'p_vcuo', Valor: mov.clave_cuota }
+            ]
+          }
+        })
+        let cuota = cuotaResp.data?.eResponse?.data?.result?.[0]
+
+        // Calcular renta (cálculo en frontend)
+        mov.renta = cuota ? calcularRenta(mov.superficie, cuota.importe_cuota, mov.seccion) : null
+      } catch {
+        mov.renta = null
+      }
+    }
+
+    movimientos.value = movs
+    searched.value = true
+
+    if (movs.length > 0) {
+      showToast('success', `Se encontraron ${movs.length} movimientos`)
+    } else {
+      showToast('info', 'No se encontraron movimientos')
+    }
+  } catch (err) {
+    showToast('error', 'Error al cargar movimientos')
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchCatalogs = async () => {
+  try {
+    // Claves de movimiento
+    const claveMovResp = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_clave_movimientos',
+        Base: 'mercados',
+        Parametros: []
+      }
+    })
+    clavesMov.value = claveMovResp.data?.eResponse?.data?.result || []
+
+    // Claves de cuota
+    const cveCuotaResp = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_cve_cuotas',
+        Base: 'mercados',
+        Parametros: []
+      }
+    })
+    cveCuotas.value = cveCuotaResp.data?.eResponse?.data?.result || []
+  } catch (err) {
+    console.error('Error al cargar catálogos:', err)
+  }
+}
+
+onMounted(() => {
+  fetchCatalogs()
+})
 </script>
 
 <style scoped>
-.datos-movimientos-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 0;
+.required {
+  color: #dc3545;
 }
-.card {
-  margin-bottom: 1.5rem;
+
+.empty-icon {
+  opacity: 0.25;
+  margin-bottom: 1rem;
+  color: #adb5bd;
+}
+
+.text-end {
+  text-align: right !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.row-hover {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+}
+
+.catalog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.catalog-list li {
+  display: flex;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.catalog-list li:last-child {
+  border-bottom: none;
+}
+
+.catalog-key {
+  font-weight: 600;
+  color: var(--municipal-primary);
+  min-width: 80px;
+  margin-right: 1rem;
+}
+
+.catalog-desc {
+  color: #6c757d;
 }
 </style>

@@ -62,7 +62,8 @@ const props = defineProps({
 })
 
 const route = useRoute()
-const isExpanded = ref(false)
+// Inicializar con el valor de expanded del item (para menús abiertos por defecto)
+const isExpanded = ref(props.item.expanded || false)
 
 const isActive = computed(() => {
   return route.path === props.item.path

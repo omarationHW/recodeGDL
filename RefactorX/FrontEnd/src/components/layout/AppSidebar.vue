@@ -313,6 +313,7 @@ const menuItems = [
   {
     label: 'Módulos Administrativos',
     icon: 'folder',
+    expanded: true,
     children: [
       {
         label: 'Estacionamientos',
@@ -939,15 +940,16 @@ const menuItems = [
       {
         label: 'Mercados',
         icon: 'store',
+        expanded: true,
         children: [
           {
             path: '/mercados/padron-locales',
-            label: '- Padrón de Locales',
+            label: '* Padrón de Locales',
             icon: 'list'
           },
           {
             path: '/mercados/locales-mtto',
-            label: '- Mantenimiento de Locales',
+            label: '* Mantenimiento de Locales',
             icon: 'store-alt'
           },
           {
@@ -962,17 +964,17 @@ const menuItems = [
           },
           {
             path: '/mercados/emision-locales',
-            label: '- Emisión de Recibos',
+            label: '* Emisión de Recibos',
             icon: 'receipt'
           },
           {
             path: '/mercados/estad-pagos-adeudos',
-            label: '- Estadística Pagos/Adeudos',
+            label: '* Estadística Pagos/Adeudos',
             icon: 'chart-bar'
           },
           {
             path: '/mercados/carga-pag-locales',
-            label: '- Carga de Pagos',
+            label: '* Carga de Pagos',
             icon: 'file-import'
           },
           {
@@ -1017,7 +1019,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cuotas-mdo',
-            label: '***** Cuotas de Mercados',
+            label: '* Cuotas de Mercados',
             icon: 'dollar-sign'
           },
           {
@@ -1027,7 +1029,7 @@ const menuItems = [
           },
           {
             path: '/mercados/giros',
-            label: 'Giros Comerciales',
+            label: '-  Giros Comerciales',
             icon: 'store'
           },
           {
@@ -1077,7 +1079,7 @@ const menuItems = [
           },
           {
             path: '/mercados/emision-energia',
-            label: 'Emisión de Recibos de Energía',
+            label: '-  Emisión de Recibos de Energía',
             icon: 'bolt'
           },
           {
@@ -1087,12 +1089,12 @@ const menuItems = [
           },
           {
             path: '/mercados/datos-convenio',
-            label: '***** Datos de Convenio',
+            label: '* Datos de Convenio',
             icon: 'handshake'
           },
           {
             path: '/mercados/datos-individuales',
-            label: '***** Datos Individuales del Local',
+            label: '-  Datos Individuales del Local',
             icon: 'file-alt'
           },
           {
@@ -1248,7 +1250,7 @@ const menuItems = [
           },
           {
             path: '/mercados/fecha-descuento',
-            label: 'Fechas de Descuento',
+            label: '-  Fechas de Descuento',
             icon: 'calendar-check'
           },
           {
@@ -1264,12 +1266,12 @@ const menuItems = [
           // LOTE 17: Datos de Locales y Energía
           {
             path: '/mercados/datos-movimientos',
-            label: '***** Datos de Movimientos',
+            label: '*  Datos de Movimientos',
             icon: 'exchange-alt'
           },
           {
             path: '/mercados/datos-requerimientos',
-            label: '***** Datos de Requerimientos',
+            label: '-  Datos de Requerimientos',
             icon: 'file-invoice'
           },
           {
@@ -1285,7 +1287,7 @@ const menuItems = [
           // LOTE 18: Emisión y Consultas de Pagos
           {
             path: '/mercados/emision-libertad',
-            label: 'Emisión Libertad',
+            label: '-  Emisión Libertad',
             icon: 'dove'
           },
           {
@@ -1337,7 +1339,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-desgloce-ade-porimporte',
-            label: 'Desglose Adeudos por Año',
+            label: '-  Desglose Adeudos por Año',
             icon: 'layer-group'
           },
           // LOTE 21: Reportes de Emisión
@@ -1468,7 +1470,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cuenta-publica',
-            label: '***** Cuenta Pública',
+            label: '*  Cuenta Pública',
             icon: 'file-invoice-dollar'
           },
           {
@@ -1478,7 +1480,7 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-dif-ingresos',
-            label: 'Diferencias en Ingresos',
+            label: '-  Diferencias en Ingresos',
             icon: 'exclamation-circle'
           },
           // LOTE 27: Reportes Finales y Configuración
@@ -1494,7 +1496,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-fechas-vencimiento',
-            label: 'Fechas de Vencimiento',
+            label: '-  Fechas de Vencimiento',
             icon: 'calendar-times'
           },
           {
@@ -1510,7 +1512,7 @@ const menuItems = [
           },
           {
             path: '/mercados/paso-ene',
-            label: 'Importar Energía',
+            label: '-  Importar Energía',
             icon: 'file-import'
           },
           {

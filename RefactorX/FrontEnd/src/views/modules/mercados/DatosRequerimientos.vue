@@ -340,7 +340,7 @@ const buscarRequerimiento = async () => {
     let res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_locales',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_id_local', Valor: form.value.id_local }
         ]
@@ -356,7 +356,7 @@ const buscarRequerimiento = async () => {
     res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_mercado',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_oficina', Valor: local.value.oficina },
           { Nombre: 'p_num_mercado', Valor: local.value.num_mercado }
@@ -373,7 +373,7 @@ const buscarRequerimiento = async () => {
     res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_requerimientos',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_modulo', Valor: form.value.modulo },
           { Nombre: 'p_folio', Valor: form.value.folio },

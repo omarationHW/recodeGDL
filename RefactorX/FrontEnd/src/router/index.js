@@ -784,11 +784,11 @@ const router = createRouter({
       name: 'mercados-cuotas-energia',
       component: () => import('@/views/modules/mercados/CuotasEnergia.vue')
     },
-    // {
-    //   path: '/mercados/emision-energia',
-    //   name: 'mercados-emision-energia',
-    //   component: () => import('@/views/modules/mercados/EmisionEnergia.vue')
-    // },
+    {
+      path: '/mercados/emision-energia',
+      name: 'mercados-emision-energia',
+      component: () => import('@/views/modules/mercados/EmisionEnergia.vue')
+    },
     // {
     //   path: '/mercados/cuotas-energia-mntto',
     //   name: 'mercados-cuotas-energia-mntto',
@@ -957,11 +957,11 @@ const router = createRouter({
       name: 'mercados-cve-diferencias',
       component: () => import('@/views/modules/mercados/CveDiferencias.vue')
     },
-    // {
-    //   path: '/mercados/fecha-descuento',
-    //   name: 'mercados-fecha-descuento',
-    //   component: () => import('@/views/modules/mercados/FechaDescuento.vue')
-    // },
+    {
+      path: '/mercados/fecha-descuento',
+      name: 'mercados-fecha-descuento',
+      component: () => import('@/views/modules/mercados/FechaDescuento.vue')
+    },
     // {
     //   path: '/mercados/fechas-descuento-mntto',
     //   name: 'mercados-fechas-descuento-mntto',
@@ -996,11 +996,11 @@ const router = createRouter({
     // },
 
     // // LOTE 18: Emisión y Consultas de Pagos
-    // {
-    //   path: '/mercados/emision-libertad',
-    //   name: 'mercados-emision-libertad',
-    //   component: () => import('@/views/modules/mercados/EmisionLibertad.vue')
-    // },
+    {
+      path: '/mercados/emision-libertad',
+      name: 'mercados-emision-libertad',
+      component: () => import('@/views/modules/mercados/EmisionLibertad.vue')
+    },
     {
       path: '/mercados/pagos-ene-cons',
       name: 'mercados-pagos-ene-cons',
@@ -1050,11 +1050,11 @@ const router = createRouter({
     //   name: 'mercados-rpt-adeudos-abastos1998',
     //   component: () => import('@/views/modules/mercados/RptAdeudosAbastos1998.vue')
     // },
-    // {
-    //   path: '/mercados/rpt-desgloce-ade-porimporte',
-    //   name: 'mercados-rpt-desgloce-ade-porimporte',
-    //   component: () => import('@/views/modules/mercados/RptDesgloceAdePorimporte.vue')
-    // },
+    {
+      path: '/mercados/rpt-desgloce-ade-porimporte',
+      name: 'mercados-rpt-desgloce-ade-porimporte',
+      component: () => import('@/views/modules/mercados/RptDesgloceAdePorimporte.vue')
+    },
 
     // // LOTE 21: Reportes de Emisión
     // {
@@ -1126,16 +1126,16 @@ const router = createRouter({
     //   name: 'mercados-rpt-movimientos',
     //   component: () => import('@/views/modules/mercados/RptMovimientos.vue')
     // },
-    // {
-    //   path: '/mercados/ingreso-captura',
-    //   name: 'mercados-ingreso-captura',
-    //   component: () => import('@/views/modules/mercados/IngresoCaptura.vue')
-    // },
-    // {
-    //   path: '/mercados/ingreso-lib',
-    //   name: 'mercados-ingreso-lib',
-    //   component: () => import('@/views/modules/mercados/IngresoLib.vue')
-    // },
+    {
+      path: '/mercados/ingreso-captura',
+      name: 'mercados-ingreso-captura',
+      component: () => import('@/views/modules/mercados/IngresoCaptura.vue')
+    },
+    {
+      path: '/mercados/ingreso-lib',
+      name: 'mercados-ingreso-lib',
+      component: () => import('@/views/modules/mercados/IngresoLib.vue')
+    },
     // {
     //   path: '/mercados/rpt-ingreso-zonificado',
     //   name: 'mercados-rpt-ingreso-zonificado',
@@ -1197,11 +1197,11 @@ const router = createRouter({
     //   name: 'mercados-rpt-cuenta-publica',
     //   component: () => import('@/views/modules/mercados/RptCuentaPublica.vue')
     // },
-    // {
-    //   path: '/mercados/pagos-dif-ingresos',
-    //   name: 'mercados-pagos-dif-ingresos',
-    //   component: () => import('@/views/modules/mercados/PagosDifIngresos.vue')
-    // },
+    {
+      path: '/mercados/pagos-dif-ingresos',
+      name: 'mercados-pagos-dif-ingresos',
+      component: () => import('@/views/modules/mercados/PagosDifIngresos.vue')
+    },
 
     // // LOTE 27: Reportes Finales y Configuración
     // {
@@ -1231,11 +1231,11 @@ const router = createRouter({
     //   name: 'mercados-paso-adeudos',
     //   component: () => import('@/views/modules/mercados/PasoAdeudos.vue')
     // },
-    // {
-    //   path: '/mercados/paso-ene',
-    //   name: 'mercados-paso-ene',
-    //   component: () => import('@/views/modules/mercados/PasoEne.vue')
-    // },
+    {
+      path: '/mercados/paso-ene',
+      name: 'mercados-paso-ene',
+      component: () => import('@/views/modules/mercados/PasoEne.vue')
+    },
     // {
     //   path: '/mercados/paso-mdos',
     //   name: 'mercados-paso-mdos',

@@ -341,11 +341,11 @@ const mostrarAyuda = () => {
   showToast('info', 'Consulta completa de datos de un local de mercado')
 }
 
-const api = async (operacion, parametros) => {
+const api = async (operacion, parametros, base = 'mercados') => {
   const resp = await axios.post('/api/generic', {
     eRequest: {
       Operacion: operacion,
-      Base: 'mercados',
+      Base: base,
       Parametros: parametros
     }
   })
@@ -365,7 +365,7 @@ const cargarDatos = async () => {
     // 1. Datos principales
     let res = await api('sp_get_datos_individuales', [
       { Nombre: 'p_id_local', Valor: id_local }
-    ])
+    ], 'mercados')
     datos.value = res[0] || {}
 
     // 2. Mercado

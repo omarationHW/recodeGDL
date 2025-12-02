@@ -1029,7 +1029,7 @@ const menuItems = [
           },
           {
             path: '/mercados/giros',
-            label: '-  Giros Comerciales',
+            label: '--  Giros Comerciales',
             icon: 'store'
           },
           {
@@ -1412,12 +1412,12 @@ const menuItems = [
           },
           {
             path: '/mercados/ingreso-captura',
-            label: 'Ingreso Captura',
+            label: '- Ingreso Captura',
             icon: 'keyboard'
           },
           {
             path: '/mercados/ingreso-lib',
-            label: 'Ingresos Libertad',
+            label: '- Ingresos Libertad',
             icon: 'book-open'
           },
           {
@@ -1496,7 +1496,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-fechas-vencimiento',
-            label: '-  Fechas de Vencimiento',
+            label: '--  Fechas de Vencimiento',
             icon: 'calendar-times'
           },
           {

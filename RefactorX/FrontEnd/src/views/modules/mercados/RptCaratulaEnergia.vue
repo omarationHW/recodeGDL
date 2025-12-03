@@ -1,138 +1,17 @@
 <template>
-  <div class="container mt-4">
-    <h2>Carátula de Energía Eléctrica</h2>
-    <div class="mb-3">
-      <label for="id_local">ID Local</label>
-      <input v-model="id_local" type="number" class="form-control" id="id_local" placeholder="Ingrese el ID del local" />
-      <button class="btn btn-primary mt-2" @click="fetchCaratula">Consultar</button>
+  <div class="module-view">
+    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="bolt" /></div><div class="module-view-info"><h1>Carátula de Energía</h1><p>Inicio > Reportes > Carátula de Energía Eléctrica</p></div><div class="button-group ms-auto"><button class="btn-municipal-primary" @click="imprimir" :disabled="loading || !caratula"><font-awesome-icon icon="print" />Imprimir</button><button class="btn-municipal-purple" @click="mostrarAyuda"><font-awesome-icon icon="question-circle" />Ayuda</button></div></div>
+    <div class="module-view-content">
+      <div class="municipal-card"><div class="municipal-card-header"><h5><font-awesome-icon icon="search" />Buscar Local</h5></div><div class="municipal-card-body"><div class="row"><div class="col-md-4"><label class="form-label">ID Local</label><input v-model.number="id_local" type="number" class="form-control" /></div><div class="col-md-8"><button class="btn-municipal-primary mt-4" @click="fetchCaratula" :disabled="loading"><font-awesome-icon icon="search" />Consultar</button></div></div></div></div>
+      <div class="municipal-card" v-if="caratula"><div class="municipal-card-header"><h5><font-awesome-icon icon="info-circle" />Datos del Local</h5></div><div class="municipal-card-body"><table class="table table-bordered"><tr><th>Oficina</th><td>{{ caratula.oficina }}</td></tr><tr><th>Mercado</th><td>{{ caratula.num_mercado }}</td></tr><tr><th>Local</th><td>{{ caratula.local }}</td></tr><tr><th>Nombre</th><td>{{ caratula.nombre }}</td></tr><tr><th>Consumo</th><td>{{ caratula.consumodescr }}</td></tr><tr><th>Cantidad</th><td>{{ caratula.cantidad }}</td></tr><tr><th>Vigencia</th><td>{{ caratula.vigdescripcion }}</td></tr></table></div></div>
     </div>
-    <div v-if="loading" class="alert alert-info">Cargando...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="caratula">
-      <h4>Datos del Local</h4>
-      <table class="table table-bordered">
-        <tr><th>Oficina</th><td>{{ caratula.oficina }}</td></tr>
-        <tr><th>Num. Mercado</th><td>{{ caratula.num_mercado }}</td></tr>
-        <tr><th>Sección</th><td>{{ caratula.seccion }}</td></tr>
-        <tr><th>Local</th><td>{{ caratula.local }}</td></tr>
-        <tr><th>Letra</th><td>{{ caratula.letra_local }}</td></tr>
-        <tr><th>Bloque</th><td>{{ caratula.bloque }}</td></tr>
-        <tr><th>Nombre</th><td>{{ caratula.nombre }}</td></tr>
-        <tr><th>Consumo</th><td>{{ caratula.cve_consumo }} - {{ caratula.consumodescr }}</td></tr>
-        <tr><th>Adicionales</th><td>{{ caratula.local_adicional }}</td></tr>
-        <tr><th>Cantidad</th><td>{{ caratula.cantidad }}</td></tr>
-        <tr><th>Vigencia</th><td>{{ caratula.vigdescripcion }}</td></tr>
-        <tr><th>Fecha Alta</th><td>{{ caratula.fecha_alta }}</td></tr>
-        <tr><th>Fecha Baja</th><td>{{ caratula.fecha_baja }}</td></tr>
-        <tr><th>Usuario</th><td>{{ caratula.usuario }}</td></tr>
-        <tr><th>Actualización</th><td>{{ caratula.fecha_modificacion }}</td></tr>
-      </table>
-      <h4>Resumen de Adeudos</h4>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Periodo</th>
-            <th>Adeudo</th>
-            <th>Recargos</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="adeudo in adeudos" :key="adeudo.id_adeudo_energia">
-            <td>{{ adeudo.axo }}-{{ adeudo.periodo }}</td>
-            <td>{{ adeudo.importe }}</td>
-            <td>{{ adeudo.recargos }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <h4>Requerimientos</h4>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Folio</th>
-            <th>Importe Multa</th>
-            <th>Importe Gastos</th>
-            <th>Fecha Emisión</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="req in requerimientos" :key="req.id_control">
-            <td>{{ req.folio }}</td>
-            <td>{{ req.importe_multa }}</td>
-            <td>{{ req.importe_gastos }}</td>
-            <td>{{ req.fecha_emision }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="mt-3">
-        <button class="btn btn-secondary" @click="printCaratula">Imprimir Carátula</button>
-      </div>
-    </div>
+    <div v-if="toast.show" :class="['toast-notification', `toast-${toast.type}`]"><font-awesome-icon :icon="getToastIcon()" /><span>{{ toast.message }}</span></div>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'RptCaratulaEnergia',
-  data() {
-    return {
-      id_local: '',
-      caratula: null,
-      adeudos: [],
-      requerimientos: [],
-      loading: false,
-      error: ''
-    };
-  },
-  methods: {
-    async fetchCaratula() {
-      this.loading = true;
-      this.error = '';
-      this.caratula = null;
-      this.adeudos = [];
-      this.requerimientos = [];
-      try {
-        // 1. Obtener carátula
-        let res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getEnergiaCaratula', params: { id_local: this.id_local } })
-        });
-        let data = await res.json();
-        if (!data.success) throw new Error(data.message);
-        this.caratula = data.data;
-        // 2. Obtener adeudos
-        res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getAdeudosEnergia', params: { id_local: this.id_local } })
-        });
-        data = await res.json();
-        if (!data.success) throw new Error(data.message);
-        this.adeudos = data.data;
-        // 3. Obtener requerimientos
-        res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getRequerimientosEnergia', params: { id_local: this.id_local } })
-        });
-        data = await res.json();
-        if (!data.success) throw new Error(data.message);
-        this.requerimientos = data.data;
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    printCaratula() {
-      window.print();
-    }
-  }
-};
+<script setup>
+import { ref } from 'vue'; import axios from 'axios';
+const loading = ref(false); const id_local = ref(''); const caratula = ref(null); const toast = ref({ show: false, message: '', type: 'info' });
+const fetchCaratula = async () => { if (!id_local.value) { showToast('Debe ingresar un ID de local', 'warning'); return; } loading.value = true; caratula.value = null; try { const response = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_energia_caratula', Base: 'mercados', Parametros: [id_local.value] } }); if (response.data.eResponse?.success && response.data.eResponse?.data?.result) { caratula.value = response.data.eResponse.data.result[0]; showToast('Carátula generada correctamente', 'success'); } else { showToast('No se encontraron datos', 'warning'); } } catch (error) { console.error('Error:', error); showToast('Error al consultar', 'error'); } finally { loading.value = false; } };
+const imprimir = () => { window.print(); }; const mostrarAyuda = () => { showToast('Ingrese un ID de local para consultar la carátula de energía.', 'info'); }; const showToast = (message, type = 'info') => { toast.value = { show: true, message, type }; setTimeout(() => { toast.value.show = false; }, 3000); }; const getToastIcon = () => { const icons = { success: 'check-circle', error: 'exclamation-circle', warning: 'exclamation-triangle', info: 'info-circle' }; return icons[toast.value.type] || 'info-circle'; };
 </script>
-
-<style scoped>
-.container {
-  max-width: 900px;
-}
-</style>
+<style scoped>@media print { .module-view-header, .button-group { display: none !important; } } .toast-notification { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.5rem; background-color: #fff; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 0.75rem; z-index: 9999; animation: slideIn 0.3s ease-out; } .toast-success { border-left: 4px solid #28a745; } .toast-error { border-left: 4px solid #dc3545; } .toast-warning { border-left: 4px solid #ffc107; } .toast-info { border-left: 4px solid #17a2b8; } @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }</style>

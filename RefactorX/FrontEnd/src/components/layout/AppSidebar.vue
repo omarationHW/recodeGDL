@@ -1084,7 +1084,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cuotas-energia-mntto',
-            label: 'Mantenimiento de Cuotas de Energía',
+            label: '*** Mantenimiento de Cuotas de Energía',
             icon: 'wrench'
           },
           {
@@ -1219,7 +1219,7 @@ const menuItems = [
           },
           {
             path: '/mercados/consulta-general',
-            label: '*** Consulta General',
+            label: '--  Consulta General',
             icon: 'search'
           },
           {
@@ -1235,17 +1235,17 @@ const menuItems = [
           // LOTE 16: Configuración y Cuotas Adicionales
           {
             path: '/mercados/cuotas-mdo-mntto',
-            label: 'Mantenimiento Cuotas Mercado',
+            label: '*** Mantenimiento Cuotas Mercado',
             icon: 'edit'
           },
           {
             path: '/mercados/cve-cuota',
-            label: '* Claves de Cuota',
+            label: '*** Claves de Cuota',
             icon: 'key'
           },
           {
             path: '/mercados/cve-diferencias',
-            label: '** Claves de Diferencias',
+            label: '*** Claves de Diferencias',
             icon: 'balance-scale'
           },
           {
@@ -1255,7 +1255,7 @@ const menuItems = [
           },
           {
             path: '/mercados/fechas-descuento-mntto',
-            label: 'Mantenimiento Fechas Descuento',
+            label: '*** Mantenimiento Fechas Descuento',
             icon: 'calendar-check'
           },
           {
@@ -1292,7 +1292,7 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-ene-cons',
-            label: '*** Consulta Pagos Energía',
+            label: '--  Consulta Pagos Energía',
             icon: 'file-invoice-dollar'
           },
           {
@@ -1314,27 +1314,27 @@ const menuItems = [
           // LOTE 20: Reportes de Adeudos
           {
             path: '/mercados/rpt-ade-energia-grl',
-            label: 'Reporte Adeudos Energía',
+            label: '--- Reporte Adeudos Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/rpt-adeudos-locales',
-            label: 'Reporte Adeudos Locales',
+            label: '--- Reporte Adeudos Locales',
             icon: 'store-slash'
           },
           {
             path: '/mercados/rpt-adeudos-energia',
-            label: 'Reporte Adeudos Energía Detalle',
+            label: '--- Reporte Adeudos Energía Detalle',
             icon: 'plug'
           },
           {
             path: '/mercados/rpt-adeudos-anteriores',
-            label: 'Reporte Adeudos Anteriores',
+            label: '--- Reporte Adeudos Anteriores',
             icon: 'history'
           },
           {
             path: '/mercados/rpt-adeudos-abastos1998',
-            label: 'Reporte Abastos 1998',
+            label: '--- Reporte Abastos 1998',
             icon: 'calendar-times'
           },
           {
@@ -1355,12 +1355,12 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-emision-laser',
-            label: 'Reporte Emisión Laser',
+            label: '--- Reporte Emisión Laser',
             icon: 'barcode'
           },
           {
             path: '/mercados/rpt-emision-energia',
-            label: 'Reporte Recibos Energía',
+            label: '--- Reporte Recibos Energía',
             icon: 'bolt'
           },
           // LOTE 22: Reportes de Facturación
@@ -1412,12 +1412,12 @@ const menuItems = [
           },
           {
             path: '/mercados/ingreso-captura',
-            label: '- Ingreso Captura',
+            label: '-  Ingreso Captura',
             icon: 'keyboard'
           },
           {
             path: '/mercados/ingreso-lib',
-            label: '- Ingresos Libertad',
+            label: '*  Ingresos Libertad',
             icon: 'book-open'
           },
           {
@@ -1475,7 +1475,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-cuenta-publica',
-            label: 'Reporte Cuenta Pública',
+            label: '--- Reporte Cuenta Pública',
             icon: 'receipt'
           },
           {

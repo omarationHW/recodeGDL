@@ -1,211 +1,545 @@
 <template>
-  <div class="pagos-dif-ingresos-page">
-    <h1>Inconsistencias de Pagos</h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Inconsistencias de Pagos</li>
-      </ol>
-    </nav>
-    <form @submit.prevent="onBuscar">
-      <div class="form-row align-items-end">
-        <div class="form-group col-md-4">
-          <label for="recaudadora">Recaudadora</label>
-          <select v-model="form.rec" class="form-control" id="recaudadora" required>
-            <option v-for="r in recaudadoras" :key="r.id_rec" :value="r.id_rec">{{ r.recaudadora }}</option>
-          </select>
-        </div>
-        <div class="form-group col-md-3">
-          <label for="fechaDesde">Fecha desde</label>
-          <input type="date" v-model="form.fpadsd" class="form-control" id="fechaDesde" required />
-        </div>
-        <div class="form-group col-md-3">
-          <label for="fechaHasta">Fecha hasta</label>
-          <input type="date" v-model="form.fpahst" class="form-control" id="fechaHasta" required />
-        </div>
-        <div class="form-group col-md-2">
-          <button type="submit" class="btn btn-primary btn-block">Buscar</button>
-        </div>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="exclamation-triangle" />
       </div>
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" id="tipo1" value="renta" v-model="form.tipo" />
-            <label class="form-check-label" for="tipo1">Renta Errónea</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" id="tipo2" value="datos" v-model="form.tipo" />
-            <label class="form-check-label" for="tipo2">Datos de Pagos y/o cuenta Erróneos</label>
-          </div>
-        </div>
-        <div class="form-group col-md-6 text-right">
-          <button v-if="resultados.length" @click="onExportar" type="button" class="btn btn-success">Exportar a Excel</button>
-        </div>
+      <div class="module-view-info">
+        <h1>Inconsistencias de Pagos</h1>
+        <p>Inicio > Reportes > Inconsistencias de Pagos</p>
       </div>
-    </form>
-    <div v-if="loading" class="alert alert-info mt-3">Cargando...</div>
-    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
-    <div v-if="resultados.length" class="table-responsive mt-3">
-      <table class="table table-bordered table-sm">
-        <thead>
-          <tr>
-            <th v-for="col in columnas" :key="col">{{ col }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(row, idx) in resultados" :key="idx">
-            <td v-for="col in columnas" :key="col">{{ row[col] }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || resultados.length === 0">
+          <font-awesome-icon icon="file-excel" />
+          Exportar Excel
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
-    <div v-if="!loading && resultados.length === 0 && buscado" class="alert alert-warning mt-3">No se encontraron resultados.</div>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Consulta
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+        </div>
+
+        <div v-show="showFilters" class="municipal-card-body">
+          <!-- Tipo de inconsistencia -->
+          <div class="form-row mb-3">
+            <div class="form-group">
+              <label class="municipal-form-label">Tipo de Inconsistencia <span class="required">*</span></label>
+              <div class="radio-group">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" id="tipo-renta" value="renta" v-model="tipoConsulta"
+                    :disabled="loading" />
+                  <label class="form-check-label" for="tipo-renta">
+                    <font-awesome-icon icon="money-bill-wave" class="me-1" />
+                    Renta Errónea
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" id="tipo-datos" value="datos" v-model="tipoConsulta"
+                    :disabled="loading" />
+                  <label class="form-check-label" for="tipo-datos">
+                    <font-awesome-icon icon="database" class="me-1" />
+                    Datos Erróneos (Cuenta/Caja/Operación)
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros de fecha y recaudadora -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="selectedRecaudadora" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Desde <span class="required">*</span></label>
+              <input type="date" class="municipal-form-control" v-model="fechaDesde" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Hasta <span class="required">*</span></label>
+              <input type="date" class="municipal-form-control" v-model="fechaHasta" :disabled="loading" />
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="text-end">
+                <button class="btn-municipal-primary me-2" @click="buscar" :disabled="loading">
+                  <font-awesome-icon icon="search" />
+                  Buscar
+                </button>
+                <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                  <font-awesome-icon icon="eraser" />
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de resultados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            {{ tipoConsulta === 'renta' ? 'Pagos con Renta Errónea' : 'Pagos con Datos Erróneos' }}
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="resultados.length > 0">
+              {{ formatNumber(resultados.length) }} registros
+            </span>
+          </div>
+        </div>
+
+        <div class="municipal-card-body table-container">
+          <!-- Mensaje de loading -->
+          <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando datos, por favor espere...</p>
+          </div>
+
+          <!-- Mensaje de error -->
+          <div v-else-if="error" class="alert alert-danger" role="alert">
+            <font-awesome-icon icon="exclamation-triangle" />
+            {{ error }}
+          </div>
+
+          <!-- Tabla -->
+          <div v-else class="table-responsive">
+            <table class="municipal-table" v-if="resultados.length > 0">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th v-for="col in columnas" :key="col">{{ formatColumnName(col) }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, idx) in paginatedResultados" :key="idx" class="row-hover">
+                  <td v-for="col in columnas" :key="col">
+                    {{ formatCellValue(col, row[col]) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div v-else-if="!searchPerformed" class="text-center text-muted py-5">
+              <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+              <p>Seleccione el tipo de inconsistencia y use los filtros para buscar</p>
+            </div>
+
+            <div v-else class="text-center text-muted py-5">
+              <font-awesome-icon icon="check-circle" size="2x" class="empty-icon" style="color: #28a745;" />
+              <p>No se encontraron inconsistencias en el rango de fechas especificado</p>
+            </div>
+          </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="resultados.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select class="municipal-form-control form-control-sm" :value="itemsPerPage"
+                @change="changePageSize($event.target.value)" style="width: auto; display: inline-block;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"
+                title="Primera página">
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1" title="Página anterior">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+              <button v-for="page in visiblePages" :key="page" class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)">
+                {{ page }}
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages" title="Página siguiente">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages" title="Última página">
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'PagosDifIngresosPage',
-  data() {
-    return {
-      recaudadoras: [],
-      form: {
-        rec: '',
-        fpadsd: '',
-        fpahst: '',
-        tipo: 'renta'
-      },
-      resultados: [],
-      columnas: [],
-      loading: false,
-      error: '',
-      buscado: false
-    };
-  },
-  created() {
-    this.fetchRecaudadoras();
-  },
-  methods: {
-    async fetchRecaudadoras() {
-      this.loading = true;
-      this.error = '';
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ eRequest: { action: 'getRecaudadoras' } })
-        });
-        const json = await res.json();
-        if (json.eResponse.success) {
-          this.recaudadoras = json.eResponse.data;
-          if (this.recaudadoras.length) {
-            this.form.rec = this.recaudadoras[0].id_rec;
-          }
-        } else {
-          this.error = json.eResponse.message || 'Error al cargar recaudadoras';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+
+// Estado
+const showFilters = ref(true)
+const recaudadoras = ref([])
+const selectedRecaudadora = ref('')
+const fechaDesde = ref('')
+const fechaHasta = ref('')
+const tipoConsulta = ref('renta')
+const resultados = ref([])
+const columnas = ref([])
+const loading = ref(false)
+const error = ref('')
+const searchPerformed = ref(false)
+
+// Toast
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(25)
+const totalRecords = computed(() => resultados.value.length)
+
+// Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
+const mostrarAyuda = () => {
+  showToast('info', 'Ayuda: Seleccione el tipo de inconsistencia, recaudadora y rango de fechas para detectar pagos con errores')
+}
+
+const showToast = (type, message) => {
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+  setTimeout(() => {
+    hideToast()
+  }, 5000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'times-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+const fetchRecaudadoras = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'padron_licencias',
+        Parametros: []
       }
-    },
-    async onBuscar() {
-      this.loading = true;
-      this.error = '';
-      this.resultados = [];
-      this.columnas = [];
-      this.buscado = false;
-      let action = this.form.tipo === 'renta' ? 'getPagosRentaErronea' : 'getPagosDiferentes';
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eRequest: {
-              action,
-              params: {
-                rec: this.form.rec,
-                fpadsd: this.form.fpadsd,
-                fpahst: this.form.fpahst
-              }
-            }
-          })
-        });
-        const json = await res.json();
-        if (json.eResponse.success) {
-          this.resultados = json.eResponse.data;
-          if (this.resultados.length) {
-            this.columnas = Object.keys(this.resultados[0]);
-          }
-        } else {
-          this.error = json.eResponse.message || 'Error en la consulta';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-        this.buscado = true;
+    })
+    if (res.data.eResponse.success) {
+      recaudadoras.value = res.data.eResponse.data.result || []
+      if (recaudadoras.value.length > 0) {
+        showToast('success', `Se cargaron ${recaudadoras.value.length} recaudadoras`)
       }
-    },
-    async onExportar() {
-      let action = this.form.tipo === 'renta' ? 'exportPagosRentaErronea' : 'exportPagosDiferentes';
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eRequest: {
-              action,
-              params: {
-                rec: this.form.rec,
-                fpadsd: this.form.fpadsd,
-                fpahst: this.form.fpahst
-              }
-            }
-          })
-        });
-        const json = await res.json();
-        if (json.eResponse.success && json.eResponse.data) {
-          // Exportar a Excel (simple CSV)
-          const rows = json.eResponse.data;
-          if (!rows.length) return;
-          const cols = Object.keys(rows[0]);
-          let csv = cols.join(',') + '\n';
-          rows.forEach(r => {
-            csv += cols.map(c => '"' + (r[c] !== null ? r[c] : '') + '"').join(',') + '\n';
-          });
-          const blob = new Blob([csv], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = (this.form.tipo === 'renta' ? 'pagos_renta_erronea' : 'pagos_datos_erroneos') + '.csv';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }
-      } catch (e) {
-        this.error = e.message;
+    } else {
+      error.value = res.data.eResponse.message || 'Error al cargar recaudadoras'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al cargar recaudadoras'
+    console.error('Error al cargar recaudadoras:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const buscar = async () => {
+  // Validaciones
+  if (!selectedRecaudadora.value || !fechaDesde.value || !fechaHasta.value) {
+    error.value = 'Debe seleccionar recaudadora y rango de fechas'
+    showToast('warning', error.value)
+    return
+  }
+
+  if (fechaDesde.value > fechaHasta.value) {
+    error.value = 'La fecha desde no puede ser mayor a la fecha hasta'
+    showToast('warning', error.value)
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+  resultados.value = []
+  columnas.value = []
+  searchPerformed.value = true
+  currentPage.value = 1
+
+  const operacion = tipoConsulta.value === 'renta' ? 'spd_11_dif_renta' : 'spd_11_dif_pagos'
+
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: operacion,
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'parm_rec', Valor: parseInt(selectedRecaudadora.value) },
+          { Nombre: 'parm_fpadsd', Valor: fechaDesde.value },
+          { Nombre: 'parm_fpahst', Valor: fechaHasta.value }
+        ]
       }
+    })
+
+    if (res.data.eResponse.success) {
+      resultados.value = res.data.eResponse.data.result || []
+      if (resultados.value.length > 0) {
+        columnas.value = Object.keys(resultados.value[0])
+        showToast('success', `Se encontraron ${resultados.value.length} inconsistencias`)
+        showFilters.value = false
+      } else {
+        showToast('info', 'No se encontraron inconsistencias en el rango especificado')
+      }
+    } else {
+      error.value = res.data.eResponse.message || 'Error en la consulta'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al realizar la consulta'
+    console.error('Error en búsqueda:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const limpiarFiltros = () => {
+  selectedRecaudadora.value = ''
+  fechaDesde.value = ''
+  fechaHasta.value = ''
+  tipoConsulta.value = 'renta'
+  resultados.value = []
+  columnas.value = []
+  error.value = ''
+  searchPerformed.value = false
+  currentPage.value = 1
+  showToast('info', 'Filtros limpiados')
+}
+
+const exportarExcel = () => {
+  if (resultados.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
+  try {
+    const cols = columnas.value
+    let csv = cols.join(',') + '\n'
+    resultados.value.forEach(r => {
+      csv += cols.map(c => '"' + (r[c] !== null && r[c] !== undefined ? r[c] : '') + '"').join(',') + '\n'
+    })
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const fileName = tipoConsulta.value === 'renta' ? 'pagos_renta_erronea.csv' : 'pagos_datos_erroneos.csv'
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    showToast('success', 'Datos exportados exitosamente')
+  } catch (err) {
+    showToast('error', 'Error al exportar datos')
+    console.error('Error en exportación:', err)
+  }
+}
+
+// Utilidades
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
+const formatColumnName = (colName) => {
+  const names = {
+    id_pago_local: 'ID Pago',
+    id_local: 'ID Local',
+    axo: 'Año',
+    periodo: 'Periodo',
+    fecha_pago: 'Fecha Pago',
+    oficina_pago: 'Oficina',
+    caja_pago: 'Caja',
+    operacion_pago: 'Operación',
+    importe_pago: 'Importe',
+    folio: 'Folio',
+    fecha_modificacion: 'Fecha Mod.',
+    id_usuario: 'ID Usuario',
+    usuario: 'Usuario',
+    oficina: 'Oficina',
+    num_mercado: 'Mercado',
+    categoria: 'Categoría',
+    seccion: 'Sección',
+    local: 'Local',
+    letra_local: 'Letra',
+    bloque: 'Bloque',
+    cuenta_ingreso: 'Cuenta',
+    renta_esperada: 'Renta Esperada'
+  }
+  return names[colName] || colName
+}
+
+const formatCellValue = (colName, value) => {
+  if (value === null || value === undefined) return ''
+
+  // Formatear montos
+  if (colName === 'importe_pago' || colName === 'renta_esperada' || colName === 'cuenta_ingreso') {
+    const num = parseFloat(value)
+    if (!isNaN(num)) {
+      return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     }
   }
-};
+
+  // Formatear fechas
+  if (colName === 'fecha_pago' && value) {
+    return new Date(value).toLocaleDateString('es-MX')
+  }
+
+  if (colName === 'fecha_modificacion' && value) {
+    return new Date(value).toLocaleString('es-MX')
+  }
+
+  return value
+}
+
+// Paginación - Computed
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
+})
+
+const paginatedResultados = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return resultados.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let end = Math.min(totalPages.value, start + maxVisible - 1)
+
+  if (end - start + 1 < maxVisible) {
+    start = Math.max(1, end - maxVisible + 1)
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
+
+// Lifecycle
+onMounted(() => {
+  fetchRecaudadoras()
+
+  // Establecer fechas por defecto (último mes)
+  const hoy = new Date()
+  fechaHasta.value = hoy.toISOString().split('T')[0]
+
+  const haceUnMes = new Date()
+  haceUnMes.setMonth(haceUnMes.getMonth() - 1)
+  fechaDesde.value = haceUnMes.toISOString().split('T')[0]
+})
 </script>
 
 <style scoped>
-.pagos-dif-ingresos-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-.breadcrumb {
-  background: none;
-  padding: 0;
+.empty-icon {
+  color: #6c757d;
+  opacity: 0.5;
   margin-bottom: 1rem;
 }
-.table-responsive {
-  max-height: 500px;
-  overflow-y: auto;
+
+.radio-group {
+  display: flex;
+  gap: 2rem;
+  margin-top: 0.5rem;
+}
+
+.form-check-inline {
+  margin-right: 0;
+}
+
+.form-check-label {
+  cursor: pointer;
+  user-select: none;
 }
 </style>

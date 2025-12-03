@@ -1024,32 +1024,32 @@ const router = createRouter({
     //   component: () => import('@/views/modules/mercados/RepAdeudCond.vue')
     // },
 
-    // // LOTE 20: Reportes de Adeudos
-    // {
-    //   path: '/mercados/rpt-ade-energia-grl',
-    //   name: 'mercados-rpt-ade-energia-grl',
-    //   component: () => import('@/views/modules/mercados/RptAdeEnergiaGrl.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-adeudos-locales',
-    //   name: 'mercados-rpt-adeudos-locales',
-    //   component: () => import('@/views/modules/mercados/RptAdeudosLocales.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-adeudos-energia',
-    //   name: 'mercados-rpt-adeudos-energia',
-    //   component: () => import('@/views/modules/mercados/RptAdeudosEnergia.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-adeudos-anteriores',
-    //   name: 'mercados-rpt-adeudos-anteriores',
-    //   component: () => import('@/views/modules/mercados/RptAdeudosAnteriores.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-adeudos-abastos1998',
-    //   name: 'mercados-rpt-adeudos-abastos1998',
-    //   component: () => import('@/views/modules/mercados/RptAdeudosAbastos1998.vue')
-    // },
+    // LOTE 20: Reportes de Adeudos
+    {
+      path: '/mercados/rpt-ade-energia-grl',
+      name: 'mercados-rpt-ade-energia-grl',
+      component: () => import('@/views/modules/mercados/RptAdeEnergiaGrl.vue')
+    },
+    {
+      path: '/mercados/rpt-adeudos-locales',
+      name: 'mercados-rpt-adeudos-locales',
+      component: () => import('@/views/modules/mercados/RptAdeudosLocales.vue')
+    },
+    {
+      path: '/mercados/rpt-adeudos-energia',
+      name: 'mercados-rpt-adeudos-energia',
+      component: () => import('@/views/modules/mercados/RptAdeudosEnergia.vue')
+    },
+    {
+      path: '/mercados/rpt-adeudos-anteriores',
+      name: 'mercados-rpt-adeudos-anteriores',
+      component: () => import('@/views/modules/mercados/RptAdeudosAnteriores.vue')
+    },
+    {
+      path: '/mercados/rpt-adeudos-abastos1998',
+      name: 'mercados-rpt-adeudos-abastos1998',
+      component: () => import('@/views/modules/mercados/RptAdeudosAbastos1998.vue')
+    },
     {
       path: '/mercados/rpt-desgloce-ade-porimporte',
       name: 'mercados-rpt-desgloce-ade-porimporte',
@@ -1067,16 +1067,16 @@ const router = createRouter({
     //   name: 'mercados-rpt-emision-rbos-abastos',
     //   component: () => import('@/views/modules/mercados/RptEmisionRbosAbastos.vue')
     // },
-    // {
-    //   path: '/mercados/rpt-emision-laser',
-    //   name: 'mercados-rpt-emision-laser',
-    //   component: () => import('@/views/modules/mercados/RptEmisionLaser.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-emision-energia',
-    //   name: 'mercados-rpt-emision-energia',
-    //   component: () => import('@/views/modules/mercados/RptEmisionEnergia.vue')
-    // },
+    {
+      path: '/mercados/rpt-emision-laser',
+      name: 'mercados-rpt-emision-laser',
+      component: () => import('@/views/modules/mercados/RptEmisionLaser.vue')
+    },
+    {
+      path: '/mercados/rpt-emision-energia',
+      name: 'mercados-rpt-emision-energia',
+      component: () => import('@/views/modules/mercados/RptEmisionEnergia.vue')
+    },
 
     // // LOTE 22: Reportes de Facturación
     // {
@@ -1192,11 +1192,11 @@ const router = createRouter({
       name: 'mercados-cuenta-publica',
       component: () => import('@/views/modules/mercados/CuentaPublica.vue')
     },
-    // {
-    //   path: '/mercados/rpt-cuenta-publica',
-    //   name: 'mercados-rpt-cuenta-publica',
-    //   component: () => import('@/views/modules/mercados/RptCuentaPublica.vue')
-    // },
+    {
+      path: '/mercados/rpt-cuenta-publica',
+      name: 'mercados-rpt-cuenta-publica',
+      component: () => import('@/views/modules/mercados/RptCuentaPublica.vue')
+    },
     {
       path: '/mercados/pagos-dif-ingresos',
       name: 'mercados-pagos-dif-ingresos',

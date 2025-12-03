@@ -1053,8 +1053,8 @@ const menuItems = [
             icon: 'chart-pie'
           },
           {
-            path: '/mercados/padron-global',
-            label: '* Padrón Global de Locales',
+            path: '/mercados/rpt-padron-global',
+            label: '--- Padrón Global de Locales',
             icon: 'table'
           },
           {
@@ -1235,17 +1235,17 @@ const menuItems = [
           // LOTE 16: Configuración y Cuotas Adicionales
           {
             path: '/mercados/cuotas-mdo-mntto',
-            label: '*** Mantenimiento Cuotas Mercado',
+            label: '--- Mantenimiento Cuotas Mercado',
             icon: 'edit'
           },
           {
             path: '/mercados/cve-cuota',
-            label: '*** Claves de Cuota',
+            label: '* Claves de Cuota',
             icon: 'key'
           },
           {
             path: '/mercados/cve-diferencias',
-            label: '*** Claves de Diferencias',
+            label: '* Claves de Diferencias',
             icon: 'balance-scale'
           },
           {
@@ -1366,12 +1366,12 @@ const menuItems = [
           // LOTE 22: Reportes de Facturación
           {
             path: '/mercados/rpt-factura-emision',
-            label: 'Reporte Factura Emisión',
+            label: '--- Reporte Factura Emisión',
             icon: 'file-pdf'
           },
           {
             path: '/mercados/rpt-factura-energia',
-            label: 'Reporte Factura Energía',
+            label: '--- Reporte Factura Energía',
             icon: 'file-contract'
           },
           {
@@ -1387,7 +1387,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-padron-energia',
-            label: 'Reporte Padrón Energía',
+            label: '--- Reporte Padrón Energía',
             icon: 'bolt'
           },
           {
@@ -1407,7 +1407,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-movimientos',
-            label: 'Reporte Movimientos',
+            label: '--- Reporte Movimientos',
             icon: 'exchange-alt'
           },
           {
@@ -1422,7 +1422,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-ingreso-zonificado',
-            label: 'Reporte Ingresos por Zona',
+            label: '--- Reporte Ingresos por Zona',
             icon: 'map-marked-alt'
           },
           // LOTE 24: Reportes de Ingresos

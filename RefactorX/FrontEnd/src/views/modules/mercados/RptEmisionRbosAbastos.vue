@@ -1,122 +1,224 @@
 <template>
-  <div class="rpt-emision-rbos-abastos">
-    <h1>Emisión de Recibos de Abastos</h1>
+  <div class="container-fluid mt-3">
+    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Emisión Recibos Abastos</li>
+        <li class="breadcrumb-item"><router-link to="/mercados">Mercados</router-link></li>
+        <li class="breadcrumb-item active" aria-current="page">Emisión de Recibos de Abastos</li>
       </ol>
     </nav>
-    <form @submit.prevent="fetchReport">
-      <div class="form-row">
-        <div class="form-group col-md-3">
-          <label>Oficina</label>
-          <select v-model="form.oficina" class="form-control" required>
-            <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
-          </select>
-        </div>
-        <div class="form-group col-md-3">
-          <label>Mercado</label>
-          <select v-model="form.mercado" class="form-control" required>
-            <option v-for="m in mercados" :key="m.id" :value="m.id">{{ m.nombre }}</option>
-          </select>
-        </div>
-        <div class="form-group col-md-2">
-          <label>Año</label>
-          <input type="number" v-model="form.axo" class="form-control" required min="1990" max="2100">
-        </div>
-        <div class="form-group col-md-2">
-          <label>Periodo</label>
-          <input type="number" v-model="form.periodo" class="form-control" required min="1" max="12">
-        </div>
-        <div class="form-group col-md-2 align-self-end">
-          <button type="submit" class="btn btn-primary">Consultar</button>
-        </div>
-      </div>
-    </form>
-    <div v-if="loading" class="my-3">
-      <span class="spinner-border"></span> Cargando datos...
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2><i class="fas fa-receipt"></i> Emisión de Recibos de Abastos</h2>
     </div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="reportData && reportData.length">
-      <h3>Resultados</h3>
-      <table class="table table-bordered table-sm">
-        <thead>
-          <tr>
-            <th>Local</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Meses</th>
-            <th>Renta</th>
-            <th>Adeudo</th>
-            <th>Recargos</th>
-            <th>Subtotal</th>
-            <th>Multa</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in reportData" :key="row.id_local">
-            <td>{{ row.local }}</td>
-            <td>{{ row.nombre }}</td>
-            <td>{{ row.descripcion }}</td>
-            <td>{{ row.meses }}</td>
-            <td>{{ currency(row.renta) }}</td>
-            <td>{{ currency(row.adeudo) }}</td>
-            <td>{{ currency(row.recargos) }}</td>
-            <td>{{ currency(row.subtotal) }}</td>
-            <td>{{ currency(row.multa) }}</td>
-            <td>
-              <button class="btn btn-link btn-sm" @click="showRequerimientos(row.id_local)">Ver Requerimientos</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="mt-3">
-        <strong>Total Adeudo: </strong>{{ currency(totalAdeudo) }}<br>
-        <strong>Total Recargos: </strong>{{ currency(totalRecargos) }}<br>
-        <strong>Total Subtotal: </strong>{{ currency(totalSubtotal) }}<br>
-        <strong>Total Multa: </strong>{{ currency(totalMulta) }}
+
+    <!-- Filtros -->
+    <div class="card mb-3">
+      <div class="card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
+        <i :class="mostrarFiltros ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
+        Filtros de Búsqueda
+      </div>
+      <div class="card-body" v-show="mostrarFiltros">
+        <form @submit.prevent="buscar">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Recaudadora <span class="text-danger">*</span></label>
+              <select v-model="filters.oficina" class="form-select" @change="onOficinaChange" required>
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Mercado <span class="text-danger">*</span></label>
+              <select v-model="filters.mercado" class="form-select" required :disabled="!mercados.length">
+                <option value="">Seleccione...</option>
+                <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
+                  {{ m.num_mercado_nvo }} - {{ m.descripcion }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Año <span class="text-danger">*</span></label>
+              <input type="number" v-model.number="filters.axo" class="form-control" min="1990" :max="new Date().getFullYear() + 1" required />
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Periodo (Mes) <span class="text-danger">*</span></label>
+              <select v-model.number="filters.periodo" class="form-select" required>
+                <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" :disabled="loading">
+              <i class="fas fa-search"></i> Buscar
+            </button>
+            <button type="button" class="btn btn-secondary" @click="limpiarFiltros">
+              <i class="fas fa-eraser"></i> Limpiar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-    <div v-if="showReqModal">
-      <div class="modal-backdrop show"></div>
-      <div class="modal show d-block" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Requerimientos del Local #{{ reqLocalId }}</h5>
-              <button type="button" class="close" @click="showReqModal=false">&times;</button>
+
+    <!-- Loading -->
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Cargando datos...</p>
+    </div>
+
+    <!-- Sin búsqueda -->
+    <div v-if="!busquedaRealizada && !loading" class="alert alert-info">
+      <i class="fas fa-info-circle"></i> Seleccione los filtros y haga clic en <strong>Buscar</strong> para ver los recibos de abastos.
+    </div>
+
+    <!-- Sin resultados -->
+    <div v-if="busquedaRealizada && !resultados.length && !loading" class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle"></i> No se encontraron datos con los filtros seleccionados.
+    </div>
+
+    <!-- Tabla de Resultados -->
+    <div v-if="resultados.length && !loading" class="card">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <div>
+          <span class="badge bg-primary me-2">{{ resultados.length }} registros</span>
+          <span class="badge bg-success">Total: {{ formatCurrency(totalSubtotal) }}</span>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-outline-success me-2" @click="exportarExcel">
+            <i class="fas fa-file-excel"></i> Exportar
+          </button>
+          <button class="btn btn-sm btn-outline-primary" @click="imprimir">
+            <i class="fas fa-print"></i> Imprimir
+          </button>
+        </div>
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-hover table-sm">
+          <thead class="table-light sticky-top">
+            <tr>
+              <th>Datos Local</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Meses</th>
+              <th>Renta</th>
+              <th>Adeudo</th>
+              <th>Recargos</th>
+              <th>Subtotal</th>
+              <th>Multa</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in paginatedResultados" :key="row.id_local">
+              <td>{{ datosLocal(row) }}</td>
+              <td>{{ row.nombre }}</td>
+              <td>{{ row.descripcion }}</td>
+              <td>{{ row.meses || 'N/A' }}</td>
+              <td class="text-end">{{ formatCurrency(row.renta) }}</td>
+              <td class="text-end">{{ formatCurrency(row.adeudo) }}</td>
+              <td class="text-end">{{ formatCurrency(row.recargos) }}</td>
+              <td class="text-end fw-bold">{{ formatCurrency(row.subtotal) }}</td>
+              <td class="text-end">{{ formatCurrency(row.multa) }}</td>
+              <td>
+                <button class="btn btn-sm btn-link" @click="verRequerimientos(row.id_local)">
+                  <i class="fas fa-file-alt"></i> Requerimientos
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <th colspan="5" class="text-end">Totales:</th>
+              <th class="text-end">{{ formatCurrency(totalAdeudo) }}</th>
+              <th class="text-end">{{ formatCurrency(totalRecargos) }}</th>
+              <th class="text-end">{{ formatCurrency(totalSubtotal) }}</th>
+              <th class="text-end">{{ formatCurrency(totalMulta) }}</th>
+              <th></th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="card-footer">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <label class="me-2">Mostrar:</label>
+            <select v-model.number="pageSize" class="form-select form-select-sm d-inline-block w-auto">
+              <option :value="10">10</option>
+              <option :value="25">25</option>
+              <option :value="50">50</option>
+              <option :value="100">100</option>
+              <option :value="250">250</option>
+            </select>
+            <span class="ms-2">registros por página</span>
+          </div>
+          <div class="col-md-6 text-end">
+            <button class="btn btn-sm btn-outline-secondary me-1" @click="currentPage--" :disabled="currentPage === 1">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
+            <button class="btn btn-sm btn-outline-secondary ms-1" @click="currentPage++" :disabled="currentPage === totalPages">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Requerimientos -->
+    <div v-if="showModalReq" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Requerimientos del Local #{{ reqLocalId }}</h5>
+            <button type="button" class="btn-close btn-close-white" @click="showModalReq = false"></button>
+          </div>
+          <div class="modal-body">
+            <div v-if="loadingReq" class="text-center py-3">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p>Cargando requerimientos...</p>
             </div>
-            <div class="modal-body">
-              <div v-if="loadingReq">Cargando...</div>
-              <div v-else-if="requerimientos && requerimientos.length">
-                <table class="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>Folio</th>
-                      <th>Importe Multa</th>
-                      <th>Importe Gastos</th>
-                      <th>Fecha Emisión</th>
-                      <th>Observaciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="req in requerimientos" :key="req.folio">
-                      <td>{{ req.folio }}</td>
-                      <td>{{ currency(req.importe_multa) }}</td>
-                      <td>{{ currency(req.importe_gastos) }}</td>
-                      <td>{{ req.fecha_emision }}</td>
-                      <td>{{ req.observaciones }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-else>No hay requerimientos para este local.</div>
+            <div v-else-if="requerimientos.length">
+              <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th>Folio</th>
+                    <th>Diligencia</th>
+                    <th>Importe Multa</th>
+                    <th>Importe Gastos</th>
+                    <th>Fecha Emisión</th>
+                    <th>Observaciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="req in requerimientos" :key="req.folio">
+                    <td>{{ req.folio }}</td>
+                    <td>{{ req.diligencia }}</td>
+                    <td class="text-end">{{ formatCurrency(req.importe_multa) }}</td>
+                    <td class="text-end">{{ formatCurrency(req.importe_gastos) }}</td>
+                    <td>{{ req.fecha_emision }}</td>
+                    <td>{{ req.observaciones }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showReqModal=false">Cerrar</button>
+            <div v-else class="alert alert-info">
+              <i class="fas fa-info-circle"></i> No hay requerimientos para este local.
             </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showModalReq = false">Cerrar</button>
           </div>
         </div>
       </div>
@@ -124,138 +226,277 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'RptEmisionRbosAbastos',
-  data() {
-    return {
-      form: {
-        oficina: '',
-        mercado: '',
-        axo: new Date().getFullYear(),
-        periodo: new Date().getMonth() + 1
-      },
-      oficinas: [],
-      mercados: [],
-      reportData: [],
-      loading: false,
-      error: '',
-      showReqModal: false,
-      reqLocalId: null,
-      requerimientos: [],
-      loadingReq: false
-    }
-  },
-  computed: {
-    totalAdeudo() {
-      return this.reportData.reduce((sum, r) => sum + Number(r.adeudo || 0), 0);
-    },
-    totalRecargos() {
-      return this.reportData.reduce((sum, r) => sum + Number(r.recargos || 0), 0);
-    },
-    totalSubtotal() {
-      return this.reportData.reduce((sum, r) => sum + Number(r.subtotal || 0), 0);
-    },
-    totalMulta() {
-      return this.reportData.reduce((sum, r) => sum + Number(r.multa || 0), 0);
-    }
-  },
-  methods: {
-    currency(val) {
-      return Number(val).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    },
-    async fetchReport() {
-      this.loading = true;
-      this.error = '';
-      this.reportData = [];
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getReportData',
-            params: this.form
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.reportData = data.data;
-        } else {
-          this.error = data.message || 'Error al consultar datos';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
+
+// Referencias reactivas
+const filters = ref({
+  oficina: '',
+  mercado: '',
+  axo: new Date().getFullYear(),
+  periodo: new Date().getMonth() + 1
+});
+
+const recaudadoras = ref([]);
+const mercados = ref([]);
+const resultados = ref([]);
+const loading = ref(false);
+const busquedaRealizada = ref(false);
+const mostrarFiltros = ref(true);
+
+// Paginación
+const currentPage = ref(1);
+const pageSize = ref(25);
+
+// Modal Requerimientos
+const showModalReq = ref(false);
+const reqLocalId = ref(null);
+const requerimientos = ref([]);
+const loadingReq = ref(false);
+
+// Catálogos
+const meses = ref([
+  { value: 1, label: 'Enero' },
+  { value: 2, label: 'Febrero' },
+  { value: 3, label: 'Marzo' },
+  { value: 4, label: 'Abril' },
+  { value: 5, label: 'Mayo' },
+  { value: 6, label: 'Junio' },
+  { value: 7, label: 'Julio' },
+  { value: 8, label: 'Agosto' },
+  { value: 9, label: 'Septiembre' },
+  { value: 10, label: 'Octubre' },
+  { value: 11, label: 'Noviembre' },
+  { value: 12, label: 'Diciembre' }
+]);
+
+// Computed
+const totalPages = computed(() => Math.ceil(resultados.value.length / pageSize.value) || 1);
+
+const paginatedResultados = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return resultados.value.slice(start, end);
+});
+
+const totalAdeudo = computed(() => {
+  return resultados.value.reduce((sum, row) => sum + (parseFloat(row.adeudo) || 0), 0);
+});
+
+const totalRecargos = computed(() => {
+  return resultados.value.reduce((sum, row) => sum + (parseFloat(row.recargos) || 0), 0);
+});
+
+const totalSubtotal = computed(() => {
+  return resultados.value.reduce((sum, row) => sum + (parseFloat(row.subtotal) || 0), 0);
+});
+
+const totalMulta = computed(() => {
+  return resultados.value.reduce((sum, row) => sum + (parseFloat(row.multa) || 0), 0);
+});
+
+// Métodos
+const fetchRecaudadoras = async () => {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'mercados',
+        Parametros: []
       }
-    },
-    async showRequerimientos(id_local) {
-      this.reqLocalId = id_local;
-      this.showReqModal = true;
-      this.loadingReq = true;
-      this.requerimientos = [];
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getRequerimientos',
-            params: { id_local }
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.requerimientos = data.data;
-        } else {
-          this.requerimientos = [];
-        }
-      } catch (e) {
-        this.requerimientos = [];
-      } finally {
-        this.loadingReq = false;
-      }
-    },
-    async fetchOficinas() {
-      // Simulación: en producción, cargar desde API
-      this.oficinas = [
-        { id: 1, nombre: 'Zona Centro' },
-        { id: 2, nombre: 'Zona Olímpica' },
-        { id: 3, nombre: 'Zona Oblatos' },
-        { id: 4, nombre: 'Zona Minerva' },
-        { id: 5, nombre: 'Cruz del Sur' }
-      ];
-      this.form.oficina = this.oficinas[0].id;
-    },
-    async fetchMercados() {
-      // Simulación: en producción, cargar desde API según oficina
-      this.mercados = [
-        { id: 1, nombre: 'Mercado Abastos' },
-        { id: 2, nombre: 'Mercado Libertad' },
-        { id: 3, nombre: 'Mercado San Juan' }
-      ];
-      this.form.mercado = this.mercados[0].id;
+    });
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      recaudadoras.value = response.data.eResponse.data.result;
     }
-  },
-  mounted() {
-    this.fetchOficinas();
-    this.fetchMercados();
+  } catch (error) {
+    showToast('Error al cargar recaudadoras', 'error');
   }
-}
+};
+
+const onOficinaChange = async () => {
+  filters.value.mercado = '';
+  mercados.value = [];
+  if (!filters.value.oficina) return;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_mercados_by_recaudadora',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }
+        ]
+      }
+    });
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      mercados.value = response.data.eResponse.data.result;
+    }
+  } catch (error) {
+    showToast('Error al cargar mercados', 'error');
+  }
+};
+
+const buscar = async () => {
+  loading.value = true;
+  busquedaRealizada.value = false;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_rpt_emision_rbos_abastos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
+          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
+          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
+          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) }
+        ]
+      }
+    });
+
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      resultados.value = response.data.eResponse.data.result;
+      busquedaRealizada.value = true;
+      currentPage.value = 1;
+
+      if (resultados.value.length > 0) {
+        showToast(`Se encontraron ${resultados.value.length} registros`, 'success');
+      }
+    } else {
+      resultados.value = [];
+      busquedaRealizada.value = true;
+      showToast('No se encontraron resultados', 'warning');
+    }
+  } catch (error) {
+    showToast('Error al consultar', 'error');
+    resultados.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+const verRequerimientos = async (id_local) => {
+  reqLocalId.value = id_local;
+  showModalReq.value = true;
+  loadingReq.value = true;
+  requerimientos.value = [];
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_requerimientos_abastos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: parseInt(id_local) }
+        ]
+      }
+    });
+
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      requerimientos.value = response.data.eResponse.data.result;
+    }
+  } catch (error) {
+    showToast('Error al cargar requerimientos', 'error');
+  } finally {
+    loadingReq.value = false;
+  }
+};
+
+const limpiarFiltros = () => {
+  filters.value = {
+    oficina: '',
+    mercado: '',
+    axo: new Date().getFullYear(),
+    periodo: new Date().getMonth() + 1
+  };
+  mercados.value = [];
+  resultados.value = [];
+  busquedaRealizada.value = false;
+  currentPage.value = 1;
+};
+
+const datosLocal = (row) => {
+  return `${row.oficina}-${row.num_mercado}-${row.categoria}-${row.seccion}-${row.local}${row.letra_local || ''}${row.bloque ? '-' + row.bloque : ''}`;
+};
+
+const formatCurrency = (value) => {
+  if (value == null) return '$0.00';
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value);
+};
+
+const formatNumber = (value) => {
+  if (value == null) return '0';
+  return new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+};
+
+const exportarExcel = () => {
+  const data = resultados.value.map(row => ({
+    'Datos Local': datosLocal(row),
+    'Nombre': row.nombre,
+    'Descripción': row.descripcion,
+    'Meses': row.meses,
+    'Renta': row.renta,
+    'Adeudo': row.adeudo,
+    'Recargos': row.recargos,
+    'Subtotal': row.subtotal,
+    'Multa': row.multa
+  }));
+
+  const csv = [
+    Object.keys(data[0]).join(','),
+    ...data.map(row => Object.values(row).join(','))
+  ].join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `emision_abastos_${filters.value.axo}_${filters.value.periodo}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
+
+const imprimir = () => {
+  window.print();
+};
+
+const showToast = (message, type = 'info') => {
+  // Implementación simple de toast
+  alert(message);
+};
+
+// Lifecycle
+onMounted(() => {
+  fetchRecaudadoras();
+});
 </script>
 
 <style scoped>
-.rpt-emision-rbos-abastos {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+.sticky-top {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
 }
-.modal-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 1040;
-}
-.modal {
-  z-index: 1050;
+
+@media print {
+  .card-header,
+  .card-footer,
+  .breadcrumb,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  table {
+    font-size: 10px;
+  }
 }
 </style>

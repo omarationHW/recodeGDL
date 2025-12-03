@@ -1,20 +1,17 @@
 <template>
   <div class="container-fluid mt-3">
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
         <li class="breadcrumb-item"><router-link to="/mercados">Mercados</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Estadística de Adeudos</li>
+        <li class="breadcrumb-item active" aria-current="page">Facturación de Estados de Cuenta</li>
       </ol>
     </nav>
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2><i class="fas fa-chart-line"></i> Estadística Global de Adeudos Vencidos</h2>
+      <h2><i class="fas fa-file-invoice-dollar"></i> Facturación de Estados de Cuenta</h2>
     </div>
 
-    <!-- Filtros -->
     <div class="card mb-3">
       <div class="card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
         <i :class="mostrarFiltros ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
@@ -24,32 +21,41 @@
         <form @submit.prevent="consultar">
           <div class="row">
             <div class="col-md-2 mb-3">
+              <label class="form-label">Recaudadora <span class="text-danger">*</span></label>
+              <select v-model="filters.oficina" class="form-select" @change="onOficinaChange" required>
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-2 mb-3">
+              <label class="form-label">Mercado <span class="text-danger">*</span></label>
+              <select v-model="filters.mercado" class="form-select" required :disabled="!mercados.length">
+                <option value="">Seleccione...</option>
+                <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
+                  {{ m.num_mercado_nvo }} - {{ m.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-2 mb-3">
               <label class="form-label">Año <span class="text-danger">*</span></label>
               <input type="number" v-model.number="filters.axo" class="form-control" min="1990" :max="new Date().getFullYear() + 1" required />
             </div>
-
             <div class="col-md-2 mb-3">
-              <label class="form-label">Periodo (Mes) <span class="text-danger">*</span></label>
+              <label class="form-label">Periodo <span class="text-danger">*</span></label>
               <select v-model.number="filters.periodo" class="form-select" required>
                 <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
-
             <div class="col-md-3 mb-3">
-              <label class="form-label">Importe mínimo</label>
-              <input type="number" v-model.number="filters.importe" class="form-control" step="0.01" min="0" />
-              <small class="text-muted">Deje en 0 para todos los adeudos</small>
-            </div>
-
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Tipo de Reporte <span class="text-danger">*</span></label>
+              <label class="form-label">Opción <span class="text-danger">*</span></label>
               <select v-model.number="filters.opc" class="form-select" required>
-                <option :value="1">Global (Todos)</option>
-                <option :value="2">Solo mayores o iguales a importe</option>
+                <option :value="1">Solo mercado seleccionado</option>
+                <option :value="2">Todos los mercados</option>
               </select>
             </div>
           </div>
-
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary" :disabled="loading">
               <i class="fas fa-search"></i> Consultar
@@ -65,63 +71,62 @@
       </div>
     </div>
 
-    <!-- Loading -->
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
-      <p class="mt-2">Cargando estadísticas...</p>
+      <p class="mt-2">Cargando facturación...</p>
     </div>
 
-    <!-- Sin búsqueda -->
     <div v-if="!busquedaRealizada && !loading" class="alert alert-info">
-      <i class="fas fa-info-circle"></i> Seleccione los filtros y haga clic en <strong>Consultar</strong> para ver las estadísticas de adeudos.
+      <i class="fas fa-info-circle"></i> Seleccione los filtros y haga clic en <strong>Consultar</strong>.
     </div>
 
-    <!-- Sin resultados -->
     <div v-if="busquedaRealizada && !resultados.length && !loading" class="alert alert-warning">
-      <i class="fas fa-exclamation-triangle"></i> No se encontraron adeudos con los criterios seleccionados.
+      <i class="fas fa-exclamation-triangle"></i> No se encontraron registros.
     </div>
 
-    <!-- Tabla de Resultados -->
     <div v-if="resultados.length && !loading" class="card">
       <div class="card-header bg-light d-flex justify-content-between align-items-center">
         <div>
-          <h5 class="mb-0">{{ tituloReporte }}</h5>
           <span class="badge bg-primary me-2">{{ resultados.length }} registros</span>
-          <span class="badge bg-danger">Total Adeudo: {{ formatCurrency(totalAdeudo) }}</span>
+          <span class="badge bg-success">Total: {{ formatCurrency(totalImporte) }}</span>
         </div>
       </div>
       <div class="card-body table-responsive">
         <table class="table table-bordered table-hover table-sm">
           <thead class="table-light sticky-top">
             <tr>
-              <th>Oficina</th>
-              <th>Mercado</th>
-              <th>Local</th>
-              <th>Nombre Mercado</th>
-              <th class="text-end">Importe Adeudo</th>
+              <th>Datos Local</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th class="text-end">Superficie</th>
+              <th class="text-end">Importe Cuota</th>
+              <th class="text-end">Importe</th>
+              <th>Recaudadora</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in paginatedResultados" :key="`${row.oficina}-${row.num_mercado}-${row.local}`">
-              <td>{{ row.oficina }}</td>
-              <td>{{ row.num_mercado }}</td>
-              <td>{{ row.local }}</td>
+            <tr v-for="row in paginatedResultados" :key="row.datoslocal">
+              <td>{{ row.datoslocal }}</td>
+              <td>{{ row.nombre }}</td>
               <td>{{ row.descripcion }}</td>
-              <td class="text-end fw-bold">{{ formatCurrency(row.adeudo) }}</td>
+              <td class="text-end">{{ formatNumber(row.superficie) }}</td>
+              <td class="text-end">{{ formatCurrency(row.importe_cuota) }}</td>
+              <td class="text-end fw-bold">{{ formatCurrency(row.importe) }}</td>
+              <td>{{ row.recaudadora }}</td>
             </tr>
           </tbody>
           <tfoot class="table-light">
             <tr>
-              <th colspan="4" class="text-end">Total:</th>
-              <th class="text-end">{{ formatCurrency(totalAdeudo) }}</th>
+              <th colspan="5" class="text-end">Total:</th>
+              <th class="text-end">{{ formatCurrency(totalImporte) }}</th>
+              <th></th>
             </tr>
           </tfoot>
         </table>
       </div>
 
-      <!-- Paginación -->
       <div class="card-footer">
         <div class="row align-items-center">
           <div class="col-md-6">
@@ -151,27 +156,26 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-// Referencias reactivas
 const filters = ref({
+  oficina: '',
+  mercado: '',
   axo: new Date().getFullYear(),
-  periodo: 1,
-  importe: 0,
+  periodo: new Date().getMonth() + 1,
   opc: 1
 });
 
+const recaudadoras = ref([]);
+const mercados = ref([]);
 const resultados = ref([]);
 const loading = ref(false);
 const busquedaRealizada = ref(false);
 const mostrarFiltros = ref(true);
-
-// Paginación
 const currentPage = ref(1);
 const pageSize = ref(25);
 
-// Catálogos
 const meses = ref([
   { value: 1, label: 'Enero' },
   { value: 2, label: 'Febrero' },
@@ -187,61 +191,73 @@ const meses = ref([
   { value: 12, label: 'Diciembre' }
 ]);
 
-// Computed
 const totalPages = computed(() => Math.ceil(resultados.value.length / pageSize.value) || 1);
-
 const paginatedResultados = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return resultados.value.slice(start, end);
+  return resultados.value.slice(start, start + pageSize.value);
 });
+const totalImporte = computed(() => resultados.value.reduce((sum, r) => sum + (parseFloat(r.importe) || 0), 0));
 
-const totalAdeudo = computed(() => {
-  return resultados.value.reduce((sum, row) => sum + (parseFloat(row.adeudo) || 0), 0);
-});
-
-const tituloReporte = computed(() => {
-  if (filters.value.opc === 1) {
-    return `Estadística Global de Adeudos Vencidos al Periodo: ${filters.value.axo}-${filters.value.periodo}`;
-  } else {
-    return `Estadística de Adeudos Vencidos al Periodo: ${filters.value.axo}-${filters.value.periodo} (Mayor o Igual a ${formatCurrency(filters.value.importe)})`;
+const fetchRecaudadoras = async () => {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
+    });
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      recaudadoras.value = response.data.eResponse.data.result;
+    }
+  } catch (error) {
+    alert('Error al cargar recaudadoras');
   }
-});
+};
 
-// Métodos
-const consultar = async () => {
-  loading.value = true;
-  busquedaRealizada.value = false;
-
+const onOficinaChange = async () => {
+  filters.value.mercado = '';
+  mercados.value = [];
+  if (!filters.value.oficina) return;
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'rpt_estadistica_adeudos',
+        Operacion: 'sp_get_mercados_by_recaudadora',
+        Base: 'mercados',
+        Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }]
+      }
+    });
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      mercados.value = response.data.eResponse.data.result;
+    }
+  } catch (error) {
+    alert('Error al cargar mercados');
+  }
+};
+
+const consultar = async () => {
+  loading.value = true;
+  busquedaRealizada.value = false;
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_rpt_factura_emision',
         Base: 'mercados',
         Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
           { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
           { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) },
-          { Nombre: 'p_importe', Valor: parseFloat(filters.value.importe) || 0 },
+          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
           { Nombre: 'p_opc', Valor: parseInt(filters.value.opc) }
         ]
       }
     });
-
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       resultados.value = response.data.eResponse.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
-
-      if (resultados.value.length > 0) {
-        showToast(`Se encontraron ${resultados.value.length} registros con adeudos`, 'success');
-      }
     } else {
       resultados.value = [];
       busquedaRealizada.value = true;
-      showToast('No se encontraron resultados', 'warning');
     }
   } catch (error) {
-    showToast('Error al consultar', 'error');
+    alert('Error al consultar');
     resultados.value = [];
   } finally {
     loading.value = false;
@@ -250,11 +266,13 @@ const consultar = async () => {
 
 const limpiarFiltros = () => {
   filters.value = {
+    oficina: '',
+    mercado: '',
     axo: new Date().getFullYear(),
-    periodo: 1,
-    importe: 0,
+    periodo: new Date().getMonth() + 1,
     opc: 1
   };
+  mercados.value = [];
   resultados.value = [];
   busquedaRealizada.value = false;
   currentPage.value = 1;
@@ -262,38 +280,31 @@ const limpiarFiltros = () => {
 
 const formatCurrency = (value) => {
   if (value == null) return '$0.00';
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN'
-  }).format(value);
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value);
+};
+
+const formatNumber = (value) => {
+  if (value == null) return '0';
+  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value);
 };
 
 const exportarExcel = () => {
-  const data = resultados.value.map(row => ({
-    'Oficina': row.oficina,
-    'Mercado': row.num_mercado,
-    'Local': row.local,
-    'Nombre Mercado': row.descripcion,
-    'Importe Adeudo': row.adeudo
-  }));
-
   const csv = [
-    Object.keys(data[0]).join(','),
-    ...data.map(row => Object.values(row).join(','))
+    'Datos Local,Nombre,Descripción,Superficie,Importe Cuota,Importe,Recaudadora',
+    ...resultados.value.map(r => `${r.datoslocal},${r.nombre},${r.descripcion},${r.superficie},${r.importe_cuota},${r.importe},${r.recaudadora}`)
   ].join('\n');
-
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `estadistica_adeudos_${filters.value.axo}_${filters.value.periodo}.csv`;
+  a.download = `factura_emision_${filters.value.axo}_${filters.value.periodo}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
 };
 
-const showToast = (message, type = 'info') => {
-  alert(message);
-};
+onMounted(() => {
+  fetchRecaudadoras();
+});
 </script>
 
 <style scoped>
@@ -305,16 +316,7 @@ const showToast = (message, type = 'info') => {
 }
 
 @media print {
-  .card-header,
-  .card-footer,
-  .breadcrumb,
-  button,
-  .no-print {
-    display: none !important;
-  }
-
-  table {
-    font-size: 10px;
-  }
+  .card-header, .card-footer, .breadcrumb, button { display: none !important; }
+  table { font-size: 10px; }
 }
 </style>

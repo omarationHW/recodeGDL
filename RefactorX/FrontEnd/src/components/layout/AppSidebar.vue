@@ -1029,7 +1029,7 @@ const menuItems = [
           },
           {
             path: '/mercados/giros',
-            label: '--  Giros Comerciales',
+            label: '* Giros Comerciales',
             icon: 'store'
           },
           {
@@ -1079,12 +1079,12 @@ const menuItems = [
           },
           {
             path: '/mercados/emision-energia',
-            label: '-  Emisión de Recibos de Energía',
+            label: '*  Emisión de Recibos de Energía',
             icon: 'bolt'
           },
           {
             path: '/mercados/cuotas-energia-mntto',
-            label: '*** Mantenimiento de Cuotas de Energía',
+            label: '--- Mantenimiento de Cuotas de Energía',
             icon: 'wrench'
           },
           {
@@ -1094,7 +1094,7 @@ const menuItems = [
           },
           {
             path: '/mercados/datos-individuales',
-            label: '-  Datos Individuales del Local',
+            label: '*  Datos Individuales del Local',
             icon: 'file-alt'
           },
           {
@@ -1219,7 +1219,7 @@ const menuItems = [
           },
           {
             path: '/mercados/consulta-general',
-            label: '--  Consulta General',
+            label: '*  Consulta General',
             icon: 'search'
           },
           {
@@ -1235,7 +1235,7 @@ const menuItems = [
           // LOTE 16: Configuración y Cuotas Adicionales
           {
             path: '/mercados/cuotas-mdo-mntto',
-            label: '--- Mantenimiento Cuotas Mercado',
+            label: '* Mantenimiento Cuotas Mercado',
             icon: 'edit'
           },
           {
@@ -1250,12 +1250,12 @@ const menuItems = [
           },
           {
             path: '/mercados/fecha-descuento',
-            label: '-  Fechas de Descuento',
+            label: '*  Fechas de Descuento',
             icon: 'calendar-check'
           },
           {
             path: '/mercados/fechas-descuento-mntto',
-            label: '*** Mantenimiento Fechas Descuento',
+            label: '--- Mantenimiento Fechas Descuento',
             icon: 'calendar-check'
           },
           {
@@ -1271,7 +1271,7 @@ const menuItems = [
           },
           {
             path: '/mercados/datos-requerimientos',
-            label: '-  Datos de Requerimientos',
+            label: '*  Datos de Requerimientos',
             icon: 'file-invoice'
           },
           {
@@ -1287,12 +1287,12 @@ const menuItems = [
           // LOTE 18: Emisión y Consultas de Pagos
           {
             path: '/mercados/emision-libertad',
-            label: '-  Emisión Libertad',
+            label: '* Emisión Libertad',
             icon: 'dove'
           },
           {
             path: '/mercados/pagos-ene-cons',
-            label: '--  Consulta Pagos Energía',
+            label: '* Consulta Pagos Energía',
             icon: 'file-invoice-dollar'
           },
           {
@@ -1339,7 +1339,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-desgloce-ade-porimporte',
-            label: '-  Desglose Adeudos por Año',
+            label: '*  Desglose Adeudos por Año',
             icon: 'layer-group'
           },
           // LOTE 21: Reportes de Emisión
@@ -1366,12 +1366,12 @@ const menuItems = [
           // LOTE 22: Reportes de Facturación
           {
             path: '/mercados/rpt-factura-emision',
-            label: '--- Reporte Factura Emisión',
+            label: '----- Reporte Factura Emisión',
             icon: 'file-pdf'
           },
           {
             path: '/mercados/rpt-factura-energia',
-            label: '--- Reporte Factura Energía',
+            label: '----- Reporte Factura Energía',
             icon: 'file-contract'
           },
           {
@@ -1387,7 +1387,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-padron-energia',
-            label: '--- Reporte Padrón Energía',
+            label: '----- Reporte Padrón Energía',
             icon: 'bolt'
           },
           {
@@ -1407,12 +1407,12 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-movimientos',
-            label: '--- Reporte Movimientos',
+            label: '----- Reporte Movimientos',
             icon: 'exchange-alt'
           },
           {
             path: '/mercados/ingreso-captura',
-            label: '-  Ingreso Captura',
+            label: '*  Ingreso Captura',
             icon: 'keyboard'
           },
           {
@@ -1422,7 +1422,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-ingreso-zonificado',
-            label: '--- Reporte Ingresos por Zona',
+            label: '----- Reporte Ingresos por Zona',
             icon: 'map-marked-alt'
           },
           // LOTE 24: Reportes de Ingresos
@@ -1480,7 +1480,7 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-dif-ingresos',
-            label: '-  Diferencias en Ingresos',
+            label: '*  Diferencias en Ingresos',
             icon: 'exclamation-circle'
           },
           // LOTE 27: Reportes Finales y Configuración
@@ -1496,7 +1496,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-fechas-vencimiento',
-            label: '--  Fechas de Vencimiento',
+            label: '* Fechas de Vencimiento',
             icon: 'calendar-times'
           },
           {
@@ -1512,7 +1512,7 @@ const menuItems = [
           },
           {
             path: '/mercados/paso-ene',
-            label: '-  Importar Energía',
+            label: '**  Importar Energía',
             icon: 'file-import'
           },
           {

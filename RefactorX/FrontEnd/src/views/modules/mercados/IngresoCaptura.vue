@@ -47,7 +47,7 @@
             <div class="form-group">
               <label class="municipal-form-label">Caja de Pago <span class="required">*</span></label>
               <input type="text" class="municipal-form-control" v-model="form.caja_pago"
-                     maxlength="1" :disabled="loading" placeholder="Ej: A" />
+                     maxlength="3" :disabled="loading" placeholder="Ej: A" />
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Operación de Pago <span class="required">*</span></label>

@@ -47,7 +47,7 @@
                 <select v-model="form.oficina" class="municipal-form-control" required @change="cargarMercados" :disabled="loading">
                   <option value="">Seleccione...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                    {{ rec.id_rec }} - {{ rec.aseguradora }}
+                    {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -238,127 +238,180 @@
           </div>
 
           <!-- Tabs de información adicional -->
-          <ul class="nav nav-tabs mt-3">
+          <ul class="nav nav-tabs-custom mt-4">
             <li class="nav-item">
-              <button class="nav-link" :class="{ active: tab === 'adeudos' }" @click="tab = 'adeudos'">
-                Adeudos ({{ adeudos.length }})
+              <button class="nav-link-custom tab-adeudos" :class="{ active: tab === 'adeudos' }" @click="tab = 'adeudos'">
+                <font-awesome-icon icon="exclamation-circle" class="tab-icon" />
+                <span class="tab-label">Adeudos</span>
+                <span class="tab-badge badge-danger">{{ adeudos.length }}</span>
               </button>
             </li>
             <li class="nav-item">
-              <button class="nav-link" :class="{ active: tab === 'pagos' }" @click="tab = 'pagos'">
-                Pagos ({{ pagos.length }})
+              <button class="nav-link-custom tab-pagos" :class="{ active: tab === 'pagos' }" @click="tab = 'pagos'">
+                <font-awesome-icon icon="money-bill-wave" class="tab-icon" />
+                <span class="tab-label">Pagos</span>
+                <span class="tab-badge badge-success">{{ pagos.length }}</span>
               </button>
             </li>
             <li class="nav-item">
-              <button class="nav-link" :class="{ active: tab === 'requerimientos' }" @click="tab = 'requerimientos'">
-                Requerimientos ({{ requerimientos.length }})
+              <button class="nav-link-custom tab-requerimientos" :class="{ active: tab === 'requerimientos' }" @click="tab = 'requerimientos'">
+                <font-awesome-icon icon="file-invoice" class="tab-icon" />
+                <span class="tab-label">Requerimientos</span>
+                <span class="tab-badge badge-warning">{{ requerimientos.length }}</span>
               </button>
             </li>
           </ul>
 
           <!-- Contenido de tabs -->
-          <div class="tab-content p-3 border border-top-0">
+          <div class="tab-content-custom">
             <!-- Tab Adeudos -->
-            <div v-if="tab === 'adeudos'">
-              <div v-if="loadingTab" class="text-center py-3">
-                <span class="spinner-border spinner-border-sm"></span> Cargando...
+            <div v-if="tab === 'adeudos'" class="tab-pane-custom fade-in">
+              <div v-if="loadingTab" class="text-center py-5">
+                <div class="spinner-border text-danger" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando adeudos...</p>
               </div>
-              <table v-else class="table table-sm table-hover">
-                <thead class="table-light">
-                  <tr>
-                    <th>Año</th>
-                    <th>Periodo</th>
-                    <th class="text-end">Importe</th>
-                    <th class="text-end">Recargos</th>
-                    <th class="text-end">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(a, idx) in adeudos" :key="idx">
-                    <td>{{ a.axo }}</td>
-                    <td>{{ a.periodo }}</td>
-                    <td class="text-end"><strong class="text-danger">{{ formatCurrency(a.importe) }}</strong></td>
-                    <td class="text-end"><strong class="text-warning">{{ formatCurrency(a.recargos) }}</strong></td>
-                    <td class="text-end"><strong class="text-primary">{{ formatCurrency(parseFloat(a.importe || 0) + parseFloat(a.recargos || 0)) }}</strong></td>
-                  </tr>
-                  <tr v-if="adeudos.length === 0">
-                    <td colspan="5" class="text-center text-muted">
-                      <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                      <p>Sin adeudos registrados</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div v-else>
+                <div v-if="adeudos.length > 0" class="table-responsive">
+                  <table class="table-custom table-adeudos">
+                    <thead>
+                      <tr>
+                        <th>Año</th>
+                        <th>Periodo</th>
+                        <th class="text-end">Importe</th>
+                        <th class="text-end">Recargos</th>
+                        <th class="text-end">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(a, idx) in adeudos" :key="idx" class="table-row-hover">
+                        <td><span class="badge-year">{{ a.axo }}</span></td>
+                        <td><span class="badge-period">Periodo {{ a.periodo }}</span></td>
+                        <td class="text-end">
+                          <span class="amount-danger">{{ formatCurrency(a.importe) }}</span>
+                        </td>
+                        <td class="text-end">
+                          <span class="amount-warning">{{ formatCurrency(a.recargos) }}</span>
+                        </td>
+                        <td class="text-end">
+                          <span class="amount-total">{{ formatCurrency(parseFloat(a.importe || 0) + parseFloat(a.recargos || 0)) }}</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-else class="empty-state">
+                  <font-awesome-icon icon="check-circle" size="3x" class="empty-icon-success" />
+                  <h5>Sin adeudos pendientes</h5>
+                  <p class="text-muted">Este local no tiene adeudos registrados</p>
+                </div>
+              </div>
             </div>
 
             <!-- Tab Pagos -->
-            <div v-if="tab === 'pagos'">
-              <div v-if="loadingTab" class="text-center py-3">
-                <span class="spinner-border spinner-border-sm"></span> Cargando...
+            <div v-if="tab === 'pagos'" class="tab-pane-custom fade-in">
+              <div v-if="loadingTab" class="text-center py-5">
+                <div class="spinner-border text-success" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando pagos...</p>
               </div>
-              <table v-else class="table table-sm table-hover">
-                <thead class="table-light">
-                  <tr>
-                    <th>Año</th>
-                    <th>Periodo</th>
-                    <th>Fecha Pago</th>
-                    <th class="text-end">Importe</th>
-                    <th>Folio</th>
-                    <th>Usuario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(p, idx) in pagos" :key="idx">
-                    <td>{{ p.axo }}</td>
-                    <td>{{ p.periodo }}</td>
-                    <td>{{ p.fecha_pago }}</td>
-                    <td class="text-end"><strong class="text-success">{{ formatCurrency(p.importe_pago) }}</strong></td>
-                    <td>{{ p.folio }}</td>
-                    <td>{{ p.usuario }}</td>
-                  </tr>
-                  <tr v-if="pagos.length === 0">
-                    <td colspan="6" class="text-center text-muted">
-                      <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                      <p>Sin pagos registrados</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div v-else>
+                <div v-if="pagos.length > 0" class="table-responsive">
+                  <table class="table-custom table-pagos">
+                    <thead>
+                      <tr>
+                        <th>Año</th>
+                        <th>Periodo</th>
+                        <th>Fecha Pago</th>
+                        <th class="text-end">Importe</th>
+                        <th>Folio</th>
+                        <th>Usuario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(p, idx) in pagos" :key="idx" class="table-row-hover">
+                        <td><span class="badge-year">{{ p.axo }}</span></td>
+                        <td><span class="badge-period">Periodo {{ p.periodo }}</span></td>
+                        <td>
+                          <font-awesome-icon icon="calendar-alt" class="icon-small text-muted" />
+                          {{ p.fecha_pago }}
+                        </td>
+                        <td class="text-end">
+                          <span class="amount-success">{{ formatCurrency(p.importe_pago) }}</span>
+                        </td>
+                        <td>
+                          <span class="folio-badge">{{ p.folio || 'N/A' }}</span>
+                        </td>
+                        <td>
+                          <font-awesome-icon icon="user" class="icon-small text-muted" />
+                          {{ p.usuario || 'N/A' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-else class="empty-state">
+                  <font-awesome-icon icon="receipt" size="3x" class="empty-icon-info" />
+                  <h5>Sin pagos registrados</h5>
+                  <p class="text-muted">Este local no tiene pagos registrados</p>
+                </div>
+              </div>
             </div>
 
             <!-- Tab Requerimientos -->
-            <div v-if="tab === 'requerimientos'">
-              <div v-if="loadingTab" class="text-center py-3">
-                <span class="spinner-border spinner-border-sm"></span> Cargando...
+            <div v-if="tab === 'requerimientos'" class="tab-pane-custom fade-in">
+              <div v-if="loadingTab" class="text-center py-5">
+                <div class="spinner-border text-warning" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando requerimientos...</p>
               </div>
-              <table v-else class="table table-sm table-hover">
-                <thead class="table-light">
-                  <tr>
-                    <th>Folio</th>
-                    <th>Fecha Emisión</th>
-                    <th class="text-end">Importe Multa</th>
-                    <th class="text-end">Importe Gastos</th>
-                    <th class="text-end">Total</th>
-                    <th>Vigencia</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(r, idx) in requerimientos" :key="idx">
-                    <td><strong class="text-primary">{{ r.folio }}</strong></td>
-                    <td>{{ r.fecha_emision }}</td>
-                    <td class="text-end"><strong class="text-warning">{{ formatCurrency(r.importe_multa) }}</strong></td>
-                    <td class="text-end"><strong class="text-info">{{ formatCurrency(r.importe_gastos) }}</strong></td>
-                    <td class="text-end"><strong class="text-danger">{{ formatCurrency(parseFloat(r.importe_multa || 0) + parseFloat(r.importe_gastos || 0)) }}</strong></td>
-                    <td>{{ r.vigencia }}</td>
-                  </tr>
-                  <tr v-if="requerimientos.length === 0">
-                    <td colspan="6" class="text-center text-muted">
-                      <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                      <p>Sin requerimientos registrados</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div v-else>
+                <div v-if="requerimientos.length > 0" class="table-responsive">
+                  <table class="table-custom table-requerimientos">
+                    <thead>
+                      <tr>
+                        <th>Folio</th>
+                        <th>Fecha Emisión</th>
+                        <th class="text-end">Importe Multa</th>
+                        <th class="text-end">Importe Gastos</th>
+                        <th class="text-end">Total</th>
+                        <th>Vigencia</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(r, idx) in requerimientos" :key="idx" class="table-row-hover">
+                        <td>
+                          <span class="folio-badge-primary">{{ r.folio }}</span>
+                        </td>
+                        <td>
+                          <font-awesome-icon icon="calendar-alt" class="icon-small text-muted" />
+                          {{ r.fecha_emision }}
+                        </td>
+                        <td class="text-end">
+                          <span class="amount-warning">{{ formatCurrency(r.importe_multa) }}</span>
+                        </td>
+                        <td class="text-end">
+                          <span class="amount-info">{{ formatCurrency(r.importe_gastos) }}</span>
+                        </td>
+                        <td class="text-end">
+                          <span class="amount-total">{{ formatCurrency(parseFloat(r.importe_multa || 0) + parseFloat(r.importe_gastos || 0)) }}</span>
+                        </td>
+                        <td>
+                          <span class="badge-vigencia">{{ r.vigencia }}</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-else class="empty-state">
+                  <font-awesome-icon icon="check-circle" size="3x" class="empty-icon-success" />
+                  <h5>Sin requerimientos pendientes</h5>
+                  <p class="text-muted">Este local no tiene requerimientos registrados</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -624,8 +677,8 @@ const buscarLocal = async () => {
         ]
       }
     })
-    if (response.data.success && response.data.data) {
-      locales.value = response.data.data
+    if (response.data.eResponse && response.data.eResponse.success === true) {
+      locales.value = response.data.eResponse.data.result || []
       if (locales.value.length === 0) {
         showToast('info', 'No se encontraron locales con los criterios especificados')
       } else {
@@ -633,11 +686,11 @@ const buscarLocal = async () => {
         showFilters.value = false
       }
     } else {
-      errorLocales.value = response.data.message || 'Error en la búsqueda'
+      errorLocales.value = response.data.eResponse?.message || 'Error en la búsqueda'
       showToast('error', errorLocales.value)
     }
   } catch (error) {
-    errorLocales.value = error.response?.data?.message || 'Error al buscar locales'
+    errorLocales.value = error.response?.data?.eResponse?.message || 'Error al buscar locales'
     console.error('Error al buscar locales:', error)
     showToast('error', errorLocales.value)
   } finally {
@@ -707,8 +760,8 @@ const cargarDatosDetalle = async (idLocal) => {
         ]
       }
     })
-    if (resAdeudos.data.success && resAdeudos.data.data) {
-      adeudos.value = resAdeudos.data.data
+    if (resAdeudos.data.eResponse && resAdeudos.data.eResponse.success === true) {
+      adeudos.value = resAdeudos.data.eResponse.data.result || []
     }
 
     // Cargar pagos
@@ -721,8 +774,8 @@ const cargarDatosDetalle = async (idLocal) => {
         ]
       }
     })
-    if (resPagos.data.success && resPagos.data.data) {
-      pagos.value = resPagos.data.data
+    if (resPagos.data.eResponse && resPagos.data.eResponse.success === true) {
+      pagos.value = resPagos.data.eResponse.data.result || []
     }
 
     // Cargar requerimientos
@@ -735,11 +788,11 @@ const cargarDatosDetalle = async (idLocal) => {
         ]
       }
     })
-    if (resReq.data.success && resReq.data.data) {
-      requerimientos.value = resReq.data.data
+    if (resReq.data.eResponse && resReq.data.eResponse.success === true) {
+      requerimientos.value = resReq.data.eResponse.data.result || []
     }
   } catch (error) {
-    showToast('Error al cargar detalles', 'error')
+    showToast('error', 'Error al cargar detalles')
   } finally {
     loadingTab.value = false
   }
@@ -799,33 +852,331 @@ const cerrarModal = () => {
   gap: 0.5rem;
 }
 
-/* Tabs personalizados */
-.nav-tabs {
-  border-bottom: 2px solid #dee2e6;
+/* ==================== TABS PERSONALIZADAS ==================== */
+.nav-tabs-custom {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e9ecef;
+  padding: 0;
+  list-style: none;
+  margin: 0;
 }
 
-.nav-tabs .nav-link {
-  cursor: pointer;
-  color: #495057;
+.nav-tabs-custom .nav-item {
+  flex: 1;
+}
+
+.nav-link-custom {
+  width: 100%;
+  background: #f8f9fa;
   border: none;
   border-bottom: 3px solid transparent;
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #6c757d;
   transition: all 0.3s ease;
+  position: relative;
 }
 
-.nav-tabs .nav-link:hover {
-  color: #667eea;
-  border-bottom-color: #667eea;
+.nav-link-custom:hover {
+  background: #e9ecef;
+  color: #495057;
 }
 
-.nav-tabs .nav-link.active {
+.nav-link-custom.active {
+  background: white;
+  color: #2c3e50;
   font-weight: 600;
-  color: #667eea;
-  border-bottom-color: #667eea;
-  background: transparent;
+  border-bottom-color: currentColor;
 }
 
-/* Estados empty */
+/* Tab Adeudos */
+.tab-adeudos.active {
+  color: #dc3545;
+  border-bottom-color: #dc3545;
+}
+
+.tab-adeudos:hover {
+  color: #c82333;
+}
+
+/* Tab Pagos */
+.tab-pagos.active {
+  color: #28a745;
+  border-bottom-color: #28a745;
+}
+
+.tab-pagos:hover {
+  color: #218838;
+}
+
+/* Tab Requerimientos */
+.tab-requerimientos.active {
+  color: #ffc107;
+  border-bottom-color: #ffc107;
+}
+
+.tab-requerimientos:hover {
+  color: #e0a800;
+}
+
+/* Iconos de tabs */
+.tab-icon {
+  font-size: 1.2rem;
+}
+
+.tab-label {
+  font-size: 0.95rem;
+}
+
+/* Badges en tabs */
+.tab-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.badge-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.badge-success {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+}
+
+.badge-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  color: #212529;
+}
+
+/* ==================== CONTENIDO DE TABS ==================== */
+.tab-content-custom {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  min-height: 300px;
+}
+
+.tab-pane-custom {
+  padding: 1.5rem;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== TABLAS PERSONALIZADAS ==================== */
+.table-custom {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+.table-custom thead {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.table-custom thead th {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.table-custom tbody td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+  vertical-align: middle;
+}
+
+.table-row-hover {
+  transition: all 0.2s ease;
+}
+
+.table-row-hover:hover {
+  background-color: #f8f9fa;
+  transform: translateX(4px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Estilos específicos por tipo de tabla */
+.table-adeudos tbody tr {
+  border-left: 3px solid transparent;
+}
+
+.table-adeudos tbody tr:hover {
+  border-left-color: #dc3545;
+}
+
+.table-pagos tbody tr {
+  border-left: 3px solid transparent;
+}
+
+.table-pagos tbody tr:hover {
+  border-left-color: #28a745;
+}
+
+.table-requerimientos tbody tr {
+  border-left: 3px solid transparent;
+}
+
+.table-requerimientos tbody tr:hover {
+  border-left-color: #ffc107;
+}
+
+/* ==================== BADGES Y ETIQUETAS ==================== */
+.badge-year {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+.badge-period {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+.badge-vigencia {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+/* ==================== MONTOS ==================== */
+.amount-danger {
+  color: #dc3545;
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-family: 'Courier New', monospace;
+}
+
+.amount-warning {
+  color: #ffc107;
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-family: 'Courier New', monospace;
+}
+
+.amount-success {
+  color: #28a745;
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-family: 'Courier New', monospace;
+}
+
+.amount-info {
+  color: #17a2b8;
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-family: 'Courier New', monospace;
+}
+
+.amount-total {
+  color: #2c3e50;
+  font-weight: 800;
+  font-size: 1.1rem;
+  font-family: 'Courier New', monospace;
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ==================== FOLIOS ==================== */
+.folio-badge {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  display: inline-block;
+}
+
+.folio-badge-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  font-family: 'Courier New', monospace;
+  display: inline-block;
+}
+
+/* ==================== ICONOS ==================== */
+.icon-small {
+  font-size: 0.85rem;
+  margin-right: 0.35rem;
+}
+
+/* ==================== ESTADOS VACÍOS ==================== */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.empty-state h5 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #495057;
+  font-weight: 600;
+}
+
+.empty-state p {
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+.empty-icon-success {
+  color: #28a745;
+  opacity: 0.6;
+}
+
+.empty-icon-info {
+  color: #17a2b8;
+  opacity: 0.6;
+}
+
+/* Estados empty originales */
 .empty-icon {
   color: #ccc;
   margin-bottom: 1rem;

@@ -22,8 +22,41 @@
     </div>
 
     <div class="module-view-content">
+      <!-- Formulario de búsqueda -->
+      <div class="municipal-card mb-4">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Buscar Local
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="buscarLocal" class="search-form">
+            <div class="row align-items-end">
+              <div class="col-md-8">
+                <label class="municipal-form-label">ID del Local <span class="required">*</span></label>
+                <input
+                  type="number"
+                  class="municipal-form-control"
+                  v-model.number="searchIdLocal"
+                  placeholder="Ingrese el ID del local (ej: 1)"
+                  required
+                  min="1"
+                />
+              </div>
+              <div class="col-md-4">
+                <button type="submit" class="btn-municipal-primary w-100" :disabled="loading || !searchIdLocal">
+                  <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" />
+                  {{ loading ? 'Buscando...' : 'Buscar' }}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- Loading -->
-      <div v-if="loading" class="text-center py-5">
+      <div v-if="loading && datosLoaded" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Cargando...</span>
         </div>
@@ -35,11 +68,15 @@
         <div class="municipal-card-body text-center py-5">
           <font-awesome-icon icon="exclamation-circle" size="3x" class="text-danger mb-3" />
           <p class="text-muted">{{ error }}</p>
+          <button class="btn-municipal-primary mt-3" @click="limpiarError">
+            <font-awesome-icon icon="times" />
+            Cerrar
+          </button>
         </div>
       </div>
 
       <!-- Contenido -->
-      <template v-else>
+      <template v-else-if="datosLoaded">
         <!-- Datos del Mercado -->
         <div class="row">
           <div class="col-md-6">
@@ -302,8 +339,10 @@ import axios from 'axios'
 const route = useRoute()
 
 // Estado
-const loading = ref(true)
+const loading = ref(false)
 const error = ref('')
+const datosLoaded = ref(false)
+const searchIdLocal = ref(null)
 const datos = ref({})
 const mercado = ref({})
 const usuario = ref({})
@@ -355,17 +394,33 @@ const api = async (operacion, parametros, base = 'mercados') => {
   return resp.data.eResponse?.data?.result || []
 }
 
-const cargarDatos = async () => {
+const limpiarError = () => {
+  error.value = ''
+}
+
+const buscarLocal = () => {
+  if (!searchIdLocal.value) {
+    showToast('warning', 'Por favor ingrese un ID de local')
+    return
+  }
+  cargarDatos(searchIdLocal.value)
+}
+
+const cargarDatos = async (id_local) => {
   loading.value = true
   error.value = ''
+  datosLoaded.value = false
 
   try {
-    const id_local = route.params.id_local
-
     // 1. Datos principales
     let res = await api('sp_get_datos_individuales', [
       { Nombre: 'p_id_local', Valor: id_local }
     ], 'mercados')
+
+    if (!res || res.length === 0) {
+      throw new Error(`No se encontró el local con ID: ${id_local}`)
+    }
+
     datos.value = res[0] || {}
 
     // 2. Mercado
@@ -413,17 +468,24 @@ const cargarDatos = async () => {
       tianguis.value = res[0] || null
     }
 
+    datosLoaded.value = true
     showToast('success', 'Datos cargados correctamente')
   } catch (e) {
     error.value = e.message || 'Error al cargar datos'
     showToast('error', error.value)
+    datosLoaded.value = false
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
-  cargarDatos()
+  // Si viene un id_local por ruta, cargarlo automáticamente
+  const id_local = route.params.id_local
+  if (id_local) {
+    searchIdLocal.value = parseInt(id_local)
+    cargarDatos(id_local)
+  }
 })
 </script>
 
@@ -491,5 +553,22 @@ onMounted(() => {
   padding: 0.45rem 1rem;
   font-weight: 500;
   font-size: 0.85rem;
+}
+
+.search-form {
+  margin: 0;
+}
+
+.required {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.w-100 {
+  width: 100%;
 }
 </style>

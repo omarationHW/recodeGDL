@@ -204,7 +204,7 @@ const fetchRecaudadoras = async () => {
   loading.value = true
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
     })
     if (res.data.eResponse.success) {
       recaudadoras.value = res.data.eResponse.data.result || []
@@ -252,7 +252,7 @@ const generarEmision = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'generar_emision_libertad',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) },
           { Nombre: 'p_mercados', Valor: JSON.stringify(selectedMercados.value) },

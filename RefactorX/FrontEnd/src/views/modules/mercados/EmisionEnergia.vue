@@ -176,7 +176,7 @@ const onRecaudadoraChange = async () => {
   loading.value = true
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_mercados', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) }] }
+      eRequest: { Operacion: 'sp_get_mercados', Base: 'mercados', Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) }] }
     })
     if (res.data.eResponse.success) {
       mercados.value = res.data.eResponse.data.result || []

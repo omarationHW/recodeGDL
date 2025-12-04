@@ -37,8 +37,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT b.clave_cuota, b.importe_cuota, a.*
-    FROM ta_11_locales a
-    JOIN ta_11_cuo_locales b ON b.clave_cuota = a.clave_cuota AND b.axo = p_ano
+    FROM comun.ta_11_locales a
+    JOIN comun.ta_11_cuo_locales b ON b.clave_cuota = a.clave_cuota AND b.axo = p_ano
     WHERE a.num_mercado = 214;
 END;
 $$ LANGUAGE plpgsql;

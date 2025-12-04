@@ -7,46 +7,86 @@
         <p>Inicio > Reportes > Adeudos Anteriores a 1996</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || datos.length === 0">
-          <font-awesome-icon icon="file-excel" />Exportar Excel</button>
+        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || datos.length === 0">
+          <font-awesome-icon icon="file-excel" />
+          Exportar Excel
+        </button>
         <button class="btn-municipal-primary" @click="imprimir" :disabled="loading || datos.length === 0">
-          <font-awesome-icon icon="print" />Imprimir</button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda"><font-awesome-icon icon="question-circle" />Ayuda</button>
+          <font-awesome-icon icon="print" />
+          Imprimir
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
     <div class="module-view-content">
       <div class="municipal-card">
         <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
-          <h5><font-awesome-icon icon="filter" />Filtros de Consulta<font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" /></h5>
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Consulta
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
         </div>
         <div v-show="showFilters" class="municipal-card-body">
-          <div class="row">
+          <div class="row g-3">
             <div class="col-md-3">
-              <label for="axo" class="form-label">Año</label>
-              <input v-model.number="filters.axo" type="number" min="1900" max="2099" class="form-control" id="axo" />
+              <label for="axo" class="municipal-form-label">Año</label>
+              <input
+                v-model.number="filters.axo"
+                type="number"
+                min="1900"
+                max="2099"
+                class="municipal-form-control"
+                id="axo"
+                placeholder="Año"
+              />
             </div>
             <div class="col-md-3">
-              <label for="oficina" class="form-label">Oficina</label>
-              <input v-model.number="filters.oficina" type="number" min="1" max="99" class="form-control" id="oficina" />
+              <label for="oficina" class="municipal-form-label">Oficina</label>
+              <input
+                v-model.number="filters.oficina"
+                type="number"
+                min="1"
+                max="99"
+                class="municipal-form-control"
+                id="oficina"
+                placeholder="Número de oficina"
+              />
             </div>
             <div class="col-md-3">
-              <label for="periodo" class="form-label">Periodo (Mes)</label>
-              <input v-model.number="filters.periodo" type="number" min="1" max="12" class="form-control" id="periodo" />
+              <label for="periodo" class="municipal-form-label">Periodo (Mes)</label>
+              <input
+                v-model.number="filters.periodo"
+                type="number"
+                min="1"
+                max="12"
+                class="municipal-form-control"
+                id="periodo"
+                placeholder="1-12"
+              />
             </div>
           </div>
-          <div class="row mt-3">
-            <div class="col-12">
-              <div class="text-end">
-                <button class="btn-municipal-primary me-2" @click="consultar" :disabled="loading"><font-awesome-icon icon="search" />Consultar</button>
-                <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading"><font-awesome-icon icon="eraser" />Limpiar</button>
-              </div>
-            </div>
+          <div class="button-row mt-3">
+            <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
+              <font-awesome-icon icon="search" />
+              {{ loading ? 'Consultando...' : 'Consultar' }}
+            </button>
+            <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+              <font-awesome-icon icon="eraser" />
+              Limpiar
+            </button>
           </div>
         </div>
       </div>
       <div class="municipal-card">
         <div class="municipal-card-header header-with-badge">
-          <h5><font-awesome-icon icon="list" />{{ tituloReporte }}</h5>
+          <h5>
+            <font-awesome-icon icon="list" />
+            {{ tituloReporte }}
+          </h5>
           <div class="header-right">
             <span class="badge-purple" v-if="datos.length > 0">{{ formatNumber(datos.length) }} registros</span>
           </div>
@@ -107,17 +147,27 @@
             </table>
           </div>
           <div v-if="datos.length > 0" class="pagination-container">
-            <div class="pagination-info">Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ datos.length }} registros</div>
+            <div class="pagination-info">
+              Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ datos.length }} registros
+            </div>
             <div class="pagination-controls">
-              <label>Registros por página:</label>
-              <select v-model.number="pageSize" class="form-select form-select-sm">
-                <option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option><option :value="250">250</option>
+              <label class="municipal-form-label mb-0">Registros por página:</label>
+              <select v-model.number="pageSize" class="municipal-form-control municipal-form-control-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+                <option :value="250">250</option>
               </select>
             </div>
             <div class="pagination-buttons">
-              <button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-left" /></button>
+              <button @click="previousPage" :disabled="currentPage === 1" class="btn-pagination">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-right" /></button>
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-pagination">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
             </div>
           </div>
         </div>
@@ -193,24 +243,177 @@ const getToastIcon = () => { const icons = { success: 'check-circle', error: 'ex
 onMounted(() => {});
 </script>
 
+<style src="@/styles/municipal-theme.css"></style>
+
 <style scoped>
-@media print { .module-view-header, .municipal-card-header, .pagination-container, .button-group { display: none !important; } .municipal-table { font-size: 10px; } .sticky-header { position: static !important; } }
-.sticky-header { position: sticky; top: 0; background-color: #fff; z-index: 10; }
-.table-container { max-height: 600px; overflow-y: auto; }
-.empty-icon { color: #ccc; margin-bottom: 1rem; }
-.row-hover:hover { background-color: #f0f8ff; cursor: pointer; }
-.header-with-badge { display: flex; justify-content: space-between; align-items: center; }
-.header-right { display: flex; gap: 0.5rem; }
-.pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding: 1rem; border-top: 1px solid #dee2e6; }
-.pagination-info { font-size: 0.9rem; color: #666; }
-.pagination-controls { display: flex; align-items: center; gap: 0.5rem; }
-.pagination-controls label { margin: 0; font-size: 0.9rem; }
-.pagination-controls select { width: auto; }
-.pagination-buttons { display: flex; align-items: center; }
-.toast-notification { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.5rem; background-color: #fff; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 0.75rem; z-index: 9999; animation: slideIn 0.3s ease-out; }
-.toast-success { border-left: 4px solid #28a745; }
-.toast-error { border-left: 4px solid #dc3545; }
-.toast-warning { border-left: 4px solid #ffc107; }
-.toast-info { border-left: 4px solid #17a2b8; }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+/* Print styles */
+@media print {
+  .module-view-header,
+  .municipal-card-header,
+  .pagination-container,
+  .button-group {
+    display: none !important;
+  }
+  .municipal-table {
+    font-size: 10px;
+  }
+  .sticky-header {
+    position: static !important;
+  }
+}
+
+/* Sticky header for scrolling tables */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Table container with scroll */
+.table-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* Empty state icons */
+.empty-icon {
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+/* Row hover effect */
+.row-hover:hover {
+  background-color: #f0f8ff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Header with badge alignment */
+.header-with-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Pagination container */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.pagination-info {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pagination-controls label {
+  margin: 0;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.pagination-controls select {
+  width: 80px;
+  padding: 0.375rem 0.75rem;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-pagination {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #6f42c1;
+  background-color: #fff;
+  color: #6f42c1;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background-color: #6f42c1;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(111, 66, 193, 0.2);
+}
+
+.btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Small form control for select */
+.municipal-form-control-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  height: auto;
+}
+
+/* Toast notification */
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+  min-width: 300px;
+}
+
+.toast-success {
+  border-left: 4px solid #28a745;
+}
+
+.toast-error {
+  border-left: 4px solid #dc3545;
+}
+
+.toast-warning {
+  border-left: 4px solid #ffc107;
+}
+
+.toast-info {
+  border-left: 4px solid #17a2b8;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 </style>

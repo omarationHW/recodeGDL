@@ -142,8 +142,8 @@
     </div>
 
     <!-- Modal para crear/editar cuota -->
-    <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal">
-      <div class="modal-dialog modal-dialog-centered">
+    <div v-if="showModal" class="modal d-block" @click.self="cerrarModal">
+      <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
@@ -439,5 +439,11 @@ onMounted(() => {
 
 .required {
   color: #dc3545;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 </style>

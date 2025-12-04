@@ -739,11 +739,11 @@ const router = createRouter({
       name: 'mercados-giros',
       component: () => import('@/views/modules/mercados/Giros.vue')
     },
-    // {
-    //   path: '/mercados/secciones',
-    //   name: 'mercados-secciones',
-    //   component: () => import('@/views/modules/mercados/Secciones.vue')
-    // },
+    {
+      path: '/mercados/secciones',
+      name: 'mercados-secciones',
+      component: () => import('@/views/modules/mercados/Secciones.vue')
+    },
     {
       path: '/mercados/recaudadoras-mercados',
       name: 'mercados-recaudadoras-mercados',

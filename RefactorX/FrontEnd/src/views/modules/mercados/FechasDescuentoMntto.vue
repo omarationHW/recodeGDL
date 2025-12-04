@@ -73,8 +73,8 @@
     </div>
 
     <!-- Modal Editar -->
-    <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal">
-      <div class="modal-dialog modal-dialog-centered">
+    <div v-if="showModal" class="modal d-block" @click.self="cerrarModal">
+      <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">

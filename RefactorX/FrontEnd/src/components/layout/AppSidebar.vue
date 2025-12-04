@@ -1084,7 +1084,7 @@ const menuItems = [
           },
           {
             path: '/mercados/cuotas-energia-mntto',
-            label: '--- Mantenimiento de Cuotas de Energía',
+            label: '* Mantenimiento de Cuotas de Energía',
             icon: 'wrench'
           },
           {
@@ -1255,7 +1255,7 @@ const menuItems = [
           },
           {
             path: '/mercados/fechas-descuento-mntto',
-            label: '--- Mantenimiento Fechas Descuento',
+            label: '* Mantenimiento Fechas Descuento',
             icon: 'calendar-check'
           },
           {

@@ -57,11 +57,11 @@ BEGIN
             b.letra_local || '-' ||
             b.bloque
         )::varchar(100) AS datoslocal
-    FROM padron_licencias.comun.ta_11_mercados a
-    JOIN padron_licencias.comun.ta_11_locales b
+    FROM comun.ta_11_mercados a
+    JOIN comun.ta_11_locales b
         ON a.oficina = b.oficina
         AND a.num_mercado_nvo = b.num_mercado
-    JOIN mercados.public.ta_11_energia c
+    JOIN public.ta_11_energia c
         ON b.id_local = c.id_local
     WHERE a.oficina = p_oficina
       AND a.num_mercado_nvo = p_mercado

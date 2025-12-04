@@ -26,7 +26,7 @@ BEGIN
         ta_11_fecha_desc.trimestre,
         ta_11_fecha_desc.sabados,
         ta_11_fecha_desc.sabadosacum
-    FROM padron_licencias.comun.ta_11_fecha_desc
+    FROM comun.ta_11_fecha_desc
     WHERE ta_11_fecha_desc.mes = p_mes;
 END;
 $$ LANGUAGE plpgsql;

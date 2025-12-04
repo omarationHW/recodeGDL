@@ -23,15 +23,15 @@ BEGIN
         c.id_zona,
         UPPER(d.zona)::varchar(50) AS zona,
         SUM(b.importe_cta) AS pagado
-    FROM padron_licencias.comun.ta_12_ingreso a
-    JOIN mercados.public.ta_12_importes b
+    FROM comun.ta_12_ingreso a
+    JOIN public.ta_12_importes b
         ON b.fecing = a.fecing
         AND b.recing = a.recing
         AND b.cajing = a.cajing
         AND b.opcaja = a.opcaja
-    JOIN padron_licencias.comun.ta_11_mercados c
+    JOIN comun.ta_11_mercados c
         ON c.cuenta_ingreso = b.cta_aplicacion
-    JOIN padron_licencias.comun.ta_12_zonas d
+    JOIN comun.ta_12_zonas d
         ON d.id_zona = c.id_zona
     WHERE a.fecing BETWEEN p_fecdesde AND p_fechasta
       AND c.num_mercado_nvo NOT IN (99, 214)
@@ -44,10 +44,10 @@ BEGIN
         f.id_zona,
         UPPER(g.zona)::varchar(50) AS zona,
         SUM(e.importe_ajuste) AS pagado
-    FROM padron_licencias.comun.ta_11_mercados f
-    JOIN padron_licencias.comun.ta_12_zonas g
+    FROM comun.ta_11_mercados f
+    JOIN comun.ta_12_zonas g
         ON g.id_zona = f.id_zona
-    JOIN padron_licencias.comun.ta_12_ajustes e
+    JOIN comun.ta_12_ajustes e
         ON e.cta_aplicacion = f.cuenta_ingreso
     WHERE e.fecha_ajuste BETWEEN p_fecdesde AND p_fechasta
       AND ((e.cta_aplicacion BETWEEN 44501 AND 44588) OR (e.cta_aplicacion = 44119))

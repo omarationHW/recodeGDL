@@ -60,22 +60,22 @@ BEGIN
         CASE WHEN a.adeudos >= 1 THEN 1 ELSE 0 END AS adeudo,
         -- Registro
         (l.oficina::text || ' ' || l.num_mercado::text || ' ' || l.categoria::text || ' ' || l.seccion || ' ' || l.local::text || ' ' || COALESCE(l.letra_local, '') || ' ' || COALESCE(l.bloque, ''))::varchar(100) AS registro
-    FROM padron_licencias.comun.ta_11_locales l
-    INNER JOIN padron_licencias.comun.ta_11_mercados m
+    FROM comun.ta_11_locales l
+    INNER JOIN comun.ta_11_mercados m
         ON l.oficina = m.oficina
         AND l.num_mercado = m.num_mercado_nvo
-    INNER JOIN mercados.public.ta_11_cuo_locales c
+    INNER JOIN public.ta_11_cuo_locales c
         ON c.axo = p_year
         AND c.categoria = l.categoria
         AND c.seccion = l.seccion
         AND c.clave_cuota = l.clave_cuota
     LEFT JOIN (
         SELECT id_local, COUNT(*) AS adeudos
-        FROM padron_licencias.comun.ta_11_adeudo_local
+        FROM comun.ta_11_adeudo_local
         WHERE (axo = p_year AND periodo <= p_month) OR (axo < p_year)
         GROUP BY id_local
     ) a ON a.id_local = l.id_local
-    LEFT JOIN padron_licencias.comun.ta_11_fecha_desc fd
+    LEFT JOIN comun.ta_11_fecha_desc fd
         ON fd.mes = p_month
     WHERE (p_status = 'T' OR l.vigencia = p_status)
     ORDER BY l.vigencia, l.oficina, l.num_mercado, l.categoria, l.seccion, l.local, l.letra_local, l.bloque;

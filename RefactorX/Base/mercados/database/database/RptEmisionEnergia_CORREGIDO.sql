@@ -16,10 +16,10 @@ BEGIN
         a.nombre, b.descripcion, b.cuenta_energia, d.local_adicional, d.cantidad,
         (d.cantidad * c.importe) AS importe_energia,
         CASE WHEN d.cve_consumo = 'F' THEN 'CONSUMO DE ENERGIA ELECTRICA' ELSE 'SERVICIO MEDIDO ENERGIA ELEC.' END AS descripcion_consumo
-    FROM padron_licencias.comun.ta_11_locales a
-    JOIN padron_licencias.comun.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
-    JOIN mercados.public.ta_11_kilowhatts c ON c.axo = p_axo AND c.periodo = p_periodo
-    JOIN mercados.public.ta_11_energia d ON a.id_local = d.id_local
+    FROM comun.ta_11_locales a
+    JOIN comun.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
+    JOIN public.ta_11_kilowhatts c ON c.axo = p_axo AND c.periodo = p_periodo
+    JOIN public.ta_11_energia d ON a.id_local = d.id_local
     WHERE a.oficina = p_oficina AND a.num_mercado = p_mercado AND a.vigencia = 'A' AND d.vigencia = 'E'
     GROUP BY d.id_energia, a.oficina, a.num_mercado, a.categoria, a.seccion, a.local, a.letra_local, a.bloque, a.nombre, b.descripcion, b.cuenta_energia, d.local_adicional, d.cantidad, c.importe, d.cve_consumo;
 END;

@@ -42,7 +42,7 @@ BEGIN
         e.descripcion,
         (
             SELECT string_agg(CAST(periodo AS varchar), ',')
-            FROM padron_licencias.comun.ta_11_adeudo_local m
+            FROM comun.ta_11_adeudo_local m
             WHERE m.id_local = c.id_local AND m.axo = p_axo AND m.periodo <= p_periodo
         ) AS meses,
         (
@@ -60,15 +60,15 @@ BEGIN
                         END
                     ELSE 0
                 END
-            FROM mercados.public.ta_11_cuo_locales cuo
-            LEFT JOIN padron_licencias.comun.ta_11_fecha_desc fd ON fd.mes = p_periodo
+            FROM public.ta_11_cuo_locales cuo
+            LEFT JOIN comun.ta_11_fecha_desc fd ON fd.mes = p_periodo
             WHERE cuo.axo = p_axo AND cuo.categoria = c.categoria AND cuo.seccion = c.seccion AND cuo.clave_cuota = c.clave_cuota
             LIMIT 1
         ) AS renta_calc
-    FROM padron_licencias.comun.ta_11_adeudo_local a
-    JOIN padron_licencias.comun.ta_11_locales c ON a.id_local = c.id_local
-    JOIN padron_licencias.comun.ta_12_recaudadoras d ON d.id_rec = c.oficina
-    JOIN padron_licencias.comun.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
+    FROM comun.ta_11_adeudo_local a
+    JOIN comun.ta_11_locales c ON a.id_local = c.id_local
+    JOIN comun.ta_12_recaudadoras d ON d.id_rec = c.oficina
+    JOIN comun.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
     WHERE a.axo = p_axo AND c.oficina = p_oficina AND a.periodo <= p_periodo AND c.vigencia = 'A'
     GROUP BY c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.letra_local, c.bloque, c.nombre, c.superficie, c.clave_cuota, d.recaudadora, e.descripcion;
 END;
@@ -83,7 +83,7 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     SELECT periodo, importe
-    FROM padron_licencias.comun.ta_11_adeudo_local
+    FROM comun.ta_11_adeudo_local
     WHERE id_local = p_id_local AND axo = p_axo AND periodo <= p_periodo
     ORDER BY periodo;
 END;
@@ -97,7 +97,7 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     SELECT importe_cuota
-    FROM mercados.public.ta_11_cuo_locales
+    FROM public.ta_11_cuo_locales
     WHERE axo = p_axo AND categoria = p_categoria AND seccion = p_seccion AND clave_cuota = p_clave_cuota;
 END;
 $$ LANGUAGE plpgsql;

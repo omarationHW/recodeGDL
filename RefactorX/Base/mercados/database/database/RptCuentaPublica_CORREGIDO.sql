@@ -29,7 +29,7 @@ BEGIN
         0::numeric(18,2) AS mov_mes_importe,
         0::integer AS bajas_doctos,
         0::numeric(18,2) AS bajas_importe
-    FROM padron_licencias.comun.ta_12_recaudadoras r
+    FROM comun.ta_12_recaudadoras r
     WHERE r.id_rec = p_oficina;
 END;
 $$ LANGUAGE plpgsql;

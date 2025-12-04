@@ -55,8 +55,8 @@ BEGIN
             ELSE 'OTRO'::varchar(50)
         END AS tipodescripcion,
         l.nombre
-    FROM mercados.public.ta_11_movimientos m
-    JOIN padron_licencias.comun.ta_11_locales l
+    FROM public.ta_11_movimientos m
+    JOIN comun.ta_11_locales l
         ON l.id_local = m.id_local
     WHERE m.fecha::date BETWEEN p_fecha_desde AND p_fecha_hasta
       AND l.oficina = p_recaudadora_id

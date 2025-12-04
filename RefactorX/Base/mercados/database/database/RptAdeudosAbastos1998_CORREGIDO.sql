@@ -75,10 +75,10 @@ BEGIN
             UPPER(d.recaudadora) AS recaudadora,
             e.descripcion,
             d.id_rec
-        FROM padron_licencias.comun.ta_11_adeudo_local a
-        INNER JOIN padron_licencias.comun.ta_11_locales c ON a.id_local = c.id_local
-        INNER JOIN padron_licencias.comun.ta_12_recaudadoras d ON c.oficina = d.id_rec
-        INNER JOIN padron_licencias.comun.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
+        FROM comun.ta_11_adeudo_local a
+        INNER JOIN comun.ta_11_locales c ON a.id_local = c.id_local
+        INNER JOIN comun.ta_12_recaudadoras d ON c.oficina = d.id_rec
+        INNER JOIN comun.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
         WHERE a.axo = p_axo
           AND c.oficina = p_oficina
           AND a.periodo <= p_periodo
@@ -97,7 +97,7 @@ BEGIN
 
         FOR mesrec IN
             SELECT periodo, importe
-            FROM padron_licencias.comun.ta_11_adeudo_local
+            FROM comun.ta_11_adeudo_local
             WHERE id_local = r.id_local
               AND axo = p_axo
               AND periodo <= p_periodo

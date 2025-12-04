@@ -64,29 +64,29 @@ BEGIN
         -- Recargos: sumar porcentaje según lógica de recargos
         (
             SELECT COALESCE(SUM((a2.importe * r.porcentaje_mes) / 100), 0)
-            FROM padron_licencias.comun.ta_11_adeudo_local a2
-            JOIN padron_licencias.comun.ta_12_recargos r ON (r.axo = a2.axo AND r.mes >= a2.periodo)
+            FROM comun.ta_11_adeudo_local a2
+            JOIN comun.ta_12_recargos r ON (r.axo = a2.axo AND r.mes >= a2.periodo)
             WHERE a2.id_local = l.id_local
               AND ((a2.axo = p_axo AND a2.periodo < p_periodo) OR (a2.axo < p_axo))
         ) AS recargos,
         -- Subtotal
         COALESCE(SUM(a.importe), 0) + (
             SELECT COALESCE(SUM((a2.importe * r.porcentaje_mes) / 100), 0)
-            FROM padron_licencias.comun.ta_11_adeudo_local a2
-            JOIN padron_licencias.comun.ta_12_recargos r ON (r.axo = a2.axo AND r.mes >= a2.periodo)
+            FROM comun.ta_11_adeudo_local a2
+            JOIN comun.ta_12_recargos r ON (r.axo = a2.axo AND r.mes >= a2.periodo)
             WHERE a2.id_local = l.id_local
               AND ((a2.axo = p_axo AND a2.periodo < p_periodo) OR (a2.axo < p_axo))
         ) AS subtotal,
         -- Meses adeudados
         (
             SELECT string_agg(a3.periodo::text, ',' ORDER BY a3.axo, a3.periodo)
-            FROM padron_licencias.comun.ta_11_adeudo_local a3
+            FROM comun.ta_11_adeudo_local a3
             WHERE a3.id_local = l.id_local
               AND ((a3.axo = p_axo AND a3.periodo < p_periodo) OR (a3.axo < p_axo))
         ) AS meses
-    FROM padron_licencias.comun.ta_11_locales l
-    JOIN mercados.public.ta_11_cuo_locales c ON c.axo = p_axo AND l.categoria = c.categoria AND l.seccion = c.seccion AND l.clave_cuota = c.clave_cuota
-    LEFT JOIN padron_licencias.comun.ta_11_adeudo_local a ON a.id_local = l.id_local AND ((a.axo = p_axo AND a.periodo < p_periodo) OR (a.axo < p_axo))
+    FROM comun.ta_11_locales l
+    JOIN public.ta_11_cuo_locales c ON c.axo = p_axo AND l.categoria = c.categoria AND l.seccion = c.seccion AND l.clave_cuota = c.clave_cuota
+    LEFT JOIN comun.ta_11_adeudo_local a ON a.id_local = l.id_local AND ((a.axo = p_axo AND a.periodo < p_periodo) OR (a.axo < p_axo))
     WHERE l.oficina = p_oficina
       AND l.num_mercado = p_mercado
       AND l.vigencia = 'A'

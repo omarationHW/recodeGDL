@@ -28,7 +28,7 @@ BEGIN
     RETURN QUERY
     SELECT a.id_control, a.modulo, a.control_otr, a.folio, a.diligencia, a.importe_global, a.importe_multa, a.importe_recargo, a.importe_gastos,
            a.fecha_emision, a.clave_practicado, a.vigencia, a.fecha_actualiz, a.usuario, a.observaciones
-    FROM padron_licencias.comun.ta_15_apremios a
+    FROM comun.ta_15_apremios a
     WHERE a.modulo = 11 AND a.control_otr = p_id_local AND a.vigencia = '1' AND a.clave_practicado = 'P'
     ORDER BY a.folio;
 END;

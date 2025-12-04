@@ -37,21 +37,21 @@ BEGIN
 
     FOR rec IN
         SELECT l.id_local
-        FROM padron_licencias.comun.ta_11_locales l
+        FROM comun.ta_11_locales l
         WHERE l.oficina = p_oficina
           AND l.num_mercado = p_mercado
           AND l.vigencia = 'A'
           AND l.bloqueo < 4
     LOOP
         SELECT COUNT(*) INTO existe
-        FROM padron_licencias.comun.ta_11_adeudo_local
+        FROM comun.ta_11_adeudo_local
         WHERE id_local = rec.id_local
           AND axo = p_axo
           AND periodo = p_periodo;
 
         IF existe = 0 THEN
             -- Calcular renta e insertar adeudo
-            INSERT INTO padron_licencias.comun.ta_11_adeudo_local (
+            INSERT INTO comun.ta_11_adeudo_local (
                 id_adeudo_local, id_local, axo, periodo, importe, fecha_alta, id_usuario
             )
             VALUES (
@@ -65,8 +65,8 @@ BEGIN
                         WHEN l.seccion = 'PS' THEN (c.importe_cuota * l.superficie) * 30
                         ELSE l.superficie * c.importe_cuota
                     END
-                    FROM padron_licencias.comun.ta_11_locales l
-                    JOIN mercados.public.ta_11_cuo_locales c
+                    FROM comun.ta_11_locales l
+                    JOIN public.ta_11_cuo_locales c
                       ON c.axo = p_axo
                       AND l.categoria = c.categoria
                       AND l.seccion = c.seccion

@@ -72,10 +72,10 @@ BEGIN
             d.descripcion,
             c.axo,
             SUM(c.importe) AS adeudo
-        FROM padron_licencias.comun.ta_11_locales a
+        FROM comun.ta_11_locales a
         INNER JOIN public.ta_11_energia b ON a.id_local = b.id_local
         INNER JOIN public.ta_11_adeudo_energ c ON b.id_energia = c.id_energia
-        INNER JOIN padron_licencias.comun.ta_11_mercados d ON a.oficina = d.oficina AND a.num_mercado = d.num_mercado_nvo
+        INNER JOIN comun.ta_11_mercados d ON a.oficina = d.oficina AND a.num_mercado = d.num_mercado_nvo
         WHERE a.oficina = p_oficina
           AND a.num_mercado = p_mercado
           AND ((c.axo = p_axo AND c.periodo <= p_mes) OR (c.axo < p_axo))

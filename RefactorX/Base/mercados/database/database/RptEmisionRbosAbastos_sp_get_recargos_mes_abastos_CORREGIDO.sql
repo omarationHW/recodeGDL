@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION public.sp_get_recargos_mes_abastos(
 BEGIN
     RETURN QUERY
     SELECT r.axo, r.mes, r.porcentaje_mes, r.acumulado_uno, r.acumulado_dos, r.acumulado_tres
-    FROM padron_licencias.comun.ta_12_recargos r
+    FROM comun.ta_12_recargos r
     WHERE r.axo = p_axo AND r.mes = p_mes;
 END;
 $$ LANGUAGE plpgsql;

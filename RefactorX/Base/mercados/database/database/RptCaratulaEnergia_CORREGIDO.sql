@@ -18,10 +18,10 @@ BEGIN
         l.oficina, l.num_mercado, l.categoria, l.seccion, l.local, l.letra_local, l.bloque, l.nombre, m.descripcion, u.usuario,
         CASE e.vigencia WHEN 'B' THEN 'BAJA' WHEN 'E' THEN 'VIGENTE / PARA EMISION' ELSE 'VIGENTE' END AS vigdescripcion,
         CASE e.cve_consumo WHEN 'F' THEN 'Precio Fijo / Servicio Normal' WHEN 'K' THEN 'Precio Kilowhatts / Servicio Medido' ELSE '' END AS consumodescr
-    FROM mercados.public.ta_11_energia e
-    JOIN padron_licencias.comun.ta_11_locales l ON l.id_local = e.id_local
-    JOIN padron_licencias.comun.ta_11_mercados m ON m.oficina = l.oficina AND m.num_mercado_nvo = l.num_mercado
-    JOIN padron_licencias.comun.ta_12_passwords u ON u.id_usuario = e.id_usuario
+    FROM public.ta_11_energia e
+    JOIN comun.ta_11_locales l ON l.id_local = e.id_local
+    JOIN comun.ta_11_mercados m ON m.oficina = l.oficina AND m.num_mercado_nvo = l.num_mercado
+    JOIN comun.ta_12_passwords u ON u.id_usuario = e.id_usuario
     WHERE e.id_local = p_id_local LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;
@@ -32,8 +32,8 @@ RETURNS TABLE (id_adeudo_energia INTEGER, id_energia INTEGER, axo SMALLINT, peri
 BEGIN
     RETURN QUERY
     SELECT a.id_adeudo_energia, a.id_energia, a.axo, a.periodo, a.importe, 0::NUMERIC AS recargos
-    FROM mercados.public.ta_11_adeudo_energ a
-    JOIN mercados.public.ta_11_energia e ON e.id_energia = a.id_energia
+    FROM public.ta_11_adeudo_energ a
+    JOIN public.ta_11_energia e ON e.id_energia = a.id_energia
     WHERE e.id_local = p_id_local ORDER BY a.axo, a.periodo;
 END;
 $$ LANGUAGE plpgsql;
@@ -44,7 +44,7 @@ RETURNS TABLE (id_control INTEGER, modulo SMALLINT, control_otr INTEGER, folio I
 BEGIN
     RETURN QUERY
     SELECT r.id_control, r.modulo, r.control_otr, r.folio, r.importe_global, r.importe_multa, r.importe_gastos, r.fecha_emision
-    FROM padron_licencias.comun.ta_15_apremios r WHERE r.modulo = 33 AND r.control_otr = p_id_local;
+    FROM comun.ta_15_apremios r WHERE r.modulo = 33 AND r.control_otr = p_id_local;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -52,7 +52,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.sp_get_dia_vencimiento(p_mes SMALLINT)
 RETURNS TABLE (dia SMALLINT) AS $$
 BEGIN
-    RETURN QUERY SELECT EXTRACT(DAY FROM fecha_limite)::SMALLINT FROM padron_licencias.comun.ta_12_diaslimite WHERE EXTRACT(MONTH FROM fecha_limite) = p_mes LIMIT 1;
+    RETURN QUERY SELECT EXTRACT(DAY FROM fecha_limite)::SMALLINT FROM comun.ta_12_diaslimite WHERE EXTRACT(MONTH FROM fecha_limite) = p_mes LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;
 

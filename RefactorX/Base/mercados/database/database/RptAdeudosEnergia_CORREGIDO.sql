@@ -38,10 +38,10 @@ BEGIN
                f.cve_consumo, f.id_energia, c.nombre, f.local_adicional, a.axo,
                SUM(a.importe) AS adeudo, UPPER(b.recaudadora) AS recaudadora, d.descripcion, b.id_rec
         FROM public.ta_11_adeudo_energ a
-        JOIN padron_licencias.comun.ta_11_locales c ON a.id_local = c.id_local
+        JOIN comun.ta_11_locales c ON a.id_local = c.id_local
         JOIN public.ta_11_energia f ON a.id_energia = f.id_energia AND f.vigencia <> 'B'
-        JOIN padron_licencias.comun.ta_12_recaudadoras b ON c.oficina = b.id_rec
-        JOIN padron_licencias.comun.ta_11_mercados d ON c.oficina = d.oficina
+        JOIN comun.ta_12_recaudadoras b ON c.oficina = b.id_rec
+        JOIN comun.ta_11_mercados d ON c.oficina = d.oficina
         WHERE a.axo = p_axo AND c.oficina = p_oficina
         GROUP BY c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque,
                  f.cve_consumo, f.id_energia, c.nombre, f.local_adicional, a.axo, b.recaudadora, d.descripcion, b.id_rec

@@ -25,18 +25,18 @@ BEGIN
     IF p_opc = 1 THEN
         RETURN QUERY
         SELECT a.oficina, a.num_mercado, a.id_local AS local, b.descripcion, SUM(c.importe) AS adeudo
-        FROM padron_licencias.comun.ta_11_locales a
-        JOIN padron_licencias.comun.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
-        JOIN padron_licencias.comun.ta_11_adeudo_local c ON a.id_local = c.id_local
+        FROM comun.ta_11_locales a
+        JOIN comun.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
+        JOIN comun.ta_11_adeudo_local c ON a.id_local = c.id_local
         WHERE ((c.axo = p_axo AND c.periodo <= p_periodo) OR (c.axo < p_axo))
         GROUP BY a.oficina, a.num_mercado, a.id_local, b.descripcion
         ORDER BY a.oficina, a.num_mercado, a.id_local, b.descripcion;
     ELSE
         RETURN QUERY
         SELECT a.oficina, a.num_mercado, a.id_local AS local, b.descripcion, SUM(c.importe) AS adeudo
-        FROM padron_licencias.comun.ta_11_locales a
-        JOIN padron_licencias.comun.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
-        JOIN padron_licencias.comun.ta_11_adeudo_local c ON a.id_local = c.id_local
+        FROM comun.ta_11_locales a
+        JOIN comun.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
+        JOIN comun.ta_11_adeudo_local c ON a.id_local = c.id_local
         WHERE ((c.axo = p_axo AND c.periodo <= p_periodo) OR (c.axo < p_axo))
         GROUP BY a.oficina, a.num_mercado, a.id_local, b.descripcion
         HAVING SUM(c.importe) >= p_importe

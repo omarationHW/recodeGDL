@@ -1,8 +1,11 @@
--- Stored Procedure: sp_get_mercados_by_recaudadora
--- Tipo: Catalog
--- Descripción: Devuelve los mercados de una recaudadora que tienen energía eléctrica.
--- Generado para formulario: PadronEnergia
+-- ============================================
+-- STORED PROCEDURE
+-- Formulario: RptPadronEnergia
+-- SP: sp_get_mercados_by_recaudadora
+-- Base: mercados
+-- Esquema: padron_licencias.comun
 -- Fecha: 2025-12-04 (Fix tipos INTEGER para compatibilidad Laravel)
+-- ============================================
 
 DROP FUNCTION IF EXISTS sp_get_mercados_by_recaudadora(integer) CASCADE;
 DROP FUNCTION IF EXISTS sp_get_mercados_by_recaudadora(smallint) CASCADE;

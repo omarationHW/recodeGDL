@@ -49,9 +49,9 @@ BEGIN
       ELSE 'VIGENTE'
     END AS vigdescripcion,
     0::NUMERIC AS renta, 0::NUMERIC AS adeudo, 0::NUMERIC AS recargos, 0::NUMERIC AS gastos, 0::NUMERIC AS multa, 0::NUMERIC AS total
-  FROM padron_licencias.comun.ta_11_locales l
-  JOIN padron_licencias.comun.ta_11_mercados m ON l.oficina = m.oficina AND l.num_mercado = m.num_mercado_nvo
-  JOIN padron_licencias.comun.ta_12_passwords u ON l.id_usuario = u.id_usuario
+  FROM comun.ta_11_locales l
+  JOIN comun.ta_11_mercados m ON l.oficina = m.oficina AND l.num_mercado = m.num_mercado_nvo
+  JOIN comun.ta_12_passwords u ON l.id_usuario = u.id_usuario
   WHERE l.id_local = p_id_local;
 END;
 $$ LANGUAGE plpgsql;
@@ -72,7 +72,7 @@ DECLARE
   per TEXT;
 BEGIN
   FOR id_local, axo, periodo, importe IN
-    SELECT id_local, axo, periodo, importe FROM padron_licencias.comun.ta_11_adeudo_local WHERE id_local = p_id_local ORDER BY axo, periodo
+    SELECT id_local, axo, periodo, importe FROM comun.ta_11_adeudo_local WHERE id_local = p_id_local ORDER BY axo, periodo
   LOOP
     IF periodo < 10 THEN
       per := '0';
@@ -103,7 +103,7 @@ RETURNS TABLE(
 BEGIN
   RETURN QUERY
   SELECT mes, fecha_recargos, fecha_descuento, fecha_alta, id_usuario, trimestre, sabados, sabadosacum
-  FROM padron_licencias.comun.ta_11_fecha_desc WHERE mes = p_mes;
+  FROM comun.ta_11_fecha_desc WHERE mes = p_mes;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -118,7 +118,7 @@ DECLARE
   porcentaje NUMERIC := 0;
 BEGIN
   SELECT COALESCE(SUM(porcentaje_mes),0) INTO porcentaje
-  FROM padron_licencias.comun.ta_12_recargos
+  FROM comun.ta_12_recargos
   WHERE (axo = p_axo_adeudo AND mes >= p_periodo_adeudo)
     OR (axo = p_axo_actual AND mes <= p_mes_actual)
     OR (axo > p_axo_adeudo AND axo < p_axo_actual);

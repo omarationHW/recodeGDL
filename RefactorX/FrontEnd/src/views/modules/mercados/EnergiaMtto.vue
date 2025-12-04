@@ -370,7 +370,7 @@ const onRecaudadoraChange = async () => {
     loading.value = true
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_get_mercados_by_recaudadora',
+        Operacion: 'sp_get_mercados',
         Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_id_rec', Valor: parseInt(form.value.oficina) }

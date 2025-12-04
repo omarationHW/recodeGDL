@@ -330,7 +330,7 @@ const consultar = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_adeudos_abastos_1998',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
           { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },

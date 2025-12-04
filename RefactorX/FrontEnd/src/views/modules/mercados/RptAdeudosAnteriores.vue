@@ -212,7 +212,11 @@ const consultar = async () => {
       eRequest: {
         Operacion: 'rpt_adeudos_anteriores',
         Base: 'mercados',
-        Parametros: [filters.value.axo, filters.value.oficina, filters.value.periodo]
+        Parametros: [
+          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) || new Date().getFullYear() },
+          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) || 0 },
+          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) || 12 }
+        ]
       }
     });
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
@@ -388,6 +392,10 @@ onMounted(() => {});
   z-index: 9999;
   animation: slideIn 0.3s ease-out;
   min-width: 300px;
+  max-width: 500px;
+  width: auto;
+  height: auto;
+  max-height: 100px;
 }
 
 .toast-success {

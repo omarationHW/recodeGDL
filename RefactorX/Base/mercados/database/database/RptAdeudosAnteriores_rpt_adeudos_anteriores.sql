@@ -44,12 +44,12 @@ BEGIN
         UPPER(d.recaudadora) AS recaudadora,
         e.descripcion,
         (
-            SELECT importe FROM ta_11_adeudo_local al
+            SELECT importe FROM comun.ta_11_adeudo_local al
             WHERE al.id_local = c.id_local AND al.axo = p_axo
             ORDER BY al.periodo DESC LIMIT 1
         ) AS renta,
         (
-            SELECT string_agg(CAST(periodo AS TEXT), ',') FROM ta_11_adeudo_local al
+            SELECT string_agg(CAST(periodo AS TEXT), ',') FROM comun.ta_11_adeudo_local al
             WHERE al.id_local = c.id_local AND al.axo = a.axo AND al.periodo <= p_periodo
         ) AS meses,
         (
@@ -57,10 +57,10 @@ BEGIN
             CAST(c.categoria AS TEXT) || ' ' || c.seccion || ' ' ||
             CAST(c.local AS TEXT) || ' ' || COALESCE(c.letra_local, '') || ' ' || COALESCE(c.bloque, '')
         ) AS datoslocal
-    FROM ta_11_adeudo_local a
-    JOIN ta_11_locales c ON a.id_local = c.id_local
-    JOIN ta_12_recaudadoras d ON d.id_rec = c.oficina
-    JOIN ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
+    FROM comun.ta_11_adeudo_local a
+    JOIN comun.ta_11_locales c ON a.id_local = c.id_local
+    JOIN comun.ta_12_recaudadoras d ON d.id_rec = c.oficina
+    JOIN comun.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
     WHERE a.axo <= p_axo
       AND c.oficina = p_oficina
       AND a.periodo <= 12

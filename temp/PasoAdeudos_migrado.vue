@@ -24,8 +24,14 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="municipal-form-label">Año</label>
-              <input type="number" v-model.number="form.ano" class="municipal-form-control" min="2009"
-                :max="new Date().getFullYear() + 1" placeholder="Ingrese el año" />
+              <input
+                type="number"
+                v-model.number="form.ano"
+                class="municipal-form-control"
+                min="2009"
+                :max="new Date().getFullYear() + 1"
+                placeholder="Ingrese el año"
+              />
             </div>
             <div class="col-md-6">
               <label class="municipal-form-label">Trimestre</label>
@@ -115,8 +121,7 @@
             <strong>{{ resultado.insertados }} de {{ resultado.total }} adeudos insertados correctamente</strong>
           </div>
           <div v-if="resultado.errores.length > 0" class="alert alert-danger">
-            <strong><font-awesome-icon icon="times-circle" /> Errores encontrados ({{ resultado.errores.length
-              }}):</strong>
+            <strong><font-awesome-icon icon="times-circle" /> Errores encontrados ({{ resultado.errores.length }}):</strong>
             <ul class="mb-0 mt-2" style="max-height: 200px; overflow-y: auto;">
               <li v-for="(err, idx) in resultado.errores" :key="idx">{{ err }}</li>
             </ul>
@@ -185,16 +190,14 @@ const generarAdeudos = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_tianguis_locales',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_ano', Valor: parseInt(form.value.ano) }
         ]
       }
     })
-    console.log(res.data)
 
     if (res.data.eResponse.success) {
-      console.log(res.data.eResponse.data)
       const locales = res.data.eResponse.data.result
 
       if (locales.length === 0) {
@@ -251,7 +254,7 @@ const insertarAdeudos = async () => {
       const res = await axios.post('/api/generic', {
         eRequest: {
           Operacion: 'sp_insertar_adeudo_local',
-          Base: 'mercados',
+          Base: 'padron_licencias',
           Parametros: [
             { Nombre: 'p_id_local', Valor: parseInt(adeudo.id_local) },
             { Nombre: 'p_ano', Valor: parseInt(form.value.ano) },

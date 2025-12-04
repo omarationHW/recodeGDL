@@ -694,11 +694,11 @@ const router = createRouter({
       name: 'mercados-rpt-pagos-locales',
       component: () => import('@/views/modules/mercados/RptPagosLocales.vue')
     },
-    // {
-    //   path: '/mercados/padron-energia',
-    //   name: 'mercados-padron-energia',
-    //   component: () => import('@/views/modules/mercados/PadronEnergia.vue')
-    // },
+    {
+      path: '/mercados/padron-energia',
+      name: 'mercados-padron-energia',
+      component: () => import('@/views/modules/mercados/PadronEnergia.vue')
+    },
     {
       path: '/mercados/energia-mtto',
       name: 'mercados-energia-mtto',
@@ -989,11 +989,11 @@ const router = createRouter({
       name: 'mercados-locales-modif',
       component: () => import('@/views/modules/mercados/LocalesModif.vue')
     },
-    // {
-    //   path: '/mercados/energia-modif',
-    //   name: 'mercados-energia-modif',
-    //   component: () => import('@/views/modules/mercados/EnergiaModif.vue')
-    // },
+    {
+      path: '/mercados/energia-modif',
+      name: 'mercados-energia-modif',
+      component: () => import('@/views/modules/mercados/EnergiaModif.vue')
+    },
 
     // // LOTE 18: Emisión y Consultas de Pagos
     {
@@ -1236,21 +1236,21 @@ const router = createRouter({
     },
 
     // // Paso de Datos
-    // {
-    //   path: '/mercados/paso-adeudos',
-    //   name: 'mercados-paso-adeudos',
-    //   component: () => import('@/views/modules/mercados/PasoAdeudos.vue')
-    // },
+    {
+      path: '/mercados/paso-adeudos',
+      name: 'mercados-paso-adeudos',
+      component: () => import('@/views/modules/mercados/PasoAdeudos.vue')
+    },
     {
       path: '/mercados/paso-ene',
       name: 'mercados-paso-ene',
       component: () => import('@/views/modules/mercados/PasoEne.vue')
     },
-    // {
-    //   path: '/mercados/paso-mdos',
-    //   name: 'mercados-paso-mdos',
-    //   component: () => import('@/views/modules/mercados/PasoMdos.vue')
-    // },
+    {
+      path: '/mercados/paso-mdos',
+      name: 'mercados-paso-mdos',
+      component: () => import('@/views/modules/mercados/PasoMdos.vue')
+    },
 
     // // Menú Principal de Mercados
     // {

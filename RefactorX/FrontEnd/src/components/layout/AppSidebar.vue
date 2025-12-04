@@ -989,7 +989,7 @@ const menuItems = [
           },
           {
             path: '/mercados/padron-energia',
-            label: 'Padrón de Energía Eléctrica',
+            label: '* Padrón de Energía Eléctrica',
             icon: 'bolt'
           },
           {
@@ -1034,7 +1034,7 @@ const menuItems = [
           },
           {
             path: '/mercados/secciones',
-            label: 'Secciones de Mercados',
+            label: '* Secciones de Mercados',
             icon: 'th-large'
           },
           {
@@ -1054,7 +1054,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-padron-global',
-            label: '--- Padrón Global de Locales',
+            label: '* Padrón Global de Locales',
             icon: 'table'
           },
           {
@@ -1329,12 +1329,12 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-adeudos-anteriores',
-            label: '--- Reporte Adeudos Anteriores',
+            label: '* Reporte Adeudos Anteriores',
             icon: 'history'
           },
           {
             path: '/mercados/rpt-adeudos-abastos1998',
-            label: '--- Reporte Abastos 1998',
+            label: '* Reporte Abastos 1998',
             icon: 'calendar-times'
           },
           {
@@ -1507,17 +1507,17 @@ const menuItems = [
           // Paso de Datos
           {
             path: '/mercados/paso-adeudos',
-            label: 'Paso de Adeudos',
+            label: '* Paso de Adeudos',
             icon: 'arrow-circle-right'
           },
           {
             path: '/mercados/paso-ene',
-            label: '**  Importar Energía',
+            label: '* Importar Energía',
             icon: 'file-import'
           },
           {
             path: '/mercados/paso-mdos',
-            label: 'Paso Tianguis',
+            label: '* Paso Tianguis',
             icon: 'database'
           },
           // Menú Principal

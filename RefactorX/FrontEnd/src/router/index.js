@@ -882,11 +882,11 @@ const router = createRouter({
       name: 'mercados-carga-pag-mercado',
       component: () => import('@/views/modules/mercados/CargaPagMercado.vue')
     },
-    // {
-    //   path: '/mercados/carga-pagos-texto',
-    //   name: 'mercados-carga-pagos-texto',
-    //   component: () => import('@/views/modules/mercados/CargaPagosTexto.vue')
-    // },
+    {
+      path: '/mercados/carga-pagos-texto',
+      name: 'mercados-carga-pagos-texto',
+      component: () => import('@/views/modules/mercados/CargaPagosTexto.vue')
+    },
     // // LOTE 14: Componentes de Consulta y Captura
     {
       path: '/mercados/categoria-mntto',

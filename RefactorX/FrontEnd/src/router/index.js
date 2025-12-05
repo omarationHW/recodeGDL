@@ -754,11 +754,11 @@ const router = createRouter({
       name: 'mercados-zonas-mercados',
       component: () => import('@/views/modules/mercados/ZonasMercados.vue')
     },
-    // {
-    //   path: '/mercados/reporte-general-mercados',
-    //   name: 'mercados-reporte-general-mercados',
-    //   component: () => import('@/views/modules/mercados/ReporteGeneralMercados.vue')
-    // },
+    {
+      path: '/mercados/reporte-general-mercados',
+      name: 'mercados-reporte-general-mercados',
+      component: () => import('@/views/modules/mercados/ReporteGeneralMercados.vue')
+    },
     {
       path: '/mercados/padron-global',
       name: 'mercados-padron-global',
@@ -1165,16 +1165,16 @@ const router = createRouter({
     },
 
     // // LOTE 25: Reportes de Pagos
-    // {
-    //   path: '/mercados/rpt-pagos-ano',
-    //   name: 'mercados-rpt-pagos-ano',
-    //   component: () => import('@/views/modules/mercados/RptPagosAno.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-pagos-caja',
-    //   name: 'mercados-rpt-pagos-caja',
-    //   component: () => import('@/views/modules/mercados/RptPagosCaja.vue')
-    // },
+    {
+      path: '/mercados/rpt-pagos-ano',
+      name: 'mercados-rpt-pagos-ano',
+      component: () => import('@/views/modules/mercados/RptPagosAno.vue')
+    },
+    {
+      path: '/mercados/rpt-pagos-caja',
+      name: 'mercados-rpt-pagos-caja',
+      component: () => import('@/views/modules/mercados/RptPagosCaja.vue')
+    },
     {
       path: '/mercados/rpt-pagos-detalle',
       name: 'mercados-rpt-pagos-detalle',
@@ -1214,11 +1214,11 @@ const router = createRouter({
     },
 
     // // LOTE 27: Reportes Finales y Configuración
-    // {
-    //   path: '/mercados/rpt-resumen-pagos',
-    //   name: 'mercados-rpt-resumen-pagos',
-    //   component: () => import('@/views/modules/mercados/RptResumenPagos.vue')
-    // },
+    {
+      path: '/mercados/rpt-resumen-pagos',
+      name: 'mercados-rpt-resumen-pagos',
+      component: () => import('@/views/modules/mercados/RptResumenPagos.vue')
+    },
     {
       path: '/mercados/rpt-saldos-locales',
       name: 'mercados-rpt-saldos-locales',

@@ -154,7 +154,7 @@
                 <font-awesome-icon icon="chevron-left" />
               </button>
               <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn-municipal-secondary btn-sm" @click="currentPage++:" :disabled="currentPage === totalPages">
+              <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages">
                 <font-awesome-icon icon="chevron-right" />
               </button>
             </div>
@@ -272,7 +272,7 @@ const consultar = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_pagos_loc_grl',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [
           { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
           { Nombre: 'p_fecha_desde', Valor: filters.value.fecha_desde },

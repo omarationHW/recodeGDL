@@ -2,18 +2,21 @@
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="shopping-basket" />
+        <font-awesome-icon icon="barcode" />
       </div>
       <div class="module-view-info">
-        <h1>Emisión de Recibos de Abastos</h1>
-        <p>Inicio > Mercados > Emisión Abastos</p>
+        <h1>Emisión de Recibos Laser</h1>
+        <p>Inicio > Mercados > Emisión Laser</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-primary" @click="buscar" :disabled="loading">
-          <font-awesome-icon icon="search" /> Buscar
+        <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
+          <font-awesome-icon icon="search" /> Consultar
         </button>
         <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
+        </button>
+        <button class="btn-municipal-info" @click="imprimir" :disabled="loading || results.length === 0">
+          <font-awesome-icon icon="print" /> Imprimir
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" /> Ayuda
@@ -22,9 +25,10 @@
     </div>
 
     <div class="module-view-content">
+      <!-- Filtros -->
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="filter" /> Filtros de Búsqueda</h5>
+          <h5><font-awesome-icon icon="filter" /> Filtros de Consulta</h5>
         </div>
         <div class="municipal-card-body">
           <div class="form-row">
@@ -37,20 +41,23 @@
                 </option>
               </select>
             </div>
+
             <div class="form-group">
               <label class="municipal-form-label">Mercado <span class="required">*</span></label>
               <select v-model="filters.mercado" class="municipal-form-control" :disabled="loading || !mercados.length">
                 <option value="">Seleccione...</option>
-                <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
-                  {{ m.num_mercado_nvo }} - {{ m.descripcion }}
+                <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                  {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
                 </option>
               </select>
             </div>
+
             <div class="form-group">
               <label class="municipal-form-label">Año <span class="required">*</span></label>
               <input type="number" v-model.number="filters.axo" class="municipal-form-control"
-                     min="1990" :max="new Date().getFullYear() + 1" :disabled="loading" />
+                     min="2000" :max="new Date().getFullYear() + 1" :disabled="loading" />
             </div>
+
             <div class="form-group">
               <label class="municipal-form-label">Periodo (Mes) <span class="required">*</span></label>
               <select v-model.number="filters.periodo" class="municipal-form-control" :disabled="loading">
@@ -61,11 +68,30 @@
         </div>
       </div>
 
-      <div v-if="results.length > 0" class="municipal-card mt-3">
+      <!-- Loading -->
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border municipal-text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Generando reporte de emisión laser...</p>
+      </div>
+
+      <!-- Sin búsqueda -->
+      <div v-if="!busquedaRealizada && !loading" class="municipal-alert municipal-alert-info">
+        <font-awesome-icon icon="info-circle" /> Seleccione los filtros y haga clic en <strong>Consultar</strong> para generar el reporte.
+      </div>
+
+      <!-- Sin resultados -->
+      <div v-if="busquedaRealizada && !results.length && !loading" class="municipal-alert municipal-alert-warning">
+        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron recibos para los criterios seleccionados.
+      </div>
+
+      <!-- Tabla de Resultados -->
+      <div v-if="results.length && !loading" class="municipal-card mt-3">
         <div class="municipal-card-header header-with-badge">
-          <h5><font-awesome-icon icon="list-alt" /> Recibos de Abastos</h5>
+          <h5><font-awesome-icon icon="list-alt" /> Emisión de Recibos Laser</h5>
           <div class="header-right">
-            <span class="badge-purple">{{ results.length }} locales</span>
+            <span class="badge-purple">{{ results.length }} recibos</span>
             <span class="badge-success ms-2">Total: {{ formatCurrency(totalSubtotal) }}</span>
           </div>
         </div>
@@ -74,44 +100,32 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>Datos Local</th>
+                  <th>Local</th>
                   <th>Nombre</th>
                   <th>Descripción</th>
-                  <th>Meses</th>
+                  <th>Meses Adeudo</th>
                   <th class="text-end">Renta</th>
-                  <th class="text-end">Adeudo</th>
                   <th class="text-end">Recargos</th>
                   <th class="text-end">Subtotal</th>
-                  <th class="text-end">Multa</th>
-                  <th class="text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in paginatedResults" :key="row.id_local" class="row-hover">
-                  <td>{{ datosLocal(row) }}</td>
+                <tr v-for="(row, idx) in paginatedResults" :key="idx" class="row-hover">
+                  <td>{{ row.local }}</td>
                   <td>{{ row.nombre }}</td>
-                  <td>{{ row.descripcion }}</td>
-                  <td class="text-center">{{ row.meses || 'N/A' }}</td>
-                  <td class="text-end">{{ formatCurrency(row.renta) }}</td>
-                  <td class="text-end">{{ formatCurrency(row.adeudo) }}</td>
+                  <td>{{ row.descripcion_local }}</td>
+                  <td>{{ row.meses || 'N/A' }}</td>
+                  <td class="text-end">{{ formatCurrency(row.rentaaxos) }}</td>
                   <td class="text-end">{{ formatCurrency(row.recargos) }}</td>
                   <td class="text-end"><strong>{{ formatCurrency(row.subtotal) }}</strong></td>
-                  <td class="text-end">{{ formatCurrency(row.multa) }}</td>
-                  <td class="text-center">
-                    <button class="btn-municipal-secondary btn-sm" @click="verRequerimientos(row.id_local)">
-                      <font-awesome-icon icon="file-alt" /> Ver
-                    </button>
-                  </td>
                 </tr>
               </tbody>
               <tfoot class="municipal-table-footer">
                 <tr>
-                  <td colspan="5" class="text-end"><strong>TOTALES:</strong></td>
-                  <td class="text-end"><strong class="text-primary">{{ formatCurrency(totalAdeudo) }}</strong></td>
-                  <td class="text-end"><strong class="text-warning">{{ formatCurrency(totalRecargos) }}</strong></td>
-                  <td class="text-end"><strong class="text-success">{{ formatCurrency(totalSubtotal) }}</strong></td>
-                  <td class="text-end"><strong class="text-danger">{{ formatCurrency(totalMulta) }}</strong></td>
-                  <td></td>
+                  <th colspan="4" class="text-end">Totales:</th>
+                  <th class="text-end">{{ formatCurrency(totalRenta) }}</th>
+                  <th class="text-end">{{ formatCurrency(totalRecargos) }}</th>
+                  <th class="text-end"><strong class="text-success">{{ formatCurrency(totalSubtotal) }}</strong></th>
                 </tr>
               </tfoot>
             </table>
@@ -142,65 +156,6 @@
           </div>
         </div>
       </div>
-
-      <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border municipal-text-primary" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-        <p class="mt-2">Cargando datos...</p>
-      </div>
-
-      <div v-if="!results.length && !loading && busquedaRealizada" class="municipal-alert municipal-alert-warning">
-        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron datos con los filtros seleccionados.
-      </div>
-    </div>
-
-    <!-- Modal Requerimientos -->
-    <div v-if="showModalReq" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header municipal-bg-primary text-white">
-            <h5 class="modal-title">Requerimientos del Local #{{ reqLocalId }}</h5>
-            <button type="button" class="btn-close btn-close-white" @click="showModalReq = false"></button>
-          </div>
-          <div class="modal-body">
-            <div v-if="loadingReq" class="text-center py-3">
-              <div class="spinner-border municipal-text-primary" role="status"></div>
-              <p>Cargando requerimientos...</p>
-            </div>
-            <div v-else-if="requerimientos.length">
-              <table class="municipal-table table-sm">
-                <thead class="municipal-table-header">
-                  <tr>
-                    <th>Folio</th>
-                    <th>Diligencia</th>
-                    <th class="text-end">Importe Multa</th>
-                    <th class="text-end">Importe Gastos</th>
-                    <th>Fecha Emisión</th>
-                    <th>Observaciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="req in requerimientos" :key="req.folio">
-                    <td>{{ req.folio }}</td>
-                    <td>{{ req.diligencia }}</td>
-                    <td class="text-end">{{ formatCurrency(req.importe_multa) }}</td>
-                    <td class="text-end">{{ formatCurrency(req.importe_gastos) }}</td>
-                    <td>{{ req.fecha_emision }}</td>
-                    <td>{{ req.observaciones }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-else class="municipal-alert municipal-alert-info">
-              <font-awesome-icon icon="info-circle" /> No hay requerimientos para este local.
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-municipal-secondary" @click="showModalReq = false">Cerrar</button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -209,6 +164,7 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
+// Referencias reactivas
 const filters = ref({
   oficina: '',
   mercado: '',
@@ -221,15 +177,12 @@ const mercados = ref([]);
 const results = ref([]);
 const loading = ref(false);
 const busquedaRealizada = ref(false);
+
+// Paginación
 const currentPage = ref(1);
 const pageSize = ref(25);
 
-// Modal Requerimientos
-const showModalReq = ref(false);
-const reqLocalId = ref(null);
-const requerimientos = ref([]);
-const loadingReq = ref(false);
-
+// Meses
 const meses = ref([
   { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
   { value: 4, label: 'Abril' }, { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
@@ -237,56 +190,82 @@ const meses = ref([
   { value: 10, label: 'Octubre' }, { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' }
 ]);
 
+// Computed
 const totalPages = computed(() => Math.ceil(results.value.length / pageSize.value) || 1);
+
 const paginatedResults = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
-  return results.value.slice(start, start + pageSize.value);
+  const end = start + pageSize.value;
+  return results.value.slice(start, end);
 });
 
-const totalAdeudo = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.adeudo) || 0), 0));
-const totalRecargos = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.recargos) || 0), 0));
-const totalSubtotal = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.subtotal) || 0), 0));
-const totalMulta = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.multa) || 0), 0));
+const totalRenta = computed(() => {
+  return results.value.reduce((sum, row) => sum + (parseFloat(row.rentaaxos) || 0), 0);
+});
 
+const totalRecargos = computed(() => {
+  return results.value.reduce((sum, row) => sum + (parseFloat(row.recargos) || 0), 0);
+});
+
+const totalSubtotal = computed(() => {
+  return results.value.reduce((sum, row) => sum + (parseFloat(row.subtotal) || 0), 0);
+});
+
+// Métodos
 const fetchRecaudadoras = async () => {
+  loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: []
       }
     });
+
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       recaudadoras.value = response.data.eResponse.data.result;
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
+  } finally {
+    loading.value = false;
   }
 };
 
 const onOficinaChange = async () => {
-  filters.value.mercado = '';
-  mercados.value = [];
-  if (!filters.value.oficina) return;
+  if (!filters.value.oficina) {
+    mercados.value = [];
+    filters.value.mercado = '';
+    return;
+  }
 
+  loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'mercados',
-        Parametros: [{ Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }]
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }
+        ]
       }
     });
+
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       mercados.value = response.data.eResponse.data.result;
+    } else {
+      mercados.value = [];
     }
   } catch (error) {
     console.error('Error al cargar mercados:', error);
+    mercados.value = [];
+  } finally {
+    loading.value = false;
   }
 };
 
-const buscar = async () => {
+const consultar = async () => {
   if (!filters.value.oficina || !filters.value.mercado) {
     alert('Por favor complete todos los filtros requeridos');
     return;
@@ -298,13 +277,13 @@ const buscar = async () => {
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_rpt_emision_rbos_abastos',
+        Operacion: 'sp_rpt_emision_laser',
         Base: 'mercados',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
           { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) }
+          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) },
+          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) }
         ]
       }
     });
@@ -326,60 +305,61 @@ const buscar = async () => {
   }
 };
 
-const verRequerimientos = async (id_local) => {
-  reqLocalId.value = id_local;
-  showModalReq.value = true;
-  loadingReq.value = true;
-  requerimientos.value = [];
-
-  try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_requerimientos_abastos',
-        Base: 'mercados',
-        Parametros: [{ Nombre: 'p_id_local', Valor: parseInt(id_local) }]
-      }
-    });
-
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      requerimientos.value = response.data.eResponse.data.result;
-    }
-  } catch (error) {
-    console.error('Error al cargar requerimientos:', error);
-  } finally {
-    loadingReq.value = false;
-  }
-};
-
-const datosLocal = (row) => {
-  return `${row.oficina}-${row.num_mercado}-${row.categoria}-${row.seccion}-${row.local}${row.letra_local || ''}${row.bloque ? '-' + row.bloque : ''}`;
+const limpiar = () => {
+  filters.value = {
+    oficina: '',
+    mercado: '',
+    axo: new Date().getFullYear(),
+    periodo: new Date().getMonth() + 1
+  };
+  mercados.value = [];
+  results.value = [];
+  busquedaRealizada.value = false;
+  currentPage.value = 1;
 };
 
 const formatCurrency = (value) => {
   if (value == null) return '$0.00';
-  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value);
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value);
 };
 
 const exportarExcel = () => {
+  const data = results.value.map(row => ({
+    'Local': row.local,
+    'Nombre': row.nombre,
+    'Descripción': row.descripcion_local,
+    'Meses Adeudo': row.meses,
+    'Renta': row.rentaaxos,
+    'Recargos': row.recargos,
+    'Subtotal': row.subtotal
+  }));
+
   const csv = [
-    'Datos Local,Nombre,Descripción,Meses,Renta,Adeudo,Recargos,Subtotal,Multa',
-    ...results.value.map(r =>
-      `${datosLocal(r)},${r.nombre},${r.descripcion},${r.meses},${r.renta},${r.adeudo},${r.recargos},${r.subtotal},${r.multa}`
-    )
+    Object.keys(data[0]).join(','),
+    ...data.map(row => Object.values(row).join(','))
   ].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `emision_abastos_${filters.value.axo}_${filters.value.periodo}.csv`;
+  a.download = `emision_laser_${filters.value.oficina}_${filters.value.mercado}_${filters.value.axo}_${filters.value.periodo}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
 };
 
-const mostrarAyuda = () => {
-  alert('Emisión de Recibos de Abastos\n\nSeleccione la recaudadora, mercado, año y periodo para generar el reporte de emisión de recibos de abastos.');
+const imprimir = () => {
+  window.print();
 };
 
+const mostrarAyuda = () => {
+  alert('Emisión de Recibos Laser\n\nGenera el reporte de emisión de recibos en formato laser para un mercado específico en un periodo determinado.\n\nSeleccione la recaudadora, mercado, año y periodo (mes) para consultar.');
+};
+
+// Lifecycle
 onMounted(() => {
   fetchRecaudadoras();
 });
@@ -387,4 +367,17 @@ onMounted(() => {
 
 <style scoped>
 @import '@/styles/municipal-theme.css';
+
+@media print {
+  .module-view-header,
+  .municipal-card-header,
+  .pagination-container,
+  .button-group {
+    display: none !important;
+  }
+
+  .municipal-table {
+    font-size: 10px;
+  }
+}
 </style>

@@ -187,7 +187,7 @@ const totalImporte1 = computed(() => results.value.reduce((sum, r) => sum + (par
 const fetchRecaudadoras = async () => {
   try {
     const response = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
     });
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       recaudadoras.value = response.data.eResponse.data.result;
@@ -205,7 +205,7 @@ const onOficinaChange = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [{ Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }]
       }
     });

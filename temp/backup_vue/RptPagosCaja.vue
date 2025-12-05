@@ -3,14 +3,14 @@
     <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="chart-line" />
+        <font-awesome-icon icon="cash-register" />
       </div>
       <div class="module-view-info">
-        <h1>Reporte General de Mercados</h1>
-        <p>Mercados > Reporte General con Estadísticas Completas</p>
+        <h1>Reporte de Pagos por Caja</h1>
+        <p>Mercados > Reporte de Pagos por Caja Recaudadora</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || reporte.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || pagos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
@@ -27,7 +27,7 @@
         <div class="municipal-card-header">
           <h5>
             <font-awesome-icon icon="filter" />
-            Parámetros de Consulta
+            Filtros de Consulta
           </h5>
         </div>
 
@@ -44,15 +44,19 @@
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Año <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="axo" min="1995" max="2999"
-                placeholder="Año" :disabled="loading" />
+              <label class="municipal-form-label">Fecha Desde <span class="required">*</span></label>
+              <input type="date" class="municipal-form-control" v-model="fechaDesde" :disabled="loading" />
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Periodo (Mes) <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="periodo" min="1" max="12"
-                placeholder="Periodo (1-12)" :disabled="loading" />
+              <label class="municipal-form-label">Fecha Hasta <span class="required">*</span></label>
+              <input type="date" class="municipal-form-control" v-model="fechaHasta" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Caja (Opcional)</label>
+              <input type="text" class="municipal-form-control" v-model="caja" placeholder="Todas las cajas"
+                :disabled="loading" maxlength="10" />
             </div>
           </div>
 
@@ -77,12 +81,15 @@
       <div class="municipal-card">
         <div class="municipal-card-header header-with-badge">
           <h5>
-            <font-awesome-icon icon="table" />
-            Estadísticas por Mercado
+            <font-awesome-icon icon="list" />
+            Pagos por Caja
           </h5>
           <div class="header-right">
-            <span class="badge-purple" v-if="reporte.length > 0">
-              {{ formatNumber(reporte.length) }} mercados
+            <span class="badge-purple" v-if="pagos.length > 0">
+              {{ formatNumber(pagos.length) }} registros
+            </span>
+            <span class="badge-success ms-2" v-if="totalGeneral > 0">
+              Total: {{ formatCurrency(totalGeneral) }}
             </span>
           </div>
         </div>
@@ -93,7 +100,7 @@
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Cargando...</span>
             </div>
-            <p class="mt-3 text-muted">Generando reporte, por favor espere...</p>
+            <p class="mt-3 text-muted">Procesando reporte...</p>
           </div>
 
           <!-- Error -->
@@ -107,65 +114,45 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th rowspan="2">Mercado</th>
-                  <th rowspan="2">Descripción</th>
-                  <th rowspan="2" class="text-end">Total Locales</th>
-                  <th colspan="3" class="text-center" style="border-bottom: 1px solid #dee2e6;">Pagos</th>
-                  <th colspan="3" class="text-center" style="border-bottom: 1px solid #dee2e6;">Adeudos</th>
-                  <th rowspan="2" class="text-end">% Cobranza</th>
-                </tr>
-                <tr>
-                  <th class="text-end">Locales</th>
-                  <th class="text-end">Cantidad</th>
-                  <th class="text-end">Importe</th>
-                  <th class="text-end">Locales</th>
-                  <th class="text-end">Cantidad</th>
-                  <th class="text-end">Importe</th>
+                  <th>Caja</th>
+                  <th>Mercado</th>
+                  <th>Descripción</th>
+                  <th class="text-end">Total Pagos</th>
+                  <th class="text-end">Importe Total</th>
+                  <th>Primer Pago</th>
+                  <th>Último Pago</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="reporte.length === 0 && !searchPerformed">
-                  <td colspan="10" class="text-center text-muted">
-                    <font-awesome-icon icon="calendar-check" size="2x" class="empty-icon" />
-                    <p>Seleccione oficina, año y periodo para generar el reporte</p>
+                <tr v-if="pagos.length === 0 && !searchPerformed">
+                  <td colspan="7" class="text-center text-muted">
+                    <font-awesome-icon icon="calendar-alt" size="2x" class="empty-icon" />
+                    <p>Seleccione los filtros para consultar pagos por caja</p>
                   </td>
                 </tr>
-                <tr v-else-if="reporte.length === 0">
-                  <td colspan="10" class="text-center text-muted">
+                <tr v-else-if="pagos.length === 0">
+                  <td colspan="7" class="text-center text-muted">
                     <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron datos con los criterios especificados</p>
+                    <p>No se encontraron pagos con los criterios especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in reporte" :key="index" class="row-hover">
-                  <td><strong class="text-primary">{{ row.num_mercado }}</strong></td>
+                <tr v-else v-for="(row, index) in pagos" :key="index" class="row-hover">
+                  <td><strong class="text-primary">{{ row.caja_pago }}</strong></td>
+                  <td>{{ row.num_mercado }}</td>
                   <td>{{ row.descripcion }}</td>
-                  <td class="text-end">{{ formatNumber(row.total_locales) }}</td>
-                  <td class="text-end">{{ formatNumber(row.locales_con_pagos) }}</td>
-                  <td class="text-end">{{ formatNumber(row.total_pagos_periodo) }}</td>
+                  <td class="text-end">{{ formatNumber(row.total_pagos) }}</td>
                   <td class="text-end">
-                    <strong class="text-success">{{ formatCurrency(row.importe_pagos) }}</strong>
+                    <strong class="text-success">{{ formatCurrency(row.importe_total) }}</strong>
                   </td>
-                  <td class="text-end">{{ formatNumber(row.locales_con_adeudos) }}</td>
-                  <td class="text-end">{{ formatNumber(row.total_adeudos_periodo) }}</td>
-                  <td class="text-end">
-                    <strong class="text-danger">{{ formatCurrency(row.importe_adeudos) }}</strong>
-                  </td>
-                  <td class="text-end">
-                    <span class="badge" :class="getBadgeClass(row.porcentaje_cobranza)">
-                      {{ row.porcentaje_cobranza }}%
-                    </span>
-                  </td>
+                  <td>{{ formatDate(row.fecha_inicio) }}</td>
+                  <td>{{ formatDate(row.fecha_fin) }}</td>
                 </tr>
-                <tr v-if="reporte.length > 0" class="table-footer">
-                  <td colspan="5" class="text-end"><strong>TOTALES:</strong></td>
+                <tr v-if="pagos.length > 0" class="table-footer">
+                  <td colspan="4" class="text-end"><strong>TOTAL GENERAL:</strong></td>
                   <td class="text-end">
-                    <strong class="text-success" style="font-size: 1.1em;">{{ formatCurrency(totalPagos) }}</strong>
+                    <strong class="text-primary" style="font-size: 1.1em;">{{ formatCurrency(totalGeneral) }}</strong>
                   </td>
-                  <td colspan="2" class="text-end"></td>
-                  <td class="text-end">
-                    <strong class="text-danger" style="font-size: 1.1em;">{{ formatCurrency(totalAdeudos) }}</strong>
-                  </td>
-                  <td></td>
+                  <td colspan="2"></td>
                 </tr>
               </tbody>
             </table>
@@ -192,9 +179,10 @@ import axios from 'axios'
 // Estado
 const recaudadoras = ref([])
 const selectedOficina = ref('')
-const axo = ref(new Date().getFullYear())
-const periodo = ref(new Date().getMonth() + 1)
-const reporte = ref([])
+const fechaDesde = ref('')
+const fechaHasta = ref('')
+const caja = ref('')
+const pagos = ref([])
 const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
@@ -207,17 +195,13 @@ const toast = ref({
 })
 
 // Computed
-const totalPagos = computed(() => {
-  return reporte.value.reduce((sum, item) => sum + (parseFloat(item.importe_pagos) || 0), 0)
-})
-
-const totalAdeudos = computed(() => {
-  return reporte.value.reduce((sum, item) => sum + (parseFloat(item.importe_adeudos) || 0), 0)
+const totalGeneral = computed(() => {
+  return pagos.value.reduce((sum, item) => sum + (parseFloat(item.importe_total) || 0), 0)
 })
 
 // Métodos
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione una oficina, año y periodo para generar el reporte general con estadísticas de pagos, adeudos y porcentaje de cobranza por mercado.')
+  showToast('info', 'Seleccione una oficina y rango de fechas para consultar los pagos agrupados por caja recaudadora.')
 }
 
 const showToast = (type, message) => {
@@ -245,12 +229,6 @@ const getToastIcon = (type) => {
   return icons[type] || 'info-circle'
 }
 
-const getBadgeClass = (porcentaje) => {
-  if (porcentaje >= 80) return 'badge-success'
-  if (porcentaje >= 50) return 'badge-warning'
-  return 'badge-danger'
-}
-
 const formatCurrency = (value) => {
   if (!value) return '$0.00'
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
@@ -260,12 +238,25 @@ const formatNumber = (value) => {
   return new Intl.NumberFormat('es-MX').format(value)
 }
 
+const formatDate = (value) => {
+  if (!value) return '-'
+  const date = new Date(value)
+  return date.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' })
+}
+
+const setFechasIniciales = () => {
+  const hoy = new Date()
+  const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+  fechaDesde.value = primerDiaMes.toISOString().split('T')[0]
+  fechaHasta.value = hoy.toISOString().split('T')[0]
+}
+
 const fetchRecaudadoras = async () => {
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: []
       }
     })
@@ -278,51 +269,57 @@ const fetchRecaudadoras = async () => {
 }
 
 const buscar = async () => {
-  if (!selectedOficina.value || !axo.value || !periodo.value) {
-    error.value = 'Debe seleccionar oficina, año y periodo'
+  if (!selectedOficina.value || !fechaDesde.value || !fechaHasta.value) {
+    error.value = 'Debe seleccionar oficina y rango de fechas'
     showToast('warning', error.value)
     return
   }
 
-  if (periodo.value < 1 || periodo.value > 12) {
-    error.value = 'El periodo debe estar entre 1 y 12'
+  if (new Date(fechaDesde.value) > new Date(fechaHasta.value)) {
+    error.value = 'La fecha desde no puede ser mayor que la fecha hasta'
     showToast('warning', error.value)
     return
   }
 
   loading.value = true
   error.value = ''
-  reporte.value = []
+  pagos.value = []
   searchPerformed.value = true
 
   try {
     const parametros = [
       { nombre: 'p_oficina', valor: selectedOficina.value, tipo: 'integer' },
-      { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
-      { nombre: 'p_periodo', valor: periodo.value, tipo: 'integer' }
+      { nombre: 'p_fecha_desde', valor: fechaDesde.value, tipo: 'date' },
+      { nombre: 'p_fecha_hasta', valor: fechaHasta.value, tipo: 'date' }
     ]
+
+    if (caja.value) {
+      parametros.push({ nombre: 'p_caja', valor: caja.value, tipo: 'character varying' })
+    } else {
+      parametros.push({ nombre: 'p_caja', valor: null, tipo: 'character varying' })
+    }
 
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_reporte_general_mercados',
+        Operacion: 'sp_rpt_pagos_caja',
         Base: 'mercados',
         Parametros: parametros
       }
     })
 
     if (res.data.eResponse.success) {
-      reporte.value = res.data.eResponse.data.result || []
-      if (reporte.value.length > 0) {
-        showToast('success', `Reporte generado con ${reporte.value.length} mercados`)
+      pagos.value = res.data.eResponse.data.result || []
+      if (pagos.value.length > 0) {
+        showToast('success', `Se encontraron ${pagos.value.length} registros de pagos`)
       } else {
-        showToast('info', 'No se encontraron mercados con los criterios especificados')
+        showToast('info', 'No se encontraron pagos con los criterios especificados')
       }
     } else {
-      error.value = res.data.eResponse.message || 'Error al generar reporte'
+      error.value = res.data.eResponse.message || 'Error al consultar pagos'
       showToast('error', error.value)
     }
   } catch (err) {
-    error.value = 'Error de conexión al generar reporte'
+    error.value = 'Error de conexión al consultar pagos'
     console.error('Error al buscar:', err)
     showToast('error', error.value)
   } finally {
@@ -332,54 +329,46 @@ const buscar = async () => {
 
 const limpiarFiltros = () => {
   selectedOficina.value = ''
-  axo.value = new Date().getFullYear()
-  periodo.value = new Date().getMonth() + 1
-  reporte.value = []
+  caja.value = ''
+  setFechasIniciales()
+  pagos.value = []
   error.value = ''
   searchPerformed.value = false
   showToast('info', 'Filtros limpiados')
 }
 
 const exportarExcel = () => {
-  if (reporte.value.length === 0) {
+  if (pagos.value.length === 0) {
     showToast('warning', 'No hay datos para exportar')
     return
   }
 
   try {
-    const headers = [
-      'Mercado', 'Descripción', 'Total Locales',
-      'Loc. con Pagos', 'Cant. Pagos', 'Importe Pagos',
-      'Loc. con Adeudos', 'Cant. Adeudos', 'Importe Adeudos',
-      '% Cobranza'
-    ]
+    const headers = ['Caja', 'Mercado', 'Descripción', 'Total Pagos', 'Importe Total', 'Primer Pago', 'Último Pago']
     const csvRows = []
     csvRows.push(headers.join(','))
 
-    reporte.value.forEach(row => {
+    pagos.value.forEach(row => {
       const values = [
+        `"${row.caja_pago}"`,
         row.num_mercado,
         `"${row.descripcion}"`,
-        row.total_locales,
-        row.locales_con_pagos,
-        row.total_pagos_periodo,
-        row.importe_pagos,
-        row.locales_con_adeudos,
-        row.total_adeudos_periodo,
-        row.importe_adeudos,
-        row.porcentaje_cobranza
+        row.total_pagos,
+        row.importe_total,
+        formatDate(row.fecha_inicio),
+        formatDate(row.fecha_fin)
       ]
       csvRows.push(values.join(','))
     })
 
-    // Agregar totales
-    csvRows.push(`"","","","","",${totalPagos.value},"","",${totalAdeudos.value},""`)
+    // Agregar total
+    csvRows.push(`"","","","TOTAL",${totalGeneral.value},"",""`)
 
     const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `reporte_general_mercados_${axo.value}_${periodo.value}.csv`
+    link.download = `pagos_por_caja_${fechaDesde.value}_${fechaHasta.value}.csv`
     link.click()
     URL.revokeObjectURL(url)
 
@@ -393,5 +382,6 @@ const exportarExcel = () => {
 // Lifecycle
 onMounted(() => {
   fetchRecaudadoras()
+  setFechasIniciales()
 })
 </script>

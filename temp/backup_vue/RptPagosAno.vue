@@ -3,14 +3,14 @@
     <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="chart-line" />
+        <font-awesome-icon icon="calendar-check" />
       </div>
       <div class="module-view-info">
-        <h1>Reporte General de Mercados</h1>
-        <p>Mercados > Reporte General con Estadísticas Completas</p>
+        <h1>Reporte de Pagos por Año</h1>
+        <p>Mercados > Reporte de Pagos Agrupados por Año</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || reporte.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || pagos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
@@ -24,14 +24,15 @@
     <div class="module-view-content">
       <!-- Filtros -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
           <h5>
             <font-awesome-icon icon="filter" />
-            Parámetros de Consulta
+            Filtros de Consulta
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
           </h5>
         </div>
 
-        <div class="municipal-card-body">
+        <div v-show="showFilters" class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
@@ -44,15 +45,19 @@
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Año <span class="required">*</span></label>
+              <label class="municipal-form-label">Año (Opcional)</label>
               <input type="number" class="municipal-form-control" v-model.number="axo" min="1995" max="2999"
-                placeholder="Año" :disabled="loading" />
+                placeholder="Todos los años" :disabled="loading" />
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Periodo (Mes) <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="periodo" min="1" max="12"
-                placeholder="Periodo (1-12)" :disabled="loading" />
+              <label class="municipal-form-label">Mercado (Opcional)</label>
+              <select class="municipal-form-control" v-model="selectedMercado" :disabled="loading || !selectedOficina">
+                <option value="">Todos los mercados</option>
+                <option v-for="m in mercadosFiltrados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
+                  {{ m.num_mercado_nvo }} - {{ m.descripcion }}
+                </option>
+              </select>
             </div>
           </div>
 
@@ -77,12 +82,15 @@
       <div class="municipal-card">
         <div class="municipal-card-header header-with-badge">
           <h5>
-            <font-awesome-icon icon="table" />
-            Estadísticas por Mercado
+            <font-awesome-icon icon="list" />
+            Pagos por Año
           </h5>
           <div class="header-right">
-            <span class="badge-purple" v-if="reporte.length > 0">
-              {{ formatNumber(reporte.length) }} mercados
+            <span class="badge-purple" v-if="pagos.length > 0">
+              {{ formatNumber(pagos.length) }} registros
+            </span>
+            <span class="badge-success ms-2" v-if="totalGeneral > 0">
+              Total: {{ formatCurrency(totalGeneral) }}
             </span>
           </div>
         </div>
@@ -93,7 +101,7 @@
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Cargando...</span>
             </div>
-            <p class="mt-3 text-muted">Generando reporte, por favor espere...</p>
+            <p class="mt-3 text-muted">Cargando datos, por favor espere...</p>
           </div>
 
           <!-- Error -->
@@ -107,65 +115,42 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th rowspan="2">Mercado</th>
-                  <th rowspan="2">Descripción</th>
-                  <th rowspan="2" class="text-end">Total Locales</th>
-                  <th colspan="3" class="text-center" style="border-bottom: 1px solid #dee2e6;">Pagos</th>
-                  <th colspan="3" class="text-center" style="border-bottom: 1px solid #dee2e6;">Adeudos</th>
-                  <th rowspan="2" class="text-end">% Cobranza</th>
-                </tr>
-                <tr>
+                  <th>Año</th>
+                  <th>Mercado</th>
+                  <th>Descripción</th>
                   <th class="text-end">Locales</th>
-                  <th class="text-end">Cantidad</th>
-                  <th class="text-end">Importe</th>
-                  <th class="text-end">Locales</th>
-                  <th class="text-end">Cantidad</th>
-                  <th class="text-end">Importe</th>
+                  <th class="text-end">Total Pagos</th>
+                  <th class="text-end">Importe Total</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="reporte.length === 0 && !searchPerformed">
-                  <td colspan="10" class="text-center text-muted">
-                    <font-awesome-icon icon="calendar-check" size="2x" class="empty-icon" />
-                    <p>Seleccione oficina, año y periodo para generar el reporte</p>
+                <tr v-if="pagos.length === 0 && !searchPerformed">
+                  <td colspan="6" class="text-center text-muted">
+                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <p>Utiliza los filtros de búsqueda para consultar pagos por año</p>
                   </td>
                 </tr>
-                <tr v-else-if="reporte.length === 0">
-                  <td colspan="10" class="text-center text-muted">
+                <tr v-else-if="pagos.length === 0">
+                  <td colspan="6" class="text-center text-muted">
                     <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron datos con los criterios especificados</p>
+                    <p>No se encontraron pagos con los criterios especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in reporte" :key="index" class="row-hover">
-                  <td><strong class="text-primary">{{ row.num_mercado }}</strong></td>
+                <tr v-else v-for="(row, index) in pagos" :key="index" class="row-hover">
+                  <td><strong class="text-primary">{{ row.axo }}</strong></td>
+                  <td>{{ row.num_mercado }}</td>
                   <td>{{ row.descripcion }}</td>
                   <td class="text-end">{{ formatNumber(row.total_locales) }}</td>
-                  <td class="text-end">{{ formatNumber(row.locales_con_pagos) }}</td>
-                  <td class="text-end">{{ formatNumber(row.total_pagos_periodo) }}</td>
+                  <td class="text-end">{{ formatNumber(row.total_pagos) }}</td>
                   <td class="text-end">
-                    <strong class="text-success">{{ formatCurrency(row.importe_pagos) }}</strong>
-                  </td>
-                  <td class="text-end">{{ formatNumber(row.locales_con_adeudos) }}</td>
-                  <td class="text-end">{{ formatNumber(row.total_adeudos_periodo) }}</td>
-                  <td class="text-end">
-                    <strong class="text-danger">{{ formatCurrency(row.importe_adeudos) }}</strong>
-                  </td>
-                  <td class="text-end">
-                    <span class="badge" :class="getBadgeClass(row.porcentaje_cobranza)">
-                      {{ row.porcentaje_cobranza }}%
-                    </span>
+                    <strong class="text-success">{{ formatCurrency(row.importe_total) }}</strong>
                   </td>
                 </tr>
-                <tr v-if="reporte.length > 0" class="table-footer">
-                  <td colspan="5" class="text-end"><strong>TOTALES:</strong></td>
+                <tr v-if="pagos.length > 0" class="table-footer">
+                  <td colspan="5" class="text-end"><strong>TOTAL GENERAL:</strong></td>
                   <td class="text-end">
-                    <strong class="text-success" style="font-size: 1.1em;">{{ formatCurrency(totalPagos) }}</strong>
+                    <strong class="text-primary" style="font-size: 1.1em;">{{ formatCurrency(totalGeneral) }}</strong>
                   </td>
-                  <td colspan="2" class="text-end"></td>
-                  <td class="text-end">
-                    <strong class="text-danger" style="font-size: 1.1em;">{{ formatCurrency(totalAdeudos) }}</strong>
-                  </td>
-                  <td></td>
                 </tr>
               </tbody>
             </table>
@@ -190,11 +175,13 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 // Estado
+const showFilters = ref(true)
 const recaudadoras = ref([])
+const mercados = ref([])
 const selectedOficina = ref('')
-const axo = ref(new Date().getFullYear())
-const periodo = ref(new Date().getMonth() + 1)
-const reporte = ref([])
+const selectedMercado = ref('')
+const axo = ref('')
+const pagos = ref([])
 const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
@@ -207,17 +194,22 @@ const toast = ref({
 })
 
 // Computed
-const totalPagos = computed(() => {
-  return reporte.value.reduce((sum, item) => sum + (parseFloat(item.importe_pagos) || 0), 0)
+const mercadosFiltrados = computed(() => {
+  if (!selectedOficina.value) return []
+  return mercados.value.filter(m => m.oficina === selectedOficina.value)
 })
 
-const totalAdeudos = computed(() => {
-  return reporte.value.reduce((sum, item) => sum + (parseFloat(item.importe_adeudos) || 0), 0)
+const totalGeneral = computed(() => {
+  return pagos.value.reduce((sum, item) => sum + (parseFloat(item.importe_total) || 0), 0)
 })
 
 // Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione una oficina, año y periodo para generar el reporte general con estadísticas de pagos, adeudos y porcentaje de cobranza por mercado.')
+  showToast('info', 'Seleccione una oficina para consultar los pagos agrupados por año. Opcionalmente puede filtrar por año específico y mercado.')
 }
 
 const showToast = (type, message) => {
@@ -245,12 +237,6 @@ const getToastIcon = (type) => {
   return icons[type] || 'info-circle'
 }
 
-const getBadgeClass = (porcentaje) => {
-  if (porcentaje >= 80) return 'badge-success'
-  if (porcentaje >= 50) return 'badge-warning'
-  return 'badge-danger'
-}
-
 const formatCurrency = (value) => {
   if (!value) return '$0.00'
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
@@ -265,7 +251,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: []
       }
     })
@@ -277,52 +263,74 @@ const fetchRecaudadoras = async () => {
   }
 }
 
-const buscar = async () => {
-  if (!selectedOficina.value || !axo.value || !periodo.value) {
-    error.value = 'Debe seleccionar oficina, año y periodo'
-    showToast('warning', error.value)
-    return
+const fetchMercados = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_reporte_catalogo_mercados',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+    if (res.data.eResponse.success) {
+      mercados.value = res.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar mercados:', err)
   }
+}
 
-  if (periodo.value < 1 || periodo.value > 12) {
-    error.value = 'El periodo debe estar entre 1 y 12'
+const buscar = async () => {
+  if (!selectedOficina.value) {
+    error.value = 'Debe seleccionar una oficina'
     showToast('warning', error.value)
     return
   }
 
   loading.value = true
   error.value = ''
-  reporte.value = []
+  pagos.value = []
   searchPerformed.value = true
 
   try {
     const parametros = [
-      { nombre: 'p_oficina', valor: selectedOficina.value, tipo: 'integer' },
-      { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
-      { nombre: 'p_periodo', valor: periodo.value, tipo: 'integer' }
+      { nombre: 'p_oficina', valor: selectedOficina.value, tipo: 'integer' }
     ]
+
+    if (axo.value) {
+      parametros.push({ nombre: 'p_axo', valor: axo.value, tipo: 'integer' })
+    } else {
+      parametros.push({ nombre: 'p_axo', valor: null, tipo: 'integer' })
+    }
+
+    if (selectedMercado.value) {
+      parametros.push({ nombre: 'p_mercado', valor: selectedMercado.value, tipo: 'integer' })
+    } else {
+      parametros.push({ nombre: 'p_mercado', valor: null, tipo: 'integer' })
+    }
 
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_reporte_general_mercados',
+        Operacion: 'sp_rpt_pagos_ano',
         Base: 'mercados',
         Parametros: parametros
       }
     })
 
     if (res.data.eResponse.success) {
-      reporte.value = res.data.eResponse.data.result || []
-      if (reporte.value.length > 0) {
-        showToast('success', `Reporte generado con ${reporte.value.length} mercados`)
+      pagos.value = res.data.eResponse.data.result || []
+      if (pagos.value.length > 0) {
+        showToast('success', `Se encontraron ${pagos.value.length} registros de pagos`)
+        showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron mercados con los criterios especificados')
+        showToast('info', 'No se encontraron pagos con los criterios especificados')
       }
     } else {
-      error.value = res.data.eResponse.message || 'Error al generar reporte'
+      error.value = res.data.eResponse.message || 'Error al consultar pagos'
       showToast('error', error.value)
     }
   } catch (err) {
-    error.value = 'Error de conexión al generar reporte'
+    error.value = 'Error de conexión al consultar pagos'
     console.error('Error al buscar:', err)
     showToast('error', error.value)
   } finally {
@@ -332,54 +340,45 @@ const buscar = async () => {
 
 const limpiarFiltros = () => {
   selectedOficina.value = ''
-  axo.value = new Date().getFullYear()
-  periodo.value = new Date().getMonth() + 1
-  reporte.value = []
+  selectedMercado.value = ''
+  axo.value = ''
+  pagos.value = []
   error.value = ''
   searchPerformed.value = false
   showToast('info', 'Filtros limpiados')
 }
 
 const exportarExcel = () => {
-  if (reporte.value.length === 0) {
+  if (pagos.value.length === 0) {
     showToast('warning', 'No hay datos para exportar')
     return
   }
 
   try {
-    const headers = [
-      'Mercado', 'Descripción', 'Total Locales',
-      'Loc. con Pagos', 'Cant. Pagos', 'Importe Pagos',
-      'Loc. con Adeudos', 'Cant. Adeudos', 'Importe Adeudos',
-      '% Cobranza'
-    ]
+    const headers = ['Año', 'Mercado', 'Descripción', 'Locales', 'Total Pagos', 'Importe Total']
     const csvRows = []
     csvRows.push(headers.join(','))
 
-    reporte.value.forEach(row => {
+    pagos.value.forEach(row => {
       const values = [
+        row.axo,
         row.num_mercado,
         `"${row.descripcion}"`,
         row.total_locales,
-        row.locales_con_pagos,
-        row.total_pagos_periodo,
-        row.importe_pagos,
-        row.locales_con_adeudos,
-        row.total_adeudos_periodo,
-        row.importe_adeudos,
-        row.porcentaje_cobranza
+        row.total_pagos,
+        row.importe_total
       ]
       csvRows.push(values.join(','))
     })
 
-    // Agregar totales
-    csvRows.push(`"","","","","",${totalPagos.value},"","",${totalAdeudos.value},""`)
+    // Agregar total
+    csvRows.push(`"","","","","TOTAL",${totalGeneral.value}`)
 
     const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `reporte_general_mercados_${axo.value}_${periodo.value}.csv`
+    link.download = `pagos_por_ano_${selectedOficina.value}_${Date.now()}.csv`
     link.click()
     URL.revokeObjectURL(url)
 
@@ -393,5 +392,6 @@ const exportarExcel = () => {
 // Lifecycle
 onMounted(() => {
   fetchRecaudadoras()
+  fetchMercados()
 })
 </script>

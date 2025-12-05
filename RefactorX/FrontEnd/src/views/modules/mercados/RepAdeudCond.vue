@@ -284,7 +284,7 @@ const fetchMercados = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_reporte_catalogo_mercados',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })
@@ -330,7 +330,7 @@ const buscar = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_reporte_adeudos_condonados',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: parametros
       }
     })

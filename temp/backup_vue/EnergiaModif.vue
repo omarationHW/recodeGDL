@@ -241,7 +241,7 @@ const fetchRecaudadoras = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: []
       }
     })
@@ -307,7 +307,7 @@ const buscarEnergia = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_energia_modif_buscar',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(formBuscar.value.oficina) },
           { Nombre: 'p_num_mercado', Valor: parseInt(formBuscar.value.num_mercado) },
@@ -355,7 +355,7 @@ const modificarEnergia = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_energia_modif_modificar',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_id_energia', Valor: parseInt(energia.value.id_energia) },
           { Nombre: 'p_id_local', Valor: parseInt(energia.value.id_local) },

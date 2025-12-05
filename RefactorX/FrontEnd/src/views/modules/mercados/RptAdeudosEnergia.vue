@@ -10,26 +10,15 @@
         <p>Inicio > Reportes > Adeudos de Energía Eléctrica</p>
       </div>
       <div class="button-group ms-auto">
-        <button 
-          class="btn-municipal-primary" 
-          @click="exportarExcel" 
-          :disabled="loading || datos.length === 0"
-        >
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || datos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>
-        <button 
-          class="btn-municipal-primary" 
-          @click="imprimir" 
-          :disabled="loading || datos.length === 0"
-        >
+        <button class="btn-municipal-primary" @click="imprimir" :disabled="loading || datos.length === 0">
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button 
-          class="btn-municipal-purple" 
-          @click="mostrarAyuda"
-        >
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -40,57 +29,31 @@
     <div class="module-view-content">
       <!-- Filtros -->
       <div class="municipal-card">
-        <div 
-          class="municipal-card-header" 
-          @click="toggleFilters" 
-          style="cursor: pointer;"
-        >
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon 
-              :icon="showFilters ? 'chevron-up' : 'chevron-down'" 
-              class="ms-2" 
-            />
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
           </h5>
         </div>
         <div v-show="showFilters" class="municipal-card-body">
           <div class="row">
             <div class="col-md-4">
               <label class="form-label">Año</label>
-              <input 
-                v-model.number="filters.axo" 
-                type="number" 
-                class="form-control" 
-                min="2000" 
-                max="2100" 
-              />
+              <input v-model.number="filters.axo" type="number" class="form-control" min="2000" max="2100" />
             </div>
             <div class="col-md-4">
               <label class="form-label">Oficina</label>
-              <input 
-                v-model.number="filters.oficina" 
-                type="number" 
-                class="form-control" 
-                min="1" 
-              />
+              <input v-model.number="filters.oficina" type="number" class="form-control" min="1" />
             </div>
           </div>
           <div class="row mt-3">
             <div class="col-12 text-end">
-              <button 
-                class="btn-municipal-primary me-2" 
-                @click="consultar" 
-                :disabled="loading"
-              >
+              <button class="btn-municipal-primary me-2" @click="consultar" :disabled="loading">
                 <font-awesome-icon icon="search" />
                 Consultar
               </button>
-              <button 
-                class="btn-municipal-secondary" 
-                @click="limpiarFiltros" 
-                :disabled="loading"
-              >
+              <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
                 <font-awesome-icon icon="eraser" />
                 Limpiar
               </button>
@@ -143,7 +106,7 @@
                     <p>Utiliza los filtros de búsqueda</p>
                   </td>
                 </tr>
-                
+
                 <!-- Sin resultados -->
                 <tr v-else-if="datos.length === 0">
                   <td colspan="6" class="text-center text-muted">
@@ -151,14 +114,9 @@
                     <p>No se encontraron resultados</p>
                   </td>
                 </tr>
-                
+
                 <!-- Datos -->
-                <tr 
-                  v-else 
-                  v-for="(row, index) in paginatedDatos" 
-                  :key="index" 
-                  class="row-hover"
-                >
+                <tr v-else v-for="(row, index) in paginatedDatos" :key="index" class="row-hover">
                   <td>{{ row.datoslocal }}</td>
                   <td>{{ row.nombre }}</td>
                   <td>{{ row.local_adicional }}</td>
@@ -167,7 +125,7 @@
                   <td class="text-end">{{ formatCurrency(row.adeudo) }}</td>
                 </tr>
               </tbody>
-              
+
               <!-- Footer con total -->
               <tfoot v-if="datos.length > 0">
                 <tr class="table-secondary">
@@ -187,7 +145,7 @@
             <div class="pagination-info">
               Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ datos.length }} registros
             </div>
-            
+
             <div class="pagination-controls">
               <label>Registros por página:</label>
               <select v-model.number="pageSize" class="form-select form-select-sm">
@@ -198,21 +156,13 @@
                 <option :value="250">250</option>
               </select>
             </div>
-            
+
             <div class="pagination-buttons">
-              <button 
-                @click="previousPage" 
-                :disabled="currentPage === 1" 
-                class="btn btn-sm btn-outline-primary"
-              >
+              <button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary">
                 <font-awesome-icon icon="chevron-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button 
-                @click="nextPage" 
-                :disabled="currentPage === totalPages" 
-                class="btn btn-sm btn-outline-primary"
-              >
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary">
                 <font-awesome-icon icon="chevron-right" />
               </button>
             </div>
@@ -222,10 +172,7 @@
     </div>
 
     <!-- Toast Notification -->
-    <div 
-      v-if="toast.show" 
-      :class="['toast-notification', `toast-${toast.type}`]"
-    >
+    <div v-if="toast.show" :class="['toast-notification', `toast-${toast.type}`]">
       <font-awesome-icon :icon="getToastIcon()" />
       <span>{{ toast.message }}</span>
     </div>
@@ -260,15 +207,15 @@ const totalPages = computed(() => Math.ceil(datos.value.length / pageSize.value)
 
 const startIndex = computed(() => (currentPage.value - 1) * pageSize.value);
 
-const endIndex = computed(() => 
+const endIndex = computed(() =>
   Math.min(startIndex.value + pageSize.value, datos.value.length)
 );
 
-const paginatedDatos = computed(() => 
+const paginatedDatos = computed(() =>
   datos.value.slice(startIndex.value, endIndex.value)
 );
 
-const totalAdeudo = computed(() => 
+const totalAdeudo = computed(() =>
   datos.value.reduce((sum, r) => sum + (parseFloat(r.adeudo) || 0), 0)
 );
 
@@ -288,15 +235,17 @@ const consultar = async () => {
       eRequest: {
         Operacion: 'rpt_adeudos_energia',
         Base: 'mercados',
-        Parametros: [filters.value.axo, filters.value.oficina]
+        Parametros: [{ Nombre: 'Axo', Valor: filters.value.axo },
+        { Nombre: 'Oficina', Valor: filters.value.oficina }]
+        // Parametros: [filters.value.axo, filters.value.oficina]
       }
     });
 
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       datos.value = response.data.eResponse.data.result;
       showToast(
-        datos.value.length === 0 
-          ? 'No se encontraron resultados' 
+        datos.value.length === 0
+          ? 'No se encontraron resultados'
           : `Se encontraron ${datos.value.length} registros`,
         datos.value.length === 0 ? 'info' : 'success'
       );
@@ -375,17 +324,18 @@ const getToastIcon = () => {
 <style scoped>
 /* Estilos de impresión */
 @media print {
+
   .module-view-header,
   .municipal-card-header,
   .pagination-container,
   .button-group {
     display: none !important;
   }
-  
+
   .municipal-table {
     font-size: 10px;
   }
-  
+
   .sticky-header {
     position: static !important;
   }
@@ -500,6 +450,7 @@ const getToastIcon = () => {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

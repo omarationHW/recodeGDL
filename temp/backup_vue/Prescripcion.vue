@@ -356,7 +356,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: []
       }
     })
@@ -373,7 +373,7 @@ const fetchMercados = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_reporte_catalogo_mercados',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: []
       }
     })
@@ -390,7 +390,7 @@ const fetchSecciones = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_secciones',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: []
       }
     })
@@ -432,7 +432,7 @@ const buscarLocal = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_localesmodif_buscar_local',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { nombre: 'p_oficina', valor: form.value.oficina, tipo: 'integer' },
           { nombre: 'p_num_mercado', valor: form.value.mercado, tipo: 'integer' },
@@ -476,7 +476,7 @@ const cargarAdeudos = async () => {
     const resAdeudos = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_listar_adeudos_energia',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' }
         ]
@@ -491,7 +491,7 @@ const cargarAdeudos = async () => {
     const resPrescritos = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_listar_prescripciones',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' }
         ]
@@ -528,7 +528,7 @@ const prescribirSeleccionados = async () => {
       await axios.post('/api/generic', {
         eRequest: {
           Operacion: 'sp_prescribir_adeudo',
-          Base: 'mercados',
+          Base: 'padron_licencias',
           Parametros: [
             { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' },
             { nombre: 'p_axo', valor: adeudo.axo, tipo: 'smallint' },
@@ -568,7 +568,7 @@ const quitarPrescripcionSeleccionados = async () => {
       await axios.post('/api/generic', {
         eRequest: {
           Operacion: 'sp_quitar_prescripcion',
-          Base: 'mercados',
+          Base: 'padron_licencias',
           Parametros: [
             { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' },
             { nombre: 'p_axo', valor: prescrito.axo, tipo: 'smallint' },

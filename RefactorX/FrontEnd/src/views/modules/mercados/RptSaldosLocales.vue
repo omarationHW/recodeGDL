@@ -280,7 +280,7 @@ const consultar = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_rpt_saldos_locales',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: parametros
       }
     });

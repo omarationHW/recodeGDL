@@ -141,7 +141,7 @@ const fetchRecaudadoras = async () => {
   loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
     });
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       recaudadoras.value = response.data.eResponse.data.result;

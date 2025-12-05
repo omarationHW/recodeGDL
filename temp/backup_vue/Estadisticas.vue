@@ -290,7 +290,7 @@ const consultar = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: operacion,
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: parametros
       }
     })

@@ -1049,7 +1049,7 @@ const menuItems = [
           },
           {
             path: '/mercados/reporte-general-mercados',
-            label: '--- Reporte General y Estadísticas',
+            label: '* Reporte General y Estadísticas',
             icon: 'chart-pie'
           },
           {
@@ -1099,7 +1099,7 @@ const menuItems = [
           },
           {
             path: '/mercados/estadisticas',
-            label: '--- Estadísticas de Adeudos',
+            label: '* Estadísticas de Adeudos',
             icon: 'chart-bar'
           },
           // LOTE 11: Acceso y Gestión de Requerimientos
@@ -1297,7 +1297,7 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-loc-grl',
-            label: '--- Pagos Locales General',
+            label: '* Pagos Locales General',
             icon: 'chart-bar'
           },
           // LOTE 19: Condonaciones y Prescripción
@@ -1308,7 +1308,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rep-adeud-cond',
-            label: '--- Reporte Adeudos Condonados',
+            label: '* Reporte Adeudos Condonados',
             icon: 'list-ul'
           },
           // LOTE 20: Reportes de Adeudos
@@ -1324,7 +1324,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-adeudos-energia',
-            label: '--- Reporte Adeudos Energía Detalle',
+            label: '*** Reporte Adeudos Energía Detalle',
             icon: 'plug'
           },
           {
@@ -1350,12 +1350,12 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-emision-rbos-abastos',
-            label: '--- Reporte Emisión Abastos',
+            label: '* Reporte Emisión Abastos',
             icon: 'shopping-basket'
           },
           {
             path: '/mercados/rpt-emision-laser',
-            label: '--- Reporte Emisión Laser',
+            label: '* Reporte Emisión Laser',
             icon: 'barcode'
           },
           {
@@ -1366,17 +1366,17 @@ const menuItems = [
           // LOTE 22: Reportes de Facturación
           {
             path: '/mercados/rpt-factura-emision',
-            label: '--- Reporte Factura Emisión',
+            label: '* Reporte Factura Emisión',
             icon: 'file-pdf'
           },
           {
             path: '/mercados/rpt-factura-energia',
-            label: '--- Reporte Factura Energía',
+            label: '* Reporte Factura Energía',
             icon: 'file-contract'
           },
           {
             path: '/mercados/rpt-factura-glunes',
-            label: '--- Reporte Facturación Global',
+            label: '* Reporte Facturación Global',
             icon: 'file-signature'
           },
           // LOTE 23: Reportes de Padrones e Ingresos
@@ -1392,7 +1392,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-locales-giro',
-            label: '--- Reporte Locales por Giro',
+            label: '* Reporte Locales por Giro',
             icon: 'store'
           },
           {
@@ -1402,12 +1402,12 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-zonificacion',
-            label: '--- Reporte Zonificación',
+            label: '* Reporte Zonificación',
             icon: 'map-marker-alt'
           },
           {
             path: '/mercados/rpt-movimientos',
-            label: '--- Reporte Movimientos',
+            label: '* Reporte Movimientos',
             icon: 'exchange-alt'
           },
           {
@@ -1422,39 +1422,39 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-ingreso-zonificado',
-            label: '--- Reporte Ingresos por Zona',
+            label: '* Reporte Ingresos por Zona',
             icon: 'map-marked-alt'
           },
           // LOTE 24: Reportes de Ingresos
           {
             path: '/mercados/rpt-ingresos',
-            label: '--- Reporte Ingresos Locales',
+            label: '* Reporte Ingresos Locales',
             icon: 'money-bill-wave'
           },
           {
             path: '/mercados/rpt-ingresos-energia',
-            label: '--- Reporte Ingresos Energía',
+            label: '* Reporte Ingresos Energía',
             icon: 'lightbulb'
           },
           // LOTE 25: Reportes de Pagos
           {
             path: '/mercados/rpt-pagos-ano',
-            label: '--- Reporte Pagos por Año',
+            label: '* Reporte Pagos por Año',
             icon: 'calendar-alt'
           },
           {
             path: '/mercados/rpt-pagos-caja',
-            label: '--- Reporte Pagos por Caja',
+            label: '* Reporte Pagos por Caja',
             icon: 'cash-register'
           },
           {
             path: '/mercados/rpt-pagos-detalle',
-            label: '--- Reporte Detalle de Pagos',
+            label: '* Reporte Detalle de Pagos',
             icon: 'file-alt'
           },
           {
             path: '/mercados/rpt-pagos-grl',
-            label: '--- Reporte Pagos Generales',
+            label: '* Reporte Pagos Generales',
             icon: 'chart-bar'
           },
           // LOTE 26: Estadísticas y Reportes Finales
@@ -1486,12 +1486,12 @@ const menuItems = [
           // LOTE 27: Reportes Finales y Configuración
           {
             path: '/mercados/rpt-resumen-pagos',
-            label: '--- Resumen de Pagos',
+            label: '* Resumen de Pagos',
             icon: 'file-signature'
           },
           {
             path: '/mercados/rpt-saldos-locales',
-            label: '--- Saldos de Locales',
+            label: '* Saldos de Locales',
             icon: 'balance-scale'
           },
           {

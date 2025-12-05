@@ -201,7 +201,7 @@ const fetchRecaudadoras = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     });
@@ -228,7 +228,7 @@ const onOficinaChange = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [
           { Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }
         ]

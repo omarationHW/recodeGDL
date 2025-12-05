@@ -55,9 +55,9 @@
 
             <div class="form-group">
               <label class="municipal-form-label">Mercado (Opcional)</label>
-              <select class="municipal-form-control" v-model="selectedMercado" :disabled="loading || !selectedOficina">
+              <select class="municipal-form-control" v-model="selectedMercado" :disabled="loading || !selectedOficina || mercados.length === 0">
                 <option value="">Todos los mercados</option>
-                <option v-for="m in mercadosFiltrados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
+                <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
                   {{ m.num_mercado_nvo }} - {{ m.descripcion }}
                 </option>
               </select>
@@ -179,7 +179,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 
 // Estado
@@ -202,11 +202,6 @@ const toast = ref({
 })
 
 // Computed
-const mercadosFiltrados = computed(() => {
-  if (!selectedOficina.value) return []
-  return mercados.value.filter(m => m.oficina === selectedOficina.value)
-})
-
 const totalGeneral = computed(() => {
   return resumen.value.reduce((sum, item) => sum + (parseFloat(item.importe_total) || 0), 0)
 })
@@ -267,7 +262,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })
@@ -279,13 +274,20 @@ const fetchRecaudadoras = async () => {
   }
 }
 
-const fetchMercados = async () => {
+const fetchMercados = async (idRecaudadora) => {
+  if (!idRecaudadora) {
+    mercados.value = []
+    return
+  }
+
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_reporte_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: []
+        Operacion: 'sp_get_mercados_by_recaudadora',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_rec', Valor: parseInt(idRecaudadora) }
+        ]
       }
     })
     if (res.data.eResponse.success) {
@@ -293,6 +295,7 @@ const fetchMercados = async () => {
     }
   } catch (err) {
     console.error('Error al cargar mercados:', err)
+    mercados.value = []
   }
 }
 
@@ -330,7 +333,7 @@ const buscar = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_rpt_resumen_pagos',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: parametros
       }
     })
@@ -358,6 +361,7 @@ const buscar = async () => {
 const limpiarFiltros = () => {
   selectedOficina.value = ''
   selectedMercado.value = ''
+  mercados.value = []
   setFechasIniciales()
   resumen.value = []
   error.value = ''
@@ -407,10 +411,21 @@ const exportarExcel = () => {
   }
 }
 
+// Watchers
+watch(selectedOficina, (newOficina) => {
+  // Limpiar mercado seleccionado cuando cambie la oficina
+  selectedMercado.value = ''
+  mercados.value = []
+
+  // Cargar mercados de la nueva oficina
+  if (newOficina) {
+    fetchMercados(newOficina)
+  }
+})
+
 // Lifecycle
 onMounted(() => {
   fetchRecaudadoras()
-  fetchMercados()
   setFechasIniciales()
 })
 </script>

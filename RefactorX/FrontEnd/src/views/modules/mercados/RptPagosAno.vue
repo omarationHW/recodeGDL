@@ -251,7 +251,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })
@@ -268,7 +268,7 @@ const fetchMercados = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_reporte_catalogo_mercados',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })
@@ -312,7 +312,7 @@ const buscar = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_rpt_pagos_ano',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: parametros
       }
     })

@@ -3,10 +3,10 @@
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Estadística de Adeudos</li>
+        <li class="breadcrumb-item active" aria-current="page">Estadística de Adeudosssss</li>
       </ol>
     </nav>
-    <h1 class="mb-4">Estadística Global de Adeudos Vencidos</h1>
+    <h1 class="mb-4">Estadística Global de Adeudos Vencidossss</h1>
     <form @submit.prevent="fetchReport" class="mb-4">
       <div class="row">
         <div class="col-md-2">

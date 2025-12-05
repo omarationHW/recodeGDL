@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid mt-3">
+  <div class="module-view mt-3">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
@@ -15,17 +15,17 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-3">
-      <div class="card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
         <i :class="mostrarFiltros ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
         Filtros de Búsqueda
       </div>
-      <div class="card-body" v-show="mostrarFiltros">
+      <div class="municipal-card-body" v-show="mostrarFiltros">
         <form @submit.prevent="buscar">
           <div class="row">
             <div class="col-md-3 mb-3">
-              <label class="form-label">Recaudadora <span class="text-danger">*</span></label>
-              <select v-model="filters.oficina" class="form-select" @change="onOficinaChange" required>
+              <label class="municipal-form-label">Recaudadora <span class="text-danger">*</span></label>
+              <select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" required>
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.id_rec }} - {{ rec.recaudadora }}
@@ -34,8 +34,8 @@
             </div>
 
             <div class="col-md-3 mb-3">
-              <label class="form-label">Mercado <span class="text-danger">*</span></label>
-              <select v-model="filters.mercado" class="form-select" required :disabled="!mercados.length">
+              <label class="municipal-form-label">Mercado <span class="text-danger">*</span></label>
+              <select v-model="filters.mercado" class="municipal-form-control" required :disabled="!mercados.length">
                 <option value="">Seleccione...</option>
                 <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
                   {{ m.num_mercado_nvo }} - {{ m.descripcion }}
@@ -44,23 +44,23 @@
             </div>
 
             <div class="col-md-3 mb-3">
-              <label class="form-label">Año <span class="text-danger">*</span></label>
-              <input type="number" v-model.number="filters.axo" class="form-control" min="1990" :max="new Date().getFullYear() + 1" required />
+              <label class="municipal-form-label">Año <span class="text-danger">*</span></label>
+              <input type="number" v-model.number="filters.axo" class="municipal-form-control" min="1990" :max="new Date().getFullYear() + 1" required />
             </div>
 
             <div class="col-md-3 mb-3">
-              <label class="form-label">Periodo (Mes) <span class="text-danger">*</span></label>
-              <select v-model.number="filters.periodo" class="form-select" required>
+              <label class="municipal-form-label">Periodo (Mes) <span class="text-danger">*</span></label>
+              <select v-model.number="filters.periodo" class="municipal-form-control" required>
                 <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
           </div>
 
           <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary" :disabled="loading">
+            <button type="submit" class="btn-municipal-primary" :disabled="loading">
               <i class="fas fa-search"></i> Buscar
             </button>
-            <button type="button" class="btn btn-secondary" @click="limpiarFiltros">
+            <button type="button" class="btn-municipal-secondary" @click="limpiarFiltros">
               <i class="fas fa-eraser"></i> Limpiar
             </button>
           </div>
@@ -87,11 +87,11 @@
     </div>
 
     <!-- Tabla de Resultados -->
-    <div v-if="resultados.length && !loading" class="card">
-      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <div v-if="resultados.length && !loading" class="municipal-card">
+      <div class="municipal-card-header bg-light d-flex justify-content-between align-items-center">
         <div>
           <span class="badge bg-primary me-2">{{ resultados.length }} registros</span>
-          <span class="badge bg-success">Total: {{ formatCurrency(totalSubtotal) }}</span>
+          <span class="badge-success">Total: {{ formatCurrency(totalSubtotal) }}</span>
         </div>
         <div>
           <button class="btn btn-sm btn-outline-success me-2" @click="exportarExcel">
@@ -102,8 +102,8 @@
           </button>
         </div>
       </div>
-      <div class="card-body table-responsive">
-        <table class="table table-bordered table-hover table-sm">
+      <div class="municipal-card-body table-responsive">
+        <table class="municipal-table table-bordered table-hover table-sm">
           <thead class="table-light sticky-top">
             <tr>
               <th>Datos Local</th>
@@ -190,7 +190,7 @@
               <p>Cargando requerimientos...</p>
             </div>
             <div v-else-if="requerimientos.length">
-              <table class="table table-sm table-bordered">
+              <table class="municipal-table table-sm table-bordered">
                 <thead class="table-light">
                   <tr>
                     <th>Folio</th>
@@ -218,7 +218,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showModalReq = false">Cerrar</button>
+            <button class="btn-municipal-secondary" @click="showModalReq = false">Cerrar</button>
           </div>
         </div>
       </div>
@@ -479,6 +479,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '@/styles/municipal-theme.css';
 .sticky-top {
   position: sticky;
   top: 0;

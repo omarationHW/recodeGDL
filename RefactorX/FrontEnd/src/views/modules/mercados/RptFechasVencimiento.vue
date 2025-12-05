@@ -418,6 +418,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '@/styles/municipal-theme.css';
 /* Estilos específicos del componente */
 .stats-grid {
   display: grid;

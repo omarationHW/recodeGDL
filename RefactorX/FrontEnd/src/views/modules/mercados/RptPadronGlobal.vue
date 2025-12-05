@@ -337,6 +337,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '@/styles/municipal-theme.css';
 .required {
   color: #dc3545;
 }

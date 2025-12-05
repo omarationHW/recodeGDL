@@ -1,139 +1,131 @@
 <template>
-  <div class="container-fluid mt-3">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item"><router-link to="/mercados">Mercados</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Movimientos de Locales</li>
-      </ol>
-    </nav>
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2><i class="fas fa-exchange-alt"></i> Reporte de Movimientos de Locales</h2>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="exchange-alt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Reporte de Movimientos de Locales</h1>
+        <p>Inicio > Mercados > Movimientos de Locales</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
+          <font-awesome-icon icon="search" /> Consultar
+        </button>
+        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+          <font-awesome-icon icon="file-excel" /> Exportar
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" /> Ayuda
+        </button>
+      </div>
     </div>
 
-    <div class="card mb-3">
-      <div class="card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
-        <i :class="mostrarFiltros ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
-        Filtros de Consulta
-      </div>
-      <div class="card-body" v-show="mostrarFiltros">
-        <form @submit.prevent="consultar">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Recaudadora <span class="text-danger">*</span></label>
-              <select v-model.number="filters.recaudadora" class="form-select" required>
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="filter" /> Filtros de Consulta</h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
+              <select v-model.number="filters.recaudadora" class="municipal-form-control" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Fecha Desde <span class="text-danger">*</span></label>
-              <input type="date" v-model="filters.fechaDesde" class="form-control" required />
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Desde <span class="required">*</span></label>
+              <input type="date" v-model="filters.fechaDesde" class="municipal-form-control" :disabled="loading" />
             </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Fecha Hasta <span class="text-danger">*</span></label>
-              <input type="date" v-model="filters.fechaHasta" class="form-control" required />
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Hasta <span class="required">*</span></label>
+              <input type="date" v-model="filters.fechaHasta" class="municipal-form-control" :disabled="loading" />
             </div>
           </div>
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary" :disabled="loading">
-              <i class="fas fa-search"></i> Consultar
-            </button>
-            <button type="button" class="btn btn-secondary" @click="limpiarFiltros">
-              <i class="fas fa-eraser"></i> Limpiar
-            </button>
-            <button type="button" class="btn btn-outline-success" @click="exportarExcel" :disabled="!resultados.length">
-              <i class="fas fa-file-excel"></i> Exportar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-      <p class="mt-2">Cargando movimientos...</p>
-    </div>
-
-    <div v-if="!busquedaRealizada && !loading" class="alert alert-info">
-      <i class="fas fa-info-circle"></i> Seleccione recaudadora y fechas, luego haga clic en <strong>Consultar</strong>.
-    </div>
-
-    <div v-if="busquedaRealizada && !resultados.length && !loading" class="alert alert-warning">
-      <i class="fas fa-exclamation-triangle"></i> No se encontraron movimientos en el período seleccionado.
-    </div>
-
-    <div v-if="resultados.length && !loading" class="card">
-      <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <div>
-          <span class="badge bg-primary me-2">{{ resultados.length }} movimientos</span>
-          <span class="badge bg-info">{{ contadorPorTipo.length }} tipos diferentes</span>
-        </div>
-        <div class="text-muted">
-          <small>Del {{ filters.fechaDesde }} al {{ filters.fechaHasta }}</small>
         </div>
       </div>
-      <div class="card-body table-responsive">
-        <table class="table table-bordered table-hover table-sm">
-          <thead class="table-light sticky-top">
-            <tr>
-              <th>Fecha</th>
-              <th>Oficina</th>
-              <th>Mercado</th>
-              <th>Categoría</th>
-              <th>Local</th>
-              <th>Bloque</th>
-              <th>Tipo Movimiento</th>
-              <th>Nombre</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in paginatedResultados" :key="row.id_movimiento">
-              <td>{{ formatFecha(row.fecha) }}</td>
-              <td>{{ row.oficina }}</td>
-              <td>{{ row.num_mercado }}</td>
-              <td>{{ row.categoria }}</td>
-              <td>{{ row.seccion }}-{{ row.local }}{{ row.letra_local }}</td>
-              <td>{{ row.bloque }}</td>
-              <td>
-                <span class="badge" :class="getBadgeClass(row.tipodescripcion)">
-                  {{ row.tipodescripcion }}
-                </span>
-              </td>
-              <td>{{ row.nombre }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
 
-      <div class="card-footer">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <label class="me-2">Mostrar:</label>
-            <select v-model.number="pageSize" class="form-select form-select-sm d-inline-block w-auto">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-              <option :value="250">250</option>
-            </select>
-            <span class="ms-2">registros por página</span>
-          </div>
-          <div class="col-md-6 text-end">
-            <button class="btn btn-sm btn-outline-secondary me-1" @click="currentPage--" :disabled="currentPage === 1">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
-            <button class="btn btn-sm btn-outline-secondary ms-1" @click="currentPage++" :disabled="currentPage === totalPages">
-              <i class="fas fa-chevron-right"></i>
-            </button>
+      <div v-if="results.length > 0" class="municipal-card mt-3">
+        <div class="municipal-card-header header-with-badge">
+          <h5><font-awesome-icon icon="list-alt" /> Reporte de Movimientos de Locales</h5>
+          <div class="header-right">
+            <span class="badge-purple">{{ results.length }} movimientos</span>
+            <span class="badge-info ms-2">{{ contadorPorTipo.length }} tipos</span>
           </div>
         </div>
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Oficina</th>
+                  <th>Mercado</th>
+                  <th>Categoría</th>
+                  <th>Local</th>
+                  <th>Bloque</th>
+                  <th>Tipo Movimiento</th>
+                  <th>Nombre</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in paginatedResults" :key="row.id_movimiento" class="row-hover">
+                  <td>{{ formatFecha(row.fecha) }}</td>
+                  <td>{{ row.oficina }}</td>
+                  <td>{{ row.num_mercado }}</td>
+                  <td>{{ row.categoria }}</td>
+                  <td>{{ row.seccion }}-{{ row.local }}{{ row.letra_local }}</td>
+                  <td>{{ row.bloque }}</td>
+                  <td>
+                    <span :class="getBadgeClass(row.tipodescripcion)">
+                      {{ row.tipodescripcion }}
+                    </span>
+                  </td>
+                  <td>{{ row.nombre }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="pagination-container">
+            <div class="pagination-info">
+              <label>Mostrar:</label>
+              <select v-model.number="pageSize" class="municipal-form-control pagination-select">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+                <option :value="250">250</option>
+              </select>
+              <span>registros por página</span>
+            </div>
+            <div class="pagination-controls">
+              <button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border municipal-text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando movimientos...</p>
+      </div>
+
+      <div v-if="!results.length && !loading && busquedaRealizada" class="municipal-alert municipal-alert-warning">
+        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron movimientos en el período seleccionado.
       </div>
     </div>
   </div>
@@ -150,21 +142,20 @@ const filters = ref({
 });
 
 const recaudadoras = ref([]);
-const resultados = ref([]);
+const results = ref([]);
 const loading = ref(false);
 const busquedaRealizada = ref(false);
-const mostrarFiltros = ref(true);
 const currentPage = ref(1);
 const pageSize = ref(25);
 
-const totalPages = computed(() => Math.ceil(resultados.value.length / pageSize.value) || 1);
-const paginatedResultados = computed(() => {
+const totalPages = computed(() => Math.ceil(results.value.length / pageSize.value) || 1);
+const paginatedResults = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
-  return resultados.value.slice(start, start + pageSize.value);
+  return results.value.slice(start, start + pageSize.value);
 });
 
 const contadorPorTipo = computed(() => {
-  const tipos = new Set(resultados.value.map(r => r.tipodescripcion));
+  const tipos = new Set(results.value.map(r => r.tipodescripcion));
   return Array.from(tipos);
 });
 
@@ -178,11 +169,15 @@ const fetchRecaudadoras = async () => {
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
-    alert('Error al cargar recaudadoras');
   }
 };
 
 const consultar = async () => {
+  if (!filters.value.recaudadora || !filters.value.fechaDesde || !filters.value.fechaHasta) {
+    alert('Por favor complete todos los filtros requeridos');
+    return;
+  }
+
   loading.value = true;
   busquedaRealizada.value = false;
   try {
@@ -198,31 +193,20 @@ const consultar = async () => {
       }
     });
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      resultados.value = response.data.eResponse.data.result;
+      results.value = response.data.eResponse.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
     } else {
-      resultados.value = [];
+      results.value = [];
       busquedaRealizada.value = true;
     }
   } catch (error) {
     console.error('Error al consultar:', error);
-    alert('Error al consultar movimientos');
-    resultados.value = [];
+    results.value = [];
+    busquedaRealizada.value = true;
   } finally {
     loading.value = false;
   }
-};
-
-const limpiarFiltros = () => {
-  filters.value = {
-    recaudadora: '',
-    fechaDesde: '',
-    fechaHasta: ''
-  };
-  resultados.value = [];
-  busquedaRealizada.value = false;
-  currentPage.value = 1;
 };
 
 const formatFecha = (fecha) => {
@@ -236,27 +220,27 @@ const formatFecha = (fecha) => {
 
 const getBadgeClass = (tipo) => {
   const map = {
-    'ALTA': 'bg-success',
-    'BAJA TOTAL': 'bg-danger',
-    'BAJA ADMINISTRATIVA': 'bg-danger',
-    'BAJA POR ACUERDO': 'bg-danger',
-    'REACTIVACION': 'bg-success',
-    'REACTIVAR BLOQUEO': 'bg-success',
-    'BLOQUEADO': 'bg-warning',
-    'CAMBIO DE GIRO': 'bg-info',
-    'CAMBIO FECHA ALTA': 'bg-info',
-    'CAMBIO NOMBRE LOC.': 'bg-info',
-    'CAMBIO DOMICILIO': 'bg-info',
-    'CAMBIO DE ZONA': 'bg-info',
-    'CAMBIO LOCAL,SUPERF.': 'bg-info'
+    'ALTA': 'badge-success',
+    'BAJA TOTAL': 'badge-danger',
+    'BAJA ADMINISTRATIVA': 'badge-danger',
+    'BAJA POR ACUERDO': 'badge-danger',
+    'REACTIVACION': 'badge-success',
+    'REACTIVAR BLOQUEO': 'badge-success',
+    'BLOQUEADO': 'badge-warning',
+    'CAMBIO DE GIRO': 'badge-info',
+    'CAMBIO FECHA ALTA': 'badge-info',
+    'CAMBIO NOMBRE LOC.': 'badge-info',
+    'CAMBIO DOMICILIO': 'badge-info',
+    'CAMBIO DE ZONA': 'badge-info',
+    'CAMBIO LOCAL,SUPERF.': 'badge-info'
   };
-  return map[tipo] || 'bg-secondary';
+  return map[tipo] || 'badge-secondary';
 };
 
 const exportarExcel = () => {
   const csv = [
     'Fecha,Oficina,Mercado,Categoría,Local,Bloque,Tipo Movimiento,Nombre',
-    ...resultados.value.map(r =>
+    ...results.value.map(r =>
       `${formatFecha(r.fecha)},${r.oficina},${r.num_mercado},${r.categoria},${r.seccion}-${r.local}${r.letra_local},${r.bloque},${r.tipodescripcion},${r.nombre}`
     )
   ].join('\n');
@@ -267,6 +251,10 @@ const exportarExcel = () => {
   a.download = `movimientos_locales_${filters.value.fechaDesde}_${filters.value.fechaHasta}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
+};
+
+const mostrarAyuda = () => {
+  alert('Reporte de Movimientos de Locales\n\nSeleccione la recaudadora y el rango de fechas para consultar los movimientos realizados en los locales.');
 };
 
 onMounted(() => {
@@ -281,15 +269,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.sticky-top {
-  position: sticky;
-  top: 0;
-  background-color: #f8f9fa;
-  z-index: 10;
-}
-
-@media print {
-  .card-header, .card-footer, .breadcrumb, button { display: none !important; }
-  table { font-size: 10px; }
-}
+@import '@/styles/municipal-theme.css';
 </style>

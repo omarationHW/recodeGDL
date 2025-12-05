@@ -9,72 +9,74 @@
     </div>
 
     <div class="module-view-content">
-    <h1 class="mb-4">Estadística Global de Adeudos Vencidos</h1>
-    <form @submit.prevent="fetchReport" class="mb-4">
-      <div class="row">
-        <div class="col-md-2">
-          <label for="axo" class="municipal-form-label">Año</label>
-          <input type="number" v-model.number="form.axo" id="axo" class="municipal-form-control" required min="2000" max="2100">
+      <h1 class="mb-4">Estadística Global de Adeudos Vencidos</h1>
+      <form @submit.prevent="fetchReport" class="mb-4">
+        <div class="row">
+          <div class="col-md-2">
+            <label for="axo" class="municipal-form-label">Año</label>
+            <input type="number" v-model.number="form.axo" id="axo" class="municipal-form-control" required min="2000"
+              max="2100">
+          </div>
+          <div class="col-md-2">
+            <label for="periodo" class="municipal-form-label">Periodo</label>
+            <input type="number" v-model.number="form.periodo" id="periodo" class="municipal-form-control" required
+              min="1" max="12">
+          </div>
+          <div class="col-md-3">
+            <label for="importe" class="municipal-form-label">Importe mínimo (opcional)</label>
+            <input type="number" v-model.number="form.importe" id="importe" class="municipal-form-control" step="0.01"
+              min="0">
+          </div>
+          <div class="col-md-3">
+            <label for="opc" class="municipal-form-label">Tipo de Reporte</label>
+            <select v-model.number="form.opc" id="opc" class="form-select">
+              <option :value="1">Global</option>
+              <option :value="2">Sólo mayores o iguales a importe</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Consultar</button>
+          </div>
         </div>
-        <div class="col-md-2">
-          <label for="periodo" class="municipal-form-label">Periodo</label>
-          <input type="number" v-model.number="form.periodo" id="periodo" class="municipal-form-control" required min="1" max="12">
+      </form>
+      <div v-if="loading" class="alert alert-info">Cargando...</div>
+      <div v-if="error" class="alert alert-danger">{{ error }}</div>
+      <div v-if="reportData && reportData.length">
+        <div class="mb-3">
+          <strong>
+            {{ reportTitle }}
+          </strong>
         </div>
-        <div class="col-md-3">
-          <label for="importe" class="municipal-form-label">Importe mínimo (opcional)</label>
-          <input type="number" v-model.number="form.importe" id="importe" class="municipal-form-control" step="0.01" min="0">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Oficina</th>
+                <th>Mercado</th>
+                <th>Local</th>
+                <th>Nombre Mercado</th>
+                <th>Importe Adeudo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in reportData" :key="row.oficina + '-' + row.num_mercado + '-' + row.local">
+                <td>{{ row.oficina }}</td>
+                <td>{{ row.num_mercado }}</td>
+                <td>{{ row.local }}</td>
+                <td>{{ row.descripcion }}</td>
+                <td class="text-end">{{ formatCurrency(row.adeudo) }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="col-md-3">
-          <label for="opc" class="municipal-form-label">Tipo de Reporte</label>
-          <select v-model.number="form.opc" id="opc" class="form-select">
-            <option :value="1">Global</option>
-            <option :value="2">Sólo mayores o iguales a importe</option>
-          </select>
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary w-100">Consultar</button>
+        <div class="mt-3">
+          <strong>Total registros:</strong> {{ reportData.length }}<br>
+          <strong>Total adeudo:</strong> {{ formatCurrency(totalAdeudo) }}
         </div>
       </div>
-    </form>
-    <div v-if="loading" class="alert alert-info">Cargando...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="reportData && reportData.length">
-      <div class="mb-3">
-        <strong>
-          {{ reportTitle }}
-        </strong>
+      <div v-else-if="reportData && !reportData.length && !loading">
+        <div class="alert alert-warning">No se encontraron resultados para los criterios seleccionados.</div>
       </div>
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-          <thead>
-            <tr>
-              <th>Oficina</th>
-              <th>Mercado</th>
-              <th>Local</th>
-              <th>Nombre Mercado</th>
-              <th>Importe Adeudo</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in reportData" :key="row.oficina + '-' + row.num_mercado + '-' + row.local">
-              <td>{{ row.oficina }}</td>
-              <td>{{ row.num_mercado }}</td>
-              <td>{{ row.local }}</td>
-              <td>{{ row.descripcion }}</td>
-              <td class="text-end">{{ formatCurrency(row.adeudo) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="mt-3">
-        <strong>Total registros:</strong> {{ reportData.length }}<br>
-        <strong>Total adeudo:</strong> {{ formatCurrency(totalAdeudo) }}
-      </div>
-    </div>
-    <div v-else-if="reportData && !reportData.length && !loading">
-      <div class="alert alert-warning">No se encontraron resultados para los criterios seleccionados.</div>
-    </div>
-  </div>
     </div>
   </div>
 </template>
@@ -100,7 +102,7 @@ export default {
       if (!this.form.opc || this.form.opc === 1) {
         return `ESTADÍSTICA GLOBAL DE ADEUDOS VENCIDOS AL PERIODO: ${this.form.axo}-${this.form.periodo}`;
       } else {
-        return `ESTADÍSTICA GLOBAL DE ADEUDOS VENCIDOS AL PERIODO: ${this.form.axo}-${this.form.periodo} CON IMPORTE MAYOR E IGUAL A $${this.form.importe.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        return `ESTADÍSTICA GLOBAL DE ADEUDOS VENCIDOS AL PERIODO: ${this.form.axo}-${this.form.periodo} CON IMPORTE MAYOR E IGUAL A $${this.form.importe.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
       }
     },
     totalAdeudo() {
@@ -155,7 +157,9 @@ export default {
   margin: 0 auto;
   padding: 2rem 1rem;
 }
-.table th, .table td {
+
+.table th,
+.table td {
   vertical-align: middle;
 }
 </style>

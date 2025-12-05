@@ -989,7 +989,7 @@ const menuItems = [
           },
           {
             path: '/mercados/padron-energia',
-            label: '* Padrón de Energía Eléctrica',
+            label: '--- Padrón de Energía Eléctrica',
             icon: 'bolt'
           },
           {
@@ -1281,7 +1281,7 @@ const menuItems = [
           },
           {
             path: '/mercados/energia-modif',
-            label: 'Modificar Energía',
+            label: '--- Modificar Energía',
             icon: 'plug'
           },
           // LOTE 18: Emisión y Consultas de Pagos
@@ -1345,12 +1345,12 @@ const menuItems = [
           // LOTE 21: Reportes de Emisión
           {
             path: '/mercados/rpt-emision-locales',
-            label: 'Reporte Emisión con Multas',
+            label: 'AAA Reporte Emisión con Multas',
             icon: 'file-invoice'
           },
           {
             path: '/mercados/rpt-emision-rbos-abastos',
-            label: 'Reporte Emisión Abastos',
+            label: '--- Reporte Emisión Abastos',
             icon: 'shopping-basket'
           },
           {
@@ -1387,7 +1387,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-padron-energia',
-            label: '----- Reporte Padrón Energía',
+            label: '* Reporte Padrón Energía',
             icon: 'bolt'
           },
           {
@@ -1407,7 +1407,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-movimientos',
-            label: '----- Reporte Movimientos',
+            label: 'AAA Reporte Movimientos',
             icon: 'exchange-alt'
           },
           {
@@ -1422,7 +1422,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-ingreso-zonificado',
-            label: '----- Reporte Ingresos por Zona',
+            label: 'AAA Reporte Ingresos por Zona',
             icon: 'map-marked-alt'
           },
           // LOTE 24: Reportes de Ingresos
@@ -1460,12 +1460,12 @@ const menuItems = [
           // LOTE 26: Estadísticas y Reportes Finales
           {
             path: '/mercados/rpt-estad-pagos-y-adeudos',
-            label: 'Estadística Pagos y Adeudos',
+            label: '--- Estadística Pagos y Adeudos',
             icon: 'chart-area'
           },
           {
             path: '/mercados/rpt-estadistica-adeudos',
-            label: 'Estadística de Adeudos',
+            label: '* Estadística de Adeudos',
             icon: 'chart-line'
           },
           {

@@ -1,13 +1,9 @@
 <template>
-  <div class="container-fluid mt-3">
+  <div class="module-view mt-3">
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item"><router-link to="/mercados">Mercados</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Estadística de Pagos y Adeudos</li>
-      </ol>
-    </nav>
+    <div class="mb-3">
+      <span class="text-muted">Inicio / Mercados / Estadística de Pagos y Adeudos</span>
+    </div>
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -15,17 +11,17 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-3">
-      <div class="card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
+    <div class="municipal-card mb-3">
+      <div class="municipal-card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
         <i :class="mostrarFiltros ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
         Filtros de Consulta
       </div>
-      <div class="card-body" v-show="mostrarFiltros">
+      <div class="municipal-card-body" v-show="mostrarFiltros">
         <form @submit.prevent="consultar">
           <div class="row">
             <div class="col-md-3 mb-3">
-              <label class="form-label">Recaudadora <span class="text-danger">*</span></label>
-              <select v-model="filters.recaudadora" class="form-select" @change="onRecaudadoraChange" required>
+              <label class="municipal-form-label">Recaudadora <span class="text-danger">*</span></label>
+              <select v-model="filters.recaudadora" class="municipal-form-control" @change="onRecaudadoraChange" required>
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.id_rec }} - {{ rec.recaudadora }}
@@ -34,13 +30,13 @@
             </div>
 
             <div class="col-md-3 mb-3">
-              <label class="form-label">Año <span class="text-danger">*</span></label>
-              <input type="number" v-model.number="filters.axo" class="form-control" min="1990" :max="new Date().getFullYear() + 1" required />
+              <label class="municipal-form-label">Año <span class="text-danger">*</span></label>
+              <input type="number" v-model.number="filters.axo" class="municipal-form-control" min="1990" :max="new Date().getFullYear() + 1" required />
             </div>
 
             <div class="col-md-3 mb-3">
-              <label class="form-label">Mes <span class="text-danger">*</span></label>
-              <select v-model.number="filters.mes" class="form-select" required>
+              <label class="municipal-form-label">Mes <span class="text-danger">*</span></label>
+              <select v-model.number="filters.mes" class="municipal-form-control" required>
                 <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
@@ -48,21 +44,21 @@
 
           <div class="row">
             <div class="col-md-3 mb-3">
-              <label class="form-label">Fecha Desde <span class="text-danger">*</span></label>
-              <input type="date" v-model="filters.fechaDesde" class="form-control" required />
+              <label class="municipal-form-label">Fecha Desde <span class="text-danger">*</span></label>
+              <input type="date" v-model="filters.fechaDesde" class="municipal-form-control" required />
             </div>
 
             <div class="col-md-3 mb-3">
-              <label class="form-label">Fecha Hasta <span class="text-danger">*</span></label>
-              <input type="date" v-model="filters.fechaHasta" class="form-control" required />
+              <label class="municipal-form-label">Fecha Hasta <span class="text-danger">*</span></label>
+              <input type="date" v-model="filters.fechaHasta" class="municipal-form-control" required />
             </div>
           </div>
 
           <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary" :disabled="loading">
+            <button type="submit" class="btn-municipal-primary" :disabled="loading">
               <i class="fas fa-search"></i> Consultar
             </button>
-            <button type="button" class="btn btn-secondary" @click="limpiarFiltros">
+            <button type="button" class="btn-municipal-secondary" @click="limpiarFiltros">
               <i class="fas fa-eraser"></i> Limpiar
             </button>
             <button type="button" class="btn btn-outline-success" @click="exportarExcel" :disabled="!resultados.length">
@@ -93,14 +89,14 @@
 
     <!-- Resumen General -->
     <div v-if="resumen.length && !loading" class="card mb-3">
-      <div class="card-header bg-light">
+      <div class="municipal-card-header bg-light">
         <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Resumen General</h5>
       </div>
-      <div class="card-body">
+      <div class="municipal-card-body">
         <div class="row">
           <div class="col-md-4" v-for="item in resumen" :key="item.tipo">
-            <div class="card mb-2">
-              <div class="card-body">
+            <div class="municipal-card mb-2">
+              <div class="municipal-card-body">
                 <h6 class="card-title text-uppercase">{{ item.tipo }}</h6>
                 <div class="d-flex justify-content-between">
                   <span>Locales:</span>
@@ -122,15 +118,15 @@
     </div>
 
     <!-- Tabla de Resultados por Mercado -->
-    <div v-if="resultados.length && !loading" class="card">
-      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <div v-if="resultados.length && !loading" class="municipal-card">
+      <div class="municipal-card-header bg-light d-flex justify-content-between align-items-center">
         <div>
           <h5 class="mb-0"><i class="fas fa-table"></i> Detalle por Mercado</h5>
-          <span class="badge bg-primary">{{ resultados.length}} mercados</span>
+          <span class="badge-primary">{{ resultados.length}} mercados</span>
         </div>
       </div>
-      <div class="card-body table-responsive">
-        <table class="table table-bordered table-hover table-sm">
+      <div class="municipal-card-body table-responsive">
+        <table class="municipal-table table-bordered table-hover table-sm">
           <thead class="table-light sticky-top">
             <tr>
               <th rowspan="2" class="align-middle">Mercado</th>
@@ -277,7 +273,7 @@ const consultar = async () => {
     const responseDetalle = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_estad_pagosyadeudos',
-        Base: 'mercados',
+        Base: 'padron_licencias',
         Parametros: [
           { Nombre: 'p_id_rec', Valor: parseInt(filters.value.recaudadora) },
           { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
@@ -427,6 +423,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '@/styles/municipal-theme.css';
 .sticky-top {
   position: sticky;
   top: 0;

@@ -1,122 +1,114 @@
 <template>
-  <div class="container-fluid mt-3">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item"><router-link to="/mercados">Mercados</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Ingreso Zonificado</li>
-      </ol>
-    </nav>
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2><i class="fas fa-map-marked-alt"></i> Reporte de Ingreso Zonificado</h2>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="map-marked-alt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Reporte de Ingreso Zonificado</h1>
+        <p>Inicio > Mercados > Ingreso Zonificado</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
+          <font-awesome-icon icon="search" /> Consultar
+        </button>
+        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+          <font-awesome-icon icon="file-excel" /> Exportar
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" /> Ayuda
+        </button>
+      </div>
     </div>
 
-    <div class="card mb-3">
-      <div class="card-header bg-primary text-white" @click="mostrarFiltros = !mostrarFiltros" style="cursor: pointer;">
-        <i :class="mostrarFiltros ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
-        Filtros de Consulta
-      </div>
-      <div class="card-body" v-show="mostrarFiltros">
-        <form @submit.prevent="consultar">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Fecha Desde <span class="text-danger">*</span></label>
-              <input type="date" v-model="filters.fecdesde" class="form-control" required />
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="filter" /> Filtros de Consulta</h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Desde <span class="required">*</span></label>
+              <input type="date" v-model="filters.fecdesde" class="municipal-form-control" :disabled="loading" />
             </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Fecha Hasta <span class="text-danger">*</span></label>
-              <input type="date" v-model="filters.fechasta" class="form-control" required />
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Hasta <span class="required">*</span></label>
+              <input type="date" v-model="filters.fechasta" class="municipal-form-control" :disabled="loading" />
             </div>
           </div>
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary" :disabled="loading">
-              <i class="fas fa-search"></i> Consultar
-            </button>
-            <button type="button" class="btn btn-secondary" @click="limpiarFiltros">
-              <i class="fas fa-eraser"></i> Limpiar
-            </button>
-            <button type="button" class="btn btn-outline-success" @click="exportarExcel" :disabled="!resultados.length">
-              <i class="fas fa-file-excel"></i> Exportar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-      <p class="mt-2">Cargando reporte...</p>
-    </div>
-
-    <div v-if="!busquedaRealizada && !loading" class="alert alert-info">
-      <i class="fas fa-info-circle"></i> Seleccione las fechas y haga clic en <strong>Consultar</strong>.
-    </div>
-
-    <div v-if="busquedaRealizada && !resultados.length && !loading" class="alert alert-warning">
-      <i class="fas fa-exclamation-triangle"></i> No se encontraron registros para el período seleccionado.
-    </div>
-
-    <div v-if="resultados.length && !loading" class="card">
-      <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <div>
-          <span class="badge bg-primary me-2">{{ resultados.length }} zonas</span>
-          <span class="badge bg-success">Total: {{ formatCurrency(totalIngreso) }}</span>
-        </div>
-        <div class="text-muted">
-          <small>Período: {{ filters.fecdesde }} al {{ filters.fechasta }}</small>
         </div>
       </div>
-      <div class="card-body table-responsive">
-        <table class="table table-bordered table-hover table-sm">
-          <thead class="table-light sticky-top">
-            <tr>
-              <th style="width: 10%">Zona ID</th>
-              <th style="width: 60%">Zona</th>
-              <th style="width: 30%" class="text-end">Ingreso</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in paginatedResultados" :key="row.id_zona">
-              <td>{{ row.id_zona }}</td>
-              <td>{{ row.zona }}</td>
-              <td class="text-end fw-bold">{{ formatCurrency(row.pagado) }}</td>
-            </tr>
-          </tbody>
-          <tfoot class="table-light">
-            <tr>
-              <th colspan="2" class="text-end">TOTAL:</th>
-              <th class="text-end">{{ formatCurrency(totalIngreso) }}</th>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
 
-      <div class="card-footer">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <label class="me-2">Mostrar:</label>
-            <select v-model.number="pageSize" class="form-select form-select-sm d-inline-block w-auto">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-              <option :value="250">250</option>
-            </select>
-            <span class="ms-2">registros por página</span>
-          </div>
-          <div class="col-md-6 text-end">
-            <button class="btn btn-sm btn-outline-secondary me-1" @click="currentPage--" :disabled="currentPage === 1">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
-            <button class="btn btn-sm btn-outline-secondary ms-1" @click="currentPage++" :disabled="currentPage === totalPages">
-              <i class="fas fa-chevron-right"></i>
-            </button>
+      <div v-if="results.length > 0" class="municipal-card mt-3">
+        <div class="municipal-card-header header-with-badge">
+          <h5><font-awesome-icon icon="list-alt" /> Reporte de Ingreso Zonificado</h5>
+          <div class="header-right">
+            <span class="badge-purple">{{ results.length }} zonas</span>
+            <span class="badge-success ms-2">Total: {{ formatCurrency(totalIngreso) }}</span>
           </div>
         </div>
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th style="width: 10%">Zona ID</th>
+                  <th style="width: 60%">Zona</th>
+                  <th style="width: 30%" class="text-end">Ingreso</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in paginatedResults" :key="row.id_zona" class="row-hover">
+                  <td>{{ row.id_zona }}</td>
+                  <td>{{ row.zona }}</td>
+                  <td class="text-end"><strong>{{ formatCurrency(row.pagado) }}</strong></td>
+                </tr>
+              </tbody>
+              <tfoot class="municipal-table-footer">
+                <tr>
+                  <td colspan="2" class="text-end"><strong>TOTAL:</strong></td>
+                  <td class="text-end"><strong class="text-success">{{ formatCurrency(totalIngreso) }}</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="pagination-container">
+            <div class="pagination-info">
+              <label>Mostrar:</label>
+              <select v-model.number="pageSize" class="municipal-form-control pagination-select">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+                <option :value="250">250</option>
+              </select>
+              <span>registros por página</span>
+            </div>
+            <div class="pagination-controls">
+              <button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border municipal-text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando reporte...</p>
+      </div>
+
+      <div v-if="!results.length && !loading && busquedaRealizada" class="municipal-alert municipal-alert-warning">
+        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron registros para el período seleccionado.
       </div>
     </div>
   </div>
@@ -131,21 +123,25 @@ const filters = ref({
   fechasta: ''
 });
 
-const resultados = ref([]);
+const results = ref([]);
 const loading = ref(false);
 const busquedaRealizada = ref(false);
-const mostrarFiltros = ref(true);
 const currentPage = ref(1);
 const pageSize = ref(25);
 
-const totalPages = computed(() => Math.ceil(resultados.value.length / pageSize.value) || 1);
-const paginatedResultados = computed(() => {
+const totalPages = computed(() => Math.ceil(results.value.length / pageSize.value) || 1);
+const paginatedResults = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
-  return resultados.value.slice(start, start + pageSize.value);
+  return results.value.slice(start, start + pageSize.value);
 });
-const totalIngreso = computed(() => resultados.value.reduce((sum, r) => sum + (parseFloat(r.pagado) || 0), 0));
+const totalIngreso = computed(() => results.value.reduce((sum, r) => sum + (parseFloat(r.pagado) || 0), 0));
 
 const consultar = async () => {
+  if (!filters.value.fecdesde || !filters.value.fechasta) {
+    alert('Por favor complete todos los filtros requeridos');
+    return;
+  }
+
   loading.value = true;
   busquedaRealizada.value = false;
   try {
@@ -160,30 +156,20 @@ const consultar = async () => {
       }
     });
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      resultados.value = response.data.eResponse.data.result;
+      results.value = response.data.eResponse.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
     } else {
-      resultados.value = [];
+      results.value = [];
       busquedaRealizada.value = true;
     }
   } catch (error) {
     console.error('Error al consultar:', error);
-    alert('Error al consultar el reporte');
-    resultados.value = [];
+    results.value = [];
+    busquedaRealizada.value = true;
   } finally {
     loading.value = false;
   }
-};
-
-const limpiarFiltros = () => {
-  filters.value = {
-    fecdesde: '',
-    fechasta: ''
-  };
-  resultados.value = [];
-  busquedaRealizada.value = false;
-  currentPage.value = 1;
 };
 
 const formatCurrency = (value) => {
@@ -194,7 +180,7 @@ const formatCurrency = (value) => {
 const exportarExcel = () => {
   const csv = [
     'Zona ID,Zona,Ingreso',
-    ...resultados.value.map(r => `${r.id_zona},${r.zona},${r.pagado}`)
+    ...results.value.map(r => `${r.id_zona},${r.zona},${r.pagado}`)
   ].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
@@ -203,6 +189,10 @@ const exportarExcel = () => {
   a.download = `ingreso_zonificado_${filters.value.fecdesde}_${filters.value.fechasta}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
+};
+
+const mostrarAyuda = () => {
+  alert('Reporte de Ingreso Zonificado\n\nSeleccione el rango de fechas para generar el reporte de ingresos por zona.');
 };
 
 onMounted(() => {
@@ -215,15 +205,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.sticky-top {
-  position: sticky;
-  top: 0;
-  background-color: #f8f9fa;
-  z-index: 10;
-}
-
-@media print {
-  .card-header, .card-footer, .breadcrumb, button { display: none !important; }
-  table { font-size: 10px; }
-}
+@import '@/styles/municipal-theme.css';
 </style>

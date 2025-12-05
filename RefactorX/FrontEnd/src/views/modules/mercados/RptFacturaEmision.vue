@@ -41,8 +41,8 @@
               <label class="municipal-form-label">Mercado <span class="required">*</span></label>
               <select v-model="filters.mercado" class="municipal-form-control" :disabled="loading || !mercados.length">
                 <option value="">Seleccione...</option>
-                <option v-for="m in mercados" :key="m.num_mercado" :value="m.num_mercado">
-                  {{ m.num_mercado }} - {{ m.descripcion }}
+                <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
+                  {{ m.num_mercado_nvo }} - {{ m.descripcion }}
                 </option>
               </select>
             </div>

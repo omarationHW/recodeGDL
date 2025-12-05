@@ -2,20 +2,17 @@
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="building" />
+        <font-awesome-icon icon="balance-scale" />
       </div>
       <div class="module-view-info">
-        <h1>Padrón de Arrendamiento de Mercados</h1>
-        <p>Inicio > Mercados > Padrón de Locales</p>
+        <h1>Reporte de Saldos de Locales</h1>
+        <p>Inicio > Mercados > Saldos de Locales</p>
       </div>
       <div class="button-group ms-auto">
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
           <font-awesome-icon icon="search" /> Consultar
         </button>
-        <button class="btn-municipal-secondary" @click="limpiar" :disabled="loading">
-          <font-awesome-icon icon="eraser" /> Limpiar
-        </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || !results.length">
+        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -25,15 +22,14 @@
     </div>
 
     <div class="module-view-content">
-      <!-- Filtros -->
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="filter" /> Filtros de Consulta</h5>
+          <h5><font-awesome-icon icon="filter" /> Filtros de Búsqueda</h5>
         </div>
         <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">Oficina Recaudadora <span class="required">*</span></label>
+              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
               <select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
@@ -41,7 +37,6 @@
                 </option>
               </select>
             </div>
-
             <div class="form-group">
               <label class="municipal-form-label">Mercado <span class="required">*</span></label>
               <select v-model="filters.mercado" class="municipal-form-control" :disabled="loading || !mercados.length">
@@ -51,36 +46,48 @@
                 </option>
               </select>
             </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Año</label>
+              <input
+                type="number"
+                v-model.number="filters.axo"
+                class="municipal-form-control"
+                min="1990"
+                :max="new Date().getFullYear() + 1"
+                placeholder="Todos"
+                :disabled="loading"
+              />
+              <small class="form-text text-muted">Dejar vacío para ver todos los años</small>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Loading -->
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border municipal-text-primary" role="status">
           <span class="visually-hidden">Cargando...</span>
         </div>
-        <p class="mt-2">Cargando padrón de locales...</p>
+        <p class="mt-2">Generando reporte de saldos...</p>
       </div>
 
-      <!-- Sin búsqueda -->
       <div v-if="!busquedaRealizada && !loading" class="municipal-alert municipal-alert-info">
-        <font-awesome-icon icon="info-circle" /> Seleccione la oficina recaudadora y mercado, luego haga clic en <strong>Consultar</strong>.
+        <font-awesome-icon icon="info-circle" /> Seleccione filtros y haga clic en <strong>Consultar</strong>.
       </div>
 
-      <!-- Sin resultados -->
       <div v-if="busquedaRealizada && !results.length && !loading" class="municipal-alert municipal-alert-warning">
-        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron locales con los criterios seleccionados.
+        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron locales con saldos.
       </div>
 
-      <!-- Tabla de Resultados -->
       <div v-if="results.length && !loading" class="municipal-card mt-3">
         <div class="municipal-card-header header-with-badge">
-          <h5><font-awesome-icon icon="list-alt" /> Padrón de Locales</h5>
+          <h5><font-awesome-icon icon="list-alt" /> Saldos por Local</h5>
           <div class="header-right">
             <span class="badge-purple">{{ results.length }} locales</span>
-            <span class="badge-info ms-2">Superficie: {{ formatNumber(totalSuperficie) }} m²</span>
-            <span class="badge-success ms-2">Renta: {{ formatCurrency(totalRenta) }}</span>
+            <span class="badge-info ms-2">Adeudos: {{ formatCurrency(totalAdeudos) }}</span>
+            <span class="badge-success ms-2">Pagos: {{ formatCurrency(totalPagos) }}</span>
+            <span :class="totalSaldo >= 0 ? 'badge-danger' : 'badge-success'" class="ms-2">
+              Saldo: {{ formatCurrency(totalSaldo) }}
+            </span>
           </div>
         </div>
         <div class="municipal-card-body table-container">
@@ -88,48 +95,54 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>Oficina</th>
                   <th>Mercado</th>
-                  <th>Categoría</th>
                   <th>Sección</th>
                   <th>Local</th>
-                  <th>Letra</th>
-                  <th>Bloque</th>
                   <th>Nombre</th>
-                  <th class="text-end">Superficie (m²)</th>
-                  <th>Clave Cuota</th>
-                  <th>Descripción</th>
-                  <th class="text-end">Renta</th>
+                  <th class="text-end">Total Adeudos</th>
+                  <th class="text-end">Total Pagos</th>
+                  <th class="text-end">Saldo</th>
+                  <th>Último Pago</th>
+                  <th class="text-center">Periodos Adeudo</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in paginatedResults" :key="row.id_local" class="row-hover">
-                  <td>{{ row.oficina }}</td>
+                <tr v-for="(row, idx) in paginatedResults" :key="idx" class="row-hover">
                   <td>{{ row.num_mercado }}</td>
-                  <td>{{ row.categoria }}</td>
                   <td>{{ row.seccion }}</td>
-                  <td>{{ row.local }}</td>
-                  <td>{{ row.letra_local }}</td>
-                  <td>{{ row.bloque }}</td>
+                  <td>{{ formatLocal(row) }}</td>
                   <td>{{ row.nombre }}</td>
-                  <td class="text-end">{{ formatNumber(row.superficie) }}</td>
-                  <td>{{ row.clave_cuota }}</td>
-                  <td>{{ row.descripcion }}</td>
-                  <td class="text-end"><strong>{{ formatCurrency(row.renta) }}</strong></td>
+                  <td class="text-end">{{ formatCurrency(row.total_adeudos) }}</td>
+                  <td class="text-end">{{ formatCurrency(row.total_pagos) }}</td>
+                  <td class="text-end">
+                    <strong :class="parseFloat(row.saldo) > 0 ? 'text-danger' : 'text-success'">
+                      {{ formatCurrency(row.saldo) }}
+                    </strong>
+                  </td>
+                  <td>{{ formatDate(row.ultimo_pago) }}</td>
+                  <td class="text-center">
+                    <span v-if="row.periodos_adeudo > 0" class="badge-warning">
+                      {{ row.periodos_adeudo }}
+                    </span>
+                    <span v-else class="badge-success">0</span>
+                  </td>
                 </tr>
               </tbody>
               <tfoot class="municipal-table-footer">
                 <tr>
-                  <th colspan="8" class="text-end">Totales:</th>
-                  <th class="text-end">{{ formatNumber(totalSuperficie) }} m²</th>
+                  <th colspan="4" class="text-end">TOTALES:</th>
+                  <th class="text-end"><strong class="text-info">{{ formatCurrency(totalAdeudos) }}</strong></th>
+                  <th class="text-end"><strong class="text-success">{{ formatCurrency(totalPagos) }}</strong></th>
+                  <th class="text-end">
+                    <strong :class="totalSaldo > 0 ? 'text-danger' : 'text-success'">
+                      {{ formatCurrency(totalSaldo) }}
+                    </strong>
+                  </th>
                   <th colspan="2"></th>
-                  <th class="text-end"><strong class="text-success">{{ formatCurrency(totalRenta) }}</strong></th>
                 </tr>
               </tfoot>
             </table>
           </div>
-
-          <!-- Paginación -->
           <div class="pagination-container">
             <div class="pagination-info">
               <label>Mostrar:</label>
@@ -162,10 +175,10 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-// Referencias reactivas
 const filters = ref({
   oficina: '',
-  mercado: ''
+  mercado: '',
+  axo: null
 });
 
 const recaudadoras = ref([]);
@@ -173,29 +186,24 @@ const mercados = ref([]);
 const results = ref([]);
 const loading = ref(false);
 const busquedaRealizada = ref(false);
-
-// Paginación
 const currentPage = ref(1);
 const pageSize = ref(25);
 
-// Computed
 const totalPages = computed(() => Math.ceil(results.value.length / pageSize.value) || 1);
-
 const paginatedResults = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return results.value.slice(start, end);
+  return results.value.slice(start, start + pageSize.value);
 });
 
-const totalSuperficie = computed(() => {
-  return results.value.reduce((sum, row) => sum + (parseFloat(row.superficie) || 0), 0);
+const totalAdeudos = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.total_adeudos) || 0), 0));
+const totalPagos = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.total_pagos) || 0), 0));
+const totalSaldo = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.saldo) || 0), 0));
+
+onMounted(() => {
+  filters.value.axo = new Date().getFullYear();
+  fetchRecaudadoras();
 });
 
-const totalRenta = computed(() => {
-  return results.value.reduce((sum, row) => sum + (parseFloat(row.renta) || 0), 0);
-});
-
-// Métodos
 const fetchRecaudadoras = async () => {
   loading.value = true;
   try {
@@ -211,18 +219,19 @@ const fetchRecaudadoras = async () => {
       recaudadoras.value = response.data.eResponse.data.result;
     }
   } catch (error) {
-    console.error('Error al cargar recaudadoras:', error);
+    console.error('Error:', error);
   } finally {
     loading.value = false;
   }
 };
 
 const onOficinaChange = async () => {
-  if (!filters.value.oficina) {
-    mercados.value = [];
-    filters.value.mercado = '';
-    return;
-  }
+  filters.value.mercado = '';
+  mercados.value = [];
+  busquedaRealizada.value = false;
+  results.value = [];
+
+  if (!filters.value.oficina) return;
 
   loading.value = true;
   try {
@@ -238,12 +247,9 @@ const onOficinaChange = async () => {
 
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       mercados.value = response.data.eResponse.data.result;
-    } else {
-      mercados.value = [];
     }
   } catch (error) {
-    console.error('Error al cargar mercados:', error);
-    mercados.value = [];
+    console.error('Error:', error);
   } finally {
     loading.value = false;
   }
@@ -251,7 +257,7 @@ const onOficinaChange = async () => {
 
 const consultar = async () => {
   if (!filters.value.oficina || !filters.value.mercado) {
-    alert('Por favor complete todos los filtros requeridos');
+    alert('Debe seleccionar recaudadora y mercado');
     return;
   }
 
@@ -259,14 +265,23 @@ const consultar = async () => {
   busquedaRealizada.value = false;
 
   try {
+    const parametros = [
+      { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
+      { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) }
+    ];
+
+    // Si hay año especificado, agregarlo como parámetro
+    if (filters.value.axo) {
+      parametros.push({ Nombre: 'p_axo', Valor: parseInt(filters.value.axo) });
+    } else {
+      parametros.push({ Nombre: 'p_axo', Valor: null });
+    }
+
     const response = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_get_padron_locales_byrec_mer',
+        Operacion: 'sp_rpt_saldos_locales',
         Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) }
-        ]
+        Parametros: parametros
       }
     });
 
@@ -279,7 +294,7 @@ const consultar = async () => {
       busquedaRealizada.value = true;
     }
   } catch (error) {
-    console.error('Error al consultar:', error);
+    console.error('Error:', error);
     results.value = [];
     busquedaRealizada.value = true;
   } finally {
@@ -287,70 +302,65 @@ const consultar = async () => {
   }
 };
 
-const limpiar = () => {
-  filters.value = {
-    oficina: '',
-    mercado: ''
-  };
-  mercados.value = [];
-  results.value = [];
-  busquedaRealizada.value = false;
-  currentPage.value = 1;
+const formatLocal = (row) => {
+  let local = `${row.local}`;
+  if (row.letra_local) local += row.letra_local;
+  if (row.bloque) local += `-${row.bloque}`;
+  return local;
+};
+
+const formatDate = (date) => {
+  if (!date) return 'Sin pagos';
+  return new Date(date).toLocaleDateString('es-MX');
 };
 
 const formatCurrency = (value) => {
   if (value == null) return '$0.00';
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN'
-  }).format(value);
-};
-
-const formatNumber = (value) => {
-  if (value == null) return '0.00';
-  return parseFloat(value).toFixed(2);
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value);
 };
 
 const exportarExcel = () => {
   const data = results.value.map(row => ({
-    'Oficina': row.oficina,
     'Mercado': row.num_mercado,
-    'Categoría': row.categoria,
     'Sección': row.seccion,
-    'Local': row.local,
-    'Letra': row.letra_local,
-    'Bloque': row.bloque,
+    'Local': formatLocal(row),
     'Nombre': row.nombre,
-    'Superficie': row.superficie,
-    'Clave Cuota': row.clave_cuota,
-    'Descripción': row.descripcion,
-    'Renta': row.renta
+    'Total Adeudos': row.total_adeudos,
+    'Total Pagos': row.total_pagos,
+    'Saldo': row.saldo,
+    'Último Pago': formatDate(row.ultimo_pago),
+    'Periodos Adeudo': row.periodos_adeudo
   }));
 
   const csv = [
     Object.keys(data[0]).join(','),
-    ...data.map(row => Object.values(row).join(','))
+    ...data.map(row => Object.values(row).map(cell => `"${cell}"`).join(','))
   ].join('\n');
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `padron_locales_${filters.value.oficina}_${filters.value.mercado}_${new Date().getTime()}.csv`;
+  a.download = `saldos_locales_${filters.value.mercado}_${filters.value.axo || 'todos'}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
 };
 
 const mostrarAyuda = () => {
-  alert('Padrón de Arrendamiento de Mercados\n\nSeleccione la oficina recaudadora y el mercado para consultar el padrón de locales registrados.\n\nLa tabla muestra todos los locales con su información de arrendamiento, superficie y renta mensual.');
+  alert('Reporte de Saldos de Locales\n\nMuestra el estado de cuenta de cada local en un mercado:\n\n- Total Adeudos: Suma de todos los adeudos del local\n- Total Pagos: Suma de todos los pagos realizados\n- Saldo: Diferencia entre adeudos y pagos\n  • Saldo positivo (rojo): El local debe dinero\n  • Saldo negativo (verde): El local tiene saldo a favor\n- Periodos Adeudo: Número de periodos con adeudos pendientes\n- Último Pago: Fecha del último pago registrado\n\nPuede filtrar por año específico o ver todos los años dejando el campo vacío.');
 };
-
-// Lifecycle
-onMounted(() => {
-  fetchRecaudadoras();
-});
 </script>
 
 <style scoped>
 @import '@/styles/municipal-theme.css';
+
+.form-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.text-muted {
+  color: #6c757d;
+}
 </style>

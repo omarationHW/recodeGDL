@@ -41,7 +41,8 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Recaudadora (Oficina) <span class="required">*</span></label>
-              <select class="municipal-form-control" v-model.number="filters.oficina" @change="onRecaudadoraChange" :disabled="loading">
+              <select class="municipal-form-control" v-model.number="filters.oficina" @change="onRecaudadoraChange"
+                :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.id_rec }} - {{ rec.recaudadora }}
@@ -51,7 +52,8 @@
 
             <div class="form-group">
               <label class="municipal-form-label">Mercado <span class="required">*</span></label>
-              <select class="municipal-form-control" v-model.number="filters.mercado" :disabled="loading || !filters.oficina">
+              <select class="municipal-form-control" v-model.number="filters.mercado"
+                :disabled="loading || !filters.oficina">
                 <option value="">Seleccione...</option>
                 <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
                   {{ m.num_mercado_nvo }} - {{ m.descripcion }}
@@ -61,7 +63,8 @@
 
             <div class="form-group">
               <label class="municipal-form-label">Año <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="filters.axo" min="1995" max="2999" placeholder="Año" :disabled="loading" />
+              <input type="number" class="municipal-form-control" v-model.number="filters.axo" min="1995" max="2999"
+                placeholder="Año" :disabled="loading" />
             </div>
 
             <div class="form-group">
@@ -144,7 +147,8 @@
                     <p>No se encontraron adeudos con los criterios especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in paginatedAdeudos" :key="index" @click="selectedRow = row" :class="{ 'table-row-selected': selectedRow === row }" class="row-hover">
+                <tr v-else v-for="(row, index) in paginatedAdeudos" :key="index" @click="selectedRow = row"
+                  :class="{ 'table-row-selected': selectedRow === row }" class="row-hover">
                   <td>{{ row.datoslocal }}</td>
                   <td>{{ row.nombre }}</td>
                   <td>{{ row.local_adicional }}</td>
@@ -315,28 +319,44 @@ const onRecaudadoraChange = async () => {
   }
 
   loading.value = true;
-  try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }
-        ]
-      }
-    });
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      mercados.value = response.data.eResponse.data.result;
-      if (mercados.value.length > 0) {
-        filters.value.mercado = mercados.value[0].num_mercado_nvo;
-      }
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: { Operacion: 'sp_get_mercados', 
+      Base: 'mercados', 
+      Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }] }
+    })
+    if (res.data.eResponse.success) {
+      mercados.value = res.data.eResponse.data.result || []
     }
-  } catch (error) {
-    showToast('Error al cargar mercados', 'error');
+  } catch (err) {
+    showToast('error', 'Error al cargar mercados')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
+
+  // try {
+  //   const response = await axios.post('/api/generic', {
+  //     eRequest: {
+  //       Operacion: 'sp_get_mercados_by_recaudadora',
+  //       Base: 'mercados',
+  //       Parametros: [
+  //         { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }
+  //       ]
+  //     }
+  //   });
+
+  //   if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+  //     mercados.value = response.data.eResponse.data.result;
+  //     if (mercados.value.length > 0) {
+  //       filters.value.mercado = mercados.value[0].num_mercado_nvo;
+  //     }
+  //   }
+  // } catch (error) {
+  //   showToast('Error al cargar mercados', 'error');
+  // } finally {
+  //   loading.value = false;
+  // }
 };
 
 const consultar = async () => {
@@ -494,6 +514,7 @@ onMounted(() => {
 
 <style scoped>
 @media print {
+
   .module-view-header,
   .municipal-card-header,
   .pagination-container,
@@ -596,16 +617,28 @@ onMounted(() => {
   animation: slideIn 0.3s ease-out;
 }
 
-.toast-success { border-left: 4px solid #28a745; }
-.toast-error { border-left: 4px solid #dc3545; }
-.toast-warning { border-left: 4px solid #ffc107; }
-.toast-info { border-left: 4px solid #17a2b8; }
+.toast-success {
+  border-left: 4px solid #28a745;
+}
+
+.toast-error {
+  border-left: 4px solid #dc3545;
+}
+
+.toast-warning {
+  border-left: 4px solid #ffc107;
+}
+
+.toast-info {
+  border-left: 4px solid #17a2b8;
+}
 
 @keyframes slideIn {
   from {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

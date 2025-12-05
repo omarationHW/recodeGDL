@@ -287,7 +287,7 @@ const buscarPadron = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'rpt_padron_energia',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(form.value.recaudadora_id) },
           { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado_id) }

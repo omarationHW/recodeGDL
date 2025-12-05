@@ -749,11 +749,11 @@ const router = createRouter({
       name: 'mercados-recaudadoras-mercados',
       component: () => import('@/views/modules/mercados/RecaudadorasMercados.vue')
     },
-    // {
-    //   path: '/mercados/zonas-mercados',
-    //   name: 'mercados-zonas-mercados',
-    //   component: () => import('@/views/modules/mercados/ZonasMercados.vue')
-    // },
+    {
+      path: '/mercados/zonas-mercados',
+      name: 'mercados-zonas-mercados',
+      component: () => import('@/views/modules/mercados/ZonasMercados.vue')
+    },
     // {
     //   path: '/mercados/reporte-general-mercados',
     //   name: 'mercados-reporte-general-mercados',
@@ -804,11 +804,11 @@ const router = createRouter({
       name: 'mercados-datos-individuales',
       component: () => import('@/views/modules/mercados/DatosIndividuales.vue')
     },
-    // {
-    //   path: '/mercados/estadisticas',
-    //   name: 'mercados-estadisticas',
-    //   component: () => import('@/views/modules/mercados/Estadisticas.vue')
-    // },
+    {
+      path: '/mercados/estadisticas',
+      name: 'mercados-estadisticas',
+      component: () => import('@/views/modules/mercados/Estadisticas.vue')
+    },
     // // LOTE 11: Acceso y Gestión de Requerimientos
     // {
     //   path: '/mercados/acceso',
@@ -1006,23 +1006,23 @@ const router = createRouter({
       name: 'mercados-pagos-ene-cons',
       component: () => import('@/views/modules/mercados/PagosEneCons.vue')
     },
-    // {
-    //   path: '/mercados/pagos-loc-grl',
-    //   name: 'mercados-pagos-loc-grl',
-    //   component: () => import('@/views/modules/mercados/PagosLocGrl.vue')
-    // },
+    {
+      path: '/mercados/pagos-loc-grl',
+      name: 'mercados-pagos-loc-grl',
+      component: () => import('@/views/modules/mercados/PagosLocGrl.vue')
+    },
 
     // // LOTE 19: Condonaciones y Prescripción
-    // {
-    //   path: '/mercados/prescripcion',
-    //   name: 'mercados-prescripcion',
-    //   component: () => import('@/views/modules/mercados/Prescripcion.vue')
-    // },
-    // {
-    //   path: '/mercados/rep-adeud-cond',
-    //   name: 'mercados-rep-adeud-cond',
-    //   component: () => import('@/views/modules/mercados/RepAdeudCond.vue')
-    // },
+    {
+      path: '/mercados/prescripcion',
+      name: 'mercados-prescripcion',
+      component: () => import('@/views/modules/mercados/Prescripcion.vue')
+    },
+    {
+      path: '/mercados/rep-adeud-cond',
+      name: 'mercados-rep-adeud-cond',
+      component: () => import('@/views/modules/mercados/RepAdeudCond.vue')
+    },
 
     // LOTE 20: Reportes de Adeudos
     {
@@ -1094,38 +1094,38 @@ const router = createRouter({
       name: 'mercados-rpt-factura-energia',
       component: () => import('@/views/modules/mercados/RptFacturaEnergia.vue')
     },
-    // {
-    //   path: '/mercados/rpt-factura-glunes',
-    //   name: 'mercados-rpt-factura-glunes',
-    //   component: () => import('@/views/modules/mercados/RptFacturaGLunes.vue')
-    // },
+    {
+      path: '/mercados/rpt-factura-glunes',
+      name: 'mercados-rpt-factura-glunes',
+      component: () => import('@/views/modules/mercados/RptFacturaGLunes.vue')
+    },
 
     // LOTE 23: Reportes de Padrones e Ingresos
-    // {
-    //   path: '/mercados/rpt-padron-locales',
-    //   name: 'mercados-rpt-padron-locales',
-    //   component: () => import('@/views/modules/mercados/RptPadronLocales.vue')
-    // },
+    {
+      path: '/mercados/rpt-padron-locales',
+      name: 'mercados-rpt-padron-locales',
+      component: () => import('@/views/modules/mercados/RptPadronLocales.vue')
+    },
     {
       path: '/mercados/rpt-padron-energia',
       name: 'mercados-rpt-padron-energia',
       component: () => import('@/views/modules/mercados/RptPadronEnergia.vue')
     },
-    // {
-    //   path: '/mercados/rpt-locales-giro',
-    //   name: 'mercados-rpt-locales-giro',
-    //   component: () => import('@/views/modules/mercados/RptLocalesGiro.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-mercados',
-    //   name: 'mercados-rpt-mercados',
-    //   component: () => import('@/views/modules/mercados/RptMercados.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-zonificacion',
-    //   name: 'mercados-rpt-zonificacion',
-    //   component: () => import('@/views/modules/mercados/RptZonificacion.vue')
-    // },
+    {
+      path: '/mercados/rpt-locales-giro',
+      name: 'mercados-rpt-locales-giro',
+      component: () => import('@/views/modules/mercados/RptLocalesGiro.vue')
+    },
+    {
+      path: '/mercados/rpt-mercados',
+      name: 'mercados-rpt-mercados',
+      component: () => import('@/views/modules/mercados/RptMercados.vue')
+    },
+    {
+      path: '/mercados/rpt-zonificacion',
+      name: 'mercados-rpt-zonificacion',
+      component: () => import('@/views/modules/mercados/RptZonificacion.vue')
+    },
     {
       path: '/mercados/rpt-movimientos',
       name: 'mercados-rpt-movimientos',
@@ -1153,16 +1153,16 @@ const router = createRouter({
     },
 
     // // LOTE 24: Reportes de Facturación y Padrones (continuación)
-    // {
-    //   path: '/mercados/rpt-ingresos',
-    //   name: 'mercados-rpt-ingresos',
-    //   component: () => import('@/views/modules/mercados/RptIngresos.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-ingresos-energia',
-    //   name: 'mercados-rpt-ingresos-energia',
-    //   component: () => import('@/views/modules/mercados/RptIngresosEnergia.vue')
-    // },
+    {
+      path: '/mercados/rpt-ingresos',
+      name: 'mercados-rpt-ingresos',
+      component: () => import('@/views/modules/mercados/RptIngresos.vue')
+    },
+    {
+      path: '/mercados/rpt-ingresos-energia',
+      name: 'mercados-rpt-ingresos-energia',
+      component: () => import('@/views/modules/mercados/RptIngresosEnergia.vue')
+    },
 
     // // LOTE 25: Reportes de Pagos
     // {
@@ -1175,16 +1175,16 @@ const router = createRouter({
     //   name: 'mercados-rpt-pagos-caja',
     //   component: () => import('@/views/modules/mercados/RptPagosCaja.vue')
     // },
-    // {
-    //   path: '/mercados/rpt-pagos-detalle',
-    //   name: 'mercados-rpt-pagos-detalle',
-    //   component: () => import('@/views/modules/mercados/RptPagosDetalle.vue')
-    // },
-    // {
-    //   path: '/mercados/rpt-pagos-grl',
-    //   name: 'mercados-rpt-pagos-grl',
-    //   component: () => import('@/views/modules/mercados/RptPagosGrl.vue')
-    // },
+    {
+      path: '/mercados/rpt-pagos-detalle',
+      name: 'mercados-rpt-pagos-detalle',
+      component: () => import('@/views/modules/mercados/RptPagosDetalle.vue')
+    },
+    {
+      path: '/mercados/rpt-pagos-grl',
+      name: 'mercados-rpt-pagos-grl',
+      component: () => import('@/views/modules/mercados/RptPagosGrl.vue')
+    },
 
     // LOTE 26: Estadísticas y Reportes Finales
     {
@@ -1219,11 +1219,11 @@ const router = createRouter({
     //   name: 'mercados-rpt-resumen-pagos',
     //   component: () => import('@/views/modules/mercados/RptResumenPagos.vue')
     // },
-    // {
-    //   path: '/mercados/rpt-saldos-locales',
-    //   name: 'mercados-rpt-saldos-locales',
-    //   component: () => import('@/views/modules/mercados/RptSaldosLocales.vue')
-    // },
+    {
+      path: '/mercados/rpt-saldos-locales',
+      name: 'mercados-rpt-saldos-locales',
+      component: () => import('@/views/modules/mercados/RptSaldosLocales.vue')
+    },
     {
       path: '/mercados/rpt-fechas-vencimiento',
       name: 'mercados-rpt-fechas-vencimiento',

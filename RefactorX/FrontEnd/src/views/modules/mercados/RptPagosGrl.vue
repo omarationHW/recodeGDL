@@ -2,20 +2,17 @@
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="building" />
+        <font-awesome-icon icon="chart-bar" />
       </div>
       <div class="module-view-info">
-        <h1>Padrón de Arrendamiento de Mercados</h1>
-        <p>Inicio > Mercados > Padrón de Locales</p>
+        <h1>Reporte de Pagos Generales</h1>
+        <p>Inicio > Mercados > Pagos Generales</p>
       </div>
       <div class="button-group ms-auto">
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
           <font-awesome-icon icon="search" /> Consultar
         </button>
-        <button class="btn-municipal-secondary" @click="limpiar" :disabled="loading">
-          <font-awesome-icon icon="eraser" /> Limpiar
-        </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || !results.length">
+        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -33,7 +30,7 @@
         <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">Oficina Recaudadora <span class="required">*</span></label>
+              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
               <select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
@@ -43,12 +40,26 @@
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Mercado <span class="required">*</span></label>
+              <label class="municipal-form-label">Mercado</label>
               <select v-model="filters.mercado" class="municipal-form-control" :disabled="loading || !mercados.length">
-                <option value="">Seleccione...</option>
+                <option value="">Todos</option>
                 <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
                   {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
                 </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Año <span class="required">*</span></label>
+              <input type="number" v-model.number="filters.axo" class="municipal-form-control"
+                     min="1990" :max="new Date().getFullYear() + 1" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Periodo (Mes)</label>
+              <select v-model.number="filters.periodo" class="municipal-form-control" :disabled="loading">
+                <option value="">Todos</option>
+                <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
           </div>
@@ -60,27 +71,26 @@
         <div class="spinner-border municipal-text-primary" role="status">
           <span class="visually-hidden">Cargando...</span>
         </div>
-        <p class="mt-2">Cargando padrón de locales...</p>
+        <p class="mt-2">Generando reporte de pagos generales...</p>
       </div>
 
       <!-- Sin búsqueda -->
       <div v-if="!busquedaRealizada && !loading" class="municipal-alert municipal-alert-info">
-        <font-awesome-icon icon="info-circle" /> Seleccione la oficina recaudadora y mercado, luego haga clic en <strong>Consultar</strong>.
+        <font-awesome-icon icon="info-circle" /> Seleccione los filtros y haga clic en <strong>Consultar</strong> para generar el reporte.
       </div>
 
       <!-- Sin resultados -->
       <div v-if="busquedaRealizada && !results.length && !loading" class="municipal-alert municipal-alert-warning">
-        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron locales con los criterios seleccionados.
+        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron pagos con los criterios seleccionados.
       </div>
 
       <!-- Tabla de Resultados -->
       <div v-if="results.length && !loading" class="municipal-card mt-3">
         <div class="municipal-card-header header-with-badge">
-          <h5><font-awesome-icon icon="list-alt" /> Padrón de Locales</h5>
+          <h5><font-awesome-icon icon="list-alt" /> Reporte de Pagos Generales</h5>
           <div class="header-right">
-            <span class="badge-purple">{{ results.length }} locales</span>
-            <span class="badge-info ms-2">Superficie: {{ formatNumber(totalSuperficie) }} m²</span>
-            <span class="badge-success ms-2">Renta: {{ formatCurrency(totalRenta) }}</span>
+            <span class="badge-purple">{{ results.length }} pagos</span>
+            <span class="badge-success ms-2">Total: {{ formatCurrency(totalImporte) }}</span>
           </div>
         </div>
         <div class="municipal-card-body table-container">
@@ -88,42 +98,32 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
+                  <th>Fecha Pago</th>
                   <th>Oficina</th>
                   <th>Mercado</th>
-                  <th>Categoría</th>
-                  <th>Sección</th>
                   <th>Local</th>
-                  <th>Letra</th>
-                  <th>Bloque</th>
                   <th>Nombre</th>
-                  <th class="text-end">Superficie (m²)</th>
-                  <th>Clave Cuota</th>
-                  <th>Descripción</th>
-                  <th class="text-end">Renta</th>
+                  <th>Caja</th>
+                  <th>Operación</th>
+                  <th class="text-end">Importe</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in paginatedResults" :key="row.id_local" class="row-hover">
+                <tr v-for="(row, idx) in paginatedResults" :key="idx" class="row-hover">
+                  <td>{{ formatDate(row.fecha_pago) }}</td>
                   <td>{{ row.oficina }}</td>
                   <td>{{ row.num_mercado }}</td>
-                  <td>{{ row.categoria }}</td>
-                  <td>{{ row.seccion }}</td>
-                  <td>{{ row.local }}</td>
-                  <td>{{ row.letra_local }}</td>
-                  <td>{{ row.bloque }}</td>
+                  <td>{{ datosLocal(row) }}</td>
                   <td>{{ row.nombre }}</td>
-                  <td class="text-end">{{ formatNumber(row.superficie) }}</td>
-                  <td>{{ row.clave_cuota }}</td>
-                  <td>{{ row.descripcion }}</td>
-                  <td class="text-end"><strong>{{ formatCurrency(row.renta) }}</strong></td>
+                  <td>{{ row.caja_pago }}</td>
+                  <td>{{ row.operacion_pago }}</td>
+                  <td class="text-end"><strong>{{ formatCurrency(row.importe_pago) }}</strong></td>
                 </tr>
               </tbody>
               <tfoot class="municipal-table-footer">
                 <tr>
-                  <th colspan="8" class="text-end">Totales:</th>
-                  <th class="text-end">{{ formatNumber(totalSuperficie) }} m²</th>
-                  <th colspan="2"></th>
-                  <th class="text-end"><strong class="text-success">{{ formatCurrency(totalRenta) }}</strong></th>
+                  <th colspan="7" class="text-end">TOTAL:</th>
+                  <th class="text-end"><strong class="text-success">{{ formatCurrency(totalImporte) }}</strong></th>
                 </tr>
               </tfoot>
             </table>
@@ -165,7 +165,9 @@ import axios from 'axios';
 // Referencias reactivas
 const filters = ref({
   oficina: '',
-  mercado: ''
+  mercado: '',
+  axo: new Date().getFullYear(),
+  periodo: ''
 });
 
 const recaudadoras = ref([]);
@@ -178,6 +180,14 @@ const busquedaRealizada = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(25);
 
+// Meses
+const meses = ref([
+  { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
+  { value: 4, label: 'Abril' }, { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
+  { value: 7, label: 'Julio' }, { value: 8, label: 'Agosto' }, { value: 9, label: 'Septiembre' },
+  { value: 10, label: 'Octubre' }, { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' }
+]);
+
 // Computed
 const totalPages = computed(() => Math.ceil(results.value.length / pageSize.value) || 1);
 
@@ -187,12 +197,8 @@ const paginatedResults = computed(() => {
   return results.value.slice(start, end);
 });
 
-const totalSuperficie = computed(() => {
-  return results.value.reduce((sum, row) => sum + (parseFloat(row.superficie) || 0), 0);
-});
-
-const totalRenta = computed(() => {
-  return results.value.reduce((sum, row) => sum + (parseFloat(row.renta) || 0), 0);
+const totalImporte = computed(() => {
+  return results.value.reduce((sum, row) => sum + (parseFloat(row.importe_pago) || 0), 0);
 });
 
 // Métodos
@@ -250,8 +256,8 @@ const onOficinaChange = async () => {
 };
 
 const consultar = async () => {
-  if (!filters.value.oficina || !filters.value.mercado) {
-    alert('Por favor complete todos los filtros requeridos');
+  if (!filters.value.oficina) {
+    alert('Por favor seleccione una recaudadora');
     return;
   }
 
@@ -259,14 +265,24 @@ const consultar = async () => {
   busquedaRealizada.value = false;
 
   try {
+    const parametros = [
+      { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
+      { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) }
+    ];
+
+    if (filters.value.mercado) {
+      parametros.push({ Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) });
+    }
+
+    if (filters.value.periodo) {
+      parametros.push({ Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) });
+    }
+
     const response = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_get_padron_locales_byrec_mer',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) }
-        ]
+        Operacion: 'sp_rpt_pagos_grl',
+        Base: 'mercados',
+        Parametros: parametros
       }
     });
 
@@ -287,15 +303,16 @@ const consultar = async () => {
   }
 };
 
-const limpiar = () => {
-  filters.value = {
-    oficina: '',
-    mercado: ''
-  };
-  mercados.value = [];
-  results.value = [];
-  busquedaRealizada.value = false;
-  currentPage.value = 1;
+const datosLocal = (row) => {
+  let datos = `${row.categoria || ''}-${row.seccion || ''}-${row.local || ''}`;
+  if (row.letra_local) datos += row.letra_local;
+  if (row.bloque) datos += `-${row.bloque}`;
+  return datos;
+};
+
+const formatDate = (value) => {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString('es-MX');
 };
 
 const formatCurrency = (value) => {
@@ -306,25 +323,16 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-const formatNumber = (value) => {
-  if (value == null) return '0.00';
-  return parseFloat(value).toFixed(2);
-};
-
 const exportarExcel = () => {
   const data = results.value.map(row => ({
+    'Fecha Pago': formatDate(row.fecha_pago),
     'Oficina': row.oficina,
     'Mercado': row.num_mercado,
-    'Categoría': row.categoria,
-    'Sección': row.seccion,
-    'Local': row.local,
-    'Letra': row.letra_local,
-    'Bloque': row.bloque,
+    'Local': datosLocal(row),
     'Nombre': row.nombre,
-    'Superficie': row.superficie,
-    'Clave Cuota': row.clave_cuota,
-    'Descripción': row.descripcion,
-    'Renta': row.renta
+    'Caja': row.caja_pago,
+    'Operación': row.operacion_pago,
+    'Importe': row.importe_pago
   }));
 
   const csv = [
@@ -336,13 +344,13 @@ const exportarExcel = () => {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `padron_locales_${filters.value.oficina}_${filters.value.mercado}_${new Date().getTime()}.csv`;
+  a.download = `pagos_generales_${filters.value.oficina}_${filters.value.axo}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
 };
 
 const mostrarAyuda = () => {
-  alert('Padrón de Arrendamiento de Mercados\n\nSeleccione la oficina recaudadora y el mercado para consultar el padrón de locales registrados.\n\nLa tabla muestra todos los locales con su información de arrendamiento, superficie y renta mensual.');
+  alert('Reporte de Pagos Generales\n\nGenera un reporte de todos los pagos realizados filtrados por recaudadora, mercado (opcional), año y periodo (opcional).\n\nLa tabla muestra información detallada de cada pago incluyendo fecha, local, caja y operación.');
 };
 
 // Lifecycle

@@ -184,7 +184,7 @@ const totalAdeudo = computed(() => results.value.reduce((sum, row) => sum + (par
 const fetchRecaudadoras = async () => {
   try {
     const response = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
     });
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       recaudadoras.value = response.data.eResponse.data.result;
@@ -203,8 +203,8 @@ const onOficinaChange = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'mercados',
-        Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }]
+        Base: 'padron_licencias',
+        Parametros: [{ Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }]
       }
     });
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {

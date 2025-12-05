@@ -2,20 +2,17 @@
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="building" />
+        <font-awesome-icon icon="file-alt" />
       </div>
       <div class="module-view-info">
-        <h1>Padrón de Arrendamiento de Mercados</h1>
-        <p>Inicio > Mercados > Padrón de Locales</p>
+        <h1>Reporte Detalle de Pagos</h1>
+        <p>Inicio > Mercados > Detalle de Pagos</p>
       </div>
       <div class="button-group ms-auto">
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
           <font-awesome-icon icon="search" /> Consultar
         </button>
-        <button class="btn-municipal-secondary" @click="limpiar" :disabled="loading">
-          <font-awesome-icon icon="eraser" /> Limpiar
-        </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || !results.length">
+        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -33,7 +30,7 @@
         <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">Oficina Recaudadora <span class="required">*</span></label>
+              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
               <select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
@@ -51,6 +48,16 @@
                 </option>
               </select>
             </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Desde <span class="required">*</span></label>
+              <input type="date" v-model="filters.fecha_desde" class="municipal-form-control" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Hasta <span class="required">*</span></label>
+              <input type="date" v-model="filters.fecha_hasta" class="municipal-form-control" :disabled="loading" />
+            </div>
           </div>
         </div>
       </div>
@@ -60,27 +67,26 @@
         <div class="spinner-border municipal-text-primary" role="status">
           <span class="visually-hidden">Cargando...</span>
         </div>
-        <p class="mt-2">Cargando padrón de locales...</p>
+        <p class="mt-2">Generando reporte detallado de pagos...</p>
       </div>
 
       <!-- Sin búsqueda -->
       <div v-if="!busquedaRealizada && !loading" class="municipal-alert municipal-alert-info">
-        <font-awesome-icon icon="info-circle" /> Seleccione la oficina recaudadora y mercado, luego haga clic en <strong>Consultar</strong>.
+        <font-awesome-icon icon="info-circle" /> Seleccione los filtros y haga clic en <strong>Consultar</strong> para generar el reporte.
       </div>
 
       <!-- Sin resultados -->
       <div v-if="busquedaRealizada && !results.length && !loading" class="municipal-alert municipal-alert-warning">
-        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron locales con los criterios seleccionados.
+        <font-awesome-icon icon="exclamation-triangle" /> No se encontraron pagos en el rango de fechas seleccionado.
       </div>
 
       <!-- Tabla de Resultados -->
       <div v-if="results.length && !loading" class="municipal-card mt-3">
         <div class="municipal-card-header header-with-badge">
-          <h5><font-awesome-icon icon="list-alt" /> Padrón de Locales</h5>
+          <h5><font-awesome-icon icon="list-alt" /> Detalle de Pagos</h5>
           <div class="header-right">
-            <span class="badge-purple">{{ results.length }} locales</span>
-            <span class="badge-info ms-2">Superficie: {{ formatNumber(totalSuperficie) }} m²</span>
-            <span class="badge-success ms-2">Renta: {{ formatCurrency(totalRenta) }}</span>
+            <span class="badge-purple">{{ results.length }} registros</span>
+            <span class="badge-success ms-2">Total: {{ formatCurrency(totalImporte) }}</span>
           </div>
         </div>
         <div class="municipal-card-body table-container">
@@ -88,42 +94,37 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>Oficina</th>
-                  <th>Mercado</th>
-                  <th>Categoría</th>
-                  <th>Sección</th>
+                  <th>Fecha</th>
+                  <th>Folio</th>
                   <th>Local</th>
-                  <th>Letra</th>
-                  <th>Bloque</th>
                   <th>Nombre</th>
-                  <th class="text-end">Superficie (m²)</th>
-                  <th>Clave Cuota</th>
-                  <th>Descripción</th>
-                  <th class="text-end">Renta</th>
+                  <th>Año</th>
+                  <th>Periodo</th>
+                  <th>Caja</th>
+                  <th>Operación</th>
+                  <th class="text-end">Importe</th>
+                  <th>Usuario</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in paginatedResults" :key="row.id_local" class="row-hover">
-                  <td>{{ row.oficina }}</td>
-                  <td>{{ row.num_mercado }}</td>
-                  <td>{{ row.categoria }}</td>
-                  <td>{{ row.seccion }}</td>
-                  <td>{{ row.local }}</td>
-                  <td>{{ row.letra_local }}</td>
-                  <td>{{ row.bloque }}</td>
+                <tr v-for="(row, idx) in paginatedResults" :key="idx" class="row-hover">
+                  <td>{{ formatDate(row.fecha_pago) }}</td>
+                  <td>{{ row.folio || 'N/A' }}</td>
+                  <td>{{ datosLocal(row) }}</td>
                   <td>{{ row.nombre }}</td>
-                  <td class="text-end">{{ formatNumber(row.superficie) }}</td>
-                  <td>{{ row.clave_cuota }}</td>
-                  <td>{{ row.descripcion }}</td>
-                  <td class="text-end"><strong>{{ formatCurrency(row.renta) }}</strong></td>
+                  <td>{{ row.axo }}</td>
+                  <td>{{ getMesNombre(row.periodo) }}</td>
+                  <td>{{ row.caja_pago }}</td>
+                  <td>{{ row.operacion_pago }}</td>
+                  <td class="text-end"><strong>{{ formatCurrency(row.importe_pago) }}</strong></td>
+                  <td>{{ row.usuario || 'N/A' }}</td>
                 </tr>
               </tbody>
               <tfoot class="municipal-table-footer">
                 <tr>
-                  <th colspan="8" class="text-end">Totales:</th>
-                  <th class="text-end">{{ formatNumber(totalSuperficie) }} m²</th>
-                  <th colspan="2"></th>
-                  <th class="text-end"><strong class="text-success">{{ formatCurrency(totalRenta) }}</strong></th>
+                  <th colspan="8" class="text-end">TOTAL:</th>
+                  <th class="text-end"><strong class="text-success">{{ formatCurrency(totalImporte) }}</strong></th>
+                  <th></th>
                 </tr>
               </tfoot>
             </table>
@@ -165,7 +166,9 @@ import axios from 'axios';
 // Referencias reactivas
 const filters = ref({
   oficina: '',
-  mercado: ''
+  mercado: '',
+  fecha_desde: '',
+  fecha_hasta: ''
 });
 
 const recaudadoras = ref([]);
@@ -187,12 +190,8 @@ const paginatedResults = computed(() => {
   return results.value.slice(start, end);
 });
 
-const totalSuperficie = computed(() => {
-  return results.value.reduce((sum, row) => sum + (parseFloat(row.superficie) || 0), 0);
-});
-
-const totalRenta = computed(() => {
-  return results.value.reduce((sum, row) => sum + (parseFloat(row.renta) || 0), 0);
+const totalImporte = computed(() => {
+  return results.value.reduce((sum, row) => sum + (parseFloat(row.importe_pago) || 0), 0);
 });
 
 // Métodos
@@ -250,7 +249,7 @@ const onOficinaChange = async () => {
 };
 
 const consultar = async () => {
-  if (!filters.value.oficina || !filters.value.mercado) {
+  if (!filters.value.oficina || !filters.value.mercado || !filters.value.fecha_desde || !filters.value.fecha_hasta) {
     alert('Por favor complete todos los filtros requeridos');
     return;
   }
@@ -261,11 +260,13 @@ const consultar = async () => {
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_get_padron_locales_byrec_mer',
-        Base: 'padron_licencias',
+        Operacion: 'sp_rpt_pagos_detalle',
+        Base: 'mercados',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) }
+          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
+          { Nombre: 'p_fecha_desde', Valor: filters.value.fecha_desde },
+          { Nombre: 'p_fecha_hasta', Valor: filters.value.fecha_hasta }
         ]
       }
     });
@@ -287,15 +288,22 @@ const consultar = async () => {
   }
 };
 
-const limpiar = () => {
-  filters.value = {
-    oficina: '',
-    mercado: ''
-  };
-  mercados.value = [];
-  results.value = [];
-  busquedaRealizada.value = false;
-  currentPage.value = 1;
+const datosLocal = (row) => {
+  let datos = `${row.categoria || ''}-${row.seccion || ''}-${row.local || ''}`;
+  if (row.letra_local) datos += row.letra_local;
+  if (row.bloque) datos += `-${row.bloque}`;
+  return datos;
+};
+
+const getMesNombre = (mes) => {
+  const meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  return meses[mes] || mes;
+};
+
+const formatDate = (value) => {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString('es-MX');
 };
 
 const formatCurrency = (value) => {
@@ -306,25 +314,18 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-const formatNumber = (value) => {
-  if (value == null) return '0.00';
-  return parseFloat(value).toFixed(2);
-};
-
 const exportarExcel = () => {
   const data = results.value.map(row => ({
-    'Oficina': row.oficina,
-    'Mercado': row.num_mercado,
-    'Categoría': row.categoria,
-    'Sección': row.seccion,
-    'Local': row.local,
-    'Letra': row.letra_local,
-    'Bloque': row.bloque,
+    'Fecha': formatDate(row.fecha_pago),
+    'Folio': row.folio || 'N/A',
+    'Local': datosLocal(row),
     'Nombre': row.nombre,
-    'Superficie': row.superficie,
-    'Clave Cuota': row.clave_cuota,
-    'Descripción': row.descripcion,
-    'Renta': row.renta
+    'Año': row.axo,
+    'Periodo': getMesNombre(row.periodo),
+    'Caja': row.caja_pago,
+    'Operación': row.operacion_pago,
+    'Importe': row.importe_pago,
+    'Usuario': row.usuario || 'N/A'
   }));
 
   const csv = [
@@ -336,18 +337,26 @@ const exportarExcel = () => {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `padron_locales_${filters.value.oficina}_${filters.value.mercado}_${new Date().getTime()}.csv`;
+  a.download = `pagos_detalle_${filters.value.oficina}_${filters.value.mercado}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
 };
 
 const mostrarAyuda = () => {
-  alert('Padrón de Arrendamiento de Mercados\n\nSeleccione la oficina recaudadora y el mercado para consultar el padrón de locales registrados.\n\nLa tabla muestra todos los locales con su información de arrendamiento, superficie y renta mensual.');
+  alert('Reporte Detalle de Pagos\n\nGenera un reporte detallado de todos los pagos realizados en un mercado específico dentro de un rango de fechas.\n\nIncluye información completa como folio, año, periodo, caja, operación y usuario que registró el pago.');
 };
 
 // Lifecycle
 onMounted(() => {
   fetchRecaudadoras();
+
+  // Establecer fechas por defecto (último mes)
+  const hoy = new Date();
+  const hace30dias = new Date();
+  hace30dias.setDate(hoy.getDate() - 30);
+
+  filters.value.fecha_hasta = hoy.toISOString().split('T')[0];
+  filters.value.fecha_desde = hace30dias.toISOString().split('T')[0];
 });
 </script>
 

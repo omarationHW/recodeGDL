@@ -273,7 +273,7 @@ const consultar = async () => {
     const responseDetalle = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_estad_pagosyadeudos',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: [
           { Nombre: 'p_id_rec', Valor: parseInt(filters.value.recaudadora) },
           { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
@@ -413,7 +413,7 @@ const exportarExcel = () => {
 
 const showToast = (message, type = 'info') => {
   // Implementación simple de toast
-  alert(message);
+  // alert(message);
 };
 
 // Lifecycle

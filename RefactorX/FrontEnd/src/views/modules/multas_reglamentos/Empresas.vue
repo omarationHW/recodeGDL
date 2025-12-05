@@ -98,14 +98,21 @@ const selected = ref(null)
 
 async function reload() {
   const params = [
-    { name: 'q', type: 'C', value: String(filters.value.q || '') },
-    { name: 'offset', type: 'I', value: (page.value - 1) * pageSize.value },
-    { name: 'limit', type: 'I', value: pageSize.value }
+    { nombre: 'q', tipo: 'string', valor: String(filters.value.q || '') },
+    { nombre: 'offset', tipo: 'integer', valor: (page.value - 1) * pageSize.value },
+    { nombre: 'limit', tipo: 'integer', valor: pageSize.value }
   ]
   try {
     const data = await execute(OP_LIST, BASE_DB, params)
-    rows.value = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
-    total.value = Number(data?.total ?? rows.value.length)
+    // La API puede retornar data.result, data.rows, o data directamente como array
+    rows.value = Array.isArray(data?.result) ? data.result
+                : Array.isArray(data?.rows) ? data.rows
+                : Array.isArray(data) ? data
+                : []
+    // Si la primera fila tiene total_count, usarlo; sino usar el total del data o el length
+    total.value = rows.value.length > 0 && rows.value[0].total_count
+      ? Number(rows.value[0].total_count)
+      : Number(data?.total ?? data?.count ?? rows.value.length)
   } catch (e) {
     rows.value = []
     total.value = 0

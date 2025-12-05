@@ -37,4 +37,42 @@
     </div>
   </div>
 </template>
-<script setup>import { ref } from 'vue'; import { useApi } from '@/composables/useApi'; const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_REPMULTAMPALFRM'; const filters=ref({ ejercicio:new Date().getFullYear() }); const rows=ref([]); const cols=ref([]); async function generar(){ try{ const data=await execute(OP, BASE_DB, [ { name:'ejercicio', type:'I', value:Number(filters.value.ejercicio||0) } ]); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; cols.value=[] } }</script>
+<script setup>
+import { ref } from 'vue'
+import { useApi } from '@/composables/useApi'
+
+const { loading, execute } = useApi()
+const BASE_DB = 'multas_reglamentos'
+const OP = 'RECAUDADORA_REPMULTAMPALFRM'
+
+const filters = ref({
+  ejercicio: new Date().getFullYear()
+})
+
+const rows = ref([])
+const cols = ref([])
+
+async function generar() {
+  try {
+    const data = await execute(OP, BASE_DB, [
+      { nombre: 'p_ejercicio', valor: Number(filters.value.ejercicio || 0), tipo: 'integer' }
+    ])
+
+    // Extraer el array de resultados de la respuesta
+    const arr = Array.isArray(data?.result)
+      ? data.result
+      : Array.isArray(data?.rows)
+        ? data.rows
+        : Array.isArray(data)
+          ? data
+          : []
+
+    rows.value = arr
+    cols.value = arr.length ? Object.keys(arr[0]) : []
+  } catch (e) {
+    console.error('Error al generar reporte:', e)
+    rows.value = []
+    cols.value = []
+  }
+}
+</script>

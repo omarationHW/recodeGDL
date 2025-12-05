@@ -1,176 +1,536 @@
 <template>
-  <div class="frmpol-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Reporte de Póliza por Recaudadora</li>
-      </ol>
-    </nav>
-    <div class="card">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Reporte de Póliza por Recaudadora</h4>
+  <div class="module-view module-layout">
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="file-shield" /></div>
+      <div class="module-view-info">
+        <h1>FRM Pol</h1>
+        <p>Gestión de pólizas</p>
       </div>
-      <div class="card-body">
-        <form @submit.prevent="onSubmit">
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <label for="fecha" class="form-label">Fecha del Reporte:</label>
-              <input type="date" v-model="form.fecha" id="fecha" class="form-control" required />
-            </div>
-            <div class="col-md-4">
-              <label for="recaud" class="form-label">Recaudadora:</label>
-              <select v-model="form.recaud" id="recaud" class="form-select" required>
-                <option value="" disabled>Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.cvectaapl" :value="rec.cvectaapl">
-                  {{ rec.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-              <button type="submit" class="btn btn-success me-2">
-                <i class="fa fa-print"></i> Imprimir
-              </button>
-              <button type="button" class="btn btn-secondary" @click="onClear">Limpiar</button>
+    </div>
+    <div class="module-view-content">
+      <!-- Formulario -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>Parámetros de Entrada</h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label class="municipal-form-label">Parámetros (JSON)</label>
+              <textarea
+                class="municipal-form-control"
+                rows="8"
+                v-model="jsonPayload"
+                placeholder='{"parametro": "valor"}'
+              ></textarea>
+              <small class="form-text">Ingrese un objeto JSON válido</small>
             </div>
           </div>
-        </form>
-        <div v-if="loading" class="alert alert-info">Cargando reporte...</div>
-        <div v-if="error" class="alert alert-danger">{{ error }}</div>
-        <div v-if="reporte.length > 0">
-          <h5 class="mt-4">Resultados para {{ form.fecha }} - Recaudadora: {{ recaudoraSeleccionada }}</h5>
-          <table class="table table-bordered table-striped mt-2">
-            <thead>
-              <tr>
-                <th>Cuenta Aplicación</th>
-                <th>Descripción</th>
-                <th class="text-end">Total Parcial</th>
-                <th class="text-end">Suma</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in reporte" :key="row.cvectaapl">
-                <td>{{ row.cvectaapl }}</td>
-                <td>{{ row.ctaaplicacion }}</td>
-                <td class="text-end">{{ row.totpar }}</td>
-                <td class="text-end">{{ formatCurrency(row.suma) }}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr class="fw-bold">
-                <td colspan="2" class="text-end">TOTAL PRODUCTOS</td>
-                <td class="text-end">{{ totalParcial }}</td>
-                <td class="text-end">{{ formatCurrency(totalSuma) }}</td>
-              </tr>
-            </tfoot>
-          </table>
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !jsonPayload"
+              @click="ejecutar"
+            >
+              <font-awesome-icon :icon="loading ? 'spinner' : 'play'" :spin="loading"/>
+              {{ loading ? 'Ejecutando...' : 'Ejecutar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="trash"/>
+              Limpiar
+            </button>
+          </div>
         </div>
-        <div v-else-if="reporteRequested && !loading" class="alert alert-warning">
-          No se encontraron resultados para los criterios seleccionados.
+      </div>
+
+      <!-- Resultado -->
+      <div class="municipal-card" v-if="result">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="check-circle"/> Resultado del Proceso</h5>
+        </div>
+        <div class="municipal-card-body">
+          <!-- Error -->
+          <div v-if="result.error" class="alert-danger">
+            <font-awesome-icon icon="exclamation-circle"/>
+            <strong>Error:</strong> {{ result.error }}
+          </div>
+
+          <!-- Resultado exitoso -->
+          <div v-else-if="Array.isArray(result) && result.length > 0">
+            <!-- Resumen del estado -->
+            <div class="result-summary">
+              <div class="summary-item status-success">
+                <font-awesome-icon icon="check-circle"/>
+                <div>
+                  <strong>Estado:</strong>
+                  <span>{{ result[0].status || 'success' }}</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <font-awesome-icon icon="info-circle"/>
+                <div>
+                  <strong>Mensaje:</strong>
+                  <span>{{ result[0].message || 'Proceso completado' }}</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <font-awesome-icon icon="clock"/>
+                <div>
+                  <strong>Fecha de Proceso:</strong>
+                  <span>{{ formatDateTime(result[0].fecha_proceso) }}</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <font-awesome-icon icon="user"/>
+                <div>
+                  <strong>Usuario:</strong>
+                  <span>{{ result[0].user_info || 'N/A' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de la Póliza -->
+            <div class="poliza-section" v-if="result[0].poliza_info">
+              <h6><font-awesome-icon icon="file-invoice"/> Información de la Póliza</h6>
+              <div class="poliza-grid">
+                <div class="poliza-item highlight">
+                  <div class="poliza-label">Folio de Póliza</div>
+                  <div class="poliza-value folio">{{ getPolizaValue('folio_poliza') }}</div>
+                </div>
+                <div class="poliza-item">
+                  <div class="poliza-label">Fecha</div>
+                  <div class="poliza-value">{{ getPolizaValue('fecha') }}</div>
+                </div>
+                <div class="poliza-item">
+                  <div class="poliza-label">Recaudadora</div>
+                  <div class="poliza-value">{{ getPolizaValue('recaudadora') }}</div>
+                </div>
+                <div class="poliza-item">
+                  <div class="poliza-label">Tipo</div>
+                  <div class="poliza-value">{{ getPolizaValue('tipo') }}</div>
+                </div>
+                <div class="poliza-item amount">
+                  <div class="poliza-label">Total Importe</div>
+                  <div class="poliza-value total">{{ formatCurrency(getPolizaValue('total_importe')) }}</div>
+                </div>
+                <div class="poliza-item">
+                  <div class="poliza-label">Número de Registros</div>
+                  <div class="poliza-value records">{{ getPolizaValue('numero_registros') }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parámetros recibidos -->
+            <div class="params-section" v-if="result[0].received_params">
+              <h6><font-awesome-icon icon="terminal"/> Parámetros Recibidos</h6>
+              <div class="params-content">
+                <pre>{{ JSON.stringify(result[0].received_params, null, 2) }}</pre>
+              </div>
+            </div>
+
+            <!-- JSON completo colapsable -->
+            <details class="json-raw">
+              <summary><font-awesome-icon icon="code"/> Ver JSON Completo</summary>
+              <pre>{{ JSON.stringify(result, null, 2) }}</pre>
+            </details>
+          </div>
+
+          <!-- Resultado sin formato específico -->
+          <div v-else class="result-box">
+            <pre>{{ JSON.stringify(result, null, 2) }}</pre>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'FrmPolReporte',
-  data() {
-    return {
-      form: {
-        fecha: this.formatDate(new Date()),
-        recaud: ''
-      },
-      recaudadoras: [],
-      reporte: [],
-      loading: false,
-      error: '',
-      reporteRequested: false
-    };
-  },
-  computed: {
-    totalParcial() {
-      return this.reporte.reduce((acc, row) => acc + Number(row.totpar), 0);
-    },
-    totalSuma() {
-      return this.reporte.reduce((acc, row) => acc + Number(row.suma), 0);
-    },
-    recaudoraSeleccionada() {
-      const rec = this.recaudadoras.find(r => r.cvectaapl === this.form.recaud);
-      return rec ? rec.descripcion : '';
+<script setup>
+import { ref } from 'vue'
+import { useApi } from '@/composables/useApi'
+
+const { loading, execute } = useApi()
+const BASE_DB = 'multas_reglamentos'
+const OP = 'RECAUDADORA_FRMPOL'
+const jsonPayload = ref('')
+const result = ref(null)
+
+async function ejecutar() {
+  try {
+    // Validar JSON
+    let parsedPayload
+    try {
+      parsedPayload = JSON.parse(jsonPayload.value)
+    } catch (e) {
+      result.value = { error: 'JSON inválido: ' + e.message }
+      return
     }
-  },
-  methods: {
-    formatDate(date) {
-      // YYYY-MM-DD
-      const d = new Date(date);
-      return d.toISOString().slice(0, 10);
-    },
-    formatCurrency(val) {
-      return Number(val).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    },
-    async fetchRecaudadoras() {
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'recaudadora.getRecaudadoras',
-          payload: {}
-        });
-        if (res.data.status === 'success') {
-          this.recaudadoras = res.data.data;
-        } else {
-          this.error = res.data.message || 'Error al cargar recaudadoras';
-        }
-      } catch (e) {
-        this.error = 'Error de conexión: ' + e.message;
-      }
-    },
-    async onSubmit() {
-      this.error = '';
-      this.loading = true;
-      this.reporteRequested = true;
-      this.reporte = [];
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'recaudadora.getPolizaReporte',
-          payload: {
-            fecha: this.form.fecha,
-            recaud: this.form.recaud
-          }
-        });
-        if (res.data.status === 'success') {
-          this.reporte = res.data.data;
-        } else {
-          this.error = res.data.message || 'Error al obtener reporte';
-        }
-      } catch (e) {
-        this.error = 'Error de conexión: ' + e.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    onClear() {
-      this.form.fecha = this.formatDate(new Date());
-      this.form.recaud = '';
-      this.reporte = [];
-      this.reporteRequested = false;
-      this.error = '';
+
+    const params = [
+      { nombre: 'p_params', tipo: 'json', valor: JSON.stringify(parsedPayload) }
+    ]
+
+    const response = await execute(OP, BASE_DB, params)
+
+    if (response?.result) {
+      result.value = response.result
+    } else {
+      result.value = response
     }
-  },
-  mounted() {
-    this.fetchRecaudadoras();
+  } catch (e) {
+    result.value = { error: e?.message || 'Error desconocido' }
   }
-};
+}
+
+function limpiar() {
+  jsonPayload.value = ''
+  result.value = null
+}
+
+function formatDateTime(timestamp) {
+  if (!timestamp) return 'N/A'
+  return new Date(timestamp).toLocaleString('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+function formatCurrency(value) {
+  if (!value) return '$0.00'
+  const num = parseFloat(value)
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(num)
+}
+
+function getPolizaValue(key) {
+  if (!result.value || !result.value[0] || !result.value[0].poliza_info) return 'N/A'
+  const polizaInfo = result.value[0].poliza_info
+
+  // Si es string JSON, parsearlo
+  if (typeof polizaInfo === 'string') {
+    try {
+      const parsed = JSON.parse(polizaInfo)
+      return parsed[key] || 'N/A'
+    } catch (e) {
+      return 'N/A'
+    }
+  }
+
+  // Si es objeto, acceder directamente
+  return polizaInfo[key] || 'N/A'
+}
 </script>
 
 <style scoped>
-.frmpol-page {
-  max-width: 900px;
-  margin: 0 auto;
+.form-group.full-width {
+  width: 100%;
 }
-.card-header {
-  background: linear-gradient(90deg, #e3e3e3 0%, #003366 100%);
+
+.municipal-form-control {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
 }
-.table th, .table td {
-  vertical-align: middle;
+
+.form-text {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.btn-municipal-secondary {
+  background: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+.btn-municipal-secondary:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.btn-municipal-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 16px;
+  color: #721c24;
+}
+
+.alert-danger svg {
+  margin-right: 8px;
+}
+
+.result-box {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.result-box pre {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Resumen de resultados */
+.result-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #dee2e6;
+}
+
+.summary-item svg {
+  font-size: 1.5rem;
+  color: #6c757d;
+}
+
+.summary-item.status-success {
+  background: #d4edda;
+  border-left-color: #28a745;
+}
+
+.summary-item.status-success svg {
+  color: #28a745;
+}
+
+.summary-item div {
+  flex: 1;
+}
+
+.summary-item strong {
+  display: block;
+  color: #495057;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-item span {
+  display: block;
+  color: #212529;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Sección de póliza */
+.poliza-section {
+  margin-bottom: 24px;
+}
+
+.poliza-section h6 {
+  margin: 0 0 16px 0;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.poliza-section h6 svg {
+  margin-right: 8px;
+}
+
+.poliza-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.poliza-item {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.poliza-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.poliza-item.highlight {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.poliza-item.highlight .poliza-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.poliza-item.highlight .poliza-value {
+  color: white;
+}
+
+.poliza-item.amount {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+.poliza-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.poliza-value {
+  font-size: 1.1rem;
+  color: #212529;
+  font-weight: 700;
+}
+
+.poliza-value.folio {
+  font-size: 1.8rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.poliza-value.total {
+  font-size: 1.5rem;
+  color: #856404;
+}
+
+.poliza-value.records {
+  font-size: 1.3rem;
+  color: #667eea;
+}
+
+/* Sección de parámetros */
+.params-section {
+  margin-bottom: 24px;
+}
+
+.params-section h6 {
+  margin: 0 0 12px 0;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.params-section h6 svg {
+  margin-right: 8px;
+}
+
+.params-content {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.params-content pre {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #212529;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* JSON colapsable */
+.json-raw {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.json-raw summary {
+  padding: 14px 16px;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-weight: 600;
+  color: #495057;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.json-raw summary:hover {
+  background: #e9ecef;
+  color: #212529;
+}
+
+.json-raw summary svg {
+  margin-right: 8px;
+  color: #667eea;
+}
+
+.json-raw pre {
+  margin: 0;
+  padding: 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  background: #2d2d2d;
+  color: #f8f9fa;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.json-raw[open] summary {
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .poliza-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .result-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .poliza-value.folio {
+    font-size: 1.5rem;
+  }
+
+  .poliza-value.total {
+    font-size: 1.3rem;
+  }
 }
 </style>

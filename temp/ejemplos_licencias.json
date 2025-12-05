@@ -1,0 +1,57 @@
+[
+    {
+        "id_licencia": 1,
+        "licencia": 4,
+        "propietario": "GOMEZ JIMENEZ ANA BEATRIZ                                                       ",
+        "id_giro": 874,
+        "axo": 2019,
+        "saldo": "432.00",
+        "derechos": "0.00",
+        "recargos": "0.00",
+        "forma": "432.00"
+    },
+    {
+        "id_licencia": 1,
+        "licencia": 4,
+        "propietario": "GOMEZ JIMENEZ ANA BEATRIZ                                                       ",
+        "id_giro": 874,
+        "axo": 2010,
+        "saldo": "153.00",
+        "derechos": "0.00",
+        "recargos": "0.00",
+        "forma": "153.00"
+    },
+    {
+        "id_licencia": 1,
+        "licencia": 4,
+        "propietario": "GOMEZ JIMENEZ ANA BEATRIZ                                                       ",
+        "id_giro": 874,
+        "axo": 2011,
+        "saldo": "159.00",
+        "derechos": "0.00",
+        "recargos": "0.00",
+        "forma": "159.00"
+    },
+    {
+        "id_licencia": 1,
+        "licencia": 4,
+        "propietario": "GOMEZ JIMENEZ ANA BEATRIZ                                                       ",
+        "id_giro": 874,
+        "axo": 2012,
+        "saldo": "165.50",
+        "derechos": "0.00",
+        "recargos": "0.00",
+        "forma": "165.50"
+    },
+    {
+        "id_licencia": 1,
+        "licencia": 4,
+        "propietario": "GOMEZ JIMENEZ ANA BEATRIZ                                                       ",
+        "id_giro": 874,
+        "axo": 2013,
+        "saldo": "172.00",
+        "derechos": "0.00",
+        "recargos": "0.00",
+        "forma": "172.00"
+    }
+]

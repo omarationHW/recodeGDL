@@ -1,55 +1,15 @@
 <template>
-  <div class="container-fluid mt-4">
-    <div class="alert alert-info" role="alert">
-      <h4 class="alert-heading">💰 Drecgo Otras Obligaciones</h4>
-      <p>Este componente está en desarrollo y será implementado próximamente.</p>
-      <hr>
-      <p class="mb-0">
-        <small><strong>Módulo:</strong> Recaudadora | <strong>Componente:</strong> drecgoOtrasObligaciones</small>
-      </p>
-    </div>
-    
-    <div class="card">
-      <div class="card-header bg-light">
-        <h5 class="mb-0">Drecgo Otras Obligaciones</h5>
-      </div>
-      <div class="card-body">
-        <p class="text-muted">
-          Funcionalidad pendiente de implementación para el sistema de recaudadora.
-        </p>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="badge bg-warning">En desarrollo</span>
-          <small class="text-muted">Módulo: Recaudadora</small>
-        </div>
-      </div>
+  <div class="module-view module-layout"><div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="file-invoice-dollar" /></div><div class="module-view-info"><h1>Derechos Otras Obligaciones</h1></div></div>
+    <div class="module-view-content"><div class="municipal-card"><div class="municipal-card-body">
+      <div class="form-row"><div class="form-group"><label class="municipal-form-label">Cuenta</label><input class="municipal-form-control" v-model="filters.cuenta"/></div></div>
+      <div class="button-group"><button class="btn-municipal-primary" :disabled="loading" @click="reload"><font-awesome-icon icon="search"/> Buscar</button></div>
+    </div></div>
+      <div class="municipal-card"><div class="municipal-card-header"><h5>Registros</h5></div><div class="municipal-card-body table-container"><div class="table-responsive"><table class="municipal-table"><thead class="municipal-table-header"><tr><th v-for="c in cols" :key="c">{{ c }}</th></tr></thead><tbody><tr v-for="(r,i) in rows" :key="i"><td v-for="c in cols" :key="c">{{ r[c] }}</td></tr></tbody></table></div></div></div>
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'drecgoOtrasObligaciones',
-  data() {
-    return {
-      // Datos del componente
-    }
-  },
-  mounted() {
-    console.log('Componente drecgoOtrasObligaciones montado (placeholder)');
-  }
-}
+<script setup>
+import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
+const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_DRECGOOTRASOBLIGACIONES'; const filters=ref({ cuenta:'' }); const rows=ref([]); const cols=ref([])
+async function reload(){ try{ const data=await execute(OP, BASE_DB, [ { nombre:'clave_cuenta', tipo:'string', valor:String(filters.value.cuenta||'') } ], '', null, 'multas_reglamentos'); const arr=Array.isArray(data?.result)?data.result:Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; cols.value=[]; console.error('Error al cargar datos:', e) } }
 </script>
-
-<style scoped>
-.alert-heading {
-  color: #0c5460;
-}
-
-.card {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.badge {
-  font-size: 0.75em;
-}
-</style>

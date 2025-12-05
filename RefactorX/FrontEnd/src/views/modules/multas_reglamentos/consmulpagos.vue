@@ -10,7 +10,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'; import { useApi } from '@/composables/useApi'
-const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_CONSMULPAGOS'; const filters=ref({ cuenta:'' }); const rows=ref([]); const cols=ref([])
-async function reload(){ try{ const data=await execute(OP, BASE_DB, [ { name:'clave_cuenta', type:'C', value:String(filters.value.cuenta||'') } ]); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; cols.value=[] } }
+const { loading, execute } = useApi(); const BASE_DB = 'multas_reglamentos'; const OP='RECAUDADORA_CONSMULPAGOS'; const SCHEMA='multas_reglamentos'; const filters=ref({ cuenta:'' }); const rows=ref([]); const cols=ref([])
+async function reload(){ try{ const data=await execute(OP, BASE_DB, [ { nombre:'p_clave_cuenta', tipo:'string', valor:String(filters.value.cuenta||'') } ], '', null, SCHEMA); const arr=Array.isArray(data?.result)?data.result:Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; cols.value=[] } }
 </script>
 

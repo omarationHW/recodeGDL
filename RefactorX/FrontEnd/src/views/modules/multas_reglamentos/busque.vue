@@ -16,13 +16,30 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+
 const BASE_DB = 'multas_reglamentos'
-const OP_LIST='RECAUDADORA_BUSQUE' // TODO confirmar
+const OP_LIST = 'RECAUDADORA_BUSQUE'
+
 const { loading, execute } = useApi()
-const filters=ref({ q:'' })
-const rows=ref([])
-const columns=ref([])
-async function reload(){ const params=[{name:'q',type:'C',value:String(filters.value.q||'')}]; try{ const data=await execute(OP_LIST,BASE_DB,params); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; columns.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; columns.value=[] } }
-reload()
+
+const filters = ref({ q: '' })
+const rows = ref([])
+const columns = ref([])
+
+async function reload() {
+  const params = [
+    { nombre: 'p_query', valor: String(filters.value.q || ''), tipo: 'string' }
+  ]
+
+  try {
+    const data = await execute(OP_LIST, BASE_DB, params)
+    const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
+    rows.value = arr
+    columns.value = arr.length ? Object.keys(arr[0]) : []
+  } catch (e) {
+    rows.value = []
+    columns.value = []
+  }
+}
 </script>
 

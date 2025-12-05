@@ -65,7 +65,7 @@ class GenericController
             'multas_reglamentos' => [
                 'database' => 'padron_licencias',
                 'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'allowed_schemas' => ['public', 'comun', 'multas_reglamentos', 'db_ingresos']
             ],
             'multas' => [
                 'database' => 'padron_licencias',
@@ -213,10 +213,10 @@ class GenericController
             $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
             $pdo = new PDO($dsn, $username, $password);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_PERSISTENT, false); // Deshabilitar conexiones persistentes
             Log::info("✅ Conexión a DB exitosa");
 
-            $spFullName = $schema . '.' . $operacion;
-
+            // Intentar buscar el SP primero en el schema especificado
             $checkSP = $pdo->prepare("
                 SELECT routine_name, routine_definition, routine_schema
                 FROM information_schema.routines
@@ -225,6 +225,25 @@ class GenericController
             $checkSP->execute([$schema, $operacion]);
             $spInfo = $checkSP->fetch(PDO::FETCH_ASSOC);
 
+            // Si no se encuentra en el schema por defecto, buscar en los allowed_schemas
+            if (!$spInfo) {
+                Log::info("🔍 SP no encontrado en schema '{$schema}', buscando en allowed_schemas: " . implode(', ', $allowedSchemas));
+
+                foreach ($allowedSchemas as $allowedSchema) {
+                    if ($allowedSchema === $schema) continue; // Ya se verificó
+
+                    $checkSP->execute([$allowedSchema, $operacion]);
+                    $spInfo = $checkSP->fetch(PDO::FETCH_ASSOC);
+
+                    if ($spInfo) {
+                        $schema = $allowedSchema; // Actualizar al schema donde se encontró
+                        Log::info("✅ SP encontrado en schema alternativo: {$schema}");
+                        break;
+                    }
+                }
+            }
+
+            // Si aún no se encuentra, generar mensaje de error detallado
             if (!$spInfo) {
                 $findSP = $pdo->prepare("
                     SELECT routine_name, routine_schema
@@ -241,7 +260,7 @@ class GenericController
                     ORDER BY schema_name
                 ")->fetchAll(PDO::FETCH_COLUMN);
 
-                $debugMsg = "El Stored Procedure '{$operacion}' no existe en el esquema '{$schema}'. ";
+                $debugMsg = "El Stored Procedure '{$operacion}' no existe en el esquema '{$schemaDefault}'. ";
                 $debugMsg .= "Esquemas disponibles: " . implode(', ', $schemas) . ". ";
 
                 if ($allSPs) {
@@ -255,6 +274,8 @@ class GenericController
 
                 throw new Exception($debugMsg);
             }
+
+            $spFullName = $schema . '.' . $operacion;
 
             $spParametros = [];
             $paramMap = [];
@@ -372,6 +393,10 @@ class GenericController
             ];
 
             Log::info("✅ Devolviendo respuesta exitosa con " . count($result) . " registros");
+
+            // Cerrar explícitamente la conexión PDO
+            $pdo = null;
+
             return response()->json([
                 'eResponse' => [
                     'success' => true,
@@ -388,6 +413,11 @@ class GenericController
         } catch (Exception $e) {
             Log::error("Error API: " . $e->getMessage());
             Log::error("Error Trace: " . $e->getTraceAsString());
+
+            // Cerrar explícitamente la conexión PDO en caso de error
+            if (isset($pdo)) {
+                $pdo = null;
+            }
 
             return response()->json([
                 'eResponse' => [

@@ -1,30 +1,63 @@
 -- ================================================================
 -- SP: recaudadora_consdesc
 -- Módulo: multas_reglamentos
--- Autor: Sistema RefactorX
--- Fecha: 2025-11-11
+-- Descripción: Consulta descuentos prediales por cuenta
+-- Tablas: descpred, c_descpred
 -- ================================================================
 
-CREATE OR REPLACE FUNCTION recaudadora_consdesc()
-RETURNS TABLE (
-  -- TODO: Definir columnas de retorno basándose en el uso en Vue
-  result JSONB
+-- Eliminar función existente si existe
+DROP FUNCTION IF EXISTS public.recaudadora_consdesc(VARCHAR);
+DROP FUNCTION IF EXISTS comun.recaudadora_consdesc(VARCHAR);
+
+CREATE OR REPLACE FUNCTION public.recaudadora_consdesc(
+    p_clave_cuenta VARCHAR
+)
+RETURNS TABLE(
+    cvecuenta INTEGER,
+    cvedescuento SMALLINT,
+    descripcion VARCHAR,
+    bimini SMALLINT,
+    bimfin SMALLINT,
+    porcentaje NUMERIC,
+    fecalta DATE,
+    status CHAR,
+    foliodesc INTEGER,
+    propietario VARCHAR,
+    observaciones VARCHAR
 )
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_cvecuenta INTEGER;
 BEGIN
-  -- TODO: Implementar lógica del SP
-  -- Este es un placeholder generado automáticamente
+    -- Convertir clave cuenta a entero
+    v_cvecuenta := p_clave_cuenta::INTEGER;
 
-  RETURN QUERY
-  SELECT jsonb_build_object(
-    'success', true,
-    'message', 'SP recaudadora_consdesc pendiente de implementación',
-    'data', '[]'::jsonb
-  );
+    -- Consultar descuentos de la cuenta
+    RETURN QUERY
+    SELECT
+        d.cvecuenta,
+        d.cvedescuento,
+        COALESCE(c.descripcion, 'Sin descripción')::VARCHAR,
+        d.bimini,
+        d.bimfin,
+        COALESCE(c.porcentaje, 0)::NUMERIC,
+        d.fecalta,
+        COALESCE(d.status, ' ')::CHAR,
+        d.foliodesc,
+        COALESCE(d.propie, '')::VARCHAR,
+        COALESCE(d.observaciones, '')::VARCHAR
+    FROM catastro_gdl.descpred d
+    LEFT JOIN catastro_gdl.c_descpred c ON d.cvedescuento = c.cvedescuento
+    WHERE d.cvecuenta = v_cvecuenta
+    ORDER BY d.fecalta DESC NULLS LAST, d.foliodesc DESC NULLS LAST;
 
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error en recaudadora_consdesc: %', SQLERRM;
+        RETURN;
 END;
 $$;
 
--- Comentario del SP
-COMMENT ON FUNCTION recaudadora_consdesc() IS 'SP generado automáticamente - REQUIERE IMPLEMENTACIÓN';
+COMMENT ON FUNCTION public.recaudadora_consdesc(VARCHAR)
+IS 'Consulta descuentos prediales aplicados a una cuenta específica.';

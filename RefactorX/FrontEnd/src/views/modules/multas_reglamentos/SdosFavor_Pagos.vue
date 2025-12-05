@@ -14,7 +14,12 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Cuenta</label>
-              <input class="municipal-form-control" v-model="filters.cuenta" @keyup.enter="reload"/>
+              <input
+                class="municipal-form-control"
+                v-model="filters.cuenta"
+                @keyup.enter="reload"
+                placeholder="Ingrese cuenta"
+              />
             </div>
           </div>
           <div class="button-group">
@@ -27,7 +32,7 @@
 
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5>Pagos</h5>
+          <h5>Pagos ({{ rows.length }} registros)</h5>
           <div v-if="loading" class="spinner-border"></div>
         </div>
 
@@ -48,14 +53,18 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="r in rows" :key="r.id_pago_favor" class="row-hover">
+                <tr v-for="r in paginatedRows" :key="r.id_pago_favor" class="row-hover">
                   <td>{{ r.id_pago_favor }}</td>
                   <td>{{ r.cvecuenta }}</td>
                   <td>{{ r.folio }}</td>
                   <td>{{ r.ejercicio }}</td>
                   <td>${{ formatMoney(r.imp_inconform) }}</td>
                   <td>${{ formatMoney(r.imp_pago) }}</td>
-                  <td>${{ formatMoney(r.saldo_favor) }}</td>
+                  <td>
+                    <span :class="getSaldoClass(r.saldo_favor)">
+                      ${{ formatMoney(r.saldo_favor) }}
+                    </span>
+                  </td>
                   <td>{{ r.fecha_pago || 'N/A' }}</td>
                   <td>{{ r.solicitante || 'N/A' }}</td>
                 </tr>
@@ -65,6 +74,30 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div v-if="rows.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
+            </div>
+            <div class="pagination-controls">
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === 1"
+                @click="currentPage--"
+              >
+                <font-awesome-icon icon="chevron-left" /> Anterior
+              </button>
+              <span class="pagination-page">Página {{ currentPage }} de {{ totalPages }}</span>
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === totalPages"
+                @click="currentPage++"
+              >
+                Siguiente <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -72,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
@@ -81,10 +114,24 @@ const { loading, execute } = useApi()
 
 const filters = ref({ cuenta: '' })
 const rows = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 10
+
+// Paginación
+const totalPages = computed(() => Math.ceil(rows.value.length / itemsPerPage))
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage)
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, rows.value.length))
+const paginatedRows = computed(() => rows.value.slice(startIndex.value, endIndex.value))
 
 function formatMoney(value) {
   if (!value) return '0.00'
   return parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+function getSaldoClass(saldo) {
+  const s = parseFloat(saldo || 0)
+  if (s > 0) return 'saldo-pendiente'
+  return 'saldo-liquidado'
 }
 
 async function reload() {
@@ -93,8 +140,28 @@ async function reload() {
   ]
 
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
-    rows.value = Array.isArray(data?.result) ? data.result : []
+    const response = await execute(OP_LIST, BASE_DB, params)
+    console.log('Respuesta completa:', response)
+
+    // Procesar la respuesta según la estructura de la API
+    let arr = []
+
+    // La API puede retornar diferentes estructuras
+    if (response?.eResponse?.data?.result && Array.isArray(response.eResponse.data.result)) {
+      arr = response.eResponse.data.result
+    } else if (response?.data?.result && Array.isArray(response.data.result)) {
+      arr = response.data.result
+    } else if (response?.result && Array.isArray(response.result)) {
+      arr = response.result
+    } else if (response?.rows && Array.isArray(response.rows)) {
+      arr = response.rows
+    } else if (Array.isArray(response)) {
+      arr = response
+    }
+
+    console.log('Registros extraídos:', arr.length, arr)
+    rows.value = arr
+    currentPage.value = 1 // Resetear a primera página
   } catch (e) {
     console.error('Error cargando pagos:', e)
     rows.value = []
@@ -102,3 +169,58 @@ async function reload() {
 }
 </script>
 
+<style scoped>
+.saldo-pendiente {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.saldo-liquidado {
+  color: #6c757d;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px;
+  border-top: 1px solid #dee2e6;
+}
+
+.pagination-info {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.pagination-page {
+  color: #495057;
+  font-weight: 500;
+}
+
+.btn-pagination {
+  padding: 8px 16px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

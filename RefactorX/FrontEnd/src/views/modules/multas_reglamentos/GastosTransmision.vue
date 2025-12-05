@@ -74,12 +74,12 @@ const rows = ref([])
 
 async function reload() {
   const params = [
-    { name: 'clave_cuenta', type: 'C', value: String(filters.value.cuenta || '') },
-    { name: 'ejercicio', type: 'I', value: Number(filters.value.ejercicio || 0) }
+    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') },
+    { nombre: 'p_ejercicio', tipo: 'integer', valor: Number(filters.value.ejercicio || 0) }
   ]
   try {
     const data = await execute(OP_LIST, BASE_DB, params)
-    rows.value = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
   } catch (e) {
     rows.value = []
   }

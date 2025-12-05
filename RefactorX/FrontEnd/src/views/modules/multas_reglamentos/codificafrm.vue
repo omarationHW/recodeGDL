@@ -6,7 +6,7 @@
         <div class="form-row"><div class="form-group full-width"><label class="municipal-form-label">Texto</label><input class="municipal-form-control" v-model="form.texto"/></div></div>
         <div class="button-group"><button class="btn-municipal-primary" :disabled="loading" @click="codificar"><font-awesome-icon icon="wand-magic-sparkles"/> Codificar</button></div>
       </div></div>
-      <div class="municipal-card"><div class="municipal-card-header"><h5>Resultado</h5></div>
+      <div class="municipal-card" v-if="result"><div class="municipal-card-header"><h5>Resultado</h5></div>
         <div class="municipal-card-body"><pre class="text-muted" style="white-space: pre-wrap;">{{ JSON.stringify(result, null, 2) }}</pre></div>
       </div>
     </div>
@@ -21,6 +21,18 @@ const OP_CODIF='RECAUDADORA_CODIFICAFRM' // TODO confirmar
 const { loading, execute } = useApi()
 const form=ref({ texto:'' })
 const result=ref(null)
-async function codificar(){ try{ result.value = await execute(OP_CODIF, BASE_DB, [ { name:'texto', type:'C', value:String(form.value.texto||'') } ]) }catch(e){ result.value={ error:e?.message||'Error' } } }
+async function codificar() {
+  try {
+    const data = await execute(OP_CODIF, BASE_DB, [
+      { nombre: 'p_texto', valor: String(form.value.texto || ''), tipo: 'string' }
+    ])
+
+    // Extraer solo el resultado limpio
+    const arr = Array.isArray(data?.result) ? data.result : []
+    result.value = arr.length > 0 ? arr[0] : { error: 'Sin resultados' }
+  } catch (e) {
+    result.value = { error: e?.message || 'Error' }
+  }
+}
 </script>
 

@@ -22,7 +22,7 @@ const { loading, execute } = useApi()
 const filters=ref({ cuenta:'' })
 const rows=ref([])
 const columns=ref([])
-async function reload(){ const params=[{name:'clave_cuenta',type:'C',value:String(filters.value.cuenta||'')}]; try{ const data=await execute(OP_LIST,BASE_DB,params); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; columns.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; columns.value=[] } }
+async function reload(){ const params=[{nombre:'clave_cuenta',tipo:'string',valor:String(filters.value.cuenta||'')}]; try{ const data=await execute(OP_LIST,BASE_DB,params,'',null,'multas_reglamentos'); const arr=Array.isArray(data?.result)?data.result:Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; columns.value=arr.length?Object.keys(arr[0]):[] }catch(e){ rows.value=[]; columns.value=[]; console.error('Error:',e) } }
 reload()
 </script>
 

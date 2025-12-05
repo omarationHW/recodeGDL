@@ -1177,7 +1177,7 @@ const menuItems = [
           },
           {
             path: '/mercados/carga-pagos-texto',
-            label: '*** Importar Pagos desde Archivo',
+            label: '* Importar Pagos desde Archivo',
             icon: 'file-import'
           },
           // LOTE 14: Componentes de Consulta y Captura

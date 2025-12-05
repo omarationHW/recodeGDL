@@ -1049,7 +1049,7 @@ const menuItems = [
           },
           {
             path: '/mercados/reporte-general-mercados',
-            label: 'Reporte General y Estadísticas',
+            label: '--- Reporte General y Estadísticas',
             icon: 'chart-pie'
           },
           {
@@ -1099,7 +1099,7 @@ const menuItems = [
           },
           {
             path: '/mercados/estadisticas',
-            label: '*** Estadísticas de Adeudos',
+            label: '--- Estadísticas de Adeudos',
             icon: 'chart-bar'
           },
           // LOTE 11: Acceso y Gestión de Requerimientos
@@ -1297,18 +1297,18 @@ const menuItems = [
           },
           {
             path: '/mercados/pagos-loc-grl',
-            label: '*** Pagos Locales General',
+            label: '--- Pagos Locales General',
             icon: 'chart-bar'
           },
           // LOTE 19: Condonaciones y Prescripción
           {
             path: '/mercados/prescripcion',
-            label: '*** Prescripción de Adeudos',
+            label: '--- Prescripción de Adeudos',
             icon: 'hourglass-end'
           },
           {
             path: '/mercados/rep-adeud-cond',
-            label: '*** Reporte Adeudos Condonados',
+            label: '--- Reporte Adeudos Condonados',
             icon: 'list-ul'
           },
           // LOTE 20: Reportes de Adeudos
@@ -1345,17 +1345,17 @@ const menuItems = [
           // LOTE 21: Reportes de Emisión
           {
             path: '/mercados/rpt-emision-locales',
-            label: 'BBB Reporte Emisión con Multas',
+            label: '* Reporte Emisión con Multas',
             icon: 'file-invoice'
           },
           {
             path: '/mercados/rpt-emision-rbos-abastos',
-            label: 'BBB Reporte Emisión Abastos',
+            label: '--- Reporte Emisión Abastos',
             icon: 'shopping-basket'
           },
           {
             path: '/mercados/rpt-emision-laser',
-            label: 'BBB Reporte Emisión Laser',
+            label: '--- Reporte Emisión Laser',
             icon: 'barcode'
           },
           {
@@ -1366,12 +1366,12 @@ const menuItems = [
           // LOTE 22: Reportes de Facturación
           {
             path: '/mercados/rpt-factura-emision',
-            label: 'BBB Reporte Factura Emisión',
+            label: '--- Reporte Factura Emisión',
             icon: 'file-pdf'
           },
           {
             path: '/mercados/rpt-factura-energia',
-            label: 'BBB Reporte Factura Energía',
+            label: '--- Reporte Factura Energía',
             icon: 'file-contract'
           },
           {
@@ -1402,12 +1402,12 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-zonificacion',
-            label: '*** Reporte Zonificación',
+            label: '--- Reporte Zonificación',
             icon: 'map-marker-alt'
           },
           {
             path: '/mercados/rpt-movimientos',
-            label: 'BBB Reporte Movimientos',
+            label: '--- Reporte Movimientos',
             icon: 'exchange-alt'
           },
           {
@@ -1422,7 +1422,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-ingreso-zonificado',
-            label: 'BBB Reporte Ingresos por Zona',
+            label: '--- Reporte Ingresos por Zona',
             icon: 'map-marked-alt'
           },
           // LOTE 24: Reportes de Ingresos
@@ -1439,12 +1439,12 @@ const menuItems = [
           // LOTE 25: Reportes de Pagos
           {
             path: '/mercados/rpt-pagos-ano',
-            label: 'Reporte Pagos por Año',
+            label: '--- Reporte Pagos por Año',
             icon: 'calendar-alt'
           },
           {
             path: '/mercados/rpt-pagos-caja',
-            label: 'Reporte Pagos por Caja',
+            label: '--- Reporte Pagos por Caja',
             icon: 'cash-register'
           },
           {
@@ -1486,7 +1486,7 @@ const menuItems = [
           // LOTE 27: Reportes Finales y Configuración
           {
             path: '/mercados/rpt-resumen-pagos',
-            label: 'Resumen de Pagos',
+            label: '--- Resumen de Pagos',
             icon: 'file-signature'
           },
           {

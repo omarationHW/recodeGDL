@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <div class="municipal-card" v-if="!loading && rows.length > 0">
+      <div class="municipal-card" v-if="rows.length > 0">
         <div class="municipal-card-header">
           <h5>Resultados ({{ rows.length }} registros)</h5>
         </div>
@@ -58,7 +58,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="r in rows" :key="r.id_multa" class="row-hover">
+                <tr v-for="r in paginatedRows" :key="r.id_multa" class="row-hover">
                   <td><code>{{ r.id_multa }}</code></td>
                   <td>{{ r.folio }}</td>
                   <td>{{ r.anio }}</td>
@@ -80,27 +80,69 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination Controls -->
+          <div v-if="rows.length > 0" class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #dee2e6;">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
+              </span>
+            </div>
+            <div class="pagination-controls" style="display: flex; gap: 0.5rem;">
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === 1"
+                @click="goToPage(1)"
+                style="padding: 0.5rem 0.75rem;">
+                <font-awesome-icon icon="angles-left" />
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === 1"
+                @click="prevPage"
+                style="padding: 0.5rem 0.75rem;">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500;">
+                Página {{ currentPage }} de {{ totalPages }}
+              </span>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === totalPages"
+                @click="nextPage"
+                style="padding: 0.5rem 0.75rem;">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)"
+                style="padding: 0.5rem 0.75rem;">
+                <font-awesome-icon icon="angles-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="municipal-card" v-if="!loading && rows.length === 0 && searched">
+      <div class="municipal-card" v-else-if="rows.length === 0 && searched">
         <div class="municipal-card-body">
           <p class="text-center text-muted">No se encontraron resultados para la búsqueda.</p>
         </div>
       </div>
+    </div>
 
-      <div class="municipal-card" v-if="loading">
-        <div class="municipal-card-body text-center">
-          <div class="spinner-border"></div>
-          <p>Cargando datos...</p>
-        </div>
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const { loading, execute } = useApi()
@@ -110,9 +152,26 @@ const OP = 'RECAUDADORA_MULTASFRM'
 const filters = ref({ q: '' })
 const rows = ref([])
 const searched = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// Computed properties para paginación
+const totalPages = computed(() => Math.ceil(rows.value.length / pageSize.value))
+
+const startIndex = computed(() => (currentPage.value - 1) * pageSize.value)
+
+const endIndex = computed(() => {
+  const end = startIndex.value + pageSize.value
+  return end > rows.value.length ? rows.value.length : end
+})
+
+const paginatedRows = computed(() => {
+  return rows.value.slice(startIndex.value, endIndex.value)
+})
 
 async function reload() {
   try {
+    currentPage.value = 1
     searched.value = true
     const data = await execute(OP, BASE_DB, [
       { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
@@ -122,6 +181,25 @@ async function reload() {
   } catch (e) {
     rows.value = []
     console.error('Error al cargar datos:', e)
+  }
+}
+
+// Funciones de paginación
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
 }
 

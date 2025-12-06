@@ -41,14 +41,9 @@
       <div class="municipal-card">
         <div class="municipal-card-header">
           <h5>Resultados ({{ totalRecords }} registros)</h5>
-          <div v-if="loading" class="spinner-border"></div>
         </div>
 
         <div class="municipal-card-body table-container">
-          <!-- Mensaje de carga -->
-          <div v-if="loading" class="alert alert-info">
-            Cargando datos...
-          </div>
 
           <!-- Tabla de datos -->
           <div v-if="!loading && rows.length > 0" class="table-responsive">
@@ -107,6 +102,13 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>

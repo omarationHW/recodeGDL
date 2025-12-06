@@ -36,6 +36,26 @@
         </div>
       </div>
 
+      <!-- Error Message -->
+      <div class="municipal-card" v-if="errorMessage">
+        <div class="municipal-card-body">
+          <div class="alert-danger">
+            <font-awesome-icon icon="times-circle"/>
+            <strong>{{ errorMessage }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Message -->
+      <div class="municipal-card" v-if="successMessage">
+        <div class="municipal-card-body">
+          <div class="alert-success">
+            <font-awesome-icon icon="check-circle"/>
+            <strong>{{ successMessage }}</strong>
+          </div>
+        </div>
+      </div>
+
       <div class="municipal-card" v-if="ligaGenerada">
         <div class="municipal-card-header">
           <h5>Liga de Pago Generada</h5>
@@ -56,6 +76,13 @@
         </div>
       </div>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -70,11 +97,19 @@ const { loading, execute } = useApi()
 const filters = ref({ tramite: '' })
 const ligaGenerada = ref('')
 const datosTramite = ref(null)
+const errorMessage = ref('')
+const successMessage = ref('')
 
 async function generar() {
   if (!filters.value.tramite) {
     return
   }
+
+  // Limpiar mensajes previos
+  errorMessage.value = ''
+  successMessage.value = ''
+  ligaGenerada.value = ''
+  datosTramite.value = null
 
   const params = [
     { nombre: 'p_tramite', tipo: 'string', valor: String(filters.value.tramite || '') }
@@ -95,15 +130,20 @@ async function generar() {
           mensaje: resultado.mensaje
         }
       } else {
-        alert(resultado.mensaje || 'No se pudo generar la liga de pago')
-        ligaGenerada.value = ''
-        datosTramite.value = null
+        errorMessage.value = resultado.mensaje || 'No se pudo generar la liga de pago'
       }
+    } else {
+      errorMessage.value = 'No se encontraron datos para el trámite solicitado'
     }
   } catch (e) {
     console.error('Error generando liga:', e)
-    ligaGenerada.value = ''
-    datosTramite.value = null
+    const errorMsg = e?.message || ''
+    // Si el error es de tipo SQL o de validación, mostrar mensaje amigable
+    if (errorMsg.includes('invalid input syntax') || errorMsg.includes('SQLSTATE') || errorMsg.includes('ERROR:')) {
+      errorMessage.value = 'No se encontraron datos para el trámite solicitado'
+    } else {
+      errorMessage.value = errorMsg || 'Error al generar la liga de pago'
+    }
   }
 }
 
@@ -115,7 +155,11 @@ function formatMoney(value) {
 function copiarLiga() {
   if (ligaGenerada.value) {
     navigator.clipboard.writeText(ligaGenerada.value)
-    alert('Liga copiada al portapapeles')
+    successMessage.value = 'Liga copiada al portapapeles'
+    // Limpiar mensaje después de 3 segundos
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
   }
 }
 </script>
@@ -145,5 +189,29 @@ function copiarLiga() {
 
 .mb-3 {
   margin-bottom: 1rem;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 16px;
+  color: #721c24;
+}
+
+.alert-danger svg {
+  margin-right: 8px;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  padding: 16px;
+  color: #155724;
+}
+
+.alert-success svg {
+  margin-right: 8px;
 }
 </style>

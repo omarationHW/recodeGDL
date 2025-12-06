@@ -26,19 +26,61 @@
                 <tr><th v-for="c in cols" :key="c">{{ c }}</th></tr>
               </thead>
               <tbody>
-                <tr v-for="(r,i) in rows" :key="i">
+                <tr v-for="(r,i) in paginatedRows" :key="i">
                   <td v-for="c in cols" :key="c">{{ r[c] }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div class="pagination-container" v-if="totalPages > 1">
+            <button
+              class="btn-pagination"
+              @click="currentPage = 1"
+              :disabled="currentPage === 1"
+            >
+              Primera
+            </button>
+            <button
+              class="btn-pagination"
+              @click="currentPage--"
+              :disabled="currentPage === 1"
+            >
+              Anterior
+            </button>
+            <span class="pagination-info">
+              Página {{ currentPage }} de {{ totalPages }}
+            </span>
+            <button
+              class="btn-pagination"
+              @click="currentPage++"
+              :disabled="currentPage === totalPages"
+            >
+              Siguiente
+            </button>
+            <button
+              class="btn-pagination"
+              @click="currentPage = totalPages"
+              :disabled="currentPage === totalPages"
+            >
+              Última
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const { loading, execute } = useApi()
@@ -51,6 +93,18 @@ const filters = ref({
 
 const rows = ref([])
 const cols = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 10
+
+const totalPages = computed(() => {
+  return Math.ceil(rows.value.length / itemsPerPage)
+})
+
+const paginatedRows = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return rows.value.slice(start, end)
+})
 
 async function generar() {
   try {
@@ -69,6 +123,7 @@ async function generar() {
 
     rows.value = arr
     cols.value = arr.length ? Object.keys(arr[0]) : []
+    currentPage.value = 1
   } catch (e) {
     console.error('Error al generar reporte:', e)
     rows.value = []

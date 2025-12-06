@@ -61,11 +61,12 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <div v-if="loading" class="text-center">
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Generando...</span>
-        </div>
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>

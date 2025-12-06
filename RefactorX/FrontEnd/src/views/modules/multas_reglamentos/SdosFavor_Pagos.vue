@@ -33,7 +33,6 @@
       <div class="municipal-card">
         <div class="municipal-card-header">
           <h5>Pagos ({{ rows.length }} registros)</h5>
-          <div v-if="loading" class="spinner-border"></div>
         </div>
 
         <div class="municipal-card-body table-container" v-if="!loading">
@@ -99,6 +98,13 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>

@@ -64,6 +64,13 @@
       @close="closeModal"
       @confirm="closeModal"
     />
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 

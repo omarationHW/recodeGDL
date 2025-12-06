@@ -86,6 +86,13 @@
         </div>
       </div>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -103,7 +110,7 @@ const filters = ref({ q: '' })
 const rows = ref([])
 const columns = ref([])
 const currentPage = ref(1)
-const pageSize = ref(15)
+const pageSize = ref(10)
 const totalRecords = ref(0)
 
 const totalPages = computed(() => Math.ceil(totalRecords.value / pageSize.value))

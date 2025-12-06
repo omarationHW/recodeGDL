@@ -68,6 +68,13 @@
         </div>
       </div>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -133,20 +140,20 @@ async function cambiar() {
         form.value.password = ''
       } else {
         message.value = {
-          text: result.message || 'Error al cambiar el password',
+          text: 'Error al actualizar el password',
           type: 'error'
         }
       }
     } else {
       message.value = {
-        text: 'No se recibió respuesta del servidor',
+        text: 'Error al actualizar el password',
         type: 'error'
       }
     }
   } catch (e) {
     console.error('Error al cambiar password:', e)
     message.value = {
-      text: 'Error al cambiar el password. Intente nuevamente.',
+      text: 'Error al actualizar el password',
       type: 'error'
     }
   }

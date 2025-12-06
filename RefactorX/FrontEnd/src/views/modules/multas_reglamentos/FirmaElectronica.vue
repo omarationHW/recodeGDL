@@ -36,29 +36,59 @@
         </div>
       </div>
 
-      <div class="municipal-card" v-if="resultado && !loading">
+      <!-- Results table -->
+      <div v-if="resultado" class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="file-signature" /> Resultado de Firma</h5>
+          <h5>
+            <font-awesome-icon :icon="resultado.success ? 'check-circle' : 'exclamation-circle'" />
+            Resultado de la Firma
+          </h5>
         </div>
         <div class="municipal-card-body">
-          <div v-if="resultado.success" class="alert alert-success">
-            <strong>✅ {{ resultado.message }}</strong>
-            <div class="mt-2" v-if="resultado.folio">
-              <p><strong>Folio:</strong> {{ resultado.folio }}</p>
-              <p><strong>Fecha:</strong> {{ resultado.fecha_firma }}</p>
-              <p><strong>Usuario:</strong> {{ resultado.usuario }}</p>
-            </div>
-          </div>
-          <div v-else class="alert alert-warning">
-            <strong>⚠️ {{ resultado.message }}</strong>
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Campo</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Estado</strong></td>
+                  <td>
+                    <span :class="'badge badge-' + (resultado.success ? 'success' : 'danger')">
+                      {{ resultado.success ? 'Exitoso' : 'Error' }}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Mensaje</strong></td>
+                  <td>{{ resultado.message }}</td>
+                </tr>
+                <tr v-if="resultado.folio">
+                  <td><strong>Folio</strong></td>
+                  <td><code>{{ resultado.folio }}</code></td>
+                </tr>
+                <tr v-if="resultado.fecha_firma">
+                  <td><strong>Fecha de Firma</strong></td>
+                  <td>{{ resultado.fecha_firma }}</td>
+                </tr>
+                <tr v-if="resultado.usuario">
+                  <td><strong>Usuario</strong></td>
+                  <td>{{ resultado.usuario }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+    </div>
 
-      <div v-if="loading" class="text-center">
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Procesando...</span>
-        </div>
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>
@@ -76,8 +106,16 @@ const jsonPayload = ref('')
 const resultado = ref(null)
 
 async function firmar() {
+  resultado.value = null // Limpiar resultado anterior
+
   if (!jsonPayload.value) {
-    alert('Por favor ingrese los datos JSON')
+    resultado.value = {
+      success: false,
+      message: 'Por favor ingrese los datos JSON',
+      folio: null,
+      fecha_firma: null,
+      usuario: null
+    }
     return
   }
 
@@ -89,43 +127,31 @@ async function firmar() {
 
     // Extraer el resultado del SP
     const result = data?.result?.[0] || data?.[0] || {}
-    resultado.value = result
 
+    // Mostrar resultado en tabla
+    resultado.value = {
+      success: result.success || false,
+      message: result.message || 'Error al procesar la firma',
+      folio: result.folio || null,
+      fecha_firma: result.fecha_firma || null,
+      usuario: result.usuario || null
+    }
+
+    // Limpiar el formulario si fue exitoso
     if (result.success) {
-      alert(`✅ ${result.message}\n\nFolio: ${result.folio || 'N/A'}\nFecha: ${result.fecha_firma || 'N/A'}`)
-    } else {
-      alert(`⚠️ ${result.message || 'Error al procesar la firma'}`)
+      jsonPayload.value = ''
     }
   } catch (e) {
     console.error('Error al firmar:', e)
-    alert('❌ Error al procesar firma: ' + (e.message || 'Error desconocido'))
-    resultado.value = null
+    resultado.value = {
+      success: false,
+      message: 'Error al procesar firma: ' + (e.message || 'Error desconocido'),
+      folio: null,
+      fecha_firma: null,
+      usuario: null
+    }
   }
 }
 </script>
-
-<style scoped>
-.alert {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-warning {
-  background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
-  color: #856404;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-</style>
 
 

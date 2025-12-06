@@ -35,6 +35,61 @@
           </div>
         </div>
       </div>
+
+      <!-- Results table -->
+      <div v-if="resultado" class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon :icon="resultado.success ? 'check-circle' : 'exclamation-circle'" />
+            Resultado de la Operación
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Campo</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Estado</strong></td>
+                  <td>
+                    <span :class="'badge badge-' + (resultado.success ? 'success' : 'danger')">
+                      {{ resultado.success ? 'Exitoso' : 'Error' }}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Mensaje</strong></td>
+                  <td>{{ resultado.message }}</td>
+                </tr>
+                <tr v-if="resultado.folio">
+                  <td><strong>Folio</strong></td>
+                  <td><code>{{ resultado.folio }}</code></td>
+                </tr>
+                <tr v-if="resultado.ejecutor">
+                  <td><strong>Ejecutor</strong></td>
+                  <td>{{ resultado.ejecutor }}</td>
+                </tr>
+                <tr v-if="resultado.fecha_entrega">
+                  <td><strong>Fecha de Entrega</strong></td>
+                  <td>{{ resultado.fecha_entrega }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
     </div>
   </div>
 </template>
@@ -49,8 +104,11 @@ const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_ENTREGAFRM'
 
 const jsonPayload = ref('')
+const resultado = ref(null)
 
 async function guardar() {
+  resultado.value = null // Limpiar resultado anterior
+
   try {
     const params = [
       { nombre: 'datos', tipo: 'string', valor: jsonPayload.value }
@@ -60,15 +118,28 @@ async function guardar() {
     // Extraer el resultado del SP
     const result = data?.result?.[0] || data?.[0] || {}
 
+    // Mostrar resultado en tabla
+    resultado.value = {
+      success: result.success || false,
+      message: result.message || 'Error al procesar la entrega',
+      folio: result.folio || null,
+      ejecutor: result.ejecutor || null,
+      fecha_entrega: result.fecha_entrega || null
+    }
+
+    // Limpiar el formulario si fue exitoso
     if (result.success) {
-      alert(`✅ ${result.message}\n\nFolio: ${result.folio}\nEjecutor: ${result.ejecutor}\nFecha: ${result.fecha_entrega}`)
       jsonPayload.value = ''
-    } else {
-      alert(`❌ ${result.message || 'Error al procesar la entrega'}`)
     }
   } catch (e) {
     console.error('Error al guardar:', e)
-    alert('❌ Error al guardar los datos: ' + (e.message || 'Error desconocido'))
+    resultado.value = {
+      success: false,
+      message: 'Error al guardar los datos: ' + (e.message || 'Error desconocido'),
+      folio: null,
+      ejecutor: null,
+      fecha_entrega: null
+    }
   }
 }
 </script>

@@ -120,12 +120,12 @@
           </p>
         </div>
       </div>
+    </div>
 
-      <div class="municipal-card" v-if="loading">
-        <div class="municipal-card-body text-center">
-          <div class="spinner-border"></div>
-          <p>Cargando datos...</p>
-        </div>
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>

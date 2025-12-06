@@ -91,7 +91,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="mov in movimientos" :key="mov.id_local + '-' + mov.numero_memo" class="row-hover">
+                <tr v-for="mov in paginatedMovimientos" :key="mov.id_local + '-' + mov.numero_memo" class="row-hover">
                   <td>{{ mov.id_local }}</td>
                   <td>{{ mov.axo_memo }}</td>
                   <td>{{ mov.numero_memo }}</td>
@@ -111,6 +111,44 @@
                 </tr>
               </tbody>
             </table>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </div>
+              <div class="pagination-controls">
+                <label class="me-2">Registros por página:</label>
+                <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                  <option :value="250">250</option>
+                </select>
+              </div>
+              <div class="pagination-buttons">
+                <button @click="goToPage(1)" :disabled="currentPage === 1" title="Primera página">
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+                <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" title="Página anterior">
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+                <button v-for="page in visiblePages" :key="page"
+                  :class="page === currentPage ? 'active' : ''"
+                  @click="goToPage(page)">
+                  {{ page }}
+                </button>
+                <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" title="Página siguiente">
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+                <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages" title="Última página">
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
+              </div>
+            </div>
           </div>
 
           <div v-else-if="searched" class="text-center text-muted py-4">
@@ -135,7 +173,7 @@
                 Claves de Movimiento
               </h5>
               <div class="header-right">
-                <span class="badge-green" v-if="clavesMov.length > 0">
+                <span class="badge-success" v-if="clavesMov.length > 0">
                   {{ clavesMov.length }}
                 </span>
               </div>
@@ -159,7 +197,7 @@
                 Claves de Cuota
               </h5>
               <div class="header-right">
-                <span class="badge-green" v-if="cveCuotas.length > 0">
+                <span class="badge-success" v-if="cveCuotas.length > 0">
                   {{ cveCuotas.length }}
                 </span>
               </div>
@@ -190,8 +228,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const id_local = ref('')
@@ -200,6 +241,40 @@ const clavesMov = ref([])
 const cveCuotas = ref([])
 const searched = ref(false)
 const loading = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecords = computed(() => movimientos.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedMovimientos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return movimientos.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
 
 // Toast
 const toast = ref({ show: false, type: 'info', message: '' })
@@ -260,6 +335,7 @@ const fetchMovimientos = async () => {
   }
 
   loading.value = true
+  showLoading()
   searched.value = false
 
   try {
@@ -305,6 +381,7 @@ const fetchMovimientos = async () => {
 
     movimientos.value = movs
     searched.value = true
+    currentPage.value = 1
 
     if (movs.length > 0) {
       showToast('success', `Se encontraron ${movs.length} movimientos`)
@@ -316,6 +393,7 @@ const fetchMovimientos = async () => {
     console.error(err)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -349,59 +427,3 @@ onMounted(() => {
   fetchCatalogs()
 })
 </script>
-
-<style scoped>
-.required {
-  color: #dc3545;
-}
-
-.empty-icon {
-  opacity: 0.25;
-  margin-bottom: 1rem;
-  color: #adb5bd;
-}
-
-.text-end {
-  text-align: right !important;
-}
-
-.text-center {
-  text-align: center !important;
-}
-
-.row-hover {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.catalog-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.catalog-list li {
-  display: flex;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.catalog-list li:last-child {
-  border-bottom: none;
-}
-
-.catalog-key {
-  font-weight: 600;
-  color: var(--municipal-primary);
-  min-width: 80px;
-  margin-right: 1rem;
-}
-
-.catalog-desc {
-  color: #6c757d;
-}
-</style>

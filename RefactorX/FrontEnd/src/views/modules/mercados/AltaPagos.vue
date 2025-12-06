@@ -258,11 +258,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
 
 const router = useRouter();
 const toast = useToast();
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Estados
 const loading = ref(false);
@@ -309,7 +311,7 @@ onMounted(async () => {
 // Fetch Recaudadoras
 async function fetchRecaudadoras() {
   try {
-    loading.value = true;
+    showLoading('Cargando recaudadoras...', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
@@ -324,7 +326,7 @@ async function fetchRecaudadoras() {
   } catch (error) {
     toast.error('Error al cargar recaudadoras: ' + error.message);
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 
@@ -337,7 +339,7 @@ async function onRecChange() {
 
   let p_nivel_usuario = 1; // Obtener de sesión si es necesario
   try {
-    loading.value = true;
+    showLoading('Cargando mercados...', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_catalogo_mercados',
@@ -355,14 +357,14 @@ async function onRecChange() {
   } catch (error) {
     toast.error('Error al cargar mercados: ' + error.message);
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 
 // Fetch Secciones
 async function fetchSecciones() {
   try {
-    loading.value = true;
+    showLoading('Cargando secciones...', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_secciones',
@@ -377,7 +379,7 @@ async function fetchSecciones() {
   } catch (error) {
     toast.error('Error al cargar secciones: ' + error.message);
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 
@@ -398,7 +400,7 @@ async function buscarLocal() {
   }
 
   try {
-    loading.value = true;
+    showLoading('Buscando local...', 'Por favor espere');
     errorBusqueda.value = '';
     localEncontrado.value = null;
 
@@ -434,7 +436,7 @@ async function buscarLocal() {
     errorBusqueda.value = 'Error al buscar el local';
     toast.error('Error al buscar local: ' + error.message);
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 
@@ -443,6 +445,7 @@ async function cargarAdeudos() {
   if (!localEncontrado.value) return;
 
   try {
+    showLoading('Cargando adeudos...', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_alta_pagos_listar_adeudos',
@@ -459,6 +462,8 @@ async function cargarAdeudos() {
     }
   } catch (error) {
     console.error('Error al cargar adeudos:', error);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -485,7 +490,7 @@ async function verificarYAgregar() {
 
   // Primero verificar si ya existe el pago
   try {
-    loading.value = true;
+    showLoading('Verificando pago...', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_alta_pagos_consultar_pago',
@@ -510,14 +515,14 @@ async function verificarYAgregar() {
   } catch (error) {
     toast.error('Error al verificar pago: ' + error.message);
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 
 // Agregar pago
 async function agregarPago() {
   try {
-    loading.value = true;
+    showLoading('Agregando pago...', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_alta_pagos_agregar',
@@ -546,7 +551,7 @@ async function agregarPago() {
   } catch (error) {
     toast.error('Error al agregar pago: ' + error.message);
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 
@@ -558,7 +563,7 @@ async function verificarYModificar() {
   }
 
   try {
-    loading.value = true;
+    showLoading('Modificando pago...', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_alta_pagos_modificar',
@@ -585,7 +590,7 @@ async function verificarYModificar() {
   } catch (error) {
     toast.error('Error al modificar pago: ' + error.message);
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 
@@ -637,37 +642,3 @@ function cerrar() {
   router.push('/');
 }
 </script>
-
-<style scoped>
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  flex: 1;
-  min-width: 200px;
-  display: flex;
-  flex-direction: column;
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 0.25rem;
-  margin-bottom: 1rem;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-  color: #155724;
-}
-
-.alert-warning {
-  background-color: #fff3cd;
-  border-color: #ffeeba;
-  color: #856404;
-}
-</style>

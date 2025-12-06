@@ -54,8 +54,8 @@
             Listado de Cuotas
           </h5>
           <div class="header-right">
-            <span class="badge-purple" v-if="cuotas.length > 0">
-              {{ cuotas.length }} registros
+            <span class="badge-purple" v-if="paginatedCuotas.length > 0">
+              {{ totalRecords }} registros
             </span>
           </div>
         </div>
@@ -67,42 +67,81 @@
             <p class="mt-3 text-muted">Cargando cuotas...</p>
           </div>
 
-          <div v-else-if="cuotas.length > 0" class="table-responsive">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr>
-                  <th>Año</th>
-                  <th>Categoría</th>
-                  <th>Sección</th>
-                  <th>Clave Cuota</th>
-                  <th>Descripción</th>
-                  <th class="text-end">Importe</th>
-                  <th>Fecha Alta</th>
-                  <th>Usuario</th>
-                  <th class="text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="cuota in cuotas" :key="cuota.id_cuotas" class="row-hover">
-                  <td>{{ cuota.axo }}</td>
-                  <td>{{ cuota.categoria }}</td>
-                  <td>{{ cuota.seccion }}</td>
-                  <td>{{ cuota.clave_cuota }}</td>
-                  <td>{{ cuota.descripcion }}</td>
-                  <td class="text-end">{{ formatCurrency(cuota.importe_cuota) }}</td>
-                  <td>{{ formatDate(cuota.fecha_alta) }}</td>
-                  <td>{{ cuota.usuario }}</td>
-                  <td class="text-center">
-                    <button class="btn-municipal-warning btn-sm me-1" @click="editCuota(cuota)" title="Editar">
-                      <font-awesome-icon icon="edit" />
-                    </button>
-                    <button class="btn-municipal-danger btn-sm" @click="deleteCuota(cuota)" title="Eliminar">
-                      <font-awesome-icon icon="trash" />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div v-else-if="cuotas.length > 0">
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th>Año</th>
+                    <th>Categoría</th>
+                    <th>Sección</th>
+                    <th>Clave Cuota</th>
+                    <th>Descripción</th>
+                    <th class="text-end">Importe</th>
+                    <th>Fecha Alta</th>
+                    <th>Usuario</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="cuota in paginatedCuotas" :key="cuota.id_cuotas" class="row-hover">
+                    <td>{{ cuota.axo }}</td>
+                    <td>{{ cuota.categoria }}</td>
+                    <td>{{ cuota.seccion }}</td>
+                    <td>{{ cuota.clave_cuota }}</td>
+                    <td>{{ cuota.descripcion }}</td>
+                    <td class="text-end">{{ formatCurrency(cuota.importe_cuota) }}</td>
+                    <td>{{ formatDate(cuota.fecha_alta) }}</td>
+                    <td>{{ cuota.usuario }}</td>
+                    <td class="text-center">
+                      <button class="btn-municipal-warning btn-sm me-1" @click="editCuota(cuota)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button class="btn-municipal-danger btn-sm" @click="deleteCuota(cuota)" title="Eliminar">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="municipal-pagination">
+              <div class="pagination-info">
+                Mostrando {{ startRecord }} a {{ endRecord }} de {{ totalRecords }} registros
+              </div>
+              <div class="pagination-controls">
+                <button
+                  class="btn-pagination"
+                  @click="previousPage"
+                  :disabled="currentPage === 1"
+                >
+                  <font-awesome-icon icon="chevron-left" />
+                  Anterior
+                </button>
+                <span class="pagination-page">
+                  Página {{ currentPage }} de {{ totalPages }}
+                </span>
+                <button
+                  class="btn-pagination"
+                  @click="nextPage"
+                  :disabled="currentPage === totalPages"
+                >
+                  Siguiente
+                  <font-awesome-icon icon="chevron-right" />
+                </button>
+              </div>
+              <div class="pagination-size">
+                <label>Registros por página:</label>
+                <select v-model.number="pageSize" class="form-select-sm">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div v-else class="text-center text-muted py-4">
@@ -114,105 +153,108 @@
     </div>
 
     <!-- Modal Crear/Editar -->
-    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-container">
-        <div class="modal-header">
-          <h5>
-            <font-awesome-icon :icon="showEdit ? 'edit' : 'plus-circle'" />
-            {{ showEdit ? 'Editar Cuota' : 'Agregar Cuota' }}
-          </h5>
-          <button class="modal-close" @click="closeModal">
+    <Modal
+      :show="showModal"
+      :title="showEdit ? 'Editar Cuota' : 'Agregar Cuota'"
+      size="lg"
+      @close="closeModal"
+    >
+      <template #header>
+        <h5 class="modal-title">
+          <font-awesome-icon :icon="showEdit ? 'edit' : 'plus-circle'" />
+          {{ showEdit ? 'Editar Cuota' : 'Agregar Cuota' }}
+        </h5>
+      </template>
+
+      <form @submit.prevent="showEdit ? updateCuota() : createCuota()">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Año <span class="required">*</span></label>
+            <input type="number" v-model.number="form.axo" class="municipal-form-control" required min="2000" max="2100" />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Categoría <span class="required">*</span></label>
+            <select v-model="form.categoria" class="municipal-form-control" required>
+              <option value="">Seleccione...</option>
+              <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                {{ cat.categoria }} - {{ cat.descripcion }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Sección <span class="required">*</span></label>
+            <select v-model="form.seccion" class="municipal-form-control" required>
+              <option value="">Seleccione...</option>
+              <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">
+                {{ sec.seccion }} - {{ sec.descripcion }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Clave Cuota <span class="required">*</span></label>
+            <select v-model="form.clave_cuota" class="municipal-form-control" required>
+              <option value="">Seleccione...</option>
+              <option v-for="cve in clavesCuota" :key="cve.clave_cuota" :value="cve.clave_cuota">
+                {{ cve.clave_cuota }} - {{ cve.descripcion }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Importe <span class="required">*</span></label>
+            <input type="number" v-model.number="form.importe_cuota" class="municipal-form-control" required min="0.01" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Usuario <span class="required">*</span></label>
+            <input type="number" v-model.number="form.id_usuario" class="municipal-form-control" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-municipal-secondary" @click="closeModal">
             <font-awesome-icon icon="times" />
+            Cancelar
+          </button>
+          <button type="submit" class="btn-municipal-primary" :disabled="saving">
+            <font-awesome-icon :icon="saving ? 'spinner' : 'save'" :spin="saving" />
+            {{ showEdit ? 'Actualizar' : 'Guardar' }}
           </button>
         </div>
-        <div class="modal-body">
-          <form @submit.prevent="showEdit ? updateCuota() : createCuota()">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Año <span class="required">*</span></label>
-                <input type="number" v-model.number="form.axo" class="municipal-form-control" required min="2000" max="2100" />
-              </div>
-              <div class="form-group">
-                <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <select v-model="form.categoria" class="municipal-form-control" required>
-                  <option value="">Seleccione...</option>
-                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
-                    {{ cat.categoria }} - {{ cat.descripcion }}
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Sección <span class="required">*</span></label>
-                <select v-model="form.seccion" class="municipal-form-control" required>
-                  <option value="">Seleccione...</option>
-                  <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">
-                    {{ sec.seccion }} - {{ sec.descripcion }}
-                  </option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="municipal-form-label">Clave Cuota <span class="required">*</span></label>
-                <select v-model="form.clave_cuota" class="municipal-form-control" required>
-                  <option value="">Seleccione...</option>
-                  <option v-for="cve in clavesCuota" :key="cve.clave_cuota" :value="cve.clave_cuota">
-                    {{ cve.clave_cuota }} - {{ cve.descripcion }}
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Importe <span class="required">*</span></label>
-                <input type="number" v-model.number="form.importe_cuota" class="municipal-form-control" required min="0.01" step="0.01" />
-              </div>
-              <div class="form-group">
-                <label class="municipal-form-label">Usuario <span class="required">*</span></label>
-                <input type="number" v-model.number="form.id_usuario" class="municipal-form-control" required />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn-municipal-secondary" @click="closeModal">
-                <font-awesome-icon icon="times" />
-                Cancelar
-              </button>
-              <button type="submit" class="btn-municipal-primary" :disabled="saving">
-                <font-awesome-icon :icon="saving ? 'spinner' : 'save'" :spin="saving" />
-                {{ showEdit ? 'Actualizar' : 'Guardar' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
 
     <!-- Modal Confirmar Eliminación -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="closeDeleteModal">
-      <div class="modal-container modal-sm">
-        <div class="modal-header modal-header-danger">
-          <h5>
-            <font-awesome-icon icon="exclamation-triangle" />
-            Confirmar Eliminación
-          </h5>
-          <button class="modal-close" @click="closeDeleteModal">
-            <font-awesome-icon icon="times" />
-          </button>
+    <Modal
+      :show="showDeleteModal"
+      title="Confirmar Eliminación"
+      size="sm"
+      @close="closeDeleteModal"
+    >
+      <template #header>
+        <h5 class="modal-title text-danger">
+          <font-awesome-icon icon="exclamation-triangle" />
+          Confirmar Eliminación
+        </h5>
+      </template>
+
+      <div class="text-center">
+        <div class="delete-icon-wrapper">
+          <font-awesome-icon icon="trash-alt" class="delete-icon" />
         </div>
-        <div class="modal-body text-center">
-          <div class="delete-icon-wrapper">
-            <font-awesome-icon icon="trash-alt" class="delete-icon" />
-          </div>
-          <p class="delete-message">¿Está seguro de eliminar esta cuota?</p>
-          <div class="delete-details" v-if="cuotaToDelete">
-            <p><strong>Año:</strong> {{ cuotaToDelete.axo }}</p>
-            <p><strong>Categoría:</strong> {{ cuotaToDelete.categoria }}</p>
-            <p><strong>Sección:</strong> {{ cuotaToDelete.seccion }}</p>
-            <p><strong>Importe:</strong> {{ formatCurrency(cuotaToDelete.importe_cuota) }}</p>
-          </div>
-          <p class="text-muted small">Esta acción no se puede deshacer</p>
+        <p class="delete-message">¿Está seguro de eliminar esta cuota?</p>
+        <div class="delete-details" v-if="cuotaToDelete">
+          <p><strong>Año:</strong> {{ cuotaToDelete.axo }}</p>
+          <p><strong>Categoría:</strong> {{ cuotaToDelete.categoria }}</p>
+          <p><strong>Sección:</strong> {{ cuotaToDelete.seccion }}</p>
+          <p><strong>Importe:</strong> {{ formatCurrency(cuotaToDelete.importe_cuota) }}</p>
         </div>
-        <div class="modal-footer modal-footer-centered">
+        <p class="text-muted small">Esta acción no se puede deshacer</p>
+      </div>
+
+      <template #footer>
+        <div class="modal-footer-centered">
           <button type="button" class="btn-municipal-secondary" @click="closeDeleteModal">
             <font-awesome-icon icon="times" />
             Cancelar
@@ -222,23 +264,21 @@
             Eliminar
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
+import Modal from '@/components/common/Modal.vue'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const axo = ref(new Date().getFullYear())
@@ -254,6 +294,10 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 
+// Paginación
+const currentPage = ref(1)
+const pageSize = ref(25)
+
 const form = ref({
   id_cuotas: null,
   axo: new Date().getFullYear(),
@@ -264,21 +308,37 @@ const form = ref({
   id_usuario: 1
 })
 
-// Toast
-const toast = ref({ show: false, type: 'info', message: '' })
+// Computed para paginación
+const totalRecords = computed(() => cuotas.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / pageSize.value))
+const startRecord = computed(() => (currentPage.value - 1) * pageSize.value + 1)
+const endRecord = computed(() => Math.min(currentPage.value * pageSize.value, totalRecords.value))
 
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
+const paginatedCuotas = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return cuotas.value.slice(start, end)
+})
+
+// Watch para resetear página cuando cambia el tamaño
+watch(pageSize, () => {
+  currentPage.value = 1
+})
+
+// Funciones de paginación
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
 }
 
-const hideToast = () => { toast.value.show = false }
-
-const getToastIcon = (type) => {
-  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
-  return icons[type] || 'info-circle'
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
 }
 
+// Utilidades
 const formatCurrency = (val) => {
   if (val == null) return '$0.00'
   return new Intl.NumberFormat('es-MX', {
@@ -294,11 +354,13 @@ const formatDate = (val) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Administración de cuotas de mercados por año')
+  showToast('Administración de cuotas de mercados por año', 'info')
 }
 
+// API Calls
 const fetchCuotas = async () => {
   loading.value = true
+  showLoading('Cargando cuotas...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -311,16 +373,20 @@ const fetchCuotas = async () => {
     })
     if (res.data?.eResponse?.success) {
       cuotas.value = res.data.eResponse.data?.result || []
-      showToast('success', `Se encontraron ${cuotas.value.length} cuotas`)
+      currentPage.value = 1 // Reset a la primera página
+      showToast(`Se encontraron ${cuotas.value.length} cuotas`, 'success')
     }
   } catch (err) {
-    showToast('error', 'Error al cargar cuotas')
+    console.error('Error al cargar cuotas:', err)
+    showToast('Error al cargar cuotas', 'error')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
 const fetchCategorias = async () => {
+  showLoading('Cargando categorías...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -334,10 +400,14 @@ const fetchCategorias = async () => {
     }
   } catch (err) {
     console.error('Error al cargar categorías:', err)
+    showToast('Error al cargar categorías', 'error')
+  } finally {
+    hideLoading()
   }
 }
 
 const fetchSecciones = async () => {
+  showLoading('Cargando secciones...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -351,10 +421,14 @@ const fetchSecciones = async () => {
     }
   } catch (err) {
     console.error('Error al cargar secciones:', err)
+    showToast('Error al cargar secciones', 'error')
+  } finally {
+    hideLoading()
   }
 }
 
 const fetchClavesCuota = async () => {
+  showLoading('Cargando claves de cuota...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -368,9 +442,13 @@ const fetchClavesCuota = async () => {
     }
   } catch (err) {
     console.error('Error al cargar claves de cuota:', err)
+    showToast('Error al cargar claves de cuota', 'error')
+  } finally {
+    hideLoading()
   }
 }
 
+// CRUD Operations
 const openCreate = () => {
   resetForm()
   showEdit.value = false
@@ -397,6 +475,7 @@ const resetForm = () => {
 
 const createCuota = async () => {
   saving.value = true
+  showLoading('Guardando cuota...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -413,16 +492,18 @@ const createCuota = async () => {
       }
     })
     if (res.data?.eResponse?.success) {
-      showToast('success', 'Cuota creada correctamente')
+      showToast('Cuota creada correctamente', 'success')
       closeModal()
       fetchCuotas()
     } else {
-      showToast('error', res.data?.eResponse?.message || 'Error al crear cuota')
+      showToast(res.data?.eResponse?.message || 'Error al crear cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error al crear cuota')
+    console.error('Error al crear cuota:', err)
+    showToast('Error al crear cuota', 'error')
   } finally {
     saving.value = false
+    hideLoading()
   }
 }
 
@@ -434,6 +515,7 @@ const editCuota = (cuota) => {
 
 const updateCuota = async () => {
   saving.value = true
+  showLoading('Actualizando cuota...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -451,16 +533,18 @@ const updateCuota = async () => {
       }
     })
     if (res.data?.eResponse?.success) {
-      showToast('success', 'Cuota actualizada correctamente')
+      showToast('Cuota actualizada correctamente', 'success')
       closeModal()
       fetchCuotas()
     } else {
-      showToast('error', res.data?.eResponse?.message || 'Error al actualizar cuota')
+      showToast(res.data?.eResponse?.message || 'Error al actualizar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error al actualizar cuota')
+    console.error('Error al actualizar cuota:', err)
+    showToast('Error al actualizar cuota', 'error')
   } finally {
     saving.value = false
+    hideLoading()
   }
 }
 
@@ -478,6 +562,7 @@ const confirmDelete = async () => {
   if (!cuotaToDelete.value) return
 
   deleting.value = true
+  showLoading('Eliminando cuota...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -489,26 +574,34 @@ const confirmDelete = async () => {
       }
     })
     if (res.data?.eResponse?.success) {
-      showToast('success', 'Cuota eliminada correctamente')
+      showToast('Cuota eliminada correctamente', 'success')
       closeDeleteModal()
       fetchCuotas()
     } else {
-      showToast('error', res.data?.eResponse?.message || 'Error al eliminar cuota')
+      showToast(res.data?.eResponse?.message || 'Error al eliminar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error al eliminar cuota')
+    console.error('Error al eliminar cuota:', err)
+    showToast('Error al eliminar cuota', 'error')
   } finally {
     deleting.value = false
+    hideLoading()
   }
 }
 
+// Lifecycle
 onMounted(async () => {
-  await Promise.all([
-    fetchCuotas(),
-    fetchCategorias(),
-    fetchSecciones(),
-    fetchClavesCuota()
-  ])
+  showLoading('Cargando datos iniciales...', 'Por favor espere')
+  try {
+    await Promise.all([
+      fetchCuotas(),
+      fetchCategorias(),
+      fetchSecciones(),
+      fetchClavesCuota()
+    ])
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 
@@ -521,160 +614,6 @@ onMounted(async () => {
   opacity: 0.25;
   margin-bottom: 1rem;
   color: #adb5bd;
-}
-
-.text-end {
-  text-align: right !important;
-}
-
-.text-center {
-  text-align: center !important;
-}
-
-.row-hover {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-/* Modal styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-container {
-  background: #fff;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 12px 12px 0 0;
-}
-
-.modal-header h5 {
-  margin: 0;
-  font-weight: 600;
-  color: #333;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: #6c757d;
-  transition: color 0.2s;
-}
-
-.modal-close:hover {
-  color: #dc3545;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding-top: 1rem;
-  margin-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.btn-municipal-success {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-  color: white;
-  border: none;
-  padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-success:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.btn-municipal-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-  color: #212529;
-  border: none;
-  padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  border: none;
-  padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-/* Modal pequeño para confirmación */
-.modal-sm {
-  max-width: 420px;
-}
-
-.modal-header-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  border-radius: 12px 12px 0 0;
-}
-
-.modal-header-danger h5 {
-  color: white;
-}
-
-.modal-header-danger .modal-close {
-  color: white;
-}
-
-.modal-header-danger .modal-close:hover {
-  color: #f8d7da;
 }
 
 .delete-icon-wrapper {
@@ -715,8 +654,12 @@ onMounted(async () => {
 }
 
 .modal-footer-centered {
+  display: flex;
   justify-content: center;
   gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid #e9ecef;
 }
 
 .small {

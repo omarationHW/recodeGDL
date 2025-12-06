@@ -223,6 +223,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado reactivo
 const loading = ref(false);
@@ -266,6 +269,7 @@ const consultar = async () => {
   consultaRealizada.value = true;
   datos.value = [];
   currentPage.value = 1;
+  showLoading('Consultando datos', 'Por favor espere')
 
   try {
     const response = await axios.post('/api/generic', {
@@ -296,6 +300,7 @@ const consultar = async () => {
     showToast('Error al consultar', 'error');
   } finally {
     loading.value = false;
+    hideLoading()
   }
 };
 
@@ -359,138 +364,3 @@ const getToastIcon = () => {
   return icons[toast.value.type] || 'info-circle';
 };
 </script>
-
-<style scoped>
-/* Estilos de impresión */
-@media print {
-  .module-view-header,
-  .municipal-card-header,
-  .pagination-container,
-  .button-group {
-    display: none !important;
-  }
-  
-  .municipal-table {
-    font-size: 10px;
-  }
-  
-  .sticky-header {
-    position: static !important;
-  }
-}
-
-/* Tabla con encabezado fijo */
-.sticky-header {
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  z-index: 10;
-}
-
-.table-container {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-/* Estados vacíos */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-/* Efectos hover */
-.row-hover:hover {
-  background-color: #f0f8ff;
-  cursor: pointer;
-}
-
-/* Header con badge */
-.header-with-badge {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-right {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Paginación */
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  padding: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.pagination-controls label {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.pagination-controls select {
-  width: auto;
-}
-
-.pagination-buttons {
-  display: flex;
-  align-items: center;
-}
-
-/* Notificaciones Toast */
-.toast-notification {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  padding: 1rem 1.5rem;
-  border-radius: 0.5rem;
-  background-color: #fff;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  z-index: 9999;
-  animation: slideIn 0.3s ease-out;
-}
-
-.toast-success {
-  border-left: 4px solid #28a745;
-}
-
-.toast-error {
-  border-left: 4px solid #dc3545;
-}
-
-.toast-warning {
-  border-left: 4px solid #ffc107;
-}
-
-.toast-info {
-  border-left: 4px solid #17a2b8;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-</style>

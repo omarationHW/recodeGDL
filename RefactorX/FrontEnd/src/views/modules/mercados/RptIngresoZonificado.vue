@@ -77,23 +77,37 @@
           <!-- Paginación -->
           <div class="pagination-container">
             <div class="pagination-info">
-              <label>Mostrar:</label>
-              <select v-model.number="pageSize" class="municipal-form-control pagination-select">
+              Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}
+              a {{ Math.min(currentPage * pageSize, totalRecords) }}
+              de {{ totalRecords }} registros
+            </div>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="pageSize" class="form-select form-select-sm">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
                 <option :value="100">100</option>
                 <option :value="250">250</option>
               </select>
-              <span>registros por página</span>
             </div>
-            <div class="pagination-controls">
-              <button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+            <div class="pagination-buttons">
+              <button @click="goToPage(1)" :disabled="currentPage === 1" title="Primera página">
+                <font-awesome-icon icon="angle-double-left" />
               </button>
-              <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+              <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" title="Página anterior">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+              <button v-for="page in visiblePages" :key="page"
+                :class="page === currentPage ? 'active' : ''"
+                @click="goToPage(page)">
+                {{ page }}
+              </button>
+              <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" title="Página siguiente">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+              <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages" title="Última página">
+                <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
           </div>
@@ -111,12 +125,24 @@
         <font-awesome-icon icon="exclamation-triangle" /> No se encontraron registros para el período seleccionado.
       </div>
     </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({
   fecdesde: '',
@@ -129,20 +155,62 @@ const busquedaRealizada = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(25);
 
+// Toast
+const toast = ref({ show: false, type: 'info', message: '' })
+
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => hideToast(), 5000)
+}
+
+const hideToast = () => { toast.value.show = false }
+
+const getToastIcon = (type) => {
+  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
+  return icons[type] || 'info-circle'
+}
+
+// Paginación
+const totalRecords = computed(() => results.value.length)
 const totalPages = computed(() => Math.ceil(results.value.length / pageSize.value) || 1);
+
 const paginatedResults = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
   return results.value.slice(start, start + pageSize.value);
 });
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
+
 const totalIngreso = computed(() => results.value.reduce((sum, r) => sum + (parseFloat(r.pagado) || 0), 0));
 
 const consultar = async () => {
   if (!filters.value.fecdesde || !filters.value.fechasta) {
-    alert('Por favor complete todos los filtros requeridos');
+    showToast('warning', 'Por favor complete todos los filtros requeridos');
     return;
   }
 
   loading.value = true;
+  showLoading()
   busquedaRealizada.value = false;
   try {
     const response = await axios.post('/api/generic', {
@@ -159,16 +227,24 @@ const consultar = async () => {
       results.value = response.data.eResponse.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
+      if (results.value.length > 0) {
+        showToast('success', `Se encontraron ${results.value.length} zonas con ingresos`)
+      } else {
+        showToast('info', 'No se encontraron registros para el período seleccionado')
+      }
     } else {
       results.value = [];
       busquedaRealizada.value = true;
+      showToast('error', 'Error al consultar los datos')
     }
   } catch (error) {
     console.error('Error al consultar:', error);
     results.value = [];
     busquedaRealizada.value = true;
+    showToast('error', 'Error de conexión al consultar')
   } finally {
     loading.value = false;
+    hideLoading()
   }
 };
 
@@ -178,21 +254,32 @@ const formatCurrency = (value) => {
 };
 
 const exportarExcel = () => {
-  const csv = [
-    'Zona ID,Zona,Ingreso',
-    ...results.value.map(r => `${r.id_zona},${r.zona},${r.pagado}`)
-  ].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `ingreso_zonificado_${filters.value.fecdesde}_${filters.value.fechasta}.csv`;
-  a.click();
-  window.URL.revokeObjectURL(url);
+  if (results.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
+  try {
+    const csv = [
+      'Zona ID,Zona,Ingreso',
+      ...results.value.map(r => `${r.id_zona},"${r.zona}",${r.pagado}`)
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ingreso_zonificado_${filters.value.fecdesde}_${filters.value.fechasta}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    showToast('success', 'Archivo exportado exitosamente')
+  } catch (err) {
+    console.error('Error al exportar:', err)
+    showToast('error', 'Error al exportar el archivo')
+  }
 };
 
 const mostrarAyuda = () => {
-  alert('Reporte de Ingreso Zonificado\n\nSeleccione el rango de fechas para generar el reporte de ingresos por zona.');
+  showToast('info', 'Reporte de Ingreso Zonificado - Seleccione el rango de fechas para generar el reporte de ingresos por zona.');
 };
 
 onMounted(() => {
@@ -203,7 +290,3 @@ onMounted(() => {
   filters.value.fechasta = today.toISOString().split('T')[0];
 });
 </script>
-
-<style scoped>
-@import '@/styles/municipal-theme.css';
-</style>

@@ -14,7 +14,7 @@
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
-        <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
+        <button class="btn-municipal-primary" @click="fetchData">
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
@@ -36,15 +36,8 @@
           </h5>
         </div>
         <div class="municipal-card-body">
-          <!-- Loading -->
-          <div v-if="loading" class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Cargando...</span>
-            </div>
-          </div>
-
           <!-- Tabla -->
-          <div v-else-if="rows.length > 0" class="table-responsive">
+          <div v-if="rows.length > 0" class="table-responsive">
             <table class="municipal-table">
               <thead>
                 <tr>
@@ -81,42 +74,35 @@
       </div>
     </div>
 
-    <!-- Modal Crear/Editar -->
-    <div v-if="showFormModal" class="modal fade show d-block" tabindex="-1">
-      <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
-              {{ formMode === 'create' ? 'Agregar Categoría' : 'Modificar Categoría' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
+    <!-- Modal Crear/Editar con Modal.vue -->
+    <Modal
+      :show="showFormModal"
+      :title="formMode === 'create' ? 'Agregar Categoría' : 'Modificar Categoría'"
+      :icon="formMode === 'create' ? 'plus' : 'edit'"
+      size="sm"
+      @close="closeModal"
+    >
+      <template #body>
+        <form @submit.prevent="submitForm">
+          <div class="mb-3">
+            <label class="form-label">Código *</label>
+            <input type="number" class="form-control" v-model.number="form.categoria"
+                   required :disabled="formMode === 'update'" min="1" max="12" />
           </div>
-          <div class="modal-body">
-            <form @submit.prevent="submitForm">
-              <div class="mb-3">
-                <label class="form-label">Código *</label>
-                <input type="number" class="form-control" v-model.number="form.categoria"
-                       required :disabled="formMode === 'update'" min="1" max="12" />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Descripción *</label>
-                <input type="text" class="form-control text-uppercase" v-model="form.descripcion"
-                       required maxlength="30" />
-              </div>
-            </form>
+          <div class="mb-3">
+            <label class="form-label">Descripción *</label>
+            <input type="text" class="form-control text-uppercase" v-model="form.descripcion"
+                   required maxlength="30" />
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-            <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              Guardar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="showFormModal" class="modal-backdrop fade show"></div>
+        </form>
+      </template>
+      <template #footer>
+        <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
+        <button type="button" class="btn btn-success" @click="submitForm">
+          Guardar
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -125,31 +111,23 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+import Modal from '@/components/Modal.vue';
 
 const router = useRouter();
+const { withGlobalLoading } = useGlobalLoading();
+const { showToast } = useToast();
 
 // State
 const rows = ref([]);
 const selectedRow = ref(null);
-const loading = ref(false);
 const showFormModal = ref(false);
 const formMode = ref('create');
 const form = ref({
   categoria: '',
   descripcion: ''
 });
-
-// Toast
-const showToast = (type, message) => {
-  Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon: type,
-    title: message,
-    showConfirmButton: false,
-    timer: 3000
-  });
-};
 
 // Cerrar
 const cerrar = () => {
@@ -158,27 +136,26 @@ const cerrar = () => {
 
 // Cargar datos
 async function fetchData() {
-  loading.value = true;
-  try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+  await withGlobalLoading(async () => {
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_categoria_list',
+          Base: 'mercados',
+          Parametros: []
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      rows.value = response.data.eResponse.data.result || [];
-    } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      if (response.data?.eResponse?.success) {
+        rows.value = response.data.eResponse.data.result || [];
+      } else {
+        showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('error', 'Error al cargar categorías');
     }
-  } catch (error) {
-    console.error('Error:', error);
-    showToast('error', 'Error al cargar categorías');
-  } finally {
-    loading.value = false;
-  }
+  });
 }
 
 // Modal
@@ -209,40 +186,39 @@ async function submitForm() {
     return;
   }
 
-  loading.value = true;
-  try {
-    const sp = formMode.value === 'create' ? 'sp_categoria_create' : 'sp_categoria_update';
-    const params = [
-      { Nombre: 'p_categoria', Valor: form.value.categoria, tipo: 'integer' },
-      { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() }
-    ];
+  await withGlobalLoading(async () => {
+    try {
+      const sp = formMode.value === 'create' ? 'sp_categoria_create' : 'sp_categoria_update';
+      const params = [
+        { Nombre: 'p_categoria', Valor: form.value.categoria, tipo: 'integer' },
+        { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() }
+      ];
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: sp,
-        Base: 'mercados',
-        Parametros: params
-      }
-    });
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: sp,
+          Base: 'mercados',
+          Parametros: params
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result?.[0];
-      if (result?.success) {
-        showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
-        closeModal();
-        fetchData();
+      if (response.data?.eResponse?.success) {
+        const result = response.data.eResponse.data.result?.[0];
+        if (result?.success) {
+          showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
+          closeModal();
+          fetchData();
+        } else {
+          showToast('error', result?.message || 'Error al guardar');
+        }
       } else {
-        showToast('error', result?.message || 'Error al guardar');
+        showToast('error', response.data?.eResponse?.message || 'Error al guardar');
       }
-    } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('error', 'Error al guardar categoría');
     }
-  } catch (error) {
-    console.error('Error:', error);
-    showToast('error', 'Error al guardar categoría');
-  } finally {
-    loading.value = false;
-  }
+  });
 }
 
 // Eliminar
@@ -260,35 +236,34 @@ async function deleteRow(row) {
 
   if (!result.isConfirmed) return;
 
-  loading.value = true;
-  try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
-        ]
-      }
-    });
+  await withGlobalLoading(async () => {
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_categoria_delete',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
+          ]
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      const deleteResult = response.data.eResponse.data.result?.[0];
-      if (deleteResult?.success) {
-        showToast('success', 'Categoría eliminada');
-        fetchData();
+      if (response.data?.eResponse?.success) {
+        const deleteResult = response.data.eResponse.data.result?.[0];
+        if (deleteResult?.success) {
+          showToast('success', 'Categoría eliminada');
+          fetchData();
+        } else {
+          showToast('error', deleteResult?.message || 'Error al eliminar');
+        }
       } else {
-        showToast('error', deleteResult?.message || 'Error al eliminar');
+        showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
       }
-    } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('error', 'Error al eliminar categoría');
     }
-  } catch (error) {
-    console.error('Error:', error);
-    showToast('error', 'Error al eliminar categoría');
-  } finally {
-    loading.value = false;
-  }
+  });
 }
 
 onMounted(() => {

@@ -194,6 +194,7 @@ import {
   faQuestionCircle, faSyncAlt, faEdit
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
 
 library.add(
   faUserShield, faCalendarCheck, faList, faSave, faTimes,
@@ -201,6 +202,7 @@ library.add(
 );
 
 const router = useRouter();
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Helper para mostrar toasts
 const showToast = (icon, title) => {
@@ -240,6 +242,7 @@ onMounted(() => {
 // Cargar usuarios con permiso
 async function cargarUsuarios() {
   try {
+    showLoading('Cargando usuarios', 'Por favor espere');
     const p_oficina = 1; // TODO: Obtener de sesión
 
     const response = await axios.post('/api/generic', {
@@ -258,6 +261,8 @@ async function cargarUsuarios() {
   } catch (error) {
     console.error('Error al cargar usuarios:', error);
     showToast('error', 'Error al cargar usuarios con permiso');
+  } finally {
+    hideLoading();
   }
 }
 
@@ -266,6 +271,7 @@ async function cargarDatos() {
   loading.value = true;
 
   try {
+    showLoading('Cargando fechas autorizadas', 'Por favor espere');
     const p_oficina = 1; // TODO: Obtener de sesión
 
     const response = await axios.post('/api/generic', {
@@ -289,6 +295,7 @@ async function cargarDatos() {
     fechas.value = [];
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
@@ -297,6 +304,7 @@ async function guardarAutorizacion() {
   loading.value = true;
 
   try {
+    showLoading('Guardando autorización', 'Por favor espere');
     const operacion = editing.value ? 'sp_update_autcargapag' : 'sp_insert_autcargapag';
     const ahora = new Date().toISOString();
 
@@ -327,6 +335,7 @@ async function guardarAutorizacion() {
     showToast('error', 'Error al guardar autorización');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
@@ -408,14 +417,3 @@ function cerrar() {
 }
 </script>
 
-<style scoped>
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.badge {
-  padding: 0.35em 0.65em;
-  font-size: 0.85em;
-  font-weight: 600;
-}
-</style>

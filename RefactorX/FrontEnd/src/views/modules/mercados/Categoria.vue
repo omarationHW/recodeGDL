@@ -10,12 +10,12 @@
         <p>Mercados - Administración de Categorías</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-success" @click="abrirModalCrear" :disabled="loading">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
-          <font-awesome-icon icon="sync" />
+          <font-awesome-icon :icon="loading ? 'spinner' : 'sync'" :spin="loading" />
           Refrescar
         </button>
         <button class="btn-municipal-danger" @click="cerrar">
@@ -60,7 +60,7 @@
                   <td>{{ row.categoria }}</td>
                   <td>{{ row.descripcion }}</td>
                   <td>
-                    <button class="btn btn-sm btn-warning me-1" @click.stop="showModal('update', row)">
+                    <button class="btn btn-sm btn-warning me-1" @click.stop="abrirModalEditar(row)">
                       <font-awesome-icon icon="edit" />
                     </button>
                     <button class="btn btn-sm btn-danger" @click.stop="deleteRow(row)">
@@ -82,41 +82,43 @@
     </div>
 
     <!-- Modal Crear/Editar -->
-    <div v-if="showFormModal" class="modal fade show d-block" tabindex="-1">
-      <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
-              {{ formMode === 'create' ? 'Agregar Categoría' : 'Modificar Categoría' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
+    <Modal
+      v-if="showFormModal"
+      :show="showFormModal"
+      :title="formMode === 'create' ? 'Agregar Categoría' : 'Modificar Categoría'"
+      :icon="formMode === 'create' ? 'plus' : 'edit'"
+      size="md"
+      @close="closeModal">
+      <template #body>
+        <form @submit.prevent="submitForm">
+          <div class="mb-3">
+            <label class="form-label">Código *</label>
+            <input type="number" class="form-control" v-model.number="form.categoria"
+                   required :disabled="formMode === 'update'" min="1" />
           </div>
-          <div class="modal-body">
-            <form @submit.prevent="submitForm">
-              <div class="mb-3">
-                <label class="form-label">Código *</label>
-                <input type="number" class="form-control" v-model.number="form.categoria"
-                       required :disabled="formMode === 'update'" min="1" />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Descripción *</label>
-                <input type="text" class="form-control" v-model="form.descripcion"
-                       required maxlength="30" />
-              </div>
-            </form>
+          <div class="mb-3">
+            <label class="form-label">Descripción *</label>
+            <input type="text" class="form-control" v-model="form.descripcion"
+                   required maxlength="30" />
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-            <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              Guardar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="showFormModal" class="modal-backdrop fade show"></div>
+        </form>
+      </template>
+
+      <template #footer>
+        <button type="button" class="btn-municipal-secondary" @click="closeModal">
+          <font-awesome-icon icon="times" />
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-municipal-success"
+          @click="submitForm"
+          :disabled="guardando">
+          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
+          {{ guardando ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -125,31 +127,27 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+import Modal from '@/components/Modal.vue';
 
 const router = useRouter();
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading();
+const { showToast } = useToast();
 
 // State
 const rows = ref([]);
 const selectedRow = ref(null);
 const loading = ref(false);
+const guardando = ref(false);
 const showFormModal = ref(false);
 const formMode = ref('create');
 const form = ref({
   categoria: '',
   descripcion: ''
 });
-
-// Toast
-const showToast = (type, message) => {
-  Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon: type,
-    title: message,
-    showConfirmButton: false,
-    timer: 3000
-  });
-};
 
 // Cerrar
 const cerrar = () => {
@@ -159,6 +157,7 @@ const cerrar = () => {
 // Cargar datos
 async function fetchData() {
   loading.value = true;
+  showLoading('Cargando categorías...');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -170,6 +169,7 @@ async function fetchData() {
 
     if (response.data?.eResponse?.success) {
       rows.value = response.data.eResponse.data.result || [];
+      showToast('success', `Se cargaron ${rows.value.length} categorías`);
     } else {
       showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
     }
@@ -178,23 +178,26 @@ async function fetchData() {
     showToast('error', 'Error al cargar categorías');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
 // Modal
-function showModal(mode, row = null) {
-  formMode.value = mode;
-  if (mode === 'create') {
-    form.value = {
-      categoria: '',
-      descripcion: ''
-    };
-  } else if (row) {
-    form.value = {
-      categoria: row.categoria,
-      descripcion: row.descripcion
-    };
-  }
+function abrirModalCrear() {
+  formMode.value = 'create';
+  form.value = {
+    categoria: '',
+    descripcion: ''
+  };
+  showFormModal.value = true;
+}
+
+function abrirModalEditar(row) {
+  formMode.value = 'update';
+  form.value = {
+    categoria: row.categoria,
+    descripcion: row.descripcion
+  };
   showFormModal.value = true;
 }
 
@@ -209,7 +212,8 @@ async function submitForm() {
     return;
   }
 
-  loading.value = true;
+  guardando.value = true;
+  showLoading(formMode.value === 'create' ? 'Guardando categoría...' : 'Actualizando categoría...');
   try {
     const sp = formMode.value === 'create' ? 'sp_categoria_create' : 'sp_categoria_update';
     const params = [
@@ -230,7 +234,7 @@ async function submitForm() {
       if (result?.success) {
         showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
         closeModal();
-        fetchData();
+        await fetchData();
       } else {
         showToast('error', result?.message || 'Error al guardar');
       }
@@ -241,7 +245,8 @@ async function submitForm() {
     console.error('Error:', error);
     showToast('error', 'Error al guardar categoría');
   } finally {
-    loading.value = false;
+    guardando.value = false;
+    hideLoading();
   }
 }
 
@@ -260,7 +265,7 @@ async function deleteRow(row) {
 
   if (!result.isConfirmed) return;
 
-  loading.value = true;
+  showLoading('Eliminando categoría...');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -276,7 +281,7 @@ async function deleteRow(row) {
       const deleteResult = response.data.eResponse.data.result?.[0];
       if (deleteResult?.success) {
         showToast('success', 'Categoría eliminada');
-        fetchData();
+        await fetchData();
       } else {
         showToast('error', deleteResult?.message || 'Error al eliminar');
       }
@@ -287,7 +292,7 @@ async function deleteRow(row) {
     console.error('Error:', error);
     showToast('error', 'Error al eliminar categoría');
   } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 

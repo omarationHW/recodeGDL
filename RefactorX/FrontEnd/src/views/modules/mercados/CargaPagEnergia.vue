@@ -342,6 +342,7 @@ import {
   faQuestionCircle, faEraser, faInbox, faCreditCard, faHistory
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
 
 library.add(
   faBolt, faSearch, faList, faSave, faTimes,
@@ -349,6 +350,7 @@ library.add(
 );
 
 const router = useRouter();
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Helper para mostrar toasts
 const showToast = (icon, title) => {
@@ -407,6 +409,7 @@ onMounted(() => {
 
 // Cargar recaudadoras
 async function cargarRecaudadoras() {
+  showLoading('Cargando recaudadoras', 'Por favor espere');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -422,11 +425,14 @@ async function cargarRecaudadoras() {
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
     showToast('error', 'Error al cargar recaudadoras');
+  } finally {
+    hideLoading();
   }
 }
 
 // Cargar secciones
 async function cargarSecciones() {
+  showLoading('Cargando secciones', 'Por favor espere');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -442,6 +448,8 @@ async function cargarSecciones() {
   } catch (error) {
     console.error('Error al cargar secciones:', error);
     showToast('error', 'Error al cargar secciones');
+  } finally {
+    hideLoading();
   }
 }
 
@@ -452,6 +460,7 @@ async function onOficinaChange() {
 
   if (!form.value.oficina) return;
 
+  showLoading('Cargando mercados', 'Por favor espere');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -470,6 +479,8 @@ async function onOficinaChange() {
   } catch (error) {
     console.error('Error al cargar mercados:', error);
     showToast('error', 'Error al cargar mercados');
+  } finally {
+    hideLoading();
   }
 }
 
@@ -480,6 +491,7 @@ async function onOficinaPagoChange() {
 
   if (!formPago.value.oficina_pago) return;
 
+  showLoading('Cargando cajas', 'Por favor espere');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -497,6 +509,8 @@ async function onOficinaPagoChange() {
   } catch (error) {
     console.error('Error al cargar cajas:', error);
     showToast('error', 'Error al cargar cajas');
+  } finally {
+    hideLoading();
   }
 }
 
@@ -511,6 +525,7 @@ async function buscarAdeudos() {
   adeudos.value = [];
   pagos.value = [];
 
+  showLoading('Buscando adeudos de energía', 'Por favor espere');
   try {
     // Obtener la categoría del mercado seleccionado
     const mercadoSeleccionado = mercados.value.find(m => m.num_mercado_nvo == form.value.mercado);
@@ -551,6 +566,7 @@ async function buscarAdeudos() {
     showToast('error', 'Error al buscar adeudos');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
@@ -582,6 +598,7 @@ async function cargarPagos() {
 
   loading.value = true;
 
+  showLoading('Cargando pagos de energía', 'Por favor espere');
   try {
     let pagosExitosos = 0;
 
@@ -628,11 +645,13 @@ async function cargarPagos() {
     showToast('error', 'Error al cargar pagos');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
 // Consultar pagos
 async function consultarPagos(idEnergia) {
+  showLoading('Consultando pagos realizados', 'Por favor espere');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -649,6 +668,8 @@ async function consultarPagos(idEnergia) {
     }
   } catch (error) {
     console.error('Error al consultar pagos:', error);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -708,21 +729,3 @@ function cerrar() {
   router.push('/');
 }
 </script>
-
-<style scoped>
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.table-sm td,
-.table-sm th {
-  padding: 0.3rem 0.5rem;
-  font-size: 0.85rem;
-}
-
-.badge {
-  padding: 0.35em 0.65em;
-  font-size: 0.85em;
-  font-weight: 600;
-}
-</style>

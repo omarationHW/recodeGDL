@@ -248,7 +248,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="p in periodos" :key="p.id_control" class="row-hover">
+                <tr v-for="p in paginatedPeriodos" :key="p.id_control" class="row-hover">
                   <td>{{ p.ayo }}</td>
                   <td>{{ p.periodo }}</td>
                   <td class="text-end">{{ formatCurrency(p.importe) }}</td>
@@ -256,6 +256,44 @@
                 </tr>
               </tbody>
             </table>
+
+            <!-- Paginación -->
+            <div v-if="periodos.length > 0" class="pagination-container">
+              <div class="pagination-info">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </div>
+              <div class="pagination-controls">
+                <label class="me-2">Registros por página:</label>
+                <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                  <option :value="250">250</option>
+                </select>
+              </div>
+              <div class="pagination-buttons">
+                <button @click="goToPage(1)" :disabled="currentPage === 1" title="Primera página">
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+                <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" title="Página anterior">
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+                <button v-for="page in visiblePages" :key="page"
+                  :class="page === currentPage ? 'active' : ''"
+                  @click="goToPage(page)">
+                  {{ page }}
+                </button>
+                <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" title="Página siguiente">
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+                <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages" title="Última página">
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -281,8 +319,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const form = ref({
@@ -297,6 +338,40 @@ const local = ref(null)
 const mercado = ref(null)
 const requerimiento = ref(null)
 const periodos = ref([])
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecords = computed(() => periodos.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedPeriodos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return periodos.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
 
 // Toast
 const toast = ref({ show: false, type: 'info', message: '' })
@@ -328,6 +403,7 @@ const mostrarAyuda = () => {
 
 const buscarRequerimiento = async () => {
   loading.value = true
+  showLoading()
   searched.value = false
   error.value = ''
   local.value = null
@@ -398,6 +474,7 @@ const buscarRequerimiento = async () => {
       }
     })
     periodos.value = res.data?.eResponse?.success ? res.data.eResponse.data?.result || [] : []
+    currentPage.value = 1
 
     searched.value = true
     showToast('success', 'Requerimiento encontrado')
@@ -408,62 +485,7 @@ const buscarRequerimiento = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 </script>
-
-<style scoped>
-.required {
-  color: #dc3545;
-}
-
-.text-end {
-  text-align: right !important;
-}
-
-.row-hover {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.info-item.full-width {
-  grid-column: 1 / -1;
-}
-
-.info-label {
-  font-size: 0.75rem;
-  color: #6c757d;
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
-}
-
-.info-value {
-  font-weight: 500;
-  color: #333;
-}
-
-.info-value.highlight {
-  color: var(--municipal-primary);
-  font-size: 1.1rem;
-}
-
-.info-value.currency {
-  color: #28a745;
-  font-weight: 600;
-}
-</style>

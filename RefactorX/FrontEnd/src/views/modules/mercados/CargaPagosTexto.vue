@@ -211,28 +211,24 @@
         </div>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+
+const { showLoading, hideLoading } = useGlobalLoading();
+const { showToast } = useToast();
 
 // Estado
-const fileInput = ref(null)
-const pagos = ref([])
-const loading = ref(false)
-const procesando = ref(false)
-const error = ref('')
+const fileInput = ref(null);
+const pagos = ref([]);
+const loading = ref(false);
+const procesando = ref(false);
+const error = ref('');
 
 // Estadísticas
 const stats = ref({
@@ -241,104 +237,73 @@ const stats = ref({
   adeBorrados: 0,
   total: 0,
   importe: 0
-})
+});
 
 // Paginación
-const currentPage = ref(0)
-const pageSize = ref(50)
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
+const currentPage = ref(0);
+const pageSize = ref(50);
 
 // Computed
-const totalPages = computed(() => Math.ceil(pagos.value.length / pageSize.value))
-const paginationStart = computed(() => currentPage.value * pageSize.value)
-const paginationEnd = computed(() => paginationStart.value + pageSize.value)
+const totalPages = computed(() => Math.ceil(pagos.value.length / pageSize.value));
+const paginationStart = computed(() => currentPage.value * pageSize.value);
+const paginationEnd = computed(() => paginationStart.value + pageSize.value);
 
 const paginatedPagos = computed(() => {
-  return pagos.value.slice(paginationStart.value, paginationEnd.value)
-})
+  return pagos.value.slice(paginationStart.value, paginationEnd.value);
+});
 
 // Métodos
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione un archivo .txt con el formato correcto de pagos, luego presione "Actualizar Pagos" para procesar la carga masiva.')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
-}
+  showToast('Seleccione un archivo .txt con el formato correcto de pagos, luego presione "Actualizar Pagos" para procesar la carga masiva.', 'info');
+};
 
 const formatCurrency = (value) => {
-  if (!value) return '$0.00'
-  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
-}
+  if (!value) return '$0.00';
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value);
+};
 
 const formatNumber = (value) => {
-  return new Intl.NumberFormat('es-MX').format(value)
-}
+  return new Intl.NumberFormat('es-MX').format(value);
+};
 
 const abrirArchivo = () => {
   if (fileInput.value) {
-    fileInput.value.click()
+    fileInput.value.click();
   }
-}
+};
 
 const limpiar = () => {
-  pagos.value = []
+  pagos.value = [];
   stats.value = {
     grabados: 0,
     yaGrabados: 0,
     adeBorrados: 0,
     total: 0,
     importe: 0
-  }
-  currentPage.value = 0
-  error.value = ''
-  showToast('info', 'Datos limpiados')
-}
+  };
+  currentPage.value = 0;
+  error.value = '';
+  showToast('Datos limpiados', 'info');
+};
 
 const onFileSelected = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
+  const file = event.target.files[0];
+  if (!file) return;
 
-  loading.value = true
-  error.value = ''
-  pagos.value = []
+  loading.value = true;
+  error.value = '';
+  pagos.value = [];
 
+  showLoading('Leyendo archivo de texto', 'Por favor espere');
   try {
-    const text = await file.text()
-    const lines = text.split('\n').filter(line => line.trim())
+    const text = await file.text();
+    const lines = text.split('\n').filter(line => line.trim());
 
-    const parsed = []
-    let numero = 1
+    const parsed = [];
+    let numero = 1;
 
     for (const line of lines) {
-      if (line.trim().length < 70) continue
+      if (line.trim().length < 70) continue;
 
       try {
         const pago = {
@@ -359,181 +324,126 @@ const onFileSelected = async (event) => {
           rec: line.substring(66, 69).trim(),
           merc: line.substring(69, 72).trim(),
           estado: 'pendiente'
-        }
-        parsed.push(pago)
+        };
+        parsed.push(pago);
       } catch (e) {
-        console.error('Error parseando línea:', e)
+        console.error('Error parseando línea:', e);
       }
     }
 
-    pagos.value = parsed
+    pagos.value = parsed;
 
     if (parsed.length > 0) {
-      showToast('success', `${parsed.length} registros cargados desde el archivo`)
+      showToast(`${parsed.length} registros cargados desde el archivo`, 'success');
     } else {
-      showToast('warning', 'No se encontraron registros válidos en el archivo')
+      showToast('No se encontraron registros válidos en el archivo', 'warning');
     }
   } catch (err) {
-    error.value = 'Error al leer el archivo: ' + err.message
-    showToast('error', error.value)
+    error.value = 'Error al leer el archivo: ' + err.message;
+    showToast(error.value, 'error');
   } finally {
-    loading.value = false
+    loading.value = false;
+    hideLoading();
     // Reset file input
     if (fileInput.value) {
-      fileInput.value.value = ''
+      fileInput.value.value = '';
     }
   }
-}
+};
 
 const procesarPagos = async () => {
   if (pagos.value.length === 0) {
-    showToast('warning', 'No hay pagos para procesar')
-    return
+    showToast('No hay pagos para procesar', 'warning');
+    return;
   }
 
-  procesando.value = true
+  procesando.value = true;
   stats.value = {
     grabados: 0,
     yaGrabados: 0,
     adeBorrados: 0,
     total: 0,
     importe: 0
-  }
+  };
 
-  let grabados = 0
-  let yaGrabados = 0
-  let adeBorrados = 0
-  let importeTotal = 0
+  let grabados = 0;
+  let yaGrabados = 0;
+  let adeBorrados = 0;
+  let importeTotal = 0;
 
-  for (let i = 0; i < pagos.value.length; i++) {
-    const pago = pagos.value[i]
-    pago.estado = 'procesando'
+  showLoading('Procesando pagos masivos', 'Por favor espere');
+  try {
+    for (let i = 0; i < pagos.value.length; i++) {
+      const pago = pagos.value[i];
+      pago.estado = 'procesando';
 
-    try {
-      const parametros = [
-        { nombre: 'p_id_local', valor: parseInt(pago.id_local), tipo: 'integer' },
-        { nombre: 'p_axo', valor: parseInt(pago.axo), tipo: 'integer' },
-        { nombre: 'p_periodo', valor: parseInt(pago.periodo), tipo: 'integer' },
-        { nombre: 'p_fecha_pago', valor: pago.fecha_pago, tipo: 'string' },
-        { nombre: 'p_oficina_pago', valor: parseInt(pago.oficina_pago), tipo: 'integer' },
-        { nombre: 'p_caja_pago', valor: pago.caja_pago, tipo: 'string' },
-        { nombre: 'p_operacion_pago', valor: parseInt(pago.operacion_pago), tipo: 'integer' },
-        { nombre: 'p_importe_pago', valor: pago.importe_pago, tipo: 'numeric' },
-        { nombre: 'p_folio', valor: pago.folio, tipo: 'string' },
-        { nombre: 'p_fecha_actualizacion', valor: pago.fecha_actualizacion, tipo: 'string' },
-        { nombre: 'p_id_usuario', valor: parseInt(pago.id_usuario), tipo: 'integer' },
-        { nombre: 'p_rec', valor: pago.rec, tipo: 'string' },
-        { nombre: 'p_merc', valor: pago.merc, tipo: 'string' },
-        { nombre: 'p_id_usuario_sistema', valor: 1, tipo: 'integer' }
-      ]
+      try {
+        const parametros = [
+          { nombre: 'p_id_local', valor: parseInt(pago.id_local), tipo: 'integer' },
+          { nombre: 'p_axo', valor: parseInt(pago.axo), tipo: 'integer' },
+          { nombre: 'p_periodo', valor: parseInt(pago.periodo), tipo: 'integer' },
+          { nombre: 'p_fecha_pago', valor: pago.fecha_pago, tipo: 'string' },
+          { nombre: 'p_oficina_pago', valor: parseInt(pago.oficina_pago), tipo: 'integer' },
+          { nombre: 'p_caja_pago', valor: pago.caja_pago, tipo: 'string' },
+          { nombre: 'p_operacion_pago', valor: parseInt(pago.operacion_pago), tipo: 'integer' },
+          { nombre: 'p_importe_pago', valor: pago.importe_pago, tipo: 'numeric' },
+          { nombre: 'p_folio', valor: pago.folio, tipo: 'string' },
+          { nombre: 'p_fecha_actualizacion', valor: pago.fecha_actualizacion, tipo: 'string' },
+          { nombre: 'p_id_usuario', valor: parseInt(pago.id_usuario), tipo: 'integer' },
+          { nombre: 'p_rec', valor: pago.rec, tipo: 'string' },
+          { nombre: 'p_merc', valor: pago.merc, tipo: 'string' },
+          { nombre: 'p_id_usuario_sistema', valor: 1, tipo: 'integer' }
+        ];
 
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_importar_pago_texto',
-          Base: 'padron_licencias',
-          Parametros: parametros
-        }
-      })
+        const res = await axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_importar_pago_texto',
+            Base: 'padron_licencias',
+            Parametros: parametros
+          }
+        });
 
-      if (res.data.eResponse.success) {
-        const result = res.data.eResponse.data.result[0]
+        if (res.data.eResponse.success) {
+          const result = res.data.eResponse.data.result[0];
 
-        if (result.grabado) {
-          pago.estado = 'grabado'
-          grabados++
-          importeTotal += pago.importe_pago
-          if (result.adeudo_borrado) {
-            adeBorrados++
+          if (result.grabado) {
+            pago.estado = 'grabado';
+            grabados++;
+            importeTotal += pago.importe_pago;
+            if (result.adeudo_borrado) {
+              adeBorrados++;
+            }
+          } else {
+            pago.estado = 'existe';
+            yaGrabados++;
+            importeTotal += pago.importe_pago;
           }
         } else {
-          pago.estado = 'existe'
-          yaGrabados++
-          importeTotal += pago.importe_pago
+          pago.estado = 'error';
         }
-      } else {
-        pago.estado = 'error'
+      } catch (err) {
+        console.error('Error procesando pago:', err);
+        pago.estado = 'error';
       }
-    } catch (err) {
-      console.error('Error procesando pago:', err)
-      pago.estado = 'error'
     }
+
+    stats.value = {
+      grabados,
+      yaGrabados,
+      adeBorrados,
+      total: grabados + yaGrabados,
+      importe: importeTotal
+    };
+
+    showToast(`Proceso completado: ${grabados} grabados, ${yaGrabados} ya existían, ${adeBorrados} adeudos borrados`, 'success');
+  } finally {
+    procesando.value = false;
+    hideLoading();
   }
-
-  stats.value = {
-    grabados,
-    yaGrabados,
-    adeBorrados,
-    total: grabados + yaGrabados,
-    importe: importeTotal
-  }
-
-  procesando.value = false
-
-  showToast('success', `Proceso completado: ${grabados} grabados, ${yaGrabados} ya existían, ${adeBorrados} adeudos borrados`)
-}
+};
 
 // Lifecycle
 onMounted(() => {
   // Inicialización si es necesaria
-})
+});
 </script>
-
-<style scoped>
-.stat-box {
-  padding: 20px;
-  border-radius: 8px;
-  background: white;
-  border: 1px solid #dee2e6;
-  text-align: center;
-  transition: all 0.3s;
-}
-
-.stat-box:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.stat-box.stat-success {
-  border-left: 4px solid #28a745;
-}
-
-.stat-box.stat-warning {
-  border-left: 4px solid #ffc107;
-}
-
-.stat-box.stat-danger {
-  border-left: 4px solid #dc3545;
-}
-
-.stat-box.stat-info {
-  border-left: 4px solid #17a2b8;
-}
-
-.stat-box.stat-primary {
-  border-left: 4px solid #007bff;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.button-group-left {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.empty-icon {
-  color: #6c757d;
-  margin-bottom: 15px;
-}
-</style>

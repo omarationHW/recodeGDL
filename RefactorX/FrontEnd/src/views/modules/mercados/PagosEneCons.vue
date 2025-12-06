@@ -87,21 +87,13 @@
         </div>
 
         <div class="municipal-card-body table-container">
-          <!-- Mensaje de loading -->
-          <div v-if="loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-3 text-muted">Cargando datos, por favor espere...</p>
-          </div>
-
           <!-- Mensaje de error -->
-          <div v-else-if="error" class="alert alert-danger" role="alert">
+          <div v-if="error" class="alert alert-danger" role="alert">
             <font-awesome-icon icon="exclamation-triangle" />
             {{ error }}
           </div>
 
-          <!-- Tabla -->
+          <!-- Tabla (loading es manejado por useGlobalLoading) -->
           <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
@@ -132,51 +124,99 @@
                     <p>No se encontraron pagos para este ID de energía</p>
                   </td>
                 </tr>
-                <tr v-else v-for="pago in pagos" :key="pago.id_pago_energia" class="row-hover">
+                <tr v-else v-for="pago in paginatedPagos" :key="pago.id_pago_energia" class="row-hover">
                   <td><strong class="text-primary">{{ pago.id_energia }}</strong></td>
-                  <td><span class="badge-year">{{ pago.axo }}</span></td>
-                  <td><span class="badge-period">P{{ pago.periodo }}</span></td>
+                  <!-- Badge de año con estilo purple gradient -->
+                  <td><span class="badge-purple" style="font-weight: 600;">{{ pago.axo }}</span></td>
+                  <!-- Badge de periodo con estilo purple gradient -->
+                  <td><span class="badge-purple" style="font-weight: 500;">P{{ pago.periodo }}</span></td>
                   <td>
-                    <font-awesome-icon icon="calendar-alt" class="icon-small text-muted" />
+                    <font-awesome-icon icon="calendar-alt" style="font-size: 0.85rem; margin-right: 0.35rem;" class="text-muted" />
                     {{ formatDate(pago.fecha_pago) }}
                   </td>
                   <td>{{ pago.oficina_pago }}</td>
                   <td>{{ pago.caja_pago }}</td>
                   <td>{{ pago.operacion_pago }}</td>
                   <td class="text-end">
-                    <span class="amount-success">{{ formatCurrency(pago.importe_pago) }}</span>
+                    <!-- Importe con estilo monospace verde -->
+                    <span style="color: #28a745; font-weight: 700; font-size: 1.05rem; font-family: 'Courier New', monospace;">{{ formatCurrency(pago.importe_pago) }}</span>
                   </td>
                   <td>
-                    <span class="folio-badge">{{ pago.folio || 'N/A' }}</span>
+                    <!-- Folio badge con fondo azul claro -->
+                    <span class="badge-info" style="font-family: 'Courier New', monospace;">{{ pago.folio || 'N/A' }}</span>
                   </td>
                   <td>{{ formatDateTime(pago.fecha_modificacion) }}</td>
                   <td>
-                    <font-awesome-icon icon="user" class="icon-small text-muted" />
+                    <font-awesome-icon icon="user" style="font-size: 0.85rem; margin-right: 0.35rem;" class="text-muted" />
                     {{ pago.id_usuario || 'N/A' }}
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="pagos.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              <span>Mostrando {{ paginationInfo }}</span>
+              <div class="items-per-page">
+                <label>Registros por página:</label>
+                <select v-model.number="itemsPerPage" @change="changeItemsPerPage(itemsPerPage)" class="form-select form-select-sm">
+                  <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
+                    {{ option }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="pagination-controls">
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === 1"
+                @click="goToPage(1)">
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <span class="pagination-text">
+                Página {{ currentPage }} de {{ totalPages }}
+              </span>
+
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)">
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -192,11 +232,26 @@ const form = ref({
 // Datos
 const pagos = ref([])
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(25)
+const itemsPerPageOptions = [10, 25, 50, 100]
+
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(pagos.value.length / itemsPerPage.value)
+})
+
+const paginatedPagos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return pagos.value.slice(start, end)
+})
+
+const paginationInfo = computed(() => {
+  const start = pagos.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+  const end = Math.min(currentPage.value * itemsPerPage.value, pagos.value.length)
+  return `${start} - ${end} de ${formatNumber(pagos.value.length)}`
 })
 
 // Métodos de UI
@@ -205,32 +260,24 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ingrese el ID de energía para consultar todos los pagos realizados para ese servicio.')
+  showToast('Ingrese el ID de energía para consultar todos los pagos realizados para ese servicio.', 'info')
 }
 
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
 }
 
-const hideToast = () => {
-  toast.value.show = false
+const changeItemsPerPage = (newSize) => {
+  itemsPerPage.value = newSize
+  currentPage.value = 1 // Reset a la primera página
 }
 
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+const resetPagination = () => {
+  currentPage.value = 1
+  itemsPerPage.value = 25
 }
 
 // Utilidades
@@ -267,7 +314,7 @@ const formatDateTime = (dateStr) => {
 const buscarPagos = async () => {
   if (!form.value.id_energia) {
     error.value = 'Debe ingresar un ID de energía'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -277,6 +324,7 @@ const buscarPagos = async () => {
   searchPerformed.value = true
 
   try {
+    showLoading('Consultando pagos de energía', 'Por favor espere...')
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_cons_pagos_energia',
@@ -290,21 +338,22 @@ const buscarPagos = async () => {
     if (response.data.eResponse && response.data.eResponse.success === true) {
       pagos.value = response.data.eResponse.data.result || []
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos para este ID de energía')
+        showToast('No se encontraron pagos para este ID de energía', 'info')
       } else {
-        showToast('success', `Se encontraron ${pagos.value.length} pagos`)
+        showToast(`Se encontraron ${pagos.value.length} pagos`, 'success')
         showFilters.value = false
       }
     } else {
       error.value = response.data.eResponse?.message || 'Error al buscar pagos'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = err.response?.data?.eResponse?.message || 'Error al buscar pagos'
     console.error('Error al buscar pagos:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -313,93 +362,23 @@ const limpiarFiltros = () => {
   pagos.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  resetPagination()
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (pagos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación en desarrollo')
+  showToast('Funcionalidad de exportación en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (pagos.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 </script>
-
-<style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-
-/* Estilos específicos del componente */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-/* Badges */
-.badge-year {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: inline-block;
-}
-
-.badge-period {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.8rem;
-  display: inline-block;
-}
-
-.folio-badge {
-  background: #e3f2fd;
-  color: #1565c0;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.8rem;
-  font-family: 'Courier New', monospace;
-  display: inline-block;
-}
-
-/* Montos */
-.amount-success {
-  color: #28a745;
-  font-weight: 700;
-  font-size: 1.05rem;
-  font-family: 'Courier New', monospace;
-}
-
-/* Iconos */
-.icon-small {
-  font-size: 0.85rem;
-  margin-right: 0.35rem;
-}
-
-/* Tabla responsive */
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
-}
-</style>

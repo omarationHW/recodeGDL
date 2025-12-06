@@ -206,6 +206,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -323,6 +327,7 @@ const formatNumber = (value) => {
 
 const fetchRecaudadoras = async () => {
   try {
+    showLoading('Cargando recaudadoras', 'Por favor espere...')
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
@@ -335,11 +340,14 @@ const fetchRecaudadoras = async () => {
     }
   } catch (err) {
     console.error('Error al cargar recaudadoras:', err)
+  } finally {
+    hideLoading()
   }
 }
 
 const fetchMercados = async () => {
   try {
+    showLoading('Cargando mercados', 'Por favor espere...')
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_reporte_catalogo_mercados',
@@ -352,6 +360,8 @@ const fetchMercados = async () => {
     }
   } catch (err) {
     console.error('Error al cargar mercados:', err)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -368,6 +378,7 @@ const buscar = async () => {
   searchPerformed.value = true
 
   try {
+    showLoading('Generando reporte de pagos por año', 'Por favor espere...')
     const parametros = [
       { nombre: 'p_oficina', valor: selectedOficina.value, tipo: 'integer' }
     ]
@@ -410,6 +421,7 @@ const buscar = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

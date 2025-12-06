@@ -153,6 +153,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const today = new Date()
 
@@ -209,6 +212,7 @@ const mostrarAyuda = () => {
 
 const fetchMercados = async () => {
   loading.value = true
+  showLoading()
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -230,6 +234,7 @@ const fetchMercados = async () => {
     showToast('error', 'Error de conexión al cargar mercados')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -245,6 +250,7 @@ const procesar = async () => {
   cajas.value = []
   totals.value = null
 
+  showLoading()
   try {
     // 1. Obtener ingresos por fecha y caja
     const resIngresos = await axios.post('/api/generic', {
@@ -309,6 +315,7 @@ const procesar = async () => {
     showToast('error', 'Error de conexión al procesar la consulta')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -339,61 +346,3 @@ onMounted(() => {
   fetchMercados()
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.badge-primary {
-  background: var(--municipal-blue);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.badge-info {
-  background: #17a2b8;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.bg-success {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
-}
-
-.totals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  padding: 1rem;
-}
-
-.total-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid var(--municipal-blue);
-}
-
-.total-label {
-  font-size: 0.875rem;
-  color: #6c757d;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.total-value {
-  font-size: 2rem;
-  font-weight: 700;
-}
-</style>

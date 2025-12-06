@@ -174,6 +174,7 @@ import {
   faQuestionCircle, faEraser, faInfoCircle, faInbox
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
 
 library.add(
   faFileImport, faSearch, faList, faSave, faTimes,
@@ -181,6 +182,7 @@ library.add(
 );
 
 const router = useRouter();
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Helper para mostrar toasts
 const showToast = (icon, title) => {
@@ -218,6 +220,7 @@ async function buscarAdeudos() {
   pagos.value = [];
 
   try {
+    showLoading('Buscando adeudos', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_adeudos_diversos_esp',
@@ -247,6 +250,7 @@ async function buscarAdeudos() {
     showToast('error', 'Error al buscar adeudos');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
@@ -279,6 +283,7 @@ async function cargarPagos() {
   loading.value = true;
 
   try {
+    showLoading('Cargando pagos', 'Por favor espere');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_cargar_pagos_diversos_esp',
@@ -301,6 +306,7 @@ async function cargarPagos() {
     showToast('error', 'Error al cargar pagos');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
@@ -355,19 +361,3 @@ function cerrar() {
 }
 </script>
 
-<style scoped>
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.table-sm td,
-.table-sm th {
-  padding: 0.3rem 0.5rem;
-  font-size: 0.85rem;
-}
-
-.table-sm input.form-control-sm {
-  padding: 0.2rem 0.4rem;
-  font-size: 0.8rem;
-}
-</style>

@@ -161,6 +161,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Referencias reactivas
 const filters = ref({
@@ -197,6 +200,7 @@ const totalRenta = computed(() => {
 
 // Métodos
 const fetchRecaudadoras = async () => {
+  showLoading('Cargando recaudadoras...', 'Por favor espere');
   loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
@@ -214,6 +218,7 @@ const fetchRecaudadoras = async () => {
     console.error('Error al cargar recaudadoras:', error);
   } finally {
     loading.value = false;
+    hideLoading();
   }
 };
 
@@ -224,6 +229,7 @@ const onOficinaChange = async () => {
     return;
   }
 
+  showLoading('Cargando mercados...', 'Por favor espere');
   loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
@@ -246,6 +252,7 @@ const onOficinaChange = async () => {
     mercados.value = [];
   } finally {
     loading.value = false;
+    hideLoading();
   }
 };
 
@@ -255,6 +262,7 @@ const consultar = async () => {
     return;
   }
 
+  showLoading('Consultando padrón de locales...', 'Por favor espere');
   loading.value = true;
   busquedaRealizada.value = false;
 
@@ -284,6 +292,7 @@ const consultar = async () => {
     busquedaRealizada.value = true;
   } finally {
     loading.value = false;
+    hideLoading();
   }
 };
 
@@ -351,6 +360,3 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-@import '@/styles/municipal-theme.css';
-</style>

@@ -96,62 +96,61 @@
     </div>
 
     <!-- Modal Crear/Editar -->
-    <div v-if="showFormModal" class="modal fade show d-block" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
-              {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
+    <Modal
+      :show="showFormModal"
+      :title="formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado'"
+      size="md"
+      :loading="loading"
+      show-default-footer
+      :show-cancel-button="true"
+      :show-confirm-button="true"
+      cancel-text="Cancelar"
+      confirm-text="Guardar"
+      confirm-button-class="btn-success"
+      @close="closeModal"
+      @confirm="submitForm"
+    >
+      <template #header>
+        <h5 class="modal-title">
+          <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
+          {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
+        </h5>
+      </template>
+
+      <form @submit.prevent="submitForm">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Oficina *</label>
+            <input type="number" class="form-control" v-model.number="form.oficina"
+                   required :disabled="formMode === 'update'" min="1" />
           </div>
-          <div class="modal-body">
-            <form @submit.prevent="submitForm">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Oficina *</label>
-                  <input type="number" class="form-control" v-model.number="form.oficina"
-                         required :disabled="formMode === 'update'" min="1" />
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Núm. Mercado *</label>
-                  <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
-                         required :disabled="formMode === 'update'" min="1" />
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Descripción *</label>
-                <input type="text" class="form-control" v-model="form.descripcion"
-                       required maxlength="100" />
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Zona</label>
-                  <input type="number" class="form-control" v-model.number="form.id_zona" min="0" />
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Tipo Emisión</label>
-                  <select class="form-select" v-model="form.tipo_emision">
-                    <option value="M">Masiva</option>
-                    <option value="D">Diskette</option>
-                    <option value="B">Baja</option>
-                  </select>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-            <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              Guardar
-            </button>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Núm. Mercado *</label>
+            <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
+                   required :disabled="formMode === 'update'" min="1" />
           </div>
         </div>
-      </div>
-    </div>
-    <div v-if="showFormModal" class="modal-backdrop fade show"></div>
+        <div class="mb-3">
+          <label class="form-label">Descripción *</label>
+          <input type="text" class="form-control" v-model="form.descripcion"
+                 required maxlength="100" />
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Zona</label>
+            <input type="number" class="form-control" v-model.number="form.id_zona" min="0" />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Tipo Emisión</label>
+            <select class="form-select" v-model="form.tipo_emision">
+              <option value="M">Masiva</option>
+              <option value="D">Diskette</option>
+              <option value="B">Baja</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
@@ -160,8 +159,13 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+import Modal from '@/components/common/Modal.vue';
 
 const router = useRouter();
+const { showLoading, hideLoading } = useGlobalLoading();
+const { showToast } = useToast();
 
 // State
 const rows = ref([]);
@@ -178,18 +182,6 @@ const form = ref({
   tipo_emision: 'M'
 });
 
-// Toast
-const showToast = (type, message) => {
-  Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon: type,
-    title: message,
-    showConfirmButton: false,
-    timer: 3000
-  });
-};
-
 // Cerrar
 const cerrar = () => {
   router.push('/mercados');
@@ -205,6 +197,7 @@ const emisionLabel = (val) => {
 
 // Cargar datos
 async function fetchData() {
+  showLoading('Cargando catálogo de mercados...', 'Por favor espere');
   loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
@@ -217,14 +210,16 @@ async function fetchData() {
 
     if (response.data?.eResponse?.success) {
       rows.value = response.data.eResponse.data.result || [];
+      showToast('Datos cargados correctamente', 'success');
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
@@ -260,10 +255,11 @@ function closeModal() {
 // Guardar
 async function submitForm() {
   if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+    showToast('Complete los campos requeridos', 'warning');
     return;
   }
 
+  showLoading('Guardando mercado...', 'Por favor espere');
   loading.value = true;
   try {
     const sp = formMode.value === 'create' ? 'sp_rpt_catalogo_mercados_create' : 'sp_rpt_catalogo_mercados_update';
@@ -291,17 +287,18 @@ async function submitForm() {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado');
+      showToast(formMode.value === 'create' ? 'Mercado creado correctamente' : 'Mercado actualizado correctamente', 'success');
       closeModal();
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast(response.data?.eResponse?.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar mercado');
+    showToast('Error al guardar mercado', 'error');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
@@ -320,6 +317,7 @@ async function deleteRow(row) {
 
   if (!result.isConfirmed) return;
 
+  showLoading('Eliminando mercado...', 'Por favor espere');
   loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
@@ -333,16 +331,17 @@ async function deleteRow(row) {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', 'Mercado eliminado');
+      showToast('Mercado eliminado correctamente', 'success');
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+      showToast(response.data?.eResponse?.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar mercado');
+    showToast('Error al eliminar mercado', 'error');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 

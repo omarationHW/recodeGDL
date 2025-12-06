@@ -180,7 +180,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import axios from 'axios'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const recaudadoras = ref([])
@@ -312,6 +315,7 @@ const buscar = async () => {
     return
   }
 
+  showLoading('Generando resumen de pagos...', 'Por favor espere')
   loading.value = true
   error.value = ''
   resumen.value = []
@@ -355,6 +359,7 @@ const buscar = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

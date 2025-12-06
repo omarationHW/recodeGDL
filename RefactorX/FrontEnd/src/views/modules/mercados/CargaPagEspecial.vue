@@ -250,6 +250,8 @@ import {
   faQuestionCircle, faEraser, faInbox, faCreditCard
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+// import { useToast } from '@/stores/toast';
 
 library.add(
   faCalendarAlt, faStore, faSearch, faList, faSave, faTimes,
@@ -257,19 +259,8 @@ library.add(
 );
 
 const router = useRouter();
-
-// Helper para mostrar toasts
-const showToast = (icon, title) => {
-  Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon,
-    title,
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true
-  });
-};
+const globalLoading = useGlobalLoading();
+// const toast = useToast();
 
 // Estados
 const loading = ref(false);
@@ -304,22 +295,24 @@ onMounted(() => {
 
 // Cargar mercados
 async function cargarMercados() {
-  try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+  await globalLoading.withLoading(async () => {
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_mercados_alls',
+          Base: 'mercados',
+          Parametros: []
+        }
+      });
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      mercados.value = response.data.eResponse.data.result;
+      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+        mercados.value = response.data.eResponse.data.result;
+      }
+    } catch (error) {
+      console.error('Error al cargar mercados:', error);
+      // toast.error('Error al cargar mercados');
     }
-  } catch (error) {
-    console.error('Error al cargar mercados:', error);
-    showToast('error', 'Error al cargar mercados');
-  }
+  }, 'Cargando mercados', 'Por favor espere...');
 }
 
 // Cuando cambia el mercado
@@ -334,7 +327,7 @@ function onMercadoChange() {
 // Buscar adeudos
 async function buscarAdeudos() {
   if (!selectedMercado.value || !form.value.local) {
-    showToast('warning', 'Seleccione un mercado y local válido');
+    // toast.warning('Seleccione un mercado y local válido');
     return;
   }
 
@@ -342,38 +335,40 @@ async function buscarAdeudos() {
   adeudos.value = [];
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_adeudos_local',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedMercado.value.oficina },
-          { Nombre: 'p_mercado', Valor: selectedMercado.value.num_mercado_nvo },
-          { Nombre: 'p_categoria', Valor: selectedMercado.value.categoria },
-          { Nombre: 'p_seccion', Valor: 'SS' },
-          { Nombre: 'p_local', Valor: parseInt(form.value.local) }
-        ]
-      }
-    });
+    await globalLoading.withLoading(async () => {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_adeudos_local_params',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_oficina', Valor: selectedMercado.value.oficina },
+            { Nombre: 'p_mercado', Valor: selectedMercado.value.num_mercado_nvo },
+            { Nombre: 'p_categoria', Valor: selectedMercado.value.categoria },
+            { Nombre: 'p_seccion', Valor: 'SS' },
+            { Nombre: 'p_local', Valor: parseInt(form.value.local) }
+          ]
+        }
+      });
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      adeudos.value = response.data.eResponse.data.result.map(a => ({
-        ...a,
-        selected: true,
-        partida: ''
-      }));
+      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+        adeudos.value = response.data.eResponse.data.result.map(a => ({
+          ...a,
+          selected: true,
+          partida: ''
+        }));
 
-      if (adeudos.value.length === 0) {
-        showToast('info', 'No se encontraron adeudos para este local');
+        if (adeudos.value.length === 0) {
+          toast.info('No se encontraron adeudos para este local');
+        } else {
+          toast.success(`Se encontraron ${adeudos.value.length} adeudos`);
+        }
       } else {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`);
+        toast.info('No se encontraron adeudos');
       }
-    } else {
-      showToast('info', 'No se encontraron adeudos');
-    }
+    }, 'Buscando adeudos', 'Por favor espere...');
   } catch (error) {
     console.error('Error al buscar adeudos:', error);
-    showToast('error', 'Error al buscar adeudos');
+    toast.error('Error al buscar adeudos');
   } finally {
     loading.value = false;
   }
@@ -386,13 +381,13 @@ async function cargarPagos() {
   );
 
   if (pagosValidos.length === 0) {
-    showToast('warning', 'Debe seleccionar al menos un adeudo y capturar la partida');
+    toast.warning('Debe seleccionar al menos un adeudo y capturar la partida');
     return;
   }
 
   if (!form.value.fecha_pago || !form.value.oficina_pago ||
       !form.value.caja_pago || !form.value.operacion_pago) {
-    showToast('warning', 'Complete todos los datos del pago');
+    toast.warning('Complete todos los datos del pago');
     return;
   }
 
@@ -410,36 +405,38 @@ async function cargarPagos() {
   loading.value = true;
 
   try {
-    const pagosJson = pagosValidos.map(a => ({
-      id_local: a.id_local,
-      axo: a.axo,
-      periodo: a.periodo,
-      importe: a.importe,
-      partida: a.partida
-    }));
+    await globalLoading.withLoading(async () => {
+      const pagosJson = pagosValidos.map(a => ({
+        id_local: a.id_local,
+        axo: a.axo,
+        periodo: a.periodo,
+        importe: a.importe,
+        partida: a.partida
+      }));
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cargar_pagos_especial',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_pagos_json', Valor: JSON.stringify(pagosJson) },
-          { Nombre: 'p_fecha_pago', Valor: form.value.fecha_pago },
-          { Nombre: 'p_oficina_pago', Valor: parseInt(form.value.oficina_pago) },
-          { Nombre: 'p_caja_pago', Valor: form.value.caja_pago },
-          { Nombre: 'p_operacion_pago', Valor: parseInt(form.value.operacion_pago) },
-          { Nombre: 'p_usuario_id', Valor: 1 } // TODO: Obtener de sesión
-        ]
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_cargar_pagos_especial',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_pagos_json', Valor: JSON.stringify(pagosJson) },
+            { Nombre: 'p_fecha_pago', Valor: form.value.fecha_pago },
+            { Nombre: 'p_oficina_pago', Valor: parseInt(form.value.oficina_pago) },
+            { Nombre: 'p_caja_pago', Valor: form.value.caja_pago },
+            { Nombre: 'p_operacion_pago', Valor: parseInt(form.value.operacion_pago) },
+            { Nombre: 'p_usuario_id', Valor: 1 } // TODO: Obtener de sesión
+          ]
+        }
+      });
+
+      if (response.data?.eResponse?.success) {
+        toast.success(`${pagosValidos.length} pagos cargados correctamente`);
+        adeudos.value = [];
       }
-    });
-
-    if (response.data?.eResponse?.success) {
-      showToast('success', `${pagosValidos.length} pagos cargados correctamente`);
-      adeudos.value = [];
-    }
+    }, 'Cargando pagos especiales', 'Por favor espere...');
   } catch (error) {
     console.error('Error al cargar pagos:', error);
-    showToast('error', 'Error al cargar pagos');
+    toast.error('Error al cargar pagos');
   } finally {
     loading.value = false;
   }
@@ -481,20 +478,10 @@ function cerrar() {
 }
 </script>
 
-<style scoped>
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.table-sm td,
-.table-sm th {
-  padding: 0.3rem 0.5rem;
-  font-size: 0.85rem;
-}
-
-.badge {
-  padding: 0.35em 0.65em;
-  font-size: 0.85em;
-  font-weight: 600;
-}
-</style>
+<!--
+  Estilos removidos - Se usan clases globales municipales:
+  - .gap-2: Bootstrap utility class (ya está disponible globalmente)
+  - .table-sm: Bootstrap utility class (ya está disponible globalmente)
+  - .badge: Bootstrap utility class (ya está disponible globalmente)
+  - Los estilos de tabla están cubiertos por .municipal-table
+-->

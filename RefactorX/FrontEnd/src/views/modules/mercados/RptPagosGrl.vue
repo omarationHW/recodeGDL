@@ -161,6 +161,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Referencias reactivas
 const filters = ref({
@@ -205,6 +209,7 @@ const totalImporte = computed(() => {
 const fetchRecaudadoras = async () => {
   loading.value = true;
   try {
+    showLoading('Cargando recaudadoras', 'Por favor espere...');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
@@ -220,6 +225,7 @@ const fetchRecaudadoras = async () => {
     console.error('Error al cargar recaudadoras:', error);
   } finally {
     loading.value = false;
+    hideLoading();
   }
 };
 
@@ -232,6 +238,7 @@ const onOficinaChange = async () => {
 
   loading.value = true;
   try {
+    showLoading('Cargando mercados', 'Por favor espere...');
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_mercados_by_recaudadora',
@@ -252,6 +259,7 @@ const onOficinaChange = async () => {
     mercados.value = [];
   } finally {
     loading.value = false;
+    hideLoading();
   }
 };
 
@@ -265,6 +273,7 @@ const consultar = async () => {
   busquedaRealizada.value = false;
 
   try {
+    showLoading('Generando reporte de pagos generales', 'Por favor espere...');
     const parametros = [
       { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
       { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) }
@@ -300,6 +309,7 @@ const consultar = async () => {
     busquedaRealizada.value = true;
   } finally {
     loading.value = false;
+    hideLoading();
   }
 };
 

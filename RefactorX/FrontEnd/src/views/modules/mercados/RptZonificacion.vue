@@ -150,6 +150,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const loading = ref(false)
@@ -227,6 +230,7 @@ const consultar = async () => {
   }
 
   loading.value = true
+  showLoading()
   error.value = ''
   ingresos.value = []
   searchPerformed.value = true
@@ -260,6 +264,7 @@ const consultar = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

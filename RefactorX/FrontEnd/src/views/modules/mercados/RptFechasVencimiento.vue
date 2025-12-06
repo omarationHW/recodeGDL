@@ -65,7 +65,7 @@
             Fechas de Vencimiento Configuradas
           </h5>
           <div class="header-right">
-            <span class="badge-purple" v-if="fechas.length > 0">
+            <span class="badge-municipal badge-purple" v-if="fechas.length > 0">
               {{ fechas.length }} meses
             </span>
           </div>
@@ -109,10 +109,10 @@
                 </tr>
                 <tr v-else v-for="fecha in fechas" :key="fecha.mes" class="row-hover">
                   <td>
-                    <span class="badge-month">{{ getMesNombre(fecha.mes) }}</span>
+                    <span class="badge-municipal badge-primary badge-gradient">{{ getMesNombre(fecha.mes) }}</span>
                   </td>
                   <td>
-                    <span class="badge-day">Día {{ fecha.dia_vencimiento || 'N/A' }}</span>
+                    <span class="badge-municipal badge-info">Día {{ fecha.dia_vencimiento || 'N/A' }}</span>
                   </td>
                   <td>
                     <font-awesome-icon icon="calendar-check" class="icon-small text-success" />
@@ -128,7 +128,7 @@
                   </td>
                   <td>{{ formatFecha(fecha.fecha_modif) }}</td>
                   <td class="text-center">
-                    <button class="btn-icon btn-primary" @click="editarFecha(fecha)" title="Editar">
+                    <button class="btn-icon btn-icon-primary" @click="editarFecha(fecha)" title="Editar">
                       <font-awesome-icon icon="edit" />
                     </button>
                   </td>
@@ -142,7 +142,7 @@
 
     <!-- Modal de Edición -->
     <div v-if="showModal" class="modal-backdrop" @click.self="cerrarModal">
-      <div class="modal-content">
+      <div class="modal-content modal-municipal">
         <div class="modal-header municipal-modal-header">
           <h5 class="modal-title">
             <font-awesome-icon icon="calendar-edit" />
@@ -153,7 +153,7 @@
         <div class="modal-body">
           <form @submit.prevent="guardar">
             <div class="form-group">
-              <label class="municipal-form-label">Mes <span class="required">*</span></label>
+              <label class="municipal-form-label">Mes <span class="text-danger">*</span></label>
               <select
                 class="municipal-form-control"
                 v-model.number="formData.mes"
@@ -164,7 +164,7 @@
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Día de Vencimiento <span class="required">*</span></label>
+              <label class="municipal-form-label">Día de Vencimiento <span class="text-danger">*</span></label>
               <input
                 type="number"
                 class="municipal-form-control"
@@ -176,7 +176,7 @@
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Fecha Descuento <span class="required">*</span></label>
+              <label class="municipal-form-label">Fecha Descuento <span class="text-danger">*</span></label>
               <input
                 type="date"
                 class="municipal-form-control"
@@ -185,7 +185,7 @@
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Fecha Recargo <span class="required">*</span></label>
+              <label class="municipal-form-label">Fecha Recargo <span class="text-danger">*</span></label>
               <input
                 type="date"
                 class="municipal-form-control"
@@ -221,6 +221,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const loading = ref(false)
@@ -312,6 +316,7 @@ const formatFecha = (fecha) => {
 const cargarFechas = async () => {
   loading.value = true
   error.value = ''
+  showLoading('Cargando fechas de vencimiento...')
 
   try {
     const response = await axios.post('/api/generic', {
@@ -337,6 +342,7 @@ const cargarFechas = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -379,6 +385,7 @@ const guardar = async () => {
   }
 
   saving.value = true
+  showLoading('Guardando fecha de vencimiento...')
 
   try {
     const sp = isEditMode.value ? 'sp_update_fecha_vencimiento' : 'sp_insert_fecha_vencimiento'
@@ -408,6 +415,7 @@ const guardar = async () => {
     console.error('Error al guardar:', err)
   } finally {
     saving.value = false
+    hideLoading()
   }
 }
 
@@ -416,204 +424,3 @@ onMounted(() => {
   cargarFechas()
 })
 </script>
-
-<style scoped>
-@import '@/styles/municipal-theme.css';
-/* Estilos específicos del componente */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.stat-card-primary {
-  border-left-color: #667eea;
-}
-
-.stat-card-success {
-  border-left-color: #28a745;
-}
-
-.stat-card-warning {
-  border-left-color: #ffc107;
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.stat-card-primary .stat-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.stat-card-success .stat-icon {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-}
-
-.stat-card-warning .stat-icon {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: white;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin-top: 0.25rem;
-}
-
-/* Badges */
-.badge-month {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  display: inline-block;
-}
-
-.badge-day {
-  background: #e3f2fd;
-  color: #1565c0;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: inline-block;
-}
-
-/* Modal */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1050;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.municipal-modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 12px 12px 0 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.modal-body {
-  padding: 2rem;
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid #dee2e6;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-/* Otros */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-.icon-small {
-  font-size: 0.85rem;
-  margin-right: 0.35rem;
-}
-
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-icon.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-icon.btn-primary:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
-}
-</style>

@@ -107,8 +107,7 @@
             <div class="form-group col-md-8 d-flex align-items-end">
               <button class="btn-municipal-primary" @click="buscarLocal"
                 :disabled="loading || !validarBusqueda() || panelPagoVisible">
-                <font-awesome-icon icon="search" v-if="!loading" />
-                <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                <font-awesome-icon icon="search" />
                 Buscar
               </button>
             </div>
@@ -216,14 +215,12 @@
           <div class="d-flex justify-content-end mt-3 gap-2">
             <button class="btn-municipal-success" @click="agregarPago"
               :disabled="loading || !validarPago() || pagoExistente">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              <font-awesome-icon icon="save" v-if="!loading" />
+              <font-awesome-icon icon="save" />
               Agregar
             </button>
             <button class="btn-municipal-warning" @click="modificarPago"
               :disabled="loading || !validarPago() || !pagoExistente">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              <font-awesome-icon icon="edit" v-if="!loading" />
+              <font-awesome-icon icon="edit" />
               Modificar
             </button>
             <button class="btn-municipal-danger" @click="borrarPago"
@@ -283,12 +280,14 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
 
 const router = useRouter();
 const toast = useToast();
+const globalLoading = useGlobalLoading();
 
 // Estados
-const loading = ref(false);
+const loading = ref(false); // Solo para deshabilitar campos durante operaciones
 const recaudadoras = ref([]);
 const mercados = ref([]);
 const secciones = ref([]);
@@ -334,24 +333,27 @@ onMounted(async () => {
 
 // Fetch Recaudadoras
 async function fetchRecaudadoras() {
-  try {
+  await globalLoading.withLoading(async () => {
     loading.value = true;
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    });
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_recaudadoras',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      recaudadoras.value = response.data.eResponse.data.result || [];
+      if (response.data?.eResponse?.success) {
+        recaudadoras.value = response.data.eResponse.data.result || [];
+      }
+    } catch (error) {
+      toast.error('Error al cargar recaudadoras: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    toast.error('Error al cargar recaudadoras: ' + error.message);
-  } finally {
-    loading.value = false;
-  }
+  }, 'Cargando recaudadoras');
 }
 
 // Cambio de recaudadora
@@ -362,27 +364,30 @@ async function onRecChange() {
 
   if (!filters.value.idRecaudadora) return;
 
-  try {
+  await globalLoading.withLoading(async () => {
     loading.value = true;
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { nombre: 'p_id_rec', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
-          { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
-        ]
-      }
-    });
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_catalogo_mercados',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_id_rec', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
+            { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
+          ]
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      mercados.value = response.data.eResponse.data.result || [];
+      if (response.data?.eResponse?.success) {
+        mercados.value = response.data.eResponse.data.result || [];
+      }
+    } catch (error) {
+      toast.error('Error al cargar mercados: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    toast.error('Error al cargar mercados: ' + error.message);
-  } finally {
-    loading.value = false;
-  }
+  }, 'Cargando mercados');
 }
 
 // Cambio de mercado - actualiza categoría
@@ -399,24 +404,27 @@ function onMercadoChange() {
 
 // Fetch Secciones
 async function fetchSecciones() {
-  try {
+  await globalLoading.withLoading(async () => {
     loading.value = true;
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    });
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_secciones',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      secciones.value = response.data.eResponse.data.result || [];
+      if (response.data?.eResponse?.success) {
+        secciones.value = response.data.eResponse.data.result || [];
+      }
+    } catch (error) {
+      toast.error('Error al cargar secciones: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    toast.error('Error al cargar secciones: ' + error.message);
-  } finally {
-    loading.value = false;
-  }
+  }, 'Cargando secciones');
 }
 
 // Validar búsqueda
@@ -443,68 +451,71 @@ async function buscarLocal() {
     return;
   }
 
-  try {
+  await globalLoading.withLoading(async () => {
     loading.value = true;
     errorBusqueda.value = '';
     localEncontrado.value = null;
     panelPagoVisible.value = false;
     pagoExistente.value = false;
 
-    // Buscar local y verificar si paga energía
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_pagos_energia_buscar_local',
-        Base: 'padron_licencias',
-        Parametros: [
-          { nombre: 'p_oficina', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
-          { nombre: 'p_num_mercado', tipo: 'int4', valor: parseInt(filters.value.numMercado) },
-          { nombre: 'p_categoria', tipo: 'int4', valor: parseInt(filters.value.categoria) },
-          { nombre: 'p_seccion', tipo: 'text', valor: filters.value.seccion },
-          { nombre: 'p_local', tipo: 'int4', valor: parseInt(filters.value.local) },
-          { nombre: 'p_letra_local', tipo: 'text', valor: filters.value.letraLocal || '' },
-          { nombre: 'p_bloque', tipo: 'text', valor: filters.value.bloque || '' }
-        ]
-      }
-    });
-
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result;
-      if (result && result.length > 0) {
-        const local = result[0];
-
-        if (!local.id_energia) {
-          errorBusqueda.value = 'El Local Digitado no Paga Energía Eléctrica';
-          toast.warning(errorBusqueda.value);
-          return;
+    try {
+      // Buscar local y verificar si paga energía
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_alta_pagos_energia_buscar_local',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_oficina', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
+            { nombre: 'p_num_mercado', tipo: 'int4', valor: parseInt(filters.value.numMercado) },
+            { nombre: 'p_categoria', tipo: 'int4', valor: parseInt(filters.value.categoria) },
+            { nombre: 'p_seccion', tipo: 'text', valor: filters.value.seccion },
+            { nombre: 'p_local', tipo: 'int4', valor: parseInt(filters.value.local) },
+            { nombre: 'p_letra_local', tipo: 'text', valor: filters.value.letraLocal || '' },
+            { nombre: 'p_bloque', tipo: 'text', valor: filters.value.bloque || '' }
+          ]
         }
+      });
 
-        localEncontrado.value = local;
+      if (response.data?.eResponse?.success) {
+        const result = response.data.eResponse.data.result;
+        if (result && result.length > 0) {
+          const local = result[0];
 
-        // Establecer consumo por defecto del local
-        pago.value.cveConsumo = local.cve_consumo || '';
+          if (!local.id_energia) {
+            errorBusqueda.value = 'El Local Digitado no Paga Energía Eléctrica';
+            toast.warning(errorBusqueda.value);
+            return;
+          }
 
-        // Verificar si ya existe un pago para este periodo
-        await verificarPagoExistente();
+          localEncontrado.value = local;
 
-        // Cargar adeudos
-        await cargarAdeudos();
+          // Establecer consumo por defecto del local
+          pago.value.cveConsumo = local.cve_consumo || '';
 
-        panelPagoVisible.value = true;
-        toast.success('Local encontrado correctamente');
-      } else {
-        errorBusqueda.value = 'No Existe el Local Digitado';
-        toast.warning(errorBusqueda.value);
+          // Verificar si ya existe un pago para este periodo
+          await verificarPagoExistente();
+
+          // Cargar adeudos
+          await cargarAdeudos();
+
+          panelPagoVisible.value = true;
+          toast.success('Local encontrado correctamente');
+        } else {
+          errorBusqueda.value = 'No Existe el Local Digitado';
+          toast.warning(errorBusqueda.value);
+        }
       }
+    } catch (error) {
+      errorBusqueda.value = 'Error al buscar el local';
+      toast.error('Error al buscar local: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    errorBusqueda.value = 'Error al buscar el local';
-    toast.error('Error al buscar local: ' + error.message);
-  } finally {
-    loading.value = false;
-  }
+  }, 'Buscando local');
 }
 
-// Verificar si existe pago
+// Verificar si existe pago (llamada interna, sin loading global)
 async function verificarPagoExistente() {
   if (!localEncontrado.value?.id_energia) return;
 
@@ -553,7 +564,7 @@ async function verificarPagoExistente() {
   }
 }
 
-// Buscar importe en adeudos
+// Buscar importe en adeudos (llamada interna, sin loading global)
 async function buscarImporteEnAdeudos() {
   if (!localEncontrado.value?.id_energia) return;
 
@@ -584,7 +595,7 @@ async function buscarImporteEnAdeudos() {
   }
 }
 
-// Cargar adeudos del local
+// Cargar adeudos del local (llamada interna, sin loading global)
 async function cargarAdeudos() {
   if (!localEncontrado.value?.id_energia) return;
 
@@ -629,43 +640,46 @@ async function agregarPago() {
     return;
   }
 
-  try {
+  await globalLoading.withLoading(async () => {
     loading.value = true;
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_pagos_energia_agregar',
-        Base: 'padron_licencias',
-        Parametros: [
-          { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
-          { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
-          { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
-          { nombre: 'p_fecha_pago', tipo: 'date', valor: pago.value.fechaPago },
-          { nombre: 'p_oficina_pago', tipo: 'int4', valor: parseInt(pago.value.oficinaPago) },
-          { nombre: 'p_caja_pago', tipo: 'text', valor: pago.value.cajaPago },
-          { nombre: 'p_operacion_pago', tipo: 'int4', valor: pago.value.operacionPago },
-          { nombre: 'p_importe_pago', tipo: 'numeric', valor: pago.value.importePago },
-          { nombre: 'p_cve_consumo', tipo: 'text', valor: pago.value.cveConsumo },
-          { nombre: 'p_cantidad', tipo: 'numeric', valor: pago.value.cantidad || 0 },
-          { nombre: 'p_folio', tipo: 'text', valor: pago.value.folio },
-          { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
-        ]
-      }
-    });
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_alta_pagos_energia_agregar',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
+            { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
+            { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
+            { nombre: 'p_fecha_pago', tipo: 'date', valor: pago.value.fechaPago },
+            { nombre: 'p_oficina_pago', tipo: 'int4', valor: parseInt(pago.value.oficinaPago) },
+            { nombre: 'p_caja_pago', tipo: 'text', valor: pago.value.cajaPago },
+            { nombre: 'p_operacion_pago', tipo: 'int4', valor: pago.value.operacionPago },
+            { nombre: 'p_importe_pago', tipo: 'numeric', valor: pago.value.importePago },
+            { nombre: 'p_cve_consumo', tipo: 'text', valor: pago.value.cveConsumo },
+            { nombre: 'p_cantidad', tipo: 'numeric', valor: pago.value.cantidad || 0 },
+            { nombre: 'p_folio', tipo: 'text', valor: pago.value.folio },
+            { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
+          ]
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result;
-      if (result && result[0]?.success) {
-        toast.success(result[0].message || 'Pago agregado correctamente');
-        cancelarPago();
-      } else {
-        toast.error(result[0]?.message || 'Error al agregar pago');
+      if (response.data?.eResponse?.success) {
+        const result = response.data.eResponse.data.result;
+        if (result && result[0]?.success) {
+          toast.success(result[0].message || 'Pago agregado correctamente');
+          cancelarPago();
+        } else {
+          toast.error(result[0]?.message || 'Error al agregar pago');
+        }
       }
+    } catch (error) {
+      toast.error('Error al agregar pago: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    toast.error('Error al agregar pago: ' + error.message);
-  } finally {
-    loading.value = false;
-  }
+  }, 'Agregando pago');
 }
 
 // Modificar pago
@@ -675,78 +689,84 @@ async function modificarPago() {
     return;
   }
 
-  try {
+  await globalLoading.withLoading(async () => {
     loading.value = true;
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_pagos_energia_modificar',
-        Base: 'padron_licencias',
-        Parametros: [
-          { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
-          { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
-          { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
-          { nombre: 'p_fecha_pago', tipo: 'date', valor: pago.value.fechaPago },
-          { nombre: 'p_oficina_pago', tipo: 'int4', valor: parseInt(pago.value.oficinaPago) },
-          { nombre: 'p_caja_pago', tipo: 'text', valor: pago.value.cajaPago },
-          { nombre: 'p_operacion_pago', tipo: 'int4', valor: pago.value.operacionPago },
-          { nombre: 'p_importe_pago', tipo: 'numeric', valor: pago.value.importePago },
-          { nombre: 'p_cve_consumo', tipo: 'text', valor: pago.value.cveConsumo },
-          { nombre: 'p_cantidad', tipo: 'numeric', valor: pago.value.cantidad || 0 },
-          { nombre: 'p_folio', tipo: 'text', valor: pago.value.folio },
-          { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
-        ]
-      }
-    });
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_alta_pagos_energia_modificar',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
+            { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
+            { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
+            { nombre: 'p_fecha_pago', tipo: 'date', valor: pago.value.fechaPago },
+            { nombre: 'p_oficina_pago', tipo: 'int4', valor: parseInt(pago.value.oficinaPago) },
+            { nombre: 'p_caja_pago', tipo: 'text', valor: pago.value.cajaPago },
+            { nombre: 'p_operacion_pago', tipo: 'int4', valor: pago.value.operacionPago },
+            { nombre: 'p_importe_pago', tipo: 'numeric', valor: pago.value.importePago },
+            { nombre: 'p_cve_consumo', tipo: 'text', valor: pago.value.cveConsumo },
+            { nombre: 'p_cantidad', tipo: 'numeric', valor: pago.value.cantidad || 0 },
+            { nombre: 'p_folio', tipo: 'text', valor: pago.value.folio },
+            { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
+          ]
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result;
-      if (result && result[0]?.success) {
-        toast.success(result[0].message || 'Pago modificado correctamente');
-        cancelarPago();
-      } else {
-        toast.error(result[0]?.message || 'Error al modificar pago');
+      if (response.data?.eResponse?.success) {
+        const result = response.data.eResponse.data.result;
+        if (result && result[0]?.success) {
+          toast.success(result[0].message || 'Pago modificado correctamente');
+          cancelarPago();
+        } else {
+          toast.error(result[0]?.message || 'Error al modificar pago');
+        }
       }
+    } catch (error) {
+      toast.error('Error al modificar pago: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    toast.error('Error al modificar pago: ' + error.message);
-  } finally {
-    loading.value = false;
-  }
+  }, 'Modificando pago');
 }
 
 // Borrar pago
 async function borrarPago() {
   if (!confirm('¿Está seguro de eliminar este pago?')) return;
 
-  try {
+  await globalLoading.withLoading(async () => {
     loading.value = true;
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_pagos_energia_borrar',
-        Base: 'padron_licencias',
-        Parametros: [
-          { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
-          { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
-          { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
-          { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
-        ]
-      }
-    });
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_alta_pagos_energia_borrar',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
+            { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
+            { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
+            { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
+          ]
+        }
+      });
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result;
-      if (result && result[0]?.success) {
-        toast.success(result[0].message || 'Pago eliminado correctamente');
-        cancelarPago();
-      } else {
-        toast.error(result[0]?.message || 'Error al eliminar pago');
+      if (response.data?.eResponse?.success) {
+        const result = response.data.eResponse.data.result;
+        if (result && result[0]?.success) {
+          toast.success(result[0].message || 'Pago eliminado correctamente');
+          cancelarPago();
+        } else {
+          toast.error(result[0]?.message || 'Error al eliminar pago');
+        }
       }
+    } catch (error) {
+      toast.error('Error al eliminar pago: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    toast.error('Error al eliminar pago: ' + error.message);
-  } finally {
-    loading.value = false;
-  }
+  }, 'Eliminando pago');
 }
 
 // Cancelar edición
@@ -804,40 +824,5 @@ function cerrar() {
 }
 </script>
 
-<style scoped>
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  flex: 1;
-  min-width: 150px;
-  display: flex;
-  flex-direction: column;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 0.25rem;
-  margin-bottom: 1rem;
-}
-
-.alert-info {
-  background-color: #d1ecf1;
-  border-color: #bee5eb;
-  color: #0c5460;
-}
-
-.alert-warning {
-  background-color: #fff3cd;
-  border-color: #ffeeba;
-  color: #856404;
-}
-</style>
+<!-- Sin estilos scoped - Se usan clases municipales globales -->
+<!-- Clases utilizadas: module-view, municipal-card, municipal-form-control, btn-municipal-*, gap-2 -->

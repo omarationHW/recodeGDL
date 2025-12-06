@@ -220,6 +220,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -283,6 +286,7 @@ const getToastIcon = (type) => {
 const fetchRecaudadoras = async () => {
   loading.value = true
   error.value = ''
+  showLoading()
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -306,6 +310,7 @@ const fetchRecaudadoras = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -332,6 +337,7 @@ const buscar = async () => {
 
   const operacion = tipoConsulta.value === 'renta' ? 'spd_11_dif_renta' : 'spd_11_dif_pagos'
 
+  showLoading()
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -364,6 +370,7 @@ const buscar = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -520,26 +527,3 @@ onMounted(() => {
   fechaDesde.value = haceUnMes.toISOString().split('T')[0]
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.radio-group {
-  display: flex;
-  gap: 2rem;
-  margin-top: 0.5rem;
-}
-
-.form-check-inline {
-  margin-right: 0;
-}
-
-.form-check-label {
-  cursor: pointer;
-  user-select: none;
-}
-</style>

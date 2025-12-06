@@ -157,7 +157,7 @@
                     <p>No se encontraron pagos de energía</p>
                   </td>
                 </tr>
-                <tr v-else v-for="row in resultados" :key="row.id_pago_energia" class="row-hover">
+                <tr v-else v-for="row in paginatedResultados" :key="row.id_pago_energia" class="row-hover">
                   <td>{{ row.id_local }}</td>
                   <td>{{ row.oficina }}</td>
                   <td>{{ row.num_mercado }}</td>
@@ -179,6 +179,31 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div v-if="resultados.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+            </div>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="prevPage" :disabled="currentPage === 1">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -192,8 +217,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import axios from 'axios'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showFilters = ref(true)
 const searchType = ref('')
@@ -208,6 +236,47 @@ const formLocal = ref({ oficina: '', num_mercado: '', categoria: '', seccion: ''
 const formFechaPago = ref({ fecha_pago: '', oficina_pago: '', caja_pago: '', operacion_pago: '' })
 
 const toast = ref({ show: false, type: 'info', message: '' })
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+const paginatedResultados = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return resultados.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(resultados.value.length / itemsPerPage.value)
+})
+
+const paginationStart = computed(() => {
+  return resultados.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const paginationEnd = computed(() => {
+  const end = currentPage.value * itemsPerPage.value
+  return end > resultados.value.length ? resultados.value.length : end
+})
+
+const totalItems = computed(() => resultados.value.length)
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+watch(resultados, () => {
+  currentPage.value = 1
+})
 
 const toggleFilters = () => { showFilters.value = !showFilters.value }
 const mostrarAyuda = () => { showToast('info', 'Ayuda: Busque pagos de energía por local o por fecha de pago') }
@@ -277,6 +346,7 @@ const buscar = async () => {
     ]
   }
 
+  showLoading('Consultando pagos de energía...', 'Por favor espere')
   loading.value = true; resultados.value = []; searchPerformed.value = true
   try {
     const res = await axios.post('/api/generic', { eRequest: { Operacion: sp, Base: 'padron_licencias', Parametros: params } })
@@ -285,7 +355,10 @@ const buscar = async () => {
       resultados.value.length > 0 ? (showToast('success', `${resultados.value.length} pagos encontrados`), showFilters.value = false) : showToast('info', 'No se encontraron pagos')
     } else showToast('error', res.data.eResponse?.message || 'Error')
   } catch { showToast('error', 'Error al buscar') }
-  finally { loading.value = false }
+  finally {
+    loading.value = false
+    hideLoading()
+  }
 }
 
 const limpiar = () => {
@@ -299,18 +372,3 @@ const exportarExcel = () => resultados.value.length ? showToast('info', 'Exporta
 
 onMounted(() => { fetchRecaudadoras(); fetchSecciones() })
 </script>
-
-<style scoped>
-.empty-icon { color: #ccc; margin-bottom: 1rem; }
-.text-end { text-align: right; }
-.spinner-border { width: 3rem; height: 3rem; }
-.row-hover:hover { background-color: #f8f9fa; }
-.required { color: #dc3545; }
-.search-type-options { display: flex; gap: 1rem; }
-.search-option { display: flex; align-items: center; cursor: pointer; padding: 0.75rem 1.25rem; border: 2px solid #dee2e6; border-radius: 8px; transition: all 0.2s; }
-.search-option:hover { border-color: #6f42c1; background-color: #f8f9fa; }
-.search-option.active { border-color: #6f42c1; background-color: #6f42c1; color: white; }
-.search-option input { display: none; }
-.search-option span { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; }
-.municipal-table td.text-end, .municipal-table th.text-end { text-align: right; }
-</style>

@@ -10,11 +10,11 @@
         <p>Inicio > Reportes > Adeudos Generales de Energía</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || adeudos.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="globalLoading.isLoading.value || adeudos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>
-        <button class="btn-municipal-primary" @click="imprimir" :disabled="loading || adeudos.length === 0">
+        <button class="btn-municipal-primary" @click="imprimir" :disabled="globalLoading.isLoading.value || adeudos.length === 0">
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
@@ -41,7 +41,7 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
-              <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="loading">
+              <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="globalLoading.isLoading.value">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.id_rec }} - {{ rec.recaudadora }}
@@ -51,7 +51,7 @@
 
             <div class="form-group">
               <label class="municipal-form-label">Mercado <span class="required">*</span></label>
-              <select class="municipal-form-control" v-model="selectedMercado" :disabled="!selectedRec || loading">
+              <select class="municipal-form-control" v-model="selectedMercado" :disabled="!selectedRec || globalLoading.isLoading.value">
                 <option value="">Seleccione...</option>
                 <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
                   {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
@@ -62,13 +62,13 @@
             <div class="form-group">
               <label class="municipal-form-label">Año Hasta <span class="required">*</span></label>
               <input type="number" class="municipal-form-control" v-model.number="axo" min="1995" max="2999"
-                placeholder="Año" :disabled="loading" />
+                placeholder="Año" :disabled="globalLoading.isLoading.value" />
             </div>
 
             <div class="form-group">
               <label class="municipal-form-label">Mes Hasta <span class="required">*</span></label>
               <input type="number" class="municipal-form-control" v-model.number="mes" min="1" max="12"
-                placeholder="Mes" :disabled="loading" />
+                placeholder="Mes" :disabled="globalLoading.isLoading.value" />
             </div>
           </div>
 
@@ -76,11 +76,11 @@
           <div class="row mt-3">
             <div class="col-12">
               <div class="text-end">
-                <button class="btn-municipal-primary me-2" @click="buscar" :disabled="loading">
+                <button class="btn-municipal-primary me-2" @click="buscar" :disabled="globalLoading.isLoading.value">
                   <font-awesome-icon icon="search" />
                   Buscar
                 </button>
-                <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="globalLoading.isLoading.value">
                   <font-awesome-icon icon="eraser" />
                   Limpiar
                 </button>
@@ -105,22 +105,14 @@
         </div>
 
         <div class="municipal-card-body table-container">
-          <!-- Mensaje de loading -->
-          <div v-if="loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-3 text-muted">Cargando datos, por favor espere...</p>
-          </div>
-
           <!-- Mensaje de error -->
-          <div v-else-if="error" class="alert alert-danger" role="alert">
+          <div v-if="error" class="alert alert-danger" role="alert">
             <font-awesome-icon icon="exclamation-triangle" />
             {{ error }}
           </div>
 
           <!-- Tabla -->
-          <div v-else class="table-responsive">
+          <div v-if="!error" class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -176,52 +168,39 @@
             </table>
           </div>
 
-          <!-- Controles de Paginación -->
-          <div v-if="adeudos.length > 0" class="pagination-controls">
+          <!-- Paginación -->
+          <div v-if="adeudos.length > 0" class="pagination-container">
             <div class="pagination-info">
-              <span class="text-muted">
-                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-                de {{ totalRecords }} registros
-              </span>
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+              de {{ totalRecords }} registros
             </div>
-
-            <div class="pagination-size">
-              <label class="municipal-form-label me-2">Registros por página:</label>
-              <select class="municipal-form-control form-control-sm" :value="itemsPerPage"
-                @change="changePageSize($event.target.value)" style="width: auto; display: inline-block;">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="250">250</option>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+                <option :value="250">250</option>
               </select>
             </div>
-
             <div class="pagination-buttons">
-              <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"
-                title="Primera página">
+              <button @click="goToPage(1)" :disabled="currentPage === 1" title="Primera página">
                 <font-awesome-icon icon="angle-double-left" />
               </button>
-
-              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)"
-                :disabled="currentPage === 1" title="Página anterior">
+              <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" title="Página anterior">
                 <font-awesome-icon icon="angle-left" />
               </button>
-
-              <button v-for="page in visiblePages" :key="page" class="btn-sm"
-                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              <button v-for="page in visiblePages" :key="page"
+                :class="page === currentPage ? 'active' : ''"
                 @click="goToPage(page)">
                 {{ page }}
               </button>
-
-              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)"
-                :disabled="currentPage === totalPages" title="Página siguiente">
+              <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" title="Página siguiente">
                 <font-awesome-icon icon="angle-right" />
               </button>
-
-              <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)"
-                :disabled="currentPage === totalPages" title="Última página">
+              <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages" title="Última página">
                 <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
@@ -230,21 +209,18 @@
       </div>
 
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+
+// Composables
+const globalLoading = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -256,16 +232,8 @@ const axo = ref(new Date().getFullYear())
 const mes = ref(new Date().getMonth() + 1)
 const adeudos = ref([])
 const selectedAdeudo = ref(null)
-const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
 
 // Paginación
 const currentPage = ref(1)
@@ -278,61 +246,35 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina, mercado, año y mes para consultar los adeudos de energía')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+  showToast('Ayuda: Seleccione una oficina, mercado, año y mes para consultar los adeudos de energía', 'info')
 }
 
 const fetchRecaudadoras = async () => {
-  loading.value = true
-  error.value = ''
-  try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
+  await globalLoading.withLoading(async () => {
+    error.value = ''
+    try {
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_recaudadoras',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
+      if (res.data.eResponse && res.data.eResponse.success === true) {
+        recaudadoras.value = res.data.eResponse.data.result || []
+        if (recaudadoras.value.length > 0) {
+          showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
+        }
+      } else {
+        error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+        showToast(error.value, 'error')
       }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
-      if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
-      }
-    } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+    } catch (err) {
+      error.value = 'Error de conexión al cargar recaudadoras'
+      console.error('Error al cargar recaudadoras:', err)
+      showToast(error.value, 'error')
     }
-  } catch (err) {
-    error.value = 'Error de conexión al cargar recaudadoras'
-    console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
-  } finally {
-    loading.value = false
-  }
+  }, 'Cargando oficinas recaudadoras...', 'Por favor espere')
 }
 
 const onRecChange = async () => {
@@ -340,107 +282,96 @@ const onRecChange = async () => {
   mercados.value = []
   if (!selectedRec.value) return
 
-  loading.value = true
-  error.value = ''
-  let p_nivel_usuario = 1; // Nivel de usuario fijo para este contexto
-  try {
-    const res = await axios.post('/api/generic', {
-
-      eRequest: {
-            Operacion: 'sp_get_catalogo_mercados',
-            Base: 'padron_licencias',
-            Parametros: [
-              { nombre: 'p_oficina', tipo: 'integer', valor: selectedRec.value },
-              { nombre: 'p_nivel_usuario', tipo: 'integer', valor: p_nivel_usuario }
-            ]
-          }
-
-      // eRequest: {
-      //   Operacion: 'getMercadosByRecaudadora',
-      //   Base: 'padron_licencias',
-      //   Parametros: [
-      //     { nombre: 'id_rec', valor: selectedRec.value, tipo: 'string' }
-      //   ]
-      // }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      mercados.value = res.data.eResponse.data.result || []
-      if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+  await globalLoading.withLoading(async () => {
+    error.value = ''
+    let p_nivel_usuario = 1 // Nivel de usuario fijo para este contexto
+    try {
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_catalogo_mercados',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_oficina', tipo: 'integer', valor: selectedRec.value },
+            { nombre: 'p_nivel_usuario', tipo: 'integer', valor: p_nivel_usuario }
+          ]
+        }
+      })
+      if (res.data.eResponse && res.data.eResponse.success === true) {
+        mercados.value = res.data.eResponse.data.result || []
+        if (mercados.value.length > 0) {
+          showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
+        } else {
+          showToast('No se encontraron mercados para esta oficina', 'info')
+        }
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        error.value = res.data.eResponse?.message || 'Error al cargar mercados'
+        showToast(error.value, 'error')
       }
-    } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', error.value)
+    } catch (err) {
+      error.value = 'Error de conexión al cargar mercados'
+      console.error('Error al cargar mercados:', err)
+      showToast(error.value, 'error')
     }
-  } catch (err) {
-    error.value = 'Error de conexión al cargar mercados'
-    console.error('Error al cargar mercados:', err)
-    showToast('error', error.value)
-  } finally {
-    loading.value = false
-  }
+  }, 'Cargando mercados...', 'Por favor espere')
 }
 
 const buscar = async () => {
   if (!selectedRec.value || !selectedMercado.value || !axo.value || !mes.value) {
     error.value = 'Debe seleccionar oficina, mercado, año y mes'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (mes.value < 1 || mes.value > 12) {
     error.value = 'El mes debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (axo.value < 1995 || axo.value > 2999) {
     error.value = 'El año debe estar entre 1995 y 2999'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
-  loading.value = true
-  error.value = ''
-  adeudos.value = []
-  selectedAdeudo.value = null
-  searchPerformed.value = true
-  currentPage.value = 1
+  await globalLoading.withLoading(async () => {
+    error.value = ''
+    adeudos.value = []
+    selectedAdeudo.value = null
+    searchPerformed.value = true
+    currentPage.value = 1
 
-  try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'getAdeudosEnergiaGrl',
-        Base: 'mercados',
-        Parametros: [
-          { nombre: 'p_id_rec', valor: selectedRec.value, tipo: 'string' },
-          { nombre: 'p_num_mercado_nvo', valor: selectedMercado.value, tipo: 'integer' },
-          { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
-          { nombre: 'p_mes', valor: mes.value, tipo: 'integer' }
-        ]
-      }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      adeudos.value = res.data.eResponse.data.result || []
-      if (adeudos.value.length > 0) {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`)
-        showFilters.value = false
+    try {
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'getAdeudosEnergiaGrl',
+          Base: 'mercados',
+          Parametros: [
+            { nombre: 'p_id_rec', valor: selectedRec.value, tipo: 'string' },
+            { nombre: 'p_num_mercado_nvo', valor: selectedMercado.value, tipo: 'integer' },
+            { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
+            { nombre: 'p_mes', valor: mes.value, tipo: 'integer' }
+          ]
+        }
+      })
+      if (res.data.eResponse && res.data.eResponse.success === true) {
+        adeudos.value = res.data.eResponse.data.result || []
+        if (adeudos.value.length > 0) {
+          showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success')
+          showFilters.value = false
+        } else {
+          showToast('No se encontraron adeudos con los criterios especificados', 'info')
+        }
       } else {
-        showToast('info', 'No se encontraron adeudos con los criterios especificados')
+        error.value = res.data.eResponse?.message || 'Error al consultar adeudos'
+        showToast(error.value, 'error')
       }
-    } else {
-      error.value = res.data.eResponse?.message || 'Error al consultar adeudos'
-      showToast('error', error.value)
+    } catch (err) {
+      error.value = 'Error de conexión al consultar adeudos'
+      console.error('Error al buscar adeudos:', err)
+      showToast(error.value, 'error')
     }
-  } catch (err) {
-    error.value = 'Error de conexión al consultar adeudos'
-    console.error('Error al buscar adeudos:', err)
-    showToast('error', error.value)
-  } finally {
-    loading.value = false
-  }
+  }, 'Consultando adeudos de energía...', 'Por favor espere')
 }
 
 const limpiarFiltros = () => {
@@ -454,25 +385,25 @@ const limpiarFiltros = () => {
   error.value = ''
   searchPerformed.value = false
   currentPage.value = 1
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación a Excel en desarrollo')
+  showToast('Funcionalidad de exportación a Excel en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 
 // Utilidades
@@ -535,21 +466,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-/* Estilos adicionales específicos del componente si son necesarios */
+/**
+ * ESTILOS MUNICIPALES - PRIORIDAD MEDIA
+ *
+ * Este componente utiliza principalmente las clases globales definidas en municipal-theme.css:
+ * - municipal-card: Tarjetas de contenido
+ * - municipal-table: Tablas de datos
+ * - btn-municipal-*: Botones con estilos municipales (primary, secondary, purple)
+ * - municipal-form-control: Inputs y selects
+ * - municipal-form-label: Labels de formularios
+ *
+ * Los estilos scoped a continuación son específicos de este componente y no pueden ser globales.
+ */
 
+/* Estilos específicos del componente que complementan las clases municipales */
 .empty-icon {
   color: #ccc;
   margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
 }
 
 .table-row-selected {
@@ -563,11 +496,5 @@ onMounted(() => {
 
 .required {
   color: #dc3545;
-}
-
-/* Override para columnas numéricas */
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
 }
 </style>

@@ -122,74 +122,72 @@
       </div>
     </div>
 
-    <!-- Modal Crear/Editar -->
-    <div v-if="showFormModal" class="modal fade show d-block" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
-              {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
+    <!-- Modal Crear/Editar usando Modal.vue -->
+    <Modal
+      :show="showFormModal"
+      :title="formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado'"
+      :icon="formMode === 'create' ? 'plus' : 'edit'"
+      size="md"
+      @close="closeModal"
+    >
+      <template #body>
+        <form @submit.prevent="submitForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Oficina *</label>
+              <input type="number" class="form-control" v-model.number="form.oficina"
+                     required :disabled="formMode === 'update'" min="1" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Núm. Mercado *</label>
+              <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
+                     required :disabled="formMode === 'update'" min="1" />
+            </div>
           </div>
-          <div class="modal-body">
-            <form @submit.prevent="submitForm">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Oficina *</label>
-                  <input type="number" class="form-control" v-model.number="form.oficina"
-                         required :disabled="formMode === 'update'" min="1" />
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Núm. Mercado *</label>
-                  <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
-                         required :disabled="formMode === 'update'" min="1" />
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Descripción *</label>
-                <input type="text" class="form-control" v-model="form.descripcion"
-                       required maxlength="100" />
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Categoría</label>
-                  <select class="form-select" v-model.number="form.categoria">
-                    <option value="">Seleccione...</option>
-                    <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
-                      {{ cat.categoria }} - {{ cat.descripcion }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Zona</label>
-                  <input type="number" class="form-control" v-model.number="form.zona" min="0" />
-                </div>
-              </div>
-            </form>
+          <div class="mb-3">
+            <label class="form-label">Descripción *</label>
+            <input type="text" class="form-control" v-model="form.descripcion"
+                   required maxlength="100" />
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-            <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
-              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-              Guardar
-            </button>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Categoría</label>
+              <select class="form-select" v-model.number="form.categoria">
+                <option value="">Seleccione...</option>
+                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                  {{ cat.categoria }} - {{ cat.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Zona</label>
+              <input type="number" class="form-control" v-model.number="form.zona" min="0" />
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="showFormModal" class="modal-backdrop fade show"></div>
+        </form>
+      </template>
+      <template #footer>
+        <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
+        <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
+          <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+          Guardar
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+import Modal from '@/components/Modal.vue';
 
 const router = useRouter();
+const { showLoading, hideLoading } = useGlobalLoading();
+const { showToast } = useToast();
 
 // State
 const rows = ref([]);
@@ -207,18 +205,6 @@ const form = ref({
   zona: ''
 });
 
-// Toast
-const showToast = (type, message) => {
-  Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon: type,
-    title: message,
-    showConfirmButton: false,
-    timer: 3000
-  });
-};
-
 // Cerrar
 const cerrar = () => {
   router.push('/mercados');
@@ -227,6 +213,7 @@ const cerrar = () => {
 // Cargar mercados
 async function fetchData() {
   loading.value = true;
+  showLoading();
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -246,11 +233,13 @@ async function fetchData() {
     showToast('error', 'Error al cargar mercados');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 
 // Cargar categorías
 async function fetchCategorias() {
+  showLoading();
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -265,6 +254,8 @@ async function fetchCategorias() {
     }
   } catch (error) {
     console.error('Error cargando categorías:', error);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -305,6 +296,7 @@ async function submitForm() {
   }
 
   loading.value = true;
+  showLoading();
   try {
     const sp = formMode.value === 'create' ? 'sp_catalogo_mntto_create' : 'sp_catalogo_mntto_update';
     const params = formMode.value === 'create'
@@ -342,6 +334,7 @@ async function submitForm() {
     showToast('error', 'Error al guardar mercado');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 

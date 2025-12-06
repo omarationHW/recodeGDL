@@ -234,8 +234,10 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const toast = useToast()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estados
 const loading = ref(false)
@@ -279,6 +281,7 @@ const toggleFilters = () => {
 
 const fetchRecaudadoras = async () => {
   try {
+    showLoading('Cargando recaudadoras', 'Por favor espere')
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
@@ -296,6 +299,8 @@ const fetchRecaudadoras = async () => {
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error)
     toast.error('Error al cargar recaudadoras')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -312,6 +317,7 @@ const consultar = async () => {
 
   loading.value = true
   searchPerformed.value = true
+  showLoading('Consultando estadísticas', 'Por favor espere')
 
   try {
     const [estadResp, totalResp] = await Promise.all([
@@ -352,6 +358,7 @@ const consultar = async () => {
     toast.error('Error al consultar estadísticas')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -363,6 +370,7 @@ const imprimir = async () => {
 
   try {
     loading.value = true
+    showLoading('Generando reporte', 'Por favor espere')
 
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -386,6 +394,7 @@ const imprimir = async () => {
     toast.error('Error al generar reporte')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -410,228 +419,3 @@ onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-/* Inputs y selects redondeados */
-.municipal-form-control {
-  border-radius: 8px !important;
-  border: 1.5px solid #e0e0e0;
-  transition: all 0.3s ease;
-  background-color: #ffffff;
-}
-
-.municipal-form-control:focus {
-  border-color: var(--municipal-primary);
-  box-shadow: 0 0 0 4px rgba(234, 130, 21, 0.12);
-  outline: none;
-}
-
-.municipal-form-control:disabled {
-  background-color: #f5f7fa;
-  cursor: not-allowed;
-  border-color: #e8e8e8;
-  color: #9ca3af;
-}
-
-/* Botones más redondeados */
-.btn-municipal-primary,
-.btn-municipal-secondary,
-.btn-municipal-purple {
-  border-radius: 8px !important;
-  padding: 0.65rem 1.25rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(234, 130, 21, 0.3);
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
-}
-
-.btn-municipal-purple:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(114, 46, 209, 0.3);
-}
-
-/* Cards más redondeadas */
-.municipal-card {
-  border-radius: 12px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
-
-.municipal-card-header {
-  border-radius: 12px 12px 0 0 !important;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-bottom: 2px solid #f0f0f0;
-  padding: 1rem 1.25rem;
-}
-
-.municipal-card-body {
-  padding: 1.5rem;
-}
-
-/* Tabla con bordes redondeados */
-.table-responsive {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.municipal-table {
-  border-radius: 8px !important;
-  overflow: hidden;
-}
-
-.municipal-table thead th {
-  background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
-  padding: 0.9rem 0.75rem;
-}
-
-.municipal-table tbody tr:hover {
-  background-color: #f8f9fa;
-  transition: background-color 0.2s ease;
-}
-
-/* Alerts redondeados y mejorados */
-.alert {
-  border-radius: 12px !important;
-  border: none;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.alert-info {
-  background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%);
-  color: #1971c2;
-  border-left: 4px solid #339af0;
-}
-
-.alert-success {
-  background: linear-gradient(135deg, #e6fcf5 0%, #c3fae8 100%);
-  color: #087f5b;
-  border-left: 4px solid #20c997;
-}
-
-.alert h4 {
-  color: inherit;
-  font-weight: 600;
-  margin-bottom: 0;
-  font-size: 1.1rem;
-}
-
-/* Empty state */
-.empty-icon {
-  opacity: 0.25;
-  margin-bottom: 1rem;
-  color: #adb5bd;
-}
-
-/* Loading spinner mejorado */
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-  border-width: 0.3rem;
-}
-
-/* Form row spacing */
-.form-row {
-  gap: 1rem;
-}
-
-.form-group label {
-  font-weight: 500;
-  color: #495057;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
-
-/* Required asterisk */
-.required {
-  color: #dc3545;
-  font-weight: bold;
-}
-
-/* Badges redondeados */
-.badge-purple,
-.badge-green {
-  border-radius: 20px !important;
-  padding: 0.45rem 1rem;
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-/* Row hover effect */
-.row-hover {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  transform: scale(1.001);
-}
-
-/* Text alignment utilities */
-.text-end {
-  text-align: right !important;
-}
-
-.text-center {
-  text-align: center !important;
-}
-
-/* Module header improvements */
-.module-view-header {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.module-view-icon {
-  background: linear-gradient(135deg, var(--municipal-primary) 0%, #d97706 100%);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(234, 130, 21, 0.3);
-}
-
-/* Collapse animation */
-.municipal-card-header[style*="cursor: pointer"]:hover {
-  background: linear-gradient(135deg, #f1f3f5 0%, #f8f9fa 100%);
-}
-
-/* Button group spacing */
-.button-group {
-  gap: 0.75rem;
-}
-
-/* Strong text in tables */
-.municipal-table strong {
-  font-weight: 600;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .form-row {
-    flex-direction: column;
-  }
-
-  .municipal-card-body {
-    padding: 1rem;
-  }
-
-  .alert {
-    padding: 1rem;
-  }
-}
-</style>

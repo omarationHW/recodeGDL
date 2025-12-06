@@ -9,7 +9,7 @@
         <p>Inicio > Catálogos > Claves de Diferencias por Cobrar</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-success" @click="abrirModalNuevo">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -28,14 +28,7 @@
         </div>
 
         <div class="municipal-card-body table-container">
-          <div v-if="loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-3 text-muted">Cargando datos...</p>
-          </div>
-
-          <div v-else class="table-responsive">
+          <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -55,8 +48,8 @@
                     <p>No hay claves de diferencias registradas.</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(item, idx) in items" :key="item.clave_diferencia" class="row-hover">
-                  <td class="text-center">{{ idx + 1 }}</td>
+                <tr v-else v-for="(item, idx) in paginatedItems" :key="item.clave_diferencia" class="row-hover">
+                  <td class="text-center">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
                   <td><span class="badge-primary">{{ item.clave_diferencia }}</span></td>
                   <td>{{ item.descripcion }}</td>
                   <td><span class="badge-info">{{ item.cuenta_ingreso }}</span></td>
@@ -74,142 +67,185 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div v-if="items.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} a
+              {{ Math.min(currentPage * itemsPerPage, items.length) }} de
+              {{ items.length }} registros
+            </div>
+            <div class="pagination-controls">
+              <button
+                class="btn-municipal-sm btn-municipal-secondary"
+                @click="currentPage = 1"
+                :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+              <button
+                class="btn-municipal-sm btn-municipal-secondary"
+                @click="currentPage--"
+                :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+              <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
+              <button
+                class="btn-municipal-sm btn-municipal-secondary"
+                @click="currentPage++"
+                :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+              <button
+                class="btn-municipal-sm btn-municipal-secondary"
+                @click="currentPage = totalPages"
+                :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+            <div class="pagination-size">
+              <select class="municipal-form-control" v-model.number="itemsPerPage" @change="currentPage = 1">
+                <option :value="5">5 por página</option>
+                <option :value="10">10 por página</option>
+                <option :value="25">25 por página</option>
+                <option :value="50">50 por página</option>
+                <option :value="100">100 por página</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Modal CRUD -->
-    <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <font-awesome-icon icon="balance-scale" />
-              {{ isEdit ? 'Editar Clave de Diferencia' : 'Nueva Clave de Diferencia' }}
-            </h5>
-            <button type="button" class="btn-close" @click="cerrarModal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="row">
-              <div class="col-md-3 mb-3">
-                <label class="municipal-form-label">Clave Diferencia <span class="required">*</span></label>
-                <input type="number" class="municipal-form-control" v-model.number="form.clave_diferencia"
-                       min="1" max="5000" required :readonly="isEdit" />
-              </div>
-              <div class="col-md-9 mb-3">
-                <label class="municipal-form-label">Descripción <span class="required">*</span></label>
-                <input type="text" class="municipal-form-control text-uppercase" v-model="form.descripcion"
-                       maxlength="60" required />
-              </div>
-            </div>
+    <Modal
+      :show="showModal"
+      :title="isEdit ? 'Editar Clave de Diferencia' : 'Nueva Clave de Diferencia'"
+      size="lg"
+      @close="cerrarModal">
+      <template #header>
+        <h5 class="modal-title">
+          <font-awesome-icon icon="balance-scale" />
+          {{ isEdit ? 'Editar Clave de Diferencia' : 'Nueva Clave de Diferencia' }}
+        </h5>
+      </template>
 
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="municipal-form-label">Cuenta Ingreso <span class="required">*</span></label>
-                <input type="number" class="municipal-form-control" v-model.number="form.cuenta_ingreso"
-                       min="1" max="999999" required />
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="municipal-form-label">ID Usuario <span class="required">*</span></label>
-                <input type="number" class="municipal-form-control" v-model.number="form.id_usuario"
-                       min="1" required />
-              </div>
-            </div>
-
-            <!-- Catálogo de Cuentas -->
-            <div class="mb-3">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="list" /> Catálogo de Cuentas de Ingreso (clic para seleccionar)
-              </label>
-              <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                <table class="municipal-table">
-                  <thead class="municipal-table-header">
-                    <tr>
-                      <th>Cuenta</th>
-                      <th>Descripción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="cuenta in cuentas" :key="cuenta.cta_aplicacion"
-                        @click="seleccionarCuenta(cuenta.cta_aplicacion)"
-                        :class="{'table-active': form.cuenta_ingreso === cuenta.cta_aplicacion}"
-                        style="cursor: pointer;">
-                      <td><span class="badge-info">{{ cuenta.cta_aplicacion }}</span></td>
-                      <td>{{ cuenta.descripcion }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
-              <font-awesome-icon icon="times" /> Cancelar
-            </button>
-            <button type="button" class="btn-municipal-primary" @click="guardar" :disabled="!isFormValid || loading">
-              <font-awesome-icon :icon="loading ? 'spinner' : 'save'" :spin="loading" />
-              {{ isEdit ? 'Actualizar' : 'Guardar' }}
-            </button>
-          </div>
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <label class="municipal-form-label">Clave Diferencia <span class="required">*</span></label>
+          <input type="number" class="municipal-form-control" v-model.number="form.clave_diferencia"
+                 min="1" max="5000" required :readonly="isEdit" />
+        </div>
+        <div class="col-md-9 mb-3">
+          <label class="municipal-form-label">Descripción <span class="required">*</span></label>
+          <input type="text" class="municipal-form-control text-uppercase" v-model="form.descripcion"
+                 maxlength="60" required />
         </div>
       </div>
-    </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="municipal-form-label">Cuenta Ingreso <span class="required">*</span></label>
+          <input type="number" class="municipal-form-control" v-model.number="form.cuenta_ingreso"
+                 min="1" max="999999" required />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="municipal-form-label">ID Usuario <span class="required">*</span></label>
+          <input type="number" class="municipal-form-control" v-model.number="form.id_usuario"
+                 min="1" required />
+        </div>
+      </div>
+
+      <!-- Catálogo de Cuentas -->
+      <div class="mb-3">
+        <label class="municipal-form-label">
+          <font-awesome-icon icon="list" /> Catálogo de Cuentas de Ingreso (clic para seleccionar)
+        </label>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>Cuenta</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="cuenta in cuentas" :key="cuenta.cta_aplicacion"
+                  @click="seleccionarCuenta(cuenta.cta_aplicacion)"
+                  :class="{'table-active': form.cuenta_ingreso === cuenta.cta_aplicacion}"
+                  style="cursor: pointer;">
+                <td><span class="badge-info">{{ cuenta.cta_aplicacion }}</span></td>
+                <td>{{ cuenta.descripcion }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <template #footer>
+        <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
+          <font-awesome-icon icon="times" /> Cancelar
+        </button>
+        <button type="button" class="btn-municipal-primary" @click="guardar" :disabled="!isFormValid">
+          <font-awesome-icon icon="save" />
+          {{ isEdit ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </template>
+    </Modal>
 
     <!-- Modal Confirmación Eliminar -->
-    <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="cancelarEliminar">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title">
-              <font-awesome-icon icon="exclamation-triangle" /> Confirmar Eliminación
-            </h5>
-            <button type="button" class="btn-close btn-close-white" @click="cancelarEliminar"></button>
-          </div>
-          <div class="modal-body">
-            <p>¿Está seguro de eliminar esta clave de diferencia?</p>
-            <div class="alert alert-warning">
-              <strong>Clave:</strong> {{ itemAEliminar?.clave_diferencia }}<br>
-              <strong>Descripción:</strong> {{ itemAEliminar?.descripcion }}<br>
-              <strong>Cuenta:</strong> {{ itemAEliminar?.cuenta_ingreso }}
-            </div>
-            <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn-municipal-secondary" @click="cancelarEliminar">
-              <font-awesome-icon icon="times" /> Cancelar
-            </button>
-            <button type="button" class="btn-municipal-danger" @click="eliminar" :disabled="loading">
-              <font-awesome-icon :icon="loading ? 'spinner' : 'trash'" :spin="loading" />
-              Eliminar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Modal
+      :show="showDeleteConfirm"
+      title="Confirmar Eliminación"
+      size="md"
+      @close="cancelarEliminar"
+      @confirm="eliminar">
+      <template #header>
+        <h5 class="modal-title">
+          <font-awesome-icon icon="exclamation-triangle" class="text-danger" /> Confirmar Eliminación
+        </h5>
+      </template>
 
-    <!-- Toast -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
+      <p>¿Está seguro de eliminar esta clave de diferencia?</p>
+      <div class="alert alert-warning">
+        <strong>Clave:</strong> {{ itemAEliminar?.clave_diferencia }}<br>
+        <strong>Descripción:</strong> {{ itemAEliminar?.descripcion }}<br>
+        <strong>Cuenta:</strong> {{ itemAEliminar?.cuenta_ingreso }}
+      </div>
+      <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+
+      <template #footer>
+        <button type="button" class="btn-municipal-secondary" @click="cancelarEliminar">
+          <font-awesome-icon icon="times" /> Cancelar
+        </button>
+        <button type="button" class="btn-municipal-danger" @click="eliminar">
+          <font-awesome-icon icon="trash" />
+          Eliminar
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import Modal from '@/components/common/Modal.vue'
+
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 const items = ref([])
 const cuentas = ref([])
 const itemAEliminar = ref(null)
-const loading = ref(false)
 const showModal = ref(false)
 const showDeleteConfirm = ref(false)
 const isEdit = ref(false)
-const toast = ref({ show: false, type: 'info', message: '' })
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const form = ref({
   clave_diferencia: null,
@@ -226,24 +262,15 @@ const isFormValid = computed(() => {
          form.value.id_usuario >= 1
 })
 
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
+const totalPages = computed(() => {
+  return Math.ceil(items.value.length / itemsPerPage.value)
+})
 
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
-}
+const paginatedItems = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return items.value.slice(start, end)
+})
 
 const formatDate = (dateStr) => {
   if (!dateStr) return 'N/A'
@@ -251,11 +278,11 @@ const formatDate = (dateStr) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Administre las claves de diferencias por cobrar del sistema.')
+  showToast('Administre las claves de diferencias por cobrar del sistema.', 'info')
 }
 
 const cargarItems = async () => {
-  loading.value = true
+  showLoading('Cargando claves de diferencias', 'Por favor espere...')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: { Operacion: 'sp_cve_diferencia_list', Base: 'mercados', Parametros: [] }
@@ -263,20 +290,21 @@ const cargarItems = async () => {
     if (res.data.eResponse.success) {
       items.value = res.data.eResponse.data.result || []
       if (items.value.length > 0) {
-        showToast('success', `Se cargaron ${items.value.length} claves`)
+        showToast(`Se cargaron ${items.value.length} claves`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar claves')
+      showToast(res.data.eResponse.message || 'Error al cargar claves', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión')
+    showToast('Error de conexión', 'error')
     console.error(err)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
 const cargarCuentas = async () => {
+  showLoading('Cargando catálogo de cuentas', 'Por favor espere...')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: { Operacion: 'sp_get_cuentas_ingreso', Base: 'mercados', Parametros: [] }
@@ -284,10 +312,12 @@ const cargarCuentas = async () => {
     if (res.data.eResponse.success) {
       cuentas.value = res.data.eResponse.data.result || []
     } else {
-      showToast('error', 'Error al cargar catálogo de cuentas')
+      showToast('Error al cargar catálogo de cuentas', 'error')
     }
   } catch (err) {
     console.error('Error cargando cuentas:', err)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -314,11 +344,11 @@ const editarItem = (item) => {
 
 const guardar = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos correctamente')
+    showToast('Complete todos los campos correctamente', 'warning')
     return
   }
 
-  loading.value = true
+  showLoading(isEdit.value ? 'Actualizando clave' : 'Guardando clave', 'Por favor espere...')
   try {
     const operacion = isEdit.value ? 'sp_update_cve_diferencia' : 'sp_insert_cve_diferencia'
     const res = await axios.post('/api/generic', {
@@ -337,20 +367,20 @@ const guardar = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result
       if (result && result.length > 0 && result[0][operacion.replace('sp_', '').replace('_cve_diferencia', '')]) {
-        showToast('success', isEdit.value ? 'Clave actualizada' : 'Clave creada')
+        showToast(isEdit.value ? 'Clave actualizada' : 'Clave creada', 'success')
         cerrarModal()
         cargarItems()
       } else {
-        showToast('error', 'La clave ya existe o no se pudo guardar')
+        showToast('La clave ya existe o no se pudo guardar', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar')
+      showToast(res.data.eResponse.message || 'Error al guardar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión')
+    showToast('Error de conexión', 'error')
     console.error(err)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -367,7 +397,7 @@ const cancelarEliminar = () => {
 const eliminar = async () => {
   if (!itemAEliminar.value) return
 
-  loading.value = true
+  showLoading('Eliminando clave', 'Por favor espere...')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -382,20 +412,20 @@ const eliminar = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result
       if (result && result.length > 0 && result[0].delete) {
-        showToast('success', 'Clave eliminada')
+        showToast('Clave eliminada', 'success')
         cancelarEliminar()
         cargarItems()
       } else {
-        showToast('error', 'No se pudo eliminar')
+        showToast('No se pudo eliminar', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al eliminar')
+      showToast(res.data.eResponse.message || 'Error al eliminar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión')
+    showToast('Error de conexión', 'error')
     console.error(err)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -409,75 +439,3 @@ onMounted(() => {
   cargarCuentas()
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.badge-primary {
-  background: var(--municipal-blue);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.badge-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.btn-municipal-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn-municipal-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: #000;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-warning:hover {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-}
-
-.btn-municipal-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-danger:hover {
-  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-.required {
-  color: #dc3545;
-}
-
-.bg-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-}
-
-.text-uppercase {
-  text-transform: uppercase;
-}
-
-.table-active {
-  background-color: rgba(23, 162, 184, 0.15) !important;
-  border-left: 3px solid #17a2b8;
-}
-</style>

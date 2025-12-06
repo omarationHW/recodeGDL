@@ -176,6 +176,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({
   year: new Date().getFullYear(),
@@ -233,6 +236,7 @@ const mostrarAyuda = () => {
 }
 
 const consultar = async () => {
+  showLoading('Consultando padrón global...', 'Por favor espere')
   loading.value = true
   busquedaRealizada.value = false
 
@@ -265,6 +269,7 @@ const consultar = async () => {
     resultados.value = []
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -336,41 +341,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-@import '@/styles/municipal-theme.css';
-.required {
-  color: #dc3545;
-}
-
-.badge {
-  padding: 0.35rem 0.65rem;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.badge-success {
-  background: var(--municipal-green);
-  color: white;
-}
-
-.badge-danger {
-  background: var(--municipal-red);
-  color: white;
-}
-
-.badge-warning {
-  background: #ffc107;
-  color: #000;
-}
-
-.badge-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.badge-info {
-  background: var(--municipal-blue);
-  color: white;
-}
-</style>

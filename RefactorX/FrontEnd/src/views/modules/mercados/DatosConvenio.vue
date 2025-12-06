@@ -96,7 +96,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="conv in convenios" :key="conv.id_convenio" class="row-hover" @click="seleccionarConvenio(conv)">
+                  <tr v-for="conv in paginatedConvenios" :key="conv.id_convenio" class="row-hover" @click="seleccionarConvenio(conv)">
                     <td>{{ conv.id_convenio }}</td>
                     <td>{{ conv.folio }}</td>
                     <td>{{ conv.nombre }}</td>
@@ -118,6 +118,44 @@
                   </tr>
                 </tbody>
               </table>
+
+              <!-- Paginación para convenios -->
+              <div class="pagination-container">
+                <div class="pagination-info">
+                  Mostrando {{ ((currentPageConvenios - 1) * itemsPerPageConvenios) + 1 }}
+                  a {{ Math.min(currentPageConvenios * itemsPerPageConvenios, totalRecordsConvenios) }}
+                  de {{ totalRecordsConvenios }} registros
+                </div>
+                <div class="pagination-controls">
+                  <label class="me-2">Registros por página:</label>
+                  <select v-model.number="itemsPerPageConvenios" class="form-select form-select-sm">
+                    <option :value="10">10</option>
+                    <option :value="25">25</option>
+                    <option :value="50">50</option>
+                    <option :value="100">100</option>
+                    <option :value="250">250</option>
+                  </select>
+                </div>
+                <div class="pagination-buttons">
+                  <button @click="goToPageConvenios(1)" :disabled="currentPageConvenios === 1" title="Primera página">
+                    <font-awesome-icon icon="angle-double-left" />
+                  </button>
+                  <button @click="goToPageConvenios(currentPageConvenios - 1)" :disabled="currentPageConvenios === 1" title="Página anterior">
+                    <font-awesome-icon icon="angle-left" />
+                  </button>
+                  <button v-for="page in visiblePagesConvenios" :key="page"
+                    :class="page === currentPageConvenios ? 'active' : ''"
+                    @click="goToPageConvenios(page)">
+                    {{ page }}
+                  </button>
+                  <button @click="goToPageConvenios(currentPageConvenios + 1)" :disabled="currentPageConvenios === totalPagesConvenios" title="Página siguiente">
+                    <font-awesome-icon icon="angle-right" />
+                  </button>
+                  <button @click="goToPageConvenios(totalPagesConvenios)" :disabled="currentPageConvenios === totalPagesConvenios" title="Última página">
+                    <font-awesome-icon icon="angle-double-right" />
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div v-else class="text-center text-muted py-4">
@@ -300,7 +338,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(p, idx) in parciales" :key="idx" class="row-hover">
+                    <tr v-for="(p, idx) in paginatedParciales" :key="idx" class="row-hover">
                       <td>{{ p.pago_parcial }} / {{ p.total_parciales }}</td>
                       <td>{{ p.descparc }}</td>
                       <td class="text-end">{{ formatCurrency(p.importe) }}</td>
@@ -311,6 +349,44 @@
                     </tr>
                   </tbody>
                 </table>
+
+                <!-- Paginación para parciales -->
+                <div class="pagination-container">
+                  <div class="pagination-info">
+                    Mostrando {{ ((currentPageParciales - 1) * itemsPerPageParciales) + 1 }}
+                    a {{ Math.min(currentPageParciales * itemsPerPageParciales, totalRecordsParciales) }}
+                    de {{ totalRecordsParciales }} registros
+                  </div>
+                  <div class="pagination-controls">
+                    <label class="me-2">Registros por página:</label>
+                    <select v-model.number="itemsPerPageParciales" class="form-select form-select-sm">
+                      <option :value="10">10</option>
+                      <option :value="25">25</option>
+                      <option :value="50">50</option>
+                      <option :value="100">100</option>
+                      <option :value="250">250</option>
+                    </select>
+                  </div>
+                  <div class="pagination-buttons">
+                    <button @click="goToPageParciales(1)" :disabled="currentPageParciales === 1" title="Primera página">
+                      <font-awesome-icon icon="angle-double-left" />
+                    </button>
+                    <button @click="goToPageParciales(currentPageParciales - 1)" :disabled="currentPageParciales === 1" title="Página anterior">
+                      <font-awesome-icon icon="angle-left" />
+                    </button>
+                    <button v-for="page in visiblePagesParciales" :key="page"
+                      :class="page === currentPageParciales ? 'active' : ''"
+                      @click="goToPageParciales(page)">
+                      {{ page }}
+                    </button>
+                    <button @click="goToPageParciales(currentPageParciales + 1)" :disabled="currentPageParciales === totalPagesParciales" title="Página siguiente">
+                      <font-awesome-icon icon="angle-right" />
+                    </button>
+                    <button @click="goToPageParciales(totalPagesParciales)" :disabled="currentPageParciales === totalPagesParciales" title="Última página">
+                      <font-awesome-icon icon="angle-double-right" />
+                    </button>
+                  </div>
+                </div>
               </div>
               <div v-else class="text-center text-muted py-4">
                 <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
@@ -340,8 +416,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado del listado
 const convenios = ref([])
@@ -351,11 +430,79 @@ const filtros = ref({
 })
 const loadingList = ref(false)
 
+// Paginación Convenios
+const currentPageConvenios = ref(1)
+const itemsPerPageConvenios = ref(10)
+const totalRecordsConvenios = computed(() => convenios.value.length)
+const totalPagesConvenios = computed(() => Math.ceil(totalRecordsConvenios.value / itemsPerPageConvenios.value))
+
+const paginatedConvenios = computed(() => {
+  const start = (currentPageConvenios.value - 1) * itemsPerPageConvenios.value
+  const end = start + itemsPerPageConvenios.value
+  return convenios.value.slice(start, end)
+})
+
+const visiblePagesConvenios = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPageConvenios.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPagesConvenios.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+const goToPageConvenios = (page) => {
+  if (page < 1 || page > totalPagesConvenios.value) return
+  currentPageConvenios.value = page
+}
+
 // Estado del detalle
 const convenioSeleccionado = ref(null)
 const convenio = ref(null)
 const parciales = ref([])
 const loadingDetail = ref(false)
+
+// Paginación Parciales
+const currentPageParciales = ref(1)
+const itemsPerPageParciales = ref(10)
+const totalRecordsParciales = computed(() => parciales.value.length)
+const totalPagesParciales = computed(() => Math.ceil(totalRecordsParciales.value / itemsPerPageParciales.value))
+
+const paginatedParciales = computed(() => {
+  const start = (currentPageParciales.value - 1) * itemsPerPageParciales.value
+  const end = start + itemsPerPageParciales.value
+  return parciales.value.slice(start, end)
+})
+
+const visiblePagesParciales = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPageParciales.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPagesParciales.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+const goToPageParciales = (page) => {
+  if (page < 1 || page > totalPagesParciales.value) return
+  currentPageParciales.value = page
+}
 
 // Toast
 const toast = ref({ show: false, type: 'info', message: '' })
@@ -384,12 +531,12 @@ const formatCurrency = (val) => {
 
 const getStatusClass = (vigencia) => {
   const classes = {
-    'V': 'status-success',
-    'P': 'status-info',
-    'C': 'status-danger',
-    'B': 'status-warning'
+    'V': 'badge-success',
+    'P': 'badge-info',
+    'C': 'badge-danger',
+    'B': 'badge-warning'
   }
-  return classes[vigencia] || 'status-default'
+  return classes[vigencia] || 'badge-default'
 }
 
 const mostrarAyuda = () => {
@@ -398,6 +545,7 @@ const mostrarAyuda = () => {
 
 const buscarConvenios = async () => {
   loadingList.value = true
+  showLoading()
   try {
     const params = []
     if (filtros.value.nombre) {
@@ -421,6 +569,7 @@ const buscarConvenios = async () => {
 
     if (res.data?.eResponse?.success) {
       convenios.value = res.data.eResponse.data?.result || []
+      currentPageConvenios.value = 1
       if (convenios.value.length > 0) {
         showToast('success', `Se encontraron ${convenios.value.length} convenios`)
       } else {
@@ -432,12 +581,14 @@ const buscarConvenios = async () => {
     console.error(err)
   } finally {
     loadingList.value = false
+    hideLoading()
   }
 }
 
 const seleccionarConvenio = async (conv) => {
   convenioSeleccionado.value = conv
   loadingDetail.value = true
+  showLoading()
 
   try {
     // Cargar datos completos del convenio
@@ -463,6 +614,7 @@ const seleccionarConvenio = async (conv) => {
       }
     })
     parciales.value = res2.data?.eResponse?.data?.result || []
+    currentPageParciales.value = 1
 
     if (convenio.value) {
       showToast('success', 'Convenio cargado correctamente')
@@ -471,6 +623,7 @@ const seleccionarConvenio = async (conv) => {
     showToast('error', 'Error al cargar convenio: ' + (e.response?.data?.message || e.message))
   } finally {
     loadingDetail.value = false
+    hideLoading()
   }
 }
 
@@ -484,72 +637,3 @@ onMounted(() => {
   buscarConvenios()
 })
 </script>
-
-<style scoped>
-.required {
-  color: #dc3545;
-}
-
-.empty-icon {
-  opacity: 0.25;
-  margin-bottom: 1rem;
-  color: #adb5bd;
-}
-
-.text-end {
-  text-align: right !important;
-}
-
-.text-center {
-  text-align: center !important;
-}
-
-.row-hover {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-/* Status badges */
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-success {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status-info {
-  background-color: #d1ecf1;
-  color: #0c5460;
-}
-
-.status-danger {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.status-warning {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.status-default {
-  background-color: #e9ecef;
-  color: #495057;
-}
-</style>

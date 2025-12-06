@@ -139,88 +139,84 @@
     </div>
 
     <!-- Modal de Crear/Editar Sección -->
-    <div v-if="showModal" class="modal-backdrop" @click.self="cerrarModal">
-      <div class="modal-content modal-md">
-        <div class="modal-header municipal-modal-header">
-          <h5 class="modal-title">
-            <font-awesome-icon :icon="modoEdicion ? 'edit' : 'plus-circle'" />
-            {{ modoEdicion ? 'Editar Sección' : 'Nueva Sección' }}
-          </h5>
-          <button type="button" class="btn-close btn-close-white" @click="cerrarModal"></button>
-        </div>
-        <div class="modal-body">
-          <form @submit.prevent="guardarSeccion">
-            <div class="mb-3">
-              <label class="form-label">
-                <font-awesome-icon icon="code" class="me-2" />
-                Código de Sección <span class="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                v-model="form.seccion"
-                class="form-control"
-                :readonly="modoEdicion"
-                maxlength="2"
-                placeholder="Ej: SS, EA, PS"
-                required
-                @input="form.seccion = form.seccion.toUpperCase()"
-              />
-              <small class="text-muted">Máximo 2 caracteres</small>
-            </div>
+    <Modal
+      v-if="showModal"
+      :show="showModal"
+      :title="modoEdicion ? 'Editar Sección' : 'Nueva Sección'"
+      :icon="modoEdicion ? 'edit' : 'plus-circle'"
+      size="md"
+      @close="cerrarModal">
+      <template #body>
+        <form @submit.prevent="guardarSeccion">
+          <div class="mb-3">
+            <label class="form-label">
+              <font-awesome-icon icon="code" class="me-2" />
+              Código de Sección <span class="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              v-model="form.seccion"
+              class="form-control"
+              :readonly="modoEdicion"
+              maxlength="2"
+              placeholder="Ej: SS, EA, PS"
+              required
+              @input="form.seccion = form.seccion.toUpperCase()"
+            />
+            <small class="text-muted">Máximo 2 caracteres</small>
+          </div>
 
-            <div class="mb-3">
-              <label class="form-label">
-                <font-awesome-icon icon="align-left" class="me-2" />
-                Descripción <span class="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                v-model="form.descripcion"
-                class="form-control"
-                maxlength="50"
-                placeholder="Descripción de la sección"
-                required
-              />
-              <small class="text-muted">Máximo 50 caracteres</small>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">
+              <font-awesome-icon icon="align-left" class="me-2" />
+              Descripción <span class="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              v-model="form.descripcion"
+              class="form-control"
+              maxlength="50"
+              placeholder="Descripción de la sección"
+              required
+            />
+            <small class="text-muted">Máximo 50 caracteres</small>
+          </div>
 
-            <div class="alert alert-info d-flex align-items-center" v-if="modoEdicion">
-              <font-awesome-icon icon="info-circle" class="me-2" />
-              <small>El código de sección no puede modificarse</small>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
-            <font-awesome-icon icon="times" />
-            Cancelar
-          </button>
-          <button
-            type="button"
-            class="btn-municipal-success"
-            @click="guardarSeccion"
-            :disabled="guardando">
-            <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
-            {{ guardando ? 'Guardando...' : 'Guardar' }}
-          </button>
-        </div>
-      </div>
-    </div>
+          <div class="alert alert-info d-flex align-items-center" v-if="modoEdicion">
+            <font-awesome-icon icon="info-circle" class="me-2" />
+            <small>El código de sección no puede modificarse</small>
+          </div>
+        </form>
+      </template>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
+      <template #footer>
+        <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
+          <font-awesome-icon icon="times" />
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-municipal-success"
+          @click="guardarSeccion"
+          :disabled="guardando">
+          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
+          {{ guardando ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import Modal from '@/components/Modal.vue'
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const loading = ref(false)
@@ -232,13 +228,6 @@ const modoEdicion = ref(false)
 const form = ref({
   seccion: '',
   descripcion: ''
-})
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
 })
 
 // Computed
@@ -257,31 +246,6 @@ const estadisticas = computed(() => {
 // Métodos de UI
 const mostrarAyuda = () => {
   showToast('info', 'Las secciones permiten clasificar los locales dentro de los mercados (Ej: Tianguis, Edificio Administrativo, etc.)')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
 }
 
 // Utilidades
@@ -320,6 +284,7 @@ const cerrarModal = () => {
 const cargarSecciones = async () => {
   loading.value = true
   error.value = ''
+  showLoading('Cargando secciones...')
 
   try {
     const response = await axios.post('/api/generic', {
@@ -345,6 +310,7 @@ const cargarSecciones = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -355,6 +321,7 @@ const guardarSeccion = async () => {
   }
 
   guardando.value = true
+  showLoading(modoEdicion.value ? 'Actualizando sección...' : 'Guardando sección...')
 
   try {
     const operacion = modoEdicion.value ? 'sp_secciones_update' : 'sp_secciones_create'
@@ -388,6 +355,7 @@ const guardarSeccion = async () => {
     showToast('error', err.response?.data?.eResponse?.message || 'Error al guardar la sección')
   } finally {
     guardando.value = false
+    hideLoading()
   }
 }
 
@@ -400,6 +368,8 @@ const eliminarSeccion = async (seccion) => {
   if (!confirm(`¿Está seguro de eliminar la sección "${seccion.seccion} - ${seccion.descripcion}"?`)) {
     return
   }
+
+  showLoading('Eliminando sección...')
 
   try {
     const response = await axios.post('/api/generic', {
@@ -427,6 +397,8 @@ const eliminarSeccion = async (seccion) => {
   } catch (err) {
     console.error('Error al eliminar sección:', err)
     showToast('error', err.response?.data?.eResponse?.message || 'Error al eliminar la sección')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -435,247 +407,3 @@ onMounted(() => {
   cargarSecciones()
 })
 </script>
-
-<style scoped>
-/* Estadísticas */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.stat-card-primary {
-  border-left-color: #667eea;
-}
-
-.stat-card-success {
-  border-left-color: #28a745;
-}
-
-.stat-card-info {
-  border-left-color: #17a2b8;
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.stat-card-primary .stat-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.stat-card-success .stat-icon {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-}
-
-.stat-card-info .stat-icon {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-  color: white;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin-top: 0.25rem;
-}
-
-/* Badges */
-.badge-seccion {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.4rem 0.85rem;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  display: inline-block;
-  font-family: 'Courier New', monospace;
-  letter-spacing: 0.5px;
-}
-
-.badge-count {
-  background: #e8f5e9;
-  color: #2e7d32;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  display: inline-block;
-}
-
-/* Modal */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 50px;
-  z-index: 1050;
-  overflow-y: auto;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  width: 95%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.modal-md {
-  max-width: 600px;
-}
-
-.municipal-modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 12px 12px 0 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.modal-body {
-  padding: 2rem;
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid #dee2e6;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-/* Form */
-.form-label {
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.5rem;
-}
-
-.form-control {
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  padding: 0.75rem;
-  font-size: 0.95rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-control:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-  outline: none;
-}
-
-.form-control:readonly {
-  background-color: #e9ecef;
-  cursor: not-allowed;
-}
-
-/* Otros */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-.icon-small {
-  font-size: 0.85rem;
-  margin-right: 0.35rem;
-}
-
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-icon.btn-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: white;
-}
-
-.btn-icon.btn-warning:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
-}
-
-.btn-icon.btn-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-}
-
-.btn-icon.btn-danger:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
-}
-
-.btn-icon:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>

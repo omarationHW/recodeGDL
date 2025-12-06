@@ -1,5 +1,5 @@
 <template>
-  <div class="secciones-mntto-page">
+  <div class="container mt-4">
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -52,109 +52,113 @@
         </table>
       </div>
     </div>
-    <div v-if="alert.message" :class="['alert', alert.success ? 'alert-success' : 'alert-danger', 'mt-3']">
-      {{ alert.message }}
-    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'SeccionesMnttoPage',
-  data() {
-    return {
-      secciones: [],
-      form: {
-        seccion: '',
-        descripcion: ''
-      },
-      mode: 'add', // 'add' or 'edit'
-      alert: {
-        message: '',
-        success: true
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+
+// Composables
+const globalLoading = useGlobalLoading()
+const { showToast } = useToast()
+
+// Estado reactivo
+const secciones = ref([])
+const form = ref({
+  seccion: '',
+  descripcion: ''
+})
+const mode = ref('add') // 'add' or 'edit'
+
+/**
+ * Carga todas las secciones desde el servidor
+ */
+const loadSecciones = async () => {
+  await globalLoading.withLoading(async () => {
+    try {
+      const res = await fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getAllSecciones' })
+      })
+      const json = await res.json()
+
+      if (json.success) {
+        secciones.value = json.data
+      } else {
+        showToast(json.message || 'Error al cargar secciones', 'error')
       }
-    };
-  },
-  mounted() {
-    this.loadSecciones();
-  },
-  methods: {
-    async loadSecciones() {
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getAllSecciones' })
-        });
-        const json = await res.json();
-        if (json.success) {
-          this.secciones = json.data;
-        } else {
-          this.alert.message = json.message || 'Error al cargar secciones';
-          this.alert.success = false;
-        }
-      } catch (e) {
-        this.alert.message = 'Error de red al cargar secciones';
-        this.alert.success = false;
-      }
-    },
-    async onSubmit() {
-      if (!this.form.seccion || !this.form.descripcion) {
-        this.alert.message = 'Todos los campos son obligatorios';
-        this.alert.success = false;
-        return;
-      }
-      const action = this.mode === 'edit' ? 'updateSeccion' : 'insertSeccion';
-      const payload = {
-        action,
-        data: {
-          seccion: this.form.seccion.trim().toUpperCase(),
-          descripcion: this.form.descripcion.trim().toUpperCase()
-        }
-      };
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const json = await res.json();
-        if (json.success) {
-          this.alert.message = json.message || (this.mode==='edit' ? 'Sección actualizada' : 'Sección agregada');
-          this.alert.success = true;
-          this.resetForm();
-          this.loadSecciones();
-        } else {
-          this.alert.message = json.message || 'Error en la operación';
-          this.alert.success = false;
-        }
-      } catch (e) {
-        this.alert.message = 'Error de red en la operación';
-        this.alert.success = false;
-      }
-    },
-    editSeccion(item) {
-      this.form.seccion = item.seccion;
-      this.form.descripcion = item.descripcion;
-      this.mode = 'edit';
-    },
-    resetForm() {
-      this.form.seccion = '';
-      this.form.descripcion = '';
-      this.mode = 'add';
-      this.alert.message = '';
+    } catch (e) {
+      showToast('Error de red al cargar secciones', 'error')
+      console.error('Error al cargar secciones:', e)
+    }
+  }, 'Cargando secciones...', 'Por favor espere')
+}
+
+/**
+ * Maneja el envío del formulario (agregar o actualizar sección)
+ */
+const onSubmit = async () => {
+  if (!form.value.seccion || !form.value.descripcion) {
+    showToast('Todos los campos son obligatorios', 'warning')
+    return
+  }
+
+  const action = mode.value === 'edit' ? 'updateSeccion' : 'insertSeccion'
+  const payload = {
+    action,
+    data: {
+      seccion: form.value.seccion.trim().toUpperCase(),
+      descripcion: form.value.descripcion.trim().toUpperCase()
     }
   }
-};
-</script>
 
-<style scoped>
-.secciones-mntto-page {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 0;
+  await globalLoading.withLoading(async () => {
+    try {
+      const res = await fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const json = await res.json()
+
+      if (json.success) {
+        const successMessage = json.message || (mode.value === 'edit' ? 'Sección actualizada' : 'Sección agregada')
+        showToast(successMessage, 'success')
+        resetForm()
+        await loadSecciones()
+      } else {
+        showToast(json.message || 'Error en la operación', 'error')
+      }
+    } catch (e) {
+      showToast('Error de red en la operación', 'error')
+      console.error('Error en operación:', e)
+    }
+  }, mode.value === 'edit' ? 'Actualizando sección...' : 'Agregando sección...', 'Por favor espere')
 }
-.card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+/**
+ * Prepara el formulario para editar una sección
+ */
+const editSeccion = (item) => {
+  form.value.seccion = item.seccion
+  form.value.descripcion = item.descripcion
+  mode.value = 'edit'
 }
-</style>
+
+/**
+ * Resetea el formulario a su estado inicial
+ */
+const resetForm = () => {
+  form.value.seccion = ''
+  form.value.descripcion = ''
+  mode.value = 'add'
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  loadSecciones()
+})
+</script>

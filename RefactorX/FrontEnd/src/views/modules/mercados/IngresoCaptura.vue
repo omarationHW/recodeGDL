@@ -121,6 +121,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const form = ref({
   num_mercado: null,
@@ -177,6 +180,7 @@ const buscar = async () => {
   results.value = []
   searched.value = true
 
+  showLoading()
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -206,6 +210,7 @@ const buscar = async () => {
     showToast('error', 'Error de conexión al realizar la consulta')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -250,37 +255,3 @@ const formatCurrency = (val) => {
   return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.badge-primary {
-  background: var(--municipal-blue);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.badge-info {
-  background: #17a2b8;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.municipal-table-footer {
-  background: #f8f9fa;
-  font-weight: 600;
-}
-
-.municipal-table-footer td {
-  padding: 1rem 0.75rem;
-  border-top: 2px solid var(--municipal-blue);
-}
-</style>

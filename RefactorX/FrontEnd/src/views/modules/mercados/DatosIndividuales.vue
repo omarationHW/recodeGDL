@@ -34,7 +34,7 @@
           <form @submit.prevent="buscarLocal" class="search-form">
             <div class="row align-items-end">
               <div class="col-md-8">
-                <label class="municipal-form-label">ID del Local <span class="required">*</span></label>
+                <label class="municipal-form-label">ID del Local <span class="text-danger fw-bold">*</span></label>
                 <input
                   type="number"
                   class="municipal-form-control"
@@ -45,9 +45,9 @@
                 />
               </div>
               <div class="col-md-4">
-                <button type="submit" class="btn-municipal-primary w-100" :disabled="loading || !searchIdLocal">
-                  <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" />
-                  {{ loading ? 'Buscando...' : 'Buscar' }}
+                <button type="submit" class="btn-municipal-primary w-100" :disabled="!searchIdLocal">
+                  <font-awesome-icon icon="search" />
+                  Buscar
                 </button>
               </div>
             </div>
@@ -55,16 +55,8 @@
         </div>
       </div>
 
-      <!-- Loading -->
-      <div v-if="loading && datosLoaded" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-        <p class="mt-3 text-muted">Cargando datos del local...</p>
-      </div>
-
       <!-- Error -->
-      <div v-else-if="error" class="municipal-card">
+      <div v-if="error" class="municipal-card">
         <div class="municipal-card-body text-center py-5">
           <font-awesome-icon icon="exclamation-circle" size="3x" class="text-danger mb-3" />
           <p class="text-muted">{{ error }}</p>
@@ -91,7 +83,7 @@
                 <div class="info-grid">
                   <div class="info-item">
                     <span class="info-label">Control</span>
-                    <span class="info-value highlight">{{ datos.id_local }}</span>
+                    <span class="info-value text-primary fw-bold fs-5">{{ datos.id_local }}</span>
                   </div>
                   <div class="info-item">
                     <span class="info-label">Mercado</span>
@@ -166,7 +158,7 @@
                   </div>
                   <div class="info-item">
                     <span class="info-label">Renta</span>
-                    <span class="info-value currency">{{ formatCurrency(cuota.renta) }}</span>
+                    <span class="info-value text-success fw-semibold">{{ formatCurrency(cuota.renta) }}</span>
                   </div>
                 </div>
                 <!-- Tianguis -->
@@ -204,7 +196,7 @@
               </span>
             </div>
           </div>
-          <div class="municipal-card-body table-container">
+          <div class="municipal-card-body">
             <div v-if="adeudos.length > 0" class="table-responsive">
               <table class="municipal-table">
                 <thead class="municipal-table-header">
@@ -216,7 +208,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="a in adeudos" :key="a.axo + '-' + a.periodo" class="row-hover">
+                  <tr v-for="a in adeudos" :key="a.axo + '-' + a.periodo" class="municipal-table-row">
                     <td>{{ a.axo }}</td>
                     <td>{{ a.periodo }}</td>
                     <td class="text-end">{{ formatCurrency(a.importe) }}</td>
@@ -226,7 +218,7 @@
               </table>
             </div>
             <div v-else class="text-center text-muted py-3">
-              <font-awesome-icon icon="check-circle" size="2x" class="text-success mb-2" />
+              <font-awesome-icon icon="check-circle" size="2x" class="text-success mb-2 opacity-25" />
               <p>No hay adeudos pendientes</p>
             </div>
           </div>
@@ -245,7 +237,7 @@
               </span>
             </div>
           </div>
-          <div class="municipal-card-body table-container">
+          <div class="municipal-card-body">
             <div v-if="requerimientos.length > 0" class="table-responsive">
               <table class="municipal-table">
                 <thead class="municipal-table-header">
@@ -258,7 +250,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="r in requerimientos" :key="r.folio" class="row-hover">
+                  <tr v-for="r in requerimientos" :key="r.folio" class="municipal-table-row">
                     <td>{{ r.folio }}</td>
                     <td>{{ r.fecha_emision }}</td>
                     <td class="text-end">{{ formatCurrency(r.importe_multa) }}</td>
@@ -269,7 +261,7 @@
               </table>
             </div>
             <div v-else class="text-center text-muted py-3">
-              <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+              <font-awesome-icon icon="inbox" size="2x" class="opacity-25 mb-2 text-secondary" />
               <p>No hay requerimientos</p>
             </div>
           </div>
@@ -288,7 +280,7 @@
               </span>
             </div>
           </div>
-          <div class="municipal-card-body table-container">
+          <div class="municipal-card-body">
             <div v-if="movimientos.length > 0" class="table-responsive">
               <table class="municipal-table">
                 <thead class="municipal-table-header">
@@ -301,7 +293,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="m in movimientos" :key="m.id_movimiento" class="row-hover">
+                  <tr v-for="m in movimientos" :key="m.id_movimiento" class="municipal-table-row">
                     <td>{{ m.axo_memo }}</td>
                     <td>{{ m.numero_memo }}</td>
                     <td>{{ m.nombre }}</td>
@@ -312,21 +304,12 @@
               </table>
             </div>
             <div v-else class="text-center text-muted py-3">
-              <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+              <font-awesome-icon icon="inbox" size="2x" class="opacity-25 mb-2 text-secondary" />
               <p>No hay movimientos registrados</p>
             </div>
           </div>
         </div>
       </template>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
     </div>
   </div>
 </template>
@@ -334,12 +317,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 import axios from 'axios'
 
 const route = useRoute()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
-const loading = ref(false)
 const error = ref('')
 const datosLoaded = ref(false)
 const searchIdLocal = ref(null)
@@ -351,21 +337,6 @@ const adeudos = ref([])
 const requerimientos = ref([])
 const movimientos = ref([])
 const tianguis = ref(null)
-
-// Toast
-const toast = ref({ show: false, type: 'info', message: '' })
-
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
-
-const hideToast = () => { toast.value.show = false }
-
-const getToastIcon = (type) => {
-  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
-  return icons[type] || 'info-circle'
-}
 
 const formatCurrency = (val) => {
   if (val == null) return '$0.00'
@@ -407,7 +378,7 @@ const buscarLocal = () => {
 }
 
 const cargarDatos = async (id_local) => {
-  loading.value = true
+  showLoading('Cargando datos del local...')
   error.value = ''
   datosLoaded.value = false
 
@@ -475,7 +446,7 @@ const cargarDatos = async (id_local) => {
     showToast('error', error.value)
     datosLoaded.value = false
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -488,87 +459,3 @@ onMounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.text-end {
-  text-align: right !important;
-}
-
-.row-hover {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.empty-icon {
-  opacity: 0.25;
-  margin-bottom: 0.5rem;
-  color: #adb5bd;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.info-item.full-width {
-  grid-column: 1 / -1;
-}
-
-.info-label {
-  font-size: 0.75rem;
-  color: #6c757d;
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
-}
-
-.info-value {
-  font-weight: 500;
-  color: #333;
-}
-
-.info-value.highlight {
-  color: var(--municipal-primary);
-  font-size: 1.1rem;
-}
-
-.info-value.currency {
-  color: #28a745;
-  font-weight: 600;
-}
-
-.badge-red {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  border-radius: 20px;
-  padding: 0.45rem 1rem;
-  font-weight: 500;
-  font-size: 0.85rem;
-}
-
-.search-form {
-  margin: 0;
-}
-
-.required {
-  color: #dc3545;
-  font-weight: bold;
-}
-
-.mb-4 {
-  margin-bottom: 1.5rem;
-}
-
-.w-100 {
-  width: 100%;
-}
-</style>

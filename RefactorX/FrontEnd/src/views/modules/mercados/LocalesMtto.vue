@@ -191,21 +191,17 @@
         </div>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+
+const { withLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const recaudadoras = ref([])
@@ -226,47 +222,34 @@ const form = ref({
   superficie: '', fecha_alta: new Date().toISOString().split('T')[0], clave_cuota: '', numero_memo: ''
 })
 
-// Toast
-const toast = ref({ show: false, type: 'info', message: '' })
-
 const mostrarAyuda = () => {
   showToast('info', 'Ayuda: Busque si existe el local y si no existe podrá darlo de alta')
 }
 
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
-
-const hideToast = () => { toast.value.show = false }
-
-const getToastIcon = (type) => {
-  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
-  return icons[type] || 'info-circle'
-}
-
 const fetchRecaudadoras = async () => {
-  try {
-    loading.value = true
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+  await withLoading(async () => {
+    try {
+      loading.value = true
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_recaudadoras',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
 
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
-    } else {
-      showToast('error', res.data.eResponse?.message || 'Error al cargar recaudadoras')
+      if (res.data.eResponse.success === true) {
+        recaudadoras.value = res.data.eResponse.data.result || []
+      } else {
+        showToast('error', res.data.eResponse?.message || 'Error al cargar recaudadoras')
+      }
+    } catch (err) {
+      console.error('Error al cargar recaudadoras:', err)
+      showToast('error', 'Error de conexión al cargar recaudadoras')
+    } finally {
+      loading.value = false
     }
-  } catch (err) {
-    console.error('Error al cargar recaudadoras:', err)
-    showToast('error', 'Error de conexión al cargar recaudadoras')
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const onRecChange = async () => {
@@ -278,40 +261,42 @@ const onRecChange = async () => {
   if (!selectedRec.value) return
 
   // Cargar mercados
-  loading.value = true
-  try {
-    const nivelUsuario = 1 // TODO: Obtener del store de usuario
-    const oficinaParam = selectedRec.value || null
+  await withLoading(async () => {
+    loading.value = true
+    try {
+      const nivelUsuario = 1 // TODO: Obtener del store de usuario
+      const oficinaParam = selectedRec.value || null
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
-          { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-        ]
-      }
-    })
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_catalogo_mercados',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
+            { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
+          ]
+        }
+      })
 
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      mercados.value = res.data.eResponse.data.result || []
-      if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+      if (res.data.eResponse && res.data.eResponse.success === true) {
+        mercados.value = res.data.eResponse.data.result || []
+        if (mercados.value.length > 0) {
+          showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        } else {
+          showToast('info', 'No se encontraron mercados para esta oficina')
+        }
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('error', res.data.eResponse?.message || 'Error al cargar mercados')
+        mercados.value = []
       }
-    } else {
-      showToast('error', res.data.eResponse?.message || 'Error al cargar mercados')
+    } catch (err) {
+      console.error('Error al cargar mercados:', err)
+      showToast('error', 'Error de conexión al cargar mercados')
       mercados.value = []
+    } finally {
+      loading.value = false
     }
-  } catch (err) {
-    console.error('Error al cargar mercados:', err)
-    showToast('error', 'Error de conexión al cargar mercados')
-    mercados.value = []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const cargarMercados = async () => {
@@ -328,94 +313,100 @@ const onMercadoChange = () => {
 }
 
 const fetchSecciones = async () => {
-  try {
-    loading.value = true
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+  await withLoading(async () => {
+    try {
+      loading.value = true
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_secciones',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
 
-    if (response.data?.eResponse?.success) {
-      secciones.value = response.data.eResponse.data.result || []
+      if (response.data?.eResponse?.success) {
+        secciones.value = response.data.eResponse.data.result || []
+      }
+    } catch (err) {
+      console.error('Error al cargar secciones:', err)
+      showToast('error', 'Error al cargar secciones')
+    } finally {
+      loading.value = false
     }
-  } catch (err) {
-    console.error('Error al cargar secciones:', err)
-    showToast('error', 'Error al cargar secciones')
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const fetchGiros = async () => {
-  try {
-    loading.value = true
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_giros_vigentes',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+  await withLoading(async () => {
+    try {
+      loading.value = true
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_giros_vigentes',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
 
-    if (response.data?.eResponse?.success) {
-      giros.value = response.data.eResponse.data.result || []
+      if (response.data?.eResponse?.success) {
+        giros.value = response.data.eResponse.data.result || []
+      }
+    } catch (err) {
+      console.error('Error al cargar giros:', err)
+      showToast('error', 'Error al cargar giros')
+    } finally {
+      loading.value = false
     }
-  } catch (err) {
-    console.error('Error al cargar giros:', err)
-    showToast('error', 'Error al cargar giros')
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const cargarCatalogos = async () => {
   console.log('Cargando catálogos...')
-  try {
-    loading.value = true
-    // Categorías - Base: mercados
-    const catRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_list',
-        Base: 'mercados',
-        Parametros: []
+  await withLoading(async () => {
+    try {
+      loading.value = true
+      // Categorías - Base: mercados
+      const catRes = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_categoria_list',
+          Base: 'mercados',
+          Parametros: []
+        }
+      })
+      if (catRes.data.eResponse?.success) {
+        categorias.value = catRes.data.eResponse.data.result || []
       }
-    })
-    if (catRes.data.eResponse?.success) {
-      categorias.value = catRes.data.eResponse.data.result || []
-    }
 
-    // Cuotas - Base: padron_licencias
-    const cuoRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cve_cuota_list',
-        Base: 'padron_licencias',
-        Parametros: []
+      // Cuotas - Base: padron_licencias
+      const cuoRes = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_cve_cuota_list',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
+      if (cuoRes.data.eResponse?.success) {
+        cuotas.value = cuoRes.data.eResponse.data.result || []
       }
-    })
-    if (cuoRes.data.eResponse?.success) {
-      cuotas.value = cuoRes.data.eResponse.data.result || []
-    }
 
-    // Zonas - Base: padron_licencias
-    const zonRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_zonas',
-        Base: 'padron_licencias',
-        Parametros: []
+      // Zonas - Base: padron_licencias
+      const zonRes = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_zonas',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
+      if (zonRes.data.eResponse?.success) {
+        zonas.value = zonRes.data.eResponse.data.result || []
       }
-    })
-    if (zonRes.data.eResponse?.success) {
-      zonas.value = zonRes.data.eResponse.data.result || []
+    } catch (err) {
+      console.error('Error al cargar catálogos:', err)
+      showToast('error', 'Error de conexión al cargar catálogos')
+    } finally {
+      loading.value = false
     }
-  } catch (err) {
-    console.error('Error al cargar catálogos:', err)
-    showToast('error', 'Error de conexión al cargar catálogos')
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const buscarLocal = async () => {
@@ -424,39 +415,41 @@ const buscarLocal = async () => {
     return
   }
 
-  loading.value = true
-  try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_locales_mtto_buscar',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedRec.value },
-          { Nombre: 'p_num_mercado', Valor: form.value.num_mercado },
-          { Nombre: 'p_categoria', Valor: form.value.categoria },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: form.value.local },
-          { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
-          { Nombre: 'p_bloque', Valor: form.value.bloque || null }
-        ]
-      }
-    })
+  await withLoading(async () => {
+    loading.value = true
+    try {
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_locales_mtto_buscar',
+          Base: 'padron_licencias',
+          Parametros: [
+            { Nombre: 'p_oficina', Valor: selectedRec.value },
+            { Nombre: 'p_num_mercado', Valor: form.value.num_mercado },
+            { Nombre: 'p_categoria', Valor: form.value.categoria },
+            { Nombre: 'p_seccion', Valor: form.value.seccion },
+            { Nombre: 'p_local', Valor: form.value.local },
+            { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
+            { Nombre: 'p_bloque', Valor: form.value.bloque || null }
+          ]
+        }
+      })
 
-    if (res.data.eResponse?.success) {
-      const result = res.data.eResponse.data.result?.[0]
-      if (result?.existe) {
-        showToast('error', 'El local ya existe. Verifique los datos.')
-        mostrarFormulario.value = false
-      } else {
-        mostrarFormulario.value = true
-        showToast('info', 'Local no encontrado. Puede proceder con el alta.')
+      if (res.data.eResponse?.success) {
+        const result = res.data.eResponse.data.result?.[0]
+        if (result?.existe) {
+          showToast('error', 'El local ya existe. Verifique los datos.')
+          mostrarFormulario.value = false
+        } else {
+          mostrarFormulario.value = true
+          showToast('info', 'Local no encontrado. Puede proceder con el alta.')
+        }
       }
+    } catch (err) {
+      showToast('error', 'Error al buscar local')
+    } finally {
+      loading.value = false
     }
-  } catch (err) {
-    showToast('error', 'Error al buscar local')
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const altaLocal = async () => {
@@ -465,50 +458,52 @@ const altaLocal = async () => {
     return
   }
 
-  saving.value = true
-  try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_locales_mtto_alta',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedRec.value },
-          { Nombre: 'p_num_mercado', Valor: form.value.num_mercado },
-          { Nombre: 'p_categoria', Valor: form.value.categoria },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: form.value.local },
-          { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
-          { Nombre: 'p_bloque', Valor: form.value.bloque || null },
-          { Nombre: 'p_nombre', Valor: form.value.nombre },
-          { Nombre: 'p_giro', Valor: form.value.giro },
-          { Nombre: 'p_sector', Valor: form.value.sector },
-          { Nombre: 'p_domicilio', Valor: form.value.domicilio || '' },
-          { Nombre: 'p_zona', Valor: form.value.zona || 1 },
-          { Nombre: 'p_descripcion_local', Valor: form.value.descripcion_local || '' },
-          { Nombre: 'p_superficie', Valor: form.value.superficie },
-          { Nombre: 'p_clave_cuota', Valor: form.value.clave_cuota },
-          { Nombre: 'p_fecha_alta', Valor: form.value.fecha_alta },
-          { Nombre: 'p_numero_memo', Valor: form.value.numero_memo },
-          { Nombre: 'p_id_usuario', Valor: 1 }
-        ]
-      }
-    })
+  await withLoading(async () => {
+    saving.value = true
+    try {
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_locales_mtto_alta',
+          Base: 'padron_licencias',
+          Parametros: [
+            { Nombre: 'p_oficina', Valor: selectedRec.value },
+            { Nombre: 'p_num_mercado', Valor: form.value.num_mercado },
+            { Nombre: 'p_categoria', Valor: form.value.categoria },
+            { Nombre: 'p_seccion', Valor: form.value.seccion },
+            { Nombre: 'p_local', Valor: form.value.local },
+            { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
+            { Nombre: 'p_bloque', Valor: form.value.bloque || null },
+            { Nombre: 'p_nombre', Valor: form.value.nombre },
+            { Nombre: 'p_giro', Valor: form.value.giro },
+            { Nombre: 'p_sector', Valor: form.value.sector },
+            { Nombre: 'p_domicilio', Valor: form.value.domicilio || '' },
+            { Nombre: 'p_zona', Valor: form.value.zona || 1 },
+            { Nombre: 'p_descripcion_local', Valor: form.value.descripcion_local || '' },
+            { Nombre: 'p_superficie', Valor: form.value.superficie },
+            { Nombre: 'p_clave_cuota', Valor: form.value.clave_cuota },
+            { Nombre: 'p_fecha_alta', Valor: form.value.fecha_alta },
+            { Nombre: 'p_numero_memo', Valor: form.value.numero_memo },
+            { Nombre: 'p_id_usuario', Valor: 1 }
+          ]
+        }
+      })
 
-    if (res.data.eResponse?.success) {
-      const result = res.data.eResponse.data.result?.[0]
-      if (result?.success) {
-        showToast('success', 'Local dado de alta correctamente')
-        limpiarFormulario()
-        mostrarFormulario.value = false
-      } else {
-        showToast('error', result?.message || 'Error al dar de alta')
+      if (res.data.eResponse?.success) {
+        const result = res.data.eResponse.data.result?.[0]
+        if (result?.success) {
+          showToast('success', 'Local dado de alta correctamente')
+          limpiarFormulario()
+          mostrarFormulario.value = false
+        } else {
+          showToast('error', result?.message || 'Error al dar de alta')
+        }
       }
+    } catch (err) {
+      showToast('error', 'Error al dar de alta el local')
+    } finally {
+      saving.value = false
     }
-  } catch (err) {
-    showToast('error', 'Error al dar de alta el local')
-  } finally {
-    saving.value = false
-  }
+  })
 }
 
 const cancelar = () => {
@@ -528,22 +523,18 @@ const limpiarFormulario = () => {
 }
 
 onMounted(async () => {
-  try {
-    await Promise.all([
-      fetchRecaudadoras(),
-      fetchSecciones(),
-      fetchGiros(),
-      cargarCatalogos()
-    ])
-    showToast('success', 'Catálogos cargados correctamente')
-  } catch (err) {
-    console.error('Error al inicializar:', err)
-  }
+  await withLoading(async () => {
+    try {
+      await Promise.all([
+        fetchRecaudadoras(),
+        fetchSecciones(),
+        fetchGiros(),
+        cargarCatalogos()
+      ])
+      showToast('success', 'Catálogos cargados correctamente')
+    } catch (err) {
+      console.error('Error al inicializar:', err)
+    }
+  })
 })
 </script>
-
-<style scoped>
-.required {
-  color: #dc3545;
-}
-</style>

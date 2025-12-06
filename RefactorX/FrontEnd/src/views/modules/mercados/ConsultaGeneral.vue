@@ -11,12 +11,12 @@
       </div>
       <div class="button-group ms-auto">
         <button class="btn-municipal-primary" @click="exportarExcel"
-          :disabled="loading || locales.length === 0">
+          :disabled="locales.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
         <button class="btn-municipal-primary" @click="imprimir"
-          :disabled="loading || locales.length === 0">
+          :disabled="locales.length === 0">
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
@@ -44,7 +44,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
-                <select v-model="form.oficina" class="municipal-form-control" required @change="cargarMercados" :disabled="loading">
+                <select v-model="form.oficina" class="municipal-form-control" required @change="cargarMercados">
                   <option value="">Seleccione...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                     {{ rec.id_rec }} - {{ rec.recaudadora }}
@@ -55,7 +55,7 @@
               <div class="form-group">
                 <label class="municipal-form-label">Mercado <span class="required">*</span></label>
                 <select v-model="form.num_mercado" class="municipal-form-control" required
-                  :disabled="!form.oficina || loading">
+                  :disabled="!form.oficina">
                   <option value="">Seleccione...</option>
                   <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
                     {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
@@ -65,7 +65,7 @@
 
               <div class="form-group">
                 <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <select v-model="form.categoria" class="municipal-form-control" required :disabled="loading">
+                <select v-model="form.categoria" class="municipal-form-control" required>
                   <option value="">Seleccione...</option>
                   <option v-for="cat in categorias" :key="cat.id" :value="cat.id">
                     {{ cat.nombre }}
@@ -75,7 +75,7 @@
 
               <div class="form-group">
                 <label class="municipal-form-label">Sección <span class="required">*</span></label>
-                <select v-model="form.seccion" class="municipal-form-control" required :disabled="loading">
+                <select v-model="form.seccion" class="municipal-form-control" required>
                   <option value="">Seleccione...</option>
                   <option v-for="sec in secciones" :key="sec.seccion" :value="sec.seccion">
                     {{ sec.seccion }}
@@ -85,20 +85,20 @@
 
               <div class="form-group">
                 <label class="municipal-form-label">Local <span class="required">*</span></label>
-                <input v-model="form.local" type="number" class="municipal-form-control" required :disabled="loading"
+                <input v-model="form.local" type="number" class="municipal-form-control" required
                   placeholder="Número de local">
               </div>
 
               <div class="form-group">
                 <label class="municipal-form-label">Letra</label>
                 <input v-model="form.letra_local" type="text" class="municipal-form-control" maxlength="1"
-                  :disabled="loading" placeholder="A-Z">
+                  placeholder="A-Z">
               </div>
 
               <div class="form-group">
                 <label class="municipal-form-label">Bloque</label>
                 <input v-model="form.bloque" type="text" class="municipal-form-control" maxlength="1"
-                  :disabled="loading" placeholder="1-9">
+                  placeholder="1-9">
               </div>
             </div>
 
@@ -106,11 +106,11 @@
             <div class="row mt-3">
               <div class="col-12">
                 <div class="text-end">
-                  <button type="submit" class="btn-municipal-primary me-2" :disabled="loading">
+                  <button type="submit" class="btn-municipal-primary me-2">
                     <font-awesome-icon icon="search" />
                     Buscar
                   </button>
-                  <button type="button" class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                  <button type="button" class="btn-municipal-secondary" @click="limpiarFiltros">
                     <font-awesome-icon icon="eraser" />
                     Limpiar
                   </button>
@@ -136,21 +136,13 @@
         </div>
 
         <div class="municipal-card-body table-container">
-          <!-- Mensaje de loading -->
-          <div v-if="loading && loadingLocales" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-3 text-muted">Cargando datos, por favor espere...</p>
-          </div>
-
           <!-- Mensaje de error -->
-          <div v-else-if="errorLocales" class="alert alert-danger" role="alert">
+          <div v-if="errorLocales" class="alert alert-danger" role="alert">
             <font-awesome-icon icon="exclamation-triangle" />
             {{ errorLocales }}
           </div>
 
-          <!-- Tabla -->
+          <!-- Tabla con paginación -->
           <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
@@ -177,7 +169,7 @@
                     <p>No se encontraron locales con los criterios especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="loc in locales" :key="loc.id_local"
+                <tr v-else v-for="loc in paginatedLocales" :key="loc.id_local"
                   @click="selectedLocal = loc"
                   :class="{ 'table-row-selected': selectedLocal?.id_local === loc.id_local }"
                   class="row-hover">
@@ -196,253 +188,287 @@
                 </tr>
               </tbody>
             </table>
+
+            <!-- Paginación -->
+            <div v-if="locales.length > 0" class="pagination-container">
+              <div class="pagination-info">
+                Mostrando {{ startIndex + 1 }} a {{ endIndex }} de {{ locales.length }} registros
+              </div>
+              <div class="pagination-controls">
+                <button
+                  class="btn-pagination"
+                  @click="previousPage"
+                  :disabled="currentPage === 1"
+                >
+                  <font-awesome-icon icon="chevron-left" />
+                </button>
+                <button
+                  v-for="page in displayedPages"
+                  :key="page"
+                  class="btn-pagination"
+                  :class="{ active: currentPage === page }"
+                  @click="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+                <button
+                  class="btn-pagination"
+                  @click="nextPage"
+                  :disabled="currentPage === totalPages"
+                >
+                  <font-awesome-icon icon="chevron-right" />
+                </button>
+              </div>
+              <div class="pagination-size">
+                <select v-model.number="pageSize" class="page-size-select" @change="resetToFirstPage">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+                <span>por página</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
     </div>
 
-    <!-- Modal de detalle -->
-    <div v-if="showModal" class="modal-backdrop" @click.self="cerrarModal">
-      <div class="modal-content modal-xl">
-        <div class="modal-header municipal-modal-header">
-          <h5 class="modal-title">
-            <font-awesome-icon icon="info-circle" />
-            Detalle del Local
-          </h5>
-          <button type="button" class="btn-close btn-close-white" @click="cerrarModal"></button>
+    <!-- Modal de detalle usando componente Modal.vue -->
+    <Modal
+      v-if="showModal"
+      title="Detalle del Local"
+      size="xl"
+      @close="cerrarModal"
+    >
+      <template #body>
+        <!-- Información del local -->
+        <div class="row">
+          <div class="col-md-6">
+            <table class="table table-sm table-bordered">
+              <tr><th class="table-light" style="width: 40%">Mercado</th><td>{{ detalle.nombre_mercado }}</td></tr>
+              <tr><th class="table-light">Control</th><td>{{ detalle.id_local }}</td></tr>
+              <tr><th class="table-light">Nombre</th><td>{{ detalle.nombre }}</td></tr>
+              <tr><th class="table-light">Arrendatario</th><td>{{ detalle.arrendatario }}</td></tr>
+              <tr><th class="table-light">Giro</th><td>{{ detalle.giro }}</td></tr>
+              <tr><th class="table-light">Superficie</th><td>{{ detalle.superficie }}</td></tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <table class="table table-sm table-bordered">
+              <tr><th class="table-light" style="width: 40%">Fecha Alta</th><td>{{ detalle.fecha_alta }}</td></tr>
+              <tr><th class="table-light">Fecha Baja</th><td>{{ detalle.fecha_baja || '-' }}</td></tr>
+              <tr><th class="table-light">Vigencia</th><td>{{ detalle.vigencia }}</td></tr>
+              <tr><th class="table-light">Usuario</th><td>{{ detalle.usuario }}</td></tr>
+              <tr><th class="table-light">Bloqueo</th><td>{{ detalle.bloqueo || '-' }}</td></tr>
+              <tr><th class="table-light">Observación</th><td>{{ detalle.observacion || '-' }}</td></tr>
+            </table>
+          </div>
         </div>
-        <div class="modal-body">
-          <!-- Información del local -->
-          <div class="row">
-            <div class="col-md-6">
-              <table class="table table-sm table-bordered">
-                <tr><th class="table-light" style="width: 40%">Mercado</th><td>{{ detalle.nombre_mercado }}</td></tr>
-                <tr><th class="table-light">Control</th><td>{{ detalle.id_local }}</td></tr>
-                <tr><th class="table-light">Nombre</th><td>{{ detalle.nombre }}</td></tr>
-                <tr><th class="table-light">Arrendatario</th><td>{{ detalle.arrendatario }}</td></tr>
-                <tr><th class="table-light">Giro</th><td>{{ detalle.giro }}</td></tr>
-                <tr><th class="table-light">Superficie</th><td>{{ detalle.superficie }}</td></tr>
-              </table>
+
+        <!-- Tabs de información adicional -->
+        <ul class="nav nav-tabs-custom mt-4">
+          <li class="nav-item">
+            <button class="nav-link-custom tab-adeudos" :class="{ active: tab === 'adeudos' }" @click="tab = 'adeudos'">
+              <font-awesome-icon icon="exclamation-circle" class="tab-icon" />
+              <span class="tab-label">Adeudos</span>
+              <span class="tab-badge badge-danger">{{ adeudos.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link-custom tab-pagos" :class="{ active: tab === 'pagos' }" @click="tab = 'pagos'">
+              <font-awesome-icon icon="money-bill-wave" class="tab-icon" />
+              <span class="tab-label">Pagos</span>
+              <span class="tab-badge badge-success">{{ pagos.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link-custom tab-requerimientos" :class="{ active: tab === 'requerimientos' }" @click="tab = 'requerimientos'">
+              <font-awesome-icon icon="file-invoice" class="tab-icon" />
+              <span class="tab-label">Requerimientos</span>
+              <span class="tab-badge badge-warning">{{ requerimientos.length }}</span>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Contenido de tabs -->
+        <div class="tab-content-custom">
+          <!-- Tab Adeudos -->
+          <div v-if="tab === 'adeudos'" class="tab-pane-custom fade-in">
+            <div v-if="loadingTab" class="text-center py-5">
+              <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+              <p class="mt-3 text-muted">Cargando adeudos...</p>
             </div>
-            <div class="col-md-6">
-              <table class="table table-sm table-bordered">
-                <tr><th class="table-light" style="width: 40%">Fecha Alta</th><td>{{ detalle.fecha_alta }}</td></tr>
-                <tr><th class="table-light">Fecha Baja</th><td>{{ detalle.fecha_baja || '-' }}</td></tr>
-                <tr><th class="table-light">Vigencia</th><td>{{ detalle.vigencia }}</td></tr>
-                <tr><th class="table-light">Usuario</th><td>{{ detalle.usuario }}</td></tr>
-                <tr><th class="table-light">Bloqueo</th><td>{{ detalle.bloqueo || '-' }}</td></tr>
-                <tr><th class="table-light">Observación</th><td>{{ detalle.observacion || '-' }}</td></tr>
-              </table>
+            <div v-else>
+              <div v-if="adeudos.length > 0" class="table-responsive">
+                <table class="table-custom table-adeudos">
+                  <thead>
+                    <tr>
+                      <th>Año</th>
+                      <th>Periodo</th>
+                      <th class="text-end">Importe</th>
+                      <th class="text-end">Recargos</th>
+                      <th class="text-end">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(a, idx) in adeudos" :key="idx" class="table-row-hover">
+                      <td><span class="badge-year">{{ a.axo }}</span></td>
+                      <td><span class="badge-period">Periodo {{ a.periodo }}</span></td>
+                      <td class="text-end">
+                        <span class="amount-danger">{{ formatCurrency(a.importe) }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span class="amount-warning">{{ formatCurrency(a.recargos) }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span class="amount-total">{{ formatCurrency(parseFloat(a.importe || 0) + parseFloat(a.recargos || 0)) }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-else class="empty-state">
+                <font-awesome-icon icon="check-circle" size="3x" class="empty-icon-success" />
+                <h5>Sin adeudos pendientes</h5>
+                <p class="text-muted">Este local no tiene adeudos registrados</p>
+              </div>
             </div>
           </div>
 
-          <!-- Tabs de información adicional -->
-          <ul class="nav nav-tabs-custom mt-4">
-            <li class="nav-item">
-              <button class="nav-link-custom tab-adeudos" :class="{ active: tab === 'adeudos' }" @click="tab = 'adeudos'">
-                <font-awesome-icon icon="exclamation-circle" class="tab-icon" />
-                <span class="tab-label">Adeudos</span>
-                <span class="tab-badge badge-danger">{{ adeudos.length }}</span>
-              </button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link-custom tab-pagos" :class="{ active: tab === 'pagos' }" @click="tab = 'pagos'">
-                <font-awesome-icon icon="money-bill-wave" class="tab-icon" />
-                <span class="tab-label">Pagos</span>
-                <span class="tab-badge badge-success">{{ pagos.length }}</span>
-              </button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link-custom tab-requerimientos" :class="{ active: tab === 'requerimientos' }" @click="tab = 'requerimientos'">
-                <font-awesome-icon icon="file-invoice" class="tab-icon" />
-                <span class="tab-label">Requerimientos</span>
-                <span class="tab-badge badge-warning">{{ requerimientos.length }}</span>
-              </button>
-            </li>
-          </ul>
-
-          <!-- Contenido de tabs -->
-          <div class="tab-content-custom">
-            <!-- Tab Adeudos -->
-            <div v-if="tab === 'adeudos'" class="tab-pane-custom fade-in">
-              <div v-if="loadingTab" class="text-center py-5">
-                <div class="spinner-border text-danger" role="status">
-                  <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-3 text-muted">Cargando adeudos...</p>
+          <!-- Tab Pagos -->
+          <div v-if="tab === 'pagos'" class="tab-pane-custom fade-in">
+            <div v-if="loadingTab" class="text-center py-5">
+              <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
               </div>
-              <div v-else>
-                <div v-if="adeudos.length > 0" class="table-responsive">
-                  <table class="table-custom table-adeudos">
-                    <thead>
-                      <tr>
-                        <th>Año</th>
-                        <th>Periodo</th>
-                        <th class="text-end">Importe</th>
-                        <th class="text-end">Recargos</th>
-                        <th class="text-end">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(a, idx) in adeudos" :key="idx" class="table-row-hover">
-                        <td><span class="badge-year">{{ a.axo }}</span></td>
-                        <td><span class="badge-period">Periodo {{ a.periodo }}</span></td>
-                        <td class="text-end">
-                          <span class="amount-danger">{{ formatCurrency(a.importe) }}</span>
-                        </td>
-                        <td class="text-end">
-                          <span class="amount-warning">{{ formatCurrency(a.recargos) }}</span>
-                        </td>
-                        <td class="text-end">
-                          <span class="amount-total">{{ formatCurrency(parseFloat(a.importe || 0) + parseFloat(a.recargos || 0)) }}</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-else class="empty-state">
-                  <font-awesome-icon icon="check-circle" size="3x" class="empty-icon-success" />
-                  <h5>Sin adeudos pendientes</h5>
-                  <p class="text-muted">Este local no tiene adeudos registrados</p>
-                </div>
-              </div>
+              <p class="mt-3 text-muted">Cargando pagos...</p>
             </div>
-
-            <!-- Tab Pagos -->
-            <div v-if="tab === 'pagos'" class="tab-pane-custom fade-in">
-              <div v-if="loadingTab" class="text-center py-5">
-                <div class="spinner-border text-success" role="status">
-                  <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-3 text-muted">Cargando pagos...</p>
+            <div v-else>
+              <div v-if="pagos.length > 0" class="table-responsive">
+                <table class="table-custom table-pagos">
+                  <thead>
+                    <tr>
+                      <th>Año</th>
+                      <th>Periodo</th>
+                      <th>Fecha Pago</th>
+                      <th class="text-end">Importe</th>
+                      <th>Folio</th>
+                      <th>Usuario</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(p, idx) in pagos" :key="idx" class="table-row-hover">
+                      <td><span class="badge-year">{{ p.axo }}</span></td>
+                      <td><span class="badge-period">Periodo {{ p.periodo }}</span></td>
+                      <td>
+                        <font-awesome-icon icon="calendar-alt" class="icon-small text-muted" />
+                        {{ p.fecha_pago }}
+                      </td>
+                      <td class="text-end">
+                        <span class="amount-success">{{ formatCurrency(p.importe_pago) }}</span>
+                      </td>
+                      <td>
+                        <span class="folio-badge">{{ p.folio || 'N/A' }}</span>
+                      </td>
+                      <td>
+                        <font-awesome-icon icon="user" class="icon-small text-muted" />
+                        {{ p.usuario || 'N/A' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div v-else>
-                <div v-if="pagos.length > 0" class="table-responsive">
-                  <table class="table-custom table-pagos">
-                    <thead>
-                      <tr>
-                        <th>Año</th>
-                        <th>Periodo</th>
-                        <th>Fecha Pago</th>
-                        <th class="text-end">Importe</th>
-                        <th>Folio</th>
-                        <th>Usuario</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(p, idx) in pagos" :key="idx" class="table-row-hover">
-                        <td><span class="badge-year">{{ p.axo }}</span></td>
-                        <td><span class="badge-period">Periodo {{ p.periodo }}</span></td>
-                        <td>
-                          <font-awesome-icon icon="calendar-alt" class="icon-small text-muted" />
-                          {{ p.fecha_pago }}
-                        </td>
-                        <td class="text-end">
-                          <span class="amount-success">{{ formatCurrency(p.importe_pago) }}</span>
-                        </td>
-                        <td>
-                          <span class="folio-badge">{{ p.folio || 'N/A' }}</span>
-                        </td>
-                        <td>
-                          <font-awesome-icon icon="user" class="icon-small text-muted" />
-                          {{ p.usuario || 'N/A' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-else class="empty-state">
-                  <font-awesome-icon icon="receipt" size="3x" class="empty-icon-info" />
-                  <h5>Sin pagos registrados</h5>
-                  <p class="text-muted">Este local no tiene pagos registrados</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab Requerimientos -->
-            <div v-if="tab === 'requerimientos'" class="tab-pane-custom fade-in">
-              <div v-if="loadingTab" class="text-center py-5">
-                <div class="spinner-border text-warning" role="status">
-                  <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-3 text-muted">Cargando requerimientos...</p>
-              </div>
-              <div v-else>
-                <div v-if="requerimientos.length > 0" class="table-responsive">
-                  <table class="table-custom table-requerimientos">
-                    <thead>
-                      <tr>
-                        <th>Folio</th>
-                        <th>Fecha Emisión</th>
-                        <th class="text-end">Importe Multa</th>
-                        <th class="text-end">Importe Gastos</th>
-                        <th class="text-end">Total</th>
-                        <th>Vigencia</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(r, idx) in requerimientos" :key="idx" class="table-row-hover">
-                        <td>
-                          <span class="folio-badge-primary">{{ r.folio }}</span>
-                        </td>
-                        <td>
-                          <font-awesome-icon icon="calendar-alt" class="icon-small text-muted" />
-                          {{ r.fecha_emision }}
-                        </td>
-                        <td class="text-end">
-                          <span class="amount-warning">{{ formatCurrency(r.importe_multa) }}</span>
-                        </td>
-                        <td class="text-end">
-                          <span class="amount-info">{{ formatCurrency(r.importe_gastos) }}</span>
-                        </td>
-                        <td class="text-end">
-                          <span class="amount-total">{{ formatCurrency(parseFloat(r.importe_multa || 0) + parseFloat(r.importe_gastos || 0)) }}</span>
-                        </td>
-                        <td>
-                          <span class="badge-vigencia">{{ r.vigencia }}</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-else class="empty-state">
-                  <font-awesome-icon icon="check-circle" size="3x" class="empty-icon-success" />
-                  <h5>Sin requerimientos pendientes</h5>
-                  <p class="text-muted">Este local no tiene requerimientos registrados</p>
-                </div>
+              <div v-else class="empty-state">
+                <font-awesome-icon icon="receipt" size="3x" class="empty-icon-info" />
+                <h5>Sin pagos registrados</h5>
+                <p class="text-muted">Este local no tiene pagos registrados</p>
               </div>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
-            <font-awesome-icon icon="times" />
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
+          <!-- Tab Requerimientos -->
+          <div v-if="tab === 'requerimientos'" class="tab-pane-custom fade-in">
+            <div v-if="loadingTab" class="text-center py-5">
+              <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+              <p class="mt-3 text-muted">Cargando requerimientos...</p>
+            </div>
+            <div v-else>
+              <div v-if="requerimientos.length > 0" class="table-responsive">
+                <table class="table-custom table-requerimientos">
+                  <thead>
+                    <tr>
+                      <th>Folio</th>
+                      <th>Fecha Emisión</th>
+                      <th class="text-end">Importe Multa</th>
+                      <th class="text-end">Importe Gastos</th>
+                      <th class="text-end">Total</th>
+                      <th>Vigencia</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(r, idx) in requerimientos" :key="idx" class="table-row-hover">
+                      <td>
+                        <span class="folio-badge-primary">{{ r.folio }}</span>
+                      </td>
+                      <td>
+                        <font-awesome-icon icon="calendar-alt" class="icon-small text-muted" />
+                        {{ r.fecha_emision }}
+                      </td>
+                      <td class="text-end">
+                        <span class="amount-warning">{{ formatCurrency(r.importe_multa) }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span class="amount-info">{{ formatCurrency(r.importe_gastos) }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span class="amount-total">{{ formatCurrency(parseFloat(r.importe_multa || 0) + parseFloat(r.importe_gastos || 0)) }}</span>
+                      </td>
+                      <td>
+                        <span class="badge-vigencia">{{ r.vigencia }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-else class="empty-state">
+                <font-awesome-icon icon="check-circle" size="3x" class="empty-icon-success" />
+                <h5>Sin requerimientos pendientes</h5>
+                <p class="text-muted">Este local no tiene requerimientos registrados</p>
+              </td>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import Modal from '@/components/shared/Modal.vue'
+
+// Composables
+const { withLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
-const loading = ref(false)
-const loadingLocales = ref(false)
 const loadingTab = ref(false)
 const showModal = ref(false)
 const tab = ref('adeudos')
@@ -482,12 +508,65 @@ const adeudos = ref([])
 const pagos = ref([])
 const requerimientos = ref([])
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
+// Paginación
+const currentPage = ref(1)
+const pageSize = ref(25)
+
+const totalPages = computed(() => {
+  return Math.ceil(locales.value.length / pageSize.value)
 })
+
+const startIndex = computed(() => {
+  return (currentPage.value - 1) * pageSize.value
+})
+
+const endIndex = computed(() => {
+  const end = startIndex.value + pageSize.value
+  return end > locales.value.length ? locales.value.length : end
+})
+
+const paginatedLocales = computed(() => {
+  return locales.value.slice(startIndex.value, endIndex.value)
+})
+
+const displayedPages = computed(() => {
+  const pages = []
+  const maxDisplayed = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxDisplayed / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxDisplayed - 1)
+
+  if (endPage - startPage < maxDisplayed - 1) {
+    startPage = Math.max(1, endPage - maxDisplayed + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const resetToFirstPage = () => {
+  currentPage.value = 1
+}
 
 // Métodos de UI
 const toggleFilters = () => {
@@ -496,31 +575,6 @@ const toggleFilters = () => {
 
 const mostrarAyuda = () => {
   showToast('info', 'Ingrese los datos del local para buscar su información general. Los campos marcados con (*) son obligatorios.')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
 }
 
 // Utilidades
@@ -542,33 +596,32 @@ onMounted(() => {
 })
 
 const cargarRecaudadoras = async () => {
-  loading.value = true
-  errorLocales.value = ''
-  try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+  await withLoading(async () => {
+    errorLocales.value = ''
+    try {
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_recaudadoras',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
 
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
-      if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+      if (res.data.eResponse.success === true) {
+        recaudadoras.value = res.data.eResponse.data.result || []
+        if (recaudadoras.value.length > 0) {
+          showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        }
+      } else {
+        errorLocales.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+        showToast('error', errorLocales.value)
       }
-    } else {
-      errorLocales.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+    } catch (err) {
+      errorLocales.value = 'Error de conexión al cargar recaudadoras'
+      console.error('Error al cargar recaudadoras:', err)
       showToast('error', errorLocales.value)
     }
-  } catch (err) {
-    errorLocales.value = 'Error de conexión al cargar recaudadoras'
-    console.error('Error al cargar recaudadoras:', err)
-    showToast('error', errorLocales.value)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const cargarMercados = async () => {
@@ -578,73 +631,71 @@ const cargarMercados = async () => {
 
   if (!form.value.oficina) return
 
-  loading.value = true
-  errorLocales.value = ''
-  try {
-    const nivelUsuario = 1 // TODO: Obtener del store de usuario
-    const oficinaParam = form.value.oficina || null
+  await withLoading(async () => {
+    errorLocales.value = ''
+    try {
+      const nivelUsuario = 1 // TODO: Obtener del store de usuario
+      const oficinaParam = form.value.oficina || null
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
-          { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-        ]
-      }
-    })
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_catalogo_mercados',
+          Base: 'padron_licencias',
+          Parametros: [
+            { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
+            { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
+          ]
+        }
+      })
 
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      mercados.value = res.data.eResponse.data.result || []
-      if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+      if (res.data.eResponse && res.data.eResponse.success === true) {
+        mercados.value = res.data.eResponse.data.result || []
+        if (mercados.value.length > 0) {
+          showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        } else {
+          showToast('info', 'No se encontraron mercados para esta oficina')
+        }
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        errorLocales.value = res.data.eResponse?.message || 'Error al cargar mercados'
+        showToast('error', errorLocales.value)
       }
-    } else {
-      errorLocales.value = res.data.eResponse?.message || 'Error al cargar mercados'
+    } catch (err) {
+      errorLocales.value = 'Error de conexión al cargar mercados'
+      console.error('Error al cargar mercados:', err)
       showToast('error', errorLocales.value)
     }
-  } catch (err) {
-    errorLocales.value = 'Error de conexión al cargar mercados'
-    console.error('Error al cargar mercados:', err)
-    showToast('error', errorLocales.value)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const cargarSecciones = async () => {
   secciones.value = []
   form.value.seccion = ''
 
-  loading.value = true
-  errorLocales.value = ''
-  try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
+  await withLoading(async () => {
+    errorLocales.value = ''
+    try {
+      const res = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_get_secciones',
+          Base: 'padron_licencias',
+          Parametros: []
+        }
+      })
+      if (res.data.eResponse && res.data.eResponse.success === true) {
+        secciones.value = res.data.eResponse.data.result || []
+        if (secciones.value.length > 0) {
+          showToast('success', `Se cargaron ${secciones.value.length} secciones`)
+        }
+      } else {
+        errorLocales.value = res.data.eResponse?.message || 'Error al cargar secciones'
+        showToast('error', errorLocales.value)
       }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      secciones.value = res.data.eResponse.data.result || []
-      if (secciones.value.length > 0) {
-        showToast('success', `Se cargaron ${secciones.value.length} secciones`)
-      }
-    } else {
-      errorLocales.value = res.data.eResponse?.message || 'Error al cargar secciones'
+    } catch (error) {
+      errorLocales.value = 'Error de conexión al cargar secciones'
+      console.error('Error al cargar secciones:', error)
       showToast('error', errorLocales.value)
     }
-  } catch (error) {
-    errorLocales.value = 'Error de conexión al cargar secciones'
-    console.error('Error al cargar secciones:', error)
-    showToast('error', errorLocales.value)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const buscarLocal = async () => {
@@ -654,49 +705,47 @@ const buscarLocal = async () => {
     return
   }
 
-  loading.value = true
-  loadingLocales.value = true
-  errorLocales.value = ''
-  locales.value = []
-  selectedLocal.value = null
-  searchPerformed.value = true
+  await withLoading(async () => {
+    errorLocales.value = ''
+    locales.value = []
+    selectedLocal.value = null
+    searchPerformed.value = true
+    currentPage.value = 1
 
-  try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_general_buscar',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
-          { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) || 1 },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: parseInt(form.value.local) },
-          { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
-          { Nombre: 'p_bloque', Valor: form.value.bloque || null }
-        ]
-      }
-    })
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      locales.value = response.data.eResponse.data.result || []
-      if (locales.value.length === 0) {
-        showToast('info', 'No se encontraron locales con los criterios especificados')
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_consulta_general_buscar',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
+            { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
+            { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) || 1 },
+            { Nombre: 'p_seccion', Valor: form.value.seccion },
+            { Nombre: 'p_local', Valor: parseInt(form.value.local) },
+            { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
+            { Nombre: 'p_bloque', Valor: form.value.bloque || null }
+          ]
+        }
+      })
+      if (response.data.eResponse && response.data.eResponse.success === true) {
+        locales.value = response.data.eResponse.data.result || []
+        if (locales.value.length === 0) {
+          showToast('info', 'No se encontraron locales con los criterios especificados')
+        } else {
+          showToast('success', `Se encontraron ${locales.value.length} locales`)
+          showFilters.value = false
+        }
       } else {
-        showToast('success', `Se encontraron ${locales.value.length} locales`)
-        showFilters.value = false
+        errorLocales.value = response.data.eResponse?.message || 'Error en la búsqueda'
+        showToast('error', errorLocales.value)
       }
-    } else {
-      errorLocales.value = response.data.eResponse?.message || 'Error en la búsqueda'
+    } catch (error) {
+      errorLocales.value = error.response?.data?.eResponse?.message || 'Error al buscar locales'
+      console.error('Error al buscar locales:', error)
       showToast('error', errorLocales.value)
     }
-  } catch (error) {
-    errorLocales.value = error.response?.data?.eResponse?.message || 'Error al buscar locales'
-    console.error('Error al buscar locales:', error)
-    showToast('error', errorLocales.value)
-  } finally {
-    loading.value = false
-    loadingLocales.value = false
-  }
+  })
 }
 
 const limpiarFiltros = () => {
@@ -712,6 +761,7 @@ const limpiarFiltros = () => {
   selectedLocal.value = null
   errorLocales.value = ''
   searchPerformed.value = false
+  currentPage.value = 1
   // Recargar secciones
   cargarSecciones()
   showToast('info', 'Filtros limpiados')
@@ -748,54 +798,56 @@ const verDetalle = async (local) => {
 }
 
 const cargarDatosDetalle = async (idLocal) => {
-  loadingTab.value = true
-  try {
-    // Cargar adeudos
-    const resAdeudos = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_general_adeudos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: idLocal }
-        ]
+  await withLoading(async () => {
+    loadingTab.value = true
+    try {
+      // Cargar adeudos
+      const resAdeudos = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_consulta_general_adeudos',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_id_local', Valor: idLocal }
+          ]
+        }
+      })
+      if (resAdeudos.data.eResponse && resAdeudos.data.eResponse.success === true) {
+        adeudos.value = resAdeudos.data.eResponse.data.result || []
       }
-    })
-    if (resAdeudos.data.eResponse && resAdeudos.data.eResponse.success === true) {
-      adeudos.value = resAdeudos.data.eResponse.data.result || []
-    }
 
-    // Cargar pagos
-    const resPagos = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_general_pagos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: idLocal }
-        ]
+      // Cargar pagos
+      const resPagos = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_consulta_general_pagos',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_id_local', Valor: idLocal }
+          ]
+        }
+      })
+      if (resPagos.data.eResponse && resPagos.data.eResponse.success === true) {
+        pagos.value = resPagos.data.eResponse.data.result || []
       }
-    })
-    if (resPagos.data.eResponse && resPagos.data.eResponse.success === true) {
-      pagos.value = resPagos.data.eResponse.data.result || []
-    }
 
-    // Cargar requerimientos
-    const resReq = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_general_requerimientos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: idLocal }
-        ]
+      // Cargar requerimientos
+      const resReq = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_consulta_general_requerimientos',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_id_local', Valor: idLocal }
+          ]
+        }
+      })
+      if (resReq.data.eResponse && resReq.data.eResponse.success === true) {
+        requerimientos.value = resReq.data.eResponse.data.result || []
       }
-    })
-    if (resReq.data.eResponse && resReq.data.eResponse.success === true) {
-      requerimientos.value = resReq.data.eResponse.data.result || []
+    } catch (error) {
+      showToast('error', 'Error al cargar detalles')
+    } finally {
+      loadingTab.value = false
     }
-  } catch (error) {
-    showToast('error', 'Error al cargar detalles')
-  } finally {
-    loadingTab.value = false
-  }
+  })
 }
 
 const cerrarModal = () => {
@@ -804,54 +856,6 @@ const cerrarModal = () => {
 </script>
 
 <style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-/* Estilos adicionales específicos del componente si son necesarios */
-
-/* Modal */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 50px;
-  z-index: 1050;
-  overflow-y: auto;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  max-width: 1100px;
-  width: 95%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.modal-xl {
-  max-width: 1100px;
-}
-
-.municipal-modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 8px 8px 0 0;
-}
-
-.municipal-modal-header .modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 /* ==================== TABS PERSONALIZADAS ==================== */
 .nav-tabs-custom {
   display: flex;

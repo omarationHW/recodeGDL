@@ -345,7 +345,7 @@ const loadCatalogos = async () => {
     // Cargar sectores - Base: mercados
     const sectoresRes = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_catalogo_secciones',
+        Operacion: 'sp_catalogo_sectores',
         Base: 'mercados',
         Parametros: []
       }

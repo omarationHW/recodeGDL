@@ -25,24 +25,29 @@
             <div class="form-row">
               <div class="form-group" style="flex: 0 0 20%;">
                 <label class="municipal-form-label">Recaudadora</label>
-                <select v-model="formBuscar.oficina" class="municipal-form-control" required>
+                <select v-model="formBuscar.oficina" @change="onRecaudadoraChange" class="municipal-form-control" required>
                   <option value="">Seleccione...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                    {{ rec.id_rec }}
+                    {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
 
               <div class="form-group" style="flex: 0 0 15%;">
                 <label class="municipal-form-label">Mercado</label>
-                <input type="number" v-model.number="formBuscar.num_mercado" class="municipal-form-control" required
-                  min="1" />
+                <select v-model="formBuscar.num_mercado" @change="onMercadoChange" class="municipal-form-control" required
+                  :disabled="!formBuscar.oficina || mercados.length === 0">
+                  <option value="">Seleccione...</option>
+                  <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                    {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                  </option>
+                </select>
               </div>
 
               <div class="form-group" style="flex: 0 0 15%;">
                 <label class="municipal-form-label">Categoría</label>
                 <input type="number" v-model.number="formBuscar.categoria" class="municipal-form-control" required
-                  min="1" />
+                  min="1" disabled />
               </div>
 
               <div class="form-group" style="flex: 0 0 15%;">
@@ -209,6 +214,7 @@ const toast = useToast()
 
 // Estado reactivo
 const recaudadoras = ref([])
+const mercados = ref([])
 const secciones = ref([])
 const energia = ref(null)
 const loading = ref(false)
@@ -290,6 +296,55 @@ const fetchSecciones = async () => {
   } catch (error) {
     console.error('Error fetchSecciones:', error)
     toast.error('Error al cargar secciones: ' + error.message)
+  }
+}
+
+// Cuando cambia la recaudadora, cargar mercados
+const onRecaudadoraChange = async () => {
+  formBuscar.value.num_mercado = ''
+  formBuscar.value.categoria = ''
+  mercados.value = []
+
+  if (!formBuscar.value.oficina) return
+
+  loading.value = true
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_catalogo_mercados',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_id_rec', Valor: parseInt(formBuscar.value.oficina) },
+          { Nombre: 'p_nivel_usuario', Valor: 1 }
+        ]
+      }
+    })
+
+    // La API devuelve los datos en eResponse.data.result
+    const apiResponse = response.data.eResponse || response.data
+    const data = apiResponse.data?.result || apiResponse.data || []
+
+    if (Array.isArray(data) && data.length > 0) {
+      mercados.value = data
+    } else if (apiResponse.success === false) {
+      toast.error(apiResponse.message || 'Error al cargar mercados')
+      mercados.value = []
+    } else {
+      mercados.value = []
+    }
+  } catch (error) {
+    console.error('Error onRecaudadoraChange:', error)
+    toast.error('Error al cargar mercados: ' + error.message)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Cuando cambia el mercado, auto-llenar categoría
+const onMercadoChange = () => {
+  const mercadoSeleccionado = mercados.value.find(m => m.num_mercado_nvo == formBuscar.value.num_mercado)
+  if (mercadoSeleccionado) {
+    formBuscar.value.categoria = mercadoSeleccionado.categoria
   }
 }
 

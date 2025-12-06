@@ -1281,7 +1281,7 @@ const menuItems = [
           },
           {
             path: '/mercados/energia-modif',
-            label: '--- Modificar Energía',
+            label: '* Modificar Energía',
             icon: 'plug'
           },
           // LOTE 18: Emisión y Consultas de Pagos
@@ -1303,7 +1303,7 @@ const menuItems = [
           // LOTE 19: Condonaciones y Prescripción
           {
             path: '/mercados/prescripcion',
-            label: '--- Prescripción de Adeudos',
+            label: '* Prescripción de Adeudos',
             icon: 'hourglass-end'
           },
           {
@@ -1324,7 +1324,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-adeudos-energia',
-            label: '*** Reporte Adeudos Energía Detalle',
+            label: '* Reporte Adeudos Energía Detalle',
             icon: 'plug'
           },
           {
@@ -1397,7 +1397,7 @@ const menuItems = [
           },
           {
             path: '/mercados/rpt-mercados',
-            label: '--- Reporte Catálogo Mercados',
+            label: '* Reporte Catálogo Mercados',
             icon: 'map'
           },
           {

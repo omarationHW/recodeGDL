@@ -314,7 +314,7 @@ class GenericController
 
             foreach ($parametros as $param) {
                 $paramNombre = $param['nombre'] ?? $param['Nombre'] ?? null;
-                if ($paramNombre !== null) {
+                if ($paramNombre !== null && array_key_exists($paramNombre, $paramMap)) {
                     $spParametros[] = $paramMap[$paramNombre];
                 }
             }

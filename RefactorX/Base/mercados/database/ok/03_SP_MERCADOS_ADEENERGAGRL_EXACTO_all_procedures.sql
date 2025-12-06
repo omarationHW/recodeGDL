@@ -1,8 +1,9 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
+-- NOTA: Usa tablas cross-database de padron_licencias.comun
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -48,10 +49,10 @@ DECLARE
 BEGIN
     FOR r IN
         SELECT a.id_local, b.id_energia, a.oficina, a.num_mercado, a.categoria, a.seccion, a.local, a.letra_local, a.bloque, a.nombre, b.local_adicional, d.descripcion, c.axo, SUM(c.importe) AS adeudo
-        FROM public.ta_11_locales a
+        FROM padron_licencias.comun.ta_11_locales a
         JOIN public.ta_11_energia b ON a.id_local = b.id_local
         JOIN public.ta_11_adeudo_energ c ON b.id_energia = c.id_energia
-        JOIN public.ta_11_mercados d ON a.oficina = d.oficina AND a.num_mercado = d.num_mercado_nvo
+        JOIN padron_licencias.comun.ta_11_mercados d ON a.oficina = d.oficina AND a.num_mercado = d.num_mercado_nvo
         WHERE a.oficina = p_id_rec
           AND a.num_mercado = p_num_mercado_nvo
           AND ((c.axo = p_axo AND c.periodo <= p_mes) OR (c.axo < p_axo))
@@ -61,7 +62,7 @@ BEGIN
         -- Calcular mesesadeudos y cuota
         meses := '';
         cuota_val := 0;
-        FOR m IN SELECT periodo, importe FROM public.ta_11_adeudo_energ WHERE id_energia = r.id_energia AND (axo = p_axo AND periodo <= p_mes) ORDER BY periodo LOOP
+        FOR m IN SELECT periodo, importe FROM public.ta_11_adeudo_energ WHERE id_energia = r.id_energia AND axo = p_axo AND periodo <= p_mes ORDER BY periodo LOOP
             meses := meses || m.periodo::TEXT || '-';
             cuota_val := m.importe;
         END LOOP;

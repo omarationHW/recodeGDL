@@ -1,8 +1,9 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
+-- NOTA: Usa tablas cross-database de padron_licencias.comun
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -38,32 +39,53 @@ RETURNS TABLE(
 ) AS $$
 DECLARE
     r RECORD;
+    m RECORD;
     meses_str TEXT;
     cuota_val NUMERIC(12,2);
 BEGIN
     FOR r IN
-        SELECT c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque,
-               f.cve_consumo, f.id_energia, c.nombre, f.local_adicional, a.axo, SUM(a.importe) AS adeudo
+        SELECT l.id_local, l.oficina, l.num_mercado, l.categoria, l.seccion, l.local, l.letra_local, l.bloque,
+               f.cve_consumo, f.id_energia, l.nombre, f.local_adicional, a.axo, SUM(a.importe) AS adeudo
         FROM public.ta_11_adeudo_energ a
         JOIN public.ta_11_energia f ON a.id_energia = f.id_energia AND f.vigencia <> 'B'
-        JOIN public.ta_11_locales c ON c.id_local = f.id_local
-        WHERE a.axo = p_axo AND c.oficina = p_oficina
-        GROUP BY c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque,
-                 f.cve_consumo, f.id_energia, c.nombre, f.local_adicional, a.axo
-        ORDER BY c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque
+        JOIN public.ta_11_localpaso l ON l.id_local = f.id_local
+        WHERE a.axo = p_axo AND l.oficina = p_oficina
+        GROUP BY l.id_local, l.oficina, l.num_mercado, l.categoria, l.seccion, l.local, l.letra_local, l.bloque,
+                 f.cve_consumo, f.id_energia, l.nombre, f.local_adicional, a.axo
+        ORDER BY l.oficina, l.num_mercado, l.categoria, l.seccion, l.local, l.letra_local, l.bloque
     LOOP
         -- Obtener meses y cuota
         meses_str := '';
         cuota_val := 0;
-        FOR m IN SELECT periodo, importe FROM public.ta_11_adeudo_energ WHERE id_energia = r.id_energia AND axo = p_axo ORDER BY periodo LOOP
+        FOR m IN SELECT ae.periodo, ae.importe
+                 FROM public.ta_11_adeudo_energ ae
+                 WHERE ae.id_energia = r.id_energia AND ae.axo = p_axo
+                 ORDER BY ae.periodo LOOP
             meses_str := meses_str || m.periodo::TEXT || '-';
             cuota_val := m.importe;
         END LOOP;
-        meses_str := LEFT(meses_str, LENGTH(meses_str)-1);
-        RETURN NEXT (
-            r.id_local, r.oficina, r.num_mercado, r.categoria, r.seccion, r.local, r.letra_local, r.bloque,
-            r.cve_consumo, r.id_energia, r.nombre, r.local_adicional, r.axo, r.adeudo, cuota_val, meses_str
-        );
+        IF LENGTH(meses_str) > 0 THEN
+            meses_str := LEFT(meses_str, LENGTH(meses_str)-1);
+        END IF;
+
+        id_local := r.id_local;
+        oficina := r.oficina;
+        num_mercado := r.num_mercado;
+        categoria := r.categoria;
+        seccion := r.seccion;
+        local := r.local;
+        letra_local := r.letra_local;
+        bloque := r.bloque;
+        cve_consumo := r.cve_consumo;
+        id_energia := r.id_energia;
+        nombre := r.nombre;
+        local_adicional := r.local_adicional;
+        axo := r.axo;
+        adeudo := r.adeudo;
+        cuota := cuota_val;
+        meses := meses_str;
+
+        RETURN NEXT;
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;

@@ -8,6 +8,6 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_delete(
     p_id_kilowhatts INTEGER
 ) RETURNS VOID AS $$
 BEGIN
-    DELETE FROM ta_11_kilowhatts WHERE id_kilowhatts = p_id_kilowhatts;
+    DELETE FROM public.ta_11_kilowhatts WHERE id_kilowhatts = p_id_kilowhatts;
 END;
 $$ LANGUAGE plpgsql;

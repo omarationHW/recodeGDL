@@ -3,6 +3,7 @@
 -- Descripción: Obtiene todas las fechas de descuento y recargos para el año actual.
 -- Generado para formulario: FechasDescuentoMntto
 -- Fecha: 2025-08-27 00:04:11
+-- Desplegado: 2025-12-03 (corregido schema publico + JOIN con usuarios)
 
 CREATE OR REPLACE FUNCTION fechas_descuento_get_all()
 RETURNS TABLE (
@@ -11,13 +12,19 @@ RETURNS TABLE (
     fecha_recargos date,
     fecha_alta timestamp,
     id_usuario integer,
-    usuario text
+    usuario varchar
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT f.mes, f.fecha_descuento, f.fecha_recargos, f.fecha_alta, f.id_usuario, u.usuario
-    FROM ta_11_fecha_desc f
-    LEFT JOIN ta_12_passwords u ON u.id_usuario = f.id_usuario
+    SELECT
+        f.mes,
+        f.fecha_descuento,
+        f.fecha_recargos,
+        f.fecha_alta,
+        f.id_usuario,
+        COALESCE(u.usuario, 'N/A')::varchar AS usuario
+    FROM publico.ta_11_fecha_desc f
+    LEFT JOIN public.usuarios u ON u.id = f.id_usuario
     ORDER BY f.mes;
 END;
 $$ LANGUAGE plpgsql;

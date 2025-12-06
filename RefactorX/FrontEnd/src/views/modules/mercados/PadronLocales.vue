@@ -119,7 +119,7 @@
                     <p>No se encontraron locales para esta recaudadora</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in padron" :key="index" class="row-hover">
+                <tr v-else v-for="(row, index) in paginatedPadron" :key="index" class="row-hover">
                   <td>{{ row.oficina }}</td>
                   <td>{{ row.num_mercado }}</td>
                   <td>{{ row.descripcion }}</td>
@@ -137,6 +137,31 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div v-if="padron.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+            </div>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="prevPage" :disabled="currentPage === 1">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -153,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 
 // Estado
@@ -166,6 +191,10 @@ const padron = ref([])
 const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Toast
 const toast = ref({
@@ -292,6 +321,46 @@ const formatCurrency = (val) => {
 const formatNumber = (number) => {
   return new Intl.NumberFormat('es-MX').format(number)
 }
+
+// Paginación - Computed
+const paginatedPadron = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return padron.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(padron.value.length / itemsPerPage.value)
+})
+
+const paginationStart = computed(() => {
+  return padron.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const paginationEnd = computed(() => {
+  const end = currentPage.value * itemsPerPage.value
+  return end > padron.value.length ? padron.value.length : end
+})
+
+const totalItems = computed(() => padron.value.length)
+
+// Paginación - Métodos
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+// Reset página al buscar
+watch(padron, () => {
+  currentPage.value = 1
+})
 
 onMounted(() => {
   fetchRecaudadoras()

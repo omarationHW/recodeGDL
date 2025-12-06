@@ -1,0 +1,271 @@
+================================================================================
+              INVENTARIO COMPLETO - MÓDULO MERCADOS - VISTA RÁPIDA
+================================================================================
+Fecha: 2025-12-05 | Total de componentes: 127 archivos .vue
+================================================================================
+
+DISTRIBUCIÓN POR CATEGORÍA
+================================================================================
+
+REPORTES (38 componentes) - 29.9%
+████████████████████████████████████ 38/127
+
+Subcategorías:
+• Adeudos: RptAdeudosEnergia, RptAdeudosLocales
+• Emisión: RptEmisionEnergia, RptEmisionLocales
+• Facturación: RptFacturaEmision, RptFacturaEnergia
+• Padrones: RptPadronEnergia, RptPadronLocales
+• Pagos: RptPagosAno, RptPagosCaja
+• Otros reportes: RptCaratula*, RptDesgloce*
+
+---
+
+OTROS (31 componentes) - 24.4%
+███████████████████████████ 31/127
+
+Requiere clasificación adicional:
+• Operaciones: AltaPagos, AltaPagosEnergia, Condonacion
+• Configuración: Acceso, Categoria, CuentaPublica
+• Cuotas: CuotasEnergia, CuotasMdo, CveCuota
+• Datos: EnergiaModif, Estadisticas, Giros
+• Locales: IngresoCaptura, IngresoLib, ListadosLocales
+• Utilidades: Menu, ModuloBD, Secciones, ZonasMercados
+
+---
+
+CONSULTAS (13 componentes) - 10.2%
+██████████████ 13/127
+
+• Captura: ConsCapturaEnergia, ConsCapturaFecha, ConsCapturaFechaEnergia
+• Condonación: ConsCondonacion, ConsCondonacionEnergia
+• Pagos: ConsPagos, ConsPagosEnergia, ConsPagosLocales
+• Generales: ConsultaGeneral, ConsRequerimientos, ConsultaDatos*
+
+---
+
+MANTENIMIENTO (12 componentes) - 9.4%
+███████████ 12/127
+
+Componentes CRUD:
+• Catálogos: CatalogoMntto, CategoriaMntto, SeccionesMntto
+• Cuotas: CuotasEnergiaMntto, CuotasMdoMntto, CveCuotaMntto
+• Otros: AutCargaPagosMtto, EnergiaMtto, FechasDescuentoMntto
+• Locales: LocalesMtto, RecargosMntto
+
+---
+
+CARGA (9 componentes) - 7.1%
+█████████ 9/127
+
+Carga de datos:
+• Energía: CargaPagEnergia, CargaPagEnergiaElec
+• Locales: CargaPagLocales, CargaPagMercado
+• Especiales: CargaDiversosEsp, CargaPagEspecial, CargaTCultural
+• Texto: CargaPagosTexto, CargaReqPagados
+
+---
+
+ADEUDOS (7 componentes) - 5.5%
+████████ 7/127
+
+AdeEnergiaGrl, AdeGlobalLocales, AdeudosEnergia, AdeudosLocales,
+AdeudosLocGrl, EstadPagosyAdeudos, PasoAdeudos
+
+---
+
+DATOS (7 componentes) - 5.5%
+████████ 7/127
+
+DatosConvenio, DatosIndividuales, DatosMovimientos, DatosRequerimientos,
+PadronEnergia, PadronGlobal, PadronLocales
+
+---
+
+PAGOS (6 componentes) - 4.7%
+███████ 6/127
+
+PagosDifIngresos, PagosEneCons, PagosIndividual, PagosLocGrl,
+PasoEne, PasoMdos
+
+---
+
+EMISIÓN (3 componentes) - 2.4%
+████ 3/127
+
+EmisionEnergia, EmisionLibertad, EmisionLocales
+
+---
+
+CATÁLOGOS (1 componente) - 0.8%
+█ 1/127
+
+CatalogoMercados
+
+================================================================================
+DISTRIBUCIÓN POR PRIORIDAD
+================================================================================
+
+PRIORIDAD ALTA (47 componentes) - 37.0%
+
+█████████████████████████████████████ 47/127
+Componentes críticos que deben migrarse primero
+
+Distribuidos en:
+├─ Carga: 9 componentes (100% del total)
+├─ Adeudos: 5 componentes (71% del total)
+├─ Datos: 4 componentes (57% del total)
+├─ Emisión: 3 componentes (100% del total)
+├─ Catálogos: 1 componente (100% del total)
+├─ Consultas: 3 componentes (23% del total)
+├─ Reportes: 15 componentes (39% del total)
+└─ Otros: 8 componentes (26% del total)
+
+---
+
+PRIORIDAD MEDIA (54 componentes) - 42.5%
+
+██████████████████████████████████████████████ 54/127
+Componentes importantes, migración en Fase 2
+
+Distribuidos en:
+├─ Reportes: 20 componentes (53% del total)
+├─ Consultas: 10 componentes (77% del total)
+├─ Mantenimiento: 6 componentes (50% del total)
+├─ Datos: 3 componentes (43% del total)
+├─ Pagos: 2 componentes (33% del total)
+└─ Otros: 13 componentes (42% del total)
+
+---
+
+PRIORIDAD BAJA (26 componentes) - 20.5%
+
+████████████████████ 26/127
+Componentes auxiliares, migración en Fase 3
+
+Distribuidos en:
+├─ Mantenimiento: 6 componentes (50% del total)
+├─ Pagos: 3 componentes (50% del total)
+└─ Otros: 17 componentes (55% del total)
+
+================================================================================
+FLUJOS DE NEGOCIO PRINCIPALES
+================================================================================
+
+1. FLUJO DE ADEUDOS
+   AdeudosEnergia ──────→ RptAdeudosEnergia
+   AdeudosLocales ──────→ RptAdeudosLocales
+   PasoAdeudos    ──────→ RptAdeudosAnteriores
+
+2. FLUJO DE CARGA DE PAGOS
+   CargaPagEnergia ──→ EmisionEnergia ──→ RptFacturaEnergia
+   CargaPagLocales ──→ EmisionLocales ──→ RptFacturaEmision
+
+3. FLUJO DE PADRONES
+   PadronEnergia ───→ RptPadronEnergia
+   PadronLocales ───→ RptPadronLocales
+   PadronGlobal  ───→ RptPadronGlobal
+
+4. FLUJO DE DATOS INDIVIDUALES
+   DatosIndividuales ──→ ConsultaGeneral ──→ Padrones
+
+================================================================================
+ESTADÍSTICAS CLAVE
+================================================================================
+
+Total de componentes:        127
+Categorías principales:      10
+Flujos de negocio:           4+
+Dependencias mapeadas:       Múltiples
+
+Componentes más comunes:
+  1. Reportes (Rpt*)           38 componentes (29.9%)
+  2. Otros                     31 componentes (24.4%)
+  3. Consultas (Cons*)         13 componentes (10.2%)
+  4. Mantenimiento (*Mtto)     12 componentes (9.4%)
+
+Componentes críticos (Prioridad Alta):
+  - 47 de alta prioridad = 37% del total
+  - 9 componentes de carga (100% crítico)
+  - 5 componentes de adeudos (crítico)
+  - 4 componentes de datos maestros (crítico)
+  - 3 componentes de emisión (crítico)
+
+Complejidad estimada:
+  - 51 componentes de alta complejidad (Reportes + Consultas)
+  - 28 componentes de media complejidad (Carga + Mantenimiento + Datos)
+  - 48 componentes de baja complejidad (Adeudos + Pagos + Otros)
+
+================================================================================
+ARCHIVOS GENERADOS
+================================================================================
+
+1. componentes_mercados_inventario.json (15 KB)
+   Formato estructurado JSON para integración y análisis automatizado
+
+2. INVENTARIO_MERCADOS_RESUMEN.md (6.9 KB)
+   Resumen legible en Markdown para referencia rápida
+
+3. inventario_mercados.csv (4.2 KB)
+   Formato CSV para importar en hojas de cálculo
+
+4. ANALISIS_COMPONENTES_MERCADOS.md (7.7 KB)
+   Análisis técnico detallado con dependencias
+
+5. README_INVENTARIO_MERCADOS.md
+   Guía completa de uso de los archivos
+
+6. RESUMEN_VISUAL_INVENTARIO.txt (este archivo)
+   Vista rápida visual del inventario
+
+================================================================================
+RECOMENDACIÓN DE USO
+================================================================================
+
+Para desarrolladores:
+   Usar: componentes_mercados_inventario.json + ANALISIS_COMPONENTES_MERCADOS.md
+   Objetivo: Entender estructura y dependencias
+
+Para analistas / Product Managers:
+   Usar: INVENTARIO_MERCADOS_RESUMEN.md + RESUMEN_VISUAL_INVENTARIO.txt
+   Objetivo: Obtener visión general rápida
+
+Para líderes técnicos:
+   Usar: CSV + Análisis MD + README
+   Objetivo: Planificación y toma de decisiones
+
+Para equipos de QA:
+   Usar: inventario_mercados.csv
+   Objetivo: Crear matriz de pruebas por categoría/prioridad
+
+================================================================================
+PRÓXIMOS PASOS RECOMENDADOS
+================================================================================
+
+1. [X] Generar inventario completo
+2. [ ] Validar categorías y prioridades con el equipo
+3. [ ] Mapear dependencias exactas en el código
+4. [ ] Crear tickets de migración por fase
+5. [ ] Asignar recursos por categoría y prioridad
+6. [ ] Establecer métricas de éxito y criterios de aceptación
+7. [ ] Realizar revisión de componentes "Otros" para reclasificación
+
+================================================================================
+VALIDACIÓN Y CONTROL DE CALIDAD
+================================================================================
+
+Verificaciones realizadas:
+✓ Total de componentes: 127 (verificado)
+✓ Categorización completa: 10 categorías
+✓ Asignación de prioridades: Alta/Media/Baja
+✓ Flujos de negocio: 4 identificados
+✓ Dependencias mapeadas: Sí
+✓ Datos en múltiples formatos: JSON, CSV, Markdown
+
+Generado automáticamente: 2025-12-05
+Ubicación base: C:\guadalajara\code\recodeGDLCurrent\recodeGDL\
+Directorio mercados: RefactorX\FrontEnd\src\views\modules\mercados\
+Archivos inventario: temp\
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================

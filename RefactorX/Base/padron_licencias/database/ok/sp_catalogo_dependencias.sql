@@ -16,7 +16,7 @@ BEGIN
     RETURN QUERY
     SELECT
         c.id_dependencia,
-        c.descripcion
+        TRIM(c.descripcion)::VARCHAR
     FROM comun.c_dependencias c
     ORDER BY c.descripcion;
 END;

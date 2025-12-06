@@ -1,8 +1,9 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
+-- NOTA: Usa tablas cross-database de padron_licencias.comun
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -52,10 +53,10 @@ BEGIN
     FOR r IN
         SELECT c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque,
                c.nombre, c.superficie, c.clave_cuota, SUM(a.importe) AS adeudo, d.recaudadora, e.descripcion, a.axo
-        FROM public.ta_11_adeudo_local a
-        JOIN public.ta_11_locales c ON a.id_local = c.id_local
-        JOIN public.ta_12_recaudadoras d ON d.id_rec = c.oficina
-        JOIN public.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
+        FROM padron_licencias.comun.ta_11_adeudo_local a
+        JOIN padron_licencias.comun.ta_11_locales c ON a.id_local = c.id_local
+        JOIN padron_licencias.comun.ta_12_recaudadoras d ON d.id_rec = c.oficina
+        JOIN padron_licencias.comun.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
         WHERE c.oficina = p_id_rec
           AND (p_num_mercado IS NULL OR c.num_mercado = p_num_mercado)
           AND ((a.axo = p_axo AND a.periodo <= p_mes) OR (a.axo < p_axo))
@@ -66,7 +67,7 @@ BEGIN
     LOOP
         -- Calcular meses adeudados
         meses_str := '';
-        FOR m IN SELECT periodo, importe FROM public.ta_11_adeudo_local WHERE id_local = r.id_local AND (
+        FOR m IN SELECT periodo, importe FROM padron_licencias.comun.ta_11_adeudo_local WHERE id_local = r.id_local AND (
             (axo = r.axo AND periodo <= p_mes) OR (axo < r.axo)
         ) ORDER BY periodo LOOP
             meses_str := meses_str || m.periodo::TEXT || ' ';
@@ -74,7 +75,7 @@ BEGIN
         END LOOP;
         -- Calcular folios de requerimientos
         folios_str := '';
-        FOR f IN SELECT folio, vigencia, clave_practicado FROM public.ta_15_apremios WHERE modulo = 11 AND control_otr = r.id_local LOOP
+        FOR f IN SELECT folio, vigencia, clave_practicado FROM padron_licencias.comun.ta_15_apremios WHERE modulo = 11 AND control_otr = r.id_local LOOP
             IF f.vigencia = '1' AND f.clave_practicado = 'P' THEN
                 folios_str := folios_str || f.folio::TEXT || ',';
             END IF;

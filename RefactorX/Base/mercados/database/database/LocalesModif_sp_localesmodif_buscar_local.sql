@@ -17,35 +17,56 @@ CREATE OR REPLACE FUNCTION sp_localesmodif_buscar_local(
     oficina integer,
     num_mercado integer,
     categoria integer,
-    seccion varchar,
+    seccion text,
     local integer,
-    letra_local varchar,
-    bloque varchar,
-    nombre varchar,
-    domicilio varchar,
-    sector varchar,
+    letra_local text,
+    bloque text,
+    nombre text,
+    domicilio text,
+    sector text,
     zona integer,
-    descripcion_local varchar,
+    descripcion_local text,
     superficie numeric,
     giro integer,
     fecha_alta date,
     fecha_baja date,
-    vigencia varchar,
+    vigencia text,
     clave_cuota integer,
     bloqueo integer,
     id_usuario integer
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_local, oficina, num_mercado, categoria, seccion, local, letra_local, bloque, nombre, domicilio, sector, zona, descripcion_local, superficie, giro, fecha_alta, fecha_baja, vigencia, clave_cuota, bloqueo, id_usuario
-    FROM ta_11_locales
-    WHERE oficina = p_oficina
-      AND num_mercado = p_num_mercado
-      AND categoria = p_categoria
-      AND seccion = p_seccion
-      AND local = p_local
-      AND (letra_local = p_letra_local OR (letra_local IS NULL AND p_letra_local IS NULL))
-      AND (bloque = p_bloque OR (bloque IS NULL AND p_bloque IS NULL))
+    SELECT
+        l.id_local::integer,
+        l.oficina::integer,
+        l.num_mercado::integer,
+        l.categoria::integer,
+        l.seccion::text,
+        l.local::integer,
+        l.letra_local::text,
+        l.bloque::text,
+        l.nombre::text,
+        l.domicilio::text,
+        l.sector::text,
+        l.zona::integer,
+        l.descripcion_local::text,
+        l.superficie::numeric,
+        l.giro::integer,
+        l.fecha_alta::date,
+        l.fecha_baja::date,
+        l.vigencia::text,
+        l.clave_cuota::integer,
+        l.bloqueo::integer,
+        l.id_usuario::integer
+    FROM publico.ta_11_locales l
+    WHERE l.oficina = p_oficina
+      AND l.num_mercado = p_num_mercado
+      AND l.categoria = p_categoria
+      AND l.seccion = p_seccion
+      AND l.local = p_local
+      AND (l.letra_local IS NOT DISTINCT FROM NULLIF(p_letra_local, ''))
+      AND (l.bloque IS NOT DISTINCT FROM NULLIF(p_bloque, ''))
     LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;

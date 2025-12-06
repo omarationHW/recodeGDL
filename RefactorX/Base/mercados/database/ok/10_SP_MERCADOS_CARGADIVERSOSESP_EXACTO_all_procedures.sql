@@ -3,7 +3,7 @@
 -- ESQUEMA: public
 -- ============================================
 \c padron_licencias;
-SET search_path TO public;
+SET search_path TO public, comun;
 
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
@@ -49,13 +49,13 @@ BEGIN
         'SS' AS SEC,
         a.colonia AS LOCAL,
         a.letras AS LET
-    FROM public.ta_12_ingreso a
+    FROM comun.ta_12_ingreso a
     JOIN public.ta_12_importes b ON a.fecing=b.fecing AND a.recing=b.recing AND a.cajing=b.cajing AND a.opcaja=b.opcaja
     WHERE a.fecing = p_fecha_pago
       AND a.tipo_rbo=12
       AND (b.cta_aplicacion = 44514 OR b.cta_aplicacion=44515)
       AND NOT EXISTS (
-        SELECT 1 FROM public.ta_11_pagos_local pl
+        SELECT 1 FROM comun.ta_11_pagos_local pl
         WHERE pl.fecha_pago=a.fecing AND pl.oficina_pago=a.recing AND pl.caja_pago=a.cajing AND pl.operacion_pago=a.opcaja
       )
     GROUP BY a.fecing, a.recing, a.cajing, a.opcaja, a.colonia, a.letras, b.cta_aplicacion, b.mes_desde, b.axo_desde
@@ -92,7 +92,7 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     SELECT id_local, oficina, num_mercado, categoria, seccion, local, letra_local, bloque
-    FROM public.ta_11_locales
+    FROM comun.ta_11_locales
     WHERE oficina = p_oficina
       AND num_mercado = p_num_mercado
       AND categoria = p_categoria
@@ -127,7 +127,7 @@ BEGIN
     pagos_arr := ARRAY(SELECT json_array_elements(p_pagos_json));
     FOREACH pago IN ARRAY pagos_arr LOOP
         -- Buscar local
-        SELECT * INTO local_row FROM public.ta_11_locales
+        SELECT * INTO local_row FROM comun.ta_11_locales
         WHERE oficina=5 AND num_mercado=(pago->>'MER')::INTEGER
           AND categoria=(pago->>'CAT')::INTEGER
           AND seccion='SS'
@@ -139,7 +139,7 @@ BEGIN
             CONTINUE;
         END IF;
         -- Insertar pago
-        INSERT INTO public.ta_11_pagos_local (
+        INSERT INTO comun.ta_11_pagos_local (
             id_pago_local, id_local, axo, periodo, fecha_pago, oficina_pago, caja_pago, operacion_pago, importe_pago, folio, fecha_modificacion, id_usuario
         ) VALUES (
             DEFAULT,
@@ -156,7 +156,7 @@ BEGIN
             p_usuario
         );
         -- Eliminar adeudo
-        DELETE FROM public.ta_11_adeudo_local
+        DELETE FROM comun.ta_11_adeudo_local
         WHERE id_local=local_row.id_local
           AND axo=(pago->>'AÑO')::INTEGER
           AND periodo=(pago->>'MES')::INTEGER;
@@ -183,7 +183,7 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     SELECT mes, fecha_descuento, fecha_alta, id_usuario
-    FROM public.ta_11_fecha_desc
+    FROM comun.ta_11_fecha_desc
     WHERE mes = p_mes;
 END;
 $$ LANGUAGE plpgsql;

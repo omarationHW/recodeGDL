@@ -1,0 +1,415 @@
+[
+    {
+        "component": "Estadisticas",
+        "sp_name": "sp_estadistica_pagos_adeudos",
+        "vue_exists": true,
+        "vue_base": [
+            "padron_licencias"
+        ],
+        "sql_files": 4,
+        "cross_db_refs": [],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')"
+        ]
+    },
+    {
+        "component": "EnergiaModif",
+        "sp_name": "sp_energia_modif_*",
+        "vue_exists": true,
+        "vue_base": [
+            "padron_licencias",
+            "mercados"
+        ],
+        "sql_files": 5,
+        "cross_db_refs": [],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')"
+        ]
+    },
+    {
+        "component": "Prescripcion",
+        "sp_name": "sp_listar_*",
+        "vue_exists": true,
+        "vue_base": [
+            "padron_licencias"
+        ],
+        "sql_files": 5,
+        "cross_db_refs": [
+            {
+                "file": "Prescripcion_sp_listar_adeudos_energia.sql",
+                "ref": "padron_licencias.public.ta_11_adeudo_energ",
+                "database": "padron_licencias",
+                "schema": "public",
+                "table": "ta_11_adeudo_energ"
+            },
+            {
+                "file": "Prescripcion_sp_listar_prescripciones.sql",
+                "ref": "padron_licencias.public.ta_11_ade_ene_canc",
+                "database": "padron_licencias",
+                "schema": "public",
+                "table": "ta_11_ade_ene_canc"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "2 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptEmisionRbosAbastos",
+        "sp_name": "sp_rpt_emision_rbos_abastos",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 7,
+        "cross_db_refs": [],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')"
+        ]
+    },
+    {
+        "component": "RptEmisionLaser",
+        "sp_name": "sp_rpt_emision_laser",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 10,
+        "cross_db_refs": [],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')"
+        ]
+    },
+    {
+        "component": "RptFacturaEmision",
+        "sp_name": "sp_rpt_factura_emision",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 5,
+        "cross_db_refs": [],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')"
+        ]
+    },
+    {
+        "component": "RptFacturaEnergia",
+        "sp_name": "sp_rpt_factura_energia",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 3,
+        "cross_db_refs": [],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')"
+        ]
+    },
+    {
+        "component": "RptFacturaGLunes",
+        "sp_name": "sp_rpt_factura_global",
+        "vue_exists": true,
+        "vue_base": [
+            "padron_licencias",
+            "mercados"
+        ],
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptFacturaGLunes_sp_rpt_factura_global.sql",
+                "ref": "padron_licencias.comun.ta_11_mercados",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_mercados"
+            },
+            {
+                "file": "RptFacturaGLunes_sp_rpt_factura_global.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            },
+            {
+                "file": "RptFacturaGLunes_sp_rpt_factura_global.sql",
+                "ref": "padron_licencias.comun.ta_11_pagos_local",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_pagos_local"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "3 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptLocalesGiro",
+        "sp_name": "sp_rpt_locales_giro",
+        "vue_exists": true,
+        "vue_base": [
+            "padron_licencias",
+            "mercados"
+        ],
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptLocalesGiro_sp_rpt_locales_giro.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            },
+            {
+                "file": "RptLocalesGiro_sp_rpt_locales_giro.sql",
+                "ref": "mercados.public.ta_11_giros",
+                "database": "mercados",
+                "schema": "public",
+                "table": "ta_11_giros"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "2 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptMercados",
+        "sp_name": "sp_reporte_catalogo_mercados",
+        "vue_exists": true,
+        "vue_base": [
+            "padron_licencias",
+            "mercados"
+        ],
+        "sql_files": 0,
+        "cross_db_refs": [],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "NO se encontraron archivos SQL"
+        ]
+    },
+    {
+        "component": "RptMovimientos",
+        "sp_name": "sp_rpt_movimientos",
+        "vue_exists": true,
+        "vue_base": [
+            "mercados"
+        ],
+        "sql_files": 3,
+        "cross_db_refs": [],
+        "issues": []
+    },
+    {
+        "component": "RptIngresos",
+        "sp_name": "sp_rpt_ingresos_locales",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptIngresos_sp_rpt_ingresos_locales.sql",
+                "ref": "padron_licencias.comun.ta_11_pagos_local",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_pagos_local"
+            },
+            {
+                "file": "RptIngresos_sp_rpt_ingresos_locales.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "2 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptIngresosEnergia",
+        "sp_name": "sp_rpt_ingresos_energia",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptIngresosEnergia_sp_rpt_ingresos_energia.sql",
+                "ref": "mercados.public.ta_11_pag_energia",
+                "database": "mercados",
+                "schema": "public",
+                "table": "ta_11_pag_energia"
+            },
+            {
+                "file": "RptIngresosEnergia_sp_rpt_ingresos_energia.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            },
+            {
+                "file": "RptIngresosEnergia_sp_rpt_ingresos_energia.sql",
+                "ref": "mercados.public.ta_11_energia",
+                "database": "mercados",
+                "schema": "public",
+                "table": "ta_11_energia"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "3 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptPagosAno",
+        "sp_name": "sp_rpt_pagos_ano",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptPagosAno_sp_rpt_pagos_ano.sql",
+                "ref": "padron_licencias.public.ta_11_pagos_local",
+                "database": "padron_licencias",
+                "schema": "public",
+                "table": "ta_11_pagos_local"
+            },
+            {
+                "file": "RptPagosAno_sp_rpt_pagos_ano.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            },
+            {
+                "file": "RptPagosAno_sp_rpt_pagos_ano.sql",
+                "ref": "padron_licencias.comun.ta_11_mercados",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_mercados"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "3 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptPagosCaja",
+        "sp_name": "sp_rpt_pagos_caja",
+        "vue_exists": true,
+        "vue_base": [
+            "padron_licencias",
+            "mercados"
+        ],
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptPagosCaja_sp_rpt_pagos_caja.sql",
+                "ref": "padron_licencias.public.ta_11_pagos_local",
+                "database": "padron_licencias",
+                "schema": "public",
+                "table": "ta_11_pagos_local"
+            },
+            {
+                "file": "RptPagosCaja_sp_rpt_pagos_caja.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            },
+            {
+                "file": "RptPagosCaja_sp_rpt_pagos_caja.sql",
+                "ref": "padron_licencias.comun.ta_11_mercados",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_mercados"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "3 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptPagosDetalle",
+        "sp_name": "sp_rpt_pagos_detalle",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptPagosDetalle_sp_rpt_pagos_detalle.sql",
+                "ref": "padron_licencias.comun.ta_11_pagos_local",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_pagos_local"
+            },
+            {
+                "file": "RptPagosDetalle_sp_rpt_pagos_detalle.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            },
+            {
+                "file": "RptPagosDetalle_sp_rpt_pagos_detalle.sql",
+                "ref": "padron_licencias.public.usuarios",
+                "database": "padron_licencias",
+                "schema": "public",
+                "table": "usuarios"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "3 referencias cross-database encontradas en SQL"
+        ]
+    },
+    {
+        "component": "RptPagosGrl",
+        "sp_name": "sp_rpt_pagos_grl",
+        "vue_exists": true,
+        "vue_base": {
+            "0": "padron_licencias",
+            "2": "mercados"
+        },
+        "sql_files": 1,
+        "cross_db_refs": [
+            {
+                "file": "RptPagosGrl_sp_rpt_pagos_grl.sql",
+                "ref": "padron_licencias.comun.ta_11_pagos_local",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_pagos_local"
+            },
+            {
+                "file": "RptPagosGrl_sp_rpt_pagos_grl.sql",
+                "ref": "padron_licencias.comun.ta_11_locales",
+                "database": "padron_licencias",
+                "schema": "comun",
+                "table": "ta_11_locales"
+            }
+        ],
+        "issues": [
+            "Vue usa Base: 'padron_licencias' (verificar si deber\u00eda ser 'mercados')",
+            "2 referencias cross-database encontradas en SQL"
+        ]
+    }
+]

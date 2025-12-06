@@ -1,0 +1,68 @@
+[
+    {
+        "name": "ReporteGeneralMercados",
+        "status": "OK",
+        "rows": 13,
+        "error": null
+    },
+    {
+        "name": "Estadisticas",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[42883]: Undefined function: 7 ERROR:  function public.sp_estadistica_pagos_adeudos(unknown, unknown, unknown, unknown, unknown) does not exist\nLINE 1: SELECT * FROM public.sp_estadistica_pagos_adeudos($1,$2,$3,$...\n                      ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts."
+    },
+    {
+        "name": "Prescripcion",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[42804]: Datatype mismatch: 7 ERROR:  structure of query does not match function result type\nDETAIL:  Returned type character(1) does not match expected type character varying in column 5.\nCONTEXT:  SQL statement \"SELECT\r\n        a.id_adeudo_energia,\r\n        a.id_energia,\r\n        a.axo,\r\n        a.periodo,\r\n        a.cve_consumo,\r\n        a.cantidad,\r\n        a.importe,\r\n        a.fecha_alta,\r\n        a.id_usuario\r\n    FROM\r\n        public.ta_11_adeudo_energ a\r\n    WHERE\r\n        a.id_energia = p_id_energia\r\n    ORDER BY\r\n        a.axo DESC, a.periodo DESC\"\nPL\/pgSQL function sp_listar_adeudos_energia(integer) line 3 at RETURN QUERY"
+    },
+    {
+        "name": "RptFacturaGLunes",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[42703]: Undefined column: 7 ERROR:  column m.id_rec does not exist\nLINE 9:         publico.ta_11_locales l ON l.oficina = m.id_rec AND ...\n                                                       ^\nQUERY:  SELECT\r\n        m.num_mercado_nvo::INTEGER as num_mercado,\r\n        m.descripcion::VARCHAR as descripcion,\r\n        COALESCE(SUM(pl.importe_pago), 0)::NUMERIC(12,2) as total_facturado,\r\n        COUNT(DISTINCT l.id_local)::INTEGER as total_locales\r\n    FROM\r\n        publico.ta_11_mercados m\r\n    LEFT JOIN\r\n        publico.ta_11_locales l ON l.oficina = m.id_rec AND l.mercado = m.num_mercado_nvo\r\n    LEFT JOIN\r\n        publico.ta_11_pagos_local pl ON pl.id_local = l.id_local\r\n            AND pl.axo = p_axo\r\n            AND pl.periodo = p_periodo\r\n            AND pl.fecha_pago IS NOT NULL\r\n    WHERE\r\n        m.id_rec = p_oficina\r\n        AND m.estado = 'A'\r\n    GROUP BY\r\n        m.num_mercado_nvo, m.descripcion\r\n    ORDER BY\r\n        m.num_mercado_nvo\nCONTEXT:  PL\/pgSQL function sp_rpt_factura_global(integer,integer,integer) line 3 at RETURN QUERY"
+    },
+    {
+        "name": "RptLocalesGiro",
+        "status": "OK",
+        "rows": 5548,
+        "error": null
+    },
+    {
+        "name": "RptIngresos",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  invalid input syntax for type integer: \"2010-01-01\"\nCONTEXT:  unnamed portal parameter $1 = '...'"
+    },
+    {
+        "name": "RptIngresosEnergia",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  invalid input syntax for type integer: \"2010-01-01\"\nCONTEXT:  unnamed portal parameter $1 = '...'"
+    },
+    {
+        "name": "RptPagosAno",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[42P01]: Undefined table: 7 ERROR:  relation \"public.ta_11_pagos_local\" does not exist\nLINE 10:         public.ta_11_pagos_local p\n                 ^\nQUERY:  SELECT\r\n        l.oficina,\r\n        l.num_mercado,\r\n        m.descripcion,\r\n        p.axo,\r\n        COUNT(DISTINCT l.id_local) as total_locales,\r\n        COUNT(p.id_pago_local) as total_pagos,\r\n        COALESCE(SUM(p.importe_pago), 0)::NUMERIC(14,2) as importe_total\r\n    FROM\r\n        public.ta_11_pagos_local p\r\n    INNER JOIN\r\n        publico.ta_11_locales l ON l.id_local = p.id_local\r\n    INNER JOIN\r\n        publico.ta_11_mercados m ON m.num_mercado = l.num_mercado AND m.oficina = l.oficina\r\n    WHERE\r\n        l.oficina = p_oficina\r\n        AND (p_axo IS NULL OR p.axo = p_axo)\r\n        AND (p_mercado IS NULL OR l.num_mercado = p_mercado)\r\n    GROUP BY\r\n        l.oficina, l.num_mercado, m.descripcion, p.axo\r\n    ORDER BY\r\n        p.axo DESC, l.num_mercado\nCONTEXT:  PL\/pgSQL function sp_rpt_pagos_ano(integer,integer,integer) line 3 at RETURN QUERY"
+    },
+    {
+        "name": "RptPagosCaja",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[22007]: Invalid datetime format: 7 ERROR:  invalid input syntax for type date: \"2010\"\nCONTEXT:  unnamed portal parameter $2 = '...'"
+    },
+    {
+        "name": "RptPagosDetalle",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[42883]: Undefined function: 7 ERROR:  function public.sp_rpt_pagos_detalle(unknown, unknown, unknown) does not exist\nLINE 1: SELECT * FROM public.sp_rpt_pagos_detalle($1,$2,$3)\n                      ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts."
+    },
+    {
+        "name": "RptPagosGrl",
+        "status": "FAILED",
+        "rows": 0,
+        "error": "SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  invalid input syntax for type integer: \"2010-01-01\"\nCONTEXT:  unnamed portal parameter $1 = '...'"
+    }
+]

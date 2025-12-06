@@ -1,18 +1,19 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
+-- NOTA: Usa solo tablas locales de mercados (sin referencias cruzadas)
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
 -- Formulario: AdeudosLocales
--- Generado: 2025-08-26 22:39:11
--- Total SPs: 3
+-- Generado: 2025-11-18 (Actualizado sin referencias cruzadas)
+-- Total SPs: 4
 -- ============================================
 
--- SP 1/3: sp_get_adeudos_locales
+-- SP 1/4: sp_get_adeudos_locales (original)
 -- Tipo: Report
 -- Descripción: Obtiene el listado de adeudos de locales para un año, oficina y periodo dados.
 -- --------------------------------------------
@@ -23,37 +24,72 @@ RETURNS TABLE(
     oficina SMALLINT,
     num_mercado SMALLINT,
     categoria SMALLINT,
-    seccion VARCHAR(2),
-    letra_local VARCHAR(1),
-    bloque VARCHAR(1),
+    seccion CHARACTER(2),
+    letra_local CHARACTER VARYING(3),
+    bloque CHARACTER VARYING(2),
     nombre VARCHAR(30),
     superficie FLOAT,
     clave_cuota SMALLINT,
     adeudo NUMERIC,
     recaudadora VARCHAR(50),
     descripcion VARCHAR(30),
-    local INTEGER
+    local SMALLINT
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.letra_local, c.bloque, c.nombre, c.superficie, c.clave_cuota,
-           SUM(a.importe) AS adeudo, d.recaudadora, e.descripcion, c.local
-    FROM public.ta_11_adeudo_local a
-    JOIN public.ta_11_locales c ON a.id_local = c.id_local
-    JOIN public.ta_12_recaudadoras d ON d.id_rec = c.oficina
-    JOIN public.ta_11_mercados e ON e.oficina = c.oficina AND e.num_mercado_nvo = c.num_mercado
-    WHERE a.axo = p_axo
-      AND c.oficina = p_oficina
-      AND a.periodo <= p_periodo
-      AND c.vigencia = 'A'
-    GROUP BY c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque, c.nombre, c.superficie, c.clave_cuota, d.recaudadora, e.descripcion
-    ORDER BY c.oficina, c.num_mercado, c.categoria, c.seccion DESC, c.local, c.letra_local, c.bloque;
+    SELECT l.id_local, l.oficina, l.num_mercado, l.categoria, l.seccion, l.letra_local, l.bloque, l.nombre,
+           l.superficie::FLOAT, l.clave_cuota,
+           COALESCE(SUM(a.importe), 0) AS adeudo,
+           COALESCE(r.recaudadora, 'SIN NOMBRE') AS recaudadora,
+           COALESCE(m.descripcion, 'SIN DESCRIPCION') AS descripcion,
+           l.local
+    FROM public.ta_11_localpaso l
+    LEFT JOIN public.ta_11_adeudo_local a ON a.id_local = l.id_local
+                                         AND a.axo = p_axo
+                                         AND a.periodo <= p_periodo
+    LEFT JOIN public.ta_12_recaudadoras r ON r.id_rec = l.oficina
+    LEFT JOIN public.ta_11_mercados m ON m.oficina = l.oficina AND m.num_mercado_nvo = l.num_mercado
+    WHERE l.oficina = p_oficina
+      AND l.vigencia = 'A'
+    GROUP BY l.id_local, l.oficina, l.num_mercado, l.categoria, l.seccion, l.local,
+             l.letra_local, l.bloque, l.nombre, l.superficie, l.clave_cuota,
+             r.recaudadora, m.descripcion
+    HAVING COALESCE(SUM(a.importe), 0) > 0
+    ORDER BY l.oficina, l.num_mercado, l.categoria, l.seccion DESC, l.local, l.letra_local, l.bloque;
+END;
+$$ LANGUAGE plpgsql;
+
+-- SP 1.1/4: sp_adeudos_locales (alias - nombre usado por Vue)
+-- Tipo: Report
+-- Descripción: Alias de sp_get_adeudos_locales para compatibilidad con Vue
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_adeudos_locales(p_axo INTEGER, p_oficina INTEGER, p_periodo INTEGER)
+RETURNS TABLE(
+    id_local INTEGER,
+    oficina SMALLINT,
+    num_mercado SMALLINT,
+    categoria SMALLINT,
+    seccion CHARACTER(2),
+    letra_local CHARACTER VARYING(3),
+    bloque CHARACTER VARYING(2),
+    nombre VARCHAR(30),
+    superficie FLOAT,
+    clave_cuota SMALLINT,
+    adeudo NUMERIC,
+    recaudadora VARCHAR(50),
+    descripcion VARCHAR(30),
+    local SMALLINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM sp_get_adeudos_locales(p_axo, p_oficina, p_periodo);
 END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
 
--- SP 2/3: sp_get_meses_adeudo
+-- SP 2/4: sp_get_meses_adeudo
 -- Tipo: Report
 -- Descripción: Obtiene los meses de adeudo de un local para un año dado.
 -- --------------------------------------------
@@ -67,16 +103,16 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_local, axo, periodo, importe
-    FROM public.ta_11_adeudo_local
-    WHERE id_local = p_id_local AND axo = p_axo
-    ORDER BY id_local, axo, periodo;
+    SELECT al.id_local, al.axo, al.periodo, al.importe
+    FROM public.ta_11_adeudo_local al
+    WHERE al.id_local = p_id_local AND al.axo = p_axo
+    ORDER BY al.id_local, al.axo, al.periodo;
 END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
 
--- SP 3/3: sp_get_renta
+-- SP 3/4: sp_get_renta
 -- Tipo: Report
 -- Descripción: Obtiene la renta de un local según año, categoría, sección y clave de cuota.
 -- --------------------------------------------

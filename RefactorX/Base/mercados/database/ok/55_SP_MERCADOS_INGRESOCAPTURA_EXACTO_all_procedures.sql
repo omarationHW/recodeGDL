@@ -1,8 +1,8 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -34,14 +34,14 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         b.fecha_pago,
         b.caja_pago,
         b.operacion_pago,
-        COUNT(*) AS pagos,
+        CAST(COUNT(*) AS INTEGER) AS pagos,
         SUM(b.importe_pago) AS importe
-    FROM public.ta_11_locales a
-    JOIN public.ta_11_pagos_local b ON a.id_local = b.id_local
+    FROM padron_licencias.comun.ta_11_locales a
+    JOIN padron_licencias.comun.ta_11_pagos_local b ON a.id_local = b.id_local
     WHERE a.num_mercado = p_num_mercado
       AND EXTRACT(MONTH FROM b.fecha_pago) = EXTRACT(MONTH FROM p_fecha_pago)
       AND b.oficina_pago = p_oficina_pago

@@ -1,0 +1,159 @@
+{
+    "fecha": "2025-12-03 18:18:57",
+    "total": 25,
+    "exitosos": 14,
+    "errores": 11,
+    "porcentaje": 56,
+    "resultados": [
+        {
+            "archivo": "RptAdeEnergiaGrl_sp_get_ade_energia_grl_CORREGIDO.sql",
+            "sp": "sp_get_ade_energia_grl",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  loop variable of loop over rows must be a record variable or list of scalar variables\nLINE 100:         FOR m IN\n                      ^"
+        },
+        {
+            "archivo": "RptAdeudosAbastos1998_CORREGIDO.sql",
+            "sp": "sp_get_adeudos_abastos_1998",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptAdeudosAnteriores_CORREGIDO.sql",
+            "sp": "rpt_adeudos_anteriores",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptAdeudosEnergia_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptAdeudosLocales_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptCaratulaDatos_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptCaratulaEnergia_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptCuentaPublica_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptEmisionEnergia_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptEmisionLaser_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptEmisionLocales_sp_rpt_emision_locales_emit_CORREGIDO.sql",
+            "sp": "sp_rpt_emision_locales_emit",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEmisionLocales_sp_rpt_emision_locales_get_CORREGIDO.sql",
+            "sp": "sp_rpt_emision_locales_get",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEmisionRbosAbastos_sp_get_recargos_mes_abastos_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptEmisionRbosAbastos_sp_get_requerimientos_abastos_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptEmisionRbosAbastos_sp_rpt_emision_rbos_abastos_CORREGIDO.sql",
+            "sp": "desconocido",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  schema \"mercados\" does not exist"
+        },
+        {
+            "archivo": "RptEstadPagosyAdeudos_sp_estad_pagosyadeudos_CORREGIDO.sql",
+            "sp": "sp_estad_pagosyadeudos",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEstadPagosyAdeudos_sp_estad_pagosyadeudos_resumen_CORREGIDO.sql",
+            "sp": "sp_estad_pagosyadeudos_resumen",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEstadisticaAdeudos_rpt_estadistica_adeudos_CORREGIDO.sql",
+            "sp": "rpt_estadistica_adeudos",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptFacturaEmision_sp_get_vencimiento_rec_CORREGIDO.sql",
+            "sp": "sp_get_vencimiento_rec",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptFacturaEmision_sp_rpt_factura_emision_CORREGIDO.sql",
+            "sp": "sp_rpt_factura_emision",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptFacturaEnergia_rpt_factura_energia_CORREGIDO.sql",
+            "sp": "rpt_factura_energia",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptIngresoZonificado_sp_ingreso_zonificado_CORREGIDO.sql",
+            "sp": "sp_ingreso_zonificado",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptMovimientos_sp_get_movimientos_locales_CORREGIDO.sql",
+            "sp": "sp_get_movimientos_locales",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptPadronEnergia_rpt_padron_energia_CORREGIDO.sql",
+            "sp": "rpt_padron_energia",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptPadronGlobal_sp_padron_global_CORREGIDO.sql",
+            "sp": "sp_padron_global",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        }
+    ]
+}

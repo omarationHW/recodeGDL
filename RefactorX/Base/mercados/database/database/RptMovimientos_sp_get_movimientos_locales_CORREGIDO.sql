@@ -29,15 +29,15 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT
-        m.id_movimiento,
-        m.fecha,
-        l.oficina,
-        l.num_mercado,
-        l.categoria,
-        l.seccion,
-        l.local,
-        l.letra_local,
-        l.bloque,
+        m.id_movimiento::INTEGER,
+        m.fecha::TIMESTAMP,
+        l.oficina::SMALLINT,
+        l.num_mercado::SMALLINT,
+        l.categoria::SMALLINT,
+        l.seccion::VARCHAR(2),
+        l.local::INTEGER,
+        l.letra_local::VARCHAR(1),
+        l.bloque::VARCHAR(1),
         CASE m.tipo_movimiento
             WHEN 1 THEN 'ALTA'::varchar(50)
             WHEN 2 THEN 'CAMBIO DE GIRO'::varchar(50)
@@ -54,9 +54,9 @@ BEGIN
             WHEN 13 THEN 'REACTIVAR BLOQUEO'::varchar(50)
             ELSE 'OTRO'::varchar(50)
         END AS tipodescripcion,
-        l.nombre
+        l.nombre::VARCHAR(30)
     FROM public.ta_11_movimientos m
-    JOIN comun.ta_11_locales l
+    JOIN publico.ta_11_locales l
         ON l.id_local = m.id_local
     WHERE m.fecha::date BETWEEN p_fecha_desde AND p_fecha_hasta
       AND l.oficina = p_recaudadora_id

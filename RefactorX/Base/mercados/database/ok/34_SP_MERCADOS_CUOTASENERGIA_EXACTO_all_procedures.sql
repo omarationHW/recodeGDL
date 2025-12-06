@@ -30,8 +30,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.id_kilowhatts, a.axo, a.periodo, a.importe, a.fecha_alta, a.id_usuario, b.usuario
-    FROM public.ta_11_kilowhatts a
-    JOIN public.ta_12_passwords b ON a.id_usuario = b.id_usuario
+    FROM comun.ta_11_kilowhatts a
+    JOIN comun.ta_12_passwords b ON a.id_usuario = b.id_usuario
     ORDER BY a.axo DESC, a.periodo DESC;
 END;
 $$ LANGUAGE plpgsql;
@@ -52,7 +52,7 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_create(
 DECLARE
     new_id INTEGER;
 BEGIN
-    INSERT INTO public.ta_11_kilowhatts (axo, periodo, importe, fecha_alta, id_usuario)
+    INSERT INTO comun.ta_11_kilowhatts (axo, periodo, importe, fecha_alta, id_usuario)
     VALUES (p_axo, p_periodo, p_importe, NOW(), p_id_usuario)
     RETURNING id_kilowhatts INTO new_id;
     RETURN QUERY SELECT new_id;
@@ -74,7 +74,7 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_update(
     p_id_usuario INTEGER
 ) RETURNS VOID AS $$
 BEGIN
-    UPDATE public.ta_11_kilowhatts
+    UPDATE comun.ta_11_kilowhatts
     SET axo = p_axo,
         periodo = p_periodo,
         importe = p_importe,
@@ -95,7 +95,7 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_delete(
     p_id_kilowhatts INTEGER
 ) RETURNS VOID AS $$
 BEGIN
-    DELETE FROM public.ta_11_kilowhatts WHERE id_kilowhatts = p_id_kilowhatts;
+    DELETE FROM comun.ta_11_kilowhatts WHERE id_kilowhatts = p_id_kilowhatts;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -120,8 +120,8 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_get(
 BEGIN
     RETURN QUERY
     SELECT a.id_kilowhatts, a.axo, a.periodo, a.importe, a.fecha_alta, a.id_usuario, b.usuario
-    FROM public.ta_11_kilowhatts a
-    JOIN public.ta_12_passwords b ON a.id_usuario = b.id_usuario
+    FROM comun.ta_11_kilowhatts a
+    JOIN comun.ta_12_passwords b ON a.id_usuario = b.id_usuario
     WHERE a.id_kilowhatts = p_id_kilowhatts;
 END;
 $$ LANGUAGE plpgsql;

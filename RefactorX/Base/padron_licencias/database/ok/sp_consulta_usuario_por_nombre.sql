@@ -24,19 +24,19 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT
-        c.descripcion,
-        d.nombredepto,
-        d.telefono,
-        u.usuario,
-        u.nombres,
+        TRIM(c.descripcion)::VARCHAR,
+        TRIM(d.nombredepto)::VARCHAR,
+        TRIM(d.telefono)::VARCHAR,
+        TRIM(u.usuario)::VARCHAR,
+        TRIM(u.nombres)::VARCHAR,
         u.fecalt,
         u.fecbaj,
         u.feccap,
-        u.capturo
+        TRIM(u.capturo)::VARCHAR
     FROM comun.usuarios u
     INNER JOIN comun.deptos d ON d.cvedepto = u.cvedepto
     INNER JOIN comun.c_dependencias c ON c.id_dependencia = d.cvedependencia
-    WHERE UPPER(u.nombres) LIKE UPPER(p_nombre || '%');
+    WHERE UPPER(TRIM(u.nombres)) LIKE UPPER(TRIM(p_nombre) || '%');
 END;
 $$ LANGUAGE plpgsql;
 

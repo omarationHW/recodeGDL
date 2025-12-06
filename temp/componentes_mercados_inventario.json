@@ -1,0 +1,684 @@
+{
+  "total": 127,
+  "fecha_generacion": "2025-12-05T21:26:22.011Z",
+  "por_categoria": {
+    "reportes": [
+      "RptAdeEnergiaGrl.vue",
+      "RptAdeudosAbastos1998.vue",
+      "RptAdeudosAnteriores.vue",
+      "RptAdeudosEnergia.vue",
+      "RptAdeudosLocales.vue",
+      "RptCaratulaDatos.vue",
+      "RptCaratulaEnergia.vue",
+      "RptCatalogoMerc.vue",
+      "RptCuentaPublica.vue",
+      "RptDesgloceAdePorimporte.vue",
+      "RptEmisionEnergia.vue",
+      "RptEmisionLaser.vue",
+      "RptEmisionLocales.vue",
+      "RptEmisionRbosAbastos.vue",
+      "RptEstadPagosyAdeudos.vue",
+      "RptEstadisticaAdeudos.vue",
+      "RptFacturaEmision.vue",
+      "RptFacturaEnergia.vue",
+      "RptFacturaGLunes.vue",
+      "RptFechasVencimiento.vue",
+      "RptIngresoZonificado.vue",
+      "RptIngresos.vue",
+      "RptIngresosEnergia.vue",
+      "RptLocalesGiro.vue",
+      "RptMercados.vue",
+      "RptMovimientos.vue",
+      "RptPadronEnergia.vue",
+      "RptPadronGlobal.vue",
+      "RptPadronLocales.vue",
+      "RptPagosAno.vue",
+      "RptPagosCaja.vue",
+      "RptPagosDetalle.vue",
+      "RptPagosGrl.vue",
+      "RptPagosLocales.vue",
+      "RptResumenPagos.vue",
+      "RptSaldosLocales.vue",
+      "RptZonificacion.vue",
+      "_RptFacturaEmision.vue"
+    ],
+    "consultas": [
+      "ConsCapturaEnergia.vue",
+      "ConsCapturaFecha.vue",
+      "ConsCapturaFechaEnergia.vue",
+      "ConsCapturaMerc.vue",
+      "ConsCondonacion.vue",
+      "ConsCondonacionEnergia.vue",
+      "ConsPagos.vue",
+      "ConsPagosEnergia.vue",
+      "ConsPagosLocales.vue",
+      "ConsRequerimientos.vue",
+      "ConsultaDatosEnergia.vue",
+      "ConsultaDatosLocales.vue",
+      "ConsultaGeneral.vue"
+    ],
+    "carga": [
+      "CargaDiversosEsp.vue",
+      "CargaPagEnergia.vue",
+      "CargaPagEnergiaElec.vue",
+      "CargaPagEspecial.vue",
+      "CargaPagLocales.vue",
+      "CargaPagMercado.vue",
+      "CargaPagosTexto.vue",
+      "CargaReqPagados.vue",
+      "CargaTCultural.vue"
+    ],
+    "mantenimiento": [
+      "AutCargaPagosMtto.vue",
+      "CatalogoMntto.vue",
+      "CategoriaMntto.vue",
+      "CuotasEnergiaMntto.vue",
+      "CuotasMdoMntto.vue",
+      "CveCuotaMntto.vue",
+      "CveDiferMntto.vue",
+      "EnergiaMtto.vue",
+      "FechasDescuentoMntto.vue",
+      "LocalesMtto.vue",
+      "RecargosMntto.vue",
+      "SeccionesMntto.vue"
+    ],
+    "adeudos": [
+      "AdeEnergiaGrl.vue",
+      "AdeGlobalLocales.vue",
+      "AdeudosEnergia.vue",
+      "AdeudosLocGrl.vue",
+      "AdeudosLocales.vue",
+      "EstadPagosyAdeudos.vue",
+      "PasoAdeudos.vue"
+    ],
+    "pagos": [
+      "PagosDifIngresos.vue",
+      "PagosEneCons.vue",
+      "PagosIndividual.vue",
+      "PagosLocGrl.vue",
+      "PasoEne.vue",
+      "PasoMdos.vue"
+    ],
+    "catalogos": [
+      "CatalogoMercados.vue"
+    ],
+    "datos": [
+      "DatosConvenio.vue",
+      "DatosIndividuales.vue",
+      "DatosMovimientos.vue",
+      "DatosRequerimientos.vue",
+      "PadronEnergia.vue",
+      "PadronGlobal.vue",
+      "PadronLocales.vue"
+    ],
+    "emision": [
+      "EmisionEnergia.vue",
+      "EmisionLibertad.vue",
+      "EmisionLocales.vue"
+    ],
+    "otros": [
+      "Acceso.vue",
+      "AltaPagos.vue",
+      "AltaPagosEnergia.vue",
+      "AutCargaPagos.vue",
+      "Categoria.vue",
+      "Condonacion.vue",
+      "CuentaPublica.vue",
+      "CuotasEnergia.vue",
+      "CuotasMdo.vue",
+      "CveCuota.vue",
+      "CveDiferencias.vue",
+      "EnergiaModif.vue",
+      "Estadisticas.vue",
+      "FechaDescuento.vue",
+      "Giros.vue",
+      "IngresoCaptura.vue",
+      "IngresoLib.vue",
+      "ListadosLocales.vue",
+      "LocalesModif.vue",
+      "Menu.vue",
+      "ModuloBD.vue",
+      "Prescripcion.vue",
+      "Recargos.vue",
+      "RecaudadorasMercados.vue",
+      "RepAdeudCond.vue",
+      "ReporteGeneralMercados.vue",
+      "RprtSalvadas.vue",
+      "Secciones.vue",
+      "TrDocumentos.vue",
+      "ZonasMercados.vue",
+      "index.vue"
+    ]
+  },
+  "prioridad_alta": [
+    {
+      "archivo": "_RptFacturaEmision.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "AdeudosEnergia.vue",
+      "categoria": "adeudos"
+    },
+    {
+      "archivo": "AdeudosLocales.vue",
+      "categoria": "adeudos"
+    },
+    {
+      "archivo": "AdeudosLocGrl.vue",
+      "categoria": "adeudos"
+    },
+    {
+      "archivo": "AltaPagos.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "AltaPagosEnergia.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "AutCargaPagos.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "AutCargaPagosMtto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "CargaDiversosEsp.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaPagEnergia.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaPagEnergiaElec.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaPagEspecial.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaPagLocales.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaPagMercado.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaPagosTexto.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaReqPagados.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CargaTCultural.vue",
+      "categoria": "carga"
+    },
+    {
+      "archivo": "CatalogoMercados.vue",
+      "categoria": "catalogos"
+    },
+    {
+      "archivo": "Condonacion.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "ConsCondonacion.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsCondonacionEnergia.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsultaGeneral.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "DatosIndividuales.vue",
+      "categoria": "datos"
+    },
+    {
+      "archivo": "EmisionEnergia.vue",
+      "categoria": "emision"
+    },
+    {
+      "archivo": "EmisionLibertad.vue",
+      "categoria": "emision"
+    },
+    {
+      "archivo": "EmisionLocales.vue",
+      "categoria": "emision"
+    },
+    {
+      "archivo": "EstadPagosyAdeudos.vue",
+      "categoria": "adeudos"
+    },
+    {
+      "archivo": "PadronEnergia.vue",
+      "categoria": "datos"
+    },
+    {
+      "archivo": "PadronGlobal.vue",
+      "categoria": "datos"
+    },
+    {
+      "archivo": "PadronLocales.vue",
+      "categoria": "datos"
+    },
+    {
+      "archivo": "PagosIndividual.vue",
+      "categoria": "pagos"
+    },
+    {
+      "archivo": "PasoAdeudos.vue",
+      "categoria": "adeudos"
+    },
+    {
+      "archivo": "Prescripcion.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "RptAdeudosAbastos1998.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptAdeudosAnteriores.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptAdeudosEnergia.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptAdeudosLocales.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptEmisionEnergia.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptEmisionLaser.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptEmisionLocales.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptEmisionRbosAbastos.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptEstadisticaAdeudos.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptEstadPagosyAdeudos.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptFacturaEmision.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPadronEnergia.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPadronGlobal.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPadronLocales.vue",
+      "categoria": "reportes"
+    }
+  ],
+  "prioridad_media": [
+    {
+      "archivo": "AdeEnergiaGrl.vue",
+      "categoria": "adeudos"
+    },
+    {
+      "archivo": "ConsCapturaEnergia.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsCapturaFecha.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsCapturaFechaEnergia.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsCapturaMerc.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsPagos.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsPagosEnergia.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsPagosLocales.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsRequerimientos.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsultaDatosEnergia.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "ConsultaDatosLocales.vue",
+      "categoria": "consultas"
+    },
+    {
+      "archivo": "CuotasEnergia.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "CuotasEnergiaMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "CuotasMdo.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "CuotasMdoMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "CveCuota.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "CveCuotaMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "DatosConvenio.vue",
+      "categoria": "datos"
+    },
+    {
+      "archivo": "DatosMovimientos.vue",
+      "categoria": "datos"
+    },
+    {
+      "archivo": "DatosRequerimientos.vue",
+      "categoria": "datos"
+    },
+    {
+      "archivo": "EnergiaModif.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "EnergiaMtto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "Estadisticas.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "Giros.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "IngresoCaptura.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "IngresoLib.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "PagosDifIngresos.vue",
+      "categoria": "pagos"
+    },
+    {
+      "archivo": "PagosEneCons.vue",
+      "categoria": "pagos"
+    },
+    {
+      "archivo": "Recargos.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "RecargosMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "ReporteGeneralMercados.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "RptAdeEnergiaGrl.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptCaratulaDatos.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptCaratulaEnergia.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptCatalogoMerc.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptCuentaPublica.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptDesgloceAdePorimporte.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptFacturaEnergia.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptFacturaGLunes.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptFechasVencimiento.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptIngresos.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptIngresosEnergia.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptIngresoZonificado.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptLocalesGiro.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptMercados.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptMovimientos.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPagosAno.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPagosCaja.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPagosDetalle.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPagosGrl.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptPagosLocales.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptResumenPagos.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptSaldosLocales.vue",
+      "categoria": "reportes"
+    },
+    {
+      "archivo": "RptZonificacion.vue",
+      "categoria": "reportes"
+    }
+  ],
+  "prioridad_baja": [
+    {
+      "archivo": "Acceso.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "AdeGlobalLocales.vue",
+      "categoria": "adeudos"
+    },
+    {
+      "archivo": "CatalogoMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "Categoria.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "CategoriaMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "CuentaPublica.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "CveDiferencias.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "CveDiferMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "FechaDescuento.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "FechasDescuentoMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "index.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "ListadosLocales.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "LocalesModif.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "LocalesMtto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "Menu.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "ModuloBD.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "PagosLocGrl.vue",
+      "categoria": "pagos"
+    },
+    {
+      "archivo": "PasoEne.vue",
+      "categoria": "pagos"
+    },
+    {
+      "archivo": "PasoMdos.vue",
+      "categoria": "pagos"
+    },
+    {
+      "archivo": "RecaudadorasMercados.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "RepAdeudCond.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "RprtSalvadas.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "Secciones.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "SeccionesMntto.vue",
+      "categoria": "mantenimiento"
+    },
+    {
+      "archivo": "TrDocumentos.vue",
+      "categoria": "otros"
+    },
+    {
+      "archivo": "ZonasMercados.vue",
+      "categoria": "otros"
+    }
+  ],
+  "resumen_categorias": {
+    "reportes": 38,
+    "consultas": 13,
+    "carga": 9,
+    "mantenimiento": 12,
+    "adeudos": 7,
+    "pagos": 6,
+    "catalogos": 1,
+    "datos": 7,
+    "emision": 3,
+    "otros": 31
+  },
+  "resumen_prioridades": {
+    "alta": 47,
+    "media": 54,
+    "baja": 26
+  }
+}

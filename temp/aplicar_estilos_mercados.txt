@@ -1,0 +1,105 @@
+# Resumen de Cambios Aplicados a Componentes de Mercados
+
+## Cambios Aplicados
+
+### PadronEnergia.vue - ✅ Completado
+
+**Estructura actualizada:**
+- `.container-municipal` → `.module-view`
+- `.breadcrumb-municipal` → Removido
+- `.page-header-municipal` → `.module-view-header` con icono y info
+- `.card-municipal` → `.municipal-card`
+- `.card-header-municipal` → `.municipal-card-header`
+- `.card-body-municipal` → `.municipal-card-body`
+- `.form-row-municipal` → `.form-row`
+- `.form-group-municipal` → `.form-group`
+- `.form-label-municipal` → `.municipal-form-label`
+- `.form-control-municipal` → `.municipal-form-control`
+- `.btn-primary-municipal` → `.btn-municipal-primary`
+- `.btn-success-municipal` → `.btn-municipal-purple`
+- `.table-municipal` → `.municipal-table`
+- Agregados iconos de Font Awesome
+- Agregados badges para estados
+- Agregado mensaje de tabla vacía con iconos
+
+**Estilos scoped removidos** - Ya no son necesarios
+
+### EnergiaModif.vue - En progreso
+
+Necesita actualizar:
+1. Header del módulo
+2. Clases de formularios
+3. Clases de botones
+4. Estructura de cards
+5. Remover estilos scoped
+
+### PagosLocGrl.vue - Pendiente
+
+Necesita los mismos cambios que EnergiaModif.vue
+
+## Clases Principales Usadas
+
+### Estructura
+- `.module-view` - Contenedor principal
+- `.module-view-header` - Encabezado con icono y título
+- `.module-view-icon` - Icono del módulo
+- `.module-view-info` - Info del módulo (título y descripción)
+- `.module-view-content` - Contenido principal
+
+### Cards
+- `.municipal-card` - Tarjeta
+- `.municipal-card-header` - Encabezado de tarjeta
+- `.municipal-card-body` - Cuerpo de tarjeta
+- `.header-with-badge` - Header con badge a la derecha
+- `.header-right` - Contenedor derecho del header
+
+### Formularios
+- `.form-row` - Fila de formulario
+- `.form-group` - Grupo de formulario
+- `.municipal-form-label` - Label de campo
+- `.municipal-form-control` - Control de formulario (input, select, etc.)
+
+### Botones
+- `.btn-municipal-primary` - Botón principal (naranja)
+- `.btn-municipal-secondary` - Botón secundario (gris)
+- `.btn-municipal-purple` - Botón morado
+- `.button-group` - Grupo de botones
+- `.btn-sm` - Botón pequeño
+
+### Tablas
+- `.municipal-table` - Tabla
+- `.municipal-table-header` - Header de tabla
+- `.table-responsive` - Wrapper responsivo
+- `.table-container` - Contenedor de tabla
+- `.row-hover` - Fila con hover
+- `.text-center` - Centrar texto
+- `.text-end` - Alinear a la derecha
+- `.text-muted` - Texto desactivado
+
+### Badges
+- `.badge` - Badge base
+- `.badge-purple` - Badge morado
+- `.badge-success` - Badge verde (éxito)
+- `.badge-danger` - Badge rojo (peligro)
+- `.badge-warning` - Badge amarillo (advertencia)
+- `.badge-secondary` - Badge gris
+
+### Iconos y Estados
+- `.empty-icon` - Icono para estado vacío
+- Font Awesome icons con:
+  - `icon="search"` - Búsqueda
+  - `icon="filter"` - Filtros
+  - `icon="list"` - Lista
+  - `icon="bolt"` - Energía
+  - `icon="edit"` - Editar
+  - `icon="file-excel"` - Excel
+  - `icon="check-circle"` - Check
+  - `icon="times-circle"` - X
+  - `icon="inbox"` - Vacío
+
+## Próximos Pasos
+
+1. Terminar EnergiaModif.vue manualmente o con script
+2. Actualizar PagosLocGrl.vue completo
+3. Probar los 3 componentes en el navegador
+4. Verificar que todos los estilos se apliquen correctamente

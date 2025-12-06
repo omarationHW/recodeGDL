@@ -23,17 +23,17 @@ RETURNS TABLE (
     oficina smallint,
     num_mercado smallint,
     categoria smallint,
-    seccion varchar,
-    letra_local varchar,
-    bloque varchar,
-    nombre varchar,
-    descripcion_local varchar
+    seccion char(2),
+    letra_local varchar(3),
+    bloque varchar(3),
+    nombre varchar(30),
+    descripcion_local varchar(50)
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_local, oficina, num_mercado, categoria, seccion, letra_local, bloque, nombre, descripcion_local
-    FROM public.ta_11_locales
-    WHERE id_local = p_id_local;
+    SELECT a.id_local, a.oficina, a.num_mercado, a.categoria, a.seccion, a.letra_local, a.bloque, a.nombre, a.descripcion_local
+    FROM comun.ta_11_locales a
+    WHERE a.id_local = p_id_local;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -55,9 +55,9 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT oficina, num_mercado_nvo, categoria, descripcion, cuenta_ingreso, cuenta_energia
-    FROM public.ta_11_mercados
-    WHERE oficina = p_oficina AND num_mercado_nvo = p_num_mercado;
+    SELECT m.oficina, m.num_mercado_nvo, m.categoria, m.descripcion, m.cuenta_ingreso, m.cuenta_energia
+    FROM comun.ta_11_mercados m
+    WHERE m.oficina = p_oficina AND m.num_mercado_nvo = p_num_mercado;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -114,8 +114,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.id_control, a.modulo, a.control_otr, a.folio, a.diligencia, a.importe_global, a.importe_multa, a.importe_recargo, a.importe_gastos, a.fecha_emision, a.clave_practicado, a.vigencia, a.fecha_actualiz, a.usuario, b.id_usuario, b.usuario as usuario_1, b.nombre, b.estado, b.id_rec, b.nivel, a.zona, a.zona_apremio, a.fecha_practicado, a.fecha_entrega1, a.fecha_entrega2, a.fecha_citatorio, a.hora, a.ejecutor, a.clave_secuestro, a.clave_remate, a.fecha_remate, a.porcentaje_multa, a.observaciones, a.fecha_pago, a.recaudadora, a.caja, a.operacion, a.importe_pago, a.clave_mov, a.hora_practicado
-    FROM public.ta_15_apremios a
-    JOIN public.ta_12_passwords b ON a.usuario = b.id_usuario
+    FROM comun.ta_15_apremios a
+    JOIN comun.ta_12_passwords b ON a.usuario = b.id_usuario
     WHERE a.modulo = p_modulo AND a.folio = p_folio AND a.control_otr = p_control_otr;
 END;
 $$ LANGUAGE plpgsql;
@@ -132,15 +132,15 @@ RETURNS TABLE (
     id_control integer,
     control_otr integer,
     ayo smallint,
-    periodo smallint,
+    periodo integer,
     importe numeric,
     recargos numeric
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_control, control_otr, ayo, periodo, importe, recargos
-    FROM public.ta_15_periodos
-    WHERE control_otr = p_control_otr;
+    SELECT p.id_control, p.control_otr, p.ayo, p.periodo, p.importe, p.recargos
+    FROM comun.ta_15_periodos p
+    WHERE p.control_otr = p_control_otr;
 END;
 $$ LANGUAGE plpgsql;
 

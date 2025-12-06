@@ -6,17 +6,17 @@
 
 CREATE OR REPLACE FUNCTION usuario_info_get(p_id_usuario integer)
 RETURNS TABLE (
-    id_usuario integer,
-    usuario varchar,
-    nombre varchar,
-    estado varchar,
-    id_rec smallint
+    id integer,
+    usuario varchar(50),
+    nombre varchar(100),
+    email varchar(100),
+    activo boolean
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_usuario, usuario, nombre, estado, id_rec
-    FROM ta_12_passwords
-    WHERE id_usuario = p_id_usuario
+    SELECT id, usuario, nombre, email, activo
+    FROM public.usuarios
+    WHERE id = p_id_usuario
     LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;

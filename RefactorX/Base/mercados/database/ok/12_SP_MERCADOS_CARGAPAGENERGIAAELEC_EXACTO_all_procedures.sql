@@ -1,8 +1,8 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -43,9 +43,9 @@ BEGIN
     RETURN QUERY
     SELECT d.id_energia, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque,
            d.cve_consumo, d.cantidad, a.axo, a.periodo, a.importe
-    FROM public.ta_11_adeudo_energ a
-    JOIN public.ta_11_locales c ON c.id_local = d.id_local
-    JOIN public.ta_11_energia d ON d.id_energia = a.id_energia
+    FROM mercados.public.ta_11_adeudo_energ a
+    JOIN padron_licencias.comun.ta_11_locales c ON c.id_local = d.id_local
+    JOIN mercados.public.ta_11_energia d ON d.id_energia = a.id_energia
     WHERE c.oficina = p_oficina
       AND c.num_mercado = p_mercado
       AND c.categoria = p_categoria
@@ -78,12 +78,12 @@ CREATE OR REPLACE FUNCTION sp_cargar_pago_energia_elec(
     p_id_usuario integer
 ) RETURNS void AS $$
 BEGIN
-    INSERT INTO public.ta_11_pago_energia (
+    INSERT INTO mercados.public.ta_11_pago_energia (
         id_pago_energia, id_energia, axo, periodo, fecha_pago, oficina_pago, caja_pago, operacion_pago, importe_pago, cve_consumo, cantidad, folio, fecha_modificacion, id_usuario
     ) VALUES (
         DEFAULT, p_id_energia, p_axo, p_periodo, p_fecha_pago, p_oficina_pago, p_caja_pago, p_operacion_pago, p_importe_pago, p_cve_consumo, p_cantidad, p_folio, NOW(), p_id_usuario
     );
-    DELETE FROM public.ta_11_adeudo_energ
+    DELETE FROM mercados.public.ta_11_adeudo_energ
     WHERE id_energia = p_id_energia AND axo = p_axo AND periodo = p_periodo;
 END;
 $$ LANGUAGE plpgsql;
@@ -114,7 +114,7 @@ CREATE OR REPLACE FUNCTION sp_consultar_pagos_energia_elec(
 BEGIN
     RETURN QUERY
     SELECT id_pago_energia, id_energia, axo, periodo, fecha_pago, oficina_pago, caja_pago, operacion_pago, importe_pago, cve_consumo, cantidad, folio
-    FROM public.ta_11_pago_energia
+    FROM mercados.public.ta_11_pago_energia
     WHERE id_energia = p_id_energia
     ORDER BY axo, periodo;
 END;
@@ -134,7 +134,7 @@ CREATE OR REPLACE FUNCTION sp_consultar_cajas(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT caja FROM public.ta_12_operaciones WHERE id_rec = p_oficina ORDER BY caja ASC;
+    SELECT caja FROM padron_licencias.comun.ta_12_operaciones WHERE id_rec = p_oficina ORDER BY caja ASC;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -153,7 +153,7 @@ CREATE OR REPLACE FUNCTION sp_consultar_mercados(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT num_mercado_nvo, descripcion FROM public.ta_11_mercados WHERE oficina = p_oficina ORDER BY num_mercado_nvo;
+    SELECT num_mercado_nvo, descripcion FROM padron_licencias.comun.ta_11_mercados WHERE oficina = p_oficina ORDER BY num_mercado_nvo;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -1,8 +1,9 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
+-- NOTA: Usa tablas cross-database de padron_licencias.comun
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -41,7 +42,7 @@ CREATE OR REPLACE FUNCTION sp_get_ade_global_locales(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         a.id_local,
         a.oficina,
         a.num_mercado,
@@ -55,13 +56,13 @@ BEGIN
         c.descripcion,
         SUM(b.importe) AS adeudo,
         SUM(ROUND((b.importe) * (
-            SELECT COALESCE(SUM(porcentaje_mes),0) FROM public.ta_12_recargos WHERE (axo = b.axo AND mes >= b.periodo) OR (axo > b.axo)
+            SELECT COALESCE(SUM(porcentaje_mes),0) FROM padron_licencias.comun.ta_12_recargos WHERE (axo = b.axo AND mes >= b.periodo) OR (axo > b.axo)
         ) / 100, 2)) AS recargos,
-        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_multa ELSE 0 END) FROM public.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS multa,
-        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_gastos ELSE 0 END) FROM public.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS gastos
-    FROM public.ta_11_locales a
-    JOIN public.ta_11_adeudo_local b ON a.id_local = b.id_local
-    JOIN public.ta_11_mercados c ON a.oficina = c.oficina AND a.num_mercado = c.num_mercado_nvo
+        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_multa ELSE 0 END) FROM padron_licencias.comun.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS multa,
+        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_gastos ELSE 0 END) FROM padron_licencias.comun.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS gastos
+    FROM padron_licencias.comun.ta_11_locales a
+    JOIN padron_licencias.comun.ta_11_adeudo_local b ON a.id_local = b.id_local
+    JOIN padron_licencias.comun.ta_11_mercados c ON a.oficina = c.oficina AND a.num_mercado = c.num_mercado_nvo
     WHERE a.oficina = p_office_id
       AND a.num_mercado = p_market_id
       AND a.vigencia = 'A'
@@ -99,7 +100,7 @@ CREATE OR REPLACE FUNCTION sp_get_locales_sin_adeudo_con_accesorios(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         a.oficina,
         a.num_mercado,
         a.categoria,
@@ -110,14 +111,14 @@ BEGIN
         a.nombre,
         COALESCE(SUM(b.importe),0) AS adeudo,
         SUM(ROUND((b.importe) * (
-            SELECT COALESCE(SUM(porcentaje_mes),0) FROM public.ta_12_recargos WHERE (axo = b.axo AND mes >= b.periodo) OR (axo > b.axo)
+            SELECT COALESCE(SUM(porcentaje_mes),0) FROM padron_licencias.comun.ta_12_recargos WHERE (axo = b.axo AND mes >= b.periodo) OR (axo > b.axo)
         ) / 100, 2)) AS recargos,
-        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_multa ELSE 0 END) FROM public.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS multas,
-        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_gastos ELSE 0 END) FROM public.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS gastos,
+        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_multa ELSE 0 END) FROM padron_licencias.comun.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS multas,
+        COALESCE((SELECT SUM(CASE WHEN r.vigencia = '1' AND r.clave_practicado = 'P' THEN r.importe_gastos ELSE 0 END) FROM padron_licencias.comun.ta_15_apremios r WHERE r.modulo = 11 AND r.control_otr = a.id_local), 0) AS gastos,
         a.id_local
-    FROM public.ta_11_locales a
-    LEFT JOIN public.ta_11_adeudo_local b ON a.id_local = b.id_local AND ((b.axo = p_year AND b.periodo <= p_month) OR (b.axo < p_year2))
-    JOIN public.ta_15_apremios c ON c.modulo = 11 AND c.control_otr = a.id_local AND c.vigencia = '1' AND c.clave_practicado = 'P'
+    FROM padron_licencias.comun.ta_11_locales a
+    LEFT JOIN padron_licencias.comun.ta_11_adeudo_local b ON a.id_local = b.id_local AND ((b.axo = p_year AND b.periodo <= p_month) OR (b.axo < p_year2))
+    JOIN padron_licencias.comun.ta_15_apremios c ON c.modulo = 11 AND c.control_otr = a.id_local AND c.vigencia = '1' AND c.clave_practicado = 'P'
     WHERE a.num_mercado = p_market_id
     GROUP BY a.id_local, a.oficina, a.num_mercado, a.categoria, a.seccion, a.local, a.letra_local, a.bloque, a.nombre
     HAVING COUNT(b.id_adeudo_local) = 0;

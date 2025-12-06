@@ -1,0 +1,1 @@
+<?php $pdo = new PDO("pgsql:host=192.168.6.146;port=5432;dbname=mercados", "refact", "FF)-BQk2", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]); $cols = $pdo->query("SELECT column_name FROM information_schema.columns WHERE table_schema = 'publico' AND table_name = 'ta_11_locales' ORDER BY ordinal_position")->fetchAll(PDO::FETCH_COLUMN); foreach ($cols as $c) echo "  - $c\n"; ?>

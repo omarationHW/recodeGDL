@@ -3,7 +3,7 @@
 -- ESQUEMA: public
 -- ============================================
 \c padron_licencias;
-SET search_path TO public;
+SET search_path TO public, comun;
 
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
@@ -33,9 +33,9 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.fecha_ingreso, a.oficina, a.autorizar, a.fecha_limite, a.id_usupermiso, a.comentarios, a.id_usuario, a.actualizacion, b.nombre, c.usuario
-    FROM public.ta_11_autcargapag a
-    JOIN public.ta_12_passwords b ON b.id_usuario = a.id_usupermiso
-    JOIN public.ta_12_passwords c ON c.id_usuario = a.id_usuario
+    FROM mercados.public.ta_11_autcargapag a
+    JOIN comun.ta_12_passwords b ON b.id_usuario = a.id_usupermiso
+    JOIN comun.ta_12_passwords c ON c.id_usuario = a.id_usuario
     WHERE (p_oficina IS NULL OR a.oficina = p_oficina)
     ORDER BY a.fecha_ingreso DESC;
 END;
@@ -67,13 +67,13 @@ CREATE OR REPLACE FUNCTION sp_autcargapag_create(
     actualizacion timestamp
 ) AS $$
 BEGIN
-    INSERT INTO public.ta_11_autcargapag (
+    INSERT INTO mercados.public.ta_11_autcargapag (
         fecha_ingreso, oficina, autorizar, fecha_limite, id_usupermiso, comentarios, id_usuario, actualizacion
     ) VALUES (
         p_fecha_ingreso, p_oficina, p_autorizar, p_fecha_limite, p_id_usupermiso, p_comentarios, p_id_usuario, NOW()
     );
     RETURN QUERY SELECT fecha_ingreso, oficina, autorizar, fecha_limite, id_usupermiso, comentarios, id_usuario, actualizacion
-    FROM public.ta_11_autcargapag
+    FROM mercados.public.ta_11_autcargapag
     WHERE fecha_ingreso = p_fecha_ingreso AND oficina = p_oficina;
 END;
 $$ LANGUAGE plpgsql;
@@ -104,7 +104,7 @@ CREATE OR REPLACE FUNCTION sp_autcargapag_update(
     actualizacion timestamp
 ) AS $$
 BEGIN
-    UPDATE public.ta_11_autcargapag
+    UPDATE mercados.public.ta_11_autcargapag
     SET autorizar = p_autorizar,
         fecha_limite = p_fecha_limite,
         id_usupermiso = p_id_usupermiso,
@@ -113,7 +113,7 @@ BEGIN
         actualizacion = NOW()
     WHERE fecha_ingreso = p_fecha_ingreso AND oficina = p_oficina;
     RETURN QUERY SELECT fecha_ingreso, oficina, autorizar, fecha_limite, id_usupermiso, comentarios, id_usuario, actualizacion
-    FROM public.ta_11_autcargapag
+    FROM mercados.public.ta_11_autcargapag
     WHERE fecha_ingreso = p_fecha_ingreso AND oficina = p_oficina;
 END;
 $$ LANGUAGE plpgsql;
@@ -140,7 +140,7 @@ CREATE OR REPLACE FUNCTION sp_autcargapag_show(
 ) AS $$
 BEGIN
     RETURN QUERY SELECT fecha_ingreso, oficina, autorizar, fecha_limite, id_usupermiso, comentarios, id_usuario, actualizacion
-    FROM public.ta_11_autcargapag
+    FROM mercados.public.ta_11_autcargapag
     WHERE fecha_ingreso = p_fecha_ingreso AND oficina = p_oficina;
 END;
 $$ LANGUAGE plpgsql;

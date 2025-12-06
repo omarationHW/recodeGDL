@@ -1,0 +1,465 @@
+================================================================================
+              DIAGRAMA DE FLUJO - STORED PROCEDURES CUOTAS ENERGÍA
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     BASE DE DATOS: mercados                              │
+│                     Servidor: 192.168.6.146:5432                         │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+          ┌─────────────────────────────────────────────────┐
+          │      TABLA: public.ta_11_kilowhatts             │
+          ├─────────────────────────────────────────────────┤
+          │  • id_kilowhatts (PK)                           │
+          │  • axo (año)                                    │
+          │  • periodo (1-12)                               │
+          │  • importe                                      │
+          │  • fecha_alta                                   │
+          │  • id_usuario (FK → usuarios)                   │
+          │  CONSTRAINT: UNIQUE(axo, periodo)               │
+          └─────────────────────────────────────────────────┘
+                                    │
+          ┌─────────────────────────┴─────────────────────────┐
+          │                                                   │
+          ▼                                                   ▼
+┌─────────────────────┐                          ┌───────────────────────┐
+│  LEFT JOIN          │                          │   UNIQUE CONSTRAINT   │
+│  public.usuarios    │                          │   Previene duplicados │
+│  ON id_usuario      │                          │   (axo + periodo)     │
+└─────────────────────┘                          └───────────────────────┘
+
+
+================================================================================
+                     STORED PROCEDURE 1: sp_list_cuotas_energia
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  ENTRADA: sp_list_cuotas_energia(p_axo, p_periodo)                       │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────┐
+                    │   p_axo IS NULL?          │
+                    └───────┬───────────────┬───┘
+                            │ SÍ            │ NO
+                            ▼               ▼
+                    ┌───────────────┐   ┌─────────────────┐
+                    │ Traer todos   │   │ Filtrar por axo │
+                    │ los años      │   │ = p_axo         │
+                    └───────┬───────┘   └────────┬────────┘
+                            └───────┬───────────┘
+                                    ▼
+                    ┌───────────────────────────┐
+                    │   p_periodo IS NULL?      │
+                    └───────┬───────────────┬───┘
+                            │ SÍ            │ NO
+                            ▼               ▼
+                    ┌───────────────┐   ┌─────────────────────┐
+                    │ Traer todos   │   │ Filtrar por periodo │
+                    │ los periodos  │   │ = p_periodo         │
+                    └───────┬───────┘   └────────┬────────────┘
+                            └───────┬───────────┘
+                                    ▼
+                    ┌───────────────────────────────────┐
+                    │   LEFT JOIN con usuarios          │
+                    │   COALESCE(u.usuario, 'SIN USER') │
+                    └───────────────┬───────────────────┘
+                                    ▼
+                    ┌───────────────────────────────────┐
+                    │   ORDER BY axo DESC, periodo DESC │
+                    └───────────────┬───────────────────┘
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│  SALIDA: TABLE (id_kilowhatts, axo, periodo, importe, fecha_alta,       │
+│                 id_usuario, usuario)                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                  STORED PROCEDURE 2: sp_insert_cuota_energia
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  ENTRADA: sp_insert_cuota_energia(p_axo, p_periodo, p_importe,          │
+│                                    p_id_usuario)                         │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+            ┌───────────────────────────────────────┐
+            │  VALIDACIÓN 1: ¿p_axo IS NULL?       │
+            └───────┬───────────────────┬───────────┘
+                    │ SÍ                │ NO
+                    ▼                   │
+        ┌──────────────────────┐        │
+        │ ❌ Retornar:         │        │
+        │ success = false      │        │
+        │ message = "El año    │        │
+        │   es obligatorio"    │        │
+        └──────────────────────┘        │
+                                        ▼
+            ┌───────────────────────────────────────┐
+            │  VALIDACIÓN 2: ¿p_periodo IS NULL?   │
+            └───────┬───────────────────┬───────────┘
+                    │ SÍ                │ NO
+                    ▼                   │
+        ┌──────────────────────┐        │
+        │ ❌ Retornar:         │        │
+        │ success = false      │        │
+        │ message = "El periodo│        │
+        │   es obligatorio"    │        │
+        └──────────────────────┘        │
+                                        ▼
+            ┌───────────────────────────────────────────┐
+            │  VALIDACIÓN 3: ¿p_importe IS NULL o <= 0? │
+            └───────┬───────────────────────┬───────────┘
+                    │ SÍ                    │ NO
+                    ▼                       │
+        ┌──────────────────────┐            │
+        │ ❌ Retornar:         │            │
+        │ success = false      │            │
+        │ message = "El importe│            │
+        │   debe ser mayor a 0"│            │
+        └──────────────────────┘            │
+                                            ▼
+            ┌───────────────────────────────────────────┐
+            │  VALIDACIÓN 4: ¿p_id_usuario IS NULL?    │
+            └───────┬───────────────────────┬───────────┘
+                    │ SÍ                    │ NO
+                    ▼                       │
+        ┌──────────────────────┐            │
+        │ ❌ Retornar:         │            │
+        │ success = false      │            │
+        │ message = "El ID de  │            │
+        │   usuario obligatorio│            │
+        └──────────────────────┘            │
+                                            ▼
+            ┌─────────────────────────────────────────────┐
+            │  VALIDACIÓN 5: ¿Ya existe axo+periodo?     │
+            │  SELECT COUNT(*) FROM ta_11_kilowhatts     │
+            │  WHERE axo=p_axo AND periodo=p_periodo     │
+            └───────┬─────────────────────────┬───────────┘
+                    │ COUNT > 0 (Existe)      │ COUNT = 0
+                    ▼                         │
+        ┌──────────────────────┐              │
+        │ ❌ Retornar:         │              │
+        │ success = false      │              │
+        │ message = "Ya existe │              │
+        │   cuota para año X   │              │
+        │   y periodo Y"       │              │
+        └──────────────────────┘              │
+                                              ▼
+                        ┌─────────────────────────────────┐
+                        │  INSERT INTO ta_11_kilowhatts   │
+                        │  VALUES (axo, periodo, importe, │
+                        │          NOW(), id_usuario)     │
+                        │  RETURNING id_kilowhatts        │
+                        └──────────────┬──────────────────┘
+                                       ▼
+                        ┌─────────────────────────────────┐
+                        │  ✅ Retornar:                   │
+                        │  success = true                 │
+                        │  message = "Cuota registrada    │
+                        │             correctamente"      │
+                        │  id_kilowhatts = <ID generado>  │
+                        └─────────────────────────────────┘
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│  SALIDA: TABLE (success BOOLEAN, message TEXT, id_kilowhatts INTEGER)   │
+└──────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                  STORED PROCEDURE 3: sp_update_cuota_energia
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  ENTRADA: sp_update_cuota_energia(p_id_kilowhatts, p_importe,           │
+│                                    p_id_usuario)                         │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+            ┌───────────────────────────────────────────┐
+            │  VALIDACIÓN 1: ¿p_id_kilowhatts IS NULL? │
+            └───────┬───────────────────────┬───────────┘
+                    │ SÍ                    │ NO
+                    ▼                       │
+        ┌──────────────────────┐            │
+        │ ❌ Retornar:         │            │
+        │ success = false      │            │
+        │ message = "El ID de  │            │
+        │   cuota obligatorio" │            │
+        └──────────────────────┘            │
+                                            ▼
+            ┌───────────────────────────────────────────┐
+            │  VALIDACIÓN 2: ¿p_importe IS NULL o <= 0? │
+            └───────┬───────────────────────┬───────────┘
+                    │ SÍ                    │ NO
+                    ▼                       │
+        ┌──────────────────────┐            │
+        │ ❌ Retornar:         │            │
+        │ success = false      │            │
+        │ message = "El importe│            │
+        │   debe ser mayor a 0"│            │
+        └──────────────────────┘            │
+                                            ▼
+            ┌───────────────────────────────────────────┐
+            │  VALIDACIÓN 3: ¿p_id_usuario IS NULL?    │
+            └───────┬───────────────────────┬───────────┘
+                    │ SÍ                    │ NO
+                    ▼                       │
+        ┌──────────────────────┐            │
+        │ ❌ Retornar:         │            │
+        │ success = false      │            │
+        │ message = "El ID de  │            │
+        │   usuario obligatorio│            │
+        └──────────────────────┘            │
+                                            ▼
+            ┌─────────────────────────────────────────────┐
+            │  VALIDACIÓN 4: ¿Existe el registro?        │
+            │  SELECT COUNT(*), MAX(axo), MAX(periodo)   │
+            │  FROM ta_11_kilowhatts                     │
+            │  WHERE id_kilowhatts = p_id_kilowhatts     │
+            └───────┬─────────────────────────┬───────────┘
+                    │ COUNT = 0 (No existe)   │ COUNT > 0
+                    ▼                         │
+        ┌──────────────────────┐              │
+        │ ❌ Retornar:         │              │
+        │ success = false      │              │
+        │ message = "No se     │              │
+        │   encontró cuota ID X│              │
+        └──────────────────────┘              │
+                                              ▼
+                        ┌─────────────────────────────────┐
+                        │  UPDATE ta_11_kilowhatts        │
+                        │  SET importe = p_importe,       │
+                        │      fecha_alta = NOW(),        │
+                        │      id_usuario = p_id_usuario  │
+                        │  WHERE id_kilowhatts = p_id     │
+                        └──────────────┬──────────────────┘
+                                       ▼
+                        ┌─────────────────────────────────┐
+                        │  ✅ Retornar:                   │
+                        │  success = true                 │
+                        │  message = "Cuota actualizada   │
+                        │    correctamente (Año: X,       │
+                        │    Periodo: Y)"                 │
+                        └─────────────────────────────────┘
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│  SALIDA: TABLE (success BOOLEAN, message TEXT)                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                         FLUJO DE USO TÍPICO - FRONTEND
+================================================================================
+
+                        ┌─────────────────────────┐
+                        │   VUE.JS COMPONENT      │
+                        │  CuotasEnergiaMntto.vue │
+                        └───────────┬─────────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    │               │               │
+                    ▼               ▼               ▼
+        ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+        │   LISTAR     │  │   INSERTAR   │  │  ACTUALIZAR  │
+        │   (onMounted)│  │   (onCreate) │  │  (onUpdate)  │
+        └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+               │                 │                  │
+               ▼                 ▼                  ▼
+        ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+        │ GET /api/    │  │ POST /api/   │  │ PUT /api/    │
+        │ cuotas-      │  │ cuotas-      │  │ cuotas-      │
+        │ energia      │  │ energia      │  │ energia/{id} │
+        └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+               │                 │                  │
+               ▼                 ▼                  ▼
+        ┌─────────────────────────────────────────────────┐
+        │         LARAVEL CONTROLLER                      │
+        │     CuotasEnergiaController                     │
+        └───────────────────┬─────────────────────────────┘
+                            │
+            ┌───────────────┼───────────────┐
+            │               │               │
+            ▼               ▼               ▼
+    ┌────────────┐  ┌────────────┐  ┌────────────┐
+    │ index()    │  │ store()    │  │ update()   │
+    └─────┬──────┘  └─────┬──────┘  └─────┬──────┘
+          │               │               │
+          ▼               ▼               ▼
+    ┌────────────────────────────────────────────┐
+    │         DB::select()                       │
+    │         Laravel PDO                        │
+    └───────────────────┬────────────────────────┘
+                        │
+                        ▼
+    ┌────────────────────────────────────────────┐
+    │         POSTGRESQL SERVER                  │
+    │         192.168.6.146:5432                 │
+    └───────────────────┬────────────────────────┘
+                        │
+        ┌───────────────┼───────────────┐
+        │               │               │
+        ▼               ▼               ▼
+┌──────────────┐┌──────────────┐┌──────────────┐
+│sp_list_      ││sp_insert_    ││sp_update_    │
+│cuotas_energia││cuota_energia ││cuota_energia │
+└──────┬───────┘└──────┬───────┘└──────┬───────┘
+       │               │               │
+       ▼               ▼               ▼
+┌─────────────────────────────────────────────────┐
+│    public.ta_11_kilowhatts                      │
+│    (Tabla base de datos)                        │
+└─────────────────────────────────────────────────┘
+
+
+================================================================================
+                          CASOS DE USO DETALLADOS
+================================================================================
+
+CASO 1: LISTAR TODAS LAS CUOTAS
+────────────────────────────────────────────────────────────────────────────
+  Usuario → Abre módulo "Cuotas Energía Mantenimiento"
+           ↓
+  Vue.js → onMounted() ejecuta GET /api/cuotas-energia
+           ↓
+  Laravel → index() llama sp_list_cuotas_energia(NULL, NULL)
+           ↓
+  PostgreSQL → Retorna todas las cuotas con LEFT JOIN usuarios
+           ↓
+  Usuario → Ve tabla con todas las cuotas ordenadas
+
+
+CASO 2: FILTRAR POR AÑO
+────────────────────────────────────────────────────────────────────────────
+  Usuario → Selecciona año "2024" en filtro
+           ↓
+  Vue.js → Ejecuta GET /api/cuotas-energia?axo=2024
+           ↓
+  Laravel → index() llama sp_list_cuotas_energia(2024, NULL)
+           ↓
+  PostgreSQL → Retorna solo cuotas del 2024
+           ↓
+  Usuario → Ve tabla filtrada
+
+
+CASO 3: INSERTAR NUEVA CUOTA
+────────────────────────────────────────────────────────────────────────────
+  Usuario → Click "Nuevo", ingresa: Año=2025, Periodo=3, Importe=165.50
+           ↓
+  Vue.js → Valida campos, ejecuta POST /api/cuotas-energia
+           ↓
+  Laravel → store() llama sp_insert_cuota_energia(2025, 3, 165.50, 5)
+           ↓
+  PostgreSQL → Valida que no exista 2025/3
+              → INSERT INTO ta_11_kilowhatts
+              → Retorna success=true, id_kilowhatts=47
+           ↓
+  Laravel → Retorna JSON {success: true, id: 47}
+           ↓
+  Usuario → Ve mensaje "Cuota registrada correctamente"
+
+
+CASO 4: INTENTAR INSERTAR DUPLICADO
+────────────────────────────────────────────────────────────────────────────
+  Usuario → Intenta insertar Año=2024, Periodo=1 (ya existe)
+           ↓
+  Vue.js → Ejecuta POST /api/cuotas-energia
+           ↓
+  Laravel → store() llama sp_insert_cuota_energia(2024, 1, 150.00, 5)
+           ↓
+  PostgreSQL → Valida que no exista 2024/1
+              → ¡Encuentra que SÍ existe!
+              → Retorna success=false, message="Ya existe..."
+           ↓
+  Laravel → Retorna JSON {success: false, message: "Ya existe..."}
+           ↓
+  Usuario → Ve error "Ya existe una cuota para año 2024 periodo 1"
+
+
+CASO 5: ACTUALIZAR IMPORTE
+────────────────────────────────────────────────────────────────────────────
+  Usuario → Click "Editar" en cuota ID=47, cambia importe a 175.00
+           ↓
+  Vue.js → Ejecuta PUT /api/cuotas-energia/47
+           ↓
+  Laravel → update(47) llama sp_update_cuota_energia(47, 175.00, 5)
+           ↓
+  PostgreSQL → Valida que existe ID=47
+              → UPDATE ta_11_kilowhatts SET importe=175.00
+              → Retorna success=true, message="Actualizada..."
+           ↓
+  Laravel → Retorna JSON {success: true}
+           ↓
+  Usuario → Ve mensaje "Cuota actualizada correctamente (Año: 2025, Periodo: 3)"
+
+
+================================================================================
+                        MANEJO DE ERRORES Y ROLLBACK
+================================================================================
+
+            ┌──────────────────────────────────┐
+            │  INICIO TRANSACCIÓN (implícito) │
+            └───────────────┬──────────────────┘
+                            ▼
+            ┌──────────────────────────────────┐
+            │  Validación falla                │
+            └───────┬──────────────┬───────────┘
+                    │ SÍ           │ NO
+                    ▼              │
+        ┌─────────────────┐        │
+        │ RETURN error    │        │
+        │ (sin INSERT/    │        │
+        │  UPDATE)        │        │
+        └─────────────────┘        │
+                                   ▼
+                    ┌──────────────────────────┐
+                    │  Ejecuta INSERT/UPDATE   │
+                    └───────┬──────────┬───────┘
+                            │ Error    │ Éxito
+                            ▼          ▼
+                ┌─────────────────┐  ┌──────────────┐
+                │ ROLLBACK auto   │  │ COMMIT auto  │
+                │ Retorna error   │  │ Retorna OK   │
+                └─────────────────┘  └──────────────┘
+
+
+================================================================================
+                              VENTAJAS DEL DISEÑO
+================================================================================
+
+✅ VALIDACIONES EN BASE DE DATOS
+   → No se pueden insertar datos inválidos desde ningún cliente
+   → Garantiza integridad de datos
+
+✅ PREVENCIÓN DE DUPLICADOS
+   → Constraint UNIQUE + validación en SP
+   → Imposible tener dos cuotas para mismo año/periodo
+
+✅ RETORNO ESTRUCTURADO
+   → success/message/data
+   → Frontend sabe exactamente qué pasó
+
+✅ MENSAJES DESCRIPTIVOS
+   → "El importe debe ser mayor a cero"
+   → "Ya existe una cuota para año 2024 periodo 1"
+   → Usuario entiende el problema
+
+✅ AUDITORÍA AUTOMÁTICA
+   → fecha_alta se actualiza automáticamente
+   → id_usuario registra quién hizo el cambio
+
+✅ FILTROS OPCIONALES
+   → NULL = todos los registros
+   → Flexible para diferentes necesidades
+
+✅ JOIN CON USUARIOS
+   → Muestra nombre de usuario que registró
+   → Mejor experiencia de usuario
+
+
+================================================================================
+                        FIN DEL DIAGRAMA DE FLUJO
+================================================================================

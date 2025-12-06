@@ -1,0 +1,105 @@
+═══════════════════════════════════════════════════════════════
+  RESUMEN FINAL: Componentes Mercados
+  Fecha: 2025-12-05 - Sesión Continuada
+═══════════════════════════════════════════════════════════════
+
+✅ COMPONENTES FUNCIONANDO: 14/18 (78%)
+
+ 1. ✅ ReporteGeneralMercados
+ 2. ✅ RptLocalesGiro
+ 3. ✅ RptPagosAno
+ 4. ✅ RptFacturaGLunes
+ 5. ✅ RptPagosCaja
+ 6. ✅ RptIngresos
+ 7. ✅ RptPagosDetalle
+ 8. ✅ RptPagosGrl
+ 9. ✅ RptIngresosEnergia
+10. ✅ RptMercados
+11. ✅ RptEmisionLaser
+12. ✅ EnergiaModif (RECIÉN CORREGIDO)
+13. ✅ RptMovimientos (RECIÉN CORREGIDO)
+14. ✅ RptFacturaEmision (RECIÉN CORREGIDO)
+
+═══════════════════════════════════════════════════════════════
+❌ COMPONENTES PENDIENTES: 4/18 (22%)
+═══════════════════════════════════════════════════════════════
+
+1. ❌ RptFacturaEnergia
+   Error: column b.id_local does not exist
+   Tiempo estimado: 20 min
+
+2. ❌ RptEmisionRbosAbastos
+   Error: RETURN NEXT syntax issue
+   Tiempo estimado: 45-60 min
+
+3. ❌ Estadisticas
+   Error: SP no existe
+   Tiempo estimado: 1-2 horas
+
+4. ❌ Prescripcion
+   Error: Structure mismatch
+   Tiempo estimado: 30-45 min
+
+═══════════════════════════════════════════════════════════════
+📊 PROGRESO DE LA SESIÓN
+═══════════════════════════════════════════════════════════════
+
+INICIO:       4/18 (22%)  ██░░░░░░░░
+INTERMEDIO:  11/18 (61%)  ██████░░░░
+ACTUAL:      14/18 (78%)  ████████░░
+META:        18/18 (100%) ██████████
+
+Mejora total: +10 componentes (+56%)
+
+═══════════════════════════════════════════════════════════════
+🎯 ÚLTIMAS CORRECCIONES APLICADAS
+═══════════════════════════════════════════════════════════════
+
+12. EnergiaModif:
+    ✓ Corregido db_ingresos.ta_11_energia → publico.ta_11_energia
+
+13. RptMovimientos:
+    ✓ Agregados casts explícitos a todos los campos
+    ✓ local::INTEGER, seccion::VARCHAR(2), nombre::VARCHAR(30)
+
+14. RptFacturaEmision:
+    ✓ publico.ta_12_recaudadoras → public.ta_12_recaudadoras
+    ✓ Agregados casts explícitos
+    ✓ datoslocal concatenación cast a VARCHAR
+
+═══════════════════════════════════════════════════════════════
+📋 PATRONES CONFIRMADOS
+═══════════════════════════════════════════════════════════════
+
+✅ Casts Explícitos:
+   - SIEMPRE usar campo::TIPO en SELECT
+   - Concatenaciones retornan TEXT, agregar ::VARCHAR
+   - CASE expressions necesitan ::TIPO al final
+
+✅ Schemas Correctos:
+   - publico.ta_11_* (tablas de mercados)
+   - public.ta_12_* (tablas de catálogos)
+   - public.usuarios (usuarios)
+   - public.ta_11_cuo_locales (cuotas)
+
+✅ Aliases en Subconsultas:
+   - Siempre usar alias en NOT IN / EXISTS
+   - Ejemplo: SELECT p.id_local FROM tabla p
+
+✅ Cross-Database References:
+   - NUNCA usar db_ingresos.
+   - NUNCA usar padron_licencias.comun.
+   - TODO debe ser publico. o public.
+
+═══════════════════════════════════════════════════════════════
+⏱️ TIEMPO RESTANTE ESTIMADO: 2-4 HORAS
+═══════════════════════════════════════════════════════════════
+
+- RptFacturaEnergia: 20 min (investigar campo b)
+- Prescripcion: 30-45 min (ajustar tipos)
+- RptEmisionRbosAbastos: 1 hora (reescribir sintaxis)
+- Estadisticas: 1-2 horas (crear desde cero o buscar)
+
+Total: ~3 horas para completar 100%
+
+═══════════════════════════════════════════════════════════════

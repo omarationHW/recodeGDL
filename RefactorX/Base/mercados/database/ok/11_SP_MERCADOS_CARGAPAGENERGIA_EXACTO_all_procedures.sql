@@ -1,8 +1,8 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -44,17 +44,17 @@ CREATE OR REPLACE FUNCTION sp_buscar_adeudos_energia(
 BEGIN
     RETURN QUERY
     SELECT a.id_adeudo_energia, a.id_energia, b.oficina, b.num_mercado, b.categoria, b.seccion, b.local, b.letra_local, b.bloque, a.axo, a.periodo, a.cve_consumo, a.cantidad, a.importe, a.fecha_alta, u.usuario
-    FROM public.ta_11_adeudo_energ a
-    JOIN public.ta_11_energia d ON a.id_energia = d.id_energia
-    JOIN public.ta_11_locales b ON d.id_local = b.id_local
-    JOIN public.ta_12_passwords u ON a.id_usuario = u.id_usuario
+    FROM mercados.public.ta_11_adeudo_energ a
+    JOIN mercados.public.ta_11_energia d ON a.id_energia = d.id_energia
+    JOIN padron_licencias.comun.ta_11_locales b ON d.id_local = b.id_local
+    JOIN padron_licencias.comun.ta_12_passwords u ON a.id_usuario = u.id_usuario
     WHERE b.oficina = p_oficina
       AND b.num_mercado = p_mercado
       AND b.categoria = p_categoria
       AND b.seccion = p_seccion
       AND b.local = p_local
       AND NOT EXISTS (
-        SELECT 1 FROM public.ta_11_pago_energia pe
+        SELECT 1 FROM mercados.public.ta_11_pago_energia pe
         WHERE pe.id_energia = a.id_energia AND pe.axo = a.axo AND pe.periodo = a.periodo
       )
     ORDER BY a.id_energia, a.axo, a.periodo;
@@ -83,12 +83,12 @@ CREATE OR REPLACE FUNCTION sp_cargar_pago_energia(
     p_id_usuario INTEGER
 ) RETURNS VOID AS $$
 BEGIN
-    INSERT INTO public.ta_11_pago_energia (
+    INSERT INTO mercados.public.ta_11_pago_energia (
         id_pago_energia, id_energia, axo, periodo, fecha_pago, oficina_pago, caja_pago, operacion_pago, importe_pago, cve_consumo, cantidad, folio, fecha_modificacion, id_usuario
     ) VALUES (
         DEFAULT, p_id_energia, p_axo, p_periodo, p_fecha_pago, p_oficina_pago, p_caja_pago, p_operacion_pago, p_importe, p_cve_consumo, p_cantidad, p_folio, NOW(), p_id_usuario
     );
-    DELETE FROM public.ta_11_adeudo_energ
+    DELETE FROM mercados.public.ta_11_adeudo_energ
     WHERE id_energia = p_id_energia AND axo = p_axo AND periodo = p_periodo;
 END;
 $$ LANGUAGE plpgsql;
@@ -121,7 +121,7 @@ CREATE OR REPLACE FUNCTION sp_consultar_pagos_energia(
 BEGIN
     RETURN QUERY
     SELECT id_pago_energia, id_energia, axo, periodo, fecha_pago, oficina_pago, caja_pago, operacion_pago, importe_pago, cve_consumo, cantidad, folio, fecha_modificacion, id_usuario
-    FROM public.ta_11_pago_energia
+    FROM mercados.public.ta_11_pago_energia
     WHERE id_energia = p_id_energia
     ORDER BY axo, periodo;
 END;

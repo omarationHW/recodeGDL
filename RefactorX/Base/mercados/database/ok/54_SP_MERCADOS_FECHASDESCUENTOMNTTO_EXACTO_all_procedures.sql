@@ -1,14 +1,15 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
 -- Formulario: FechasDescuentoMntto
 -- Generado: 2025-08-27 00:04:11
+-- Actualizado: 2025-12-02
 -- Total SPs: 3
 -- ============================================
 
@@ -29,8 +30,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT f.mes, f.fecha_descuento, f.fecha_recargos, f.fecha_alta, f.id_usuario, u.usuario
-    FROM public.ta_11_fecha_desc f
-    LEFT JOIN public.ta_12_passwords u ON u.id_usuario = f.id_usuario
+    FROM padron_licencias.comun.ta_11_fecha_desc f
+    LEFT JOIN padron_licencias.comun.ta_12_passwords u ON u.id_usuario = f.id_usuario
     ORDER BY f.mes;
 END;
 $$ LANGUAGE plpgsql;
@@ -54,8 +55,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT f.mes, f.fecha_descuento, f.fecha_recargos, f.fecha_alta, f.id_usuario, u.usuario
-    FROM public.ta_11_fecha_desc f
-    LEFT JOIN public.ta_12_passwords u ON u.id_usuario = f.id_usuario
+    FROM padron_licencias.comun.ta_11_fecha_desc f
+    LEFT JOIN padron_licencias.comun.ta_12_passwords u ON u.id_usuario = f.id_usuario
     WHERE f.mes = p_mes;
 END;
 $$ LANGUAGE plpgsql;
@@ -83,7 +84,7 @@ BEGIN
         RETURN QUERY SELECT false, 'La fecha de descuento y recargos debe corresponder al mes seleccionado.';
         RETURN;
     END IF;
-    UPDATE public.ta_11_fecha_desc
+    UPDATE padron_licencias.comun.ta_11_fecha_desc
     SET fecha_descuento = p_fecha_descuento,
         fecha_alta = NOW(),
         fecha_recargos = p_fecha_recargos,

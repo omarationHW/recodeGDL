@@ -32,23 +32,23 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT
-        a.oficina,
-        a.num_mercado,
-        a.categoria,
-        a.seccion,
-        a.local,
-        a.letra_local,
-        a.bloque,
-        a.nombre,
-        d.local_adicional,
-        b.cantidad,
-        e.importe,
-        c.descripcion,
-        b.importe as importe_1
-    FROM comun.ta_11_locales a
-    JOIN public.ta_11_adeudo_energ b ON a.id_local = b.id_local
-    JOIN comun.ta_11_mercados c ON a.oficina = c.oficina AND a.num_mercado = c.num_mercado_nvo
-    JOIN public.ta_11_energia d ON d.id_energia = b.id_energia
+        a.oficina::SMALLINT,
+        a.num_mercado::SMALLINT,
+        a.categoria::SMALLINT,
+        a.seccion::VARCHAR(2),
+        a.local::SMALLINT,
+        a.letra_local::VARCHAR(1),
+        a.bloque::VARCHAR(1),
+        a.nombre::VARCHAR(30),
+        d.local_adicional::VARCHAR(50),
+        b.cantidad::NUMERIC,
+        e.importe::NUMERIC,
+        c.descripcion::VARCHAR(50),
+        b.importe::NUMERIC as importe_1
+    FROM publico.ta_11_locales a
+    JOIN public.ta_11_energia d ON d.id_local = a.id_local
+    JOIN public.ta_11_adeudo_energ b ON b.id_energia = d.id_energia
+    JOIN publico.ta_11_mercados c ON a.oficina = c.oficina AND a.num_mercado = c.num_mercado_nvo
     JOIN public.ta_11_kilowhatts e ON b.axo = e.axo AND b.periodo = e.periodo
     WHERE a.oficina = p_oficina
       AND a.num_mercado = p_mercado

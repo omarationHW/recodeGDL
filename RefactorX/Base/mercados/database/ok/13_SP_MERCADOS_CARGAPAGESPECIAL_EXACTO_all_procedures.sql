@@ -28,7 +28,7 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT oficina, num_mercado_nvo, categoria, descripcion, cuenta_ingreso
-    FROM public.ta_11_mercados
+    FROM padron_licencias.comun.ta_11_mercados
     WHERE oficina = 4 AND num_mercado_nvo < 49
     ORDER BY num_mercado_nvo;
 END;
@@ -66,8 +66,8 @@ BEGIN
     RETURN QUERY
     SELECT c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque,
            a.axo, a.periodo, a.importe, '' AS partida
-    FROM public.ta_11_adeudo_local a
-    JOIN public.ta_11_locales c ON a.id_local = c.id_local
+    FROM padron_licencias.comun.ta_11_adeudo_local a
+    JOIN padron_licencias.comun.ta_11_locales c ON a.id_local = c.id_local
     WHERE c.oficina = p_oficina
       AND c.num_mercado = p_mercado
       AND c.categoria = p_categoria
@@ -119,13 +119,13 @@ BEGIN
             v_renta_desc := pago.importe;
         END IF;
         -- Insertar pago
-        INSERT INTO public.ta_11_pagos_local (
+        INSERT INTO padron_licencias.comun.ta_11_pagos_local (
             id_pago_local, id_local, axo, periodo, fecha_pago, oficina_pago, caja_pago, operacion_pago, importe_pago, folio, fecha_modificacion, id_usuario
         ) VALUES (
             DEFAULT, pago.id_local, pago.axo, pago.periodo, p_fecha_pago, p_oficina_pago, p_caja_pago, p_operacion_pago, v_renta_desc, pago.partida, NOW(), p_usuario_id
         ) RETURNING id_pago_local INTO v_id_pago_local;
         -- Eliminar adeudo
-        DELETE FROM public.ta_11_adeudo_local
+        DELETE FROM padron_licencias.comun.ta_11_adeudo_local
         WHERE id_local = pago.id_local AND axo = pago.axo AND periodo = pago.periodo;
     END LOOP;
     RETURN QUERY SELECT 'OK', 'Pagos cargados correctamente';

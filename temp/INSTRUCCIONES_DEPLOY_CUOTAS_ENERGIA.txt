@@ -1,0 +1,239 @@
+================================================================================
+           INSTRUCCIONES DE DESPLIEGUE - CUOTAS DE ENERGÍA SP
+================================================================================
+
+UBICACIÓN: C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp\
+
+================================================================================
+OPCIÓN 1: DEPLOY RÁPIDO CON PSQL (RECOMENDADO)
+================================================================================
+
+1. Abrir CMD o PowerShell
+
+2. Navegar a la carpeta:
+   cd C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp
+
+3. Ejecutar el comando:
+
+   psql -h 192.168.6.146 -p 5432 -U refact -d mercados -f 00_deploy_all_cuotas_energia.sql
+
+4. Cuando pida password, ingresar:
+   FF)-BQk2
+
+5. Esperar mensaje de éxito
+
+
+================================================================================
+OPCIÓN 2: DEPLOY CON SCRIPT BAT
+================================================================================
+
+1. Doble clic en:
+   deploy_cuotas_energia.bat
+
+2. El script:
+   - Desplegará los 3 stored procedures
+   - Verificará que se crearon correctamente
+   - Mostrará un resumen
+
+
+================================================================================
+OPCIÓN 3: DEPLOY MANUAL DESDE PGADMIN
+================================================================================
+
+1. Abrir pgAdmin
+
+2. Crear nueva conexión:
+   - Host: 192.168.6.146
+   - Port: 5432
+   - Database: mercados
+   - Username: refact
+   - Password: FF)-BQk2
+
+3. Click derecho en base de datos "mercados" → Query Tool
+
+4. Abrir archivo (icono carpeta):
+   C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp\00_deploy_all_cuotas_energia.sql
+
+5. Ejecutar (F5 o icono ▶)
+
+6. Verificar mensajes "CREATE FUNCTION" sin errores
+
+
+================================================================================
+OPCIÓN 4: DEPLOY MANUAL DESDE DBEAVER
+================================================================================
+
+1. Abrir DBeaver
+
+2. Nueva Conexión → PostgreSQL:
+   - Host: 192.168.6.146
+   - Port: 5432
+   - Database: mercados
+   - Username: refact
+   - Password: FF)-BQk2
+
+3. Test Connection → OK → Finish
+
+4. Click derecho en conexión → SQL Editor → New SQL Script
+
+5. Abrir archivo:
+   C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp\00_deploy_all_cuotas_energia.sql
+
+6. Ejecutar (Ctrl+Enter o icono ▶)
+
+7. Verificar panel de resultados
+
+
+================================================================================
+VERIFICACIÓN POST-DEPLOY
+================================================================================
+
+Ejecutar esta consulta para verificar que los SPs se crearon:
+
+SELECT
+    p.proname as nombre_sp,
+    pg_get_function_arguments(p.oid) as parametros
+FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE n.nspname = 'public'
+AND p.proname IN (
+    'sp_list_cuotas_energia',
+    'sp_insert_cuota_energia',
+    'sp_update_cuota_energia'
+)
+ORDER BY p.proname;
+
+RESULTADO ESPERADO:
+┌───────────────────────────┬─────────────────────────────────────────────┐
+│ nombre_sp                 │ parametros                                   │
+├───────────────────────────┼─────────────────────────────────────────────┤
+│ sp_insert_cuota_energia   │ p_axo integer, p_periodo integer,           │
+│                           │ p_importe numeric, p_id_usuario integer     │
+├───────────────────────────┼─────────────────────────────────────────────┤
+│ sp_list_cuotas_energia    │ p_axo integer DEFAULT NULL,                 │
+│                           │ p_periodo integer DEFAULT NULL              │
+├───────────────────────────┼─────────────────────────────────────────────┤
+│ sp_update_cuota_energia   │ p_id_kilowhatts integer, p_importe numeric, │
+│                           │ p_id_usuario integer                        │
+└───────────────────────────┴─────────────────────────────────────────────┘
+
+
+================================================================================
+PRUEBAS BÁSICAS
+================================================================================
+
+PRUEBA 1: Listar todas las cuotas
+──────────────────────────────────────────────────────────────────────────────
+SELECT * FROM public.sp_list_cuotas_energia(NULL, NULL);
+
+
+PRUEBA 2: Filtrar por año 2024
+──────────────────────────────────────────────────────────────────────────────
+SELECT * FROM public.sp_list_cuotas_energia(2024, NULL);
+
+
+PRUEBA 3: Intentar insertar duplicado (debe retornar success = false)
+──────────────────────────────────────────────────────────────────────────────
+SELECT * FROM public.sp_insert_cuota_energia(
+    (SELECT axo FROM public.ta_11_kilowhatts LIMIT 1),
+    (SELECT periodo FROM public.ta_11_kilowhatts LIMIT 1),
+    100.00,
+    1
+);
+
+
+PRUEBA 4: Validación de importe negativo (debe retornar success = false)
+──────────────────────────────────────────────────────────────────────────────
+SELECT * FROM public.sp_insert_cuota_energia(2099, 1, -50.00, 1);
+
+
+PRUEBA 5: Insertar cuota válida (debe retornar success = true)
+──────────────────────────────────────────────────────────────────────────────
+SELECT * FROM public.sp_insert_cuota_energia(2099, 1, 150.00, 1);
+
+
+PRUEBA 6: Actualizar cuota existente
+──────────────────────────────────────────────────────────────────────────────
+SELECT * FROM public.sp_update_cuota_energia(
+    (SELECT id_kilowhatts FROM public.ta_11_kilowhatts LIMIT 1),
+    200.00,
+    1
+);
+
+
+PRUEBA 7: Actualizar cuota inexistente (debe retornar success = false)
+──────────────────────────────────────────────────────────────────────────────
+SELECT * FROM public.sp_update_cuota_energia(999999, 170.00, 1);
+
+
+================================================================================
+ARCHIVOS DISPONIBLES
+================================================================================
+
+ARCHIVOS SQL (DEPLOY):
+  ✓ 00_deploy_all_cuotas_energia.sql     <-- USAR ESTE
+  ✓ 01_sp_list_cuotas_energia.sql
+  ✓ 02_sp_insert_cuota_energia.sql
+  ✓ 03_sp_update_cuota_energia.sql
+
+SCRIPTS DE AUTOMATIZACIÓN:
+  ✓ deploy_cuotas_energia.bat            <-- Deploy automático
+  ✓ test_cuotas_energia_psql.bat         <-- Pruebas automáticas
+
+DOCUMENTACIÓN:
+  ✓ INFORME_CUOTAS_ENERGIA_MANTENIMIENTO.md  <-- Documentación completa
+  ✓ RESUMEN_CUOTAS_ENERGIA_SP.txt            <-- Resumen ejecutivo
+  ✓ INSTRUCCIONES_DEPLOY_CUOTAS_ENERGIA.txt  <-- Este archivo
+
+
+================================================================================
+SOLUCIÓN DE PROBLEMAS
+================================================================================
+
+PROBLEMA: "psql: command not found" o "psql no se reconoce"
+SOLUCIÓN:
+  - Instalar PostgreSQL client tools
+  - O usar pgAdmin / DBeaver (Opciones 3 o 4)
+
+
+PROBLEMA: "could not connect to server"
+SOLUCIÓN:
+  - Verificar que el servidor esté encendido: 192.168.6.146
+  - Verificar conectividad de red: ping 192.168.6.146
+  - Verificar puerto 5432 abierto
+
+
+PROBLEMA: "password authentication failed for user refact"
+SOLUCIÓN:
+  - Verificar password: FF)-BQk2
+  - Verificar que el usuario existe
+  - Verificar permisos del usuario
+
+
+PROBLEMA: "relation ta_11_kilowhatts does not exist"
+SOLUCIÓN:
+  - Ejecutar: SELECT schemaname, tablename FROM pg_tables
+              WHERE tablename = 'ta_11_kilowhatts';
+  - Verificar el esquema correcto
+  - Modificar los SPs si la tabla está en otro esquema
+
+
+PROBLEMA: "permission denied for schema public"
+SOLUCIÓN:
+  - El usuario 'refact' necesita permisos en el esquema public
+  - Ejecutar como superusuario:
+    GRANT CREATE, USAGE ON SCHEMA public TO refact;
+
+
+================================================================================
+CONTACTO Y SOPORTE
+================================================================================
+
+Para más información, revisar:
+  - INFORME_CUOTAS_ENERGIA_MANTENIMIENTO.md (Documentación detallada)
+  - RESUMEN_CUOTAS_ENERGIA_SP.txt (Resumen con ejemplos)
+
+Archivos generados por: Claude Code
+Fecha: 2025-12-03
+
+================================================================================

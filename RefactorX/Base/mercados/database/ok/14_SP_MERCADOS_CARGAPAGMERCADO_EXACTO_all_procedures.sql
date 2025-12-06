@@ -28,7 +28,7 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     SELECT oficina, num_mercado_nvo, categoria, descripcion, cuenta_ingreso
-    FROM public.ta_11_mercados
+    FROM padron_licencias.comun.ta_11_mercados
     WHERE oficina = p_oficina
     ORDER BY num_mercado_nvo;
 END;
@@ -66,9 +66,9 @@ BEGIN
     RETURN QUERY
     SELECT c.id_local, c.oficina, c.num_mercado, c.categoria, c.seccion, c.local, c.letra_local, c.bloque,
            a.axo, a.periodo, a.importe, a.fecha_alta, b.usuario
-    FROM public.ta_11_adeudo_local a
-    JOIN public.ta_12_passwords b ON a.id_usuario = b.id_usuario
-    JOIN public.ta_11_locales c ON a.id_local = c.id_local
+    FROM padron_licencias.comun.ta_11_adeudo_local a
+    JOIN padron_licencias.comun.ta_12_passwords b ON a.id_usuario = b.id_usuario
+    JOIN padron_licencias.comun.ta_11_locales c ON a.id_local = c.id_local
     WHERE c.oficina = p_oficina
       AND c.num_mercado = p_mercado
       AND c.categoria = p_categoria
@@ -103,8 +103,8 @@ CREATE OR REPLACE FUNCTION sp_get_ingreso_operacion(
 BEGIN
     RETURN QUERY
     SELECT b.num_mercado_nvo, b.cuenta_ingreso, a.cta_aplicacion, COALESCE(SUM(a.importe_cta),0) ingreso
-    FROM public.ta_12_importes a
-    JOIN public.ta_11_mercados b ON b.oficina = p_oficina_mercado AND b.num_mercado_nvo = p_mercado
+    FROM padron_licencias.comun.ta_12_importes a
+    JOIN padron_licencias.comun.ta_11_mercados b ON b.oficina = p_oficina_mercado AND b.num_mercado_nvo = p_mercado
     WHERE a.fecing = p_fecha_ingreso
       AND a.recing = p_oficina
       AND a.cajing = p_caja
@@ -133,8 +133,8 @@ CREATE OR REPLACE FUNCTION sp_get_captura_operacion(
 BEGIN
     RETURN QUERY
     SELECT COALESCE(SUM(a.importe_pago),0) capturado
-    FROM public.ta_11_pagos_local a
-    JOIN public.ta_11_locales b ON a.id_local = b.id_local
+    FROM padron_licencias.comun.ta_11_pagos_local a
+    JOIN padron_licencias.comun.ta_11_locales b ON a.id_local = b.id_local
     WHERE EXTRACT(MONTH FROM a.fecha_pago) = EXTRACT(MONTH FROM p_fecha_pago)
       AND a.oficina_pago = p_oficina
       AND a.caja_pago = p_caja
@@ -182,12 +182,12 @@ BEGIN
         IF v_partida IS NULL OR v_partida = '' OR v_partida = '0' THEN
             CONTINUE;
         END IF;
-        INSERT INTO public.ta_11_pagos_local (
+        INSERT INTO padron_licencias.comun.ta_11_pagos_local (
             id_pago_local, id_local, axo, periodo, fecha_pago, oficina_pago, caja_pago, operacion_pago, importe_pago, folio, fecha_modificacion, id_usuario
         ) VALUES (
             DEFAULT, v_id_local, v_axo, v_periodo, p_fecha_pago, p_oficina, p_caja, p_operacion, v_importe, v_partida, NOW(), p_usuario
         );
-        DELETE FROM public.ta_11_adeudo_local WHERE id_local = v_id_local AND axo = v_axo AND periodo = v_periodo;
+        DELETE FROM padron_licencias.comun.ta_11_adeudo_local WHERE id_local = v_id_local AND axo = v_axo AND periodo = v_periodo;
     END LOOP;
     RETURN QUERY SELECT 'OK', 'Pagos cargados correctamente';
 END;
@@ -206,7 +206,7 @@ CREATE OR REPLACE FUNCTION sp_delete_adeudo_local(
     p_periodo smallint
 ) RETURNS TABLE(status text, message text) AS $$
 BEGIN
-    DELETE FROM public.ta_11_adeudo_local WHERE id_local = p_id_local AND axo = p_axo AND periodo = p_periodo;
+    DELETE FROM padron_licencias.comun.ta_11_adeudo_local WHERE id_local = p_id_local AND axo = p_axo AND periodo = p_periodo;
     RETURN QUERY SELECT 'OK', 'Adeudo eliminado';
 END;
 $$ LANGUAGE plpgsql;

@@ -3,7 +3,7 @@
 -- ESQUEMA: public
 -- ============================================
 \c padron_licencias;
-SET search_path TO public;
+SET search_path TO public, comun;
 
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
@@ -22,7 +22,7 @@ RETURNS TABLE(id_usuario integer, usuario text, nombre text) AS $$
 BEGIN
   RETURN QUERY
     SELECT a.id_usuario, a.usuario, a.nombre
-    FROM public.ta_12_passwords a
+    FROM comun.ta_12_passwords a
     JOIN public.ta_autoriza b ON b.id_usuario = a.id_usuario
     WHERE a.id_rec = p_oficina
       AND a.estado = 'A'
@@ -53,7 +53,7 @@ RETURNS TABLE(
 BEGIN
   RETURN QUERY
     SELECT fecha_ingreso, oficina, autorizar, fecha_limite, id_usupermiso, comentarios, id_usuario, actualizacion
-    FROM public.ta_11_autcargapag
+    FROM mercados.public.ta_11_autcargapag
     WHERE fecha_ingreso = p_fecha;
 END;
 $$ LANGUAGE plpgsql;
@@ -76,7 +76,7 @@ CREATE OR REPLACE FUNCTION sp_insert_autcargapag(
   p_actualizacion timestamp
 ) RETURNS TABLE(result text) AS $$
 BEGIN
-  INSERT INTO public.ta_11_autcargapag (
+  INSERT INTO mercados.public.ta_11_autcargapag (
     fecha_ingreso, oficina, autorizar, fecha_limite, id_usupermiso, comentarios, id_usuario, actualizacion
   ) VALUES (
     p_fecha_ingreso, p_oficina, p_autorizar, p_fecha_limite, p_id_usupermiso, p_comentarios, p_id_usuario, p_actualizacion
@@ -103,7 +103,7 @@ CREATE OR REPLACE FUNCTION sp_update_autcargapag(
   p_actualizacion timestamp
 ) RETURNS TABLE(result text) AS $$
 BEGIN
-  UPDATE public.ta_11_autcargapag
+  UPDATE mercados.public.ta_11_autcargapag
   SET autorizar = p_autorizar,
       fecha_limite = p_fecha_limite,
       id_usupermiso = p_id_usupermiso,
@@ -137,8 +137,8 @@ RETURNS TABLE(
 BEGIN
   RETURN QUERY
     SELECT a.fecha_ingreso, a.oficina, a.autorizar, a.fecha_limite, a.id_usupermiso, a.comentarios, a.id_usuario, a.actualizacion, b.nombre
-    FROM public.ta_11_autcargapag a
-    JOIN public.ta_12_passwords b ON b.id_usuario = a.id_usupermiso
+    FROM mercados.public.ta_11_autcargapag a
+    JOIN comun.ta_12_passwords b ON b.id_usuario = a.id_usupermiso
     WHERE a.oficina = p_oficina
     ORDER BY a.fecha_ingreso DESC;
 END;

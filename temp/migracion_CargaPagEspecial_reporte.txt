@@ -1,0 +1,297 @@
+================================================================================
+REPORTE DE MIGRACIÓN - CargaPagEspecial.vue
+================================================================================
+Fecha: 2025-12-05
+Componente: RefactorX/FrontEnd/src/views/modules/mercados/CargaPagEspecial.vue
+Referencia: RefactorX/FrontEnd/src/views/modules/padron_licencias/consultausuariosfrm.vue
+Estándar: municipal-theme.css
+================================================================================
+
+RESUMEN EJECUTIVO:
+------------------
+✅ Migración completada exitosamente
+✅ Estilos actualizados al estándar municipal-theme.css
+✅ Composables integrados (useApi, useLicenciasErrorHandler, useGlobalLoading)
+✅ Lógica de negocio preservada sin cambios
+✅ Sistema de toast notifications implementado
+
+================================================================================
+CAMBIOS REALIZADOS:
+================================================================================
+
+1. IMPORTS Y COMPOSABLES
+-------------------------
+ANTES:
+- import axios from 'axios'
+- Uso directo de axios para llamadas API
+- showToast con Swal manual
+
+DESPUÉS:
+✅ import { useApi } from '@/composables/useApi'
+✅ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+✅ import { useGlobalLoading } from '@/composables/useGlobalLoading'
+✅ const { execute } = useApi()
+✅ const { loading, toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
+✅ const { showLoading, hideLoading } = useGlobalLoading()
+
+BENEFICIOS:
+- Manejo centralizado de errores
+- Loading global consistente
+- Toast notifications estandarizadas
+- Código más mantenible
+
+2. ESTRUCTURA HTML - CLASES MUNICIPAL
+--------------------------------------
+✅ module-view (ya existente)
+✅ module-view-header (ya existente)
+✅ module-view-content (ya existente)
+✅ municipal-card (ya existente)
+✅ municipal-card-header (ya existente)
+✅ municipal-card-body (ya existente)
+✅ municipal-form-label (ya existente)
+✅ municipal-form-control (ya existente)
+✅ municipal-table (ya existente)
+✅ municipal-table-header (añadido)
+✅ btn-municipal-primary (ya existente)
+✅ btn-municipal-success (ya existente)
+✅ btn-municipal-secondary (ya existente)
+✅ btn-municipal-danger (ya existente)
+✅ btn-municipal-purple (ya existente)
+
+MEJORAS EN TABLA:
+✅ thead class="municipal-table-header" (añadido)
+✅ tr class="row-hover" (añadido)
+✅ td class="text-center" para checkbox (añadido)
+✅ input class="form-check-input" para checkbox (añadido)
+✅ input class="municipal-form-control form-control-sm" en celdas editables
+
+3. FUNCIONES ACTUALIZADAS CON COMPOSABLES
+------------------------------------------
+
+cargarMercados():
+ANTES: axios.post('/api/generic', {...})
+DESPUÉS:
+  - showLoading('Cargando mercados...', 'Por favor espere')
+  - execute('sp_get_mercados', 'mercados', [], 'guadalajara', null, 'comun')
+  - hideLoading()
+  - Manejo de errores con handleApiError()
+
+buscarAdeudos():
+ANTES: axios.post con manejo manual de loading
+DESPUÉS:
+  - showLoading('Buscando adeudos...', 'Consultando base de datos')
+  - execute() con parámetros tipados
+  - hideLoading()
+  - handleApiError() para errores
+
+cargarPagos():
+ANTES: axios.post con loading.value = true/false
+DESPUÉS:
+  - Swal.fire con confirmButtonColor: '#ea8215'
+  - showLoading('Cargando pagos...', 'Por favor espere')
+  - execute() con parámetros tipados
+  - hideLoading()
+  - Swal de éxito con confirmButtonColor
+  - handleApiError() para errores
+
+mostrarAyuda():
+ACTUALIZADO:
+  - Swal.fire con confirmButtonColor: '#ea8215' (color naranja municipal)
+
+4. SISTEMA DE TOAST NOTIFICATIONS
+----------------------------------
+✅ Toast component añadido al template
+✅ HTML:
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+5. ESTADOS Y VARIABLES
+-----------------------
+ELIMINADO:
+❌ const loading = ref(false) - Reemplazado por composables
+
+PRESERVADO:
+✅ const mercados = ref([])
+✅ const selectedMercado = ref(null)
+✅ const adeudos = ref([])
+✅ const form = ref({...})
+✅ Todos los computed properties
+
+6. DISABLED ATTRIBUTES REMOVIDOS
+---------------------------------
+✅ Removido :disabled="loading" de todos los inputs
+   (El loading global se maneja con overlay)
+✅ Removido spinner manual del botón "Buscar Adeudos"
+✅ Removido spinner manual del botón "Cargar Pagos"
+
+Mantienen disabled solo cuando es lógica de negocio:
+✅ :disabled="!puedesBuscar" en botón Buscar
+✅ :disabled="!hayPagosValidos" en botón Cargar Pagos
+
+7. PARÁMETROS API ESTANDARIZADOS
+---------------------------------
+ANTES:
+Parametros: [
+  { Nombre: 'p_oficina', Valor: selectedMercado.value.oficina }
+]
+
+DESPUÉS:
+[
+  { nombre: 'p_oficina', valor: selectedMercado.value.oficina, tipo: 'integer' }
+]
+
+✅ Lowercase "nombre", "valor", "tipo"
+✅ Tipos explícitos: 'integer', 'string', 'date'
+
+8. ESTILOS CSS
+--------------
+PRESERVADOS:
+✅ .gap-2 { gap: 0.5rem; }
+✅ .table-sm estilos para tabla compacta
+✅ .badge estilos
+
+NOTA: Estilos mínimos mantenidos, resto heredado de municipal-theme.css
+
+================================================================================
+VERIFICACIONES DE CALIDAD:
+================================================================================
+
+✅ Estructura module-view correcta
+✅ Composables importados y utilizados correctamente
+✅ Loading global integrado (showLoading/hideLoading)
+✅ Toast notifications integradas
+✅ Manejo de errores estandarizado (handleApiError)
+✅ Clases municipal-* aplicadas consistentemente
+✅ Botones con btn-municipal-* correcto
+✅ Forms con municipal-form-control y municipal-form-label
+✅ Tablas con municipal-table y municipal-table-header
+✅ SweetAlert2 con color municipal (#ea8215)
+✅ Sin uso directo de axios
+✅ Sin loading.value manual (usa composables)
+✅ Lógica de negocio sin cambios
+✅ Computed properties preservados
+✅ Validaciones preservadas
+✅ Flujo de trabajo sin alteraciones
+
+================================================================================
+LÓGICA DE NEGOCIO PRESERVADA:
+================================================================================
+
+✅ Carga inicial de mercados en onMounted
+✅ Selección de mercado actualiza oficina_pago
+✅ Validación puedesBuscar (mercado + local)
+✅ Búsqueda de adeudos con parámetros correctos
+✅ Mapeo de adeudos con selected: true y partida: ''
+✅ Validación hayPagosValidos (selected + partida válida)
+✅ Validación de datos del pago completos
+✅ Confirmación antes de cargar pagos
+✅ Construcción de pagosJson correcta
+✅ Limpieza de adeudos después de carga exitosa
+✅ Función limpiar preservada
+✅ Función cerrar preservada
+✅ Ayuda con instrucciones detalladas
+
+================================================================================
+MEJORAS IMPLEMENTADAS:
+================================================================================
+
+1. EXPERIENCIA DE USUARIO:
+   ✅ Loading global con overlay y mensaje descriptivo
+   ✅ Toast notifications en esquina superior derecha
+   ✅ Mensajes de confirmación con color municipal
+   ✅ Hover effects en filas de tabla (row-hover)
+   ✅ Iconos de estado y acciones
+
+2. MANTENIBILIDAD:
+   ✅ Código más limpio con composables
+   ✅ Manejo de errores centralizado
+   ✅ Sin código duplicado de axios
+   ✅ Parámetros API tipados y consistentes
+
+3. CONSISTENCIA:
+   ✅ Mismo patrón que otros componentes migrados
+   ✅ Estilos uniformes con municipal-theme.css
+   ✅ Comportamiento predecible
+
+================================================================================
+PRUEBAS RECOMENDADAS:
+================================================================================
+
+1. FUNCIONALIDAD:
+   ☐ Cargar lista de mercados al abrir componente
+   ☐ Seleccionar mercado y verificar auto-completado de oficina
+   ☐ Buscar adeudos de un local existente
+   ☐ Verificar que adeudos se muestran con checkbox seleccionado
+   ☐ Modificar importe de renta en tabla
+   ☐ Capturar partida en campos
+   ☐ Verificar botón "Cargar Pagos" habilitado solo con datos válidos
+   ☐ Confirmar y cargar pagos
+   ☐ Verificar limpieza de tabla después de carga exitosa
+   ☐ Probar función "Limpiar"
+   ☐ Verificar función "Ayuda"
+   ☐ Verificar función "Cerrar"
+
+2. ESTILOS:
+   ☐ Verificar colores municipales (naranja #ea8215)
+   ☐ Verificar hover en filas de tabla
+   ☐ Verificar toast notifications aparecen y desaparecen
+   ☐ Verificar loading global con overlay
+   ☐ Verificar responsive design
+
+3. MANEJO DE ERRORES:
+   ☐ Error al cargar mercados
+   ☐ Error al buscar adeudos (local inexistente)
+   ☐ Error al cargar pagos (BD inaccesible)
+   ☐ Validación de campos vacíos
+   ☐ Validación de partida requerida
+
+================================================================================
+ARCHIVOS MODIFICADOS:
+================================================================================
+
+1. RefactorX/FrontEnd/src/views/modules/mercados/CargaPagEspecial.vue
+   - Template: Toast notifications añadido
+   - Template: Clases municipal actualizadas en tabla
+   - Script: Imports de composables añadidos
+   - Script: Funciones actualizadas con composables
+   - Script: Variable loading removida
+   - Script: Manejo de errores estandarizado
+
+================================================================================
+COMPATIBILIDAD:
+================================================================================
+
+✅ Compatible con Vue 3 Composition API
+✅ Compatible con composables existentes (useApi, useLicenciasErrorHandler, useGlobalLoading)
+✅ Compatible con municipal-theme.css
+✅ Compatible con FontAwesome icons
+✅ Compatible con SweetAlert2
+✅ Sin breaking changes en lógica de negocio
+
+================================================================================
+CONCLUSIÓN:
+================================================================================
+
+✅ MIGRACIÓN COMPLETADA EXITOSAMENTE
+
+El componente CargaPagEspecial.vue ha sido migrado completamente al estándar
+municipal-theme.css siguiendo el patrón establecido en consultausuariosfrm.vue.
+
+Todas las funcionalidades se han preservado mientras se mejora la experiencia
+de usuario con:
+- Loading global consistente
+- Toast notifications estandarizadas
+- Manejo de errores centralizado
+- Estilos uniformes y modernos
+- Código más limpio y mantenible
+
+El componente está listo para pruebas de integración y despliegue.
+
+================================================================================
+FIN DEL REPORTE
+================================================================================

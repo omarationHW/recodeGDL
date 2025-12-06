@@ -133,7 +133,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, idx) in resultados" :key="idx" class="row-hover">
+                <tr v-for="(row, idx) in paginatedResultados" :key="idx" class="row-hover">
                   <td v-for="col in columnas" :key="col">
                     <span v-if="isNumericColumn(col) && col.includes('adeudo')">
                       {{ formatCurrency(row[col]) }}
@@ -143,6 +143,31 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Paginación -->
+          <div v-if="resultados.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+            </div>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="prevPage" :disabled="currentPage === 1" class="btn-municipal-secondary btn-sm">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary btn-sm">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
           </div>
 
           <!-- Sin resultados -->
@@ -166,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 
 // Estado
@@ -180,6 +205,10 @@ const filtros = ref({
 })
 const resultados = ref([])
 const columnas = ref([])
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Toast
 const toast = ref({
@@ -213,6 +242,45 @@ const getToastIcon = (type) => {
   }
   return icons[type] || 'info-circle'
 }
+
+// Computed para paginación
+const paginatedResultados = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return resultados.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(resultados.value.length / itemsPerPage.value)
+})
+
+const paginationStart = computed(() => {
+  return resultados.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const paginationEnd = computed(() => {
+  const end = currentPage.value * itemsPerPage.value
+  return end > resultados.value.length ? resultados.value.length : end
+})
+
+const totalItems = computed(() => resultados.value.length)
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+// Reset página al cambiar datos
+watch(resultados, () => {
+  currentPage.value = 1
+})
 
 const mostrarAyuda = () => {
   showToast('info', 'Seleccione el tipo de estadística y los parámetros para consultar adeudos de locales')

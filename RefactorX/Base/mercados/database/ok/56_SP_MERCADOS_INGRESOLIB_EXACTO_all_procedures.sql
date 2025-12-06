@@ -1,8 +1,8 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -27,7 +27,7 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT oficina, num_mercado_nvo, descripcion, cuenta_ingreso
-    FROM public.ta_11_mercados
+    FROM padron_licencias.comun.ta_11_mercados
     WHERE tipo_emision = 'D'
     ORDER BY num_mercado_nvo;
 END;
@@ -49,9 +49,9 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT b.fecha_pago, b.caja_pago, COUNT(*) AS pagos, SUM(b.importe_pago) AS importe
-    FROM public.ta_11_locales a
-    JOIN public.ta_11_pagos_local b ON a.id_local = b.id_local
+    SELECT b.fecha_pago, b.caja_pago, CAST(COUNT(*) AS INTEGER) AS pagos, SUM(b.importe_pago) AS importe
+    FROM padron_licencias.comun.ta_11_locales a
+    JOIN padron_licencias.comun.ta_11_pagos_local b ON a.id_local = b.id_local
     WHERE a.num_mercado = p_mercado
       AND EXTRACT(MONTH FROM b.fecha_pago) = p_mes
       AND EXTRACT(YEAR FROM b.fecha_pago) = p_anio
@@ -75,9 +75,9 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT b.caja_pago, COUNT(*) AS pagos, SUM(b.importe_pago) AS importe
-    FROM public.ta_11_locales a
-    JOIN public.ta_11_pagos_local b ON a.id_local = b.id_local
+    SELECT b.caja_pago, CAST(COUNT(*) AS INTEGER) AS pagos, SUM(b.importe_pago) AS importe
+    FROM padron_licencias.comun.ta_11_locales a
+    JOIN padron_licencias.comun.ta_11_pagos_local b ON a.id_local = b.id_local
     WHERE a.num_mercado = p_mercado
       AND EXTRACT(MONTH FROM b.fecha_pago) = p_mes
       AND EXTRACT(YEAR FROM b.fecha_pago) = p_anio
@@ -100,9 +100,9 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT COUNT(*) AS total_pagos, COALESCE(SUM(b.importe_pago),0) AS total_importe
-    FROM public.ta_11_locales a
-    JOIN public.ta_11_pagos_local b ON a.id_local = b.id_local
+    SELECT CAST(COUNT(*) AS INTEGER) AS total_pagos, COALESCE(SUM(b.importe_pago),0) AS total_importe
+    FROM padron_licencias.comun.ta_11_locales a
+    JOIN padron_licencias.comun.ta_11_pagos_local b ON a.id_local = b.id_local
     WHERE a.num_mercado = p_mercado
       AND EXTRACT(MONTH FROM b.fecha_pago) = p_mes
       AND EXTRACT(YEAR FROM b.fecha_pago) = p_anio;

@@ -1,0 +1,75 @@
+{
+    "fecha": "2025-12-03 18:25:01",
+    "total": 11,
+    "exitosos": 7,
+    "errores": 4,
+    "porcentaje": 63.64,
+    "resultados": [
+        {
+            "archivo": "RptAdeEnergiaGrl_sp_get_ade_energia_grl_CORREGIDO.sql",
+            "sp": "sp_get_ade_energia_grl",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptAdeudosEnergia_CORREGIDO.sql",
+            "sp": "rpt_adeudos_energia",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  loop variable of loop over rows must be a record variable or list of scalar variables\nLINE 52:         FOR m IN SELECT periodo, importe FROM mercados.publi...\n                     ^"
+        },
+        {
+            "archivo": "RptAdeudosLocales_CORREGIDO.sql",
+            "sp": "sp_get_adeudos_locales",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  cannot change return type of existing function\nDETAIL:  Row type defined by OUT parameters is different.\nHINT:  Use DROP FUNCTION sp_get_adeudos_locales(integer,integer,integer) first."
+        },
+        {
+            "archivo": "RptCaratulaDatos_CORREGIDO.sql",
+            "sp": "sp_get_locales_by_id",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptCaratulaEnergia_CORREGIDO.sql",
+            "sp": "sp_get_energia_caratula",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptCuentaPublica_CORREGIDO.sql",
+            "sp": "rpt_cuenta_publica",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  type serial does not exist"
+        },
+        {
+            "archivo": "RptEmisionEnergia_CORREGIDO.sql",
+            "sp": "sp_rpt_emision_energia",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEmisionLaser_CORREGIDO.sql",
+            "sp": "sp_rpt_emision_laser",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEmisionRbosAbastos_sp_get_recargos_mes_abastos_CORREGIDO.sql",
+            "sp": "sp_get_recargos_mes_abastos",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEmisionRbosAbastos_sp_get_requerimientos_abastos_CORREGIDO.sql",
+            "sp": "sp_get_requerimientos_abastos",
+            "estado": "OK",
+            "mensaje": "Desplegado exitosamente"
+        },
+        {
+            "archivo": "RptEmisionRbosAbastos_sp_rpt_emision_rbos_abastos_CORREGIDO.sql",
+            "sp": "sp_rpt_emision_rbos_abastos",
+            "estado": "ERROR",
+            "mensaje": "ERROR:  loop variable of loop over rows must be a record variable or list of scalar variables\nLINE 77:         FOR m IN SELECT periodo, importe, axo FROM padron_li...\n                     ^"
+        }
+    ]
+}

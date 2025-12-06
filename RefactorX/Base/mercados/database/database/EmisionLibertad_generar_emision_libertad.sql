@@ -4,52 +4,54 @@
 -- Generado para formulario: EmisionLibertad
 -- Fecha: 2025-08-26 23:51:55
 
+DROP FUNCTION IF EXISTS generar_emision_libertad(SMALLINT, JSON, SMALLINT, SMALLINT, INTEGER);
+
 CREATE OR REPLACE FUNCTION generar_emision_libertad(
-  p_oficina INT,
+  p_oficina SMALLINT,
   p_mercados JSON,
-  p_axo INT,
-  p_periodo INT,
-  p_usuario_id INT
+  p_axo SMALLINT,
+  p_periodo SMALLINT,
+  p_usuario_id INTEGER
 ) RETURNS TABLE(
-  id_local INT,
-  nombre TEXT,
-  descripcion TEXT,
-  descripcion_local TEXT,
-  oficina INT,
-  num_mercado INT,
-  categoria INT,
-  seccion TEXT,
-  local INT,
-  letra_local TEXT,
-  bloque TEXT,
-  renta NUMERIC,
-  descuento NUMERIC,
-  adeudos NUMERIC,
-  recargos NUMERIC,
-  subtotal NUMERIC,
-  multas NUMERIC,
-  gastos NUMERIC,
+  id_local INTEGER,
+  nombre VARCHAR(60),
+  descripcion VARCHAR(30),
+  descripcion_local CHAR(20),
+  oficina SMALLINT,
+  num_mercado SMALLINT,
+  categoria SMALLINT,
+  seccion CHAR(2),
+  local INTEGER,
+  letra_local VARCHAR(3),
+  bloque VARCHAR(2),
+  renta NUMERIC(16,2),
+  descuento NUMERIC(16,2),
+  adeudos NUMERIC(16,2),
+  recargos NUMERIC(16,2),
+  subtotal NUMERIC(16,2),
+  multas NUMERIC(16,2),
+  gastos NUMERIC(16,2),
   folios TEXT
 ) AS $$
 DECLARE
-  mercado_ids INT[];
+  mercado_ids SMALLINT[];
   rec RECORD;
   meses TEXT;
   folios_req TEXT;
-  total_adeudos NUMERIC;
-  total_recargos NUMERIC;
-  total_multas NUMERIC;
-  total_gastos NUMERIC;
-  subtotal NUMERIC;
-  renta NUMERIC;
-  descuento NUMERIC;
+  total_adeudos NUMERIC(16,2);
+  total_recargos NUMERIC(16,2);
+  total_multas NUMERIC(16,2);
+  total_gastos NUMERIC(16,2);
+  subtotal NUMERIC(16,2);
+  renta NUMERIC(16,2);
+  descuento NUMERIC(16,2);
 BEGIN
-  SELECT ARRAY(SELECT json_array_elements_text(p_mercados)::INT) INTO mercado_ids;
+  SELECT ARRAY(SELECT json_array_elements_text(p_mercados)::SMALLINT) INTO mercado_ids;
   FOR rec IN
     SELECT a.*, b.descripcion as mercado_desc, c.importe_cuota, c.clave_cuota, c.seccion as cuo_seccion
-    FROM ta_11_locales a
-    JOIN ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
-    JOIN ta_11_cuo_locales c ON a.categoria = c.categoria AND a.seccion = c.seccion AND a.clave_cuota = c.clave_cuota AND c.axo = p_axo
+    FROM publico.ta_11_locales a
+    LEFT JOIN public.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
+    JOIN publico.ta_11_cuo_locales c ON a.categoria = c.categoria AND a.seccion = c.seccion AND a.clave_cuota = c.clave_cuota AND c.axo = p_axo
     WHERE a.oficina = p_oficina
       AND a.num_mercado = ANY(mercado_ids)
       AND a.vigencia = 'A'
@@ -68,22 +70,38 @@ BEGIN
     END IF;
     descuento := round(renta * 0.90, 2);
     -- Adeudos y recargos
-    SELECT COALESCE(SUM(importe),0), COALESCE(SUM(recargos),0)
+    SELECT COALESCE(SUM(ade.importe),0),
+           COALESCE(SUM(ade.importe * COALESCE((SELECT SUM(r.porcentaje_mes) FROM publico.ta_12_recargos r WHERE r.axo = ade.axo AND r.mes >= ade.periodo),0)/100), 0)
       INTO total_adeudos, total_recargos
-      FROM ta_11_adeudo_local
-      WHERE id_local = rec.id_local
-        AND (axo < p_axo OR (axo = p_axo AND periodo < p_periodo));
+      FROM publico.ta_11_adeudo_local ade
+      WHERE ade.id_local = rec.id_local
+        AND (ade.axo < p_axo OR (ade.axo = p_axo AND ade.periodo < p_periodo));
     -- Multas y gastos (requerimientos)
-    SELECT string_agg(folio::TEXT, ','), COALESCE(SUM(importe_multa),0), COALESCE(SUM(importe_gastos),0)
+    SELECT string_agg(req.folio::TEXT, ','), COALESCE(SUM(req.importe_multa),0), COALESCE(SUM(req.importe_gastos),0)
       INTO folios_req, total_multas, total_gastos
-      FROM ta_15_apremios
-      WHERE modulo = 11 AND control_otr = rec.id_local AND vigencia = '1' AND clave_practicado = 'P';
+      FROM publico.ta_15_apremios req
+      WHERE req.modulo = 11 AND req.control_otr = rec.id_local AND req.vigencia = '1' AND req.clave_practicado = 'P';
     subtotal := total_adeudos + total_recargos;
-    meses := (SELECT string_agg(periodo::TEXT, ',') FROM ta_11_adeudo_local WHERE id_local = rec.id_local AND (axo < p_axo OR (axo = p_axo AND periodo < p_periodo)));
-    RETURN NEXT (
-      rec.id_local, rec.nombre, rec.mercado_desc, rec.descripcion_local, rec.oficina, rec.num_mercado, rec.categoria, rec.seccion, rec.local, rec.letra_local, rec.bloque,
-      renta, descuento, total_adeudos, total_recargos, subtotal, total_multas, total_gastos, folios_req
-    );
+    meses := (SELECT string_agg(ade2.periodo::TEXT, ',') FROM publico.ta_11_adeudo_local ade2 WHERE ade2.id_local = rec.id_local AND (ade2.axo < p_axo OR (ade2.axo = p_axo AND ade2.periodo < p_periodo)));
+
+    id_local := rec.id_local;
+    nombre := rec.nombre;
+    descripcion := rec.mercado_desc;
+    descripcion_local := rec.descripcion_local;
+    oficina := rec.oficina;
+    num_mercado := rec.num_mercado;
+    categoria := rec.categoria;
+    seccion := rec.seccion;
+    local := rec.local;
+    letra_local := rec.letra_local;
+    bloque := rec.bloque;
+    adeudos := total_adeudos;
+    recargos := total_recargos;
+    multas := total_multas;
+    gastos := total_gastos;
+    folios := folios_req;
+
+    RETURN NEXT;
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;

@@ -147,7 +147,7 @@
                     <p>No se encontraron adeudos condonados con los criterios especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in adeudos" :key="index" class="row-hover">
+                <tr v-else v-for="(row, index) in paginatedAdeudos" :key="index" class="row-hover">
                   <td>{{ row.oficina }}</td>
                   <td>{{ row.num_mercado }}</td>
                   <td>{{ row.categoria }}</td>
@@ -168,6 +168,31 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div v-if="adeudos.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+            </div>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="prevPage" :disabled="currentPage === 1" class="btn-municipal-secondary btn-sm">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary btn-sm">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -184,7 +209,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 
 // Estado
@@ -200,6 +225,10 @@ const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
 
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
 // Toast
 const toast = ref({
   show: false,
@@ -211,6 +240,44 @@ const toast = ref({
 const mercadosFiltrados = computed(() => {
   if (!selectedOficina.value) return []
   return mercados.value.filter(m => m.oficina === selectedOficina.value)
+})
+
+const paginatedAdeudos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return adeudos.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(adeudos.value.length / itemsPerPage.value)
+})
+
+const paginationStart = computed(() => {
+  return adeudos.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const paginationEnd = computed(() => {
+  const end = currentPage.value * itemsPerPage.value
+  return end > adeudos.value.length ? adeudos.value.length : end
+})
+
+const totalItems = computed(() => adeudos.value.length)
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+// Reset página al cambiar datos
+watch(adeudos, () => {
+  currentPage.value = 1
 })
 
 // Métodos

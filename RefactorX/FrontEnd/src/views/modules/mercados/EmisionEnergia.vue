@@ -82,7 +82,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in emision" :key="row.id_energia" class="row-hover">
+                <tr v-for="row in paginatedEmision" :key="row.id_energia" class="row-hover">
                   <td><strong class="text-primary">{{ row.local }}</strong></td>
                   <td>{{ row.letra_local }}</td>
                   <td>{{ row.bloque }}</td>
@@ -94,6 +94,31 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Paginación -->
+          <div v-if="emision.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+            </div>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="prevPage" :disabled="currentPage === 1">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -115,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 
 const recaudadoras = ref([])
@@ -129,10 +154,53 @@ const loading = ref(false)
 const searched = ref(false)
 const toast = ref({ show: false, type: 'info', message: '' })
 
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
 const canExecute = computed(() => selectedRecaudadora.value && selectedMercado.value && axo.value && periodo.value)
 
 const totalEmision = computed(() => {
   return emision.value.reduce((sum, row) => sum + parseFloat(row.importe_energia || 0), 0)
+})
+
+// Computed para paginación
+const paginatedEmision = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return emision.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(emision.value.length / itemsPerPage.value)
+})
+
+const paginationStart = computed(() => {
+  return emision.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const paginationEnd = computed(() => {
+  const end = currentPage.value * itemsPerPage.value
+  return end > emision.value.length ? emision.value.length : end
+})
+
+const totalItems = computed(() => emision.value.length)
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+// Reset página al cambiar emision
+watch(emision, () => {
+  currentPage.value = 1
 })
 
 const showToast = (type, message) => {

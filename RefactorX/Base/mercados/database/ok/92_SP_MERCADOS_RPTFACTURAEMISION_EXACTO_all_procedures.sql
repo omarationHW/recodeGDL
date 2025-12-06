@@ -1,14 +1,14 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
--- ESQUEMA: public
+-- CONFIGURACIÓN BASE DE DATOS: mercados
+-- ESQUEMA: padron_licencias.comun, mercados.public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
 -- Formulario: RptFacturaEmision
--- Generado: 2025-08-27 01:04:38
+-- Corregido: 2025-12-04
 -- Total SPs: 2
 -- ============================================
 
@@ -43,7 +43,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         a.oficina,
         a.num_mercado,
         a.categoria,
@@ -62,26 +62,26 @@ BEGIN
             cast(a.categoria as varchar) || ' ' || a.seccion || ' ' ||
             cast(a.local as varchar) || ' ' || coalesce(a.letra_local,'') || ' ' || coalesce(a.bloque,'')
         ) as datoslocal,
-        CASE 
+        CASE
             WHEN a.seccion = 'PS' THEN
                 CASE WHEN a.clave_cuota = 4 THEN a.superficie * b.importe_cuota
                      ELSE (b.importe_cuota * a.superficie) * 30 END
             WHEN a.num_mercado = 214 THEN (a.superficie * b.importe_cuota) * (
-                SELECT sabadosacum FROM public.ta_11_fecha_desc WHERE mes = p_periodo LIMIT 1
+                SELECT sabadosacum FROM padron_licencias.comun.ta_11_fecha_desc WHERE mes = p_periodo LIMIT 1
             )
             ELSE a.superficie * b.importe_cuota
         END as importe
-    FROM public.ta_11_locales a
-    JOIN public.ta_11_mercados c ON a.oficina = c.oficina AND a.num_mercado = c.num_mercado_nvo
-    JOIN public.ta_12_recaudadoras d ON a.oficina = d.id_rec
-    JOIN public.ta_11_cuo_locales b ON b.axo = p_axo AND b.categoria = a.categoria AND b.seccion = a.seccion AND b.clave_cuota = a.clave_cuota
+    FROM padron_licencias.comun.ta_11_locales a
+    JOIN padron_licencias.comun.ta_11_mercados c ON a.oficina = c.oficina AND a.num_mercado = c.num_mercado_nvo
+    JOIN padron_licencias.comun.ta_12_recaudadoras d ON a.oficina = d.id_rec
+    JOIN mercados.public.ta_11_cuo_locales b ON b.axo = p_axo AND b.categoria = a.categoria AND b.seccion = a.seccion AND b.clave_cuota = a.clave_cuota
     WHERE a.oficina = p_oficina
       AND a.num_mercado BETWEEN (CASE WHEN p_opc = 1 THEN p_mercado ELSE 1 END) AND (CASE WHEN p_opc = 1 THEN p_mercado ELSE 119 END)
       AND c.tipo_emision <> 'B'
       AND a.vigencia = 'A'
       AND a.bloqueo < 4
       AND a.id_local NOT IN (
-        SELECT id_local FROM public.ta_11_pagos_local WHERE id_local = a.id_local AND axo = p_axo AND periodo = p_periodo
+        SELECT id_local FROM padron_licencias.comun.ta_11_pagos_local WHERE id_local = a.id_local AND axo = p_axo AND periodo = p_periodo
       )
     ORDER BY a.oficina, a.num_mercado, a.categoria, a.seccion, a.local, a.letra_local, a.bloque;
 END;
@@ -106,10 +106,9 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT mes, fecha_recargos, fecha_descuento, trimestre, sabados, sabadosacum
-    FROM public.ta_11_fecha_desc
+    FROM padron_licencias.comun.ta_11_fecha_desc
     WHERE mes = p_mes;
 END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
-

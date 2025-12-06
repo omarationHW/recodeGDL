@@ -1,8 +1,8 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -23,24 +23,24 @@ RETURNS TABLE (
     oficina smallint,
     num_mercado smallint,
     categoria smallint,
-    seccion varchar,
+    seccion char(2),
     local smallint,
-    letra_local varchar,
-    bloque varchar,
+    letra_local varchar(3),
+    bloque varchar(2),
     id_contribuy_prop integer,
     id_contribuy_renta integer,
-    nombre varchar,
-    arrendatario varchar,
-    domicilio varchar,
-    sector varchar,
+    nombre varchar(30),
+    arrendatario varchar(30),
+    domicilio varchar(70),
+    sector char(2),
     zona smallint,
-    descripcion_local varchar,
-    superficie float,
+    descripcion_local char(20),
+    superficie numeric,
     giro smallint,
     fecha_alta date,
     fecha_baja date,
     fecha_modificacion timestamp,
-    vigencia varchar,
+    vigencia char(1),
     id_usuario integer,
     clave_cuota smallint,
     id_pago_local integer,
@@ -49,17 +49,17 @@ RETURNS TABLE (
     periodo smallint,
     fecha_pago date,
     oficina_pago smallint,
-    caja_pago varchar,
+    caja_pago char(2),
     operacion_pago integer,
     importe_pago numeric,
-    folio varchar,
+    folio varchar(20),
     fecha_modificacion_1 timestamp,
-    usuario varchar
+    usuario varchar(50)
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        a.id_local,
+        b.id_local,
         b.oficina,
         b.num_mercado,
         b.categoria,
@@ -95,9 +95,9 @@ BEGIN
         a.folio,
         a.fecha_modificacion as fecha_modificacion_1,
         u.usuario
-    FROM public.ta_11_pagos_local a
-    JOIN public.ta_11_locales b ON a.id_local = b.id_local
-    LEFT JOIN public.ta_12_passwords u ON a.id_usuario = u.id_usuario
+    FROM public.ta_11_pago_local a
+    JOIN public.ta_11_localpaso b ON a.id_local = b.id_local
+    LEFT JOIN public.usuarios u ON a.id_usuario = u.id
     WHERE a.id_local = p_id_local AND a.axo = p_axo AND a.periodo = p_periodo
     LIMIT 1;
 END;
@@ -115,7 +115,7 @@ RETURNS TABLE (
     oficina smallint,
     num_mercado_nvo smallint,
     categoria smallint,
-    descripcion varchar,
+    descripcion varchar(35),
     cuenta_ingreso integer,
     cuenta_energia integer
 ) AS $$
@@ -137,17 +137,17 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION usuario_info_get(p_id_usuario integer)
 RETURNS TABLE (
-    id_usuario integer,
-    usuario varchar,
-    nombre varchar,
-    estado varchar,
-    id_rec smallint
+    id integer,
+    usuario varchar(50),
+    nombre varchar(100),
+    email varchar(100),
+    activo boolean
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_usuario, usuario, nombre, estado, id_rec
-    FROM public.ta_12_passwords
-    WHERE id_usuario = p_id_usuario
+    SELECT id, usuario, nombre, email, activo
+    FROM public.usuarios
+    WHERE id = p_id_usuario
     LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;

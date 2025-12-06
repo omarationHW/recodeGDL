@@ -27,38 +27,59 @@ CREATE OR REPLACE FUNCTION sp_localesmodif_buscar_local(
     p_bloque varchar
 ) RETURNS TABLE (
     id_local integer,
-    oficina integer,
-    num_mercado integer,
-    categoria integer,
-    seccion varchar,
-    local integer,
-    letra_local varchar,
-    bloque varchar,
-    nombre varchar,
-    domicilio varchar,
-    sector varchar,
-    zona integer,
-    descripcion_local varchar,
+    oficina smallint,
+    num_mercado smallint,
+    categoria smallint,
+    seccion char(2),
+    local smallint,
+    letra_local varchar(3),
+    bloque varchar(2),
+    nombre varchar(30),
+    domicilio varchar(70),
+    sector char(1),
+    zona smallint,
+    descripcion_local char(20),
     superficie numeric,
-    giro integer,
+    giro smallint,
     fecha_alta date,
     fecha_baja date,
-    vigencia varchar,
-    clave_cuota integer,
-    bloqueo integer,
+    vigencia char(1),
+    clave_cuota smallint,
+    bloqueo smallint,
     id_usuario integer
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id_local, oficina, num_mercado, categoria, seccion, local, letra_local, bloque, nombre, domicilio, sector, zona, descripcion_local, superficie, giro, fecha_alta, fecha_baja, vigencia, clave_cuota, bloqueo, id_usuario
-    FROM public.ta_11_locales
-    WHERE oficina = p_oficina
-      AND num_mercado = p_num_mercado
-      AND categoria = p_categoria
-      AND seccion = p_seccion
-      AND local = p_local
-      AND (letra_local = p_letra_local OR (letra_local IS NULL AND p_letra_local IS NULL))
-      AND (bloque = p_bloque OR (bloque IS NULL AND p_bloque IS NULL))
+    SELECT
+        l.id_local,
+        l.oficina,
+        l.num_mercado,
+        l.categoria,
+        l.seccion,
+        l.local,
+        l.letra_local,
+        l.bloque,
+        l.nombre,
+        l.domicilio,
+        l.sector,
+        l.zona,
+        l.descripcion_local,
+        l.superficie,
+        l.giro,
+        l.fecha_alta,
+        l.fecha_baja,
+        l.vigencia,
+        l.clave_cuota,
+        l.bloqueo,
+        l.id_usuario
+    FROM public.ta_11_localpaso l
+    WHERE l.oficina = p_oficina
+      AND l.num_mercado = p_num_mercado
+      AND l.categoria = p_categoria
+      AND l.seccion = p_seccion
+      AND l.local = p_local
+      AND (l.letra_local = p_letra_local OR (l.letra_local IS NULL AND p_letra_local IS NULL))
+      AND (l.bloque = p_bloque OR (l.bloque IS NULL AND p_bloque IS NULL))
     LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;
@@ -97,14 +118,14 @@ DECLARE
     v_msg text;
 BEGIN
     -- 1. Registrar movimiento
-    INSERT INTO public.ta_11_movimientos (
+    INSERT INTO comun.ta_11_movimientos (
         id_local, axo_memo, numero_memo, nombre, arrendatario, domicilio, sector, zona, drescripcion_local, superficie, giro, fecha_alta, fecha_baja, vigencia, clave_cuota, tipo_movimiento, fecha, id_usuario, bloqueo
     ) VALUES (
         p_id_local, EXTRACT(YEAR FROM p_fecha_alta)::integer, 0, p_nombre, NULL, p_domicilio, p_sector, p_zona, p_descripcion_local, p_superficie, p_giro, p_fecha_alta, p_fecha_baja, p_vigencia, p_clave_cuota, p_tipo_movimiento, now(), p_id_usuario, COALESCE(p_bloqueo,0)
     ) RETURNING id_movimiento INTO v_mov_id;
 
     -- 2. Actualizar local
-    UPDATE public.ta_11_locales SET
+    UPDATE comun.ta_11_locales SET
         nombre = p_nombre,
         domicilio = p_domicilio,
         sector = p_sector,
@@ -123,10 +144,10 @@ BEGIN
 
     -- 3. Bloqueo/desbloqueo
     IF p_tipo_movimiento = 12 THEN -- Bloquear
-        INSERT INTO public.ta_11_bloqueo (id_local, cve_bloqueo, fecha_inicio, fecha_final, observacion, id_usuario, fecha_actual)
+        INSERT INTO comun.ta_11_bloqueo (id_local, cve_bloqueo, fecha_inicio, fecha_final, observacion, id_usuario, fecha_actual)
         VALUES (p_id_local, p_cve_bloqueo, p_fecha_inicio_bloqueo, NULL, p_observacion, p_id_usuario, now());
     ELSIF p_tipo_movimiento = 13 THEN -- Desbloquear
-        UPDATE public.ta_11_bloqueo SET
+        UPDATE comun.ta_11_bloqueo SET
             fecha_final = p_fecha_final_bloqueo,
             observacion = p_observacion,
             id_usuario = p_id_usuario,

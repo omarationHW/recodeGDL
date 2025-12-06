@@ -1,0 +1,425 @@
+================================================================================
+  RESUMEN: STORED PROCEDURES - CUOTAS DE ENERGÍA MANTENIMIENTO
+================================================================================
+
+Fecha: 2025-12-03
+Base de datos: mercados @ 192.168.6.146:5432
+Tabla principal: public.ta_11_kilowhatts
+
+================================================================================
+  ARCHIVOS GENERADOS
+================================================================================
+
+1. 00_deploy_all_cuotas_energia.sql  <-- USAR ESTE PARA DESPLEGAR TODO
+2. 01_sp_list_cuotas_energia.sql     (Individual)
+3. 02_sp_insert_cuota_energia.sql    (Individual)
+4. 03_sp_update_cuota_energia.sql    (Individual)
+
+5. deploy_cuotas_energia.bat         (Script de deploy automático)
+6. test_cuotas_energia_psql.bat      (Script de pruebas)
+
+7. INFORME_CUOTAS_ENERGIA_MANTENIMIENTO.md  (Documentación completa)
+8. RESUMEN_CUOTAS_ENERGIA_SP.txt     (Este archivo)
+
+================================================================================
+  STORED PROCEDURES CREADOS
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. sp_list_cuotas_energia(p_axo, p_periodo)                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Propósito: Listar cuotas con filtros opcionales                            │
+│ Parámetros:                                                                 │
+│   - p_axo: INTEGER (NULL = todos)                                           │
+│   - p_periodo: INTEGER (NULL = todos)                                       │
+│ Retorna: id_kilowhatts, axo, periodo, importe, fecha_alta, id_usuario,     │
+│          usuario                                                            │
+│ Orden: axo DESC, periodo DESC                                               │
+│ Join: LEFT JOIN con usuarios                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Ejemplo:
+  SELECT * FROM public.sp_list_cuotas_energia(NULL, NULL);  -- Todas
+  SELECT * FROM public.sp_list_cuotas_energia(2024, NULL);  -- Año 2024
+  SELECT * FROM public.sp_list_cuotas_energia(2024, 6);     -- 2024/06
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. sp_insert_cuota_energia(p_axo, p_periodo, p_importe, p_id_usuario)      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Propósito: Insertar nueva cuota con validaciones                           │
+│ Parámetros:                                                                 │
+│   - p_axo: INTEGER (obligatorio)                                            │
+│   - p_periodo: INTEGER (obligatorio, 1-12)                                  │
+│   - p_importe: NUMERIC(18,6) (obligatorio, > 0)                             │
+│   - p_id_usuario: INTEGER (obligatorio)                                     │
+│ Retorna: success (BOOLEAN), message (TEXT), id_kilowhatts (INTEGER)        │
+│                                                                             │
+│ Validaciones:                                                               │
+│   ✓ Año no puede ser NULL                                                  │
+│   ✓ Periodo no puede ser NULL                                              │
+│   ✓ Importe debe ser > 0                                                   │
+│   ✓ ID usuario no puede ser NULL                                           │
+│   ✓ NO permite duplicados (axo + periodo único)                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Ejemplo:
+  SELECT * FROM public.sp_insert_cuota_energia(2025, 1, 155.75, 5);
+
+  Resultado éxito:
+    success | message                                   | id_kilowhatts
+    --------+-------------------------------------------+--------------
+    true    | Cuota de energía registrada correctamente |           46
+
+  Resultado error:
+    success | message                                                      | id_kilowhatts
+    --------+--------------------------------------------------------------+--------------
+    false   | Ya existe una cuota registrada para el año 2024 y periodo 1 | NULL
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. sp_update_cuota_energia(p_id_kilowhatts, p_importe, p_id_usuario)       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Propósito: Actualizar SOLO el importe de una cuota existente               │
+│ Parámetros:                                                                 │
+│   - p_id_kilowhatts: INTEGER (obligatorio)                                  │
+│   - p_importe: NUMERIC(18,6) (obligatorio, > 0)                             │
+│   - p_id_usuario: INTEGER (obligatorio)                                     │
+│ Retorna: success (BOOLEAN), message (TEXT)                                 │
+│                                                                             │
+│ Validaciones:                                                               │
+│   ✓ ID cuota no puede ser NULL                                             │
+│   ✓ Importe debe ser > 0                                                   │
+│   ✓ ID usuario no puede ser NULL                                           │
+│   ✓ Verifica que exista el registro                                        │
+│                                                                             │
+│ NOTA: NO modifica axo ni periodo, solo importe                             │
+│       Actualiza automáticamente fecha_alta e id_usuario                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Ejemplo:
+  SELECT * FROM public.sp_update_cuota_energia(45, 165.00, 5);
+
+  Resultado éxito:
+    success | message
+    --------+-------------------------------------------------------------------
+    true    | Cuota de energía actualizada correctamente (Año: 2024, Periodo: 12)
+
+  Resultado error:
+    success | message
+    --------+---------------------------------------
+    false   | No se encontró la cuota con ID 999999
+
+================================================================================
+  INSTRUCCIONES DE DEPLOY
+================================================================================
+
+MÉTODO 1: Usando psql (Recomendado)
+───────────────────────────────────────────────────────────────────────────────
+  cd C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp
+
+  psql -h 192.168.6.146 -p 5432 -U refact -d mercados ^
+       -f 00_deploy_all_cuotas_energia.sql
+
+  Password: FF)-BQk2
+
+
+MÉTODO 2: Usando script BAT
+───────────────────────────────────────────────────────────────────────────────
+  cd C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp
+
+  deploy_cuotas_energia.bat
+
+
+MÉTODO 3: Desde pgAdmin
+───────────────────────────────────────────────────────────────────────────────
+  1. Conectar a 192.168.6.146:5432
+  2. Seleccionar base de datos: mercados
+  3. Abrir Query Tool
+  4. Abrir archivo: 00_deploy_all_cuotas_energia.sql
+  5. Ejecutar (F5)
+
+
+MÉTODO 4: Desde DBeaver
+───────────────────────────────────────────────────────────────────────────────
+  1. Nueva conexión PostgreSQL
+  2. Host: 192.168.6.146, Port: 5432
+  3. Database: mercados
+  4. User: refact, Password: FF)-BQk2
+  5. Abrir SQL Editor
+  6. Ejecutar 00_deploy_all_cuotas_energia.sql
+
+================================================================================
+  VERIFICACIÓN POST-DEPLOY
+================================================================================
+
+-- Verificar que los SPs se crearon
+SELECT
+    p.proname as nombre,
+    pg_get_function_arguments(p.oid) as parametros
+FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE n.nspname = 'public'
+AND p.proname IN (
+    'sp_list_cuotas_energia',
+    'sp_insert_cuota_energia',
+    'sp_update_cuota_energia'
+)
+ORDER BY p.proname;
+
+
+-- Probar listar
+SELECT * FROM public.sp_list_cuotas_energia(NULL, NULL) LIMIT 5;
+
+
+-- Probar validación (debe fallar)
+SELECT * FROM public.sp_insert_cuota_energia(2099, 1, -50.00, 1);
+
+
+-- Verificar estructura de tabla
+\d public.ta_11_kilowhatts
+
+================================================================================
+  INTEGRACIÓN CON LARAVEL
+================================================================================
+
+Controlador:
+───────────────────────────────────────────────────────────────────────────────
+  use Illuminate\Support\Facades\DB;
+
+  // Listar
+  $cuotas = DB::select('SELECT * FROM public.sp_list_cuotas_energia(?, ?)',
+      [$axo, $periodo]
+  );
+
+  // Insertar
+  $result = DB::select(
+      'SELECT * FROM public.sp_insert_cuota_energia(?, ?, ?, ?)',
+      [$axo, $periodo, $importe, $userId]
+  );
+
+  if ($result[0]->success) {
+      $newId = $result[0]->id_kilowhatts;
+      // Success
+  } else {
+      $errorMessage = $result[0]->message;
+      // Error
+  }
+
+  // Actualizar
+  $result = DB::select(
+      'SELECT * FROM public.sp_update_cuota_energia(?, ?, ?)',
+      [$idKilowhatts, $nuevoImporte, $userId]
+  );
+
+Rutas:
+───────────────────────────────────────────────────────────────────────────────
+  Route::get('/cuotas-energia', [Controller::class, 'index']);
+  Route::post('/cuotas-energia', [Controller::class, 'store']);
+  Route::put('/cuotas-energia/{id}', [Controller::class, 'update']);
+
+================================================================================
+  EJEMPLOS DE USO SQL
+================================================================================
+
+-- Listar todas las cuotas
+SELECT * FROM public.sp_list_cuotas_energia(NULL, NULL);
+
+-- Listar cuotas del año 2024
+SELECT * FROM public.sp_list_cuotas_energia(2024, NULL);
+
+-- Listar cuotas del periodo 6 (todos los años)
+SELECT * FROM public.sp_list_cuotas_energia(NULL, 6);
+
+-- Listar cuota específica: año 2024, periodo 6
+SELECT * FROM public.sp_list_cuotas_energia(2024, 6);
+
+-- Insertar nueva cuota (éxito)
+SELECT * FROM public.sp_insert_cuota_energia(2025, 1, 155.75, 5);
+
+-- Insertar duplicado (debe fallar)
+SELECT * FROM public.sp_insert_cuota_energia(2024, 1, 150.00, 5);
+
+-- Actualizar importe de cuota
+SELECT * FROM public.sp_update_cuota_energia(45, 165.50, 5);
+
+-- Actualizar cuota inexistente (debe fallar)
+SELECT * FROM public.sp_update_cuota_energia(999999, 170.00, 5);
+
+-- Buscar importes mayores a 150
+SELECT * FROM public.sp_list_cuotas_energia(NULL, NULL)
+WHERE importe > 150.00;
+
+-- Agrupar por año
+SELECT
+    axo,
+    COUNT(*) as total_cuotas,
+    AVG(importe) as promedio,
+    MIN(importe) as minimo,
+    MAX(importe) as maximo
+FROM public.sp_list_cuotas_energia(NULL, NULL)
+GROUP BY axo
+ORDER BY axo DESC;
+
+================================================================================
+  FLUJO DE TRABAJO
+================================================================================
+
+CREAR UNA NUEVA CUOTA:
+  1. Verificar que no exista
+     SELECT * FROM public.sp_list_cuotas_energia(2025, 4);
+
+  2. Si no existe, insertar
+     SELECT * FROM public.sp_insert_cuota_energia(2025, 4, 175.50, 5);
+
+  3. Verificar la inserción
+     SELECT * FROM public.sp_list_cuotas_energia(2025, 4);
+
+
+MODIFICAR UNA CUOTA:
+  1. Buscar la cuota
+     SELECT * FROM public.sp_list_cuotas_energia(2025, 4);
+
+  2. Actualizar (usando id_kilowhatts obtenido)
+     SELECT * FROM public.sp_update_cuota_energia(46, 180.00, 5);
+
+  3. Verificar
+     SELECT * FROM public.sp_list_cuotas_energia(2025, 4);
+
+================================================================================
+  TROUBLESHOOTING
+================================================================================
+
+ERROR: relation "ta_11_kilowhatts" does not exist
+───────────────────────────────────────────────────────────────────────────────
+  Verificar el esquema correcto:
+
+  SELECT schemaname, tablename
+  FROM pg_tables
+  WHERE tablename = 'ta_11_kilowhatts';
+
+
+ERROR: function does not exist
+───────────────────────────────────────────────────────────────────────────────
+  Re-desplegar los SPs:
+
+  psql -h 192.168.6.146 -p 5432 -U refact -d mercados ^
+       -f 00_deploy_all_cuotas_energia.sql
+
+
+ERROR: duplicate key value violates unique constraint
+───────────────────────────────────────────────────────────────────────────────
+  El SP ya maneja esto. Verificar el retorno:
+
+  SELECT * FROM public.sp_insert_cuota_energia(2024, 1, 100.00, 1);
+
+  Debe retornar:
+    success = false
+    message = "Ya existe una cuota registrada para el año 2024 y periodo 1"
+
+================================================================================
+  CHECKLIST DE VALIDACIONES
+================================================================================
+
+sp_insert_cuota_energia:
+  [✓] Año no puede ser NULL
+  [✓] Periodo no puede ser NULL
+  [✓] Importe debe ser > 0
+  [✓] ID usuario no puede ser NULL
+  [✓] No permite duplicados (axo + periodo)
+  [✓] Retorna ID generado en caso de éxito
+  [✓] Retorna mensaje descriptivo
+
+sp_update_cuota_energia:
+  [✓] ID cuota no puede ser NULL
+  [✓] Importe debe ser > 0
+  [✓] ID usuario no puede ser NULL
+  [✓] Verifica que exista el registro
+  [✓] Solo actualiza importe (no axo ni periodo)
+  [✓] Actualiza fecha_alta e id_usuario
+  [✓] Retorna mensaje con año y periodo actualizados
+
+sp_list_cuotas_energia:
+  [✓] Permite filtros opcionales (NULL = todos)
+  [✓] Join con tabla usuarios
+  [✓] Maneja usuarios NULL (muestra 'SIN USUARIO')
+  [✓] Ordenado por año y periodo descendente
+  [✓] Retorna todos los campos necesarios
+
+================================================================================
+  UBICACIÓN DE ARCHIVOS
+================================================================================
+
+Directorio: C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp\
+
+Archivos SQL:
+  00_deploy_all_cuotas_energia.sql  (PRINCIPAL - Usar este)
+  01_sp_list_cuotas_energia.sql
+  02_sp_insert_cuota_energia.sql
+  03_sp_update_cuota_energia.sql
+
+Scripts BAT:
+  deploy_cuotas_energia.bat
+  test_cuotas_energia_psql.bat
+
+Documentación:
+  INFORME_CUOTAS_ENERGIA_MANTENIMIENTO.md
+  RESUMEN_CUOTAS_ENERGIA_SP.txt
+
+================================================================================
+  PRÓXIMOS PASOS
+================================================================================
+
+1. [✓] Crear stored procedures con validaciones
+2. [✓] Generar archivos SQL
+3. [✓] Crear documentación completa
+4. [✓] Crear scripts de deploy y pruebas
+
+5. [ ] Desplegar en base de datos
+       → psql -h 192.168.6.146 -p 5432 -U refact -d mercados
+              -f 00_deploy_all_cuotas_energia.sql
+
+6. [ ] Probar con datos reales
+       → Ejecutar test_cuotas_energia_psql.bat
+
+7. [ ] Integrar con controlador Laravel
+       → Crear CuotasEnergiaController
+
+8. [ ] Integrar con frontend Vue.js
+       → Conectar componente CuotasEnergiaMntto.vue
+
+9. [ ] Testing en ambiente de desarrollo
+
+10. [ ] Deploy a producción
+
+================================================================================
+  NOTAS IMPORTANTES
+================================================================================
+
+* Los SPs usan el esquema 'public' explícitamente
+* La tabla base es public.ta_11_kilowhatts
+* Todos los SPs retornan resultados estructurados
+* Las validaciones evitan datos inconsistentes
+* Los mensajes de error son descriptivos
+* El campo fecha_alta se actualiza automáticamente
+* El usuario que modifica queda registrado
+
+================================================================================
+  SOPORTE Y DOCUMENTACIÓN
+================================================================================
+
+Documentación completa:
+  Ver INFORME_CUOTAS_ENERGIA_MANTENIMIENTO.md
+
+Ejemplos de uso:
+  Ver sección "EJEMPLOS DE USO SQL" en este documento
+
+Integración Laravel:
+  Ver sección "INTEGRACIÓN CON LARAVEL"
+
+Para más información:
+  - Revisar comentarios en los archivos SQL
+  - Consultar el informe completo en formato Markdown
+  - Verificar estructura de tabla: \d public.ta_11_kilowhatts
+
+================================================================================
+FIN DEL RESUMEN
+================================================================================

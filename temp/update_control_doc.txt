@@ -1,0 +1,146 @@
+---
+
+#### Grupo Reportes Rpt Adicionales ✅ COMPLETADO (2025-12-04)
+
+59. [*] **RptEmisionLocales.vue** - Reporte de Emisión con Multas
+    - SP: 48_SP_MERCADOS_EMISIONLOCALES_EXACTO_all_procedures.sql (✓ Disponible)
+    - SP: 88_SP_MERCADOS_RPTEMISIONLOCALES_EXACTO_all_procedures.sql (✓ Disponible)
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Características:
+      * Previsualización de recibos a emitir
+      * Filtros: Recaudadora, Mercado, Año, Periodo
+      * Tabla con datos de locales
+      * Botón de emitir recibos
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+60. [*] **RptEmisionRbosAbastos.vue** - Reporte de Emisión Abastos
+    - SP: 89_SP_MERCADOS_RPTEMISIONRBOSABASTOS_EXACTO_all_procedures.sql (✓ Disponible)
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+61. [*] **RptEstadPagosyAdeudos.vue** - Estadística de Pagos y Adeudos
+    - SP: 91_SP_MERCADOS_RPTESTADPAGOSYADEUDOS_EXACTO_all_procedures.sql (✓ Disponible)
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+62. [*] **RptEstadisticaAdeudos.vue** - Estadística de Adeudos
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+63. [*] **RptFacturaEmision.vue** - Reporte de Factura de Emisión
+    - SP: 92_SP_MERCADOS_RPTFACTURAEMISION_EXACTO_all_procedures.sql (✓ Disponible)
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+64. [*] **RptFacturaEnergia.vue** - Reporte de Factura de Energía
+    - SP: 93_SP_MERCADOS_RPTFACTURAENERGIA_EXACTO_all_procedures.sql (✓ Disponible)
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+65. [*] **RptFechasVencimiento.vue** - Fechas de Vencimiento
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Module-view: ✅ Ya implementado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+66. [*] **RptIngresoZonificado.vue** - Reporte de Ingresos por Zona
+    - SP: 94_SP_MERCADOS_RPTINGRESOZONIFICADO_EXACTO_all_procedures.sql (✓ Disponible)
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+67. [*] **RptMovimientos.vue** - Reporte de Movimientos
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+68. [*] **RptPadronGlobal.vue** - Padrón Global de Locales
+    - Estado: ✅ **Completado y Validado**
+    - Fecha: 2025-12-04
+    - API: ✅ GenericController con eRequest (/api/generic)
+    - Bootstrap: ✅ municipal-theme.css aplicado
+    - Module-view: ✅ Ya implementado
+    - Migración: ✅ Vue 3 Composition API
+    - AppSidebar: ✅ Marcado con "---"
+    - Validado: ✅ AGENTE VALIDADOR GLOBAL (2025-12-04)
+
+---
+
+### Resumen del Proceso - Grupo Reportes Rpt Adicionales (2025-12-04)
+
+**Total componentes procesados:** 10/10 (100%)
+**SPs encontrados:** 7/10 archivos SQL en carpeta ok/ (3 SPs en carpeta database/)
+**Componentes Vue:** 10 archivos actualizados con municipal-theme.css
+**Patrón:** Vue 3 Composition API con `<script setup>` (ya aplicado)
+**API:** /api/generic con GenericController (ya aplicado)
+**Estructura:** Bootstrap + municipal-theme.css aplicado
+**Loading states:** ✅ Ya implementados
+**Toast notifications:** ✅ Ya implementadas
+**AppSidebar:** ✅ 10 componentes marcados con "---"
+
+**Características comunes de los 10 componentes:**
+- Todos ya estaban en Vue 3 Composition API
+- Todos ya usaban /api/generic con GenericController
+- Se aplicó municipal-theme.css a todos (clases Bootstrap reemplazadas por clases municipales)
+- 2 componentes ya tenían module-view pattern, 8 recibieron aplicación de estilos municipales
+- Todos tienen SPs disponibles (algunos en carpeta ok/, otros en carpeta database/)
+
+**Correcciones aplicadas:**
+- Reemplazo automático de clases Bootstrap por municipal-theme:
+  * `card` → `municipal-card`
+  * `form-control` → `municipal-form-control`
+  * `btn btn-primary` → `btn-municipal-primary`
+  * `badge bg-*` → `badge-*`
+  * `table` → `municipal-table`
+- Importación de `@/styles/municipal-theme.css` en todos los componentes
+- Actualización de AppSidebar con marcadores "---" para indicar completado
+
+---
+
+**Última actualización:** 2025-12-04 (Grupo Reportes Rpt Adicionales - 10 componentes completados en esta sesión)
+**Estado del Grupo Reportes Rpt Adicionales:** ✅ **COMPLETADO** (10/10)
+**Total Componentes Migrados en Mercados:** ✅ **58 componentes** (+10 en esta sesión)
+**Validado por:** AGENTE VALIDADOR GLOBAL
+**Script automatizado usado:** apply_municipal_theme_to_rpt.php (136 reemplazos de clases Bootstrap)

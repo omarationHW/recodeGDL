@@ -10,11 +10,30 @@ CREATE OR REPLACE FUNCTION sp_add_cve_diferencia(
     p_id_usuario integer
 ) RETURNS TABLE (clave_diferencia smallint) AS $$
 DECLARE
-    new_clave smallint;
+    v_new_clave smallint;
 BEGIN
-    SELECT COALESCE(MAX(clave_diferencia), 0) + 1 INTO new_clave FROM ta_11_catalogo_dif;
-    INSERT INTO ta_11_catalogo_dif (clave_diferencia, descripcion, cuenta_ingreso, fecha_actual, id_usuario)
-    VALUES (new_clave, UPPER(p_descripcion), p_cuenta_ingreso, NOW(), p_id_usuario);
-    RETURN QUERY SELECT new_clave;
+    -- Obtener el siguiente número de clave usando alias para evitar ambigüedad
+    SELECT COALESCE(MAX(t.clave_diferencia), 0) + 1
+    INTO v_new_clave
+    FROM ta_11_catalogo_dif t;
+
+    -- Insertar el nuevo registro
+    INSERT INTO ta_11_catalogo_dif (
+        clave_diferencia,
+        descripcion,
+        cuenta_ingreso,
+        fecha_actual,
+        id_usuario
+    )
+    VALUES (
+        v_new_clave,
+        UPPER(p_descripcion),
+        p_cuenta_ingreso,
+        NOW(),
+        p_id_usuario
+    );
+
+    -- Retornar el nuevo ID
+    RETURN QUERY SELECT v_new_clave;
 END;
 $$ LANGUAGE plpgsql;

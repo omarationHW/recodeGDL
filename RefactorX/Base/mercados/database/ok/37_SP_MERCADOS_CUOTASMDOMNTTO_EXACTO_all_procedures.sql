@@ -1,15 +1,16 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
 -- Formulario: CuotasMdoMntto
 -- Generado: 2025-08-26 23:36:08
--- Total SPs: 4
+-- Actualizado: 2025-12-02
+-- Total SPs: 7 (4 CRUD + 3 catálogos)
 -- ============================================
 
 -- SP 1/4: cuotasmdo_listar
@@ -117,6 +118,66 @@ BEGIN
   END IF;
   DELETE FROM public.ta_11_cuo_locales WHERE id_cuotas=p_id_cuotas;
   RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+
+-- SP 5/7: sp_get_categorias
+-- Tipo: Catalog
+-- Descripción: Obtiene el catálogo de categorías
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_get_categorias()
+RETURNS TABLE (
+  categoria integer,
+  descripcion varchar
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT c.categoria, c.descripcion
+  FROM public.ta_11_categoria c
+  ORDER BY c.categoria;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+
+-- SP 6/7: sp_get_secciones
+-- Tipo: Catalog
+-- Descripción: Obtiene el catálogo de secciones
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_get_secciones()
+RETURNS TABLE (
+  seccion varchar,
+  descripcion varchar
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT s.seccion, s.descripcion
+  FROM padron_licencias.comun.ta_11_secciones s
+  ORDER BY s.seccion;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+
+-- SP 7/7: sp_get_claves_cuota
+-- Tipo: Catalog
+-- Descripción: Obtiene el catálogo de claves de cuota
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_get_claves_cuota()
+RETURNS TABLE (
+  clave_cuota integer,
+  descripcion varchar
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT c.clave_cuota, c.descripcion
+  FROM public.ta_11_cve_cuota c
+  ORDER BY c.clave_cuota;
 END;
 $$ LANGUAGE plpgsql;
 

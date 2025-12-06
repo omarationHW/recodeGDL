@@ -1,0 +1,137 @@
+# LISTA DE COMPONENTES MERCADOS (127 total)
+# Prioridad ALTA (ya migrados/en uso)
+
+GRUPO 1 - Locales (Prioridad ALTA):
+- LocalesModif.vue
+- LocalesMtto.vue
+- ConsultaGeneral.vue
+- DatosIndividuales.vue
+- PadronLocales.vue
+- AdeudosLocales.vue
+- PagosLocales.vue
+- ConsPagosLocales.vue
+- ListadosLocales.vue
+- RptPagosLocales.vue
+
+GRUPO 2 - Alta de Pagos (Prioridad ALTA):
+- AltaPagos.vue
+- AltaPagosEnergia.vue
+- CargaPagMercado.vue
+- CargaPagLocales.vue
+- CargaPagEnergia.vue
+- CargaPagEnergiaElec.vue
+- CargaPagEspecial.vue
+- CargaPagosTexto.vue
+
+GRUPO 3 - Energía (Prioridad ALTA):
+- EmisionEnergia.vue
+- AdeudosEnergia.vue
+- AdeEnergiaGrl.vue
+- ConsPagosEnergia.vue
+- ConsultaDatosEnergia.vue
+- CuotasEnergia.vue
+- CuotasEnergiaMntto.vue
+- EnergiaMtto.vue
+- EnergiaModif.vue
+- PadronEnergia.vue
+- RptPadronEnergia.vue
+- RptEmisionEnergia.vue
+- RptAdeudosEnergia.vue
+- RptAdeEnergiaGrl.vue
+
+GRUPO 4 - Reportes (Prioridad MEDIA):
+- RepAdeudCond.vue
+- Prescripcion.vue
+- ReporteGeneralMercados.vue
+- Estadisticas.vue
+- RptPagosAno.vue
+- RptPagosCaja.vue
+- RptZonificacion.vue
+- RptResumenPagos.vue
+- RptSaldosLocales.vue
+- RptPadronGlobal.vue
+- RptMovimientos.vue
+- RptIngresoZonificado.vue
+
+GRUPO 5 - Catálogos (Prioridad MEDIA):
+- CatalogoMercados.vue
+- CatalogoMntto.vue
+- Categoria.vue
+- CategoriaMntto.vue
+- Giros.vue
+- Secciones.vue
+- SeccionesMntto.vue
+- ZonasMercados.vue
+- RecaudadorasMercados.vue
+- CveCuota.vue
+- CveCuotaMntto.vue
+- CveDiferencias.vue
+- CveDiferMntto.vue
+
+GRUPO 6 - Consultas (Prioridad MEDIA):
+- ConsRequerimientos.vue
+- ConsPagos.vue
+- ConsCapturaMerc.vue
+- ConsCapturaFecha.vue
+- ConsCapturaEnergia.vue
+- ConsCapturaFechaEnergia.vue
+- ConsCondonacion.vue
+- ConsCondonacionEnergia.vue
+- Condonacion.vue
+
+GRUPO 7 - Datos y Movimientos (Prioridad BAJA):
+- DatosRequerimientos.vue
+- DatosMovimientos.vue
+- DatosConvenio.vue
+- PagosDifIngresos.vue
+- PagosIndividual.vue
+- PagosLocGrl.vue
+- PagosEneCons.vue
+- EmisionLocales.vue
+- EmisionLibertad.vue
+- IngresoCaptura.vue
+- IngresoLib.vue
+
+GRUPO 8 - Mantenimientos (Prioridad BAJA):
+- CuotasMdo.vue
+- CuotasMdoMntto.vue
+- FechaDescuento.vue
+- FechasDescuentoMntto.vue
+- Recargos.vue
+- RecargosMntto.vue
+- AutCargaPagos.vue
+- AutCargaPagosMtto.vue
+- ModuloBD.vue
+
+GRUPO 9 - Reportes Adicionales (Prioridad BAJA):
+- RptCatalogoMerc.vue
+- RptDesgloceAdePorimporte.vue
+- RptEstadisticaAdeudos.vue
+- RptEstadPagosyAdeudos.vue
+- RptEmisionLocales.vue
+- RptCuentaPublica.vue
+- RptCaratulaDatos.vue
+- RptCaratulaEnergia.vue
+- RptFechasVencimiento.vue
+- RptAdeudosAnteriores.vue
+- RptAdeudosAbastos1998.vue
+- _RptFacturaEmision.vue
+- RptSalvadas.vue
+
+GRUPO 10 - Procesos (Prioridad BAJA):
+- PasoEne.vue
+- PasoMdos.vue
+- PasoAdeudos.vue
+- CargaDiversosEsp.vue
+- CargaReqPagados.vue
+- CargaTCultural.vue
+- TrDocumentos.vue
+- CuentaPublica.vue
+- AdeGlobalLocales.vue
+- AdeudosLocGrl.vue
+- EstadPagosyAdeudos.vue
+
+GRUPO 11 - Otros (Prioridad BAJA):
+- Menu.vue
+- index.vue
+- Acceso.vue

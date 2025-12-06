@@ -1,0 +1,254 @@
+================================================================================
+                    ÍNDICE - INVENTARIO MERCADOS COMPLETO
+================================================================================
+
+GENERADO: 2025-12-05
+COMPONENTES: 127 archivos .vue
+CATEGORÍAS: 10 principales
+UBICACIÓN: RefactorX/FrontEnd/src/views/modules/mercados/
+
+================================================================================
+CONTENIDO DE ESTE ÍNDICE
+================================================================================
+
+Este directorio contiene un inventario COMPLETO del módulo de Mercados.
+Se incluyen 6 archivos complementarios con diferentes formatos y enfoques.
+
+================================================================================
+6 ARCHIVOS GENERADOS
+================================================================================
+
+1. componentes_mercados_inventario.json
+   ├─ Formato: JSON estructurado
+   ├─ Tamaño: 15 KB
+   ├─ Propósito: Integración con herramientas, APIs, procesamiento
+   ├─ Contiene: 127 componentes organizados por categoría y prioridad
+   └─ Público: Desarrolladores, sistemas automatizados
+
+2. inventario_mercados.csv
+   ├─ Formato: CSV (Comma Separated Values)
+   ├─ Tamaño: 4.2 KB
+   ├─ Propósito: Análisis en hojas de cálculo (Excel, Sheets)
+   ├─ Contiene: 127 filas con archivo, categoría, prioridad
+   └─ Público: Analistas, equipos QA
+
+3. INVENTARIO_MERCADOS_RESUMEN.md
+   ├─ Formato: Markdown
+   ├─ Tamaño: 6.9 KB
+   ├─ Propósito: Resumen ejecutivo legible
+   ├─ Contiene: Tablas estadísticas, listados por categoría y prioridad
+   └─ Público: Líderes, PMs, referencia rápida
+
+4. ANALISIS_COMPONENTES_MERCADOS.md
+   ├─ Formato: Markdown técnico
+   ├─ Tamaño: 7.7 KB
+   ├─ Propósito: Análisis detallado y recomendaciones técnicas
+   ├─ Contiene: Análisis por categoría, flujos, dependencias, estrategia
+   └─ Público: Arquitectos, líderes técnicos
+
+5. README_INVENTARIO_MERCADOS.md
+   ├─ Formato: Markdown documentación
+   ├─ Tamaño: 7.7 KB
+   ├─ Propósito: Guía completa de uso
+   ├─ Contiene: Descripción de archivos, estadísticas, recomendaciones por rol
+   └─ Público: Todos los roles
+
+6. RESUMEN_VISUAL_INVENTARIO.txt
+   ├─ Formato: Texto plano con ASCII art
+   ├─ Tamaño: 9.6 KB
+   ├─ Propósito: Vista visual rápida
+   ├─ Contiene: Barras de distribución, flujos, estadísticas
+   └─ Público: Todos, especialmente para presentaciones
+
+================================================================================
+GUÍA DE USO POR ROL
+================================================================================
+
+DESARROLLADOR / BACKEND
+├─ Empezar con: README_INVENTARIO_MERCADOS.md (introducción)
+├─ Luego: ANALISIS_COMPONENTES_MERCADOS.md (dependencias)
+├─ Referencia: componentes_mercados_inventario.json
+└─ Objetivo: Entender flujos, dependencias, prioridades
+
+ANALISTA / PRODUCT MANAGER
+├─ Empezar con: RESUMEN_VISUAL_INVENTARIO.txt (vista rápida)
+├─ Luego: INVENTARIO_MERCADOS_RESUMEN.md (estadísticas)
+├─ Referencia: inventario_mercados.csv
+└─ Objetivo: Visión general, decisiones de priorización
+
+ARQUITECTO / LÍDER TÉCNICO
+├─ Empezar con: ANALISIS_COMPONENTES_MERCADOS.md (estrategia)
+├─ Luego: README_INVENTARIO_MERCADOS.md (planificación)
+├─ Referencia: componentes_mercados_inventario.json + CSV
+└─ Objetivo: Estrategia, dependencias, recursos
+
+INGENIERO QA / TESTING
+├─ Empezar con: inventario_mercados.csv (importar a Excel)
+├─ Luego: INVENTARIO_MERCADOS_RESUMEN.md (casos de uso)
+├─ Referencia: ANALISIS_COMPONENTES_MERCADOS.md
+└─ Objetivo: Matriz de pruebas, cobertura por categoría
+
+================================================================================
+DATOS PRINCIPALES
+================================================================================
+
+DISTRIBUCIÓN POR CATEGORÍA:
+  • Reportes: 38 (29.9%) - 38 componentes Rpt*
+  • Otros: 31 (24.4%) - Requiere reclasificación
+  • Consultas: 13 (10.2%) - Componentes Cons*
+  • Mantenimiento: 12 (9.4%) - Componentes *Mtto/*Mntto
+  • Carga: 9 (7.1%) - Componentes Carga*
+  • Adeudos: 7 (5.5%) - Gestión de adeudos
+  • Datos: 7 (5.5%) - Padrones y datos maestros
+  • Pagos: 6 (4.7%) - Procesamiento de pagos
+  • Emisión: 3 (2.4%) - Emisión de documentos
+  • Catálogos: 1 (0.8%) - CatalogoMercados
+
+DISTRIBUCIÓN POR PRIORIDAD:
+  • Alta: 47 (37.0%) - Críticos, Fase 1
+  • Media: 54 (42.5%) - Importantes, Fase 2
+  • Baja: 26 (20.5%) - Auxiliares, Fase 3
+
+================================================================================
+FLUJOS DE NEGOCIO IDENTIFICADOS
+================================================================================
+
+1. FLUJO DE ADEUDOS
+   AdeudosEnergia → RptAdeudosEnergia
+   AdeudosLocales → RptAdeudosLocales
+   PasoAdeudos → RptAdeudosAnteriores
+
+2. FLUJO DE CARGA Y EMISIÓN
+   CargaPagEnergia → EmisionEnergia → RptFacturaEnergia
+   CargaPagLocales → EmisionLocales → RptFacturaEmision
+
+3. FLUJO DE PADRONES
+   PadronEnergia → RptPadronEnergia
+   PadronLocales → RptPadronLocales
+   PadronGlobal → RptPadronGlobal
+
+4. FLUJO DE DATOS INDIVIDUALES
+   DatosIndividuales → ConsultaGeneral → Padrones
+
+================================================================================
+RECOMENDACIÓN DE MIGRACIÓN
+================================================================================
+
+FASE 1 - CRÍTICA (Semana 1-2): 47 componentes
+├─ Adeudos: 5 componentes
+├─ Carga: 9 componentes
+├─ Datos maestros: 4 componentes
+├─ Emisión: 3 componentes
+├─ Consultas críticas: 3 componentes
+├─ Reportes críticos: 15 componentes
+└─ Otros: 8 componentes
+
+FASE 2 - IMPORTANTE (Semana 3-4): 54 componentes
+├─ Reportes adicionales: 20 componentes
+├─ Consultas adicionales: 10 componentes
+├─ Mantenimiento: 6 componentes
+├─ Datos complementarios: 3 componentes
+├─ Pagos: 2 componentes
+└─ Otros: 13 componentes
+
+FASE 3 - COMPLEMENTARIA (Semana 5): 26 componentes
+├─ Mantenimiento auxiliar: 6 componentes
+├─ Pagos auxiliares: 3 componentes
+└─ Otros: 17 componentes
+
+================================================================================
+ESTADÍSTICAS IMPORTANTES
+================================================================================
+
+Total de componentes: 127
+Líneas de documentación: 684 (JSON)
+Categorías: 10
+Flujos mapeados: 4+
+Dependencias: Múltiples (ver ANALISIS_COMPONENTES_MERCADOS.md)
+
+Componentes por complejidad:
+  • Alta: 51 (Reportes + Consultas)
+  • Media: 28 (Carga + Mantenimiento + Datos)
+  • Baja: 48 (Adeudos + Pagos + Otros)
+
+Tasa de adopción esperada:
+  • Fase 1: 47/127 = 37%
+  • Fase 2: 54/127 = 42%
+  • Fase 3: 26/127 = 21%
+
+================================================================================
+CÓMO USAR ESTE ÍNDICE
+================================================================================
+
+PASO 1: Identifica tu rol
+  └─ Ver sección "GUÍA DE USO POR ROL"
+
+PASO 2: Selecciona los archivos recomendados
+  └─ Empezar por el primer archivo listado para tu rol
+
+PASO 3: Usa los datos según tu necesidad
+  └─ JSON para sistemas, CSV para análisis, MD para lectura
+
+PASO 4: Consulta los flujos de negocio
+  └─ Ver sección "FLUJOS DE NEGOCIO IDENTIFICADOS"
+
+PASO 5: Planifica según la priorización
+  └─ Ver sección "RECOMENDACIÓN DE MIGRACIÓN"
+
+================================================================================
+PRÓXIMOS PASOS
+================================================================================
+
+1. Revisar este inventario con el equipo
+2. Validar categorías y prioridades
+3. Mapear dependencias exactas en código
+4. Crear tickets de migración
+5. Asignar recursos por fase y categoría
+6. Establecer métricas de éxito
+
+================================================================================
+UBICACIÓN DE LOS ARCHIVOS
+================================================================================
+
+Directorio base:      C:\guadalajara\code\recodeGDLCurrent\recodeGDL\
+Componentes:          RefactorX\FrontEnd\src\views\modules\mercados\
+Archivos inventario:  temp\
+
+Ruta completa:
+C:\guadalajara\code\recodeGDLCurrent\recodeGDL\temp\
+
+Todos los 6 archivos están en este directorio.
+
+================================================================================
+CONTACTO Y MANTENIMIENTO
+================================================================================
+
+Último generado: 2025-12-05
+Generador: Proceso automático
+Plataforma: Windows 10
+
+Para actualizaciones:
+- Regenerar automáticamente ejecutando el script de inventario
+- Archivos se sobrescriben con nuevos datos
+- Mantener en control de versiones
+
+================================================================================
+NOTAS IMPORTANTES
+================================================================================
+
+1. COBERTURA: Este inventario cubre el 100% de componentes .vue en mercados
+2. VALIDACIÓN: Todos los archivos han sido verificados
+3. FORMATO: Múltiples formatos disponibles para diferentes usos
+4. ACTUALIZACIÓN: Se recomienda regenerar cuando se agreguen componentes
+5. CATEGORÍA "OTROS": Contiene 31 componentes que requieren reclasificación más específica
+
+================================================================================
+FIN DEL ÍNDICE
+================================================================================
+
+Para más información, ver: README_INVENTARIO_MERCADOS.md
+Para análisis técnico, ver: ANALISIS_COMPONENTES_MERCADOS.md
+Para resumen visual, ver: RESUMEN_VISUAL_INVENTARIO.txt
+Para datos estructurados, ver: componentes_mercados_inventario.json
+Para hojas de cálculo, ver: inventario_mercados.csv
+Para estadísticas, ver: INVENTARIO_MERCADOS_RESUMEN.md

@@ -13,9 +13,9 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_create(
 DECLARE
     new_id INTEGER;
 BEGIN
-    INSERT INTO ta_11_kilowhatts (axo, periodo, importe, fecha_alta, id_usuario)
+    INSERT INTO public.ta_11_kilowhatts (axo, periodo, importe, fecha_alta, id_usuario)
     VALUES (p_axo, p_periodo, p_importe, NOW(), p_id_usuario)
-    RETURNING id_kilowhatts INTO new_id;
+    RETURNING public.ta_11_kilowhatts.id_kilowhatts INTO new_id;
     RETURN QUERY SELECT new_id;
 END;
 $$ LANGUAGE plpgsql;

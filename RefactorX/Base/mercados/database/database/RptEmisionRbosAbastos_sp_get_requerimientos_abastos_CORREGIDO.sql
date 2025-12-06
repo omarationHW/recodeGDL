@@ -26,9 +26,23 @@ CREATE OR REPLACE FUNCTION public.sp_get_requerimientos_abastos(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT a.id_control, a.modulo, a.control_otr, a.folio, a.diligencia, a.importe_global, a.importe_multa, a.importe_recargo, a.importe_gastos,
-           a.fecha_emision, a.clave_practicado, a.vigencia, a.fecha_actualiz, a.usuario, a.observaciones
-    FROM comun.ta_15_apremios a
+    SELECT
+        a.id_control::INTEGER,
+        a.modulo::INTEGER,
+        a.control_otr::INTEGER,
+        a.folio::INTEGER,
+        a.diligencia::TEXT,
+        a.importe_global::NUMERIC,
+        a.importe_multa::NUMERIC,
+        a.importe_recargo::NUMERIC,
+        a.importe_gastos::NUMERIC,
+        a.fecha_emision::DATE,
+        a.clave_practicado::TEXT,
+        a.vigencia::TEXT,
+        a.fecha_actualiz::DATE,
+        a.usuario::INTEGER,
+        a.observaciones::TEXT
+    FROM publico.ta_15_apremios a
     WHERE a.modulo = 11 AND a.control_otr = p_id_local AND a.vigencia = '1' AND a.clave_practicado = 'P'
     ORDER BY a.folio;
 END;

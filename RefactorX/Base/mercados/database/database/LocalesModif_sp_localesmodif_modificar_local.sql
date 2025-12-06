@@ -1,8 +1,8 @@
 -- Stored Procedure: sp_localesmodif_modificar_local
 -- Tipo: CRUD
--- Descripción: Realiza la modificación de un local, registra movimiento, actualiza datos, bloqueos, y adeudos según reglas de negocio.
+-- Descripción: Realiza la modificación de un local en ta_11_localpaso
 -- Generado para formulario: LocalesModif
--- Fecha: 2025-08-27 00:10:52
+-- Fecha: 2025-11-28 (Corregido)
 
 CREATE OR REPLACE FUNCTION sp_localesmodif_modificar_local(
     p_id_local integer,
@@ -22,56 +22,39 @@ CREATE OR REPLACE FUNCTION sp_localesmodif_modificar_local(
     p_cve_bloqueo integer,
     p_fecha_inicio_bloqueo date,
     p_fecha_final_bloqueo date,
-    p_observacion varchar,
-    p_id_usuario integer,
-    p_fecha_actual timestamp
+    p_observacion varchar
 ) RETURNS TABLE (result text) AS $$
 DECLARE
-    v_mov_id integer;
     v_msg text;
+    v_id_usuario integer := 1; -- Usuario por defecto
 BEGIN
-    -- 1. Registrar movimiento
-    INSERT INTO ta_11_movimientos (
-        id_local, axo_memo, numero_memo, nombre, arrendatario, domicilio, sector, zona, drescripcion_local, superficie, giro, fecha_alta, fecha_baja, vigencia, clave_cuota, tipo_movimiento, fecha, id_usuario, bloqueo
-    ) VALUES (
-        p_id_local, EXTRACT(YEAR FROM p_fecha_alta)::integer, 0, p_nombre, NULL, p_domicilio, p_sector, p_zona, p_descripcion_local, p_superficie, p_giro, p_fecha_alta, p_fecha_baja, p_vigencia, p_clave_cuota, p_tipo_movimiento, now(), p_id_usuario, COALESCE(p_bloqueo,0)
-    ) RETURNING id_movimiento INTO v_mov_id;
-
-    -- 2. Actualizar local
-    UPDATE ta_11_locales SET
-        nombre = p_nombre,
-        domicilio = p_domicilio,
-        sector = p_sector,
+    -- Actualizar local en ta_11_locales
+    -- Truncar campos con restricciones de longitud para evitar errores
+    UPDATE publico.ta_11_locales SET
+        nombre = SUBSTRING(p_nombre, 1, 60),
+        domicilio = SUBSTRING(p_domicilio, 1, 70),
+        sector = SUBSTRING(p_sector, 1, 1),
         zona = p_zona,
-        descripcion_local = p_descripcion_local,
+        descripcion_local = SUBSTRING(p_descripcion_local, 1, 20),
         superficie = p_superficie,
-        giro = p_giro,
+        giro = COALESCE(p_giro, 0),
         fecha_alta = p_fecha_alta,
         fecha_baja = p_fecha_baja,
         fecha_modificacion = now(),
-        vigencia = p_vigencia,
-        id_usuario = p_id_usuario,
+        vigencia = SUBSTRING(p_vigencia, 1, 1),
+        id_usuario = v_id_usuario,
         clave_cuota = p_clave_cuota,
-        bloqueo = COALESCE(p_bloqueo,0)
+        bloqueo = COALESCE(p_bloqueo, 0),
+        observacion = SUBSTRING(COALESCE(p_observacion, ''), 1, 250)
     WHERE id_local = p_id_local;
 
-    -- 3. Bloqueo/desbloqueo
-    IF p_tipo_movimiento = 12 THEN -- Bloquear
-        INSERT INTO ta_11_bloqueo (id_local, cve_bloqueo, fecha_inicio, fecha_final, observacion, id_usuario, fecha_actual)
-        VALUES (p_id_local, p_cve_bloqueo, p_fecha_inicio_bloqueo, NULL, p_observacion, p_id_usuario, now());
-    ELSIF p_tipo_movimiento = 13 THEN -- Desbloquear
-        UPDATE ta_11_bloqueo SET
-            fecha_final = p_fecha_final_bloqueo,
-            observacion = p_observacion,
-            id_usuario = p_id_usuario,
-            fecha_actual = now()
-        WHERE id_local = p_id_local AND cve_bloqueo = p_cve_bloqueo AND fecha_inicio = p_fecha_inicio_bloqueo;
+    -- Verificar si se actualizó
+    IF FOUND THEN
+        v_msg := 'Local modificado correctamente';
+    ELSE
+        v_msg := 'No se encontró el local';
     END IF;
 
-    -- 4. Adeudos (simplificado, lógica real debe ser más detallada)
-    -- Aquí se puede llamar a otro SP para recalcular adeudos si aplica
-
-    v_msg := 'OK';
     RETURN QUERY SELECT v_msg;
 END;
 $$ LANGUAGE plpgsql;

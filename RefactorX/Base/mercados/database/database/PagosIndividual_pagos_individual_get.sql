@@ -10,24 +10,24 @@ RETURNS TABLE (
     oficina smallint,
     num_mercado smallint,
     categoria smallint,
-    seccion varchar,
+    seccion char(2),
     local smallint,
-    letra_local varchar,
-    bloque varchar,
+    letra_local varchar(3),
+    bloque varchar(2),
     id_contribuy_prop integer,
     id_contribuy_renta integer,
-    nombre varchar,
-    arrendatario varchar,
-    domicilio varchar,
-    sector varchar,
+    nombre varchar(30),
+    arrendatario varchar(30),
+    domicilio varchar(70),
+    sector char(2),
     zona smallint,
-    descripcion_local varchar,
-    superficie float,
+    descripcion_local char(20),
+    superficie numeric,
     giro smallint,
     fecha_alta date,
     fecha_baja date,
     fecha_modificacion timestamp,
-    vigencia varchar,
+    vigencia char(1),
     id_usuario integer,
     clave_cuota smallint,
     id_pago_local integer,
@@ -36,17 +36,17 @@ RETURNS TABLE (
     periodo smallint,
     fecha_pago date,
     oficina_pago smallint,
-    caja_pago varchar,
+    caja_pago char(2),
     operacion_pago integer,
     importe_pago numeric,
-    folio varchar,
+    folio varchar(20),
     fecha_modificacion_1 timestamp,
-    usuario varchar
+    usuario varchar(50)
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        a.id_local,
+        b.id_local,
         b.oficina,
         b.num_mercado,
         b.categoria,
@@ -82,9 +82,9 @@ BEGIN
         a.folio,
         a.fecha_modificacion as fecha_modificacion_1,
         u.usuario
-    FROM ta_11_pagos_local a
-    JOIN ta_11_locales b ON a.id_local = b.id_local
-    LEFT JOIN ta_12_passwords u ON a.id_usuario = u.id_usuario
+    FROM public.ta_11_pago_local a
+    JOIN public.ta_11_localpaso b ON a.id_local = b.id_local
+    LEFT JOIN public.usuarios u ON a.id_usuario = u.id
     WHERE a.id_local = p_id_local AND a.axo = p_axo AND a.periodo = p_periodo
     LIMIT 1;
 END;

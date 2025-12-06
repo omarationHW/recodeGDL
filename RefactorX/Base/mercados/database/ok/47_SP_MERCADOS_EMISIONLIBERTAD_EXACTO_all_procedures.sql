@@ -1,8 +1,8 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -20,7 +20,7 @@ SET search_path TO public;
 CREATE OR REPLACE FUNCTION get_recaudadoras()
 RETURNS TABLE(id_rec INT, recaudadora TEXT) AS $$
 BEGIN
-  RETURN QUERY SELECT id_rec, recaudadora FROM public.ta_12_recaudadoras WHERE id_rec >= 1 ORDER BY id_rec;
+  RETURN QUERY SELECT id_rec, recaudadora::TEXT FROM comun.ta_12_recaudadoras WHERE id_rec >= 1 ORDER BY id_rec;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -34,7 +34,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION get_mercados_by_recaudadora(p_oficina INT)
 RETURNS TABLE(num_mercado_nvo INT, descripcion TEXT) AS $$
 BEGIN
-  RETURN QUERY SELECT num_mercado_nvo, descripcion FROM public.ta_11_mercados WHERE oficina = p_oficina AND tipo_emision = 'D' ORDER BY num_mercado_nvo;
+  RETURN QUERY SELECT num_mercado_nvo, descripcion::TEXT FROM comun.ta_11_mercados WHERE oficina = p_oficina AND tipo_emision = 'D' ORDER BY num_mercado_nvo;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -88,9 +88,9 @@ BEGIN
   SELECT ARRAY(SELECT json_array_elements_text(p_mercados)::INT) INTO mercado_ids;
   FOR rec IN
     SELECT a.*, b.descripcion as mercado_desc, c.importe_cuota, c.clave_cuota, c.seccion as cuo_seccion
-    FROM public.ta_11_locales a
-    JOIN public.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
-    JOIN public.ta_11_cuo_locales c ON a.categoria = c.categoria AND a.seccion = c.seccion AND a.clave_cuota = c.clave_cuota AND c.axo = p_axo
+    FROM comun.ta_11_locales a
+    JOIN comun.ta_11_mercados b ON a.oficina = b.oficina AND a.num_mercado = b.num_mercado_nvo
+    JOIN comun.ta_11_cuo_locales c ON a.categoria = c.categoria AND a.seccion = c.seccion AND a.clave_cuota = c.clave_cuota AND c.axo = p_axo
     WHERE a.oficina = p_oficina
       AND a.num_mercado = ANY(mercado_ids)
       AND a.vigencia = 'A'
@@ -111,16 +111,16 @@ BEGIN
     -- Adeudos y recargos
     SELECT COALESCE(SUM(importe),0), COALESCE(SUM(recargos),0)
       INTO total_adeudos, total_recargos
-      FROM public.ta_11_adeudo_local
+      FROM comun.ta_11_adeudo_local
       WHERE id_local = rec.id_local
         AND (axo < p_axo OR (axo = p_axo AND periodo < p_periodo));
     -- Multas y gastos (requerimientos)
     SELECT string_agg(folio::TEXT, ','), COALESCE(SUM(importe_multa),0), COALESCE(SUM(importe_gastos),0)
       INTO folios_req, total_multas, total_gastos
-      FROM public.ta_15_apremios
+      FROM comun.ta_15_apremios
       WHERE modulo = 11 AND control_otr = rec.id_local AND vigencia = '1' AND clave_practicado = 'P';
     subtotal := total_adeudos + total_recargos;
-    meses := (SELECT string_agg(periodo::TEXT, ',') FROM public.ta_11_adeudo_local WHERE id_local = rec.id_local AND (axo < p_axo OR (axo = p_axo AND periodo < p_periodo)));
+    meses := (SELECT string_agg(periodo::TEXT, ',') FROM comun.ta_11_adeudo_local WHERE id_local = rec.id_local AND (axo < p_axo OR (axo = p_axo AND periodo < p_periodo)));
     RETURN NEXT (
       rec.id_local, rec.nombre, rec.mercado_desc, rec.descripcion_local, rec.oficina, rec.num_mercado, rec.categoria, rec.seccion, rec.local, rec.letra_local, rec.bloque,
       renta, descuento, total_adeudos, total_recargos, subtotal, total_multas, total_gastos, folios_req

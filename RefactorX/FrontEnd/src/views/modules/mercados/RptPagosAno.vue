@@ -136,7 +136,7 @@
                     <p>No se encontraron pagos con los criterios especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in pagos" :key="index" class="row-hover">
+                <tr v-else v-for="(row, index) in paginatedPagos" :key="index" class="row-hover">
                   <td><strong class="text-primary">{{ row.axo }}</strong></td>
                   <td>{{ row.num_mercado }}</td>
                   <td>{{ row.descripcion }}</td>
@@ -146,7 +146,40 @@
                     <strong class="text-success">{{ formatCurrency(row.importe_total) }}</strong>
                   </td>
                 </tr>
-                <tr v-if="pagos.length > 0" class="table-footer">
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div v-if="pagos.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+            </div>
+            <div class="pagination-controls">
+              <label class="me-2">Registros por página:</label>
+              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="prevPage" :disabled="currentPage === 1" class="btn-municipal-secondary btn-sm">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary btn-sm">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Totales -->
+          <div v-if="pagos.length > 0" class="table-responsive mt-3">
+            <table class="municipal-table">
+              <tbody>
+                <tr class="table-footer">
                   <td colspan="5" class="text-end"><strong>TOTAL GENERAL:</strong></td>
                   <td class="text-end">
                     <strong class="text-primary" style="font-size: 1.1em;">{{ formatCurrency(totalGeneral) }}</strong>
@@ -171,7 +204,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 
 // Estado
@@ -185,6 +218,10 @@ const pagos = ref([])
 const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Toast
 const toast = ref({
@@ -201,6 +238,44 @@ const mercadosFiltrados = computed(() => {
 
 const totalGeneral = computed(() => {
   return pagos.value.reduce((sum, item) => sum + (parseFloat(item.importe_total) || 0), 0)
+})
+
+const paginatedPagos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return pagos.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(pagos.value.length / itemsPerPage.value)
+})
+
+const paginationStart = computed(() => {
+  return pagos.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const paginationEnd = computed(() => {
+  const end = currentPage.value * itemsPerPage.value
+  return end > pagos.value.length ? pagos.value.length : end
+})
+
+const totalItems = computed(() => pagos.value.length)
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+// Reset página al cambiar datos
+watch(pagos, () => {
+  currentPage.value = 1
 })
 
 // Métodos

@@ -18,8 +18,8 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_get(
 BEGIN
     RETURN QUERY
     SELECT a.id_kilowhatts, a.axo, a.periodo, a.importe, a.fecha_alta, a.id_usuario, b.usuario
-    FROM ta_11_kilowhatts a
-    JOIN ta_12_passwords b ON a.id_usuario = b.id_usuario
+    FROM public.ta_11_kilowhatts a
+    LEFT JOIN public.usuarios b ON a.id_usuario = b.id
     WHERE a.id_kilowhatts = p_id_kilowhatts;
 END;
 $$ LANGUAGE plpgsql;

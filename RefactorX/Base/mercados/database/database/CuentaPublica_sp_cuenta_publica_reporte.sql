@@ -15,9 +15,9 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT a.oficina, a.num_mercado, b.axo, b.periodo, COUNT(b.periodo) AS total, SUM(b.importe) AS adeudo
-    FROM ta_11_locales a
-    JOIN ta_11_adeudo_local b ON a.id_local = b.id_local
+    SELECT a.oficina, a.num_mercado, b.axo, b.periodo, COUNT(b.periodo)::integer AS total, SUM(b.importe) AS adeudo
+    FROM public.ta_11_localpaso a
+    JOIN public.ta_11_adeudo_local b ON a.id_local = b.id_local
     WHERE a.oficina = p_oficina
       AND b.axo = p_axo
       AND a.vigencia = 'A'

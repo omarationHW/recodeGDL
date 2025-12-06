@@ -18,7 +18,7 @@ BEGIN
     RETURN QUERY
     SELECT
         d.cvedepto,
-        d.nombredepto
+        TRIM(d.nombredepto)::VARCHAR
     FROM comun.deptos d
     WHERE d.cvedependencia = p_id_dependencia
     ORDER BY d.nombredepto;

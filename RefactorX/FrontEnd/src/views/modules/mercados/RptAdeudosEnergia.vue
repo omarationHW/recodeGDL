@@ -158,11 +158,11 @@
             </div>
 
             <div class="pagination-buttons">
-              <button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary">
+              <button @click="previousPage" :disabled="currentPage === 1">
                 <font-awesome-icon icon="chevron-left" />
               </button>
-              <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary">
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages">
                 <font-awesome-icon icon="chevron-right" />
               </button>
             </div>

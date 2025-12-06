@@ -1,0 +1,10 @@
+1001|Juan Pérez García|Av. Juárez #123, Col. Centro|15.50|0|Sin descuento|A
+1002|María López Sánchez|Calle Morelos #456|12.75|10|Descuento por antigüedad|A
+1003|Pedro Martínez|Av. Hidalgo #789|18.00|0|Sin descuento|A
+1004|Ana González|Calle 5 de Mayo #321|10.25|5|Descuento especial|A
+1005|Carlos Rodríguez|Av. Revolución #654|20.00|0|Sin descuento|A
+1006|Luisa Hernández|Calle Independencia #987|14.50|15|Descuento por discapacidad|A
+1007|José Ramírez|Av. Constitución #147|16.80|0|Sin descuento|A
+1008|Patricia Torres|Calle Allende #258|11.90|0|Sin descuento|A
+1009|Roberto Flores|Av. Reforma #369|13.40|0|Sin descuento|A
+1010|Carmen Ruiz|Calle Guerrero #741|17.25|20|Descuento adulto mayor|A

@@ -1,0 +1,29 @@
+=== INSTRUCCIONES PARA COMPLETAR FASE 1 ===
+
+Los siguientes 3 componentes necesitan ser creados manualmente ya que el contexto está limitado:
+
+1. **Estadisticas.vue** - Migrar el existente siguiendo patrón de AdeudosLocales.vue
+   - Usar SPs: sp_estadisticas_global, sp_estadisticas_importe, sp_desgloce_adeudos_por_importe
+   - Base: padron_licencias
+   - Patrón: module-view + municipal-card + toast notifications
+
+2. **RepAdeudCond.vue** - Crear desde cero
+   - Crear SP: sp_reporte_adeudos_condonados (SELECT desde ta_11_adeudo_loc_canc)
+   - Base: padron_licencias
+   - Patrón: Similar a RptAdeudosLocales con filtros por oficina, año, periodo
+
+3. **RptZonificacion.vue** - Crear desde cero
+   - Usar SP existente: sp_ingreso_zonificado
+   - Base: mercados
+   - Patrón: Reporte simple con filtro de fecha desde-hasta
+
+**PASOS FINALES:**
+1. Crear los 3 componentes .vue
+2. Crear SP sp_reporte_adeudos_condonados
+3. Desplegar el SP
+4. Descomentar 4 rutas en router/index.js
+5. Cambiar marcadores en AppSidebar.vue (agregar ***)
+6. Actualizar CONTROL_IMPLEMENTACION_VUE.md
+
+**ARCHIVOS YA COMPLETADOS:**
+✅ Prescripcion.vue - 100% funcional con 4 SPs desplegados

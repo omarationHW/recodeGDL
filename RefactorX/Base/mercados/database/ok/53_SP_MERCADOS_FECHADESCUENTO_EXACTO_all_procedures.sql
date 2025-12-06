@@ -1,8 +1,8 @@
 -- ============================================
--- CONFIGURACIÓN BASE DE DATOS: padron_licencias
+-- CONFIGURACIÓN BASE DE DATOS: mercados
 -- ESQUEMA: public
 -- ============================================
-\c padron_licencias;
+\c mercados;
 SET search_path TO public;
 
 -- ============================================
@@ -29,8 +29,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.mes, a.fecha_descuento, a.fecha_alta, a.id_usuario, b.usuario, a.fecha_recargos
-    FROM public.ta_11_fecha_desc a
-    JOIN public.ta_12_passwords b ON a.id_usuario = b.id_usuario
+    FROM padron_licencias.comun.ta_11_fecha_desc a
+    JOIN padron_licencias.comun.ta_12_passwords b ON a.id_usuario = b.id_usuario
     ORDER BY a.mes;
 END;
 $$ LANGUAGE plpgsql;
@@ -54,8 +54,8 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY
     SELECT a.mes, a.fecha_descuento, a.fecha_alta, a.id_usuario, b.usuario, a.fecha_recargos
-    FROM public.ta_11_fecha_desc a
-    JOIN public.ta_12_passwords b ON a.id_usuario = b.id_usuario
+    FROM padron_licencias.comun.ta_11_fecha_desc a
+    JOIN padron_licencias.comun.ta_12_passwords b ON a.id_usuario = b.id_usuario
     WHERE a.mes = p_mes;
 END;
 $$ LANGUAGE plpgsql;
@@ -76,12 +76,12 @@ CREATE OR REPLACE FUNCTION sp_fechadescuento_update(
 DECLARE
     v_count integer;
 BEGIN
-    SELECT COUNT(*) INTO v_count FROM public.ta_11_fecha_desc WHERE mes = p_mes;
+    SELECT COUNT(*) INTO v_count FROM padron_licencias.comun.ta_11_fecha_desc WHERE mes = p_mes;
     IF v_count = 0 THEN
         RETURN QUERY SELECT false, 'No existe el mes especificado';
         RETURN;
     END IF;
-    UPDATE public.ta_11_fecha_desc
+    UPDATE padron_licencias.comun.ta_11_fecha_desc
     SET fecha_descuento = p_fecha_descuento,
         fecha_recargos = p_fecha_recargos,
         fecha_alta = NOW(),

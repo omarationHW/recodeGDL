@@ -12,7 +12,7 @@ CREATE OR REPLACE FUNCTION sp_cuotas_energia_update(
     p_id_usuario INTEGER
 ) RETURNS VOID AS $$
 BEGIN
-    UPDATE ta_11_kilowhatts
+    UPDATE public.ta_11_kilowhatts
     SET axo = p_axo,
         periodo = p_periodo,
         importe = p_importe,

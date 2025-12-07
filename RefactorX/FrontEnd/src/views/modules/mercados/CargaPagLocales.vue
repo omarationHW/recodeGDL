@@ -123,8 +123,8 @@
                   <td>{{ row.periodo }}</td>
                   <td>{{ formatCurrency(row.importe) }}</td>
                   <td>
-                    <input type="text" class="form-control form-control-sm" v-model="row.partida" placeholder="Partida"
-                      maxlength="20" style="width: 80px;" />
+                    <input type="text" class="municipal-form-control" v-model="row.partida" placeholder="Partida"
+                      maxlength="20" style="width: 80px; height: 32px; font-size: 0.875rem;" />
                   </td>
                 </tr>
               </tbody>

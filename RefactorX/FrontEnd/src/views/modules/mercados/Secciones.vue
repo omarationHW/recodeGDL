@@ -116,19 +116,21 @@
                     <span class="badge-count">{{ formatNumber(seccion.cantidad_locales) }}</span>
                   </td>
                   <td class="text-center">
-                    <button
-                      class="btn-icon btn-warning me-2"
-                      @click="abrirModalEditar(seccion)"
-                      title="Editar">
-                      <font-awesome-icon icon="edit" />
-                    </button>
-                    <button
-                      class="btn-icon btn-danger"
-                      @click="eliminarSeccion(seccion)"
-                      title="Eliminar"
-                      :disabled="seccion.cantidad_locales > 0">
-                      <font-awesome-icon icon="trash" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button
+                        class="btn-municipal-primary btn-sm"
+                        @click.stop="abrirModalEditar(seccion)"
+                        title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button
+                        class="btn-municipal-danger btn-sm"
+                        @click.stop="eliminarSeccion(seccion)"
+                        title="Eliminar"
+                        :disabled="seccion.cantidad_locales > 0">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -148,14 +150,14 @@
       @close="cerrarModal">
         <form @submit.prevent="guardarSeccion">
           <div class="mb-3">
-            <label class="form-label">
+            <label class="municipal-form-label">
               <font-awesome-icon icon="code" class="me-2" />
               Código de Sección <span class="text-danger">*</span>
             </label>
             <input
               type="text"
               v-model="form.seccion"
-              class="form-control"
+              class="municipal-form-control"
               :readonly="modoEdicion"
               maxlength="2"
               placeholder="Ej: SS, EA, PS"
@@ -166,14 +168,14 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">
+            <label class="municipal-form-label">
               <font-awesome-icon icon="align-left" class="me-2" />
               Descripción <span class="text-danger">*</span>
             </label>
             <input
               type="text"
               v-model="form.descripcion"
-              class="form-control"
+              class="municipal-form-control"
               maxlength="50"
               placeholder="Descripción de la sección"
               required

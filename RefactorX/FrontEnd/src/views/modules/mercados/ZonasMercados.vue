@@ -80,7 +80,6 @@
       :title="modoEdicion ? 'Editar Zona' : 'Nueva Zona'"
       size="md"
       @close="cerrarModal">
-      <template #body>
         <form @submit.prevent="guardarZona">
           <div class="form-group">
             <label class="municipal-form-label">ID Zona <span class="required">*</span></label>
@@ -105,7 +104,6 @@
             />
           </div>
         </form>
-      </template>
 
       <template #footer>
         <button type="button" class="btn-municipal-secondary" @click="cerrarModal">

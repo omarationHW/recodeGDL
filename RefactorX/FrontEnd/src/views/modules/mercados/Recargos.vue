@@ -74,20 +74,20 @@
       @confirm="guardar"
     >
       <div class="mb-3">
-        <label class="form-label">Año <span class="text-danger">*</span></label>
-        <input v-model="form.axo" type="number" class="form-control" :disabled="isEditing" required min="2000"
+        <label class="municipal-form-label">Año <span class="text-danger">*</span></label>
+        <input v-model="form.axo" type="number" class="municipal-form-control" :disabled="isEditing" required min="2000"
           max="2100" />
       </div>
       <div class="mb-3">
-        <label class="form-label">Mes <span class="text-danger">*</span></label>
-        <select v-model="form.periodo" class="form-select" :disabled="isEditing" required>
+        <label class="municipal-form-label">Mes <span class="text-danger">*</span></label>
+        <select v-model="form.periodo" class="municipal-form-control" :disabled="isEditing" required>
           <option value="">Seleccione</option>
           <option v-for="m in 12" :key="m" :value="m">{{ m }}</option>
         </select>
       </div>
       <div class="mb-3">
-        <label class="form-label">Porcentaje <span class="text-danger">*</span></label>
-        <input v-model="form.porcentaje" type="number" class="form-control" step="0.01" required />
+        <label class="municipal-form-label">Porcentaje <span class="text-danger">*</span></label>
+        <input v-model="form.porcentaje" type="number" class="municipal-form-control" step="0.01" required />
       </div>
     </Modal>
 

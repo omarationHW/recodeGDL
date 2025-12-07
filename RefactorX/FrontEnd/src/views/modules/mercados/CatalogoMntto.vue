@@ -72,9 +72,11 @@
                     </span>
                   </td>
                   <td>
-                    <button class="btn btn-sm btn-warning me-1" @click.stop="showModal('update', row)">
-                      <font-awesome-icon icon="edit" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click.stop="showModal('update', row)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -130,29 +132,28 @@
       size="md"
       @close="closeModal"
     >
-      <template #body>
         <form @submit.prevent="submitForm">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label">Oficina *</label>
-              <input type="number" class="form-control" v-model.number="form.oficina"
+              <label class="municipal-form-label">Oficina *</label>
+              <input type="number" class="municipal-form-control" v-model.number="form.oficina"
                      required :disabled="formMode === 'update'" min="1" />
             </div>
             <div class="col-md-6 mb-3">
-              <label class="form-label">Núm. Mercado *</label>
-              <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
+              <label class="municipal-form-label">Núm. Mercado *</label>
+              <input type="number" class="municipal-form-control" v-model.number="form.num_mercado_nvo"
                      required :disabled="formMode === 'update'" min="1" />
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Descripción *</label>
-            <input type="text" class="form-control" v-model="form.descripcion"
+            <label class="municipal-form-label">Descripción *</label>
+            <input type="text" class="municipal-form-control" v-model="form.descripcion"
                    required maxlength="100" />
           </div>
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label">Categoría</label>
-              <select class="form-select" v-model.number="form.categoria">
+              <label class="municipal-form-label">Categoría</label>
+              <select class="municipal-form-control" v-model.number="form.categoria">
                 <option value="">Seleccione...</option>
                 <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
                   {{ cat.categoria }} - {{ cat.descripcion }}
@@ -160,16 +161,20 @@
               </select>
             </div>
             <div class="col-md-6 mb-3">
-              <label class="form-label">Zona</label>
-              <input type="number" class="form-control" v-model.number="form.zona" min="0" />
+              <label class="municipal-form-label">Zona</label>
+              <input type="number" class="municipal-form-control" v-model.number="form.zona" min="0" />
             </div>
           </div>
         </form>
-      </template>
+
       <template #footer>
-        <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-        <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
+        <button type="button" class="btn-municipal-secondary" @click="closeModal">
+          <font-awesome-icon icon="times" />
+          Cancelar
+        </button>
+        <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+          <font-awesome-icon icon="save" v-if="!loading" />
           Guardar
         </button>
       </template>
@@ -183,7 +188,7 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
-import Modal from '@/components/Modal.vue';
+import Modal from '@/components/common/Modal.vue';
 
 const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();

@@ -112,12 +112,14 @@
                     <span class="badge-count">{{ formatNumber(giro.cantidad_locales) }}</span>
                   </td>
                   <td class="text-center">
-                    <button
-                      class="btn-icon btn-primary"
-                      @click="verLocales(giro)"
-                      title="Ver locales">
-                      <font-awesome-icon icon="eye" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button
+                        class="btn-municipal-primary btn-sm"
+                        @click.stop="verLocales(giro)"
+                        title="Ver locales">
+                        <font-awesome-icon icon="eye" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

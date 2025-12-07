@@ -155,7 +155,6 @@
       size="lg"
       @close="modalRequerimientos.show = false"
     >
-      <template #body>
         <div v-if="modalRequerimientos.loading" class="text-center py-3">
           <div class="spinner-border municipal-text-primary" role="status"></div>
           <p>Cargando requerimientos...</p>
@@ -187,7 +186,7 @@
         <div v-else class="municipal-alert municipal-alert-info">
           <font-awesome-icon icon="info-circle" /> No hay requerimientos para este local.
         </div>
-      </template>
+
       <template #footer>
         <button class="btn-municipal-secondary" @click="modalRequerimientos.show = false">
           Cerrar
@@ -201,7 +200,6 @@
       title="Ayuda - Emisión de Recibos de Abastos"
       @close="modalAyuda.show = false"
     >
-      <template #body>
         <div class="municipal-alert municipal-alert-info">
           <font-awesome-icon icon="info-circle" class="me-2" />
           <strong>Emisión de Recibos de Abastos</strong>
@@ -232,7 +230,7 @@
           <h6 class="mt-3"><font-awesome-icon icon="file-excel" class="me-2" />Exportación</h6>
           <p>Use el botón "Exportar" para descargar los resultados en formato CSV con todos los datos mostrados en la tabla.</p>
         </div>
-      </template>
+
       <template #footer>
         <button class="btn-municipal-primary" @click="modalAyuda.show = false">
           Entendido
@@ -245,9 +243,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-import Modal from '@/components/Modal.vue';
-import { useGlobalLoading } from '@/stores/globalLoading';
-import { useToast } from '@/stores/toast';
+import Modal from '@/components/common/Modal.vue';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
 
 const globalLoading = useGlobalLoading();
 const toast = useToast();

@@ -74,12 +74,14 @@
                   <td class="text-center">{{ formatDate(cuota.fecha_alta) }}</td>
                   <td>{{ cuota.id_usuario }}</td>
                   <td class="text-center">
-                    <button class="btn-municipal-sm btn-municipal-warning me-1" @click.stop="editarCuota(cuota)">
-                      <font-awesome-icon icon="edit" />
-                    </button>
-                    <button class="btn-municipal-sm btn-municipal-danger" @click.stop="confirmarEliminar(cuota)">
-                      <font-awesome-icon icon="trash" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click.stop="editarCuota(cuota)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button class="btn-municipal-danger btn-sm" @click.stop="confirmarEliminar(cuota)" title="Eliminar">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

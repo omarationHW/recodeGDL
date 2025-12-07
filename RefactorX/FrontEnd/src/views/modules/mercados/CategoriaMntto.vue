@@ -82,23 +82,26 @@
       size="sm"
       @close="closeModal"
     >
-      <template #body>
         <form @submit.prevent="submitForm">
           <div class="mb-3">
-            <label class="form-label">Código *</label>
-            <input type="number" class="form-control" v-model.number="form.categoria"
+            <label class="municipal-form-label">Código *</label>
+            <input type="number" class="municipal-form-control" v-model.number="form.categoria"
                    required :disabled="formMode === 'update'" min="1" max="12" />
           </div>
           <div class="mb-3">
-            <label class="form-label">Descripción *</label>
-            <input type="text" class="form-control text-uppercase" v-model="form.descripcion"
+            <label class="municipal-form-label">Descripción *</label>
+            <input type="text" class="municipal-form-control text-uppercase" v-model="form.descripcion"
                    required maxlength="30" />
           </div>
         </form>
-      </template>
+
       <template #footer>
-        <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-        <button type="button" class="btn btn-success" @click="submitForm">
+        <button type="button" class="btn-municipal-secondary" @click="closeModal">
+          <font-awesome-icon icon="times" />
+          Cancelar
+        </button>
+        <button type="button" class="btn-municipal-success" @click="submitForm">
+          <font-awesome-icon icon="save" />
           Guardar
         </button>
       </template>
@@ -113,7 +116,7 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
-import Modal from '@/components/Modal.vue';
+import Modal from '@/components/common/Modal.vue';
 
 const router = useRouter();
 const { withGlobalLoading } = useGlobalLoading();

@@ -72,12 +72,14 @@
                     </span>
                   </td>
                   <td>
-                    <button class="btn btn-sm btn-warning me-1" @click.stop="showModal('update', row)">
-                      <font-awesome-icon icon="edit" />
-                    </button>
-                    <button class="btn btn-sm btn-danger" @click.stop="deleteRow(row)">
-                      <font-awesome-icon icon="trash" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click.stop="showModal('update', row)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button class="btn-municipal-danger btn-sm" @click.stop="deleteRow(row)" title="Eliminar">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -108,37 +110,41 @@
             <form @submit.prevent="submitForm">
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Oficina *</label>
-                  <input type="number" class="form-control" v-model.number="form.oficina"
+                  <label class="municipal-form-label">Oficina *</label>
+                  <input type="number" class="municipal-form-control" v-model.number="form.oficina"
                          required :disabled="formMode === 'update'" min="1" />
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Núm. Mercado *</label>
-                  <input type="number" class="form-control" v-model.number="form.num_mercado_nvo"
+                  <label class="municipal-form-label">Núm. Mercado *</label>
+                  <input type="number" class="municipal-form-control" v-model.number="form.num_mercado_nvo"
                          required :disabled="formMode === 'update'" min="1" />
                 </div>
               </div>
               <div class="mb-3">
-                <label class="form-label">Descripción *</label>
-                <input type="text" class="form-control" v-model="form.descripcion"
+                <label class="municipal-form-label">Descripción *</label>
+                <input type="text" class="municipal-form-control" v-model="form.descripcion"
                        required maxlength="100" />
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Domicilio</label>
-                  <input type="text" class="form-control" v-model="form.domicilio" maxlength="200" />
+                  <label class="municipal-form-label">Domicilio</label>
+                  <input type="text" class="municipal-form-control" v-model="form.domicilio" maxlength="200" />
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Zona</label>
-                  <input type="number" class="form-control" v-model.number="form.zona" min="0" />
+                  <label class="municipal-form-label">Zona</label>
+                  <input type="number" class="municipal-form-control" v-model.number="form.zona" min="0" />
                 </div>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-            <button type="button" class="btn btn-success" @click="submitForm" :disabled="loading">
+            <button type="button" class="btn-municipal-secondary" @click="closeModal">
+              <font-awesome-icon icon="times" />
+              Cancelar
+            </button>
+            <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loading">
               <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+              <font-awesome-icon icon="save" v-if="!loading" />
               Guardar
             </button>
           </div>

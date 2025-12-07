@@ -9,8 +9,8 @@
         <div class="bg-light rounded p-3 mb-4" style="min-height: 150px;">
           <div class="row g-3">
             <div class="col-md-3">
-              <label class="form-label">Recaudadora</label>
-              <select v-model="filters.oficina" class="form-select form-select-sm" @change="onRecChange">
+              <label class="municipal-form-label">Recaudadora</label>
+              <select v-model="filters.oficina" class="municipal-form-control" @change="onRecChange">
                 <option value="">Seleccione</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.id_rec }} - {{ rec.recaudadora }}
@@ -18,8 +18,8 @@
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label">Mercado</label>
-              <select v-model="filters.num_mercado" class="form-select form-select-sm">
+              <label class="municipal-form-label">Mercado</label>
+              <select v-model="filters.num_mercado" class="municipal-form-control">
                 <option value="">Seleccione</option>
                 <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
                   {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
@@ -27,33 +27,33 @@
               </select>
             </div>
             <div class="col-md-2">
-              <label class="form-label">Categoría</label>
-              <input v-model="filters.categoria" type="number" class="form-control form-control-sm" />
+              <label class="municipal-form-label">Categoría</label>
+              <input v-model="filters.categoria" type="number" class="municipal-form-control" />
             </div>
             <div class="col-md-2">
-              <label class="form-label">Sección</label>
-              <input v-model="filters.seccion" type="text" class="form-control form-control-sm" maxlength="2" />
+              <label class="municipal-form-label">Sección</label>
+              <input v-model="filters.seccion" type="text" class="municipal-form-control" maxlength="2" />
             </div>
             <div class="col-md-2">
-              <label class="form-label">Local</label>
-              <input v-model="filters.local" type="number" class="form-control form-control-sm" />
+              <label class="municipal-form-label">Local</label>
+              <input v-model="filters.local" type="number" class="municipal-form-control" />
             </div>
           </div>
           <div class="row g-3 mt-2">
             <div class="col-md-2">
-              <label class="form-label">Letra</label>
-              <input v-model="filters.letra_local" type="text" class="form-control form-control-sm" maxlength="3" />
+              <label class="municipal-form-label">Letra</label>
+              <input v-model="filters.letra_local" type="text" class="municipal-form-control" maxlength="3" />
             </div>
             <div class="col-md-2">
-              <label class="form-label">Bloque</label>
-              <input v-model="filters.bloque" type="text" class="form-control form-control-sm" maxlength="2" />
+              <label class="municipal-form-label">Bloque</label>
+              <input v-model="filters.bloque" type="text" class="municipal-form-control" maxlength="2" />
             </div>
             <div class="col-md-8 d-flex align-items-end justify-content-end">
-              <button class="btn btn-municipal-primary btn-sm me-2" @click="buscarLocal" :disabled="loading">
+              <button class="btn-municipal-primary btn-sm me-2" @click="buscarLocal" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 Buscar
               </button>
-              <button class="btn btn-outline-secondary btn-sm" @click="limpiar">Limpiar</button>
+              <button class="btn-municipal-secondary btn-sm" @click="limpiar">Limpiar</button>
             </div>
           </div>
         </div>
@@ -87,9 +87,11 @@
                     <td>{{ adeudo.periodo }}</td>
                     <td>{{ formatCurrency(adeudo.importe) }}</td>
                     <td>
-                      <button class="btn btn-sm btn-warning" @click="abrirCondonar(adeudo)" title="Condonar">
-                        <i class="bi bi-x-circle"></i>
-                      </button>
+                      <div class="button-group button-group-sm">
+                        <button class="btn-municipal-warning btn-sm" @click.stop="abrirCondonar(adeudo)" title="Condonar">
+                          <font-awesome-icon icon="times-circle" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   <tr v-if="!adeudos.length">
@@ -118,9 +120,11 @@
                     <td>{{ cond.periodo }}</td>
                     <td>{{ formatCurrency(cond.importe) }}</td>
                     <td>
-                      <button class="btn btn-sm btn-info" @click="deshacerCondonacion(cond)" title="Deshacer">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                      </button>
+                      <div class="button-group button-group-sm">
+                        <button class="btn-municipal-info btn-sm" @click.stop="deshacerCondonacion(cond)" title="Deshacer">
+                          <font-awesome-icon icon="undo" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   <tr v-if="!condonados.length">
@@ -144,18 +148,22 @@
                 <p><strong>Año:</strong> {{ selectedAdeudo?.axo }} | <strong>Mes:</strong> {{ selectedAdeudo?.periodo }}</p>
                 <p><strong>Importe:</strong> {{ formatCurrency(selectedAdeudo?.importe) }}</p>
                 <div class="mb-3">
-                  <label class="form-label">Clave Cancelación</label>
-                  <input v-model="formCondonar.clave_canc" type="text" class="form-control" maxlength="10" />
+                  <label class="municipal-form-label">Clave Cancelación</label>
+                  <input v-model="formCondonar.clave_canc" type="text" class="municipal-form-control" maxlength="10" />
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Observación</label>
-                  <textarea v-model="formCondonar.observacion" class="form-control" rows="3"></textarea>
+                  <label class="municipal-form-label">Observación</label>
+                  <textarea v-model="formCondonar.observacion" class="municipal-form-control" rows="3"></textarea>
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="showModal = false">Cancelar</button>
-                <button type="button" class="btn btn-warning" @click="condonar" :disabled="loading">
+                <button type="button" class="btn-municipal-secondary" @click="showModal = false">
+                  <font-awesome-icon icon="times" />
+                  Cancelar
+                </button>
+                <button type="button" class="btn-municipal-warning" @click="condonar" :disabled="loading">
                   <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                  <font-awesome-icon icon="check" v-if="!loading" />
                   Condonar
                 </button>
               </div>
@@ -176,7 +184,10 @@
                 <p class="mb-0">{{ messageModal.message }}</p>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="showMessageModal = false">Cerrar</button>
+                <button type="button" class="btn-municipal-secondary" @click="showMessageModal = false">
+                  <font-awesome-icon icon="times" />
+                  Cerrar
+                </button>
               </div>
             </div>
           </div>
@@ -195,8 +206,14 @@
                 <p class="mb-0">{{ confirmMessage }}</p>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="showConfirmModal = false">Cancelar</button>
-                <button type="button" class="btn btn-warning" @click="ejecutarConfirm">Aceptar</button>
+                <button type="button" class="btn-municipal-secondary" @click="showConfirmModal = false">
+                  <font-awesome-icon icon="times" />
+                  Cancelar
+                </button>
+                <button type="button" class="btn-municipal-warning" @click="ejecutarConfirm">
+                  <font-awesome-icon icon="check" />
+                  Aceptar
+                </button>
               </div>
             </div>
           </div>

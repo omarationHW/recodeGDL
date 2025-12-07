@@ -246,8 +246,8 @@ async function cargarMercados() {
     try {
       const response = await axios.post('/api/generic', {
         eRequest: {
-          Operacion: 'sp_get_mercados_alls',
-          Base: 'mercados',
+          Operacion: 'sp_get_catalogo_mercados',
+          Base: 'padron_licencias',
           Parametros: []
         }
       });

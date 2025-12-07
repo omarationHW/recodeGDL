@@ -10,13 +10,11 @@
         <p>Inicio > Consultas > General</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-primary" @click="exportarExcel"
-          :disabled="locales.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="locales.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
-        <button class="btn-municipal-primary" @click="imprimir"
-          :disabled="locales.length === 0">
+        <button class="btn-municipal-primary" @click="imprimir" :disabled="locales.length === 0">
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
@@ -54,8 +52,7 @@
 
               <div class="form-group">
                 <label class="municipal-form-label">Mercado <span class="required">*</span></label>
-                <select v-model="form.num_mercado" class="municipal-form-control" required
-                  :disabled="!form.oficina">
+                <select v-model="form.num_mercado" class="municipal-form-control" required :disabled="!form.oficina">
                   <option value="">Seleccione...</option>
                   <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
                     {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
@@ -97,8 +94,7 @@
 
               <div class="form-group">
                 <label class="municipal-form-label">Bloque</label>
-                <input v-model="form.bloque" type="text" class="municipal-form-control" maxlength="1"
-                  placeholder="1-9">
+                <input v-model="form.bloque" type="text" class="municipal-form-control" maxlength="1" placeholder="1-9">
               </div>
             </div>
 
@@ -169,10 +165,8 @@
                     <p>No se encontraron locales con los criterios especificados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="loc in paginatedLocales" :key="loc.id_local"
-                  @click="selectedLocal = loc"
-                  :class="{ 'table-row-selected': selectedLocal?.id_local === loc.id_local }"
-                  class="row-hover">
+                <tr v-else v-for="loc in paginatedLocales" :key="loc.id_local" @click="selectedLocal = loc"
+                  :class="{ 'table-row-selected': selectedLocal?.id_local === loc.id_local }" class="row-hover">
                   <td><strong class="text-primary">{{ loc.id_local }}</strong></td>
                   <td>{{ loc.nombre }}</td>
                   <td>{{ loc.arrendatario }}</td>
@@ -195,27 +189,14 @@
                 Mostrando {{ startIndex + 1 }} a {{ endIndex }} de {{ locales.length }} registros
               </div>
               <div class="pagination-controls">
-                <button
-                  class="btn-pagination"
-                  @click="previousPage"
-                  :disabled="currentPage === 1"
-                >
+                <button class="btn-pagination" @click="previousPage" :disabled="currentPage === 1">
                   <font-awesome-icon icon="chevron-left" />
                 </button>
-                <button
-                  v-for="page in displayedPages"
-                  :key="page"
-                  class="btn-pagination"
-                  :class="{ active: currentPage === page }"
-                  @click="goToPage(page)"
-                >
+                <button v-for="page in displayedPages" :key="page" class="btn-pagination"
+                  :class="{ active: currentPage === page }" @click="goToPage(page)">
                   {{ page }}
                 </button>
-                <button
-                  class="btn-pagination"
-                  @click="nextPage"
-                  :disabled="currentPage === totalPages"
-                >
+                <button class="btn-pagination" @click="nextPage" :disabled="currentPage === totalPages">
                   <font-awesome-icon icon="chevron-right" />
                 </button>
               </div>
@@ -236,33 +217,64 @@
     </div>
 
     <!-- Modal de detalle usando componente Modal.vue -->
-    <Modal
-      v-if="showModal"
-      title="Detalle del Local"
-      size="xl"
-      @close="cerrarModal"
-    >
+    <Modal v-if="showModal" title="Detalle del Local" size="xl" @close="cerrarModal">
       <template #body>
         <!-- Información del local -->
         <div class="row">
           <div class="col-md-6">
             <table class="table table-sm table-bordered">
-              <tr><th class="table-light" style="width: 40%">Mercado</th><td>{{ detalle.nombre_mercado }}</td></tr>
-              <tr><th class="table-light">Control</th><td>{{ detalle.id_local }}</td></tr>
-              <tr><th class="table-light">Nombre</th><td>{{ detalle.nombre }}</td></tr>
-              <tr><th class="table-light">Arrendatario</th><td>{{ detalle.arrendatario }}</td></tr>
-              <tr><th class="table-light">Giro</th><td>{{ detalle.giro }}</td></tr>
-              <tr><th class="table-light">Superficie</th><td>{{ detalle.superficie }}</td></tr>
+              <tr>
+                <th class="table-light" style="width: 40%">Mercado</th>
+                <td>{{ detalle.nombre_mercado }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Control</th>
+                <td>{{ detalle.id_local }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Nombre</th>
+                <td>{{ detalle.nombre }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Arrendatario</th>
+                <td>{{ detalle.arrendatario }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Giro</th>
+                <td>{{ detalle.giro }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Superficie</th>
+                <td>{{ detalle.superficie }}</td>
+              </tr>
             </table>
           </div>
           <div class="col-md-6">
             <table class="table table-sm table-bordered">
-              <tr><th class="table-light" style="width: 40%">Fecha Alta</th><td>{{ detalle.fecha_alta }}</td></tr>
-              <tr><th class="table-light">Fecha Baja</th><td>{{ detalle.fecha_baja || '-' }}</td></tr>
-              <tr><th class="table-light">Vigencia</th><td>{{ detalle.vigencia }}</td></tr>
-              <tr><th class="table-light">Usuario</th><td>{{ detalle.usuario }}</td></tr>
-              <tr><th class="table-light">Bloqueo</th><td>{{ detalle.bloqueo || '-' }}</td></tr>
-              <tr><th class="table-light">Observación</th><td>{{ detalle.observacion || '-' }}</td></tr>
+              <tr>
+                <th class="table-light" style="width: 40%">Fecha Alta</th>
+                <td>{{ detalle.fecha_alta }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Fecha Baja</th>
+                <td>{{ detalle.fecha_baja || '-' }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Vigencia</th>
+                <td>{{ detalle.vigencia }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Usuario</th>
+                <td>{{ detalle.usuario }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Bloqueo</th>
+                <td>{{ detalle.bloqueo || '-' }}</td>
+              </tr>
+              <tr>
+                <th class="table-light">Observación</th>
+                <td>{{ detalle.observacion || '-' }}</td>
+              </tr>
             </table>
           </div>
         </div>
@@ -284,7 +296,8 @@
             </button>
           </li>
           <li class="nav-item">
-            <button class="nav-link-custom tab-requerimientos" :class="{ active: tab === 'requerimientos' }" @click="tab = 'requerimientos'">
+            <button class="nav-link-custom tab-requerimientos" :class="{ active: tab === 'requerimientos' }"
+              @click="tab = 'requerimientos'">
               <font-awesome-icon icon="file-invoice" class="tab-icon" />
               <span class="tab-label">Requerimientos</span>
               <span class="tab-badge badge-warning">{{ requerimientos.length }}</span>
@@ -325,7 +338,8 @@
                         <span class="amount-warning">{{ formatCurrency(a.recargos) }}</span>
                       </td>
                       <td class="text-end">
-                        <span class="amount-total">{{ formatCurrency(parseFloat(a.importe || 0) + parseFloat(a.recargos || 0)) }}</span>
+                        <span class="amount-total">{{ formatCurrency(parseFloat(a.importe || 0) + parseFloat(a.recargos
+                          || 0)) }}</span>
                       </td>
                     </tr>
                   </tbody>
@@ -427,7 +441,8 @@
                         <span class="amount-info">{{ formatCurrency(r.importe_gastos) }}</span>
                       </td>
                       <td class="text-end">
-                        <span class="amount-total">{{ formatCurrency(parseFloat(r.importe_multa || 0) + parseFloat(r.importe_gastos || 0)) }}</span>
+                        <span class="amount-total">{{ formatCurrency(parseFloat(r.importe_multa || 0) +
+                          parseFloat(r.importe_gastos || 0)) }}</span>
                       </td>
                       <td>
                         <span class="badge-vigencia">{{ r.vigencia }}</span>
@@ -440,7 +455,7 @@
                 <font-awesome-icon icon="check-circle" size="3x" class="empty-icon-success" />
                 <h5>Sin requerimientos pendientes</h5>
                 <p class="text-muted">Este local no tiene requerimientos registrados</p>
-              </td>
+              </div>
             </div>
           </div>
         </div>
@@ -461,7 +476,6 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
-import Modal from '@/components/shared/Modal.vue'
 
 // Composables
 const { withLoading } = useGlobalLoading()
@@ -983,6 +997,7 @@ const cerrarModal = () => {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1024,7 +1039,7 @@ const cerrarModal = () => {
 .table-row-hover:hover {
   background-color: #f8f9fa;
   transform: translateX(4px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* Estilos específicos por tipo de tabla */

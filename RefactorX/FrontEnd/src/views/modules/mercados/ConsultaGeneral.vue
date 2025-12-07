@@ -217,8 +217,8 @@
     </div>
 
     <!-- Modal de detalle usando componente Modal.vue -->
-    <Modal v-if="showModal" title="Detalle del Local" size="xl" @close="cerrarModal">
-      <template #body>
+    <Modal :show="showModal" title="Detalle del Local" size="xl" @close="cerrarModal">
+      <template #default>
         <!-- Información del local -->
         <div class="row">
           <div class="col-md-6">
@@ -265,15 +265,15 @@
               </tr>
               <tr>
                 <th class="table-light">Usuario</th>
-                <td>{{ detalle.usuario }}</td>
+                <td>{{ detalle.id_usuario || '-' }}</td>
               </tr>
               <tr>
-                <th class="table-light">Bloqueo</th>
-                <td>{{ detalle.bloqueo || '-' }}</td>
+                <th class="table-light">Sector</th>
+                <td>{{ detalle.sector || '-' }}</td>
               </tr>
               <tr>
-                <th class="table-light">Observación</th>
-                <td>{{ detalle.observacion || '-' }}</td>
+                <th class="table-light">Descripción</th>
+                <td>{{ detalle.descripcion_local || '-' }}</td>
               </tr>
             </table>
           </div>
@@ -472,10 +472,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import Modal from '@/components/common/Modal.vue'
 
 // Composables
 const { withLoading } = useGlobalLoading()
@@ -486,6 +487,11 @@ const showFilters = ref(true)
 const loadingTab = ref(false)
 const showModal = ref(false)
 const tab = ref('adeudos')
+
+// Watcher para debug
+watch(showModal, (newVal, oldVal) => {
+  console.log('🔷 WATCH showModal cambió:', { oldVal, newVal })
+})
 
 // Errores
 const errorLocales = ref('')
@@ -521,6 +527,11 @@ const detalle = ref({})
 const adeudos = ref([])
 const pagos = ref([])
 const requerimientos = ref([])
+
+// Watcher para debug de detalle
+watch(detalle, (newVal) => {
+  console.log('🔶 WATCH detalle cambió:', newVal)
+}, { deep: true })
 
 // Paginación
 const currentPage = ref(1)
@@ -588,7 +599,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ingrese los datos del local para buscar su información general. Los campos marcados con (*) son obligatorios.')
+  showToast('Ingrese los datos del local para buscar su información general. Los campos marcados con (*) son obligatorios.', 'info')
 }
 
 // Utilidades
@@ -605,6 +616,8 @@ const formatNumber = (number) => {
 
 // Lifecycle
 onMounted(() => {
+  console.log('🟣 ConsultaGeneral montado')
+  console.log('🟣 showModal inicial:', showModal.value)
   cargarRecaudadoras()
   cargarSecciones()
 })
@@ -624,16 +637,16 @@ const cargarRecaudadoras = async () => {
       if (res.data.eResponse.success === true) {
         recaudadoras.value = res.data.eResponse.data.result || []
         if (recaudadoras.value.length > 0) {
-          showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+          showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
         }
       } else {
         errorLocales.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-        showToast('error', errorLocales.value)
+        showToast(errorLocales.value, 'error')
       }
     } catch (err) {
       errorLocales.value = 'Error de conexión al cargar recaudadoras'
       console.error('Error al cargar recaudadoras:', err)
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   })
 }
@@ -665,18 +678,18 @@ const cargarMercados = async () => {
       if (res.data.eResponse && res.data.eResponse.success === true) {
         mercados.value = res.data.eResponse.data.result || []
         if (mercados.value.length > 0) {
-          showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+          showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
         } else {
-          showToast('info', 'No se encontraron mercados para esta oficina')
+          showToast('No se encontraron mercados para esta oficina', 'info')
         }
       } else {
         errorLocales.value = res.data.eResponse?.message || 'Error al cargar mercados'
-        showToast('error', errorLocales.value)
+        showToast(errorLocales.value, 'error')
       }
     } catch (err) {
       errorLocales.value = 'Error de conexión al cargar mercados'
       console.error('Error al cargar mercados:', err)
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   })
 }
@@ -698,16 +711,16 @@ const cargarSecciones = async () => {
       if (res.data.eResponse && res.data.eResponse.success === true) {
         secciones.value = res.data.eResponse.data.result || []
         if (secciones.value.length > 0) {
-          showToast('success', `Se cargaron ${secciones.value.length} secciones`)
+          showToast(`Se cargaron ${secciones.value.length} secciones`, 'success')
         }
       } else {
         errorLocales.value = res.data.eResponse?.message || 'Error al cargar secciones'
-        showToast('error', errorLocales.value)
+        showToast(errorLocales.value, 'error')
       }
     } catch (error) {
       errorLocales.value = 'Error de conexión al cargar secciones'
       console.error('Error al cargar secciones:', error)
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   })
 }
@@ -715,7 +728,7 @@ const cargarSecciones = async () => {
 const buscarLocal = async () => {
   if (!form.value.oficina || !form.value.num_mercado || !form.value.seccion || !form.value.local) {
     errorLocales.value = 'Debe completar todos los campos obligatorios'
-    showToast('warning', errorLocales.value)
+    showToast(errorLocales.value, 'warning')
     return
   }
 
@@ -745,19 +758,19 @@ const buscarLocal = async () => {
       if (response.data.eResponse && response.data.eResponse.success === true) {
         locales.value = response.data.eResponse.data.result || []
         if (locales.value.length === 0) {
-          showToast('info', 'No se encontraron locales con los criterios especificados')
+          showToast('No se encontraron locales con los criterios especificados', 'info')
         } else {
-          showToast('success', `Se encontraron ${locales.value.length} locales`)
+          showToast(`Se encontraron ${locales.value.length} locales`, 'success')
           showFilters.value = false
         }
       } else {
         errorLocales.value = response.data.eResponse?.message || 'Error en la búsqueda'
-        showToast('error', errorLocales.value)
+        showToast(errorLocales.value, 'error')
       }
     } catch (error) {
       errorLocales.value = error.response?.data?.eResponse?.message || 'Error al buscar locales'
       console.error('Error al buscar locales:', error)
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   })
 }
@@ -778,93 +791,204 @@ const limpiarFiltros = () => {
   currentPage.value = 1
   // Recargar secciones
   cargarSecciones()
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (locales.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación en desarrollo')
+  showToast('Funcionalidad de exportación en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (locales.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 
 const verDetalle = async (local) => {
-  detalle.value = local
+  console.log('🔵 [1] verDetalle - INICIO', { local, id_local: local.id_local })
+
   adeudos.value = []
   pagos.value = []
   requerimientos.value = []
   tab.value = 'adeudos'
-  showModal.value = true
 
-  // Cargar datos de los tabs
-  await cargarDatosDetalle(local.id_local)
+  console.log('🔵 [2] verDetalle - Arrays limpiados, llamando cargarDetalleCompleto...')
+
+  // Cargar detalle completo del local y datos de tabs
+  await cargarDetalleCompleto(local.id_local)
+
+  console.log('🔵 [3] verDetalle - cargarDetalleCompleto completado')
+  console.log('🔵 [4] verDetalle - detalle.value:', detalle.value)
+  console.log('🔵 [5] verDetalle - adeudos.length:', adeudos.value.length)
+  console.log('🔵 [6] verDetalle - pagos.length:', pagos.value.length)
+  console.log('🔵 [7] verDetalle - requerimientos.length:', requerimientos.value.length)
+
+  // Mostrar modal DESPUÉS de cargar datos
+  console.log('🔵 [8] verDetalle - Cambiando showModal a true...')
+  showModal.value = true
+  console.log('🔵 [9] verDetalle - showModal.value:', showModal.value)
+  console.log('🔵 [10] verDetalle - FIN')
+}
+
+const cargarDetalleCompleto = async (idLocal) => {
+  console.log('🟢 [A] cargarDetalleCompleto - INICIO', { idLocal })
+  loadingTab.value = true
+
+  try {
+    console.log('🟢 [B] cargarDetalleCompleto - Llamando sp_get_datos_individuales...')
+
+    // Cargar detalle completo del local
+    const resDetalle = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_datos_individuales',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: idLocal }
+        ]
+      }
+    })
+
+    console.log('🟢 [C] cargarDetalleCompleto - Respuesta recibida:', resDetalle.data)
+
+    if (resDetalle.data.eResponse && resDetalle.data.eResponse.success === true) {
+      const result = resDetalle.data.eResponse.data.result
+      console.log('🟢 [D] cargarDetalleCompleto - Result:', result)
+
+      if (result && result.length > 0) {
+        detalle.value = result[0]
+        console.log('🟢 [E] cargarDetalleCompleto - detalle.value asignado:', detalle.value)
+
+        // Agregar nombre del mercado si está disponible
+        // Intentar buscar por num_mercado_nvo primero, luego por num_mercado
+        let mercado = null
+        if (detalle.value.num_mercado_nvo) {
+          mercado = mercados.value.find(m => m.num_mercado_nvo === detalle.value.num_mercado_nvo)
+        }
+
+        // Si no se encontró por num_mercado_nvo, intentar por num_mercado
+        if (!mercado && detalle.value.num_mercado) {
+          mercado = mercados.value.find(m =>
+            m.oficina === detalle.value.oficina &&
+            m.num_mercado_nvo === detalle.value.num_mercado
+          )
+        }
+
+        console.log('🟢 [F] cargarDetalleCompleto - Mercado encontrado:', mercado)
+
+        if (mercado) {
+          detalle.value.nombre_mercado = mercado.descripcion
+        } else {
+          // Si no se encuentra el mercado, mostrar "-" en lugar de "Mercado null"
+          detalle.value.nombre_mercado = '-'
+        }
+        console.log('🟢 [G] cargarDetalleCompleto - nombre_mercado asignado:', detalle.value.nombre_mercado)
+      } else {
+        console.warn('⚠️ cargarDetalleCompleto - Result vacío o undefined')
+      }
+    } else {
+      console.error('❌ cargarDetalleCompleto - eResponse no exitoso:', resDetalle.data.eResponse)
+    }
+
+    // Cargar datos de tabs
+    console.log('🟢 [H] cargarDetalleCompleto - Llamando cargarDatosDetalle...')
+    await cargarDatosDetalle(idLocal)
+    console.log('🟢 [I] cargarDetalleCompleto - cargarDatosDetalle completado')
+
+  } catch (error) {
+    console.error('❌ cargarDetalleCompleto - ERROR:', error)
+    showToast('Error al cargar detalle del local', 'error')
+    loadingTab.value = false
+  }
+
+  console.log('🟢 [J] cargarDetalleCompleto - FIN')
 }
 
 const cargarDatosDetalle = async (idLocal) => {
-  await withLoading(async () => {
-    loadingTab.value = true
-    try {
-      // Cargar adeudos
-      const resAdeudos = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_consulta_general_adeudos',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_id_local', Valor: idLocal }
-          ]
-        }
-      })
-      if (resAdeudos.data.eResponse && resAdeudos.data.eResponse.success === true) {
-        adeudos.value = resAdeudos.data.eResponse.data.result || []
-      }
+  console.log('🟡 [1] cargarDatosDetalle - INICIO', { idLocal })
+  loadingTab.value = true
 
-      // Cargar pagos
-      const resPagos = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_consulta_general_pagos',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_id_local', Valor: idLocal }
-          ]
-        }
-      })
-      if (resPagos.data.eResponse && resPagos.data.eResponse.success === true) {
-        pagos.value = resPagos.data.eResponse.data.result || []
-      }
+  try {
+    console.log('🟡 [2] cargarDatosDetalle - Cargando adeudos...')
 
-      // Cargar requerimientos
-      const resReq = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_consulta_general_requerimientos',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_id_local', Valor: idLocal }
-          ]
-        }
-      })
-      if (resReq.data.eResponse && resReq.data.eResponse.success === true) {
-        requerimientos.value = resReq.data.eResponse.data.result || []
+    // Cargar adeudos
+    const resAdeudos = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_consulta_general_adeudos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: idLocal }
+        ]
       }
-    } catch (error) {
-      showToast('error', 'Error al cargar detalles')
-    } finally {
-      loadingTab.value = false
+    })
+
+    console.log('🟡 [3] cargarDatosDetalle - Respuesta adeudos:', resAdeudos.data)
+
+    if (resAdeudos.data.eResponse && resAdeudos.data.eResponse.success === true) {
+      adeudos.value = resAdeudos.data.eResponse.data.result || []
+      console.log('🟡 [4] cargarDatosDetalle - Adeudos cargados:', adeudos.value.length)
     }
-  })
+
+    console.log('🟡 [5] cargarDatosDetalle - Cargando pagos...')
+
+    // Cargar pagos
+    const resPagos = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_consulta_general_pagos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: idLocal }
+        ]
+      }
+    })
+
+    console.log('🟡 [6] cargarDatosDetalle - Respuesta pagos:', resPagos.data)
+
+    if (resPagos.data.eResponse && resPagos.data.eResponse.success === true) {
+      pagos.value = resPagos.data.eResponse.data.result || []
+      console.log('🟡 [7] cargarDatosDetalle - Pagos cargados:', pagos.value.length)
+    }
+
+    console.log('🟡 [8] cargarDatosDetalle - Cargando requerimientos...')
+
+    // Cargar requerimientos
+    const resReq = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_consulta_general_requerimientos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: idLocal }
+        ]
+      }
+    })
+
+    console.log('🟡 [9] cargarDatosDetalle - Respuesta requerimientos:', resReq.data)
+
+    if (resReq.data.eResponse && resReq.data.eResponse.success === true) {
+      requerimientos.value = resReq.data.eResponse.data.result || []
+      console.log('🟡 [10] cargarDatosDetalle - Requerimientos cargados:', requerimientos.value.length)
+    }
+
+    console.log('🟡 [11] cargarDatosDetalle - Todos los datos cargados exitosamente')
+
+  } catch (error) {
+    console.error('❌ cargarDatosDetalle - ERROR:', error)
+    showToast('Error al cargar detalles', 'error')
+  } finally {
+    loadingTab.value = false
+    console.log('🟡 [12] cargarDatosDetalle - FIN (loadingTab = false)')
+  }
 }
 
 const cerrarModal = () => {
+  console.log('🔴 cerrarModal - Cerrando modal')
   showModal.value = false
 }
 </script>

@@ -35,61 +35,65 @@
                     Mercado
                   </h5>
                 </div>
-                <label class="municipal-form-label">Seleccione Mercado *</label>
-                <select class="municipal-form-control" v-model="selectedMercado" @change="onMercadoChange"
-                  :disabled="loading">
-                  <option :value="null">Seleccione...</option>
-                  <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m">
-                    {{ m.num_mercado_nvo }} - {{ m.descripcion }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Datos del Pago -->
-              <div class="col-md-12">
-                <div class="municipal-card mb-3">
-                  <div class="municipal-card-header">
-                    <h5>
-                      <font-awesome-icon icon="credit-card" />
-                      Datos del Pago
-                    </h5>
-                  </div>
-                  <div class="municipal-card-body">
-                    <div class="row">
-                      <div class="col-md-3 mb-3">
-                        <label class="municipal-form-label">Oficina *</label>
-                        <input type="number" class="municipal-form-control" v-model.number="form.oficina_pago"
-                          :disabled="loading" min="1" />
-                      </div>
-                      <div class="col-md-3 mb-3">
-                        <label class="municipal-form-label">Caja *</label>
-                        <input type="text" class="municipal-form-control" v-model="form.caja_pago" :disabled="loading"
-                          maxlength="2" />
-                      </div>
-                      <div class="col-md-3 mb-3">
-                        <label class="municipal-form-label">Operación *</label>
-                        <input type="number" class="municipal-form-control" v-model.number="form.operacion_pago"
-                          :disabled="loading" min="1" />
-                      </div>
-                      <div class="col-md-3 mb-3">
-                        <label class="municipal-form-label">Fecha Pago *</label>
-                        <input type="date" class="municipal-form-control" v-model="form.fecha_pago"
-                          :disabled="loading" />
-                      </div>
+                <div class="municipal-card-body">
+                  <div class="row">
+                    <div class="col-md-3 mb-3">
+                      <label class="municipal-form-label">Seleccione Mercado *</label>
+                      <select class="municipal-form-control" v-model="selectedMercado" @change="onMercadoChange"
+                        :disabled="loading">
+                        <option :value="null">Seleccione...</option>
+                        <option v-for="m in mercados" :key="m.num_mercado_nvo" :value="m">
+                          {{ m.num_mercado_nvo }} - {{ m.descripcion }}
+                        </option>
+                      </select>
                     </div>
-                    <div class="row">
-                      <div class="col-md-4 mb-3">
-                        <label class="municipal-form-label">Local *</label>
-                        <input type="number" class="municipal-form-control" v-model.number="form.local"
-                          :disabled="loading" min="1" />
+                  </div>
+
+                  <!-- Datos del Pago -->
+                  <div class="col-md-12">
+                    <div class="municipal-card mb-3">
+                      <div class="municipal-card-header">
+                        <h5>
+                          <font-awesome-icon icon="credit-card" />
+                          Datos del Pago
+                        </h5>
                       </div>
-                      <div class="col-md-8 mb-3 d-flex align-items-end">
-                        <button class="btn-municipal-primary" @click="buscarAdeudos"
-                          :disabled="!puedesBuscar || loading">
-                          <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
-                          <font-awesome-icon icon="search" v-if="!loading" />
-                          Buscar Adeudos
-                        </button>
+                      <div class="row">
+                        <div class="col-md-3 mb-3">
+                          <label class="municipal-form-label">Oficina *</label>
+                          <input type="number" class="municipal-form-control" v-model.number="form.oficina_pago"
+                            :disabled="loading" min="1" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                          <label class="municipal-form-label">Caja *</label>
+                          <input type="text" class="municipal-form-control" v-model="form.caja_pago" :disabled="loading"
+                            maxlength="2" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                          <label class="municipal-form-label">Operación *</label>
+                          <input type="number" class="municipal-form-control" v-model.number="form.operacion_pago"
+                            :disabled="loading" min="1" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                          <label class="municipal-form-label">Fecha Pago *</label>
+                          <input type="date" class="municipal-form-control" v-model="form.fecha_pago"
+                            :disabled="loading" />
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-4 mb-3">
+                          <label class="municipal-form-label">Local *</label>
+                          <input type="number" class="municipal-form-control" v-model.number="form.local"
+                            :disabled="loading" min="1" />
+                        </div>
+                        <div class="col-md-8 mb-3 d-flex align-items-end">
+                          <button class="btn-municipal-primary" @click="buscarAdeudos"
+                            :disabled="!puedesBuscar || loading">
+                            <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                            <font-awesome-icon icon="search" v-if="!loading" />
+                            Buscar Adeudos
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

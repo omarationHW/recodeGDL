@@ -29,12 +29,12 @@
           <form @submit.prevent="buscarPagos">
             <div class="row">
               <div class="col-md-3 mb-3">
-                <label class="form-label">Fecha Pago *</label>
-                <input type="date" class="form-control" v-model="form.fecha" required />
+                <label class="municipal-form-label">Fecha Pago *</label>
+                <input type="date" class="municipal-form-control" v-model="form.fecha" required />
               </div>
               <div class="col-md-3 mb-3">
-                <label class="form-label">Oficina *</label>
-                <select class="form-select" v-model="form.oficina" required>
+                <label class="municipal-form-label">Oficina *</label>
+                <select class="municipal-form-control" v-model="form.oficina" required>
                   <option value="">Seleccione...</option>
                   <option v-for="of in oficinas" :key="of.id_rec" :value="of.id_rec">
                     {{ of.id_rec }} - {{ of.recaudadora }}
@@ -42,12 +42,12 @@
                 </select>
               </div>
               <div class="col-md-3 mb-3">
-                <label class="form-label">Caja *</label>
-                <input type="text" class="form-control" v-model="form.caja" required maxlength="10" />
+                <label class="municipal-form-label">Caja *</label>
+                <input type="text" class="municipal-form-control" v-model="form.caja" required maxlength="10" />
               </div>
               <div class="col-md-3 mb-3">
-                <label class="form-label">Operación *</label>
-                <input type="number" class="form-control" v-model.number="form.operacion" required min="1" />
+                <label class="municipal-form-label">Operación *</label>
+                <input type="number" class="municipal-form-control" v-model.number="form.operacion" required min="1" />
               </div>
             </div>
             <button type="submit" class="btn-municipal-primary" :disabled="loading">
@@ -66,7 +66,7 @@
             Pagos de Energía Encontrados
             <span v-if="pagos.length > 0" class="badge bg-primary ms-2">{{ pagos.length }}</span>
           </h5>
-          <button v-if="selected.length > 0" class="btn btn-sm btn-danger ms-auto" @click="borrarPagos">
+          <button v-if="selected.length > 0" class="btn-municipal-danger btn-sm ms-auto" @click="borrarPagos">
             <font-awesome-icon icon="trash" />
             Borrar ({{ selected.length }})
           </button>

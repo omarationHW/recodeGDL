@@ -28,8 +28,8 @@
         <div class="municipal-card-body">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label">Mercado *</label>
-              <select class="form-select" v-model="selectedMercado" @change="buscarPagos">
+              <label class="municipal-form-label">Mercado *</label>
+              <select class="municipal-form-control" v-model="selectedMercado" @change="buscarPagos">
                 <option value="">Seleccione un mercado...</option>
                 <option v-for="m in mercados" :key="m.id_mercado" :value="m">
                   {{ m.oficina }}-{{ m.num_mercado }} | {{ m.nombre_mercado }}
@@ -37,7 +37,7 @@
               </select>
             </div>
             <div class="col-md-6 mb-3" v-if="selectedMercado">
-              <label class="form-label">Información</label>
+              <label class="municipal-form-label">Información</label>
               <div class="p-2 bg-light rounded">
                 <strong>Oficina:</strong> {{ selectedMercado.oficina }} |
                 <strong>Mercado:</strong> {{ selectedMercado.num_mercado }}
@@ -55,7 +55,7 @@
             Pagos Capturados
             <span v-if="pagos.length > 0" class="badge bg-primary ms-2">{{ pagos.length }}</span>
           </h5>
-          <button v-if="pagos.length > 0" class="btn btn-sm btn-primary ms-auto" @click="buscarPagos">
+          <button v-if="pagos.length > 0" class="btn-municipal-primary btn-sm ms-auto" @click="buscarPagos">
             <font-awesome-icon icon="sync" />
             Actualizar
           </button>

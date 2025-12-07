@@ -29,18 +29,26 @@
         <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">Número de Mercado <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.num_mercado"
-                     min="1" :disabled="loading" placeholder="Ej: 1" />
+              <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model.number="form.oficina_pago" @change="onOficinaChange" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model.number="form.num_mercado" :disabled="loading || !form.oficina_pago">
+                <option value="">Seleccione...</option>
+                <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                  {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                </option>
+              </select>
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Fecha de Pago <span class="required">*</span></label>
               <input type="date" class="municipal-form-control" v-model="form.fecha_pago" :disabled="loading" />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Oficina de Pago <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.oficina_pago"
-                     min="1" :disabled="loading" placeholder="Ej: 1" />
             </div>
           </div>
           <div class="form-row">
@@ -119,12 +127,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
+const recaudadoras = ref([])
+const mercados = ref([])
 const form = ref({
   num_mercado: null,
   fecha_pago: '',
@@ -168,6 +178,35 @@ const getToastIcon = (type) => {
 
 const mostrarAyuda = () => {
   showToast('info', 'Complete todos los filtros (mercado, fecha, oficina, caja y operación) para consultar los ingresos capturados en ese periodo.')
+}
+
+const fetchRecaudadoras = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
+    })
+    if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
+  } catch (err) {
+    showToast('error', 'Error al cargar recaudadoras')
+  }
+}
+
+const onOficinaChange = async () => {
+  mercados.value = []
+  form.value.num_mercado = null
+  if (!form.value.oficina_pago) return
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_consulta_locales_get_mercados',
+        Base: 'padron_licencias',
+        Parametros: [{ Nombre: 'p_oficina', Valor: form.value.oficina_pago }]
+      }
+    })
+    if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
+  } catch (err) {
+    showToast('error', 'Error al cargar mercados')
+  }
 }
 
 const buscar = async () => {
@@ -254,4 +293,8 @@ const formatCurrency = (val) => {
   const num = typeof val === 'number' ? val : parseFloat(val)
   return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+
+onMounted(() => {
+  fetchRecaudadoras()
+})
 </script>

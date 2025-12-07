@@ -42,7 +42,7 @@
           <div v-if="searchType === 'local'" class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
-              <select class="municipal-form-control" v-model.number="formLocal.oficina" :disabled="loading">
+              <select class="municipal-form-control" v-model.number="formLocal.oficina" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
                   {{ rec.id_rec }} - {{ rec.recaudadora }}
@@ -51,7 +51,12 @@
             </div>
             <div class="form-group" style="flex: 0.7;">
               <label class="municipal-form-label">Mercado</label>
-              <input type="number" class="municipal-form-control" v-model.number="formLocal.num_mercado" :disabled="loading" />
+              <select class="municipal-form-control" v-model.number="formLocal.num_mercado" :disabled="loading || !formLocal.oficina">
+                <option value="">Seleccione...</option>
+                <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                  {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                </option>
+              </select>
             </div>
             <div class="form-group" style="flex: 0.5;">
               <label class="municipal-form-label">Cat.</label>
@@ -226,6 +231,7 @@ const { showLoading, hideLoading } = useGlobalLoading()
 const showFilters = ref(true)
 const searchType = ref('')
 const recaudadoras = ref([])
+const mercados = ref([])
 const secciones = ref([])
 const cajas = ref([])
 const resultados = ref([])
@@ -303,6 +309,18 @@ const fetchSecciones = async () => {
     const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_secciones', Base: 'padron_licencias', Parametros: [] } })
     if (res.data.eResponse?.success) secciones.value = res.data.eResponse.data.result || []
   } catch { showToast('error', 'Error al cargar secciones') }
+}
+
+const onOficinaChange = async () => {
+  mercados.value = []
+  formLocal.value.num_mercado = ''
+  if (!formLocal.value.oficina) return
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: { Operacion: 'sp_consulta_locales_get_mercados', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: formLocal.value.oficina }] }
+    })
+    if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
+  } catch { showToast('error', 'Error al cargar mercados') }
 }
 
 const onOficinaPagoChange = async () => {

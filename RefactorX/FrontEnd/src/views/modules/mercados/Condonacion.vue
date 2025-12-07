@@ -29,33 +29,43 @@
         <div class="municipal-card-body">
           <form @submit.prevent="buscarLocal">
             <div class="row">
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Oficina *</label>
-                <input type="number" class="form-control" v-model.number="form.oficina" required min="1" />
+              <div class="col-md-3 mb-3">
+                <label class="municipal-form-label">Recaudadora *</label>
+                <select class="municipal-form-control" v-model="form.oficina" @change="onOficinaChange" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                    {{ rec.id_rec }} - {{ rec.recaudadora }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="municipal-form-label">Mercado *</label>
+                <select class="municipal-form-control" v-model="form.num_mercado" :disabled="!form.oficina" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                    {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                  </option>
+                </select>
               </div>
               <div class="col-md-2 mb-3">
-                <label class="form-label">Mercado *</label>
-                <input type="number" class="form-control" v-model.number="form.num_mercado" required min="1" />
-              </div>
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Categoría *</label>
-                <input type="number" class="form-control" v-model.number="form.categoria" required min="1" />
-              </div>
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Sección *</label>
-                <input type="text" class="form-control" v-model="form.seccion" maxlength="2" required />
-              </div>
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Local *</label>
-                <input type="number" class="form-control" v-model.number="form.local" required min="1" />
+                <label class="municipal-form-label">Categoría *</label>
+                <input type="number" class="municipal-form-control" v-model.number="form.categoria" required min="1" />
               </div>
               <div class="col-md-1 mb-3">
-                <label class="form-label">Letra</label>
-                <input type="text" class="form-control" v-model="form.letra_local" maxlength="1" />
+                <label class="municipal-form-label">Sección *</label>
+                <input type="text" class="municipal-form-control" v-model="form.seccion" maxlength="2" required />
               </div>
               <div class="col-md-1 mb-3">
-                <label class="form-label">Bloque</label>
-                <input type="text" class="form-control" v-model="form.bloque" maxlength="1" />
+                <label class="municipal-form-label">Local *</label>
+                <input type="number" class="municipal-form-control" v-model.number="form.local" required min="1" />
+              </div>
+              <div class="col-md-1 mb-3">
+                <label class="municipal-form-label">Letra</label>
+                <input type="text" class="municipal-form-control" v-model="form.letra_local" maxlength="1" />
+              </div>
+              <div class="col-md-1 mb-3">
+                <label class="municipal-form-label">Bloque</label>
+                <input type="text" class="municipal-form-control" v-model="form.bloque" maxlength="1" />
               </div>
             </div>
             <button type="submit" class="btn-municipal-primary" :disabled="loading">
@@ -89,7 +99,7 @@
             Adeudos a Condonar
             <span v-if="adeudos.length > 0" class="badge bg-warning ms-2">{{ adeudos.length }}</span>
           </h5>
-          <button class="btn btn-sm btn-primary ms-auto" @click="listarAdeudos" :disabled="loading">
+          <button class="btn-municipal-primary btn-sm ms-auto" @click="listarAdeudos" :disabled="loading">
             <font-awesome-icon icon="sync" />
             Listar
           </button>
@@ -119,8 +129,8 @@
             <div class="mt-3">
               <div class="row align-items-end">
                 <div class="col-md-4">
-                  <label class="form-label">Oficio (LLL/9999/9999) *</label>
-                  <input type="text" class="form-control" v-model="oficio" maxlength="13" placeholder="LLL/9999/9999" />
+                  <label class="municipal-form-label">Oficio (LLL/9999/9999) *</label>
+                  <input type="text" class="municipal-form-control" v-model="oficio" maxlength="13" placeholder="LLL/9999/9999" />
                 </div>
                 <div class="col-md-4">
                   <button class="btn-municipal-success" @click="condonarSeleccionados" :disabled="loading">
@@ -145,7 +155,7 @@
             Condonaciones Realizadas
             <span v-if="condonados.length > 0" class="badge bg-info ms-2">{{ condonados.length }}</span>
           </h5>
-          <button class="btn btn-sm btn-primary ms-auto" @click="listarCondonados" :disabled="loading">
+          <button class="btn-municipal-primary btn-sm ms-auto" @click="listarCondonados" :disabled="loading">
             <font-awesome-icon icon="sync" />
             Listar
           </button>
@@ -189,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
@@ -198,6 +208,8 @@ const router = useRouter();
 
 // State
 const loading = ref(false);
+const recaudadoras = ref([]);
+const mercados = ref([]);
 const form = ref({
   oficina: '',
   num_mercado: '',
@@ -442,4 +454,50 @@ async function deshacerCondonacion() {
     loading.value = false;
   }
 }
+
+// Cargar Recaudadoras
+async function fetchRecaudadoras() {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    });
+    if (response.data?.eResponse?.success) {
+      recaudadoras.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error al cargar recaudadoras:', error);
+  }
+}
+
+// Cambio de Oficina
+async function onOficinaChange() {
+  form.value.num_mercado = '';
+  mercados.value = [];
+  if (!form.value.oficina) return;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_consulta_locales_get_mercados',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina), tipo: 'integer' }
+        ]
+      }
+    });
+    if (response.data?.eResponse?.success) {
+      mercados.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error al cargar mercados:', error);
+  }
+}
+
+onMounted(() => {
+  fetchRecaudadoras();
+});
 </script>

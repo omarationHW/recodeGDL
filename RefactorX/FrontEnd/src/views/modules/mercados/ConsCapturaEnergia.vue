@@ -58,9 +58,11 @@
                   <td>{{ row.fecha_pago }}</td>
                   <td>{{ row.folio }}</td>
                   <td>
-                    <button class="btn btn-sm btn-danger" @click="borrarPago(row)">
-                      <font-awesome-icon icon="trash" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-danger btn-sm" @click="borrarPago(row)" title="Eliminar">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

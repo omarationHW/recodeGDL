@@ -144,6 +144,9 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const toast = useToast()
 const loading = ref(false)
@@ -159,6 +162,7 @@ const form = ref({
 })
 
 const fetchData = async () => {
+  showLoading('Cargando Clave de Diferencias', 'Preparando catálogo...')
   loading.value = true
   try {
     const response = await axios.post('/api/generic', {
@@ -180,6 +184,7 @@ const fetchData = async () => {
     rows.value = []
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

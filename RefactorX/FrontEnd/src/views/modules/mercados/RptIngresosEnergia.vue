@@ -38,6 +38,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const filters = ref({ oficina: '', mercado: '', axo: new Date().getFullYear(), periodo: '' });
 const recaudadoras = ref([]);
@@ -64,7 +67,14 @@ const formatNumber = (value) => { if (value == null) return '0'; return new Intl
 const exportarExcel = () => { const data = results.value.map(row => ({ 'Fecha': formatDate(row.fecha_pago), 'Mercado': row.num_mercado, 'Local': datosLocal(row), 'Nombre': row.nombre, 'Año': row.axo, 'Periodo': row.periodo, 'Consumo': row.consumo, 'Importe': row.importe_pago })); const csv = [Object.keys(data[0]).join(','), ...data.map(row => Object.values(row).join(','))].join('\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `ingresos_energia_${filters.value.oficina}_${filters.value.axo}.csv`; a.click(); window.URL.revokeObjectURL(url); };
 const mostrarAyuda = () => { alert('Reporte de Ingresos por Energía Eléctrica\n\nGenera un reporte de los ingresos por consumo de energía eléctrica.\n\nIncluye información de consumo en kilowatts y monto pagado.'); };
 
-onMounted(() => { fetchRecaudadoras(); });
+onMounted(async () => {
+  showLoading('Cargando Reporte de Ingresos de Energía', 'Preparando oficinas recaudadoras...');
+  try {
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
+});
 </script>
 
 <style scoped>

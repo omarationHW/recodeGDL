@@ -13,12 +13,32 @@
       <div class="municipal-card">
         <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;"><h5><font-awesome-icon icon="filter" />Filtros de Consulta<font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" /></h5></div>
         <div v-show="showFilters" class="municipal-card-body">
-          <div class="row">
-            <div class="col-md-3"><label class="form-label">Año</label><input v-model.number="filters.axo" type="number" class="form-control" min="1990" max="2100" /></div>
-            <div class="col-md-3"><label class="form-label">Oficina</label><input v-model.number="filters.oficina" type="number" class="form-control" min="1" /></div>
-            <div class="col-md-3"><label class="form-label">Periodo (Mes)</label><input v-model.number="filters.periodo" type="number" class="form-control" min="1" max="12" /></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Año</label>
+              <input v-model.number="filters.axo" type="number" class="municipal-form-control" min="1990" max="2100" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina</label>
+              <input v-model.number="filters.oficina" type="number" class="municipal-form-control" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Periodo (Mes)</label>
+              <input v-model.number="filters.periodo" type="number" class="municipal-form-control" min="1" max="12" />
+            </div>
           </div>
-          <div class="row mt-3"><div class="col-12 text-end"><button class="btn-municipal-primary me-2" @click="consultar" :disabled="loading"><font-awesome-icon icon="search" />Consultar</button><button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading"><font-awesome-icon icon="eraser" />Limpiar</button></div></div>
+          <div class="row mt-3">
+            <div class="col-12 text-end">
+              <button class="btn-municipal-primary me-2" @click="consultar" :disabled="loading">
+                <font-awesome-icon icon="search" />
+                Consultar
+              </button>
+              <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                <font-awesome-icon icon="eraser" />
+                Limpiar
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="municipal-card">
@@ -38,7 +58,7 @@
           </div>
           <div v-if="datos.length > 0" class="pagination-container">
             <div class="pagination-info">Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ datos.length }} registros</div>
-            <div class="pagination-controls"><label>Registros por página:</label><select v-model.number="pageSize" class="form-select form-select-sm"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option><option :value="250">250</option></select></div>
+            <div class="pagination-controls"><label>Registros por página:</label><select v-model.number="pageSize" class="municipal-form-control" style="width: auto; display: inline-block;"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option><option :value="250">250</option></select></div>
             <div class="pagination-buttons"><button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-left" /></button><span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span><button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-right" /></button></div>
           </div>
         </div>

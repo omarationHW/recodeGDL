@@ -182,6 +182,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const loading = ref(false);
 const showFilters = ref(true);
@@ -244,7 +247,14 @@ const formatNumber = (value) => { if (value === null || value === undefined) ret
 const showToast = (message, type = 'info') => { toast.value = { show: true, message, type }; setTimeout(() => { toast.value.show = false; }, 3000); };
 const getToastIcon = () => { const icons = { success: 'check-circle', error: 'exclamation-circle', warning: 'exclamation-triangle', info: 'info-circle' }; return icons[toast.value.type] || 'info-circle'; };
 
-onMounted(() => {});
+onMounted(async () => {
+  showLoading('Cargando Reporte de Adeudos Anteriores', 'Preparando datos...');
+  try {
+    // Initialization complete
+  } finally {
+    hideLoading();
+  }
+});
 </script>
 
 <style src="@/styles/municipal-theme.css"></style>

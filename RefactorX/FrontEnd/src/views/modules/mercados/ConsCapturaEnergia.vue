@@ -84,6 +84,9 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter, useRoute } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const router = useRouter();
 const route = useRoute();
@@ -102,6 +105,7 @@ const showToast = (type, message) => {
 const cerrar = () => router.push('/mercados');
 
 async function fetchData() {
+  showLoading('Cargando Captura de Energía', 'Consultando información...');
   loading.value = true;
   try {
     const idEnergia = route.query.id_energia || null;
@@ -121,6 +125,7 @@ async function fetchData() {
     showToast('error', 'Error al cargar datos');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 

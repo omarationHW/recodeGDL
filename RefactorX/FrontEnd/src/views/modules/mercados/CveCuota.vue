@@ -133,6 +133,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const loading = ref(false);
 const saving = ref(false);
@@ -187,6 +190,7 @@ const ejecutarConfirm = () => {
 };
 
 const cargarCveCuotas = async () => {
+  showLoading('Cargando Claves de Cuota', 'Preparando catálogo...');
   loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
@@ -204,6 +208,7 @@ const cargarCveCuotas = async () => {
     mostrarMensaje('Error al cargar claves de cuota', 'error');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 };
 

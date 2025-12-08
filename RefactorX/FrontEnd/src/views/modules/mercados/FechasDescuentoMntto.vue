@@ -52,7 +52,7 @@
                     <p>No hay fechas configuradas.</p>
                   </td>
                 </tr>
-                <tr v-else v-for="fecha in fechas" :key="fecha.mes" class="row-hover">
+                <tr v-else v-for="fecha in paginatedFechas" :key="fecha.mes" class="row-hover">
                   <td class="text-center"><span class="badge-primary">{{ fecha.mes }}</span></td>
                   <td><strong>{{ getMesNombre(fecha.mes) }}</strong></td>
                   <td class="text-center">{{ formatDate(fecha.fecha_descuento) }}</td>
@@ -60,13 +60,89 @@
                   <td class="text-center text-muted">{{ formatDateTime(fecha.fecha_alta) }}</td>
                   <td>{{ fecha.usuario }}</td>
                   <td class="text-center">
-                    <button class="btn-municipal-sm btn-municipal-warning" @click="editarFecha(fecha)">
-                      <font-awesome-icon icon="edit" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click="editarFecha(fecha)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="fechas.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, fechas.length) }}
+                de {{ fechas.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -106,12 +182,6 @@
               <input type="date" class="municipal-form-control" v-model="form.fecha_recargos" required />
               <small class="form-text text-muted">Debe ser del mes {{ getMesNombre(form.mes) }}</small>
             </div>
-
-            <div class="mb-3">
-              <label class="municipal-form-label">ID Usuario <span class="required">*</span></label>
-              <input type="number" class="municipal-form-control" v-model.number="form.id_usuario"
-                     min="1" required />
-            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
@@ -140,17 +210,23 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const fechas = ref([])
 const loading = ref(false)
 const showModal = ref(false)
 const toast = ref({ show: false, type: 'info', message: '' })
 
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
 const form = ref({
   mes: null,
   fecha_descuento: '',
-  fecha_recargos: '',
-  id_usuario: null
+  fecha_recargos: ''
 })
 
 const MESES = [
@@ -162,8 +238,33 @@ const isFormValid = computed(() => {
   return form.value.mes >= 1 &&
          form.value.mes <= 12 &&
          form.value.fecha_descuento.trim().length > 0 &&
-         form.value.fecha_recargos.trim().length > 0 &&
-         form.value.id_usuario >= 1
+         form.value.fecha_recargos.trim().length > 0
+})
+
+// Computed de paginación
+const totalPages = computed(() => Math.ceil(fechas.value.length / itemsPerPage.value))
+
+const paginatedFechas = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return fechas.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
 })
 
 const getMesNombre = (mes) => {
@@ -229,8 +330,7 @@ const editarFecha = (fecha) => {
   form.value = {
     mes: fecha.mes,
     fecha_descuento: fecha.fecha_descuento ? fecha.fecha_descuento.substr(0, 10) : '',
-    fecha_recargos: fecha.fecha_recargos ? fecha.fecha_recargos.substr(0, 10) : '',
-    id_usuario: fecha.id_usuario
+    fecha_recargos: fecha.fecha_recargos ? fecha.fecha_recargos.substr(0, 10) : ''
   }
   showModal.value = true
 }
@@ -250,8 +350,7 @@ const guardar = async () => {
         Parametros: [
           { Nombre: 'p_mes', Valor: parseInt(form.value.mes) },
           { Nombre: 'p_fecha_descuento', Valor: form.value.fecha_descuento },
-          { Nombre: 'p_fecha_recargos', Valor: form.value.fecha_recargos },
-          { Nombre: 'p_id_usuario', Valor: parseInt(form.value.id_usuario) }
+          { Nombre: 'p_fecha_recargos', Valor: form.value.fecha_recargos }
         ]
       }
     })
@@ -280,8 +379,24 @@ const cerrarModal = () => {
   showModal.value = false
 }
 
-onMounted(() => {
-  cargarFechas()
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+}
+
+onMounted(async () => {
+  showLoading('Cargando Mantenimiento de Fechas de Descuento', 'Preparando fechas de descuento...')
+  try {
+    await cargarFechas()
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 

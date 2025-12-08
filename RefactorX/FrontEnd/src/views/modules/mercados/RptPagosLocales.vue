@@ -173,6 +173,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -352,8 +355,13 @@ const formatNumber = (number) => {
 }
 
 // Lifecycle
-onMounted(() => {
-  fetchRecaudadoras()
+onMounted(async () => {
+  showLoading('Cargando Reporte de Pagos por Locales', 'Preparando oficinas recaudadoras...')
+  try {
+    await fetchRecaudadoras()
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 

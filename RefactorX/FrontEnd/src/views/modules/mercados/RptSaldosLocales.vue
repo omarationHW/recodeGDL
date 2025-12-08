@@ -174,6 +174,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const filters = ref({
   oficina: '',
@@ -199,9 +202,14 @@ const totalAdeudos = computed(() => results.value.reduce((sum, row) => sum + (pa
 const totalPagos = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.total_pagos) || 0), 0));
 const totalSaldo = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.saldo) || 0), 0));
 
-onMounted(() => {
-  filters.value.axo = new Date().getFullYear();
-  fetchRecaudadoras();
+onMounted(async () => {
+  showLoading('Cargando Reporte de Saldos por Locales', 'Preparando datos...');
+  try {
+    filters.value.axo = new Date().getFullYear();
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
 });
 
 const fetchRecaudadoras = async () => {

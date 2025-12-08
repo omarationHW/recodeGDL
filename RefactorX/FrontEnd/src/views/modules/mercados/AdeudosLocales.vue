@@ -233,6 +233,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -293,6 +296,7 @@ const getToastIcon = (type) => {
 }
 
 const fetchRecaudadoras = async () => {
+  showLoading('Cargando Adeudos de Locales', 'Preparando oficinas recaudadoras...')
   loading.value = true
   error.value = ''
   try {
@@ -318,6 +322,7 @@ const fetchRecaudadoras = async () => {
     showToast('error', error.value)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

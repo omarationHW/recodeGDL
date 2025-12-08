@@ -18,52 +18,58 @@
         </div>
 
         <!-- Búsqueda por Local -->
-        <div v-if="opcion === 'L'" class="row g-2 mb-3">
-          <div class="col-md-2">
-            <label class="form-label">Recaudadora</label>
-            <select v-model="form.oficina" class="form-select form-select-sm" @change="onOficinaChange">
-              <option value="">Seleccione</option>
-              <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                {{ rec.id_rec }}
-              </option>
-            </select>
+        <div v-if="opcion === 'L'">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Recaudadora</label>
+              <select v-model="form.oficina" class="municipal-form-control" @change="onOficinaChange">
+                <option value="">Seleccione</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado</label>
+              <select v-model="form.num_mercado" class="municipal-form-control">
+                <option value="">Todos</option>
+                <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                  {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Cat</label>
+              <input v-model="form.categoria" type="number" class="municipal-form-control" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Sección</label>
+              <input v-model="form.seccion" type="text" class="municipal-form-control" maxlength="2" />
+            </div>
           </div>
-          <div class="col-md-2">
-            <label class="form-label">Mercado</label>
-            <select v-model="form.num_mercado" class="form-select form-select-sm">
-              <option value="">Todos</option>
-              <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
-                {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
-              </option>
-            </select>
-          </div>
-          <div class="col-md-1">
-            <label class="form-label">Cat</label>
-            <input v-model="form.categoria" type="number" class="form-control form-control-sm" />
-          </div>
-          <div class="col-md-1">
-            <label class="form-label">Sección</label>
-            <input v-model="form.seccion" type="text" class="form-control form-control-sm" maxlength="2" />
-          </div>
-          <div class="col-md-1">
-            <label class="form-label">Local</label>
-            <input v-model="form.local" type="number" class="form-control form-control-sm" />
-          </div>
-          <div class="col-md-1">
-            <label class="form-label">Letra</label>
-            <input v-model="form.letra_local" type="text" class="form-control form-control-sm" maxlength="3" />
-          </div>
-          <div class="col-md-1">
-            <label class="form-label">Bloque</label>
-            <input v-model="form.bloque" type="text" class="form-control form-control-sm" maxlength="2" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Local</label>
+              <input v-model="form.local" type="number" class="municipal-form-control" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Letra</label>
+              <input v-model="form.letra_local" type="text" class="municipal-form-control" maxlength="3" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Bloque</label>
+              <input v-model="form.bloque" type="text" class="municipal-form-control" maxlength="2" />
+            </div>
           </div>
         </div>
 
         <!-- Búsqueda por Nombre -->
-        <div v-if="opcion === 'N'" class="row g-2 mb-3">
-          <div class="col-md-6">
-            <label class="form-label">Nombre</label>
-            <input v-model="form.nombre" type="text" class="form-control" placeholder="Nombre del local o contribuyente" />
+        <div v-if="opcion === 'N'">
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label class="municipal-form-label">Nombre</label>
+              <input v-model="form.nombre" type="text" class="municipal-form-control" placeholder="Nombre del local o contribuyente" />
+            </div>
           </div>
         </div>
 
@@ -173,6 +179,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const loading = ref(false);
 const opcion = ref('');
@@ -360,7 +369,12 @@ const limpiar = () => {
   mercados.value = [];
 };
 
-onMounted(() => {
-  fetchRecaudadoras();
+onMounted(async () => {
+  showLoading('Cargando Consulta de Datos de Locales', 'Preparando oficinas recaudadoras...');
+  try {
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
 });
 </script>

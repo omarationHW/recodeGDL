@@ -275,10 +275,13 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
 
 export default {
   name: 'RecaudadorasMercados',
   setup() {
+    const { showLoading, hideLoading } = useGlobalLoading();
+
     // Estado reactivo
     const loading = ref(false);
     const error = ref(null);
@@ -623,8 +626,13 @@ export default {
 
     // Lifecycle
     onMounted(async () => {
-      await fetchRecaudadoras();
-      await cargarCatalogo();
+      showLoading('Cargando Catálogo de Mercados', 'Preparando recaudadoras y mercados...');
+      try {
+        await fetchRecaudadoras();
+        await cargarCatalogo();
+      } finally {
+        hideLoading();
+      }
     });
 
     return {

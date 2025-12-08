@@ -125,6 +125,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const rows = ref([])
 const selectedRow = ref(null)
@@ -171,6 +174,7 @@ const getMesNombre = (mes) => {
 }
 
 const fetchRows = async () => {
+  showLoading('Cargando Fechas de Descuento', 'Preparando configuración del sistema...')
   loading.value = true
   try {
     const res = await axios.post('/api/generic', {
@@ -189,6 +193,7 @@ const fetchRows = async () => {
     showToast('error', 'Error de conexión al cargar datos')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

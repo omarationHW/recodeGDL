@@ -1,5 +1,9 @@
 <template>
   <div class="fecha-descuento-page">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -80,6 +84,7 @@ export default {
   name: 'FechaDescuentoPage',
   data() {
     return {
+      initialLoading: true,
       rows: [],
       selectedRow: null,
       showModal: false,
@@ -125,6 +130,7 @@ export default {
         this.error = e.message;
       } finally {
         this.loading = false;
+        this.initialLoading = false;
       }
     },
     selectRow(row) {
@@ -194,6 +200,7 @@ export default {
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  position: relative;
 }
 .table-active {
   background-color: #e9ecef;

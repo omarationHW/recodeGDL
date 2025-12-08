@@ -130,6 +130,9 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const router = useRouter();
 
@@ -156,6 +159,7 @@ const showToast = (type, message) => {
 const cerrar = () => router.push('/mercados');
 
 async function cargarOficinas() {
+  showLoading('Cargando Captura por Fecha', 'Preparando oficinas...');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -170,6 +174,8 @@ async function cargarOficinas() {
     }
   } catch (error) {
     console.error('Error cargando oficinas:', error);
+  } finally {
+    hideLoading();
   }
 }
 

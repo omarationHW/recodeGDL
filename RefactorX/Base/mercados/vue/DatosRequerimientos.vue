@@ -1,5 +1,9 @@
 <template>
   <div class="datos-requerimientos-page">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -94,6 +98,7 @@ export default {
   name: 'DatosRequerimientosPage',
   data() {
     return {
+      initialLoading: false,
       form: {
         id_local: '',
         modulo: '',
@@ -168,6 +173,7 @@ export default {
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
+  position: relative;
 }
 .breadcrumb {
   background: #f8f9fa;

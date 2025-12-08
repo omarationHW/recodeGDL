@@ -1,5 +1,9 @@
 <template>
   <div class="emision-energia-page">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <nav class="breadcrumb">
       <span>Inicio</span> &gt; <span>Emisión de Recibos de Energía Eléctrica</span>
     </nav>
@@ -70,6 +74,7 @@ export default {
   name: 'EmisionEnergiaPage',
   data() {
     return {
+      initialLoading: true,
       recaudadoras: [],
       mercados: [],
       emision: [],
@@ -97,9 +102,13 @@ export default {
       return json.eResponse;
     },
     async loadRecaudadoras() {
-      const resp = await this.api('getRecaudadoras');
-      if (resp.status === 'ok') {
-        this.recaudadoras = resp.data;
+      try {
+        const resp = await this.api('getRecaudadoras');
+        if (resp.status === 'ok') {
+          this.recaudadoras = resp.data;
+        }
+      } finally {
+        this.initialLoading = false;
       }
     },
     async onRecaudadoraChange() {
@@ -191,6 +200,7 @@ export default {
   background: #fff;
   padding: 2rem;
   border-radius: 8px;
+  position: relative;
 }
 .form-row {
   margin-bottom: 1rem;

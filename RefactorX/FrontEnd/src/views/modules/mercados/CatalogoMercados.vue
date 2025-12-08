@@ -160,6 +160,9 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const router = useRouter();
 
@@ -197,6 +200,7 @@ const cerrar = () => {
 
 // Cargar datos
 async function fetchData() {
+  showLoading('Cargando Catálogo de Mercados', 'Preparando listado de mercados...');
   loading.value = true;
   try {
     const response = await axios.post('/api/generic', {
@@ -217,6 +221,7 @@ async function fetchData() {
     showToast('error', 'Error al cargar mercados');
   } finally {
     loading.value = false;
+    hideLoading();
   }
 }
 

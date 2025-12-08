@@ -114,6 +114,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const filters = ref({ oficina: '', axo: new Date().getFullYear(), periodo: new Date().getMonth() + 1 });
 const recaudadoras = ref([]);
@@ -205,7 +208,14 @@ const exportarExcel = () => {
 
 const mostrarAyuda = () => { alert('Reporte de Facturación Global\n\nGenera un resumen de la facturación total por mercado para un periodo específico.'); };
 
-onMounted(() => { fetchRecaudadoras(); });
+onMounted(async () => {
+  showLoading('Cargando Reporte de Factura Global', 'Preparando oficinas recaudadoras...');
+  try {
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
+});
 </script>
 
 <style scoped>

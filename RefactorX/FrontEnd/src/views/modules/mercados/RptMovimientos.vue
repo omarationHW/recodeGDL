@@ -134,6 +134,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const filters = ref({
   recaudadora: '',
@@ -257,14 +260,19 @@ const mostrarAyuda = () => {
   alert('Reporte de Movimientos de Locales\n\nSeleccione la recaudadora y el rango de fechas para consultar los movimientos realizados en los locales.');
 };
 
-onMounted(() => {
-  fetchRecaudadoras();
+onMounted(async () => {
+  showLoading('Cargando Reporte de Movimientos', 'Preparando catálogos...');
+  try {
+    await fetchRecaudadoras();
 
-  // Set default dates (current month)
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-  filters.value.fechaDesde = firstDay.toISOString().split('T')[0];
-  filters.value.fechaHasta = today.toISOString().split('T')[0];
+    // Set default dates (current month)
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    filters.value.fechaDesde = firstDay.toISOString().split('T')[0];
+    filters.value.fechaHasta = today.toISOString().split('T')[0];
+  } finally {
+    hideLoading();
+  }
 });
 </script>
 

@@ -208,6 +208,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Estados reactivos
 const loading = ref(false);
@@ -447,9 +450,14 @@ const getToastIcon = () => {
 };
 
 // Lifecycle hooks
-onMounted(() => {
-  fetchRecaudadoras();
-  consultar(); // Auto-cargar al inicio con oficina por defecto
+onMounted(async () => {
+  showLoading('Cargando Reporte de Adeudos Abastos 1998', 'Preparando datos...');
+  try {
+    await fetchRecaudadoras();
+    await consultar(); // Auto-cargar al inicio con oficina por defecto
+  } finally {
+    hideLoading();
+  }
 });
 </script>
 

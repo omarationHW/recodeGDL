@@ -180,6 +180,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -362,8 +365,13 @@ watch(padron, () => {
   currentPage.value = 1
 })
 
-onMounted(() => {
-  fetchRecaudadoras()
+onMounted(async () => {
+  showLoading('Cargando Padrón de Locales', 'Preparando oficinas recaudadoras...')
+  try {
+    await fetchRecaudadoras()
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 

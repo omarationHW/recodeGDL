@@ -388,5 +388,13 @@ const limpiar = () => {
 
 const exportarExcel = () => resultados.value.length ? showToast('info', 'Exportación en desarrollo') : showToast('warning', 'No hay datos')
 
-onMounted(() => { fetchRecaudadoras(); fetchSecciones() })
+onMounted(async () => {
+  showLoading('Cargando Consulta de Pagos de Energía', 'Preparando catálogos...')
+  try {
+    await fetchRecaudadoras()
+    await fetchSecciones()
+  } finally {
+    hideLoading()
+  }
+})
 </script>

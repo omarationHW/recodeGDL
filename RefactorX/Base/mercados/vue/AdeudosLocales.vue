@@ -1,5 +1,9 @@
 <template>
   <div class="adeudos-locales-page">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -82,6 +86,7 @@ export default {
   name: 'AdeudosLocalesPage',
   data() {
     return {
+      initialLoading: true,
       form: {
         axo: new Date().getFullYear(),
         oficina: '',
@@ -112,6 +117,8 @@ export default {
         }
       } catch (e) {
         this.error = 'Error al cargar recaudadoras';
+      } finally {
+        this.initialLoading = false;
       }
     },
     async fetchAdeudos() {
@@ -155,6 +162,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  position: relative;
 }
 .breadcrumb {
   background: none;

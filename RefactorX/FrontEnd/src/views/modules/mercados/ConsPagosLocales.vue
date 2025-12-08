@@ -199,6 +199,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showFilters = ref(true)
 const opcion = ref('')
@@ -377,9 +380,14 @@ const exportarExcel = () => {
   showToast('info', 'Funcionalidad de exportación en desarrollo')
 }
 
-onMounted(() => {
-  fetchRecaudadoras()
-  fetchSecciones()
+onMounted(async () => {
+  showLoading('Cargando Consulta de Pagos de Locales', 'Preparando catálogos...')
+  try {
+    await fetchRecaudadoras()
+    await fetchSecciones()
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 

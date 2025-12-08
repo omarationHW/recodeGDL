@@ -269,6 +269,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -360,10 +363,15 @@ const totales = computed(() => {
 
 // Cargar catálogos
 onMounted(async () => {
-  await Promise.all([
-    cargarRecaudadoras(),
-    cargarSecciones()
-  ])
+  showLoading('Cargando Condonaciones de Energía', 'Preparando catálogos...');
+  try {
+    await Promise.all([
+      cargarRecaudadoras(),
+      cargarSecciones()
+    ])
+  } finally {
+    hideLoading();
+  }
 })
 
 const cargarRecaudadoras = async () => {

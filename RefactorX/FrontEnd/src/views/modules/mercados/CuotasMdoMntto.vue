@@ -61,9 +61,8 @@
                     <p>No hay cuotas registradas. Cree una nueva cuota.</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(cuota, idx) in paginatedCuotas" :key="cuota.id_cuotas"
-                    class="row-hover" @click="seleccionarCuota(cuota)"
-                    :class="{ 'table-row-selected': cuotaSeleccionada === cuota }">
+                <tr v-else v-for="(cuota, idx) in paginatedCuotas" :key="cuota.id_cuotas" class="row-hover"
+                  @click="seleccionarCuota(cuota)" :class="{ 'table-row-selected': cuotaSeleccionada === cuota }">
                   <td class="text-center">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
                   <td>{{ cuota.id_cuotas }}</td>
                   <td>{{ cuota.axo }}</td>
@@ -78,7 +77,8 @@
                       <button class="btn-municipal-primary btn-sm" @click.stop="editarCuota(cuota)" title="Editar">
                         <font-awesome-icon icon="edit" />
                       </button>
-                      <button class="btn-municipal-danger btn-sm" @click.stop="confirmarEliminar(cuota)" title="Eliminar">
+                      <button class="btn-municipal-danger btn-sm" @click.stop="confirmarEliminar(cuota)"
+                        title="Eliminar">
                         <font-awesome-icon icon="trash" />
                       </button>
                     </div>
@@ -88,31 +88,77 @@
             </table>
           </div>
 
-          <!-- Paginación -->
-          <div v-if="cuotas.length > itemsPerPage" class="pagination-container">
+          <!-- Controles de Paginación -->
+          <div v-if="cuotas.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} a
-              {{ Math.min(currentPage * itemsPerPage, cuotas.length) }} de {{ cuotas.length }} registros
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, cuotas.length) }}
+                de {{ cuotas.length }} registros
+              </span>
             </div>
-            <div class="pagination-controls">
-              <button class="btn-pagination" @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-              <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn-pagination" @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
-              </button>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
             </div>
-            <div class="items-per-page">
-              <label>
-                Registros por página:
-                <select v-model.number="itemsPerPage" class="form-select form-select-sm">
-                  <option :value="10">10</option>
-                  <option :value="25">25</option>
-                  <option :value="50">50</option>
-                  <option :value="100">100</option>
-                </select>
-              </label>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
             </div>
           </div>
         </div>
@@ -139,8 +185,8 @@
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="municipal-form-label">Año <span class="required">*</span></label>
-                  <input type="number" class="municipal-form-control" v-model.number="form.axo"
-                         min="1992" max="2999" required />
+                  <input type="number" class="municipal-form-control" v-model.number="form.axo" min="1992" max="2999"
+                    required />
                 </div>
               </div>
               <div class="row">
@@ -175,8 +221,8 @@
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="municipal-form-label">Cuota (Importe) <span class="required">*</span></label>
-                  <input type="number" class="municipal-form-control" v-model.number="form.importe"
-                         min="0.01" step="0.01" required />
+                  <input type="number" class="municipal-form-control" v-model.number="form.importe" min="0.01"
+                    step="0.01" required />
                   <small class="form-text text-muted">Ingrese el monto de la cuota</small>
                 </div>
               </div>
@@ -186,7 +232,8 @@
             <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
               <font-awesome-icon icon="times" /> Cancelar
             </button>
-            <button type="button" class="btn-municipal-primary" @click="guardarCuota" :disabled="!isFormValid || loading">
+            <button type="button" class="btn-municipal-primary" @click="guardarCuota"
+              :disabled="!isFormValid || loading">
               <font-awesome-icon :icon="loading ? 'spinner' : 'save'" :spin="loading" />
               {{ isEdit ? 'Actualizar' : 'Guardar' }}
             </button>
@@ -243,6 +290,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const cuotas = ref([])
 const cuotaSeleccionada = ref(null)
@@ -270,7 +320,7 @@ const form = ref({
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 
 const totalPages = computed(() => Math.ceil(cuotas.value.length / itemsPerPage.value))
 
@@ -280,20 +330,49 @@ const paginatedCuotas = computed(() => {
   return cuotas.value.slice(start, end)
 })
 
-const isFormValid = computed(() => {
-  return form.value.axo >= 1992 &&
-         form.value.categoria &&
-         form.value.seccion &&
-         form.value.clave_cuota &&
-         form.value.importe > 0
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
 })
 
+const isFormValid = computed(() => {
+  return form.value.axo >= 1992 &&
+    form.value.categoria &&
+    form.value.seccion &&
+    form.value.clave_cuota &&
+    form.value.importe > 0
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  cuotaSeleccionada.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  cuotaSeleccionada.value = null
+}
+
 const previousPage = () => {
-  if (currentPage.value > 1) currentPage.value--
+  goToPage(currentPage.value - 1)
 }
 
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++
+  goToPage(currentPage.value + 1)
 }
 
 const showToast = (type, message) => {
@@ -521,9 +600,14 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
-onMounted(() => {
-  cargarCatalogos()
-  cargarCuotas()
+onMounted(async () => {
+  showLoading('Cargando Mantenimiento de Cuotas de Mercado', 'Preparando catálogos y cuotas...')
+  try {
+    await cargarCatalogos()
+    await cargarCuotas()
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 
@@ -622,6 +706,7 @@ onMounted(() => {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -632,6 +717,7 @@ onMounted(() => {
     transform: translateY(-50px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

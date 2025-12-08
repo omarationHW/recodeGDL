@@ -398,6 +398,7 @@ const fetchMovimientos = async () => {
 }
 
 const fetchCatalogs = async () => {
+  showLoading('Cargando Movimientos', 'Preparando catálogos del sistema...')
   try {
     // Claves de movimiento
     const claveMovResp = await axios.post('/api/generic', {
@@ -420,6 +421,8 @@ const fetchCatalogs = async () => {
     cveCuotas.value = cveCuotaResp.data?.eResponse?.data?.result || []
   } catch (err) {
     console.error('Error al cargar catálogos:', err)
+  } finally {
+    hideLoading()
   }
 }
 

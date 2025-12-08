@@ -1,5 +1,9 @@
 <template>
   <div class="ade-global-locales-page">
+    <div v-if="loading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <div class="breadcrumb">
       <span>Inicio</span> &gt; <span>Reportes</span> &gt; <span>Adeudo Global con Accesorios</span>
     </div>
@@ -86,6 +90,7 @@ export default {
   name: 'AdeGlobalLocalesPage',
   data() {
     return {
+      loading: true,
       offices: [],
       markets: [],
       selectedOffice: '',
@@ -101,14 +106,18 @@ export default {
   },
   methods: {
     async fetchOffices() {
-      // Simulación: en producción, obtener de API
-      this.offices = [
-        { id: 1, name: 'Zona Centro' },
-        { id: 2, name: 'Zona Olimpica' },
-        { id: 3, name: 'Zona Oblatos' },
-        { id: 4, name: 'Zona Minerva' },
-        { id: 5, name: 'Cruz del Sur' }
-      ];
+      try {
+        // Simulación: en producción, obtener de API
+        this.offices = [
+          { id: 1, name: 'Zona Centro' },
+          { id: 2, name: 'Zona Olimpica' },
+          { id: 3, name: 'Zona Oblatos' },
+          { id: 4, name: 'Zona Minerva' },
+          { id: 5, name: 'Cruz del Sur' }
+        ];
+      } finally {
+        this.loading = false;
+      }
     },
     async onOfficeChange() {
       this.selectedMarket = '';
@@ -186,6 +195,7 @@ export default {
 <style scoped>
 .ade-global-locales-page {
   padding: 24px;
+  position: relative;
 }
 .breadcrumb {
   font-size: 0.9em;

@@ -377,6 +377,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -475,9 +478,14 @@ const totalPeriodos = computed(() => {
 })
 
 // Lifecycle
-onMounted(() => {
-  cargarRecaudadoras()
-  cargarSecciones()
+onMounted(async () => {
+  showLoading('Cargando Consulta de Requerimientos', 'Preparando catálogos del sistema...')
+  try {
+    await cargarRecaudadoras()
+    await cargarSecciones()
+  } finally {
+    hideLoading()
+  }
 })
 
 const cargarRecaudadoras = async () => {

@@ -1,5 +1,9 @@
 <template>
   <div class="adeudos-energia-page">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <div class="breadcrumb">
       <span>Inicio</span> &gt; <span>Reportes</span> &gt; <span class="active">Adeudos Energía</span>
     </div>
@@ -65,6 +69,7 @@ export default {
   data() {
     const currentYear = new Date().getFullYear();
     return {
+      initialLoading: true,
       axo: currentYear,
       oficina: '',
       recaudadoras: [],
@@ -101,6 +106,7 @@ export default {
         this.error = error.message;
       } finally {
         this.loading = false;
+        this.initialLoading = false;
       }
     },
     async buscar() {
@@ -172,6 +178,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  position: relative;
 }
 .breadcrumb {
   font-size: 0.9rem;

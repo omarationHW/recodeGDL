@@ -145,23 +145,10 @@ export default {
     }
   },
   created() {
-    this.fetchCatalogs();
+    // this.fetchCatalogs();
   },
   methods: {
-    async fetchCatalogs() {
-      // Simulación: en producción, usar API
-      this.recaudadoras = [
-        {id: 1, nombre: 'Centro'},
-        {id: 2, nombre: 'Olimpica'},
-        {id: 3, nombre: 'Oblatos'},
-        {id: 4, nombre: 'Minerva'},
-        {id: 5, nombre: 'Cruz del Sur'}
-      ];
-      this.secciones = [
-        {id: 'SS', nombre: 'Sección SS'},
-        {id: 'PS', nombre: 'Sección PS'}
-      ];
-    },
+
     async buscarLocal() {
       this.error = '';
       this.locales = [];

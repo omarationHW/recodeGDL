@@ -163,6 +163,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Referencias reactivas
 const filters = ref({
@@ -360,8 +363,13 @@ const mostrarAyuda = () => {
 };
 
 // Lifecycle
-onMounted(() => {
-  fetchRecaudadoras();
+onMounted(async () => {
+  showLoading('Cargando Reporte de Emisión Láser', 'Preparando oficinas recaudadoras...');
+  try {
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
 });
 </script>
 

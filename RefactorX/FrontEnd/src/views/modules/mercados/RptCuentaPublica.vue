@@ -55,24 +55,24 @@
           </h5>
         </div>
         <div v-show="showFilters" class="municipal-card-body">
-          <div class="row">
-            <div class="col-md-4">
-              <label class="form-label">Año Fiscal</label>
-              <input 
-                v-model.number="filters.axo" 
-                type="number" 
-                class="form-control" 
-                min="2000" 
-                max="2100" 
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Año Fiscal</label>
+              <input
+                v-model.number="filters.axo"
+                type="number"
+                class="municipal-form-control"
+                min="2000"
+                max="2100"
               />
             </div>
-            <div class="col-md-4">
-              <label class="form-label">Oficina</label>
-              <input 
-                v-model.number="filters.oficina" 
-                type="number" 
-                class="form-control" 
-                min="1" 
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina</label>
+              <input
+                v-model.number="filters.oficina"
+                type="number"
+                class="municipal-form-control"
+                min="1"
               />
             </div>
           </div>
@@ -178,7 +178,7 @@
             
             <div class="pagination-controls">
               <label>Registros por página:</label>
-              <select v-model.number="pageSize" class="form-select form-select-sm">
+              <select v-model.number="pageSize" class="municipal-form-control" style="width: auto; display: inline-block;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>

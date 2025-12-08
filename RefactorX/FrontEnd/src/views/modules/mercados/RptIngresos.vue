@@ -70,6 +70,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const filters = ref({ oficina: '', mercado: '', axo: new Date().getFullYear(), periodo: '' });
 const recaudadoras = ref([]);
@@ -101,7 +104,14 @@ const exportarExcel = () => { const data = results.value.map(row => ({ 'Fecha': 
 
 const mostrarAyuda = () => { alert('Reporte de Ingresos Locales\n\nGenera un reporte de los ingresos por renta de locales.\n\nPuede filtrar por recaudadora, mercado, año y periodo.'); };
 
-onMounted(() => { fetchRecaudadoras(); });
+onMounted(async () => {
+  showLoading('Cargando Reporte de Ingresos', 'Preparando oficinas recaudadoras...');
+  try {
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
+});
 </script>
 
 <style scoped>

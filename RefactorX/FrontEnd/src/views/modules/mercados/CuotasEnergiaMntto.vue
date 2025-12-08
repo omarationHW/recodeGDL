@@ -101,9 +101,14 @@
                   <td class="text-center">{{ formatDateTime(cuota.fecha_alta) }}</td>
                   <td>{{ cuota.usuario || 'N/A' }}</td>
                   <td class="text-center">
-                    <button class="btn-municipal-sm btn-municipal-warning" @click.stop="editarCuota(cuota)">
-                      <font-awesome-icon icon="edit" /> Editar
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click.stop="editarCuota(cuota)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button class="btn-municipal-danger btn-sm" @click.stop="confirmarEliminar(cuota)" title="Eliminar">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -128,7 +133,7 @@
             <div class="items-per-page">
               <label>
                 Registros por página:
-                <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                <select v-model.number="itemsPerPage" class="municipal-form-control" style="width: auto; display: inline-block;">
                   <option :value="10">10</option>
                   <option :value="25">25</option>
                   <option :value="50">50</option>
@@ -190,6 +195,39 @@
       </div>
     </div>
 
+    <!-- Modal de confirmación de eliminación -->
+    <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="cancelarEliminar">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">
+              <font-awesome-icon icon="exclamation-triangle" /> Confirmar Eliminación
+            </h5>
+            <button type="button" class="btn-close btn-close-white" @click="cancelarEliminar"></button>
+          </div>
+          <div class="modal-body">
+            <p>¿Está seguro de eliminar esta cuota de energía?</p>
+            <div class="alert alert-warning">
+              <strong>ID:</strong> {{ cuotaAEliminar?.id_kilowhatts }}<br>
+              <strong>Año:</strong> {{ cuotaAEliminar?.axo }}<br>
+              <strong>Periodo:</strong> {{ cuotaAEliminar?.periodo }}<br>
+              <strong>Cuota:</strong> {{ formatCurrency(cuotaAEliminar?.importe) }}
+            </div>
+            <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-municipal-secondary" @click="cancelarEliminar">
+              <font-awesome-icon icon="times" /> Cancelar
+            </button>
+            <button type="button" class="btn-municipal-danger" @click="eliminarCuota" :disabled="loading">
+              <font-awesome-icon :icon="loading ? 'spinner' : 'trash'" :spin="loading" />
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast notification -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
@@ -204,11 +242,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const cuotas = ref([])
 const cuotaSeleccionada = ref(null)
+const cuotaAEliminar = ref(null)
 const loading = ref(false)
 const showModal = ref(false)
+const showDeleteConfirm = ref(false)
 const isEdit = ref(false)
 const toast = ref({ show: false, type: 'info', message: '' })
 
@@ -386,6 +429,46 @@ const cerrarModal = () => {
   isEdit.value = false
 }
 
+const confirmarEliminar = (cuota) => {
+  cuotaAEliminar.value = cuota
+  showDeleteConfirm.value = true
+}
+
+const cancelarEliminar = () => {
+  cuotaAEliminar.value = null
+  showDeleteConfirm.value = false
+}
+
+const eliminarCuota = async () => {
+  if (!cuotaAEliminar.value) return
+
+  loading.value = true
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_delete_cuota_energia',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_kilowhatts', Valor: parseInt(cuotaAEliminar.value.id_kilowhatts) }
+        ]
+      }
+    })
+
+    if (res.data.eResponse.success) {
+      showToast('success', 'Cuota eliminada exitosamente')
+      cancelarEliminar()
+      cargarCuotas()
+    } else {
+      showToast('error', res.data.eResponse.message || 'Error al eliminar cuota')
+    }
+  } catch (err) {
+    showToast('error', 'Error de conexión al eliminar cuota')
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+}
+
 const formatCurrency = (val) => {
   if (val === null || val === undefined) return '$0.00'
   const num = typeof val === 'number' ? val : parseFloat(val)
@@ -399,8 +482,13 @@ const formatDateTime = (dateStr) => {
          d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
 }
 
-onMounted(() => {
-  cargarCuotas()
+onMounted(async () => {
+  showLoading('Cargando Mantenimiento de Cuotas de Energía', 'Preparando catálogo de cuotas...')
+  try {
+    await cargarCuotas()
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 

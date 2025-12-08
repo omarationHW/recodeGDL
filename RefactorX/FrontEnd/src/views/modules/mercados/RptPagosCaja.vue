@@ -385,8 +385,13 @@ const exportarExcel = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  fetchRecaudadoras()
-  setFechasIniciales()
+onMounted(async () => {
+  showLoading('Cargando Reporte de Pagos por Caja', 'Preparando catálogos...')
+  try {
+    await fetchRecaudadoras()
+    setFechasIniciales()
+  } finally {
+    hideLoading()
+  }
 })
 </script>

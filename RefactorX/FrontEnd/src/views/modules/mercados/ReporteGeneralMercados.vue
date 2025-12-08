@@ -221,6 +221,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const recaudadoras = ref([])
@@ -466,7 +469,12 @@ const exportarExcel = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  fetchRecaudadoras()
+onMounted(async () => {
+  showLoading('Cargando Reporte General de Mercados', 'Preparando oficinas recaudadoras...')
+  try {
+    await fetchRecaudadoras()
+  } finally {
+    hideLoading()
+  }
 })
 </script>

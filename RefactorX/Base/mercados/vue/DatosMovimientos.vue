@@ -1,5 +1,9 @@
 <template>
   <div class="datos-movimientos-page">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -92,6 +96,7 @@ export default {
   name: 'DatosMovimientosPage',
   data() {
     return {
+      initialLoading: true,
       id_local: '',
       movimientos: [],
       clavesMov: [],
@@ -148,16 +153,20 @@ export default {
       this.searched = true;
     },
     async fetchCatalogs() {
-      // Claves de movimiento
-      const claveMovResp = await this.$axios.post('/api/execute', {
-        action: 'get_clave_movimientos'
-      });
-      this.clavesMov = claveMovResp.data.data || [];
-      // Claves de cuota
-      const cveCuotaResp = await this.$axios.post('/api/execute', {
-        action: 'get_cve_cuotas'
-      });
-      this.cveCuotas = cveCuotaResp.data.data || [];
+      try {
+        // Claves de movimiento
+        const claveMovResp = await this.$axios.post('/api/execute', {
+          action: 'get_clave_movimientos'
+        });
+        this.clavesMov = claveMovResp.data.data || [];
+        // Claves de cuota
+        const cveCuotaResp = await this.$axios.post('/api/execute', {
+          action: 'get_cve_cuotas'
+        });
+        this.cveCuotas = cveCuotaResp.data.data || [];
+      } finally {
+        this.initialLoading = false;
+      }
     }
   },
   mounted() {
@@ -171,6 +180,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 0;
+  position: relative;
 }
 .card {
   margin-bottom: 1.5rem;

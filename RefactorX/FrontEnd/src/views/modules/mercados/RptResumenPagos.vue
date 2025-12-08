@@ -429,8 +429,13 @@ watch(selectedOficina, (newOficina) => {
 })
 
 // Lifecycle
-onMounted(() => {
-  fetchRecaudadoras()
-  setFechasIniciales()
+onMounted(async () => {
+  showLoading('Cargando Reporte de Resumen de Pagos', 'Preparando catálogos...')
+  try {
+    await fetchRecaudadoras()
+    setFechasIniciales()
+  } finally {
+    hideLoading()
+  }
 })
 </script>

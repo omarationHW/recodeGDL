@@ -1,13 +1,16 @@
 <template>
   <div class="datos-individuales-page">
-    <nav class="breadcrumb">
-      <router-link to="/">Inicio</router-link> /
-      <span>Consulta Individual de Datos Generales</span>
-    </nav>
-    <h1>Consulta Individual de Datos Generales</h1>
-    <div v-if="loading" class="loading">Cargando...</div>
+    <div v-if="loading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
+      <nav class="breadcrumb">
+        <router-link to="/">Inicio</router-link> /
+        <span>Consulta Individual de Datos Generales</span>
+      </nav>
+      <h1>Consulta Individual de Datos Generales</h1>
       <section class="datos-mercado">
         <h2>Datos del Mercado</h2>
         <div class="row">
@@ -230,6 +233,7 @@ export default {
   max-width: 1100px;
   margin: 0 auto;
   padding: 2rem;
+  position: relative;
 }
 .breadcrumb {
   margin-bottom: 1rem;
@@ -250,9 +254,6 @@ export default {
 .table th, .table td {
   border: 1px solid #ccc;
   padding: 0.3rem 0.5rem;
-}
-.loading {
-  color: #888;
 }
 .error {
   color: red;

@@ -227,6 +227,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const loading = ref(false);
 const recaudadoras = ref([]);
@@ -299,6 +302,7 @@ const formatCurrency = (value) => {
 };
 
 const fetchRecaudadoras = async () => {
+  showLoading('Cargando Consulta de Condonación', 'Preparando oficinas recaudadoras...');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -312,6 +316,8 @@ const fetchRecaudadoras = async () => {
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
+  } finally {
+    hideLoading();
   }
 };
 

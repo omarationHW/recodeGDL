@@ -1,5 +1,9 @@
 <template>
   <div class="rpt-desgloce-adepor-importe">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -98,6 +102,7 @@ export default {
   name: 'RptDesgloceAdeporImporte',
   data() {
     return {
+      initialLoading: false,
       form: {
         year: new Date().getFullYear(),
         period: new Date().getMonth() + 1,
@@ -159,6 +164,7 @@ export default {
 <style scoped>
 .rpt-desgloce-adepor-importe {
   padding: 2rem 1rem;
+  position: relative;
 }
 .table th, .table td {
   vertical-align: middle;

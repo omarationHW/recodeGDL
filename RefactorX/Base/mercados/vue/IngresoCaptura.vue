@@ -1,5 +1,9 @@
 <template>
   <div class="ingreso-captura-page">
+    <div v-if="initialLoading" class="global-loading-overlay">
+      <div class="spinner"></div>
+      <p>Cargando...</p>
+    </div>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
@@ -70,6 +74,7 @@ export default {
   name: 'IngresoCapturaPage',
   data() {
     return {
+      initialLoading: false,
       form: {
         num_mercado: '',
         fecha_pago: '',
@@ -125,6 +130,7 @@ export default {
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  position: relative;
 }
 .breadcrumb {
   background: none;

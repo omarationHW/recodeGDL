@@ -203,6 +203,9 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const router = useRouter();
 
@@ -457,6 +460,7 @@ async function deshacerCondonacion() {
 
 // Cargar Recaudadoras
 async function fetchRecaudadoras() {
+  showLoading('Cargando Condonación', 'Preparando oficinas recaudadoras...');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -470,6 +474,8 @@ async function fetchRecaudadoras() {
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
+  } finally {
+    hideLoading();
   }
 }
 

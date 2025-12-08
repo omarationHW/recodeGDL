@@ -196,6 +196,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Referencias reactivas
 const filters = ref({
@@ -244,6 +247,7 @@ const paginatedResultados = computed(() => {
 
 // Métodos
 const fetchRecaudadoras = async () => {
+  showLoading('Cargando Estadísticas de Pagos y Adeudos', 'Preparando oficinas recaudadoras...');
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -257,6 +261,8 @@ const fetchRecaudadoras = async () => {
     }
   } catch (error) {
     showToast('Error al cargar recaudadoras', 'error');
+  } finally {
+    hideLoading();
   }
 };
 

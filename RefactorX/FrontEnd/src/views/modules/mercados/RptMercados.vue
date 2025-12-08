@@ -26,7 +26,80 @@
         <div class="municipal-card-header header-with-badge"><h5><font-awesome-icon icon="list-alt" /> Catálogo de Mercados</h5><div class="header-right"><span class="badge-purple">{{ results.length }} mercados</span></div></div>
         <div class="municipal-card-body table-container">
           <div class="table-responsive"><table class="municipal-table"><thead class="municipal-table-header"><tr><th>Oficina</th><th>Mercado</th><th>Descripción</th><th>Domicilio</th><th>Zona</th><th>Tipo Emisión</th><th>Estado</th></tr></thead><tbody><tr v-for="(row, idx) in paginatedResults" :key="idx" class="row-hover"><td>{{ row.oficina }}</td><td>{{ row.num_mercado_nvo }}</td><td>{{ row.descripcion }}</td><td>{{ row.domicilio }}</td><td>{{ row.zona }}</td><td><span :class="getBadgeTipoEmision(row.tipo_emision)">{{ getTipoEmisionTexto(row.tipo_emision) }}</span></td><td><span :class="getBadgeEstado(row.estado)">{{ getEstadoTexto(row.estado) }}</span></td></tr></tbody></table></div>
-          <div class="pagination-container"><div class="pagination-info"><label>Mostrar:</label><select v-model.number="pageSize" class="municipal-form-control pagination-select"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option><option :value="250">250</option></select><span>registros por página</span></div><div class="pagination-controls"><button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1"><font-awesome-icon icon="chevron-left" /></button><span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span><button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages"><font-awesome-icon icon="chevron-right" /></button></div></div>
+          <!-- Controles de Paginación -->
+          <div v-if="results.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}
+                a {{ Math.min(currentPage * pageSize, results.length) }}
+                de {{ results.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="pageSize"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -46,10 +119,37 @@ const results = ref([]);
 const loading = ref(false);
 const busquedaRealizada = ref(false);
 const currentPage = ref(1);
-const pageSize = ref(25);
+const pageSize = ref(10);
 
 const totalPages = computed(() => Math.ceil(results.value.length / pageSize.value) || 1);
 const paginatedResults = computed(() => { const start = (currentPage.value - 1) * pageSize.value; return results.value.slice(start, start + pageSize.value); });
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+});
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+};
+
+const changePageSize = (size) => {
+  pageSize.value = parseInt(size);
+  currentPage.value = 1;
+};
 
 const fetchRecaudadoras = async () => { showLoading('Cargando recaudadoras...', 'Por favor espere'); loading.value = true; try { const response = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] } }); if (response.data.eResponse?.success && response.data.eResponse?.data?.result) { recaudadoras.value = response.data.eResponse.data.result; } } catch (error) { console.error('Error:', error); } finally { loading.value = false; hideLoading(); } };
 const consultar = async () => { showLoading('Consultando catálogo de mercados...', 'Por favor espere'); loading.value = true; busquedaRealizada.value = false; try { const parametros = []; if (filters.value.oficina) parametros.push({ Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }); if (filters.value.estado) parametros.push({ Nombre: 'p_estado', Valor: filters.value.estado }); const response = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_reporte_catalogo_mercados', Base: 'mercados', Parametros: parametros } }); if (response.data.eResponse?.success && response.data.eResponse?.data?.result) { results.value = response.data.eResponse.data.result; busquedaRealizada.value = true; currentPage.value = 1; } else { results.value = []; busquedaRealizada.value = true; } } catch (error) { console.error('Error:', error); results.value = []; busquedaRealizada.value = true; } finally { loading.value = false; hideLoading(); } };

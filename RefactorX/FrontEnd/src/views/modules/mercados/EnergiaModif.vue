@@ -209,8 +209,10 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const toast = useToast()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado reactivo
 const recaudadoras = ref([])
@@ -236,9 +238,13 @@ const periodoBaja = ref({
 })
 
 // Inicializar
-onMounted(() => {
-  fetchRecaudadoras()
-  fetchSecciones()
+onMounted(async () => {
+  showLoading('Cargando Cambios de Energía Eléctrica', 'Preparando catálogos...')
+  try {
+    await Promise.all([fetchRecaudadoras(), fetchSecciones()])
+  } finally {
+    hideLoading()
+  }
 })
 
 // Cargar catálogo de recaudadoras

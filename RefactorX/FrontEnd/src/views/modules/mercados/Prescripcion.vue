@@ -279,6 +279,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const loading = ref(false)
@@ -595,9 +598,12 @@ const quitarPrescripcionSeleccionados = async () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  fetchRecaudadoras()
-  fetchMercados()
-  fetchSecciones()
+onMounted(async () => {
+  showLoading('Cargando Prescripción', 'Preparando catálogos...')
+  try {
+    await Promise.all([fetchRecaudadoras(), fetchMercados(), fetchSecciones()])
+  } finally {
+    hideLoading()
+  }
 })
 </script>

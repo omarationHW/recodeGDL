@@ -128,9 +128,11 @@
                   </td>
                   <td>{{ formatFecha(fecha.fecha_modif) }}</td>
                   <td class="text-center">
-                    <button class="btn-icon btn-icon-primary" @click="editarFecha(fecha)" title="Editar">
-                      <font-awesome-icon icon="edit" />
-                    </button>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click="editarFecha(fecha)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

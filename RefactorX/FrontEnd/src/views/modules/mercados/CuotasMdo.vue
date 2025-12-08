@@ -34,7 +34,8 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Año <span class="required">*</span></label>
-              <input type="number" v-model.number="axo" class="municipal-form-control" min="2000" max="2100" :disabled="loading" />
+              <input type="number" v-model.number="axo" class="municipal-form-control" min="2000" max="2100"
+                :disabled="loading" />
             </div>
             <div class="form-group align-self-end">
               <button class="btn-municipal-primary" @click="fetchCuotas" :disabled="loading">
@@ -93,53 +94,92 @@
                     <td class="text-end">{{ formatCurrency(cuota.importe_cuota) }}</td>
                     <td>{{ formatDate(cuota.fecha_alta) }}</td>
                     <td>{{ cuota.usuario }}</td>
+
                     <td class="text-center">
-                      <button class="btn-municipal-warning btn-sm me-1" @click="editCuota(cuota)" title="Editar">
-                        <font-awesome-icon icon="edit" />
-                      </button>
-                      <button class="btn-municipal-danger btn-sm" @click="deleteCuota(cuota)" title="Eliminar">
-                        <font-awesome-icon icon="trash" />
-                      </button>
+                      <div class="button-group button-group-sm">
+                        <button class="btn-municipal-primary btn-sm" @click="editCuota(item)" title="Editar">
+                          <font-awesome-icon icon="edit" />
+                        </button>
+                        <button class="btn-municipal-danger btn-sm" @click="deleteCuota(item)" title="Eliminar">
+                          <font-awesome-icon icon="trash" />
+                        </button>
+                      </div>
                     </td>
+
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <!-- Paginación -->
-            <div class="municipal-pagination">
+            <!-- Controles de Paginación -->
+            <div v-if="cuotas.length > 0" class="pagination-controls">
               <div class="pagination-info">
-                Mostrando {{ startRecord }} a {{ endRecord }} de {{ totalRecords }} registros
-              </div>
-              <div class="pagination-controls">
-                <button
-                  class="btn-pagination"
-                  @click="previousPage"
-                  :disabled="currentPage === 1"
-                >
-                  <font-awesome-icon icon="chevron-left" />
-                  Anterior
-                </button>
-                <span class="pagination-page">
-                  Página {{ currentPage }} de {{ totalPages }}
+                <span class="text-muted">
+                  Mostrando {{ startRecord }} a {{ endRecord }} de {{ totalRecords }} registros
                 </span>
-                <button
-                  class="btn-pagination"
-                  @click="nextPage"
-                  :disabled="currentPage === totalPages"
-                >
-                  Siguiente
-                  <font-awesome-icon icon="chevron-right" />
-                </button>
               </div>
+
               <div class="pagination-size">
-                <label>Registros por página:</label>
-                <select v-model.number="pageSize" class="form-select-sm">
-                  <option :value="10">10</option>
-                  <option :value="25">25</option>
-                  <option :value="50">50</option>
-                  <option :value="100">100</option>
+                <label class="municipal-form-label me-2">Registros por página:</label>
+                <select
+                  class="municipal-form-control form-control-sm"
+                  :value="pageSize"
+                  @change="changePageSize($event.target.value)"
+                  style="width: auto; display: inline-block;"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
                 </select>
+              </div>
+
+              <div class="pagination-buttons">
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPage(1)"
+                  :disabled="currentPage === 1"
+                  title="Primera página"
+                >
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPage(currentPage - 1)"
+                  :disabled="currentPage === 1"
+                  title="Página anterior"
+                >
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+
+                <button
+                  v-for="page in visiblePages"
+                  :key="page"
+                  class="btn-sm"
+                  :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                  @click="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPage(currentPage + 1)"
+                  :disabled="currentPage === totalPages"
+                  title="Página siguiente"
+                >
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPage(totalPages)"
+                  :disabled="currentPage === totalPages"
+                  title="Última página"
+                >
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
               </div>
             </div>
           </div>
@@ -153,12 +193,7 @@
     </div>
 
     <!-- Modal Crear/Editar -->
-    <Modal
-      :show="showModal"
-      :title="showEdit ? 'Editar Cuota' : 'Agregar Cuota'"
-      size="lg"
-      @close="closeModal"
-    >
+    <Modal :show="showModal" :title="showEdit ? 'Editar Cuota' : 'Agregar Cuota'" size="lg" @close="closeModal">
       <template #header>
         <h5 class="modal-title">
           <font-awesome-icon :icon="showEdit ? 'edit' : 'plus-circle'" />
@@ -170,7 +205,8 @@
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Año <span class="required">*</span></label>
-            <input type="number" v-model.number="form.axo" class="municipal-form-control" required min="2000" max="2100" />
+            <input type="number" v-model.number="form.axo" class="municipal-form-control" required min="2000"
+              max="2100" />
           </div>
           <div class="form-group">
             <label class="municipal-form-label">Categoría <span class="required">*</span></label>
@@ -205,7 +241,8 @@
         <div class="form-row">
           <div class="form-group">
             <label class="municipal-form-label">Importe <span class="required">*</span></label>
-            <input type="number" v-model.number="form.importe_cuota" class="municipal-form-control" required min="0.01" step="0.01" />
+            <input type="number" v-model.number="form.importe_cuota" class="municipal-form-control" required min="0.01"
+              step="0.01" />
           </div>
           <div class="form-group">
             <label class="municipal-form-label">Usuario <span class="required">*</span></label>
@@ -226,12 +263,7 @@
     </Modal>
 
     <!-- Modal Confirmar Eliminación -->
-    <Modal
-      :show="showDeleteModal"
-      title="Confirmar Eliminación"
-      size="sm"
-      @close="closeDeleteModal"
-    >
+    <Modal :show="showDeleteModal" title="Confirmar Eliminación" size="sm" @close="closeDeleteModal">
       <template #header>
         <h5 class="modal-title text-danger">
           <font-awesome-icon icon="exclamation-triangle" />
@@ -296,7 +328,7 @@ const deleting = ref(false)
 
 // Paginación
 const currentPage = ref(1)
-const pageSize = ref(25)
+const pageSize = ref(10)
 
 const form = ref({
   id_cuotas: null,
@@ -320,22 +352,45 @@ const paginatedCuotas = computed(() => {
   return cuotas.value.slice(start, end)
 })
 
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Watch para resetear página cuando cambia el tamaño
 watch(pageSize, () => {
   currentPage.value = 1
 })
 
 // Funciones de paginación
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
+
+const changePageSize = (size) => {
+  pageSize.value = parseInt(size)
+  currentPage.value = 1
+}
+
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
+  goToPage(currentPage.value + 1)
 }
 
 const previousPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
+  goToPage(currentPage.value - 1)
 }
 
 // Utilidades

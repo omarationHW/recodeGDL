@@ -250,11 +250,11 @@ const fetchRecaudadoras = async () => {
     showLoading('Cargando recaudadoras...', 'Por favor espere')
     const response = await execute(
       'sp_get_recaudadoras',
-      'padron_licencias',
+      'mercados',
       [],
       'guadalajara',
       null,
-      'comun'
+      ''
     )
     if (response && response.result) {
       recaudadoras.value = response.result
@@ -280,7 +280,7 @@ const onOficinaChange = async () => {
       [{ nombre: 'p_id_rec', valor: parseInt(filters.value.oficina), tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      ''
     )
     if (response && response.result) {
       mercados.value = response.result
@@ -315,7 +315,7 @@ const previsualizar = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      ''
     )
 
     if (response && response.result) {
@@ -379,7 +379,7 @@ const emitirRecibos = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      ''
     )
 
     if (response && response.result) {

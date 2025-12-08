@@ -247,7 +247,7 @@ import Modal from '@/components/common/Modal.vue';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
 
-const globalLoading = useGlobalLoading();
+const { showLoading, hideLoading } = useGlobalLoading();
 const toast = useToast();
 
 const filters = ref({
@@ -296,23 +296,24 @@ const totalSubtotal = computed(() => results.value.reduce((sum, row) => sum + (p
 const totalMulta = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.multa) || 0), 0));
 
 const fetchRecaudadoras = async () => {
-  await globalLoading.executeWithLoading(async () => {
-    try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_recaudadoras',
-          Base: 'mercados',
-          Parametros: []
-        }
-      });
-      if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-        recaudadoras.value = response.data.eResponse.data.result;
+  showLoading('Cargando Reporte de Emisión de Recibos Abastos', 'Preparando oficinas recaudadoras...');
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'mercados',
+        Parametros: []
       }
-    } catch (error) {
-      console.error('Error al cargar recaudadoras:', error);
-      toast.show('Error al cargar las recaudadoras', 'danger');
+    });
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      recaudadoras.value = response.data.eResponse.data.result;
     }
-  });
+  } catch (error) {
+    console.error('Error al cargar recaudadoras:', error);
+    toast.show('Error al cargar las recaudadoras', 'danger');
+  } finally {
+    hideLoading();
+  }
 };
 
 const onOficinaChange = async () => {
@@ -320,23 +321,24 @@ const onOficinaChange = async () => {
   mercados.value = [];
   if (!filters.value.oficina) return;
 
-  await globalLoading.executeWithLoading(async () => {
-    try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_mercados_by_recaudadora',
-          Base: 'mercados',
-          Parametros: [{ Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }]
-        }
-      });
-      if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-        mercados.value = response.data.eResponse.data.result;
+  showLoading('Cargando mercados...', 'Por favor espere');
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_mercados_by_recaudadora',
+        Base: 'mercados',
+        Parametros: [{ Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }]
       }
-    } catch (error) {
-      console.error('Error al cargar mercados:', error);
-      toast.show('Error al cargar los mercados', 'danger');
+    });
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      mercados.value = response.data.eResponse.data.result;
     }
-  });
+  } catch (error) {
+    console.error('Error al cargar mercados:', error);
+    toast.show('Error al cargar los mercados', 'danger');
+  } finally {
+    hideLoading();
+  }
 };
 
 const buscar = async () => {
@@ -346,41 +348,42 @@ const buscar = async () => {
   }
 
   busquedaRealizada.value = false;
+  showLoading('Consultando emisión de recibos...', 'Por favor espere');
 
-  await globalLoading.executeWithLoading(async () => {
-    try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_rpt_emision_rbos_abastos',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-            { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
-            { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-            { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) }
-          ]
-        }
-      });
-
-      if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-        results.value = response.data.eResponse.data.result;
-        busquedaRealizada.value = true;
-        currentPage.value = 1;
-
-        if (results.value.length > 0) {
-          toast.show(`Se encontraron ${results.value.length} registros`, 'success');
-        }
-      } else {
-        results.value = [];
-        busquedaRealizada.value = true;
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_rpt_emision_rbos_abastos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
+          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
+          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
+          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) }
+        ]
       }
-    } catch (error) {
-      console.error('Error al consultar:', error);
-      toast.show('Error al realizar la consulta', 'danger');
+    });
+
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      results.value = response.data.eResponse.data.result;
+      busquedaRealizada.value = true;
+      currentPage.value = 1;
+
+      if (results.value.length > 0) {
+        toast.show(`Se encontraron ${results.value.length} registros`, 'success');
+      }
+    } else {
       results.value = [];
       busquedaRealizada.value = true;
     }
-  });
+  } catch (error) {
+    console.error('Error al consultar:', error);
+    toast.show('Error al realizar la consulta', 'danger');
+    results.value = [];
+    busquedaRealizada.value = true;
+  } finally {
+    hideLoading();
+  }
 };
 
 const verRequerimientos = async (id_local) => {
@@ -446,7 +449,7 @@ const mostrarAyuda = () => {
   modalAyuda.value.show = true;
 };
 
-onMounted(() => {
-  fetchRecaudadoras();
+onMounted(async () => {
+  await fetchRecaudadoras();
 });
 </script>

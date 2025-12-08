@@ -241,6 +241,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const loading = ref(false)
@@ -316,6 +319,7 @@ const mostrarAyuda = () => {
 // Cargar catálogos
 const fetchRecaudadoras = async () => {
   try {
+    showLoading('Cargando Alta de Energía', 'Preparando catálogos del sistema...')
     loading.value = true
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -337,6 +341,7 @@ const fetchRecaudadoras = async () => {
     showToast('error', 'Error de conexión al cargar recaudadoras')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

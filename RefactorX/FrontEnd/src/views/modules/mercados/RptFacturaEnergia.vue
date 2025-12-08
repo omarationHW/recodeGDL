@@ -153,6 +153,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const filters = ref({
   oficina: '',
@@ -283,8 +286,13 @@ const mostrarAyuda = () => {
   alert('Reporte de Factura de Energía\n\nSeleccione la recaudadora, mercado, año y periodo para generar el reporte.');
 };
 
-onMounted(() => {
-  fetchRecaudadoras();
+onMounted(async () => {
+  showLoading('Cargando Reporte de Factura de Energía', 'Preparando oficinas recaudadoras...');
+  try {
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
 });
 </script>
 

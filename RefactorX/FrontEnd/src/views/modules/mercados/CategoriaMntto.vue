@@ -52,13 +52,15 @@
                     @click="selectedRow = row">
                   <td>{{ row.categoria }}</td>
                   <td>{{ row.descripcion }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-warning me-1" @click.stop="showModal('update', row)">
-                      <font-awesome-icon icon="edit" />
-                    </button>
-                    <button class="btn btn-sm btn-danger" @click.stop="deleteRow(row)">
-                      <font-awesome-icon icon="trash" />
-                    </button>
+                  <td class="text-center">
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click.stop="showModal('update', row)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button class="btn-municipal-danger btn-sm" @click.stop="deleteRow(row)" title="Eliminar">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -112,14 +114,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
-import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
 import Modal from '@/components/common/Modal.vue';
 
 const router = useRouter();
-const { withGlobalLoading } = useGlobalLoading();
+const { showLoading, hideLoading } = useGlobalLoading();
 const { showToast } = useToast();
 
 // State
@@ -139,26 +141,27 @@ const cerrar = () => {
 
 // Cargar datos
 async function fetchData() {
-  await withGlobalLoading(async () => {
-    try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_categoria_list',
-          Base: 'mercados',
-          Parametros: []
-        }
-      });
-
-      if (response.data?.eResponse?.success) {
-        rows.value = response.data.eResponse.data.result || [];
-      } else {
-        showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+  showLoading('Cargando categorías...', 'Por favor espere');
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Parametros: []
       }
-    } catch (error) {
-      console.error('Error:', error);
-      showToast('error', 'Error al cargar categorías');
+    });
+
+    if (response.data?.eResponse?.success) {
+      rows.value = response.data.eResponse.data.result || [];
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
     }
-  });
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al cargar categorías');
+  } finally {
+    hideLoading();
+  }
 }
 
 // Modal
@@ -189,39 +192,40 @@ async function submitForm() {
     return;
   }
 
-  await withGlobalLoading(async () => {
-    try {
-      const sp = formMode.value === 'create' ? 'sp_categoria_create' : 'sp_categoria_update';
-      const params = [
-        { Nombre: 'p_categoria', Valor: form.value.categoria, tipo: 'integer' },
-        { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() }
-      ];
+  showLoading('Guardando categoría...', 'Por favor espere');
+  try {
+    const sp = formMode.value === 'create' ? 'sp_categoria_create' : 'sp_categoria_update';
+    const params = [
+      { Nombre: 'p_categoria', Valor: form.value.categoria, tipo: 'integer' },
+      { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() }
+    ];
 
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: sp,
-          Base: 'mercados',
-          Parametros: params
-        }
-      });
-
-      if (response.data?.eResponse?.success) {
-        const result = response.data.eResponse.data.result?.[0];
-        if (result?.success) {
-          showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
-          closeModal();
-          fetchData();
-        } else {
-          showToast('error', result?.message || 'Error al guardar');
-        }
-      } else {
-        showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: sp,
+        Base: 'mercados',
+        Parametros: params
       }
-    } catch (error) {
-      console.error('Error:', error);
-      showToast('error', 'Error al guardar categoría');
+    });
+
+    if (response.data?.eResponse?.success) {
+      const result = response.data.eResponse.data.result?.[0];
+      if (result?.success) {
+        showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
+        closeModal();
+        fetchData();
+      } else {
+        showToast('error', result?.message || 'Error al guardar');
+      }
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
     }
-  });
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al guardar categoría');
+  } finally {
+    hideLoading();
+  }
 }
 
 // Eliminar
@@ -239,34 +243,35 @@ async function deleteRow(row) {
 
   if (!result.isConfirmed) return;
 
-  await withGlobalLoading(async () => {
-    try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_categoria_delete',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
-          ]
-        }
-      });
-
-      if (response.data?.eResponse?.success) {
-        const deleteResult = response.data.eResponse.data.result?.[0];
-        if (deleteResult?.success) {
-          showToast('success', 'Categoría eliminada');
-          fetchData();
-        } else {
-          showToast('error', deleteResult?.message || 'Error al eliminar');
-        }
-      } else {
-        showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+  showLoading('Eliminando categoría...', 'Por favor espere');
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_delete',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
+        ]
       }
-    } catch (error) {
-      console.error('Error:', error);
-      showToast('error', 'Error al eliminar categoría');
+    });
+
+    if (response.data?.eResponse?.success) {
+      const deleteResult = response.data.eResponse.data.result?.[0];
+      if (deleteResult?.success) {
+        showToast('success', 'Categoría eliminada');
+        fetchData();
+      } else {
+        showToast('error', deleteResult?.message || 'Error al eliminar');
+      }
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
     }
-  });
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al eliminar categoría');
+  } finally {
+    hideLoading();
+  }
 }
 
 onMounted(() => {

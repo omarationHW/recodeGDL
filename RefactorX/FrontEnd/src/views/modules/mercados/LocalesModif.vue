@@ -239,8 +239,10 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const toast = useToast()
+const { showLoading, hideLoading } = useGlobalLoading()
 const loading = ref(false)
 const local = ref(null)
 
@@ -505,8 +507,13 @@ const onModificar = async () => {
   }
 }
 
-onMounted(() => {
-  loadCatalogos()
+onMounted(async () => {
+  showLoading('Cargando Modificación de Locales', 'Preparando catálogos...')
+  try {
+    await loadCatalogos()
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 

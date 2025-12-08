@@ -142,6 +142,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const recaudadoras = ref([])
 const mercados = ref([])
@@ -222,6 +225,7 @@ const mostrarAyuda = () => {
 }
 
 const fetchRecaudadoras = async () => {
+  showLoading('Cargando Emisión de Energía', 'Preparando oficinas recaudadoras...')
   loading.value = true
   try {
     const res = await axios.post('/api/generic', {
@@ -234,6 +238,7 @@ const fetchRecaudadoras = async () => {
     showToast('error', 'Error al cargar recaudadoras')
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 

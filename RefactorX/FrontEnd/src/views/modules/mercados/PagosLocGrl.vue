@@ -168,6 +168,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 const filters = ref({
   oficina: '',
@@ -192,13 +195,18 @@ const paginatedResults = computed(() => {
 const totalImporte = computed(() => results.value.reduce((sum, row) => sum + (parseFloat(row.importe_pago) || 0), 0));
 
 // Inicializar fechas con el mes actual
-onMounted(() => {
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+onMounted(async () => {
+  showLoading('Cargando Pagos por Local General', 'Preparando datos...')
+  try {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-  filters.value.fecha_desde = firstDay.toISOString().split('T')[0];
-  filters.value.fecha_hasta = lastDay.toISOString().split('T')[0];
+    filters.value.fecha_desde = firstDay.toISOString().split('T')[0];
+    filters.value.fecha_hasta = lastDay.toISOString().split('T')[0];
+  } finally {
+    hideLoading();
+  }
 
   fetchRecaudadoras();
 });

@@ -211,6 +211,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
 
 // Estados reactivos
 const loading = ref(false);
@@ -507,8 +510,13 @@ const getToastIcon = () => {
 };
 
 // Lifecycle hooks
-onMounted(() => {
-  fetchRecaudadoras();
+onMounted(async () => {
+  showLoading('Cargando Reporte de Adeudos de Energía General', 'Preparando oficinas recaudadoras...');
+  try {
+    await fetchRecaudadoras();
+  } finally {
+    hideLoading();
+  }
 });
 </script>
 

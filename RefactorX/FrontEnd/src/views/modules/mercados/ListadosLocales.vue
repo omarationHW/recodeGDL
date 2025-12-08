@@ -309,6 +309,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const showFilters = ref(true)
@@ -393,6 +396,7 @@ const formatNumber = (number) => {
 }
 
 const fetchRecaudadoras = async () => {
+  showLoading('Cargando Listados de Locales', 'Preparando oficinas recaudadoras...')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
@@ -406,6 +410,8 @@ const fetchRecaudadoras = async () => {
     }
   } catch (err) {
     showToast('error', 'Error al cargar recaudadoras')
+  } finally {
+    hideLoading()
   }
 }
 

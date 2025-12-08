@@ -181,6 +181,7 @@ const mostrarAyuda = () => {
 }
 
 const fetchRecaudadoras = async () => {
+  showLoading('Cargando Oficinas Recaudadoras', 'Preparando catálogos del sistema...')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
@@ -188,6 +189,8 @@ const fetchRecaudadoras = async () => {
     if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
   } catch (err) {
     showToast('error', 'Error al cargar recaudadoras')
+  } finally {
+    hideLoading()
   }
 }
 

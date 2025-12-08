@@ -1,0 +1,38 @@
+# Rpt Catalogo Merc
+
+## Descripcion
+
+Componente del modulo **Mercados**.
+
+## Funcionalidad
+
+Este componente proporciona la interfaz para rpt catalogo merc.
+
+## Uso
+
+```vue
+<RptCatalogoMerc />
+```
+
+## Propiedades
+
+| Propiedad | Tipo | Descripcion |
+|-----------|------|-------------|
+| - | - | Sin propiedades especificas |
+
+## Eventos
+
+| Evento | Descripcion |
+|--------|-------------|
+| - | Sin eventos especificos |
+
+## Procedimientos Almacenados
+
+Los procedimientos almacenados utilizados por este componente se encuentran en:
+`/Base/mercados/database/`
+
+## Notas Tecnicas
+
+- Modulo: mercados
+- Componente: RptCatalogoMerc.vue
+- Ruta: /src/views/modules/mercados/RptCatalogoMerc.vue

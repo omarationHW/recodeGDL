@@ -1,0 +1,1035 @@
+<template>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="ban" />
+      </div>
+      <div class="module-view-info">
+        <h1>Catálogo de Tipos de Bloqueo</h1>
+        <p>Padrón de Licencias - Gestión de tipos de bloqueo y aplicación a licencias</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-success" @click="openCreateModal" :disabled="loading">
+          <font-awesome-icon icon="plus" />
+          Nuevo Tipo
+        </button>
+        <button class="btn-municipal-primary" @click="loadTiposBloqueo" :disabled="loading">
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button class="btn-municipal-purple" @click="openDocumentation">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+
+    <!-- Filtros de búsqueda -->
+    <div class="municipal-card">
+      <div class="municipal-card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Clave</label>
+            <input
+              type="text"
+              class="municipal-form-control"
+              v-model="filters.clave"
+              placeholder="Clave del tipo de bloqueo"
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Descripción</label>
+            <input
+              type="text"
+              class="municipal-form-control"
+              v-model="filters.descripcion"
+              placeholder="Descripción del tipo"
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Estado</label>
+            <select class="municipal-form-control" v-model="filters.activo">
+              <option value="">Todos</option>
+              <option value="true">Activos</option>
+              <option value="false">Inactivos</option>
+            </select>
+          </div>
+        </div>
+        <div class="button-group">
+          <button
+            class="btn-municipal-primary"
+            @click="searchTiposBloqueo"
+            :disabled="loading"
+          >
+            <font-awesome-icon icon="search" />
+            Buscar
+          </button>
+          <button
+            class="btn-municipal-secondary"
+            @click="clearFilters"
+            :disabled="loading"
+          >
+            <font-awesome-icon icon="times" />
+            Limpiar
+          </button>
+          <button
+            class="btn-municipal-secondary"
+            @click="loadTiposBloqueo"
+            :disabled="loading"
+          >
+            <font-awesome-icon icon="sync-alt" />
+            Actualizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de catálogo -->
+    <div class="municipal-card">
+      <div class="municipal-card-header header-with-badge">
+        <h5>
+          <font-awesome-icon icon="list" />
+          Catálogo de Tipos de Bloqueo
+        </h5>
+        <span class="badge-purple" v-if="tiposBloqueo.length > 0">
+          {{ tiposBloqueo.length }} tipo{{ tiposBloqueo.length !== 1 ? 's' : '' }}
+        </span>
+        </h5>
+        <div v-if="loading" class="spinner-border" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <div class="municipal-card-body table-container" v-if="!loading">
+        <div class="table-responsive">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>Clave</th>
+                <th>Descripción</th>
+                <th>Días de Bloqueo</th>
+                <th>Observaciones</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="tipo in tiposBloqueo" :key="tipo.clave" class="row-hover">
+                <td>
+                  <span class="badge-secondary">
+                    <font-awesome-icon icon="tag" />
+                    {{ tipo.clave }}
+                  </span>
+                </td>
+                <td><strong class="text-primary">{{ tipo.descripcion?.trim() }}</strong></td>
+                <td>
+                  <span class="badge-warning">
+                    <font-awesome-icon icon="calendar-times" />
+                    {{ tipo.dias_bloqueo || 'N/A' }} días
+                  </span>
+                </td>
+                <td>
+                  <small class="text-muted">
+                    {{ tipo.observaciones?.trim() || 'Sin observaciones' }}
+                  </small>
+                </td>
+                <td>
+                  <span class="badge" :class="tipo.activo ? 'badge-success' : 'badge-danger'">
+                    <font-awesome-icon :icon="tipo.activo ? 'check-circle' : 'times-circle'" />
+                    {{ tipo.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="button-group button-group-sm">
+                    <button
+                      class="btn-municipal-info btn-sm"
+                      @click="viewTipo(tipo)"
+                      title="Ver detalles"
+                    >
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                    <button
+                      class="btn-municipal-primary btn-sm"
+                      @click="editTipo(tipo)"
+                      title="Editar"
+                    >
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                    <button
+                      class="btn-municipal-warning btn-sm"
+                      @click="openAplicarModal(tipo)"
+                      title="Aplicar bloqueo"
+                    >
+                      <font-awesome-icon icon="lock" />
+                      Aplicar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="tiposBloqueo.length === 0 && !loading">
+                <td colspan="6" class="text-center text-muted">
+                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                  <p>No se encontraron tipos de bloqueo</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de licencias bloqueadas por tipo -->
+    <div v-if="selectedTipoForView" class="municipal-card">
+      <div class="municipal-card-header header-with-badge">
+        <h5>
+          <font-awesome-icon icon="exclamation-triangle" />
+          Licencias Bloqueadas: {{ selectedTipoForView.descripcion }}
+        </h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="table-responsive">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>Licencia</th>
+                <th>Contribuyente</th>
+                <th>Fecha Bloqueo</th>
+                <th>Fecha Desbloqueo</th>
+                <th>Motivo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(licencia, idx) in licenciasBloqueadas" :key="idx" class="row-hover">
+                <td>
+                  <code class="text-primary">{{ licencia.num_licencia }}</code>
+                </td>
+                <td>
+                  <strong>{{ licencia.contribuyente?.trim() }}</strong>
+                </td>
+                <td>
+                  <small class="text-muted">
+                    <font-awesome-icon icon="calendar" />
+                    {{ formatDate(licencia.fecha_bloqueo) }}
+                  </small>
+                </td>
+                <td>
+                  <small class="text-muted">
+                    {{ formatDate(licencia.fecha_desbloqueo) }}
+                  </small>
+                </td>
+                <td>
+                  <small>{{ licencia.motivo?.trim() || 'N/A' }}</small>
+                </td>
+                <td>
+                  <span class="badge" :class="licencia.bloqueado ? 'badge-danger' : 'badge-success'">
+                    <font-awesome-icon :icon="licencia.bloqueado ? 'lock' : 'unlock'" />
+                    {{ licencia.bloqueado ? 'Bloqueado' : 'Activo' }}
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="licenciasBloqueadas.length === 0">
+                <td colspan="6" class="text-center text-muted">
+                  <p>No hay licencias bloqueadas con este tipo</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>{{ loadingMessage }}</p>
+      </div>
+    </div>
+
+    <!-- Modal de creación -->
+    <Modal
+      :show="showCreateModal"
+      title="Crear Nuevo Tipo de Bloqueo"
+      size="lg"
+      @close="showCreateModal = false"
+      @confirm="createTipoBloqueo"
+      :loading="creatingTipo"
+      confirmText="Crear Tipo"
+      cancelText="Cancelar"
+      :showDefaultFooter="true"
+      :confirmButtonClass="'btn-municipal-primary'"
+    >
+      <form @submit.prevent="createTipoBloqueo">
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Clave: <span class="required">*</span></label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            v-model="newTipo.clave"
+            maxlength="10"
+            required
+            placeholder="Ej: BLQ001"
+          >
+        </div>
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            v-model="newTipo.descripcion"
+            maxlength="200"
+            required
+            placeholder="Descripción del tipo de bloqueo"
+          >
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Días de Bloqueo: <span class="required">*</span></label>
+            <input
+              type="number"
+              class="municipal-form-control"
+              v-model="newTipo.dias_bloqueo"
+              min="1"
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Activo:</label>
+            <select class="municipal-form-control" v-model="newTipo.activo">
+              <option :value="true">Sí</option>
+              <option :value="false">No</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Observaciones:</label>
+          <textarea
+            class="municipal-form-control"
+            v-model="newTipo.observaciones"
+            rows="3"
+            maxlength="500"
+            placeholder="Observaciones adicionales..."
+          ></textarea>
+        </div>
+      </form>
+    </Modal>
+
+    <!-- Modal de edición -->
+    <Modal
+      :show="showEditModal"
+      :title="`Editar Tipo de Bloqueo: ${selectedTipo?.clave}`"
+      size="lg"
+      @close="showEditModal = false"
+      @confirm="updateTipoBloqueo"
+      :loading="updatingTipo"
+      confirmText="Guardar Cambios"
+      cancelText="Cancelar"
+      :showDefaultFooter="true"
+      :confirmButtonClass="'btn-municipal-primary'"
+    >
+      <form @submit.prevent="updateTipoBloqueo">
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Clave (No editable):</label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            :value="editForm.clave"
+            disabled
+          >
+        </div>
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            v-model="editForm.descripcion"
+            maxlength="200"
+            required
+          >
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Días de Bloqueo: <span class="required">*</span></label>
+            <input
+              type="number"
+              class="municipal-form-control"
+              v-model="editForm.dias_bloqueo"
+              min="1"
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Activo:</label>
+            <select class="municipal-form-control" v-model="editForm.activo">
+              <option :value="true">Sí</option>
+              <option :value="false">No</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Observaciones:</label>
+          <textarea
+            class="municipal-form-control"
+            v-model="editForm.observaciones"
+            rows="3"
+            maxlength="500"
+          ></textarea>
+        </div>
+      </form>
+    </Modal>
+
+    <!-- Modal de aplicar bloqueo -->
+    <Modal
+      :show="showAplicarModal"
+      :title="`Aplicar Bloqueo: ${selectedTipoAplicar?.descripcion}`"
+      size="lg"
+      @close="showAplicarModal = false"
+      @confirm="aplicarBloqueo"
+      :loading="aplicandoBloqueo"
+      confirmText="Aplicar Bloqueo"
+      cancelText="Cancelar"
+      :showDefaultFooter="true"
+      :confirmButtonClass="'btn-municipal-warning'"
+    >
+      <form @submit.prevent="aplicarBloqueo">
+        <div class="alert-warning-box">
+          <font-awesome-icon icon="exclamation-triangle" />
+          <strong>ATENCIÓN:</strong> Esta acción bloqueará la licencia especificada
+        </div>
+
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Número de Licencia: <span class="required">*</span></label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            v-model="bloqueoForm.num_licencia"
+            required
+            placeholder="Ingrese el número de licencia"
+          >
+        </div>
+
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Motivo del Bloqueo: <span class="required">*</span></label>
+          <textarea
+            class="municipal-form-control"
+            v-model="bloqueoForm.motivo"
+            rows="3"
+            required
+            maxlength="500"
+            placeholder="Describa el motivo del bloqueo..."
+          ></textarea>
+        </div>
+
+        <div class="info-box">
+          <div class="info-row">
+            <span class="info-label">Tipo de Bloqueo:</span>
+            <span class="info-value">{{ selectedTipoAplicar?.descripcion }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Días de Bloqueo:</span>
+            <span class="info-value">{{ selectedTipoAplicar?.dias_bloqueo }} días</span>
+          </div>
+        </div>
+      </form>
+    </Modal>
+
+    <!-- Modal de visualización -->
+    <Modal
+      :show="showViewModal"
+      :title="`Detalles del Tipo: ${selectedTipo?.clave}`"
+      size="lg"
+      @close="showViewModal = false"
+      :showDefaultFooter="false"
+    >
+      <div v-if="selectedTipo" class="user-details">
+        <div class="details-grid">
+          <div class="detail-section">
+            <h6 class="section-title">
+              <font-awesome-icon icon="ban" />
+              Información del Tipo de Bloqueo
+            </h6>
+            <table class="detail-table">
+              <tr>
+                <td class="label">Clave:</td>
+                <td><code>{{ selectedTipo.clave }}</code></td>
+              </tr>
+              <tr>
+                <td class="label">Descripción:</td>
+                <td><strong>{{ selectedTipo.descripcion?.trim() }}</strong></td>
+              </tr>
+              <tr>
+                <td class="label">Días de Bloqueo:</td>
+                <td>
+                  <span class="badge-warning">
+                    {{ selectedTipo.dias_bloqueo || 'N/A' }} días
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Estado:</td>
+                <td>
+                  <span class="badge" :class="selectedTipo.activo ? 'badge-success' : 'badge-danger'">
+                    <font-awesome-icon :icon="selectedTipo.activo ? 'check-circle' : 'times-circle'" />
+                    {{ selectedTipo.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Observaciones:</td>
+                <td>{{ selectedTipo.observaciones?.trim() || 'Sin observaciones' }}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-municipal-secondary" @click="showViewModal = false">
+            <font-awesome-icon icon="times" />
+            Cerrar
+          </button>
+          <button class="btn-municipal-primary" @click="editTipo(selectedTipo); showViewModal = false">
+            <font-awesome-icon icon="edit" />
+            Editar Tipo
+          </button>
+        </div>
+      </div>
+    </Modal>
+
+    </div>
+    <!-- /module-view-content -->
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <div class="toast-content">
+        <span class="toast-message">{{ toast.message }}</span>
+        <span v-if="toast.duration" class="toast-duration">
+          <font-awesome-icon icon="clock" class="toast-duration-icon" />
+          {{ toast.duration }}
+        </span>
+      </div>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+  </div>
+  <!-- /module-view -->
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      :componentName="'tipobloqueofrm'"
+      :moduleName="'padron_licencias'"
+      @close="closeDocumentation"
+    />
+  </template>
+
+<script setup>
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useLicenciasErrorHandler'
+import Modal from '@/components/common/Modal.vue'
+import Swal from 'sweetalert2'
+
+// Composables
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+
+const { execute } = useApi()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError,
+  loadingMessage
+} = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Estado
+const loading = ref(false)
+
+// Estado
+const tiposBloqueo = ref([])
+const licenciasBloqueadas = ref([])
+const selectedTipo = ref(null)
+const selectedTipoForView = ref(null)
+const selectedTipoAplicar = ref(null)
+const showCreateModal = ref(false)
+const showEditModal = ref(false)
+const showViewModal = ref(false)
+const showAplicarModal = ref(false)
+const creatingTipo = ref(false)
+const updatingTipo = ref(false)
+const aplicandoBloqueo = ref(false)
+
+// Filtros
+const filters = ref({
+  clave: '',
+  descripcion: '',
+  activo: ''
+})
+
+// Formularios
+const newTipo = ref({
+  clave: '',
+  descripcion: '',
+  dias_bloqueo: 30,
+  observaciones: '',
+  activo: true
+})
+
+const editForm = ref({
+  clave: '',
+  descripcion: '',
+  dias_bloqueo: 30,
+  observaciones: '',
+  activo: true
+})
+
+const bloqueoForm = ref({
+  num_licencia: '',
+  motivo: ''
+})
+
+// Métodos
+const loadTiposBloqueo = async () => {
+  loading.value = true
+  showLoading('Cargando tipos de bloqueo...', 'Procesando')
+
+  try {
+    const response = await execute(
+      'tipobloqueofrm_get_tipo_bloqueo_catalog',
+      'padron_licencias',
+      [],
+      'guadalajara'
+    )
+
+    if (response && response.result) {
+      tiposBloqueo.value = response.result
+      showToast('success', 'Tipos de bloqueo cargados correctamente')
+    } else {
+      tiposBloqueo.value = []
+      showToast('error', 'Error al cargar tipos de bloqueo')
+    }
+  } catch (error) {
+    handleApiError(error)
+    tiposBloqueo.value = []
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
+}
+
+const searchTiposBloqueo = () => {
+  // Filtrar localmente
+  let filtered = tiposBloqueo.value
+
+  if (filters.value.clave) {
+    filtered = filtered.filter(t =>
+      t.clave?.toLowerCase().includes(filters.value.clave.toLowerCase())
+    )
+  }
+
+  if (filters.value.descripcion) {
+    filtered = filtered.filter(t =>
+      t.descripcion?.toLowerCase().includes(filters.value.descripcion.toLowerCase())
+    )
+  }
+
+  if (filters.value.activo !== '') {
+    const activo = filters.value.activo === 'true'
+    filtered = filtered.filter(t => t.activo === activo)
+  }
+
+  tiposBloqueo.value = filtered
+  showToast('info', `${filtered.length} tipos encontrados`)
+}
+
+const clearFilters = () => {
+  filters.value = {
+    clave: '',
+    descripcion: '',
+    activo: ''
+  }
+  loadTiposBloqueo()
+}
+
+const openCreateModal = () => {
+  newTipo.value = {
+    clave: '',
+    descripcion: '',
+    dias_bloqueo: 30,
+    observaciones: '',
+    activo: true
+  }
+  showCreateModal.value = true
+}
+
+const createTipoBloqueo = async () => {
+  if (!newTipo.value.clave || !newTipo.value.descripcion || !newTipo.value.dias_bloqueo) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campos requeridos',
+      text: 'Por favor complete todos los campos obligatorios',
+      confirmButtonColor: '#ea8215'
+    })
+    return
+  }
+
+  const confirmResult = await Swal.fire({
+    icon: 'question',
+    title: '¿Confirmar creación?',
+    html: `
+      <div>
+        <p>Se creará un nuevo tipo de bloqueo:</p>
+        <ul>
+          <li><strong>Clave:</strong> ${newTipo.value.clave}</li>
+          <li><strong>Descripción:</strong> ${newTipo.value.descripcion}</li>
+          <li><strong>Días:</strong> ${newTipo.value.dias_bloqueo}</li>
+        </ul>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, crear',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirmResult.isConfirmed) return
+
+  creatingTipo.value = true
+
+  try {
+    const response = await execute(
+      'tipobloqueofrm_process_bloqueo_licencia',
+      'padron_licencias',
+      [
+        { nombre: 'p_action', valor: 'CREATE_TIPO', tipo: 'string' },
+        { nombre: 'p_clave', valor: newTipo.value.clave.trim(), tipo: 'string' },
+        { nombre: 'p_descripcion', valor: newTipo.value.descripcion.trim(), tipo: 'string' },
+        { nombre: 'p_dias_bloqueo', valor: newTipo.value.dias_bloqueo, tipo: 'integer' },
+        { nombre: 'p_observaciones', valor: newTipo.value.observaciones?.trim() || '', tipo: 'string' },
+        { nombre: 'p_activo', valor: newTipo.value.activo, tipo: 'boolean' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result[0]?.success) {
+      showCreateModal.value = false
+      loadTiposBloqueo()
+
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Tipo creado!',
+        text: 'El tipo de bloqueo ha sido creado exitosamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Tipo de bloqueo creado exitosamente')
+    } else {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al crear',
+        text: response?.result?.[0]?.message || 'Error desconocido',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    creatingTipo.value = false
+  }
+}
+
+const editTipo = (tipo) => {
+  selectedTipo.value = tipo
+  editForm.value = {
+    clave: tipo.clave,
+    descripcion: tipo.descripcion?.trim() || '',
+    dias_bloqueo: tipo.dias_bloqueo,
+    observaciones: tipo.observaciones?.trim() || '',
+    activo: tipo.activo
+  }
+  showEditModal.value = true
+}
+
+const updateTipoBloqueo = async () => {
+  if (!editForm.value.descripcion || !editForm.value.dias_bloqueo) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campos requeridos',
+      text: 'Por favor complete los campos obligatorios',
+      confirmButtonColor: '#ea8215'
+    })
+    return
+  }
+
+  const confirmResult = await Swal.fire({
+    icon: 'question',
+    title: '¿Confirmar actualización?',
+    html: `
+      <div>
+        <p>Se actualizarán los datos del tipo:</p>
+        <ul>
+          <li><strong>Clave:</strong> ${editForm.value.clave}</li>
+          <li><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
+          <li><strong>Días:</strong> ${editForm.value.dias_bloqueo}</li>
+        </ul>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, actualizar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirmResult.isConfirmed) return
+
+  updatingTipo.value = true
+
+  try {
+    const response = await execute(
+      'tipobloqueofrm_process_bloqueo_licencia',
+      'padron_licencias',
+      [
+        { nombre: 'p_action', valor: 'UPDATE_TIPO', tipo: 'string' },
+        { nombre: 'p_clave', valor: editForm.value.clave, tipo: 'string' },
+        { nombre: 'p_descripcion', valor: editForm.value.descripcion.trim(), tipo: 'string' },
+        { nombre: 'p_dias_bloqueo', valor: editForm.value.dias_bloqueo, tipo: 'integer' },
+        { nombre: 'p_observaciones', valor: editForm.value.observaciones?.trim() || '', tipo: 'string' },
+        { nombre: 'p_activo', valor: editForm.value.activo, tipo: 'boolean' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result[0]?.success) {
+      showEditModal.value = false
+      loadTiposBloqueo()
+
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Tipo actualizado!',
+        text: 'Los datos han sido actualizados',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Tipo actualizado exitosamente')
+    } else {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al actualizar',
+        text: response?.result?.[0]?.message || 'Error desconocido',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    updatingTipo.value = false
+  }
+}
+
+const viewTipo = (tipo) => {
+  selectedTipo.value = tipo
+  selectedTipoForView.value = tipo
+  showViewModal.value = true
+  // Cargar licencias bloqueadas por este tipo
+  loadLicenciasBloqueadas(tipo.clave)
+}
+
+const loadLicenciasBloqueadas = async (claveTipo) => {
+  try {
+    const response = await execute(
+      'tipobloqueofrm_bloquear_licencia',
+      'padron_licencias',
+      [
+        { nombre: 'p_action', valor: 'GET_BLOQUEADAS', tipo: 'string' },
+        { nombre: 'p_tipo_bloqueo', valor: claveTipo, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result) {
+      licenciasBloqueadas.value = response.result
+    }
+  } catch (error) {
+    console.error('Error loading blocked licenses:', error)
+    licenciasBloqueadas.value = []
+  }
+}
+
+const openAplicarModal = (tipo) => {
+  selectedTipoAplicar.value = tipo
+  bloqueoForm.value = {
+    num_licencia: '',
+    motivo: ''
+  }
+  showAplicarModal.value = true
+}
+
+const aplicarBloqueo = async () => {
+  if (!bloqueoForm.value.num_licencia || !bloqueoForm.value.motivo) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campos requeridos',
+      text: 'Complete todos los campos para aplicar el bloqueo',
+      confirmButtonColor: '#ea8215'
+    })
+    return
+  }
+
+  const confirmResult = await Swal.fire({
+    icon: 'warning',
+    title: '¿Aplicar bloqueo?',
+    html: `
+      <div>
+        <p><strong>Esta acción bloqueará la licencia</strong></p>
+        <ul>
+          <li><strong>Licencia:</strong> ${bloqueoForm.value.num_licencia}</li>
+          <li><strong>Tipo:</strong> ${selectedTipoAplicar.value.descripcion}</li>
+          <li><strong>Duración:</strong> ${selectedTipoAplicar.value.dias_bloqueo} días</li>
+          <li><strong>Motivo:</strong> ${bloqueoForm.value.motivo}</li>
+        </ul>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, bloquear',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirmResult.isConfirmed) return
+
+  aplicandoBloqueo.value = true
+
+  try {
+    const response = await execute(
+      'tipobloqueofrm_bloquear_licencia',
+      'padron_licencias',
+      [
+        { nombre: 'p_action', valor: 'BLOQUEAR', tipo: 'string' },
+        { nombre: 'p_num_licencia', valor: bloqueoForm.value.num_licencia.trim(), tipo: 'string' },
+        { nombre: 'p_tipo_bloqueo', valor: selectedTipoAplicar.value.clave, tipo: 'string' },
+        { nombre: 'p_motivo', valor: bloqueoForm.value.motivo.trim(), tipo: 'string' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result[0]?.success) {
+      showAplicarModal.value = false
+
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Bloqueo aplicado!',
+        text: 'La licencia ha sido bloqueada exitosamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Bloqueo aplicado exitosamente')
+    } else {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al aplicar bloqueo',
+        text: response?.result?.[0]?.message || 'Error desconocido',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    aplicandoBloqueo.value = false
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch (error) {
+    return 'Fecha inválida'
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  loadTiposBloqueo()
+})
+
+onBeforeUnmount(() => {
+  showCreateModal.value = false
+  showEditModal.value = false
+  showViewModal.value = false
+  showAplicarModal.value = false
+})
+</script>
+
+<style scoped>
+.alert-warning-box {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  color: #856404;
+}
+
+.alert-warning-box svg {
+  margin-right: 8px;
+}
+
+.info-box {
+  background: #e7f3ff;
+  border-left: 4px solid #0066cc;
+  padding: 16px;
+  margin-top: 20px;
+  border-radius: 4px;
+}
+
+.info-row {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  min-width: 150px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.info-value {
+  flex: 1;
+  color: #212529;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+</style>

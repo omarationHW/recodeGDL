@@ -10,6 +10,15 @@
         <p>Generación de reportes de facturación por período</p>
       </div>
       <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-info"
+          @click="cargarConfiguracion"
+          :disabled="loading"
+          title="Actualizar"
+        >
+          <font-awesome-icon icon="sync" :spin="loading" />
+          Actualizar
+        </button>
         <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
@@ -145,15 +154,9 @@
                 Estado de Adeudos
               </label>
               <select class="municipal-form-control" v-model="filtros.estado" @change="cambiarEstado">
-                <option value="A">
-                  <font-awesome-icon icon="exclamation-circle" /> Adeudos
-                </option>
-                <option value="B">
-                  <font-awesome-icon icon="check-circle" /> Pagados
-                </option>
-                <option value="C">
-                  <font-awesome-icon icon="times-circle" /> Cancelados
-                </option>
+                <option value="A">Vigentes (Adeudos + Pagados)</option>
+                <option value="B">Suspendidos (Solo Adeudos)</option>
+                <option value="C">Cancelados (Solo Pagados)</option>
               </select>
             </div>
 
@@ -251,12 +254,12 @@
               </thead>
               <tbody>
                 <tr v-for="(item, index) in datosFacturacion" :key="index" class="row-hover">
-                  <td>{{ item.control }}</td>
+                  <td><span class="badge badge-purple">{{ item.control }}</span></td>
                   <td>{{ item.concesionario }}</td>
                   <td v-if="tipoTabla !== '5'">{{ formatNumber(item.superficie, 2) }}</td>
                   <td>{{ item.tipo }}</td>
                   <td>{{ item.licencia || '-' }}</td>
-                  <td class="text-end">{{ formatCurrency(item.importe) }}</td>
+                  <td class="text-end fw-bold text-success">{{ formatCurrency(item.importe) }}</td>
                 </tr>
               </tbody>
               <tfoot class="municipal-table-footer">
@@ -300,14 +303,6 @@
       </div>
     </div>
 
-    <!-- Toast Notifications con performance timing -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 
   <DocumentationModal
@@ -316,6 +311,7 @@
     :moduleName="'otras_obligaciones'"
     @close="closeDocumentation"
   />
+
 </template>
 
 <script setup>
@@ -325,6 +321,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 import * as XLSX from 'xlsx'
 
@@ -335,16 +332,13 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const { showGlobalLoading, hideGlobalLoading } = useGlobalLoading()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { exportToPdf } = usePdfExport()
+
+// Estado local de loading
+const loading = ref(false)
 
 // Estado
 const tipoTabla = ref(route.params.tipo || route.query.tipo || '1')
@@ -413,7 +407,8 @@ const cambiarPeriodo = () => {
 }
 
 const cambiarEstado = () => {
-  // Si es cancelado, no mostrar checkbox de recargos
+  // Limpiar checkbox de recargos al cambiar estado
+  // Los recargos solo aplican para estados A y B
   if (filtros.value.estado === 'C') {
     filtros.value.conRecargos = false
   }
@@ -450,10 +445,12 @@ const formatCurrency = (value) => {
 const loadEtiquetas = async () => {
   try {
     const response = await execute(
-      'sp_otras_oblig_get_etiquetas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
-      'guadalajara'
+      'sp_gfacturacion_get_etiquetas',
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
+      '',
+      null,
+      'public'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -468,10 +465,12 @@ const loadEtiquetas = async () => {
 const loadTablas = async () => {
   try {
     const response = await execute(
-      'sp_otras_oblig_get_tablas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
-      'guadalajara'
+      'sp_gfacturacion_get_tablas',
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
+      '',
+      null,
+      'public'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -479,6 +478,26 @@ const loadTablas = async () => {
     }
   } catch (error) {
     console.error('Error al cargar tablas:', error)
+    handleApiError(error)
+  }
+}
+
+// Función de actualización para el botón
+const cargarConfiguracion = async () => {
+  loading.value = true
+  showLoading('Actualizando configuración...')
+
+  try {
+    await Promise.all([
+      loadEtiquetas(),
+      loadTablas()
+    ])
+    loading.value = false
+    hideLoading()
+    showToast('success', 'Configuración actualizada')
+  } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
   }
 }
@@ -509,23 +528,26 @@ const generarReporte = async () => {
   }
 
   generando.value = true
-  showGlobalLoading('Generando reporte de facturación...')
+  loading.value = true
+  showLoading('Generando reporte de facturación...')
   busquedaRealizada.value = true
 
   const startTime = performance.now()
 
   try {
     const response = await execute(
-      'SP_GFACTURACION_DATOS_GET',
-      'otras_obligaciones',
+      'sp_gfacturacion_generar_reporte',
+      BASE_DB,
       [
-        { nombre: 'par_Tab', valor: tipoTabla.value, tipo: 'string' },
-        { nombre: 'par_Ade', valor: filtros.value.estado, tipo: 'string' },
-        { nombre: 'Par_Rcgo', valor: filtros.value.conRecargos ? 'S' : 'N', tipo: 'string' },
-        { nombre: 'par_Axo', valor: filtros.value.axo, tipo: 'integer' },
-        { nombre: 'par_Mes', valor: filtros.value.mes, tipo: 'integer' }
+        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' },
+        { nombre: 'par_ade', valor: filtros.value.estado, tipo: 'varchar' },
+        { nombre: 'par_rcgo', valor: filtros.value.conRecargos ? 'S' : 'N', tipo: 'varchar' },
+        { nombre: 'par_axo', valor: filtros.value.axo, tipo: 'integer' },
+        { nombre: 'par_mes', valor: filtros.value.mes, tipo: 'integer' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
     const endTime = performance.now()
@@ -538,9 +560,13 @@ const generarReporte = async () => {
       performanceTime.value = `${(totalTime / 1000).toFixed(2)}s`
     }
 
+    generando.value = false
+    loading.value = false
+    hideLoading()
+
     if (response && response.result) {
-      // Filtrar resultados exitosos (status = 0)
-      datosFacturacion.value = response.result.filter(r => r.status === 0)
+      // Los resultados ya vienen filtrados del SP
+      datosFacturacion.value = response.result || []
 
       if (datosFacturacion.value.length > 0) {
         showToast('success', `Se encontraron ${datosFacturacion.value.length} registro(s) en ${performanceTime.value}`)
@@ -563,11 +589,11 @@ const generarReporte = async () => {
       })
     }
   } catch (error) {
+    generando.value = false
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     datosFacturacion.value = []
-  } finally {
-    generando.value = false
-    hideGlobalLoading()
   }
 }
 
@@ -637,7 +663,44 @@ const exportarExcel = () => {
 
 // Imprimir reporte
 const imprimirReporte = () => {
-  window.print()
+  if (datosFacturacion.value.length === 0) {
+    showToast('warning', 'No hay datos para imprimir')
+    return
+  }
+
+  // Definir columnas para el PDF
+  const columns = [
+    { header: etiquetas.value.etiq_control || 'Control', key: 'control', type: 'string' },
+    { header: etiquetas.value.concesionario || 'Concesionario', key: 'concesionario', type: 'string' }
+  ]
+
+  // Agregar superficie solo si no es tabla 5
+  if (tipoTabla.value !== '5') {
+    columns.push({ header: etiquetas.value.superficie || 'Superficie', key: 'superficie', type: 'number' })
+  }
+
+  columns.push(
+    { header: etiquetas.value.unidad || 'Unidades', key: 'tipo', type: 'string' },
+    { header: etiquetas.value.licencia || 'Licencia', key: 'licencia', type: 'string' },
+    { header: 'Importe', key: 'importe', type: 'currency' }
+  )
+
+  // Opciones del reporte
+  const options = {
+    title: tituloReporte.value,
+    subtitle: `Estado: ${filtros.value.estado === 'A' ? 'Vigentes' : filtros.value.estado === 'B' ? 'Suspendidos' : 'Cancelados'}`,
+    showTotal: true,
+    totalColumns: ['importe'],
+    orientation: 'landscape'
+  }
+
+  const success = exportToPdf(datosFacturacion.value, columns, options)
+
+  if (success) {
+    showToast('success', 'Reporte generado correctamente')
+  } else {
+    showToast('error', 'Error al generar el reporte. Verifique el bloqueador de popups.')
+  }
 }
 
 // Lifecycle

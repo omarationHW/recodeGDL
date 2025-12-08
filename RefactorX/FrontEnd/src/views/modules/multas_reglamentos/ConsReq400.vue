@@ -93,9 +93,109 @@
         </div>
       </div>
 
-      <Modal :show="showDetail" title="Detalle" @close="showDetail=false" :showDefaultFooter="true">
-        <pre class="text-muted" style="white-space: pre-wrap;">{{ JSON.stringify(selected, null, 2) }}</pre>
+      <Modal :show="showDetail" title="Detalle del Requerimiento" @close="showDetail=false" :showDefaultFooter="false">
+        <div v-if="selected" class="detail-content">
+          <div class="detail-section">
+            <h6 class="detail-section-title">Información General</h6>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label class="detail-label">Cuenta:</label>
+                <span class="detail-value">{{ selected.clave_cuenta }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Folio:</label>
+                <span class="detail-value">{{ selected.folio }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Ejercicio:</label>
+                <span class="detail-value">{{ selected.ejercicio }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Estatus:</label>
+                <span class="detail-value" :class="'badge-' + selected.estatus.toLowerCase()">{{ selected.estatus }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h6 class="detail-section-title">Fechas y Horarios</h6>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label class="detail-label">Fecha Requerimiento:</label>
+                <span class="detail-value">{{ selected.fecha }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Fecha Entrada 1:</label>
+                <span class="detail-value">{{ selected.fecent1 || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Fecha Entrada 2:</label>
+                <span class="detail-value">{{ selected.fecent2 || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Fecha Práctica:</label>
+                <span class="detail-value">{{ selected.fecpra || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Hora Práctica:</label>
+                <span class="detail-value">{{ selected.horapra || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Fecha Cita:</label>
+                <span class="detail-value">{{ selected.feccita || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Hora Cita:</label>
+                <span class="detail-value">{{ selected.horacit || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h6 class="detail-section-title">Información Adicional</h6>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label class="detail-label">Práctica Req:</label>
+                <span class="detail-value">{{ selected.prareq || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Vigencia Req:</label>
+                <span class="detail-value">{{ selected.vigreq || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Diligencia Req:</label>
+                <span class="detail-value">{{ selected.dilreq || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Acto Req:</label>
+                <span class="detail-value">{{ selected.actreq || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Oficina Notarial:</label>
+                <span class="detail-value">{{ selected.ofnar || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label class="detail-label">Tipo:</label>
+                <span class="detail-value">{{ selected.tpr || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section" v-if="selected.observr && selected.observr.trim()">
+            <h6 class="detail-section-title">Observaciones</h6>
+            <div class="detail-observation">
+              {{ selected.observr }}
+            </div>
+          </div>
+        </div>
       </Modal>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
     </div>
   </div>
 </template>
@@ -105,8 +205,9 @@ import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import Modal from '@/components/common/Modal.vue'
 
-const BASE_DB = 'multas_reglamentos' // TODO confirmar
-const OP_CONSREQ400 = 'RECAUDADORA_CONSREQ400' // TODO confirmar
+const BASE_DB = 'multas_reglamentos'
+const OP_CONSREQ400 = 'RECAUDADORA_CONSREQ400'
+const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
 
@@ -121,15 +222,16 @@ const selected = ref(null)
 
 async function reload() {
   const params = [
-    { name: 'clave_cuenta', type: 'C', value: String(filters.value.cuenta || '') },
-    { name: 'ejercicio', type: 'I', value: Number(filters.value.ejercicio || 0) },
-    { name: 'offset', type: 'I', value: (page.value - 1) * pageSize.value },
-    { name: 'limit', type: 'I', value: pageSize.value }
+    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') },
+    { nombre: 'p_ejercicio', tipo: 'int', valor: Number(filters.value.ejercicio || 0) },
+    { nombre: 'p_offset', tipo: 'int', valor: (page.value - 1) * pageSize.value },
+    { nombre: 'p_limit', tipo: 'int', valor: pageSize.value }
   ]
   try {
-    const data = await execute(OP_CONSREQ400, BASE_DB, params)
-    rows.value = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
-    total.value = Number(data?.total ?? rows.value.length)
+    const data = await execute(OP_CONSREQ400, BASE_DB, params, '', null, SCHEMA)
+    const result = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    rows.value = result
+    total.value = result.length > 0 ? Number(result[0].total_count || result.length) : 0
   } catch (e) {
     rows.value = []
     total.value = 0
@@ -141,3 +243,105 @@ function openDetail(r) { selected.value = r; showDetail.value = true }
 
 reload()
 </script>
+
+<style scoped>
+.detail-content {
+  padding: 0.5rem 0;
+}
+
+.detail-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.detail-section-title {
+  color: #2c5282;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #3b82f6;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  color: #1e293b;
+  font-weight: 500;
+  padding: 0.4rem 0.6rem;
+  background-color: #f8fafc;
+  border-radius: 4px;
+  border-left: 3px solid #cbd5e1;
+}
+
+.detail-observation {
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  padding: 1rem;
+  border-radius: 4px;
+  color: #78350f;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.badge-activo {
+  background-color: #10b981;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-align: center;
+  border-left: none;
+}
+
+.badge-pagado {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-align: center;
+  border-left: none;
+}
+
+.badge-pendiente {
+  background-color: #f59e0b;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-align: center;
+  border-left: none;
+}
+
+@media (max-width: 768px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

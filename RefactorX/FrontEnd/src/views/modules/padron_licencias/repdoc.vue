@@ -182,9 +182,12 @@
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
+import { usePdfExport } from '@/composables/usePdfExport'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const showDocumentation = ref(false)
@@ -201,6 +204,9 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
+const { exportToPdf } = usePdfExport()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const giros = ref([])
@@ -309,33 +315,54 @@ const generarReporte = async () => {
   }
 }
 
+// Definición de columnas para exportación
+const columnasExport = [
+  { header: 'No.', key: 'numero', type: 'integer', width: 8 },
+  { header: 'Requisito', key: 'descripcion', width: 60 },
+  { header: 'Obligatorio', key: 'obligatorio_texto', width: 15 },
+  { header: 'Tipo Documento', key: 'tipo_documento', width: 20 }
+]
+
+// Nombre del giro seleccionado
+const giroSeleccionado = computed(() => {
+  const giro = giros.value.find(g => g.id_giro === filters.value.idGiro)
+  return giro?.descripcion || 'Sin seleccionar'
+})
+
 const imprimirReporte = async () => {
-  setLoading(true, 'Generando PDF...')
+  if (requisitos.value.length === 0) {
+    showToast('warning', 'No hay requisitos para generar PDF')
+    return
+  }
+
+  showLoading('Generando PDF...', 'Por favor espere')
 
   try {
-    const spName = filters.value.tipoReporte === 'permisos'
-      ? 'sp_repdoc_print_permisos_eventuales'
-      : 'sp_repdoc_print_requisitos'
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-    const response = await execute(
-      spName,
-      'padron_licencias',
-      [
-        { nombre: 'p_id_giro', valor: filters.value.idGiro, tipo: 'integer' }
-      ],
-      'guadalajara'
-    )
+    // Preparar datos con número y texto de obligatorio
+    const datosExport = requisitos.value.map((req, index) => ({
+      numero: index + 1,
+      descripcion: req.descripcion,
+      obligatorio_texto: req.obligatorio === 'S' ? 'Obligatorio' : 'Opcional',
+      tipo_documento: req.tipo_documento || 'General'
+    }))
 
-    if (response && response.result) {
+    const success = exportToPdf(datosExport, columnasExport, {
+      title: 'Requisitos por Giro',
+      subtitle: `Giro: ${giroSeleccionado.value}`,
+      orientation: 'portrait'
+    })
+
+    if (success) {
       showToast('success', 'PDF generado correctamente')
-      // Aquí se podría abrir el PDF en una nueva ventana o descargarlo
     } else {
-      showToast('error', 'Error al generar el PDF')
+      showToast('error', 'Error al generar PDF')
     }
   } catch (error) {
-    handleApiError(error)
+    showToast('error', 'Error al generar PDF')
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -350,7 +377,31 @@ const exportarExcel = async () => {
     return
   }
 
-  showToast('info', 'Función de exportación a Excel en desarrollo')
+  showLoading('Generando Excel...', 'Por favor espere')
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Preparar datos con número y texto de obligatorio
+    const datosExport = requisitos.value.map((req, index) => ({
+      numero: index + 1,
+      descripcion: req.descripcion,
+      obligatorio_texto: req.obligatorio === 'S' ? 'Obligatorio' : 'Opcional',
+      tipo_documento: req.tipo_documento || 'General'
+    }))
+
+    const success = exportToExcel(datosExport, columnasExport, `Requisitos_${giroSeleccionado.value.replace(/\s+/g, '_')}`)
+
+    if (success) {
+      showToast('success', `Excel generado con ${requisitos.value.length} requisitos`)
+    } else {
+      showToast('error', 'Error al generar Excel')
+    }
+  } catch (error) {
+    showToast('error', 'Error al generar Excel')
+  } finally {
+    hideLoading()
+  }
 }
 
 const clearFilters = () => {

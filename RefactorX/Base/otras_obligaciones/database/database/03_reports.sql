@@ -247,13 +247,31 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
-        CASE WHEN d.id_34_datos IS NULL THEN -1 ELSE 1 END AS status,
-        CASE WHEN d.id_34_datos IS NULL THEN 'No existe registro' ELSE 'OK' END AS concepto_status,
-        d.id_34_datos, d.concesionario, d.ubicacion, d.nomcomercial, d.lugar, d.obs, d.adicionales, 
-        s.descripcion AS statusregistro, d.unidades, d.categoria, d.seccion, d.bloque, d.sector, d.superficie, d.fecha_inicio, d.fecha_fin, d.id_recaudadora, d.id_zona, d.licencia, d.giro
+    SELECT
+        CASE WHEN d.id_34_datos IS NULL THEN -1 ELSE 1 END::INTEGER AS status,
+        CASE WHEN d.id_34_datos IS NULL THEN 'No existe registro'::TEXT ELSE 'OK'::TEXT END AS concepto_status,
+        d.id_34_datos::INTEGER AS id_datos,
+        COALESCE(d.concesionario, '')::TEXT AS concesionario,
+        COALESCE(d.ubicacion, '')::TEXT AS ubicacion,
+        ''::TEXT AS nomcomercial,
+        ''::TEXT AS lugar,
+        ''::TEXT AS obs,
+        ''::TEXT AS adicionales,
+        COALESCE(s.descripcion, '')::TEXT AS statusregistro,
+        COALESCE(d.id_unidad::TEXT, '') AS unidades,
+        ''::TEXT AS categoria,
+        ''::TEXT AS seccion,
+        ''::TEXT AS bloque,
+        COALESCE(d.sector, '')::TEXT AS sector,
+        COALESCE(d.superficie, 0)::NUMERIC AS superficie,
+        d.fecha_inicio AS fechainicio,
+        d.fecha_fin AS fechafin,
+        COALESCE(d.id_recaudadora, 0)::INTEGER AS recaudadora,
+        COALESCE(d.id_zona, 0)::INTEGER AS zona,
+        COALESCE(d.licencia, 0)::INTEGER AS licencia,
+        0::INTEGER AS giro
     FROM t34_datos d
-    LEFT JOIN t34_status s ON d.id_stat = s.id_34_stat
+    LEFT JOIN t34_status s ON d.id_stat = s.id_34_stat AND d.cve_tab = s.cve_tab
     WHERE d.cve_tab = par_tab AND d.control = par_control
     LIMIT 1;
 END;

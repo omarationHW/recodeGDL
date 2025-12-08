@@ -8,6 +8,25 @@
         <h1>Reporte de Empresas</h1>
         <p>Aseo Contratado - Reporte de empresas con estadísticas de contratos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -306,19 +325,30 @@
       <h4>Detalle de Empresa:</h4>
       <p>Haga clic en cualquier registro para ver el detalle completo de la empresa, incluyendo todos sus contratos.</p>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Rpt_Empresas'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const reporteGenerado = ref(false)
 const datos = ref([])
@@ -349,7 +379,7 @@ const totales = computed(() => {
 })
 
 const generarReporte = async () => {
-  loading.value = true
+  showLoading()
   try {
     // 1. Obtener todas las empresas
     const responseEmpresas = await execute('SP_ASEO_EMPRESAS_LIST', 'aseo_contratado', {
@@ -358,7 +388,7 @@ const generarReporte = async () => {
       p_search: filtros.value.busqueda || null
     })
 
-    let empresas = responseEmpresas && responseEmpresas.data ? responseEmpresas.data : []
+    let empresas = responseEmpresas || []
 
     // 2. Obtener todos los contratos para calcular estadísticas
     const responseContratos = await execute('sp16_contratos', 'aseo_contratado', {
@@ -366,7 +396,7 @@ const generarReporte = async () => {
       parVigencia: 'T'
     })
 
-    const contratos = responseContratos && responseContratos.data ? responseContratos.data : []
+    const contratos = responseContratos || []
 
     // 3. Calcular estadísticas por empresa
     empresas = empresas.map(empresa => {
@@ -417,10 +447,11 @@ const generarReporte = async () => {
     reporteGenerado.value = true
     showToast(`Reporte generado: ${empresas.length} empresas encontradas`, 'success')
   } catch (error) {
+    hideLoading()
     showToast('Error al generar reporte', 'error')
-    console.error('Error:', error)
+    handleApiError(error)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 

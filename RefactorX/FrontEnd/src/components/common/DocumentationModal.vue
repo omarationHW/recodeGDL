@@ -237,9 +237,10 @@ export default {
 
       try {
         const possiblePaths = [
+          `/docs/ayuda/${props.moduleName}/${props.componentName}.md`,
           `/docs/${props.moduleName}/${props.componentName}.md`,
-          `/public/docs/${props.moduleName}/${props.componentName}.md`,
-          `/Base/${props.moduleName}/docs/analisis/${props.componentName}.md`
+          `/public/docs/ayuda/${props.moduleName}/${props.componentName}.md`,
+          `/Base/${props.moduleName}/docs/admin/${props.componentName}.md`
         ]
 
         let loaded = false

@@ -1,0 +1,8 @@
+-- ============================================
+-- DEPLOY CONSOLIDADO: CatastroDM
+-- Componente 89/95 - BATCH 18
+-- Generado: 2025-11-20
+-- Total SPs: 10
+-- ============================================
+
+\i 'C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/database/CatastroDM_all_procedures.sql'

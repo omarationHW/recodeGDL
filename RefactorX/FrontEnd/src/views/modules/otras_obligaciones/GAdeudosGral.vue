@@ -9,6 +9,25 @@
         <h1>Adeudos Generales</h1>
         <p>Otras Obligaciones - Consulta de Adeudos Totales</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -37,13 +56,36 @@
             <font-awesome-icon icon="cog" />
             {{ tablaInfo.nombre || 'Configuración de Consulta' }}
           </h5>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
 
         <div class="municipal-card-body">
           <form @submit.prevent="handleConsultar">
+            <!-- Fila 0: Selección de Tabla -->
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label class="municipal-form-label">
+                  <strong>Tabla/Rubro</strong>
+                  <span class="required">*</span>
+                </label>
+                <select
+                  v-model="tablaId"
+                  @change="onTablaChange"
+                  class="municipal-form-control"
+                  required
+                  :disabled="loading"
+                >
+                  <option value="">-- Seleccione una tabla --</option>
+                  <option
+                    v-for="tabla in tablas"
+                    :key="tabla.cve_tab"
+                    :value="tabla.cve_tab"
+                  >
+                    {{ tabla.cve_tab }} - {{ tabla.nombre }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
             <!-- Fila 1: Tipo de Periodo y Tipo de Reporte -->
             <div class="form-row">
               <div class="form-group">
@@ -56,7 +98,7 @@
                   @change="onTipoPeriodoChange"
                   class="municipal-form-control"
                   required
-                  :disabled="loading"
+                  :disabled="loading || !tablaId"
                 >
                   <option value="vencidos">Vencidos a la Fecha</option>
                   <option value="periodo">Por Periodo Específico</option>
@@ -149,7 +191,7 @@
               <button
                 type="submit"
                 class="btn-municipal-primary"
-                :disabled="loading || consultando"
+                :disabled="loading || consultando || !tablaId"
               >
                 <font-awesome-icon icon="search" />
                 {{ consultando ? 'Consultando...' : 'Consultar Vista Previa' }}
@@ -256,31 +298,15 @@
       <!-- Mensaje sin resultados -->
       <div v-if="!loading && !consultando && adeudos.length === 0 && consultoAlMenosUnaVez" class="municipal-card">
         <div class="municipal-card-body">
-          <div class="alert alert-info">
+          <div class="municipal-alert municipal-alert-info">
             <font-awesome-icon icon="info-circle" />
             No se encontraron adeudos con los criterios especificados
           </div>
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
-        </div>
-      </div>
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -291,14 +317,25 @@
     :moduleName="'otras_obligaciones'"
     @close="closeDocumentation"
   />
+
+  <!-- Modal de Documentacion Tecnica -->
+  <TechnicalDocsModal
+    :show="showTechDocs"
+    :componentName="'GAdeudosGral'"
+    :moduleName="'otras_obligaciones'"
+    @close="showTechDocs = false"
+  />
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 import * as XLSX from 'xlsx'
 
@@ -308,21 +345,25 @@ const route = useRoute()
 
 // Composables
 const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
+const mostrarDocumentacion = () => showTechDocs.value = true
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
+const { exportToPdf } = usePdfExport()
 const {
-  loading,
-  setLoading,
-  toast,
   showToast,
-  hideToast,
-  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
 
+// Estado local para controlar botones
+const loading = ref(false)
+
 // Estado
+const tablas = ref([])
 const tablaId = ref(route.params.tablaId || '')
 const tablaInfo = ref({
   cve_tab: '',
@@ -378,21 +419,62 @@ const goBack = () => {
   router.push('/otras_obligaciones')
 }
 
+// Cargar lista de tablas disponibles
+const loadTablas = async () => {
+  loading.value = true
+  showLoading('Cargando tablas...')
+  try {
+    const response = await execute(
+      'sp_otras_oblig_get_tablas_all',
+      BASE_DB,
+      [],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      tablas.value = response.result.map(t => ({
+        cve_tab: String(t.cve_tab).trim(),
+        nombre: (t.nombre || '').trim()
+      }))
+    } else {
+      tablas.value = []
+      showToast('warning', 'No se encontraron tablas disponibles')
+    }
+  } catch (error) {
+    handleApiError(error)
+    tablas.value = []
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
+}
+
+// Evento al cambiar la tabla seleccionada
+const onTablaChange = async () => {
+  // Limpiar datos previos
+  adeudos.value = []
+  consultoAlMenosUnaVez.value = false
+  etiquetas.value = {}
+  tablaInfo.value = { cve_tab: '', nombre: '', descripcion: '' }
+
+  if (tablaId.value) {
+    await loadTablaInfo()
+    await loadEtiquetas()
+  }
+}
+
 // Cargar información de la tabla
 const loadTablaInfo = async () => {
   if (!tablaId.value) {
-    showToast('error', 'No se especificó ID de tabla')
     return
   }
 
-  setLoading(true, 'Cargando información de tabla...')
-
   try {
     const response = await execute(
-      'SP_GADEUDOSGRAL_TABLAS_GET',
-      'otras_obligaciones',
+      'sp_otras_oblig_get_tablas',
+      BASE_DB,
       [
-        { nombre: 'par_tab', valor: tablaId.value, tipo: 'string' }
+        { nombre: 'par_tab', valor: parseInt(tablaId.value), tipo: 'integer' }
       ],
       'guadalajara'
     )
@@ -400,18 +482,13 @@ const loadTablaInfo = async () => {
     if (response && response.result && response.result.length > 0) {
       const tabla = response.result[0]
       tablaInfo.value = {
-        cve_tab: tabla.cve_tab?.trim() || '',
-        nombre: tabla.nombre?.trim() || '',
-        descripcion: tabla.descripcion?.trim() || ''
+        cve_tab: String(tabla.cve_tab || '').trim(),
+        nombre: (tabla.nombre || '').trim(),
+        descripcion: (tabla.descripcion || '').trim()
       }
-      showToast('success', 'Información de tabla cargada')
-    } else {
-      showToast('warning', 'No se encontró información de la tabla')
     }
   } catch (error) {
-    handleApiError(error)
-  } finally {
-    setLoading(false)
+    console.error('Error al cargar info de tabla:', error)
   }
 }
 
@@ -420,11 +497,12 @@ const loadEtiquetas = async () => {
   if (!tablaId.value) return
 
   try {
+    // Usar sp_otras_oblig_get_etiquetas que tiene 1 argumento
     const response = await execute(
-      'SP_GADEUDOSGRAL_ETIQUETAS_GET',
-      'otras_obligaciones',
+      'sp_otras_oblig_get_etiquetas',
+      BASE_DB,
       [
-        { nombre: 'par_tab', valor: tablaId.value, tipo: 'string' }
+        { nombre: 'par_tab', valor: parseInt(tablaId.value), tipo: 'integer' }
       ],
       'guadalajara'
     )
@@ -432,26 +510,26 @@ const loadEtiquetas = async () => {
     if (response && response.result && response.result.length > 0) {
       const etiq = response.result[0]
       etiquetas.value = {
-        cve_tab: etiq.cve_tab?.trim() || '',
-        abreviatura: etiq.abreviatura?.trim() || '',
-        etiq_control: etiq.etiq_control?.trim() || 'Control',
-        concesionario: etiq.concesionario?.trim() || 'Concesionario',
-        ubicacion: etiq.ubicacion?.trim() || 'Ubicación',
-        superficie: etiq.superficie?.trim() || 'Superficie',
-        fecha_inicio: etiq.fecha_inicio?.trim() || 'Fecha Inicio',
-        fecha_fin: etiq.fecha_fin?.trim() || 'Fecha Fin',
-        recaudadora: etiq.recaudadora?.trim() || 'Recaudadora',
-        sector: etiq.sector?.trim() || 'Sector',
-        zona: etiq.zona?.trim() || 'Zona',
-        licencia: etiq.licencia?.trim() || 'Licencia',
-        fecha_cancelacion: etiq.fecha_cancelacion?.trim() || 'Fecha Cancelación',
-        unidad: etiq.unidad?.trim() || 'Unidad',
-        categoria: etiq.categoria?.trim() || 'Categoría',
-        seccion: etiq.seccion?.trim() || 'Sección',
-        bloque: etiq.bloque?.trim() || 'Bloque',
-        nombre_comercial: etiq.nombre_comercial?.trim() || 'Nombre Comercial',
-        lugar: etiq.lugar?.trim() || 'Lugar',
-        obs: etiq.obs?.trim() || 'Observaciones'
+        cve_tab: String(etiq.cve_tab || '').trim(),
+        abreviatura: (etiq.abreviatura || '').trim(),
+        etiq_control: (etiq.etiq_control || 'Control').trim(),
+        concesionario: (etiq.concesionario || 'Concesionario').trim(),
+        ubicacion: (etiq.ubicacion || 'Ubicación').trim(),
+        superficie: (etiq.superficie || 'Superficie').trim(),
+        fecha_inicio: (etiq.fecha_inicio || 'Fecha Inicio').trim(),
+        fecha_fin: (etiq.fecha_fin || 'Fecha Fin').trim(),
+        recaudadora: (etiq.recaudadora || 'Recaudadora').trim(),
+        sector: (etiq.sector || 'Sector').trim(),
+        zona: (etiq.zona || 'Zona').trim(),
+        licencia: (etiq.licencia || 'Licencia').trim(),
+        fecha_cancelacion: (etiq.fecha_cancelacion || 'Fecha Cancelación').trim(),
+        unidad: (etiq.unidad || 'Unidad').trim(),
+        categoria: (etiq.categoria || 'Categoría').trim(),
+        seccion: (etiq.seccion || 'Sección').trim(),
+        bloque: (etiq.bloque || 'Bloque').trim(),
+        nombre_comercial: (etiq.nombre_comercial || 'Nombre Comercial').trim(),
+        lugar: (etiq.lugar || 'Lugar').trim(),
+        obs: (etiq.obs || 'Observaciones').trim()
       }
     }
   } catch (error) {
@@ -473,7 +551,7 @@ const handleConsultar = async () => {
     await Swal.fire({
       icon: 'warning',
       title: 'Datos incompletos',
-      text: 'No se especificó tabla a consultar',
+      text: 'Por favor seleccione una tabla para consultar',
       confirmButtonColor: '#ea8215'
     })
     return
@@ -481,37 +559,29 @@ const handleConsultar = async () => {
 
   consultando.value = true
   adeudos.value = []
+  showLoading('Consultando adeudos...')
 
   try {
-    let response
-
+    // Construir fecha en formato YYYY-MM
+    let fechaStr
     if (filtros.value.tipoPeriodo === 'vencidos') {
-      // Consulta general de adeudos totales
-      const fechaStr = `${filtros.value.anio}-${String(filtros.value.mes).padStart(2, '0')}`
-
-      response = await execute(
-        'sp34_adeudototal',
-        'otras_obligaciones',
-        [
-          { nombre: 'par_tabla', valor: tablaId.value, tipo: 'string' },
-          { nombre: 'par_fecha', valor: fechaStr, tipo: 'string' }
-        ],
-        'guadalajara'
-      )
+      // Para vencidos, usar fecha actual
+      fechaStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`
     } else {
-      // Consulta por periodo específico
-      response = await execute(
-        'Spcon34_gcont_01',
-        'otras_obligaciones',
-        [
-          { nombre: 'par_tabla', valor: tablaId.value, tipo: 'string' },
-          { nombre: 'par_ade', valor: filtros.value.tipoOpcion, tipo: 'string' },
-          { nombre: 'par_axo', valor: filtros.value.anio, tipo: 'integer' },
-          { nombre: 'par_mes', valor: filtros.value.mes, tipo: 'integer' }
-        ],
-        'guadalajara'
-      )
+      // Para periodo específico, usar los valores seleccionados
+      fechaStr = `${filtros.value.anio}-${String(filtros.value.mes).padStart(2, '0')}`
     }
+
+    // Usar sp34_adeudototal que tiene 2 args: par_tabla (integer), par_fecha (varchar)
+    const response = await execute(
+      'sp34_adeudototal',
+      BASE_DB,
+      [
+        { nombre: 'par_tabla', valor: parseInt(tablaId.value), tipo: 'integer' },
+        { nombre: 'par_fecha', valor: fechaStr, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
 
     if (response && response.result && response.result.length > 0) {
       adeudos.value = response.result
@@ -527,6 +597,7 @@ const handleConsultar = async () => {
     adeudos.value = []
   } finally {
     consultando.value = false
+    hideLoading()
   }
 }
 
@@ -607,21 +678,43 @@ const handleExportar = async () => {
 }
 
 // Imprimir reporte
-const handleImprimir = async () => {
+const handleImprimir = () => {
   if (adeudos.value.length === 0) {
     showToast('warning', 'No hay datos para imprimir')
     return
   }
 
-  await Swal.fire({
-    icon: 'info',
-    title: 'Imprimir Reporte',
-    html: `
-      <p>La funcionalidad de impresión se encuentra en desarrollo.</p>
-      <p>Por favor, utilice la opción de Exportar a Excel y genere el reporte desde allí.</p>
-    `,
-    confirmButtonColor: '#ea8215'
-  })
+  // Definir columnas para el PDF
+  const columns = [
+    { header: etiquetas.value.etiq_control || 'Control', key: 'control', type: 'text' },
+    { header: etiquetas.value.concesionario || 'Concesionario', key: 'nombre', type: 'text' },
+    { header: 'Superficie', key: 'superficie', type: 'number' },
+    { header: 'Periodos', key: 'periodos', type: 'text' },
+    { header: 'Adeudo', key: 'adeudo', type: 'currency' },
+    { header: 'Recargos', key: 'recargos', type: 'currency' },
+    { header: 'Total', key: 'total', type: 'currency' }
+  ]
+
+  // Opciones del reporte
+  const options = {
+    title: `Reporte de Adeudos Generales - ${tablaInfo.value.nombre || 'Otras Obligaciones'}`,
+    subtitle: filtros.value.tipoPeriodo === 'vencidos'
+      ? 'Adeudos Vencidos a la Fecha'
+      : `Periodo: ${filtros.value.anio}-${String(filtros.value.mes).padStart(2, '0')}`,
+    showDate: true,
+    showTotal: true,
+    totalColumns: ['adeudo', 'recargos', 'total'],
+    orientation: 'landscape'
+  }
+
+  // Generar PDF
+  const success = exportToPdf(adeudos.value, columns, options)
+
+  if (success) {
+    showToast('success', 'Reporte generado correctamente')
+  } else {
+    showToast('error', 'Error al generar el reporte. Verifique que no tenga bloqueador de popups activo.')
+  }
 }
 
 // Utilidades
@@ -639,7 +732,11 @@ const formatCurrency = (value) => {
 
 // Lifecycle
 onMounted(async () => {
-  await loadTablaInfo()
-  await loadEtiquetas()
+  await loadTablas()
+  // Si hay tablaId de params, cargar info
+  if (tablaId.value) {
+    await loadTablaInfo()
+    await loadEtiquetas()
+  }
 })
 </script>

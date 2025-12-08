@@ -3,6 +3,9 @@
 -- Descripción: Devuelve la URL del mapa estático de Google Maps para la ubicación del registro.
 -- Generado para formulario: sfrmMetrometers
 -- Fecha: 2025-08-27 14:03:33
+-- Fix: Alias para evitar ambiguedad
+
+DROP FUNCTION IF EXISTS sp_get_metrometers_map_url(integer, integer);
 
 CREATE OR REPLACE FUNCTION sp_get_metrometers_map_url(p_axo integer, p_folio integer)
 RETURNS TABLE (
@@ -12,7 +15,10 @@ DECLARE
     v_lat varchar(30);
     v_long varchar(30);
 BEGIN
-    SELECT poslat, poslong INTO v_lat, v_long FROM ta14_adicional_mmeters WHERE axo = p_axo AND folio = p_folio;
+    SELECT t.poslat, t.poslong INTO v_lat, v_long
+    FROM ta14_adicional_mmeters t
+    WHERE t.axo = p_axo AND t.folio = p_folio;
+
     IF v_lat IS NULL OR v_long IS NULL THEN
         RETURN QUERY SELECT NULL::text;
     ELSE

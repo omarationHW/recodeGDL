@@ -1,177 +1,395 @@
 <template>
-  <div class="rpt-pagos-locales-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Reporte de Pagos Locales</li>
-      </ol>
-    </nav>
-    <h1 class="mb-4">Reporte de Pagos Locales</h1>
-    <form @submit.prevent="fetchReport" class="mb-4">
-      <div class="row g-3 align-items-end">
-        <div class="col-md-3">
-          <label for="fecha_desde" class="form-label">Fecha Desde</label>
-          <input type="date" v-model="form.fecha_desde" class="form-control" required />
-        </div>
-        <div class="col-md-3">
-          <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
-          <input type="date" v-model="form.fecha_hasta" class="form-control" required />
-        </div>
-        <div class="col-md-3">
-          <label for="oficina" class="form-label">Recaudadora</label>
-          <select v-model="form.oficina" class="form-select" required>
-            <option value="" disabled>Seleccione...</option>
-            <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-              {{ rec.recaudadora }}
-            </option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <button type="submit" class="btn btn-primary w-100">Generar Reporte</button>
-        </div>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-invoice-dollar" />
       </div>
-    </form>
-    <div v-if="loading" class="alert alert-info">Cargando datos...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="report.length > 0">
-      <table class="table table-bordered table-striped table-sm mt-4">
-        <thead>
-          <tr>
-            <th>Local</th>
-            <th>Fecha Pago</th>
-            <th>Oficina</th>
-            <th>Caja</th>
-            <th>Operación</th>
-            <th>Periodo</th>
-            <th>Importe</th>
-            <th>Partida</th>
-            <th>Fecha Actualización</th>
-            <th>Usuario</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in report" :key="row.id_pago_local">
-            <td>{{ row.datoslocal }}</td>
-            <td>{{ row.fecha_pago | formatDate }}</td>
-            <td>{{ row.oficina_pago }}</td>
-            <td>{{ row.caja_pago }}</td>
-            <td>{{ row.operacion_pago }}</td>
-            <td>{{ row.axoper }}</td>
-            <td>{{ row.importe_pago | currency }}</td>
-            <td>{{ row.folio }}</td>
-            <td>{{ row.fecha_modificacion | formatDateTime }}</td>
-            <td>{{ row.usuario }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="mt-3">
-        <strong>Total registros:</strong> {{ report.length }}<br />
-        <strong>Total importe:</strong> {{ totalImporte | currency }}
+      <div class="module-view-info">
+        <h1>Reporte de Pagos de Locales</h1>
+        <p>Inicio > Mercados > Reporte de Pagos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || report.length === 0">
+          <font-awesome-icon icon="file-excel" />
+          Excel
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
-    <div v-else-if="!loading && !error" class="alert alert-warning mt-4">
-      No hay datos para los filtros seleccionados.
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Consulta
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+        </div>
+
+        <div v-show="showFilters" class="municipal-card-body">
+          <!-- Filtros en una sola fila -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Desde <span class="required">*</span></label>
+              <input type="date" class="municipal-form-control" v-model="fechaDesde" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha Hasta <span class="required">*</span></label>
+              <input type="date" class="municipal-form-control" v-model="fechaHasta" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="selectedRec" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="text-end">
+                <button class="btn-municipal-primary me-2" @click="buscar" :disabled="loading">
+                  <font-awesome-icon icon="search" />
+                  Generar Reporte
+                </button>
+                <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                  <font-awesome-icon icon="eraser" />
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Pagos -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Pagos Registrados
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="report.length > 0">
+              {{ formatNumber(report.length) }} registros
+            </span>
+          </div>
+        </div>
+
+        <div class="municipal-card-body table-container">
+          <!-- Mensaje de loading -->
+          <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Generando reporte, por favor espere...</p>
+          </div>
+
+          <!-- Mensaje de error -->
+          <div v-else-if="error" class="alert alert-danger" role="alert">
+            <font-awesome-icon icon="exclamation-triangle" />
+            {{ error }}
+          </div>
+
+          <!-- Tabla -->
+          <div v-else class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Local</th>
+                  <th>Fecha Pago</th>
+                  <th>Oficina</th>
+                  <th>Caja</th>
+                  <th>Operación</th>
+                  <th>Periodo</th>
+                  <th class="text-end">Importe</th>
+                  <th>Folio</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="report.length === 0 && !searchPerformed">
+                  <td colspan="9" class="text-center text-muted">
+                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <p>Seleccione los filtros y genere el reporte</p>
+                  </td>
+                </tr>
+                <tr v-else-if="report.length === 0">
+                  <td colspan="9" class="text-center text-muted">
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No se encontraron pagos para los filtros seleccionados</p>
+                  </td>
+                </tr>
+                <tr v-else v-for="(row, index) in report" :key="index" class="row-hover">
+                  <td><strong class="text-primary">{{ row.id_local }}</strong></td>
+                  <td>{{ formatDate(row.fecha_pago) }}</td>
+                  <td>{{ row.oficina_pago }}</td>
+                  <td>{{ row.caja_pago }}</td>
+                  <td>{{ row.operacion_pago }}</td>
+                  <td>{{ row.axo }}-{{ String(row.periodo).padStart(2, '0') }}</td>
+                  <td class="text-end">
+                    <strong class="text-success">{{ formatCurrency(row.importe_pago) }}</strong>
+                  </td>
+                  <td>{{ row.folio }}</td>
+                  <td>{{ row.usuario }}</td>
+                </tr>
+              </tbody>
+              <tfoot v-if="report.length > 0">
+                <tr class="table-info">
+                  <td colspan="6" class="text-end"><strong>Total:</strong></td>
+                  <td class="text-end"><strong class="text-success">{{ formatCurrency(totalImporte) }}</strong></td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'RptPagosLocalesPage',
-  data() {
-    return {
-      form: {
-        fecha_desde: '',
-        fecha_hasta: '',
-        oficina: ''
-      },
-      recaudadoras: [],
-      report: [],
-      loading: false,
-      error: ''
-    };
-  },
-  computed: {
-    totalImporte() {
-      return this.report.reduce((sum, row) => sum + Number(row.importe_pago || 0), 0);
-    }
-  },
-  filters: {
-    formatDate(val) {
-      if (!val) return '';
-      return new Date(val).toLocaleDateString();
-    },
-    formatDateTime(val) {
-      if (!val) return '';
-      return new Date(val).toLocaleString();
-    },
-    currency(val) {
-      return Number(val).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    }
-  },
-  created() {
-    this.fetchRecaudadoras();
-    // Default dates: current month
-    const today = new Date();
-    this.form.fecha_desde = today.toISOString().slice(0, 10);
-    this.form.fecha_hasta = today.toISOString().slice(0, 10);
-  },
-  methods: {
-    async fetchRecaudadoras() {
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getRecaudadoras' })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.recaudadoras = data.data;
-        } else {
-          this.error = data.message || 'Error al cargar recaudadoras';
-        }
-      } catch (e) {
-        this.error = e.message;
-      }
-    },
-    async fetchReport() {
-      this.loading = true;
-      this.error = '';
-      this.report = [];
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getPagosLocalesReport',
-            params: this.form
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.report = data.data;
-        } else {
-          this.error = data.message || 'Error al obtener el reporte';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-      }
-    }
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Estado
+const showFilters = ref(true)
+const recaudadoras = ref([])
+const selectedRec = ref('')
+const fechaDesde = ref(new Date().toISOString().split('T')[0])
+const fechaHasta = ref(new Date().toISOString().split('T')[0])
+
+// Datos
+const report = ref([])
+const loading = ref(false)
+const error = ref('')
+const searchPerformed = ref(false)
+
+// Toast
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+// Computed
+const totalImporte = computed(() => {
+  return report.value.reduce((sum, row) => sum + Number(row.importe_pago || 0), 0)
+})
+
+// Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
+const mostrarAyuda = () => {
+  showToast('info', 'Ayuda: Seleccione un rango de fechas y una oficina para generar el reporte de pagos')
+}
+
+const showToast = (type, message) => {
+  toast.value = {
+    show: true,
+    type,
+    message
   }
-};
+  setTimeout(() => {
+    hideToast()
+  }, 5000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'times-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+const fetchRecaudadoras = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+
+    if (res.data.eResponse.success === true) {
+      recaudadoras.value = res.data.eResponse.data.result || []
+      if (recaudadoras.value.length > 0) {
+        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+      }
+    } else {
+      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al cargar recaudadoras'
+    console.error('Error al cargar recaudadoras:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const buscar = async () => {
+  if (!fechaDesde.value || !fechaHasta.value || !selectedRec.value) {
+    error.value = 'Debe seleccionar fecha desde, fecha hasta y oficina'
+    showToast('warning', error.value)
+    return
+  }
+
+  if (fechaDesde.value > fechaHasta.value) {
+    error.value = 'La fecha desde no puede ser mayor a la fecha hasta'
+    showToast('warning', error.value)
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+  report.value = []
+  searchPerformed.value = true
+
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_rpt_pagos_locales',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_fecha_desde', Valor: fechaDesde.value },
+          { Nombre: 'p_fecha_hasta', Valor: fechaHasta.value },
+          { Nombre: 'p_oficina', Valor: selectedRec.value }
+        ]
+      }
+    })
+
+    if (res.data.eResponse && res.data.eResponse.success === true) {
+      report.value = res.data.eResponse.data.result || []
+      if (report.value.length > 0) {
+        showToast('success', `Se encontraron ${report.value.length} pagos`)
+        showFilters.value = false
+      } else {
+        showToast('info', 'No se encontraron pagos para los filtros seleccionados')
+      }
+    } else {
+      error.value = res.data.eResponse?.message || 'Error al generar reporte'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al generar reporte'
+    console.error('Error al generar reporte:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const limpiarFiltros = () => {
+  selectedRec.value = ''
+  fechaDesde.value = new Date().toISOString().split('T')[0]
+  fechaHasta.value = new Date().toISOString().split('T')[0]
+  report.value = []
+  error.value = ''
+  searchPerformed.value = false
+  showToast('info', 'Filtros limpiados')
+}
+
+const exportarExcel = () => {
+  if (report.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+  // TODO: Implementar exportación a Excel
+  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+}
+
+// Utilidades
+const formatCurrency = (val) => {
+  if (val === null || val === undefined || val === '') return '$0.00'
+  const num = typeof val === 'number' ? val : parseFloat(val)
+  if (isNaN(num)) return '$0.00'
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const formatDate = (value) => {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('es-MX')
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
+// Lifecycle
+onMounted(async () => {
+  showLoading('Cargando Reporte de Pagos por Locales', 'Preparando oficinas recaudadoras...')
+  try {
+    await fetchRecaudadoras()
+  } finally {
+    hideLoading()
+  }
+})
 </script>
 
 <style scoped>
-.rpt-pagos-locales-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-.breadcrumb {
-  background: none;
-  padding: 0;
+.empty-icon {
+  color: #ccc;
   margin-bottom: 1rem;
+}
+
+.text-end {
+  text-align: right;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.municipal-table td.text-end,
+.municipal-table th.text-end {
+  text-align: right;
 }
 </style>

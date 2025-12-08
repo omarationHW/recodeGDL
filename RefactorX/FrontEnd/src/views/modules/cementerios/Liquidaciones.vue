@@ -253,10 +253,19 @@
         </ul>
       </div>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Liquidaciones'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -318,7 +327,6 @@ const cargarCementerios = async () => {
       cementerios.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar cementerios:', error)
     showError('Error al cargar la lista de cementerios')
   }
 }
@@ -375,7 +383,6 @@ const calcularLiquidacion = async () => {
       resetTotales()
     }
   } catch (error) {
-    console.error('Error al calcular liquidación:', error)
     showError('Error al calcular la liquidación')
     resultados.value = []
     resetTotales()
@@ -551,4 +558,13 @@ const formatCurrency = (value) => {
 onMounted(() => {
   cargarCementerios()
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

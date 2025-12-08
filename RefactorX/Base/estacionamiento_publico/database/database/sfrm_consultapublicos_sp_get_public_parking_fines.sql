@@ -1,42 +1,36 @@
--- Stored Procedure: sp_get_public_parking_fines
--- Tipo: Report
--- Descripción: Obtiene las multas asociadas a un número de licencia.
--- Generado para formulario: sfrm_consultapublicos
--- Fecha: 2025-08-27 16:04:06
+-- =============================================================================
+-- STORED PROCEDURE: sp_get_public_parking_fines
+-- Base: estacionamiento_publico
+-- Esquema: public
+-- Formulario: sfrm_consultapublicos / ConsultaPublicos.vue
+-- Descripcion: Obtiene las multas asociadas a un numero de licencia
+-- =============================================================================
 
-CREATE OR REPLACE FUNCTION sp_get_public_parking_fines(numlicencia integer)
-RETURNS TABLE (
+DROP FUNCTION IF EXISTS public.sp_get_public_parking_fines(integer);
+
+CREATE OR REPLACE FUNCTION public.sp_get_public_parking_fines(
+    p_numlicencia INTEGER
+) RETURNS TABLE (
     id_multa integer,
-    id_dependencia smallint,
-    axo_acta smallint,
     num_acta integer,
     fecha_acta date,
-    fecha_recepcion date,
-    contribuyente varchar(50),
-    domicilio varchar(80),
-    recaud smallint,
-    num_licencia integer,
-    giro varchar(80),
-    id_ley smallint,
-    id_infraccion smallint,
-    expediente varchar(50),
-    calificacion numeric(12,2),
-    multa numeric(12,2),
-    gastos numeric(12,2),
-    total numeric(12,2),
-    fecha_plazo date,
-    comentario varchar(255),
-    tipo varchar(1),
-    noexterior varchar(6),
-    interior varchar(5)
-) AS $$
+    giro varchar,
+    total numeric
+) AS $func$
 BEGIN
     RETURN QUERY
-    SELECT id_multa, id_dependencia, axo_acta, num_acta, fecha_acta,
-           fecha_recepcion, contribuyente, domicilio, recaud, num_licencia, giro,
-           id_ley, id_infraccion, expediente, calificacion, multa, gastos, total,
-           fecha_plazo, comentario, tipo, noexterior, interior
-    FROM multas
-    WHERE num_licencia = numlicencia;
+    SELECT
+        m.id_multa,
+        m.num_acta,
+        m.fecha_acta,
+        TRIM(m.giro)::varchar,
+        m.total
+    FROM public.multas m
+    WHERE m.num_licencia = p_numlicencia
+    ORDER BY m.fecha_acta DESC;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- FIN STORED PROCEDURE
+-- =============================================================================

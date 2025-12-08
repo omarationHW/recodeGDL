@@ -23,7 +23,10 @@
       </div>
 
       <div class="municipal-card">
-        <div class="municipal-card-header"><h5>Resultados</h5><div v-if="loading" class="spinner-border"></div></div>
+        <div class="municipal-card-header">
+          <h5>Resultados ({{ totalRecords }} registros)</h5>
+          <div v-if="loading" class="spinner-border"></div>
+        </div>
         <div class="municipal-card-body table-container" v-if="!loading">
           <div class="table-responsive">
             <table class="municipal-table">
@@ -40,38 +43,199 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div class="pagination-container" v-if="totalPages > 1">
+            <div class="pagination-info">
+              Mostrando {{ startRecord }} - {{ endRecord }} de {{ totalRecords }}
+            </div>
+            <div class="pagination-controls">
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === 1"
+                @click="goToPage(1)"
+              >
+                <font-awesome-icon icon="angles-left" />
+              </button>
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+              <span class="pagination-text">
+                Página {{ currentPage }} de {{ totalPages }}
+              </span>
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)"
+              >
+                <font-awesome-icon icon="angles-right" />
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
-const OP_LIST = 'RECAUDADORA_LISTADO_MULTIPLE' // TODO confirmar
+const OP_LIST = 'RECAUDADORA_LISTADO_MULTIPLE'
+const OP_COUNT = 'RECAUDADORA_LISTADO_MULTIPLE_COUNT'
 
 const { loading, execute } = useApi()
 
 const filters = ref({ q: '' })
 const rows = ref([])
 const columns = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalRecords = ref(0)
+
+const totalPages = computed(() => Math.ceil(totalRecords.value / pageSize.value))
+const startRecord = computed(() => (currentPage.value - 1) * pageSize.value + 1)
+const endRecord = computed(() => Math.min(currentPage.value * pageSize.value, totalRecords.value))
 
 async function reload() {
-  const params = [ { name: 'q', type: 'C', value: String(filters.value.q || '') } ]
+  currentPage.value = 1
+  await loadData()
+}
+
+async function loadData() {
+  const offset = (currentPage.value - 1) * pageSize.value
+  const params = [
+    { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') },
+    { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value },
+    { nombre: 'p_offset', tipo: 'integer', valor: offset }
+  ]
+
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
-    const arr = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const response = await execute(OP_LIST, BASE_DB, params)
+    // Manejar diferentes formatos de respuesta
+    let data = null
+    if (response?.result) {
+      data = response.result
+    } else if (response?.rows) {
+      data = response.rows
+    } else if (Array.isArray(response)) {
+      data = response
+    } else {
+      data = response
+    }
+    const arr = Array.isArray(data) ? data : []
     rows.value = arr
     columns.value = arr.length ? Object.keys(arr[0]) : []
+
+    // Obtener el total de registros
+    await getCount()
   } catch (e) {
     rows.value = []
     columns.value = []
+    totalRecords.value = 0
+  }
+}
+
+async function getCount() {
+  const params = [
+    { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
+  ]
+
+  try {
+    const response = await execute(OP_COUNT, BASE_DB, params)
+    let data = null
+    if (response?.result) {
+      data = response.result
+    } else if (response?.rows) {
+      data = response.rows
+    } else if (Array.isArray(response)) {
+      data = response
+    } else {
+      data = response
+    }
+    const arr = Array.isArray(data) ? data : []
+    totalRecords.value = arr.length > 0 ? (arr[0].total || 0) : 0
+  } catch (e) {
+    totalRecords.value = 0
+  }
+}
+
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadData()
   }
 }
 
 reload()
 </script>
+
+<style scoped>
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.pagination-info {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-text {
+  margin: 0 12px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.btn-pagination {
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+  color: #495057;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background-color: #0d6efd;
+  color: #fff;
+  border-color: #0d6efd;
+}
+
+.btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>
 

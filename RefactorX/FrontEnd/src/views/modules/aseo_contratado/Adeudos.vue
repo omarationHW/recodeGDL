@@ -8,6 +8,25 @@
         <h1>Gestión de Adeudos</h1>
         <p>Aseo Contratado - Administración de adeudos, pagos y estado de cuenta</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -109,7 +128,7 @@
             <h5><font-awesome-icon icon="upload" /> Carga Masiva de Adeudos</h5>
           </div>
           <div class="municipal-card-body">
-            <div class="alert alert-warning">
+            <div class="municipal-alert municipal-alert-warning">
               <font-awesome-icon icon="exclamation-triangle" />
               Esta operación generará adeudos para todos los contratos vigentes del ejercicio seleccionado.
             </div>
@@ -237,20 +256,31 @@
         <li>Registrar pagos conforme se realicen</li>
       </ol>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Adeudos'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
 const activeTab = ref('buscar')
-const loading = ref(false)
 const showDocumentation = ref(false)
 
 const tabs = [
@@ -284,24 +314,25 @@ const buscarContrato = async () => {
     return
   }
 
-  loading.value = true
+  showLoading()
   try {
     const response = await execute('SP_ASEO_ADEUDOS_BUSCAR_CONTRATO', 'aseo_contratado', {
       p_num_contrato: searchParams.value.num_contrato || null,
       p_num_empresa: searchParams.value.num_empresa || null,
       p_nombre_empresa: searchParams.value.nombre_empresa || null
     })
-    if (response && response.data) {
-      contratos.value = response.data
+    if (response) {
+      contratos.value = response
       if (contratos.value.length === 0) {
         showToast('No se encontraron contratos', 'info')
       }
     }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al buscar contratos', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -313,7 +344,7 @@ const limpiarBusqueda = () => {
 const verEstadoCuenta = async (contrato) => {
   contratoSeleccionado.value = contrato
   activeTab.value = 'estado'
-  loading.value = true
+  showLoading()
 
   try {
     const response = await execute('SP_ASEO_ADEUDOS_ESTADO_CUENTA', 'aseo_contratado', {
@@ -321,14 +352,15 @@ const verEstadoCuenta = async (contrato) => {
       p_status_vigencia: 'D',
       p_fecha_hasta: null
     })
-    if (response && response.data) {
-      estadoCuenta.value = response.data
+    if (response) {
+      estadoCuenta.value = response
     }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al cargar estado de cuenta', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -360,7 +392,7 @@ const ejecutarCargaMasiva = async () => {
 
   if (!confirmResult.isConfirmed) return
 
-  loading.value = true
+  showLoading()
   cargaMasiva.value.resultado = null
 
   try {
@@ -368,8 +400,8 @@ const ejecutarCargaMasiva = async () => {
       p_ejercicio: cargaMasiva.value.ejercicio,
       p_usuario_id: 1
     })
-    if (response && response.data && response.data[0]) {
-      cargaMasiva.value.resultado = response.data[0]
+    if (response && response[0]) {
+      cargaMasiva.value.resultado = response[0]
       if (cargaMasiva.value.resultado.success) {
         showToast('Carga masiva completada exitosamente', 'success')
       } else {
@@ -377,10 +409,11 @@ const ejecutarCargaMasiva = async () => {
       }
     }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al ejecutar carga masiva', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 

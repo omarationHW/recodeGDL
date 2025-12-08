@@ -8,6 +8,25 @@
         <h1>Registro de Pagos</h1>
         <p>Aseo Contratado - Registro y aplicación de pagos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -186,10 +205,20 @@
         <li>El saldo pendiente se actualiza automáticamente</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Adeudos_Pag'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -199,7 +228,6 @@ import Swal from 'sweetalert2'
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const numContrato = ref(null)
 const adeudosPendientes = ref([])
@@ -225,38 +253,71 @@ const buscarAdeudos = async () => {
     return
   }
 
-  loading.value = true
+  showLoading()
   try {
-    // Primero buscar el contrato
-    const contrato = await execute('SP_ASEO_ADEUDOS_BUSCAR_CONTRATO', 'aseo_contratado', {
+    // Primero buscar el contrato (Delphi líneas 174-186)
+    const contrato = await execute('sp_aseo_contratos_buscar', 'aseo_contratado', {
       p_num_contrato: numContrato.value,
       p_num_empresa: null,
-      p_nombre_empresa: null
+      p_nombre_empresa: null,
+      p_ctrol_aseo: null
     })
 
-    if (!contrato || !contrato.data || contrato.data.length === 0) {
+    if (!contrato || !contrato || contrato.length === 0) {
       showToast('Contrato no encontrado', 'warning')
       return
     }
 
-    // Luego buscar adeudos
-    const response = await execute('SP_ASEO_ADEUDOS_ESTADO_CUENTA', 'aseo_contratado', {
-      p_control_contrato: contrato.data[0].control_contrato,
-      p_status_vigencia: 'D',
-      p_fecha_hasta: null
-    })
+    const contratoData = contrato.data[0]
 
-    if (response && response.data) {
-      adeudosPendientes.value = response.data.map(a => ({ ...a, seleccionado: false }))
-      if (adeudosPendientes.value.length === 0) {
-        showToast('No hay adeudos pendientes para este contrato', 'info')
-      }
+    // Buscar CUOTA NORMAL (operación 6) y EXEDENCIAS (operación 7) por separado
+    // como hace Delphi en líneas 189-221
+    const [respCN, respExe] = await Promise.all([
+      // Cuota Normal (Ctrol_operacion = 6)
+      execute('sp_aseo_adeudos_por_tipo', 'aseo_contratado', {
+        p_control_contrato: contratoData.control_contrato,
+        p_ctrol_operacion: 6, // Cuota Normal
+        p_status_vigencia: 'V' // Solo vigentes
+      }),
+      // Exedencias (Ctrol_operacion = 7)
+      execute('sp_aseo_adeudos_por_tipo', 'aseo_contratado', {
+        p_control_contrato: contratoData.control_contrato,
+        p_ctrol_operacion: 7, // Exedencias
+        p_status_vigencia: 'V'
+      })
+    ])
+
+    adeudosPendientes.value = []
+
+    // Procesar cuota normal
+    if (respCN && respCN.length > 0) {
+      adeudosPendientes.value.push(...respCN.map(a => ({
+        ...a,
+        seleccionado: false,
+        tipo_operacion: 'CN', // Cuota Normal
+        editable: true // Permitir editar importe como en Delphi
+      })))
+    }
+
+    // Procesar exedencias
+    if (respExe && respExe.length > 0) {
+      adeudosPendientes.value.push(...respExe.map(a => ({
+        ...a,
+        seleccionado: false,
+        tipo_operacion: 'EXE', // Exedencias
+        editable: true
+      })))
+    }
+
+    if (adeudosPendientes.value.length === 0) {
+      showToast('No hay adeudos pendientes para este contrato', 'info')
     }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al buscar adeudos', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -275,10 +336,17 @@ const registrarPago = async () => {
     return
   }
 
+  const adeudosSeleccionados = adeudosPendientes.value.filter(a => a.seleccionado)
+  if (adeudosSeleccionados.length === 0) {
+    showToast('Seleccione al menos un periodo para pagar', 'warning')
+    return
+  }
+
   const result = await Swal.fire({
     title: '¿Registrar Pago?',
     html: `<p>Importe: <strong>${formatCurrency(formPago.value.importe)}</strong></p>
-           <p>Total adeudo: <strong>${formatCurrency(totalSeleccionado.value)}</strong></p>`,
+           <p>Total adeudo: <strong>${formatCurrency(totalSeleccionado.value)}</strong></p>
+           <p>Periodos seleccionados: <strong>${adeudosSeleccionados.length}</strong></p>`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Sí, registrar',
@@ -287,59 +355,80 @@ const registrarPago = async () => {
 
   if (!result.isConfirmed) return
 
-  loading.value = true
+  showLoading()
   try {
-    // Por ahora registrar el primer periodo seleccionado
-    const primerSeleccionado = adeudosPendientes.value.find(a => a.seleccionado)
-    if (!primerSeleccionado) {
-      showToast('Seleccione al menos un periodo', 'warning')
-      return
-    }
+    // Registrar pago para cada periodo seleccionado
+    // Delphi procesa CN y EXE por separado (líneas 426-494)
+    const pagosExitosos = []
+    const pagosError = []
 
-    const [year, month] = primerSeleccionado.periodo.split('-')
-    const fechaPago = `${year}-${month}-01`
+    for (const adeudo of adeudosSeleccionados) {
+      try {
+        // Formato de fecha como en Delphi línea 438: 'yyyy-mm-dd hh:nn'
+        const fechaHoy = new Date()
+        const fechaPagoStr = fechaHoy.toISOString().slice(0, 16).replace('T', ' ')
 
-    const response = await execute('SP_ASEO_ADEUDOS_REGISTRAR_PAGO', 'aseo_contratado', {
-      p_control_contrato: numContrato.value, // Debería ser control_contrato
-      p_aso_mes_pago: fechaPago,
-      p_importe_pago: formPago.value.importe,
-      p_id_rec: formPago.value.id_rec,
-      p_caja: formPago.value.caja,
-      p_folio_rcbo: formPago.value.folio || null,
-      p_usuario_id: 1
-    })
+        const response = await execute('sp_aseo_actualizar_pago', 'aseo_contratado', {
+          p_control_contrato: adeudo.control_contrato,
+          p_aso_mes_pago: adeudo.aso_mes_pago,
+          p_ctrol_operacion: adeudo.ctrol_operacion,
+          p_importe: adeudo.importe_editable || adeudo.importe, // Permitir edición como Delphi línea 430
+          p_status_vigencia: 'P', // Pagado
+          p_fecha_hora_pago: fechaPagoStr,
+          p_id_rec: formPago.value.id_rec,
+          p_caja: formPago.value.caja || '01',
+          p_consec_operacion: formPago.value.consecutivo || 0,
+          p_folio_rcbo: formPago.value.folio || '0', // Delphi usa '0' si está vacío
+          p_usuario: 1
+        })
 
-    if (response && response.data && response.data[0]) {
-      const result = response.data[0]
-
-      historialPagos.value.unshift({
-        folio: result.folio_pago,
-        num_contrato: numContrato.value,
-        importe: formPago.value.importe,
-        saldo_pendiente: result.saldo_pendiente,
-        fecha: new Date(),
-        success: result.success
-      })
-
-      if (result.success) {
-        showToast('Pago registrado exitosamente', 'success')
-        cancelarPago()
-        buscarAdeudos() // Recargar adeudos
-      } else {
-        showToast(result.message, 'error')
+        if (response?.[0]?.success) {
+          pagosExitosos.push({
+            periodo: adeudo.periodo,
+            folio: response[0].folio_pago || formPago.value.folio
+          })
+        } else {
+          pagosError.push({ periodo: adeudo.periodo, error: response?.[0]?.message || 'Error desconocido' })
+        }
+      } catch (err) {
+        hideLoading()
+        pagosError.push({ periodo: adeudo.periodo, error: err.message })
       }
     }
+
+    // Actualizar historial
+    if (pagosExitosos.length > 0) {
+      historialPagos.value.unshift({
+        folio: pagosExitosos[0].folio,
+        num_contrato: numContrato.value,
+        importe: formPago.value.importe,
+        periodos_pagados: pagosExitosos.length,
+        fecha: new Date(),
+        success: true
+      })
+
+      showToast(`Pago registrado: ${pagosExitosos.length} periodo(s) pagado(s)`, 'success')
+      cancelarPago()
+      buscarAdeudos() // Recargar adeudos
+    }
+
+    if (pagosError.length > 0) {
+      showToast(`Advertencia: ${pagosError.length} periodo(s) no se pudo(ieron) procesar`, 'warning')
+    }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al registrar el pago', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
 const cancelarPago = () => {
   formPago.value = {
     importe: null,
+
+const { showLoading, hideLoading } = useGlobalLoading()
     id_rec: 1,
     caja: '001',
     folio: null

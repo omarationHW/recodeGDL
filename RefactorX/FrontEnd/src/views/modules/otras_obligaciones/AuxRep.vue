@@ -1,7 +1,7 @@
 <template>
   <div class="module-view">
     <!-- Header del módulo -->
-    <div class="module-view-header" style="position: relative;">
+    <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="users" />
       </div>
@@ -9,15 +9,23 @@
         <h1>{{ tablaNombre || 'Padrón de Concesionarios' }}</h1>
         <p>Otras Obligaciones - Padrón sin Adeudos</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="cargarDatosIniciales"
+          title="Actualizar datos"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -190,24 +198,8 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos del padrón...</p>
-        </div>
-      </div>
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -239,14 +231,9 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
 const { showLoading, hideLoading } = useGlobalLoading()
-const {
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 // Estado local de loading
 const loading = ref(false)
@@ -297,15 +284,15 @@ const goToLastPage = () => {
 }
 
 const goBack = () => {
-  router.push('/otras_obligaciones')
+  router.push('/otras-obligaciones/menu')
 }
 
 // Cargar información de la tabla
 const loadTablaInfo = async () => {
   try {
     const response = await execute(
-      'SP_AUXREP_TABLAS_GET',
-      'otras_obligaciones',
+      'sp_padron_tablas',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: tablaId.value, tipo: 'integer' }
       ],
@@ -324,8 +311,8 @@ const loadTablaInfo = async () => {
 const loadEtiquetas = async () => {
   try {
     const response = await execute(
-      'SP_AUXREP_ETIQUETAS_GET',
-      'otras_obligaciones',
+      'sp_padron_etiquetas',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: tablaId.value, tipo: 'integer' }
       ],
@@ -344,8 +331,8 @@ const loadEtiquetas = async () => {
 const loadVigencias = async () => {
   try {
     const response = await execute(
-      'SP_AUXREP_VIGENCIAS_GET',
-      'otras_obligaciones',
+      'sp_padron_vigencias',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: tablaId.value, tipo: 'integer' }
       ],
@@ -368,11 +355,11 @@ const loadPadron = async () => {
 
   try {
     const response = await execute(
-      'SP_AUXREP_PADRON_GET',
-      'otras_obligaciones',
+      'sp_padron_concesionarios',
+      BASE_DB,
       [
         { nombre: 'par_tabla', valor: tablaId.value, tipo: 'integer' },
-        { nombre: 'par_vigencia', valor: vigenciaSeleccionada.value, tipo: 'string' }
+        { nombre: 'par_vigencia', valor: vigenciaSeleccionada.value, tipo: 'varchar' }
       ],
       'guadalajara'
     )
@@ -495,10 +482,29 @@ const getStatusClass = (status) => {
   }
 }
 
+// Cargar datos iniciales
+const cargarDatosIniciales = async () => {
+  loading.value = true
+  showLoading('Actualizando datos...')
+
+  try {
+    await loadTablaInfo()
+    await loadEtiquetas()
+    await loadVigencias()
+    await loadPadron()
+    showToast('success', 'Datos actualizados')
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   loading.value = true
-  showLoading('Inicializando...', 'Cargando configuración')
+  showLoading('Inicializando...')
 
   try {
     await loadTablaInfo()
@@ -515,20 +521,248 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Pagination select */
-.pagination-select {
-  width: auto;
-  display: inline-block;
-  margin-left: 10px;
+/* ====== FORM ROW ====== */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-/* Toast duration */
-.toast-duration {
+.form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ====== BUTTON GROUP ====== */
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ====== BADGES ====== */
+.badge-purple {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #6f42c1, #5a32a3);
+  border-radius: 20px;
+  margin-left: 0.5rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+}
+
+.badge-success {
+  background-color: #198754;
+  color: white;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #1a1a2e;
+}
+
+.badge-info {
+  background-color: #0dcaf0;
+  color: #1a1a2e;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* ====== TABLA ====== */
+.table-responsive {
+  overflow-x: auto;
+  margin: 0 -1rem;
+  padding: 0 1rem;
+}
+
+.municipal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.municipal-table-header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+
+.municipal-table-header th {
+  padding: 0.875rem 1rem;
+  color: white;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.municipal-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.municipal-table tbody tr:hover,
+.row-hover:hover {
+  background-color: rgba(234, 130, 21, 0.08);
+}
+
+.municipal-table td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+/* ====== PAGINACIÓN ====== */
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  margin-top: 1rem;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.pagination-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-left: 8px;
+  gap: 0.5rem;
+}
+
+.pagination-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #dee2e6;
+  background: white;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  color: #495057;
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: #ea8215;
+  border-color: #ea8215;
+  color: white;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-info-text {
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-select {
+  width: auto;
+  min-width: 80px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  background-color: white;
+}
+
+/* ====== SPINNER ====== */
+.spinner-border {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid #ea8215;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ====== EMPTY STATE ====== */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.empty-icon {
+  color: #dee2e6;
+  margin-bottom: 1rem;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-group {
+    min-width: 100%;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group button {
+    width: 100%;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-nav {
+    justify-content: center;
+  }
+
+  .pagination-info {
+    justify-content: center;
+  }
 }
 </style>

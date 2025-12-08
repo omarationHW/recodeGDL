@@ -250,6 +250,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
 import Swal from 'sweetalert2'
 
 const showDocumentation = ref(false)
@@ -266,6 +267,7 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
 
 // Estado
 const resultados = ref([])
@@ -379,7 +381,56 @@ const exportarExcel = async () => {
     return
   }
 
-  showToast('info', 'Función de exportación a Excel en desarrollo')
+  try {
+    let columns = []
+    let sheetName = 'Reporte'
+
+    // Definir columnas según tipo de reporte
+    if (filters.value.tipoReporte === '1' || filters.value.tipoReporte === '2') {
+      columns = [
+        { header: 'ID Giro', key: 'id_giro', width: 10 },
+        { header: 'Descripción', key: 'descripcion', width: 40 },
+        { header: 'Zona 1', key: 'z_1', type: 'integer', width: 10 },
+        { header: 'Zona 2', key: 'z_2', type: 'integer', width: 10 },
+        { header: 'Zona 3', key: 'z_3', type: 'integer', width: 10 },
+        { header: 'Zona 4', key: 'z_4', type: 'integer', width: 10 },
+        { header: 'Zona 5', key: 'z_5', type: 'integer', width: 10 },
+        { header: 'Zona 6', key: 'z_6', type: 'integer', width: 10 },
+        { header: 'Zona 7', key: 'z_7', type: 'integer', width: 10 },
+        { header: 'Otros', key: 'otros', type: 'integer', width: 10 },
+        { header: 'Total', key: 'total', type: 'integer', width: 12 }
+      ]
+      sheetName = filters.value.tipoReporte === '1' ? 'Licencias_por_Giro_Zona' : 'Lic_Reglamentadas_Zona'
+    } else if (filters.value.tipoReporte === '3') {
+      columns = [
+        { header: 'Concepto', key: 'concepto', width: 30 },
+        { header: 'Cantidad', key: 'cantidad', type: 'integer', width: 15 },
+        { header: 'Monto Total', key: 'monto_total', type: 'currency', width: 18 },
+        { header: 'Promedio', key: 'promedio', type: 'currency', width: 15 }
+      ]
+      sheetName = 'Estadistica_Pagos'
+    } else if (filters.value.tipoReporte === '4' || filters.value.tipoReporte === '5') {
+      columns = [
+        { header: 'Zona', key: 'zona', width: 10 },
+        { header: 'ID Giro', key: 'id_giro', width: 10 },
+        { header: 'Descripción', key: 'descripcion', width: 40 },
+        { header: 'Cantidad', key: 'cantidad', type: 'integer', width: 12 },
+        { header: 'Total', key: 'total', type: 'integer', width: 12 }
+      ]
+      sheetName = filters.value.tipoReporte === '4' ? 'Giros_Zona_Detallado' : 'Giros_Reglam_Zona'
+    }
+
+    const filename = `Rep_Estadistico_Tipo${filters.value.tipoReporte}_${filters.value.fechaInicio}_${filters.value.fechaFin}`
+    const success = exportToExcel(resultados.value, columns, filename, sheetName)
+
+    if (success) {
+      showToast('success', `Excel exportado: ${resultados.value.length} registros`)
+    } else {
+      showToast('error', 'Error al exportar Excel')
+    }
+  } catch (error) {
+    showToast('error', 'Error al generar el archivo Excel')
+  }
 }
 
 const clearFilters = () => {

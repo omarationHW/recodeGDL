@@ -1,46 +1,43 @@
--- Stored Procedure: sp14_bfolios
--- Tipo: Report
--- Descripción: Devuelve los folios asociados a una placa desde la fuente secundaria (equivalente a la consulta de ta14_datos_mpio en Delphi).
--- Generado para formulario: ConsGral
--- Fecha: 2025-08-27 13:28:56
+-- =============================================================================
+-- STORED PROCEDURE: sp14_bfolios
+-- Base: estacionamiento_publico
+-- Esquema: public
+-- Formulario: ConsGral / ConsGralPublicos.vue
+-- Descripcion: Devuelve folios por placa desde ta14_folios_histo
+-- =============================================================================
 
-CREATE OR REPLACE FUNCTION sp14_bfolios(parPlaca VARCHAR)
-RETURNS TABLE (
-    tipoact VARCHAR(2),
-    placa VARCHAR(9),
-    axo INTEGER,
-    folio INTEGER,
-    fechaalta DATE,
-    fechapago DATE,
-    fechacancelado DATE,
-    importe NUMERIC(18,2),
-    folioecmpio VARCHAR(50),
-    remesa VARCHAR(50),
-    fecharemesa DATE,
-    concepto VARCHAR(120),
-    fecha_in DATE,
-    fecha_fin DATE,
-    fecha_aplic DATE
-) AS $$
+DROP FUNCTION IF EXISTS public.sp14_bfolios(varchar);
+
+CREATE OR REPLACE FUNCTION public.sp14_bfolios(
+    parplaca VARCHAR
+) RETURNS TABLE(
+    tipoact varchar,
+    axo integer,
+    folio integer,
+    fechaalta date,
+    fechapago date,
+    fechacancelado date,
+    importe numeric,
+    remesa varchar
+) AS $func$
 BEGIN
     RETURN QUERY
-    SELECT 
-        b.tipoact,
-        b.placa,
-        b.axo,
-        b.folio,
-        b.fechaalta,
-        b.fechapago,
-        b.fechacancelado,
-        b.importe,
-        b.folioecmpio,
-        b.remesa,
-        b.fecharemesa,
-        b.concepto,
-        b.fecha_in,
-        b.fecha_fin,
-        b.fecha_aplic
-    FROM ta14_datos_mpio b
-    WHERE b.placa = parPlaca;
+    SELECT
+        'PN'::varchar AS tipoact,
+        c.axo::integer,
+        c.folio::integer,
+        c.fecha_folio AS fechaalta,
+        c.fecha_movto AS fechapago,
+        NULL::date AS fechacancelado,
+        0::numeric AS importe,
+        ('Banorte suc ' || COALESCE(d.sucursal::text, ''))::varchar AS remesa
+    FROM public.ta14_folios_histo c
+    LEFT JOIN public.ta14_fol_banorte d ON d.axo = c.axo AND d.folio = c.folio
+    WHERE TRIM(c.placa) = UPPER(TRIM(parplaca))
+    ORDER BY c.fecha_folio DESC;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- FIN STORED PROCEDURE
+-- =============================================================================

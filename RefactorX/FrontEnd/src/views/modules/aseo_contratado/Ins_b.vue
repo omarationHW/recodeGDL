@@ -9,6 +9,25 @@
         <h1>Inscripción Rápida de Contratos</h1>
         <p>Aseo Contratado - Alta simplificada de nuevos contratos desde catastro</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -38,7 +57,7 @@
           </div>
         </div>
 
-        <div v-if="datosCatastro" class="alert alert-info">
+        <div v-if="datosCatastro" class="municipal-alert municipal-alert-info">
           <h6><font-awesome-icon icon="check-circle" /> Datos del Catastro:</h6>
           <div class="row">
             <div class="col-md-6">
@@ -52,7 +71,7 @@
           </div>
         </div>
 
-        <div v-if="contratoExistente" class="alert alert-warning">
+        <div v-if="contratoExistente" class="municipal-alert municipal-alert-warning">
           <font-awesome-icon icon="exclamation-triangle" class="me-2" />
           <strong>Atención:</strong> Ya existe un contrato activo para esta cuenta catastral
           (Contrato #{{ contratoExistente.num_contrato }}).
@@ -157,7 +176,7 @@
           </div>
         </div>
 
-        <div class="alert alert-success">
+        <div class="municipal-alert municipal-alert-success">
           <h6><font-awesome-icon icon="info-circle" /> Resumen del Contrato:</h6>
           <ul class="mb-0">
             <li><strong>Cuenta Catastral:</strong> {{ cuentaCatastral }}</li>
@@ -210,10 +229,20 @@
         <li>Fecha de alta</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Ins_b'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -222,8 +251,10 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 const cargando = ref(false)
@@ -278,7 +309,8 @@ const buscarCatastro = async () => {
       datosCatastro.value = null
     }
   } catch (error) {
-    handleError(error, 'Error al buscar en catastro')
+    hideLoading()
+    handleApiError(error, 'Error al buscar en catastro')
   } finally {
     cargando.value = false
   }
@@ -348,7 +380,8 @@ const guardarContrato = async () => {
 
     cancelar()
   } catch (error) {
-    handleError(error, 'Error al guardar contrato')
+    hideLoading()
+    handleApiError(error, 'Error al guardar contrato')
   } finally {
     cargando.value = false
   }
@@ -400,7 +433,17 @@ onMounted(async () => {
     empresas.value = respEmpresas || []
     unidades.value = respUnidades || []
   } catch (error) {
-    console.error('Error al cargar catálogos:', error)
+    hideLoading()
+    handleApiError(error)
   }
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

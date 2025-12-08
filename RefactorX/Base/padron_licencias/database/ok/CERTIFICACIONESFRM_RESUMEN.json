@@ -1,0 +1,240 @@
+{
+  "componente": "certificacionesfrm",
+  "descripcion": "Gestión completa de certificaciones",
+  "fecha_implementacion": "2025-11-20",
+  "estado": "IMPLEMENTADO CON LOGICA REAL",
+  "schema": "public",
+  "tabla_principal": "public.certificaciones",
+  "total_sps": 7,
+  "archivo_sql": "CERTIFICACIONESFRM_all_procedures_IMPLEMENTED.sql",
+  "archivo_reporte": "CERTIFICACIONESFRM_REPORTE_IMPLEMENTACION.md",
+  "lineas_codigo": 646,
+  "stored_procedures": [
+    {
+      "numero": 1,
+      "nombre": "sp_certificaciones_list",
+      "tipo": "Report",
+      "descripcion": "Listar certificaciones por tipo",
+      "parametros": ["p_tipo TEXT"],
+      "retorna": "TABLE con listado de certificaciones",
+      "validaciones": ["Tipo requerido"],
+      "caracteristicas": ["Ordenamiento DESC por año y folio"]
+    },
+    {
+      "numero": 2,
+      "nombre": "sp_certificaciones_get",
+      "tipo": "Catalog",
+      "descripcion": "Obtener certificación por ID",
+      "parametros": ["p_id INT"],
+      "retorna": "TABLE con registro completo",
+      "validaciones": ["ID requerido y > 0", "Existencia del registro"],
+      "caracteristicas": ["Incluye licencia y anuncio", "Excepción si no existe"]
+    },
+    {
+      "numero": 3,
+      "nombre": "sp_certificaciones_create",
+      "tipo": "CRUD/Create",
+      "descripcion": "Crear certificación con folio automático",
+      "parametros": [
+        "p_tipo TEXT",
+        "p_id_licencia INT",
+        "p_observacion TEXT",
+        "p_partidapago TEXT",
+        "p_capturista TEXT"
+      ],
+      "retorna": "INT - ID de nueva certificación",
+      "validaciones": [
+        "Tipo requerido",
+        "ID licencia válido y existente",
+        "Capturista requerido"
+      ],
+      "caracteristicas": [
+        "Folio automático desde parametros_lic",
+        "Año automático (CURRENT_DATE)",
+        "Estado inicial V (Vigente)",
+        "Obtiene datos de licencia",
+        "Manejo de contador global"
+      ]
+    },
+    {
+      "numero": 4,
+      "nombre": "sp_certificaciones_update",
+      "tipo": "CRUD/Update",
+      "descripcion": "Actualizar certificación vigente",
+      "parametros": [
+        "p_id INT",
+        "p_observacion TEXT",
+        "p_partidapago TEXT",
+        "p_capturista TEXT"
+      ],
+      "retorna": "BOOLEAN - true si actualiza",
+      "validaciones": [
+        "ID requerido y > 0",
+        "Solo certificaciones vigentes",
+        "Capturista requerido"
+      ],
+      "caracteristicas": [
+        "Verifica estado antes de modificar",
+        "Excepción si está cancelada"
+      ]
+    },
+    {
+      "numero": 5,
+      "nombre": "sp_certificaciones_cancel",
+      "tipo": "CRUD/Soft Delete",
+      "descripcion": "Cancelar certificación (soft delete)",
+      "parametros": ["p_id INT", "p_motivo TEXT", "p_capturista TEXT"],
+      "retorna": "BOOLEAN - true si cancela",
+      "validaciones": [
+        "ID requerido y > 0",
+        "Motivo requerido",
+        "No cancelar ya canceladas",
+        "Capturista requerido"
+      ],
+      "caracteristicas": [
+        "Soft delete (vigente = C)",
+        "Preserva observación anterior",
+        "Formato: CANCELADA - motivo | Obs.Anterior",
+        "Actualiza fecha de captura"
+      ]
+    },
+    {
+      "numero": 6,
+      "nombre": "sp_certificaciones_search",
+      "tipo": "Report/Búsqueda",
+      "descripcion": "Búsqueda avanzada con filtros múltiples",
+      "parametros": [
+        "p_axo INT DEFAULT NULL",
+        "p_folio INT DEFAULT NULL",
+        "p_id_licencia INT DEFAULT NULL",
+        "p_feccap_ini DATE DEFAULT NULL",
+        "p_feccap_fin DATE DEFAULT NULL",
+        "p_tipo TEXT DEFAULT NULL",
+        "p_vigente TEXT DEFAULT NULL"
+      ],
+      "retorna": "TABLE con certificaciones filtradas",
+      "validaciones": [
+        "Rango de fechas válido",
+        "Vigente V o C"
+      ],
+      "caracteristicas": [
+        "7 filtros opcionales",
+        "Combinación dinámica con AND",
+        "Sin filtros = todos los registros",
+        "Ordenamiento DESC por año y folio"
+      ]
+    },
+    {
+      "numero": 7,
+      "nombre": "sp_certificaciones_print",
+      "tipo": "Report/Impresión",
+      "descripcion": "Datos completos para impresión en JSON",
+      "parametros": ["p_id INT"],
+      "retorna": "TABLE con 3 columnas JSON (certificacion, licencia, pagos)",
+      "validaciones": ["ID requerido y > 0", "Existencia de certificación"],
+      "caracteristicas": [
+        "3 objetos JSON completos",
+        "Folio formateado (año-folio)",
+        "Nombre completo concatenado",
+        "Fechas formateadas",
+        "Pagos ordenados DESC",
+        "Solo concepto 8 (certificaciones)",
+        "Objetos vacíos cuando no hay datos"
+      ]
+    }
+  ],
+  "tablas_relacionadas": [
+    "public.certificaciones",
+    "public.parametros_lic",
+    "public.licencias",
+    "public.pagos"
+  ],
+  "caracteristicas_globales": [
+    "Validaciones completas de parámetros",
+    "Manejo de errores con excepciones descriptivas",
+    "Soft delete con vigente V/C",
+    "Generación automática de folios",
+    "Búsqueda flexible con filtros opcionales",
+    "Datos de impresión en formato JSON",
+    "Comentarios y documentación exhaustiva",
+    "Compatible con API genérica REST",
+    "Thread-safe en generación de folios"
+  ],
+  "endpoints_api": [
+    {
+      "metodo": "GET",
+      "ruta": "/certificaciones?tipo={tipo}",
+      "sp": "sp_certificaciones_list"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/certificaciones/{id}",
+      "sp": "sp_certificaciones_get"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/certificaciones",
+      "sp": "sp_certificaciones_create"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/certificaciones/{id}",
+      "sp": "sp_certificaciones_update"
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/certificaciones/{id}",
+      "sp": "sp_certificaciones_cancel"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/certificaciones/search",
+      "sp": "sp_certificaciones_search"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/certificaciones/{id}/print",
+      "sp": "sp_certificaciones_print"
+    }
+  ],
+  "testing": {
+    "test_crear": "SELECT public.sp_certificaciones_create('ANUAL', 1, 'Test', '001', 'admin');",
+    "test_listar": "SELECT * FROM public.sp_certificaciones_list('ANUAL');",
+    "test_obtener": "SELECT * FROM public.sp_certificaciones_get(1);",
+    "test_actualizar": "SELECT public.sp_certificaciones_update(1, 'Nueva obs', '002', 'admin');",
+    "test_cancelar": "SELECT public.sp_certificaciones_cancel(1, 'Motivo test', 'admin');",
+    "test_buscar": "SELECT * FROM public.sp_certificaciones_search(2024, NULL, NULL, NULL, NULL, NULL, 'V');",
+    "test_imprimir": "SELECT * FROM public.sp_certificaciones_print(1);"
+  },
+  "metricas": {
+    "total_sps": 7,
+    "lineas_codigo_total": 646,
+    "promedio_lineas_por_sp": 92,
+    "sps_tipo_report": 3,
+    "sps_tipo_crud": 3,
+    "sps_tipo_catalog": 1,
+    "parametros_totales": 21,
+    "validaciones_implementadas": 18
+  },
+  "estado_deploy": "LISTO PARA DEPLOY",
+  "archivos_generados": [
+    "CERTIFICACIONESFRM_all_procedures_IMPLEMENTED.sql",
+    "CERTIFICACIONESFRM_REPORTE_IMPLEMENTACION.md",
+    "CERTIFICACIONESFRM_RESUMEN.json"
+  ],
+  "checklist": {
+    "sps_implementados": true,
+    "logica_real": true,
+    "validaciones": true,
+    "manejo_errores": true,
+    "soft_delete": true,
+    "folios_automaticos": true,
+    "busqueda_avanzada": true,
+    "formato_json": true,
+    "comentarios": true,
+    "ejemplos_uso": true,
+    "api_compatible": true,
+    "schema_correcto": true,
+    "nombrado_consistente": true
+  }
+}

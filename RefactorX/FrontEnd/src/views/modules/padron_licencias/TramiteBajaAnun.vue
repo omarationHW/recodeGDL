@@ -128,6 +128,35 @@
               </tr>
             </table>
           </div>
+
+          <div class="detail-section" v-if="adeudos">
+            <h6 class="section-title">
+              <font-awesome-icon icon="dollar-sign" />
+              Adeudos
+            </h6>
+            <table class="detail-table">
+              <tr>
+                <td class="label">Adeudo Total:</td>
+                <td>
+                  <strong class="text-danger">
+                    ${{ formatCurrency(adeudos.total_adeudo) }}
+                  </strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Recargos:</td>
+                <td>${{ formatCurrency(adeudos.recargos) }}</td>
+              </tr>
+              <tr>
+                <td class="label">Estado de Pago:</td>
+                <td>
+                  <span class="badge" :class="adeudos.total_adeudo > 0 ? 'badge-danger' : 'badge-success'">
+                    {{ adeudos.total_adeudo > 0 ? 'Con adeudo' : 'Al corriente' }}
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
         </div>
 
         <!-- Formulario de baja -->
@@ -262,6 +291,7 @@ const searchForm = ref({
 })
 
 const anuncio = ref(null)
+const adeudos = ref(null)
 
 const bajaForm = ref({
   anio: new Date().getFullYear(),
@@ -308,9 +338,14 @@ const buscarAnuncio = async () => {
 
     if (response && response.result && response.result.length > 0) {
       anuncio.value = response.result[0]
+
+      // Buscar adeudos del anuncio
+      await cargarAdeudos()
+
       showToast('success', 'Anuncio encontrado')
     } else {
       anuncio.value = null
+      adeudos.value = null
       await Swal.fire({
         icon: 'info',
         title: 'No encontrado',
@@ -327,6 +362,43 @@ const buscarAnuncio = async () => {
   }
 }
 
+const cargarAdeudos = async () => {
+  if (!anuncio.value) return
+
+  try {
+    const adeudosResponse = await execute(
+      'sp_consulta_adeudos_anuncio',
+      'padron_licencias',
+      [
+        { nombre: 'p_anuncio', valor: searchForm.value.numAnuncio, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    if (adeudosResponse && adeudosResponse.result && adeudosResponse.result.length > 0) {
+      // Calcular totales
+      const items = adeudosResponse.result
+      const totalAdeudo = items.reduce((sum, a) => sum + (parseFloat(a.total) || parseFloat(a.importe) || 0), 0)
+      const totalRecargos = items.reduce((sum, a) => sum + (parseFloat(a.recargos) || 0), 0)
+
+      adeudos.value = {
+        items: items,
+        total_adeudo: totalAdeudo,
+        recargos: totalRecargos
+      }
+    } else {
+      adeudos.value = null
+    }
+  } catch (error) {
+    adeudos.value = null
+  }
+}
+
+const formatCurrency = (value) => {
+  if (!value && value !== 0) return '0.00'
+  return parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
 const tramitarBaja = async () => {
   // Validaciones
   if (!bajaForm.value.anio || !bajaForm.value.folio || !bajaForm.value.motivo.trim()) {
@@ -337,6 +409,35 @@ const tramitarBaja = async () => {
       confirmButtonColor: '#ea8215'
     })
     return
+  }
+
+  // Verificar adeudos pendientes
+  if (adeudos.value && adeudos.value.total_adeudo > 0) {
+    const resultAdeudos = await Swal.fire({
+      icon: 'warning',
+      title: 'Adeudos Pendientes',
+      html: `
+        <div style="text-align: left;">
+          <p>Este anuncio tiene adeudos pendientes:</p>
+          <ul style="list-style: none; padding: 0; margin: 15px 0;">
+            <li><strong>Adeudo Total:</strong> $${formatCurrency(adeudos.value.total_adeudo)}</li>
+            <li><strong>Recargos:</strong> $${formatCurrency(adeudos.value.recargos)}</li>
+          </ul>
+          <p class="text-danger"><strong>¿Desea continuar con el trámite de baja?</strong></p>
+          <p class="text-muted" style="font-size: 0.85em;">Nota: Los adeudos serán recalculados automáticamente.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Continuar con Trámite',
+      cancelButtonText: 'Cancelar',
+      width: '500px'
+    })
+
+    if (!resultAdeudos.isConfirmed) {
+      return
+    }
   }
 
   // Confirmación
@@ -430,6 +531,7 @@ const tramitarBaja = async () => {
 const limpiarBusqueda = () => {
   searchForm.value.numAnuncio = null
   anuncio.value = null
+  adeudos.value = null
   limpiarFormulario()
   showToast('info', 'Búsqueda limpiada')
 }
@@ -445,6 +547,7 @@ const limpiarFormulario = () => {
 const limpiarTodo = () => {
   searchForm.value.numAnuncio = null
   anuncio.value = null
+  adeudos.value = null
   limpiarFormulario()
 }
 

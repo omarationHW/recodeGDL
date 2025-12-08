@@ -1,0 +1,371 @@
+=====================================================
+RESUMEN EJECUTIVO - IMPLEMENTACIÓN COMPLETA
+Componente: consultausuariosfrm
+Módulo: padron_licencias
+Schema: comun
+Fecha: 2025-11-20
+Estado: ✓ IMPLEMENTADO Y DOCUMENTADO
+=====================================================
+
+┌─────────────────────────────────────────────────┐
+│ STORED PROCEDURES IMPLEMENTADOS: 9             │
+└─────────────────────────────────────────────────┘
+
+CONSULTAS (4 SPs):
+  ✓ 1. comun.get_all_usuarios()
+       Obtiene todos los usuarios con información completa
+       Parámetros: 0
+       Retorna: 12 columnas (usuario, nombres, nivel, fechas, depto, etc.)
+
+  ✓ 2. comun.consulta_usuario_por_usuario(p_usuario)
+       Busca un usuario específico por nombre de usuario
+       Parámetros: 1 (VARCHAR)
+       Retorna: 12 columnas
+       Características: Case-insensitive
+
+  ✓ 3. comun.consulta_usuario_por_nombre(p_nombre)
+       Busca usuarios por coincidencia de nombre (prefijo)
+       Parámetros: 1 (VARCHAR)
+       Retorna: 12 columnas
+       Características: ILIKE con prefijo, ordenado alfabéticamente
+
+  ✓ 4. comun.consulta_usuario_por_depto(p_id_dependencia, p_cvedepto)
+       Busca usuarios de un departamento específico
+       Parámetros: 2 (INTEGER, INTEGER)
+       Retorna: 12 columnas
+
+CATÁLOGOS (2 SPs):
+  ✓ 5. comun.get_dependencias()
+       Catálogo de dependencias del sistema
+       Parámetros: 0
+       Retorna: 3 columnas (id, descripción, clave)
+       Uso: Combo de selección en formularios
+
+  ✓ 6. comun.get_deptos_by_dependencia(p_id_dependencia)
+       Catálogo de departamentos de una dependencia
+       Parámetros: 1 (INTEGER)
+       Retorna: 4 columnas (clave, nombre, teléfono, dependencia)
+       Uso: Combo cascada dependencia → departamento
+
+CRUD (3 SPs):
+  ✓ 7. comun.crear_usuario(p_usuario, p_nombres, p_clave, p_cvedepto, p_nivel, p_capturo)
+       Crea un nuevo usuario en el sistema
+       Parámetros: 6 (VARCHAR x3, INTEGER x2, VARCHAR)
+       Retorna: TABLE(success BOOLEAN, message TEXT)
+       Validaciones:
+         - Usuario único (no duplicados)
+         - Departamento debe existir
+         - Nivel válido (1, 5, 9, 10)
+       Seguridad:
+         - Hash bcrypt automático (factor 8)
+         - Usuario → lowercase
+         - Nombres → UPPERCASE
+
+  ✓ 8. comun.actualizar_usuario(p_usuario, p_nombres, p_clave, p_cvedepto, p_nivel, p_capturo)
+       Actualiza datos de un usuario existente
+       Parámetros: 6 (VARCHAR x3, INTEGER x2, VARCHAR)
+       Retorna: TABLE(success BOOLEAN, message TEXT)
+       Características:
+         - p_clave NULL = mantiene contraseña actual
+         - p_clave con valor = hashea y actualiza
+         - Usuario no se puede cambiar (es identificador)
+       Validaciones:
+         - Usuario debe existir
+         - Departamento debe existir
+         - Nivel válido (1, 5, 9, 10)
+
+  ✓ 9. comun.dar_baja_usuario(p_usuario, p_capturo)
+       Da de baja un usuario (soft delete)
+       Parámetros: 2 (VARCHAR, VARCHAR)
+       Retorna: TABLE(success BOOLEAN, message TEXT)
+       Características:
+         - Soft delete: marca fecbaj = CURRENT_DATE
+         - No elimina el registro físicamente
+         - El usuario sigue apareciendo en consultas
+       Validaciones:
+         - Usuario debe existir
+         - No permitir baja de usuario ya dado de baja
+
+┌─────────────────────────────────────────────────┐
+│ ARCHIVOS GENERADOS                              │
+└─────────────────────────────────────────────────┘
+
+1. CONSULTAUSUARIOS_all_procedures_IMPLEMENTED.sql
+   Ubicación: RefactorX\Base\padron_licencias\database\ok\
+   Contenido: Los 9 SPs con implementación completa
+   Líneas: 557
+   Características:
+     - Documentación inline completa
+     - DROP IF EXISTS para cada SP
+     - COMMENT ON FUNCTION para cada SP
+     - Manejo de excepciones
+     - Validaciones exhaustivas
+
+2. DEPLOY_CONSULTAUSUARIOS_2025-11-20.sql
+   Ubicación: RefactorX\Base\padron_licencias\database\deploy\
+   Contenido: Script de deployment listo para producción
+   Líneas: 589
+   Características:
+     - Verificación de prerequisitos
+     - Creación de schema si no existe
+     - Habilitación de extensión pgcrypto
+     - Deployment de los 9 SPs
+     - Verificación automática post-deployment
+
+3. CONSULTAUSUARIOS_DOCUMENTACION.md
+   Ubicación: RefactorX\Base\padron_licencias\database\ok\
+   Contenido: Documentación técnica completa
+   Secciones:
+     - Resumen general
+     - Prerequisitos
+     - Descripción detallada de cada SP
+     - Ejemplos SQL y API
+     - Ejemplos de uso desde Vue
+     - Seguridad y mejores prácticas
+     - Troubleshooting
+     - Referencia rápida
+
+4. CONSULTAUSUARIOS_PRUEBAS.sql
+   Ubicación: RefactorX\Base\padron_licencias\database\ok\
+   Contenido: Suite completa de pruebas
+   Líneas: 518
+   Cobertura:
+     - Verificación de prerequisitos
+     - Pruebas de catálogos
+     - Pruebas de creación (casos exitosos y errores)
+     - Pruebas de consultas
+     - Pruebas de actualización
+     - Pruebas de baja
+     - Pruebas de integración
+     - Pruebas de seguridad
+     - Limpieza automática
+
+5. CONSULTAUSUARIOS_RESUMEN.txt
+   Ubicación: RefactorX\Base\padron_licencias\database\ok\
+   Contenido: Este archivo (resumen ejecutivo)
+
+┌─────────────────────────────────────────────────┐
+│ COMPATIBILIDAD                                  │
+└─────────────────────────────────────────────────┘
+
+✓ API Genérica RefactorX: 100% compatible
+  - Todos los SPs usan prefijo de schema: comun.nombre_funcion
+  - Todos los parámetros usan prefijo: p_
+  - SPs de escritura retornan: TABLE(success BOOLEAN, message TEXT)
+  - SPs de lectura retornan: TABLE con columnas específicas
+
+✓ Componente Vue: consultausuariosfrm.vue
+  - Todas las operaciones del componente están cubiertas
+  - Convención de nombres exacta
+  - Parámetros coinciden 1:1 con el componente
+
+✓ Base de Datos: PostgreSQL 12+
+  - Requiere extensión pgcrypto
+  - Compatible con versiones 12, 13, 14, 15, 16
+
+✓ Seguridad:
+  - Bcrypt para hash de contraseñas (factor 8)
+  - Validaciones exhaustivas
+  - Protección contra SQL injection
+  - Case-insensitive en búsquedas
+
+┌─────────────────────────────────────────────────┐
+│ PREREQUISITOS DE DEPLOYMENT                     │
+└─────────────────────────────────────────────────┘
+
+1. Extensión PostgreSQL:
+   CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+2. Schema:
+   CREATE SCHEMA IF NOT EXISTS comun;
+
+3. Tablas requeridas:
+   - comun.usuarios
+     Campos: usuario, nombres, clave, cvedepto, nivel, fecalt, fecbaj, feccap, capturo
+
+   - comun.deptos
+     Campos: cvedepto, nombredepto, telefono, cvedependencia
+
+   - comun.c_dependencias
+     Campos: id_dependencia, descripcion, clave
+
+┌─────────────────────────────────────────────────┐
+│ NIVELES DE USUARIO                              │
+└─────────────────────────────────────────────────┘
+
+El sistema maneja 4 niveles de acceso:
+
+  1 - BASICO:        Acceso básico de consulta
+  5 - INTERMEDIO:    Puede crear y editar
+  9 - AVANZADO:      Puede aprobar y validar
+  10 - ADMINISTRADOR: Acceso total al sistema
+
+Validación: Sólo se permiten valores 1, 5, 9, 10
+
+┌─────────────────────────────────────────────────┐
+│ SEGURIDAD DE CONTRASEÑAS                        │
+└─────────────────────────────────────────────────┘
+
+✓ Hash: Bcrypt con factor 8
+✓ Salt: Único por cada contraseña
+✓ Longitud hash: 60 caracteres
+✓ Formato: $2a$08$[22 chars salt][31 chars hash]
+✓ Nunca se almacenan en texto plano
+✓ Actualización opcional (NULL mantiene actual)
+
+┌─────────────────────────────────────────────────┐
+│ TRANSFORMACIONES AUTOMÁTICAS                    │
+└─────────────────────────────────────────────────┘
+
+1. Nombres de usuario:
+   Input: "JPerez" → Output: "jperez" (lowercase)
+
+2. Nombres completos:
+   Input: "Juan Pérez López" → Output: "JUAN PÉREZ LÓPEZ" (UPPERCASE)
+
+3. Contraseñas:
+   Input: "password123" → Output: "$2a$08$..." (hash bcrypt)
+
+4. Fechas:
+   fecalt: CURRENT_DATE automático en creación
+   feccap: NOW() automático en creación
+   fecbaj: CURRENT_DATE en baja
+
+┌─────────────────────────────────────────────────┐
+│ VALIDACIONES IMPLEMENTADAS                      │
+└─────────────────────────────────────────────────┘
+
+CREAR USUARIO:
+  ✓ Usuario único (no duplicados)
+  ✓ Departamento debe existir en comun.deptos
+  ✓ Nivel debe ser 1, 5, 9 o 10
+  ✓ Todos los campos requeridos presentes
+
+ACTUALIZAR USUARIO:
+  ✓ Usuario debe existir
+  ✓ Departamento debe existir
+  ✓ Nivel debe ser 1, 5, 9 o 10
+  ✓ Contraseña opcional (NULL = mantener)
+
+DAR DE BAJA:
+  ✓ Usuario debe existir
+  ✓ Usuario no debe estar ya dado de baja
+
+┌─────────────────────────────────────────────────┐
+│ EJEMPLOS DE USO DESDE VUE                       │
+└─────────────────────────────────────────────────┘
+
+// Cargar todos los usuarios
+const response = await execute(
+  'get_all_usuarios',
+  'padron_licencias',
+  [],
+  'guadalajara',
+  null,
+  'comun'
+)
+
+// Buscar por usuario
+const response = await execute(
+  'consulta_usuario_por_usuario',
+  'padron_licencias',
+  [{ nombre: 'p_usuario', valor: 'jperez', tipo: 'string' }],
+  'guadalajara',
+  null,
+  'comun'
+)
+
+// Crear usuario
+const response = await execute(
+  'crear_usuario',
+  'padron_licencias',
+  [
+    { nombre: 'p_usuario', valor: 'jperez', tipo: 'string' },
+    { nombre: 'p_nombres', valor: 'JUAN PEREZ', tipo: 'string' },
+    { nombre: 'p_clave', valor: 'password123', tipo: 'string' },
+    { nombre: 'p_cvedepto', valor: 5, tipo: 'integer' },
+    { nombre: 'p_nivel', valor: 5, tipo: 'integer' },
+    { nombre: 'p_capturo', valor: 'sistema', tipo: 'string' }
+  ],
+  'guadalajara',
+  null,
+  'comun'
+)
+
+┌─────────────────────────────────────────────────┐
+│ INSTRUCCIONES DE DEPLOYMENT                     │
+└─────────────────────────────────────────────────┘
+
+OPCIÓN 1: Deployment Manual
+  1. Ejecutar: DEPLOY_CONSULTAUSUARIOS_2025-11-20.sql
+  2. Verificar mensajes de salida
+  3. Confirmar que los 9 SPs se crearon
+
+OPCIÓN 2: Deployment con Verificación
+  1. Ejecutar: DEPLOY_CONSULTAUSUARIOS_2025-11-20.sql
+  2. Ejecutar: CONSULTAUSUARIOS_PRUEBAS.sql
+  3. Revisar resultados de las pruebas
+
+OPCIÓN 3: Deployment Directo (sin verificación)
+  1. Ejecutar: CONSULTAUSUARIOS_all_procedures_IMPLEMENTED.sql
+
+┌─────────────────────────────────────────────────┐
+│ VERIFICACIÓN POST-DEPLOYMENT                    │
+└─────────────────────────────────────────────────┘
+
+Para verificar que todo funciona correctamente:
+
+1. Verificar SPs creados:
+   SELECT proname FROM pg_proc p
+   JOIN pg_namespace n ON p.pronamespace = n.oid
+   WHERE n.nspname = 'comun'
+     AND proname LIKE '%usuario%';
+
+2. Ejecutar prueba simple:
+   SELECT * FROM comun.get_dependencias();
+
+3. Ejecutar suite completa:
+   \i CONSULTAUSUARIOS_PRUEBAS.sql
+
+┌─────────────────────────────────────────────────┐
+│ NOTAS IMPORTANTES                               │
+└─────────────────────────────────────────────────┘
+
+1. La extensión pgcrypto es OBLIGATORIA para los SPs de
+   creación y actualización (por el hash de contraseñas)
+
+2. Los SPs de consulta funcionan sin pgcrypto
+
+3. Todos los SPs usan LEFT JOIN para evitar pérdida de
+   datos si faltan relaciones
+
+4. Las búsquedas son case-insensitive para mejor UX
+
+5. El soft delete permite mantener historial de usuarios
+
+6. Los nombres de usuario son únicos en toda la tabla
+
+7. La validación de nivel (1,5,9,10) es estricta
+
+┌─────────────────────────────────────────────────┐
+│ PRÓXIMOS PASOS                                  │
+└─────────────────────────────────────────────────┘
+
+1. Ejecutar script de deployment
+2. Ejecutar suite de pruebas
+3. Probar desde componente Vue
+4. Verificar integración con API
+5. Documentar en wiki/manual del proyecto
+
+┌─────────────────────────────────────────────────┐
+│ CONTACTO Y SOPORTE                              │
+└─────────────────────────────────────────────────┘
+
+Para soporte o consultas sobre estos SPs:
+- Revisar CONSULTAUSUARIOS_DOCUMENTACION.md
+- Ejecutar CONSULTAUSUARIOS_PRUEBAS.sql
+- Consultar código fuente en CONSULTAUSUARIOS_all_procedures_IMPLEMENTED.sql
+
+=====================================================
+FIN DEL RESUMEN EJECUTIVO
+=====================================================

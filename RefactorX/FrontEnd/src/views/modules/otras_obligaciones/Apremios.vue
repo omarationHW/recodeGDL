@@ -30,8 +30,86 @@
     </div>
 
     <div class="module-view-content">
+      <!-- Selector de Tabla y Control -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Apremios
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">
+                <strong>Tabla/Rubro</strong>
+                <span class="required">*</span>
+              </label>
+              <select
+                v-model="par_modulo"
+                @change="onTablaChange"
+                class="municipal-form-control"
+                :disabled="loading"
+              >
+                <option value="">-- Seleccione --</option>
+                <option
+                  v-for="tabla in tablas"
+                  :key="tabla.cve_tab"
+                  :value="tabla.cve_tab"
+                >
+                  {{ tabla.cve_tab }} - {{ tabla.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">
+                <strong>Control/Expediente</strong>
+                <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                v-model="par_control"
+                class="municipal-form-control"
+                placeholder="Número de control"
+                :disabled="loading"
+              />
+            </div>
+            <div class="form-group" style="align-self: flex-end;">
+              <button
+                type="button"
+                class="btn-municipal-primary"
+                @click="buscarApremios"
+                :disabled="loading || !par_modulo || !par_control"
+              >
+                <font-awesome-icon icon="search" />
+                Buscar
+              </button>
+              <button
+                type="button"
+                class="btn-municipal-secondary ms-2"
+                @click="actualizarApremios"
+                :disabled="loading || !buscado"
+                title="Actualizar datos"
+              >
+                <font-awesome-icon icon="sync-alt" />
+                Actualizar
+              </button>
+              <button
+                type="button"
+                class="btn-municipal-success ms-2"
+                @click="nuevoApremio"
+                :disabled="loading || !par_modulo || !par_control"
+              >
+                <font-awesome-icon icon="plus" />
+                Nuevo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Panel de Estadísticas con Skeleton Loading -->
-      <div class="stats-grid" v-if="loadingEstadisticas">
+      <div class="stats-grid" v-if="loadingEstadisticas && buscado">
         <div class="stat-card stat-card-loading" v-for="n in 3" :key="`loading-${n}`">
           <div class="stat-content">
             <div class="skeleton-icon"></div>
@@ -42,7 +120,7 @@
       </div>
 
       <!-- Cards de estadísticas con datos -->
-      <div class="stats-grid" v-else-if="!loadingEstadisticas && totalRecords > 0">
+      <div class="stats-grid" v-else-if="!loadingEstadisticas && buscado && totalRecords > 0">
         <div class="stat-card stat-activos">
           <div class="stat-content">
             <div class="stat-icon">
@@ -505,7 +583,7 @@
                   <td class="text-center">{{ periodo.periodo }}</td>
                   <td class="text-end">{{ formatCurrency(periodo.importe) }}</td>
                   <td class="text-end">{{ formatCurrency(periodo.recargos) }}</td>
-                  <td class="text-center">{{ periodo.cantidad }}</td>
+                  <td class="text-end">{{ formatCurrency(periodo.cantidad) }}</td>
                   <td class="text-center">
                     <span class="badge badge-purple">{{ periodo.tipo }}</span>
                   </td>
@@ -523,21 +601,6 @@
       </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
-
     <!-- Modal de Ayuda -->
     <DocumentationModal
       :show="showDocumentation"
@@ -545,10 +608,19 @@
       :moduleName="'otras_obligaciones'"
       @close="closeDocumentation"
     />
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Apremios'"
+      :moduleName="'otras_obligaciones'"
+      @close="showTechDocs = false"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -563,32 +635,34 @@ const router = useRouter()
 
 // Composables
 const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
 const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
-  toast,
   showToast,
-  hideToast,
-  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
 
+// Estado local para loading
+const loading = ref(false)
+
 // Estado
+const tablas = ref([])
 const apremios = ref([])
 const periodos = ref([])
 const currentIndex = ref(0)
 const totalRecords = ref(0)
 const saving = ref(false)
-const loadingEstadisticas = ref(true)
+const loadingEstadisticas = ref(false)
+const buscado = ref(false)
 
-// Parámetros del módulo (vienen de props o route params)
-const par_modulo = ref(route.params.modulo || route.query.modulo || 1)
-const par_control = ref(route.params.control || route.query.control || 1)
+// Parámetros del módulo
+const par_modulo = ref(route.params.modulo || route.query.modulo || '')
+const par_control = ref(route.params.control || route.query.control || '')
 
 // Computed
 const apremioActual = computed(() => {
@@ -627,23 +701,111 @@ const goBack = () => {
   router.push('/otras_obligaciones')
 }
 
+// Cargar módulos disponibles para apremios
+const loadTablas = async () => {
+  try {
+    const response = await execute(
+      'sp_get_modulos_apremios',
+      BASE_DB,
+      [],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      tablas.value = response.result.map(t => ({
+        cve_tab: String(t.cve_tab).trim(),
+        nombre: (t.nombre || '').trim()
+      }))
+    }
+  } catch (error) {
+    console.error('Error al cargar módulos de apremios:', error)
+  }
+}
+
+// Evento al cambiar tabla
+const onTablaChange = () => {
+  par_control.value = ''
+  apremios.value = []
+  periodos.value = []
+  totalRecords.value = 0
+  buscado.value = false
+}
+
+// Buscar apremios
+const buscarApremios = async () => {
+  if (!par_modulo.value || !par_control.value) {
+    showToast('warning', 'Seleccione tabla y control')
+    return
+  }
+  buscado.value = true
+  await loadApremios()
+}
+
+// Actualizar/Refrescar apremios
+const actualizarApremios = async () => {
+  if (buscado.value) {
+    await loadApremios()
+  }
+}
+
+// Crear nuevo apremio
+const nuevoApremio = () => {
+  if (!par_modulo.value || !par_control.value) {
+    showToast('warning', 'Seleccione tabla y control primero')
+    return
+  }
+
+  // Crear objeto apremio vacío
+  const nuevoApr = {
+    id_control: null,
+    zona: null,
+    folio: null,
+    diligencia: '',
+    importe_global: 0,
+    importe_multa: 0,
+    importe_recargo: 0,
+    importe_gastos: 0,
+    zona_apremio: null,
+    fecha_emision: '',
+    clave_practicado: 'P',
+    fecha_practicado: '',
+    hora_practicado: '',
+    fecha_entrega1: '',
+    fecha_entrega2: '',
+    fecha_citatorio: '',
+    hora: '',
+    ejecutor: '',
+    clave_secuestro: null,
+    clave_remate: '',
+    fecha_remate: '',
+    porcentaje_multa: null,
+    observaciones: ''
+  }
+
+  apremios.value = [nuevoApr]
+  totalRecords.value = 1
+  currentIndex.value = 0
+  periodos.value = []
+  buscado.value = true
+
+  showToast('info', 'Complete los datos del nuevo apremio')
+}
+
 // Cargar apremios
 const loadApremios = async () => {
   const startTime = performance.now()
-  showLoading('Cargando apremios...', 'Consultando base de datos')
-  setLoading(true, 'Cargando apremios...')
+  loading.value = true
+  showLoading('Cargando apremios...')
 
   try {
     const response = await execute(
       'sp_get_apremios',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'par_modulo', valor: par_modulo.value, tipo: 'integer' },
         { nombre: 'par_control', valor: par_control.value, tipo: 'integer' }
       ],
-      '',
-      null,
-      'public'
+      'guadalajara'
     )
 
     if (response && response.result) {
@@ -684,7 +846,7 @@ const loadApremios = async () => {
     apremios.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    loading.value = false
     hideLoading()
     loadingEstadisticas.value = false
   }
@@ -700,13 +862,11 @@ const loadPeriodos = async () => {
   try {
     const response = await execute(
       'sp_get_periodos_by_control',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'id_control', valor: apremioActual.value.id_control, tipo: 'integer' }
       ],
-      '',
-      null,
-      'public'
+      'guadalajara'
     )
 
     if (response && response.result) {
@@ -802,11 +962,9 @@ const saveApremio = async () => {
 
     const response = await execute(
       spName,
-      'otras_obligaciones',
+      BASE_DB,
       params,
-      '',
-      null,
-      'public'
+      'guadalajara'
     )
 
     const endTime = performance.now()
@@ -901,7 +1059,12 @@ const calcularImporteTotal = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  loadApremios()
+onMounted(async () => {
+  await loadTablas()
+  // Si vienen parámetros en la ruta, buscar automáticamente
+  if (par_modulo.value && par_control.value) {
+    buscado.value = true
+    await loadApremios()
+  }
 })
 </script>

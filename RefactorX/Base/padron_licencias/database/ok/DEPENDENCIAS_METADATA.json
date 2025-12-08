@@ -1,0 +1,432 @@
+{
+  "componente": "DEPENDENCIAS",
+  "modulo": "padron_licencias",
+  "formulario": "dependenciasFrm",
+  "fecha_implementacion": "2025-11-20",
+  "version": "1.0.0",
+  "estado": "COMPLETADO",
+
+  "estadisticas": {
+    "total_stored_procedures": 8,
+    "total_lineas_codigo": 1206,
+    "archivos_generados": 5,
+    "tablas_referenciadas": 5
+  },
+
+  "archivos_generados": [
+    {
+      "nombre": "DEPENDENCIAS_all_procedures_IMPLEMENTED.sql",
+      "tipo": "SQL - Implementación",
+      "lineas": 491,
+      "descripcion": "Archivo principal con TODOS los stored procedures",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/DEPENDENCIAS_all_procedures_IMPLEMENTED.sql"
+    },
+    {
+      "nombre": "DEPENDENCIAS_RESUMEN_IMPLEMENTACION.md",
+      "tipo": "Documentación Markdown",
+      "lineas": 282,
+      "descripcion": "Documentación completa de cada SP y características",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/DEPENDENCIAS_RESUMEN_IMPLEMENTACION.md"
+    },
+    {
+      "nombre": "DEPENDENCIAS_VALIDACION.sql",
+      "tipo": "SQL - Validación",
+      "lineas": 157,
+      "descripcion": "Script de validación post-despliegue",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/DEPENDENCIAS_VALIDACION.sql"
+    },
+    {
+      "nombre": "DEPENDENCIAS_EJEMPLOS_USO.sql",
+      "tipo": "SQL - Ejemplos",
+      "lineas": 276,
+      "descripcion": "11 ejemplos prácticos de uso con casos de error",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/DEPENDENCIAS_EJEMPLOS_USO.sql"
+    },
+    {
+      "nombre": "DEPENDENCIAS_README.txt",
+      "tipo": "Documentación Texto",
+      "descripcion": "Resumen rápido y comandos de despliegue",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/DEPENDENCIAS_README.txt"
+    }
+  ],
+
+  "stored_procedures": [
+    {
+      "numero": 1,
+      "nombre": "sp_get_dependencias",
+      "tipo": "Catálogo",
+      "parametros": [],
+      "retorna": "TABLE(id_dependencia INT, descripcion TEXT)",
+      "descripcion": "Catálogo de dependencias gubernamentales activas para licencias",
+      "validaciones": [
+        "Sin validaciones (no recibe parámetros)"
+      ],
+      "tablas_usadas": ["c_dependencias"]
+    },
+    {
+      "numero": 2,
+      "nombre": "sp_get_tramite_inspecciones",
+      "tipo": "Consulta/Reporte",
+      "parametros": [
+        {
+          "nombre": "p_id_tramite",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID del trámite"
+        }
+      ],
+      "retorna": "TABLE(id_revision INT, id_dependencia INT, descripcion TEXT)",
+      "descripcion": "Obtiene las inspecciones/revisiones vigentes de un trámite",
+      "validaciones": [
+        "p_id_tramite IS NOT NULL",
+        "p_id_tramite > 0"
+      ],
+      "tablas_usadas": ["revisiones", "c_dependencias"]
+    },
+    {
+      "numero": 3,
+      "nombre": "sp_add_inspeccion",
+      "tipo": "CRUD - Create",
+      "parametros": [
+        {
+          "nombre": "p_id_tramite",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID del trámite"
+        },
+        {
+          "nombre": "p_id_dependencia",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID de la dependencia"
+        },
+        {
+          "nombre": "p_usuario",
+          "tipo": "TEXT",
+          "requerido": true,
+          "descripcion": "Usuario que realiza la operación"
+        }
+      ],
+      "retorna": "TABLE(success BOOLEAN, message TEXT, id_revision INT)",
+      "descripcion": "Agrega una nueva inspección/revisión a un trámite",
+      "validaciones": [
+        "p_id_tramite IS NOT NULL AND > 0",
+        "p_id_dependencia IS NOT NULL AND > 0",
+        "p_usuario IS NOT NULL AND TRIM != ''",
+        "Verifica existencia del trámite",
+        "Verifica dependencia activa (vigente='V', licencias=1)",
+        "Previene duplicados"
+      ],
+      "tablas_usadas": ["tramites", "c_dependencias", "revisiones", "seg_revision"],
+      "auditoria": {
+        "fecha_inicio": "NOW()",
+        "estatus": "V",
+        "usr_revisa": "p_usuario"
+      }
+    },
+    {
+      "numero": 4,
+      "nombre": "sp_delete_inspeccion",
+      "tipo": "CRUD - Delete",
+      "parametros": [
+        {
+          "nombre": "p_id_tramite",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID del trámite"
+        },
+        {
+          "nombre": "p_id_dependencia",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID de la dependencia"
+        }
+      ],
+      "retorna": "TABLE(success BOOLEAN, message TEXT)",
+      "descripcion": "Elimina una inspección/revisión de un trámite",
+      "validaciones": [
+        "p_id_tramite IS NOT NULL AND > 0",
+        "p_id_dependencia IS NOT NULL AND > 0",
+        "Verifica existencia de la inspección"
+      ],
+      "tablas_usadas": ["revisiones", "seg_revision"],
+      "operaciones": [
+        "DELETE seg_revision (primero)",
+        "DELETE revisiones (después)"
+      ]
+    },
+    {
+      "numero": 5,
+      "nombre": "sp_get_tramite_info",
+      "tipo": "Consulta/Reporte",
+      "parametros": [
+        {
+          "nombre": "p_id_tramite",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID del trámite"
+        }
+      ],
+      "retorna": "TABLE(id_tramite INT, propietario TEXT, ubicacion TEXT, estatus TEXT)",
+      "descripcion": "Obtiene información básica de un trámite",
+      "validaciones": [
+        "p_id_tramite IS NOT NULL",
+        "p_id_tramite > 0"
+      ],
+      "tablas_usadas": ["tramites"]
+    },
+    {
+      "numero": 6,
+      "nombre": "sp_get_inspecciones_memoria",
+      "tipo": "Consulta/Reporte (Tabla temporal)",
+      "parametros": [
+        {
+          "nombre": "p_tramite_id",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID del trámite"
+        }
+      ],
+      "retorna": "TABLE(id_dependencia INT, descripcion TEXT)",
+      "descripcion": "Obtiene inspecciones desde tabla temporal/memoria",
+      "validaciones": [
+        "p_tramite_id IS NOT NULL",
+        "p_tramite_id > 0"
+      ],
+      "tablas_usadas": ["dependencias_inspeccion", "c_dependencias"],
+      "nota": "Para inspecciones en borrador/proceso"
+    },
+    {
+      "numero": 7,
+      "nombre": "sp_add_dependencia_inspeccion",
+      "tipo": "CRUD - Create (Tabla temporal)",
+      "parametros": [
+        {
+          "nombre": "p_tramite_id",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID del trámite"
+        },
+        {
+          "nombre": "p_id_dependencia",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID de la dependencia"
+        },
+        {
+          "nombre": "p_usuario",
+          "tipo": "TEXT",
+          "requerido": true,
+          "descripcion": "Usuario que realiza la operación"
+        }
+      ],
+      "retorna": "TABLE(success BOOLEAN, message TEXT)",
+      "descripcion": "Agrega una dependencia a inspecciones en memoria/temporal",
+      "validaciones": [
+        "p_tramite_id IS NOT NULL AND > 0",
+        "p_id_dependencia IS NOT NULL AND > 0",
+        "p_usuario IS NOT NULL AND TRIM != ''",
+        "Verifica dependencia activa",
+        "Previene duplicados en memoria"
+      ],
+      "tablas_usadas": ["c_dependencias", "dependencias_inspeccion"],
+      "auditoria": {
+        "usuario_alta": "p_usuario",
+        "fecha_alta": "NOW()"
+      }
+    },
+    {
+      "numero": 8,
+      "nombre": "sp_remove_dependencia_inspeccion",
+      "tipo": "CRUD - Delete (Tabla temporal)",
+      "parametros": [
+        {
+          "nombre": "p_tramite_id",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID del trámite"
+        },
+        {
+          "nombre": "p_id_dependencia",
+          "tipo": "INT",
+          "requerido": true,
+          "descripcion": "ID de la dependencia"
+        }
+      ],
+      "retorna": "TABLE(success BOOLEAN, message TEXT)",
+      "descripcion": "Elimina una dependencia de inspecciones en memoria/temporal",
+      "validaciones": [
+        "p_tramite_id IS NOT NULL AND > 0",
+        "p_id_dependencia IS NOT NULL AND > 0",
+        "Verifica que se eliminó al menos un registro"
+      ],
+      "tablas_usadas": ["dependencias_inspeccion"]
+    }
+  ],
+
+  "tablas_referenciadas": [
+    {
+      "nombre": "c_dependencias",
+      "tipo": "Catálogo",
+      "descripcion": "Catálogo maestro de dependencias gubernamentales",
+      "campos_principales": [
+        "id_dependencia (PK)",
+        "descripcion",
+        "licencias (flag: 1 = habilitada)",
+        "vigente ('V' = vigente)"
+      ]
+    },
+    {
+      "nombre": "revisiones",
+      "tipo": "Transaccional",
+      "descripcion": "Inspecciones/revisiones definitivas asignadas a trámites",
+      "campos_principales": [
+        "id_revision (PK)",
+        "id_tramite (FK)",
+        "id_dependencia (FK)",
+        "fecha_inicio",
+        "estatus ('V' = vigente)",
+        "descripcion"
+      ]
+    },
+    {
+      "nombre": "seg_revision",
+      "tipo": "Auditoría",
+      "descripcion": "Seguimiento y auditoría de revisiones",
+      "campos_principales": [
+        "id_revision (FK)",
+        "estatus",
+        "feccap (fecha captura)",
+        "usr_revisa (usuario)"
+      ]
+    },
+    {
+      "nombre": "dependencias_inspeccion",
+      "tipo": "Temporal",
+      "descripcion": "Inspecciones en proceso/memoria (no confirmadas)",
+      "campos_principales": [
+        "id_tramite (FK)",
+        "id_dependencia (FK)",
+        "usuario_alta",
+        "fecha_alta"
+      ]
+    },
+    {
+      "nombre": "tramites",
+      "tipo": "Transaccional",
+      "descripcion": "Trámites de licencias",
+      "campos_principales": [
+        "id_tramite (PK)",
+        "propietario",
+        "ubicacion",
+        "estatus"
+      ]
+    }
+  ],
+
+  "caracteristicas_implementadas": {
+    "patron": "FUNCTION (no PROCEDURE)",
+    "esquema": "public",
+    "base_datos": "padron_licencias",
+    "nomenclatura": {
+      "parametros": "Prefijo p_",
+      "variables": "Prefijo v_",
+      "stored_procedures": "Minúsculas con guiones bajos"
+    },
+    "validaciones": [
+      "Parámetros NULL",
+      "Valores numéricos > 0",
+      "Cadenas no vacías (TRIM)",
+      "Existencia de registros relacionados",
+      "Estado activo de dependencias",
+      "Prevención de duplicados"
+    ],
+    "seguridad_auditoria": [
+      "Registro de usuario en operaciones",
+      "Registro de fecha/hora (NOW())",
+      "Mensajes descriptivos en español",
+      "Uso de parámetros tipados",
+      "Variables locales declaradas"
+    ],
+    "buenas_practicas": [
+      "Esquema explícito (public.)",
+      "Tipo de retorno TABLE con nombres",
+      "Comentarios COMMENT ON FUNCTION",
+      "Uso de RETURN QUERY",
+      "Manejo estructurado de errores",
+      "GET DIAGNOSTICS para contar filas",
+      "Ordenamiento consistente (ORDER BY)"
+    ],
+    "patrones_diseno": {
+      "catalogos": "Retornan TABLE con datos",
+      "consultas": "Retornan TABLE con validaciones",
+      "crud_create": "Retornan TABLE(success, message, id)",
+      "crud_delete": "Retornan TABLE(success, message)"
+    }
+  },
+
+  "flujo_trabajo_tipico": [
+    {
+      "paso": 1,
+      "accion": "Consultar dependencias disponibles",
+      "sp": "sp_get_dependencias()"
+    },
+    {
+      "paso": 2,
+      "accion": "Ver información del trámite",
+      "sp": "sp_get_tramite_info(id_tramite)"
+    },
+    {
+      "paso": 3,
+      "accion": "Agregar inspecciones a memoria (borrador)",
+      "sp": "sp_add_dependencia_inspeccion(tramite_id, dependencia_id, usuario)"
+    },
+    {
+      "paso": 4,
+      "accion": "Consultar inspecciones en memoria",
+      "sp": "sp_get_inspecciones_memoria(tramite_id)"
+    },
+    {
+      "paso": 5,
+      "accion": "Confirmar inspecciones (migrar a definitivas)",
+      "sp": "sp_add_inspeccion(id_tramite, id_dependencia, usuario)"
+    },
+    {
+      "paso": 6,
+      "accion": "Limpiar memoria",
+      "sp": "sp_remove_dependencia_inspeccion(tramite_id, dependencia_id)"
+    },
+    {
+      "paso": 7,
+      "accion": "Consultar inspecciones vigentes",
+      "sp": "sp_get_tramite_inspecciones(id_tramite)"
+    },
+    {
+      "paso": 8,
+      "accion": "Eliminar inspección si necesario",
+      "sp": "sp_delete_inspeccion(id_tramite, id_dependencia)"
+    }
+  ],
+
+  "comandos_despliegue": {
+    "desplegar": "psql -U postgres -d padron_licencias -f \"C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/DEPENDENCIAS_all_procedures_IMPLEMENTED.sql\"",
+    "validar": "psql -U postgres -d padron_licencias -f \"C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/DEPENDENCIAS_VALIDACION.sql\""
+  },
+
+  "integracion": {
+    "php_laravel": "DB::select('SELECT * FROM public.sp_get_dependencias()')",
+    "nodejs": "await pool.query('SELECT * FROM public.sp_get_tramite_inspecciones($1)', [idTramite])",
+    "javascript_axios": "await axios.post('/api/inspecciones/add', { id_tramite, id_dependencia, usuario })"
+  },
+
+  "notas_importantes": [
+    "Todas las funciones usan el patrón FUNCTION (no PROCEDURE)",
+    "Uso de TABLE en retornos para compatibilidad",
+    "Separación clara entre operaciones definitivas y temporales",
+    "Auditoría completa en operaciones de inserción",
+    "Mensajes descriptivos en español",
+    "Sin soft delete - eliminación física directa",
+    "Schema: public (explícito en cada función)",
+    "Los SPs con retorno TABLE(success, message) nunca lanzan excepciones críticas"
+  ]
+}

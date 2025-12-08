@@ -165,10 +165,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'TitulosSin'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -253,7 +262,6 @@ const buscarFolio = async () => {
       toast.warning('No se encontró el folio')
     }
   } catch (error) {
-    console.error('Error al buscar folio:', error)
     toast.error('Error al buscar folio')
     folio.value = null
   }
@@ -264,7 +272,6 @@ const cargarRecaudaciones = async () => {
     const response = await api.callStoredProcedure('sp_cem_listar_recaudaciones', {})
     recaudaciones.value = response.result || []
   } catch (error) {
-    console.error('Error al cargar recaudaciones:', error)
   }
 }
 
@@ -301,7 +308,6 @@ const cargarTitulosRecientes = async () => {
 
     titulos.value = response.result?.slice(0, 10) || []
   } catch (error) {
-    console.error('Error al cargar títulos recientes:', error)
     titulos.value = []
   }
 }
@@ -367,7 +373,6 @@ const generarTitulo = async () => {
       toast.error(response.result[0]?.mensaje || 'Error al generar título')
     }
   } catch (error) {
-    console.error('Error al generar título:', error)
     toast.error('Error al generar título')
   }
 }

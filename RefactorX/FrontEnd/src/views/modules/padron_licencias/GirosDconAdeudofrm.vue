@@ -473,7 +473,6 @@ const loadEstadisticas = async () => {
       }
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
     handleApiError(error)
   } finally {
     loadingEstadisticas.value = false

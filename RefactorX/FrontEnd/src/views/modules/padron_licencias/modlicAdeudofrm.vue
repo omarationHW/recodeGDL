@@ -98,20 +98,30 @@
 
     <!-- Detalle de Adeudos -->
     <div class="municipal-card" v-if="licenciaData">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-actions">
         <h5>
           <font-awesome-icon icon="list-alt" />
           Detalle de Adeudos
           <span class="badge-purple" v-if="adeudos.length > 0">{{ adeudos.length }} registros</span>
         </h5>
-        <button
-          class="btn-municipal-success btn-sm"
-          @click="recalcularSaldos"
-          :disabled="loading"
-        >
-          <font-awesome-icon icon="sync-alt" />
-          Recalcular Saldos
-        </button>
+        <div class="header-actions">
+          <button
+            class="btn-municipal-success btn-sm"
+            @click="abrirModalNuevoAdeudo"
+            :disabled="loading"
+          >
+            <font-awesome-icon icon="plus" />
+            Agregar
+          </button>
+          <button
+            class="btn-municipal-primary btn-sm"
+            @click="recalcularSaldos"
+            :disabled="loading"
+          >
+            <font-awesome-icon icon="sync-alt" />
+            Recalcular
+          </button>
+        </div>
       </div>
       <div class="municipal-card-body table-container" v-if="!loading">
         <div class="table-responsive">
@@ -126,6 +136,7 @@
                 <th>Desc. Derechos</th>
                 <th>Desc. Recargos</th>
                 <th>Total</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -140,9 +151,27 @@
                 <td class="text-end">
                   <strong>${{ formatCurrency(calcularTotal(adeudo)) }}</strong>
                 </td>
+                <td>
+                  <div class="button-group button-group-sm">
+                    <button
+                      class="btn-municipal-warning btn-sm"
+                      @click="abrirModalEditarAdeudo(adeudo, index)"
+                      title="Editar"
+                    >
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                    <button
+                      class="btn-municipal-danger btn-sm"
+                      @click="confirmarEliminarAdeudo(adeudo, index)"
+                      title="Eliminar"
+                    >
+                      <font-awesome-icon icon="trash" />
+                    </button>
+                  </div>
+                </td>
               </tr>
               <tr v-if="adeudos.length === 0 && !loading">
-                <td colspan="8" class="text-center text-muted">
+                <td colspan="9" class="text-center text-muted">
                   <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
                   <p>No se encontraron adeudos para esta licencia</p>
                 </td>
@@ -217,6 +246,123 @@
   </div>
   <!-- /module-view -->
 
+    <!-- Modal de Adeudo (Agregar/Editar) -->
+    <Modal
+      :show="showAdeudoModal"
+      :title="modoEdicion ? 'Editar Adeudo' : 'Agregar Adeudo'"
+      size="lg"
+      @close="cerrarModalAdeudo"
+      :showDefaultFooter="false"
+    >
+      <div class="adeudo-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Concepto: <span class="required">*</span></label>
+            <input
+              type="text"
+              class="municipal-form-control"
+              v-model="adeudoForm.concepto"
+              placeholder="Descripción del concepto"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Forma:</label>
+            <input
+              type="number"
+              step="0.01"
+              class="municipal-form-control"
+              v-model.number="adeudoForm.forma"
+              placeholder="0.00"
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Derechos:</label>
+            <input
+              type="number"
+              step="0.01"
+              class="municipal-form-control"
+              v-model.number="adeudoForm.derechos"
+              placeholder="0.00"
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Derechos 2:</label>
+            <input
+              type="number"
+              step="0.01"
+              class="municipal-form-control"
+              v-model.number="adeudoForm.derechos2"
+              placeholder="0.00"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Recargos:</label>
+            <input
+              type="number"
+              step="0.01"
+              class="municipal-form-control"
+              v-model.number="adeudoForm.recargos"
+              placeholder="0.00"
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Desc. Derechos:</label>
+            <input
+              type="number"
+              step="0.01"
+              class="municipal-form-control"
+              v-model.number="adeudoForm.desc_derechos"
+              placeholder="0.00"
+            >
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Desc. Recargos:</label>
+            <input
+              type="number"
+              step="0.01"
+              class="municipal-form-control"
+              v-model.number="adeudoForm.desc_recargos"
+              placeholder="0.00"
+            >
+          </div>
+        </div>
+
+        <div class="form-row total-preview">
+          <div class="form-group">
+            <label class="municipal-form-label">Total Calculado:</label>
+            <div class="total-value">
+              ${{ formatCurrency(calcularTotalForm()) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            class="btn-municipal-primary"
+            @click="guardarAdeudo"
+            :disabled="!adeudoForm.concepto || guardandoAdeudo"
+          >
+            <font-awesome-icon :icon="guardandoAdeudo ? 'spinner' : 'save'" :spin="guardandoAdeudo" />
+            {{ guardandoAdeudo ? 'Guardando...' : 'Guardar' }}
+          </button>
+          <button
+            class="btn-municipal-secondary"
+            @click="cerrarModalAdeudo"
+            :disabled="guardandoAdeudo"
+          >
+            <font-awesome-icon icon="times" />
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </Modal>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
       :show="showDocumentation"
@@ -229,6 +375,7 @@
 <script setup>
 import { ref } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
@@ -257,6 +404,22 @@ const searchForm = ref({
 const licenciaData = ref(null)
 const adeudos = ref([])
 const saldosData = ref(null)
+
+// Estado para CRUD de adeudos
+const showAdeudoModal = ref(false)
+const modoEdicion = ref(false)
+const adeudoEditIndex = ref(null)
+const guardandoAdeudo = ref(false)
+const adeudoForm = ref({
+  id: null,
+  concepto: '',
+  forma: 0,
+  derechos: 0,
+  derechos2: 0,
+  recargos: 0,
+  desc_derechos: 0,
+  desc_recargos: 0
+})
 
 // Métodos
 const searchLicencia = async () => {
@@ -427,6 +590,165 @@ const calcularTotal = (adeudo) => {
 
   return forma + derechos + derechos2 + recargos - descDerechos - descRecargos
 }
+
+const calcularTotalForm = () => {
+  return calcularTotal(adeudoForm.value)
+}
+
+// Funciones CRUD de adeudos
+const resetAdeudoForm = () => {
+  adeudoForm.value = {
+    id: null,
+    concepto: '',
+    forma: 0,
+    derechos: 0,
+    derechos2: 0,
+    recargos: 0,
+    desc_derechos: 0,
+    desc_recargos: 0
+  }
+}
+
+const abrirModalNuevoAdeudo = () => {
+  resetAdeudoForm()
+  modoEdicion.value = false
+  adeudoEditIndex.value = null
+  showAdeudoModal.value = true
+}
+
+const abrirModalEditarAdeudo = (adeudo, index) => {
+  adeudoForm.value = {
+    id: adeudo.id || null,
+    concepto: adeudo.concepto || '',
+    forma: parseFloat(adeudo.forma || 0),
+    derechos: parseFloat(adeudo.derechos || 0),
+    derechos2: parseFloat(adeudo.derechos2 || 0),
+    recargos: parseFloat(adeudo.recargos || 0),
+    desc_derechos: parseFloat(adeudo.desc_derechos || 0),
+    desc_recargos: parseFloat(adeudo.desc_recargos || 0)
+  }
+  modoEdicion.value = true
+  adeudoEditIndex.value = index
+  showAdeudoModal.value = true
+}
+
+const cerrarModalAdeudo = () => {
+  showAdeudoModal.value = false
+  resetAdeudoForm()
+}
+
+const guardarAdeudo = async () => {
+  if (!adeudoForm.value.concepto.trim()) {
+    showToast('warning', 'El concepto es requerido')
+    return
+  }
+
+  guardandoAdeudo.value = true
+
+  try {
+    const spName = modoEdicion.value
+      ? 'modlicAdeudofrm_sp_update_adeudo'
+      : 'modlicAdeudofrm_sp_insert_adeudo'
+
+    const params = [
+      { nombre: 'p_id_licencia', valor: searchForm.value.id_licencia, tipo: 'integer' },
+      { nombre: 'p_concepto', valor: adeudoForm.value.concepto.trim(), tipo: 'string' },
+      { nombre: 'p_forma', valor: adeudoForm.value.forma || 0, tipo: 'decimal' },
+      { nombre: 'p_derechos', valor: adeudoForm.value.derechos || 0, tipo: 'decimal' },
+      { nombre: 'p_derechos2', valor: adeudoForm.value.derechos2 || 0, tipo: 'decimal' },
+      { nombre: 'p_recargos', valor: adeudoForm.value.recargos || 0, tipo: 'decimal' },
+      { nombre: 'p_desc_derechos', valor: adeudoForm.value.desc_derechos || 0, tipo: 'decimal' },
+      { nombre: 'p_desc_recargos', valor: adeudoForm.value.desc_recargos || 0, tipo: 'decimal' }
+    ]
+
+    if (modoEdicion.value && adeudoForm.value.id) {
+      params.unshift({ nombre: 'p_id_adeudo', valor: adeudoForm.value.id, tipo: 'integer' })
+    }
+
+    const response = await execute(
+      spName,
+      'padron_licencias',
+      params,
+      'guadalajara'
+    )
+
+    if (response) {
+      await Swal.fire({
+        icon: 'success',
+        title: modoEdicion.value ? 'Adeudo Actualizado' : 'Adeudo Agregado',
+        text: modoEdicion.value
+          ? 'El adeudo ha sido actualizado correctamente'
+          : 'El adeudo ha sido agregado correctamente',
+        confirmButtonColor: '#28a745',
+        timer: 2000
+      })
+
+      showToast('success', modoEdicion.value ? 'Adeudo actualizado' : 'Adeudo agregado')
+      cerrarModalAdeudo()
+      await loadAdeudos()
+      await loadSaldos()
+    }
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    guardandoAdeudo.value = false
+  }
+}
+
+const confirmarEliminarAdeudo = async (adeudo, index) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar Adeudo?',
+    html: `
+      <p>Está a punto de eliminar el adeudo:</p>
+      <p><strong>${adeudo.concepto || 'Sin concepto'}</strong></p>
+      <p>Por un total de: <strong>$${formatCurrency(calcularTotal(adeudo))}</strong></p>
+    `,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (result.isConfirmed) {
+    await eliminarAdeudo(adeudo, index)
+  }
+}
+
+const eliminarAdeudo = async (adeudo, index) => {
+  setLoading(true, 'Eliminando adeudo...')
+
+  try {
+    const response = await execute(
+      'modlicAdeudofrm_sp_delete_adeudo',
+      'padron_licencias',
+      [
+        { nombre: 'p_id_licencia', valor: searchForm.value.id_licencia, tipo: 'integer' },
+        { nombre: 'p_id_adeudo', valor: adeudo.id, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
+
+    if (response) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Adeudo Eliminado',
+        text: 'El adeudo ha sido eliminado correctamente',
+        confirmButtonColor: '#28a745',
+        timer: 2000
+      })
+
+      showToast('success', 'Adeudo eliminado')
+      await loadAdeudos()
+      await loadSaldos()
+    }
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    setLoading(false)
+  }
+}
 </script>
 
 <style scoped>
@@ -471,5 +793,69 @@ const calcularTotal = (adeudo) => {
 
 .text-end {
   text-align: right;
+}
+
+/* Header con acciones */
+.header-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Formulario de adeudo */
+.adeudo-form .form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.adeudo-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.adeudo-form input[type="number"] {
+  text-align: right;
+}
+
+.total-preview {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+}
+
+.total-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #28a745;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--municipal-border, #dee2e6);
+}
+
+/* Botones de acción en tabla */
+.button-group-sm {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
 }
 </style>

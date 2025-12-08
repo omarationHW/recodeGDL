@@ -5,138 +5,135 @@
         <font-awesome-icon icon="upload" />
       </div>
       <div class="module-view-info">
-        <h1>Carga Masiva de Adeudos</h1>
-        <p>Aseo Contratado - Generación automática de adeudos por ejercicio fiscal</p>
+        <h1>Carga de Adeudos</h1>
+        <p>Aseo Contratado - Generacion de adeudos para contratos vigentes</p>
       </div>
-      <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
+      <button type="button" class="btn-help-icon" @click="showDocumentation = true" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
     </div>
 
     <div class="module-view-content">
+      <!-- Configuracion -->
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="cog" /> Configuración de Carga</h5>
+          <h5><font-awesome-icon icon="cog" /> Configuracion de Carga</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="alert alert-warning">
+          <div class="municipal-alert municipal-alert-warning">
             <font-awesome-icon icon="exclamation-triangle" />
-            <strong>Advertencia:</strong> Esta operación generará adeudos mensuales para todos los contratos vigentes del ejercicio seleccionado.
-            El proceso puede tardar varios minutos dependiendo de la cantidad de contratos.
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label required">Ejercicio Fiscal</label>
-              <input type="number" v-model="ejercicio" class="municipal-form-control"
-                :placeholder="currentYear" :min="currentYear - 5" :max="currentYear + 1" required />
-              <small class="form-text">Ingrese el año para el cual desea generar los adeudos</small>
+            <div>
+              <strong>Advertencia:</strong> Esta operacion generara adeudos mensuales (Enero a Diciembre)
+              para TODOS los contratos vigentes del ejercicio seleccionado.
+              El proceso puede tardar varios minutos.
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Opciones Adicionales</label>
-              <div class="form-check">
-                <input type="checkbox" v-model="generarRecargos" class="form-check-input" id="chkRecargos" />
-                <label class="form-check-label" for="chkRecargos">
-                  Generar recargos automáticamente
-                </label>
+          <div class="info-grid mt-3">
+            <div class="info-item">
+              <span class="info-label">Ejercicio Fiscal</span>
+              <div class="info-value">
+                <input
+                  type="number"
+                  v-model.number="ejercicio"
+                  class="municipal-form-control"
+                  :min="ejercicioActual - 5"
+                  :max="ejercicioActual + 1"
+                  style="max-width: 150px;"
+                />
               </div>
             </div>
+            <div class="info-item">
+              <span class="info-label">Ejercicio Actual</span>
+              <span class="info-value info-value-highlight">{{ ejercicioActual }}</span>
+            </div>
           </div>
 
+          <div class="municipal-alert municipal-alert-info mt-3">
+            <font-awesome-icon icon="info-circle" />
+            <div>
+              <strong>Proceso:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Se buscan todos los contratos con status Vigente (V) o Conveniado (N)</li>
+                <li>Para cada contrato se generan 12 registros (uno por mes)</li>
+                <li>El importe se calcula: cantidad_recoleccion x costo_unidad del ejercicio</li>
+                <li>Los adeudos existentes no se duplican</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="municipal-card mt-3">
+        <div class="municipal-card-body">
           <div class="button-group">
-            <button class="btn-municipal-primary" @click="ejecutarCarga" :disabled="loading || !ejercicio">
-              <font-awesome-icon :icon="loading ? 'spinner' : 'play'" :spin="loading" />
-              {{ loading ? 'Procesando...' : 'Ejecutar Carga Masiva' }}
+            <button
+              type="button"
+              class="btn-municipal-primary"
+              @click="ejecutarCarga"
+              :disabled="procesando || !ejercicio"
+            >
+              <font-awesome-icon :icon="procesando ? 'spinner' : 'play'" :spin="procesando" />
+              {{ procesando ? 'Procesando...' : 'Ejecutar Carga' }}
             </button>
-            <button class="btn-municipal-secondary" @click="limpiarFormulario" :disabled="loading">
-              <font-awesome-icon icon="times" /> Limpiar
+            <button type="button" class="btn-municipal-secondary" @click="salir">
+              <font-awesome-icon icon="door-open" /> Salir
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Resultado de la carga -->
+      <!-- Resultado -->
       <div v-if="resultado" class="municipal-card mt-3">
-        <div class="municipal-card-header" :class="resultado.success ? 'bg-success' : 'bg-danger'">
-          <h5 class="text-white">
+        <div class="municipal-card-header" :class="resultado.success ? 'municipal-card-header-success' : 'municipal-card-header-danger'">
+          <h5>
             <font-awesome-icon :icon="resultado.success ? 'check-circle' : 'exclamation-circle'" />
             {{ resultado.success ? 'Carga Completada' : 'Error en Carga' }}
           </h5>
         </div>
         <div class="municipal-card-body">
-          <p><strong>{{ resultado.message }}</strong></p>
-          <div v-if="resultado.success" class="detail-grid">
-            <div class="detail-item">
-              <label class="detail-label">Contratos Procesados</label>
-              <p class="detail-value">{{ resultado.contratos_procesados }}</p>
+          <p><strong>{{ resultado.mensaje }}</strong></p>
+          <div v-if="resultado.success" class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Contratos Procesados</span>
+              <span class="info-value info-value-highlight">{{ resultado.contratos_procesados || 0 }}</span>
             </div>
-            <div class="detail-item">
-              <label class="detail-label">Adeudos Generados</label>
-              <p class="detail-value">{{ resultado.adeudos_generados }}</p>
+            <div class="info-item">
+              <span class="info-label">Adeudos Generados</span>
+              <span class="info-value info-value-highlight">{{ resultado.adeudos_generados || 0 }}</span>
             </div>
-            <div class="detail-item">
-              <label class="detail-label">Tiempo de Proceso</label>
-              <p class="detail-value">{{ tiempoProceso }} segundos</p>
+            <div class="info-item">
+              <span class="info-label">Tiempo de Proceso</span>
+              <span class="info-value">{{ tiempoProceso }} segundos</span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Historial de cargas -->
-      <div v-if="historial.length > 0" class="municipal-card mt-3">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="history" /> Historial de Cargas Recientes</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="table-responsive">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr>
-                  <th>Fecha</th>
-                  <th>Ejercicio</th>
-                  <th>Contratos</th>
-                  <th>Adeudos</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, idx) in historial" :key="idx">
-                  <td>{{ formatDate(item.fecha) }}</td>
-                  <td>{{ item.ejercicio }}</td>
-                  <td>{{ item.contratos_procesados }}</td>
-                  <td>{{ item.adeudos_generados }}</td>
-                  <td>
-                    <span :class="['badge', item.success ? 'badge-success' : 'badge-danger']">
-                      {{ item.success ? 'Exitoso' : 'Error' }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <DocumentationModal :show="showDocumentation" @close="showDocumentation = false" title="Ayuda - Carga Masiva">
-      <h3>Carga Masiva de Adeudos</h3>
-      <p>Este módulo permite generar automáticamente los adeudos mensuales para todos los contratos vigentes de un ejercicio fiscal.</p>
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="showDocumentation = false"
+      title="Ayuda - Carga de Adeudos"
+      componentName="Adeudos_Carga"
+    >
+      <h3>Carga de Adeudos</h3>
+      <p>Este modulo permite generar automaticamente los adeudos mensuales para todos los contratos vigentes de un ejercicio fiscal.</p>
 
       <h4>Proceso:</h4>
       <ol>
-        <li>Seleccione el ejercicio fiscal (año)</li>
-        <li>Opcionalmente, active la generación automática de recargos</li>
-        <li>Ejecute la carga masiva</li>
-        <li>El sistema generará 12 adeudos mensuales por cada contrato vigente</li>
-        <li>Se calculará el importe según las unidades y costos configurados</li>
+        <li>Ingrese el ejercicio fiscal (anio)</li>
+        <li>Presione "Ejecutar Carga"</li>
+        <li>Confirme la operacion</li>
+        <li>El sistema generara 12 adeudos mensuales por cada contrato vigente</li>
+        <li>Se calculara el importe segun las unidades y costos configurados</li>
       </ol>
 
       <h4>Notas Importantes:</h4>
       <ul>
-        <li>Solo se procesan contratos con status "Vigente" (V) o "Nuevo" (N)</li>
+        <li>Solo se procesan contratos con status "Vigente" (V) o "Conveniado" (N)</li>
         <li>Si ya existen adeudos para un periodo, se omiten (no duplica)</li>
         <li>El proceso puede tardar varios minutos con muchos contratos</li>
         <li>Se recomienda ejecutar al inicio de cada ejercicio fiscal</li>
@@ -146,129 +143,130 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
-const { execute } = useApi()
-const { showToast } = useLicenciasErrorHandler()
+const BASE_DB = 'aseo_contratado'
+const SCHEMA = 'public'
 
-const loading = ref(false)
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+const router = useRouter()
+
+// Estado
 const showDocumentation = ref(false)
-const currentYear = new Date().getFullYear()
-const ejercicio = ref(currentYear)
-const generarRecargos = ref(false)
+const ejercicioActual = new Date().getFullYear()
+const ejercicio = ref(ejercicioActual)
+const procesando = ref(false)
 const resultado = ref(null)
 const tiempoProceso = ref(0)
-const historial = ref([])
 
+// Ejecutar carga masiva
 const ejecutarCarga = async () => {
   if (!ejercicio.value) {
     showToast('Debe ingresar un ejercicio fiscal', 'warning')
     return
   }
 
+  // Confirmar operacion
   const confirmResult = await Swal.fire({
-    title: '¿Ejecutar Carga Masiva?',
-    html: `<p>Se generarán adeudos para el ejercicio <strong>${ejercicio.value}</strong></p>
-           <p class="text-warning">Esta operación puede tardar varios minutos.</p>
-           <p>¿Desea continuar?</p>`,
+    title: 'Confirmar Carga de Adeudos',
+    html: `
+      <div style="text-align: left; padding: 1rem 0;">
+        <p><strong>Ejercicio:</strong> ${ejercicio.value}</p>
+        <p>Se generaran adeudos mensuales (Enero a Diciembre) para todos los contratos vigentes.</p>
+        <p class="text-warning"><strong>Esta operacion puede tardar varios minutos.</strong></p>
+        <p>¿Desea continuar?</p>
+      </div>
+    `,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#004085',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, ejecutar',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: 'Si, ejecutar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#004085'
   })
 
-  if (!confirmResult.isConfirmed) return
+  if (!confirmResult.isConfirmed) {
+    showToast('Operacion cancelada', 'info')
+    return
+  }
 
-  loading.value = true
+  procesando.value = true
   resultado.value = null
   const startTime = Date.now()
 
+  showLoading()
   try {
-    const response = await execute('SP_ASEO_ADEUDOS_CARGA_MASIVA', 'aseo_contratado', {
-      p_ejercicio: ejercicio.value,
-      p_usuario_id: 1
-    })
+    const params = [
+      { nombre: 'p_ejercicio', valor: ejercicio.value, tipo: 'integer' },
+      { nombre: 'p_usuario_id', valor: 1, tipo: 'integer' }
+    ]
+
+    const data = await execute('sp_carga_adeudos_contratos_vigentes', BASE_DB, params, '', null, SCHEMA)
 
     tiempoProceso.value = ((Date.now() - startTime) / 1000).toFixed(2)
+    hideLoading()
 
-    if (response && response.data && response.data[0]) {
-      resultado.value = response.data[0]
-
-      // Agregar al historial
-      historial.value.unshift({
-        fecha: new Date(),
-        ejercicio: ejercicio.value,
-        ...resultado.value
-      })
-
-      if (resultado.value.success) {
-        showToast('Carga masiva completada exitosamente', 'success')
-
-        // Si se solicitó generar recargos
-        if (generarRecargos.value) {
-          await generarRecargosAutomaticos()
-        }
-      } else {
-        showToast(resultado.value.message, 'error')
+    if (data && data.length > 0) {
+      const res = data[0]
+      resultado.value = {
+        success: res.success,
+        mensaje: res.mensaje || 'Proceso completado',
+        contratos_procesados: res.contratos_procesados || 0,
+        adeudos_generados: res.adeudos_generados || 0
       }
+
+      if (res.success) {
+        await Swal.fire({
+          title: 'Carga Completada',
+          text: res.mensaje,
+          icon: 'success'
+        })
+      } else {
+        await Swal.fire({
+          title: 'Error',
+          text: res.mensaje,
+          icon: 'error'
+        })
+      }
+    } else {
+      resultado.value = {
+        success: true,
+        mensaje: 'Proceso ejecutado',
+        contratos_procesados: '-',
+        adeudos_generados: '-'
+      }
+      await Swal.fire({
+        title: 'Proceso Ejecutado',
+        text: 'La carga de adeudos fue procesada',
+        icon: 'success'
+      })
     }
+
   } catch (error) {
-    console.error('Error:', error)
-    showToast('Error al ejecutar la carga masiva', 'error')
+    hideLoading()
+    hideLoading()
+    tiempoProceso.value = ((Date.now() - startTime) / 1000).toFixed(2)
+
     resultado.value = {
       success: false,
-      message: error.message || 'Error desconocido',
-      contratos_procesados: 0,
-      adeudos_generados: 0
+      mensaje: error.message || 'Error al ejecutar la carga masiva'
     }
+
+    handleApiError(error, 'Error al ejecutar la carga')
   } finally {
-    loading.value = false
+    procesando.value = false
   }
 }
 
-const generarRecargosAutomaticos = async () => {
-  try {
-    const response = await execute('SP_ASEO_ADEUDOS_GENERAR_RECARGOS', 'aseo_contratado', {
-      p_ejercicio: ejercicio.value,
-      p_mes_hasta: new Date().getMonth() + 1,
-      p_usuario_id: 1
-    })
-
-    if (response && response.data && response.data[0] && response.data[0].success) {
-      showToast(`Recargos generados: ${response.data[0].recargos_generados}`, 'info')
-    }
-  } catch (error) {
-    console.error('Error generando recargos:', error)
-  }
+// Salir
+const salir = () => {
+  router.push('/aseo-contratado')
 }
-
-const limpiarFormulario = () => {
-  ejercicio.value = currentYear
-  generarRecargos.value = false
-  resultado.value = null
-}
-
-const formatDate = (date) => {
-  return new Date(date).toLocaleString('es-MX', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-onMounted(() => {
-  // Inicialización
-})
 </script>

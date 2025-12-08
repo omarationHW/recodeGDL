@@ -78,6 +78,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+
+const BASE_DB = 'otras_obligaciones'
 
 const props = defineProps({
   idDatos: {
@@ -89,6 +92,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { execute } = useApi()
+const { handleApiError } = useLicenciasErrorHandler()
 
 const loading = ref(false)
 const pagos = ref([])
@@ -133,8 +137,8 @@ const loadPagos = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'SP_GBAJA_PAGOS_GET',
-      'otras_obligaciones',
+      'spcob34_gpagados',
+      BASE_DB,
       [{ nombre: 'p_Control', valor: props.idDatos, tipo: 'integer' }],
       'guadalajara'
     )
@@ -145,7 +149,7 @@ const loadPagos = async () => {
       pagos.value = []
     }
   } catch (error) {
-    console.error('Error al cargar pagos:', error)
+    handleApiError(error)
     pagos.value = []
   } finally {
     loading.value = false

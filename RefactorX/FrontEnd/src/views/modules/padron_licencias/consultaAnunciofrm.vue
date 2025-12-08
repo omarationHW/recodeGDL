@@ -609,6 +609,8 @@ import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
+import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 
 // Composables
@@ -626,6 +628,24 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
+const { exportToPdf } = usePdfExport()
+
+// Definición de columnas para exportación
+const columnasExport = [
+  { header: 'Anuncio', key: 'anuncio', width: 12 },
+  { header: 'Licencia', key: 'id_licencia', width: 12 },
+  { header: 'Propietario', key: 'propietario', width: 35 },
+  { header: 'Tipo Anuncio', key: 'tipo_anuncio', width: 25 },
+  { header: 'Medidas', key: 'medidas', width: 15 },
+  { header: 'Área m²', key: 'area', type: 'number', width: 12 },
+  { header: 'Caras', key: 'num_caras', type: 'integer', width: 8 },
+  { header: 'Ubicación', key: 'ubicacion', width: 35 },
+  { header: 'Colonia', key: 'colonia', width: 25 },
+  { header: 'Zona', key: 'zona', width: 10 },
+  { header: 'Fecha Otorg.', key: 'fecha_otorgamiento', type: 'date', width: 15 },
+  { header: 'Estado', key: 'vigente_texto', width: 12 }
+]
 
 // Estado
 const showFilters = ref(false)
@@ -832,7 +852,6 @@ const buscarAnuncios = async () => {
       showToast('info', 'No se encontraron anuncios con los criterios especificados')
     }
   } catch (error) {
-    console.error('Error al buscar anuncios:', error)
     hideLoading()
     handleApiError(error)
   }
@@ -853,7 +872,6 @@ const cargarEstadisticas = async () => {
       estadisticas.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
   } finally {
     loadingEstadisticas.value = false
   }
@@ -891,44 +909,74 @@ const modificarAnuncio = (anuncio) => {
 }
 
 const exportarExcel = async () => {
+  if (anuncios.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
   showLoading('Exportando a Excel...', 'Generando archivo')
 
   try {
-    // TODO: Implementar exportación real
-    await new Promise(resolve => setTimeout(resolve, 800))
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-    hideLoading()
+    // Preparar datos con texto de vigencia
+    const datosExport = anuncios.value.map(anun => ({
+      ...anun,
+      vigente_texto: anun.vigente === 'S' || anun.vigente === 'V' ? 'Vigente' :
+                     anun.vigente === 'B' ? 'Baja' :
+                     anun.vigente === 'C' ? 'Cancelado' : 'Desconocido',
+      medidas: `${anun.medidas1 || 0} x ${anun.medidas2 || 0}`
+    }))
 
-    await Swal.fire({
-      title: 'Exportar a Excel',
-      text: 'Funcionalidad en desarrollo',
-      icon: 'info',
-      confirmButtonColor: '#ea8215'
-    })
+    const success = exportToExcel(datosExport, columnasExport, 'Consulta_Anuncios')
+
+    if (success) {
+      showToast('success', `Excel generado con ${anuncios.value.length} anuncios`)
+    } else {
+      showToast('error', 'Error al generar Excel')
+    }
   } catch (error) {
+    showToast('error', 'Error al generar Excel')
+  } finally {
     hideLoading()
-    handleApiError(error)
   }
 }
 
 const exportarPDF = async () => {
+  if (anuncios.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
   showLoading('Exportando a PDF...', 'Generando documento')
 
   try {
-    // TODO: Implementar exportación real
-    await new Promise(resolve => setTimeout(resolve, 800))
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-    hideLoading()
+    // Preparar datos con texto de vigencia
+    const datosExport = anuncios.value.map(anun => ({
+      ...anun,
+      vigente_texto: anun.vigente === 'S' || anun.vigente === 'V' ? 'Vigente' :
+                     anun.vigente === 'B' ? 'Baja' :
+                     anun.vigente === 'C' ? 'Cancelado' : 'Desconocido',
+      medidas: `${anun.medidas1 || 0} x ${anun.medidas2 || 0}`
+    }))
 
-    await Swal.fire({
-      title: 'Exportar a PDF',
-      text: 'Funcionalidad en desarrollo',
-      icon: 'info',
-      confirmButtonColor: '#ea8215'
+    const success = exportToPdf(datosExport, columnasExport, {
+      title: 'Consulta de Anuncios',
+      subtitle: `Generado el ${new Date().toLocaleDateString('es-MX')}`,
+      orientation: 'landscape'
     })
+
+    if (success) {
+      showToast('success', 'PDF generado correctamente')
+    } else {
+      showToast('error', 'Error al generar PDF')
+    }
   } catch (error) {
+    showToast('error', 'Error al generar PDF')
+  } finally {
     hideLoading()
-    handleApiError(error)
   }
 }
 
@@ -986,7 +1034,6 @@ onMounted(() => {
         primeraBusqueda.value = true
       }
     } catch (error) {
-      console.error('Error al cargar anuncios desde localStorage:', error)
       localStorage.removeItem('anuncios_consulta')
     }
   }

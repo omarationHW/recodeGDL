@@ -1,29 +1,209 @@
 <template>
   <div class="module-view module-layout">
-    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="file-lines" /></div><div class="module-view-info"><h1>Reporte Autor</h1><p>Reporte de autorización</p></div><div class="button-group ms-auto"><button class="btn-municipal-primary" @click="reload"><font-awesome-icon icon="sync-alt" /> Actualizar</button></div></div>
-    <div class="module-view-content">
-      <div class="stats-grid" v-if="loadingEstadisticas"><div class="stat-card stat-card-loading" v-for="n in 6" :key="`loading-${n}`"><div class="stat-content"><div class="skeleton-icon"></div><div class="skeleton-number"></div><div class="skeleton-label"></div><div class="skeleton-percentage"></div></div></div></div>
-      <div class="stats-grid" v-else-if="estadisticas.length > 0"><div class="stat-card" v-for="stat in estadisticas" :key="stat.categoria" :class="`stat-${stat.clase}`"><div class="stat-content"><div class="stat-icon"><font-awesome-icon :icon="getStatIcon(stat.categoria)" /></div><h3 class="stat-number">{{ getStatValue(stat) }}</h3><p class="stat-label">{{ stat.descripcion }}</p><small class="stat-percentage" v-if="stat.porcentaje > 0">{{ stat.porcentaje.toFixed(1) }}%</small></div></div></div>
-      <div class="municipal-card"><div class="municipal-card-header"><div class="header-with-badge"><h5><font-awesome-icon icon="list" /> Reporte</h5><span class="badge-purple" v-if="totalResultados > 0">{{ formatNumber(totalResultados) }} registros totales</span></div><div v-if="loading" class="spinner-border"></div></div><div class="municipal-card-body table-container" v-if="!loading"><div v-if="rows.length === 0" class="empty-state"><font-awesome-icon icon="inbox" size="3x" class="empty-icon" /><p>Sin datos</p></div><div v-else class="table-responsive"><table class="municipal-table"><thead class="municipal-table-header"><tr><th v-for="c in cols" :key="c">{{ formatLabel(c) }}</th></tr></thead><tbody><tr v-for="(r,i) in paginatedRows" :key="i" class="clickable-row"><td v-for="c in cols" :key="c">{{ formatValue(r[c]) }}</td></tr></tbody></table></div><div v-if="rows.length > 0" class="pagination-controls"><div class="pagination-info"><span class="text-muted">Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }} a {{ Math.min(currentPage * itemsPerPage, totalResultados) }} de {{ totalResultados }} registros</span></div><div class="pagination-size"><label class="municipal-form-label me-2">Por página:</label><select class="municipal-form-control form-control-sm" v-model="itemsPerPage" @change="currentPage=1"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option></select></div><div class="pagination-buttons"><button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"><font-awesome-icon icon="angle-double-left" /></button><button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"><font-awesome-icon icon="angle-left" /></button><button v-for="page in visiblePages" :key="page" class="btn-sm" :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'" @click="goToPage(page)">{{ page }}</button><button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"><font-awesome-icon icon="angle-right" /></button><button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages"><font-awesome-icon icon="angle-double-right" /></button></div></div></div></div>
+    <div class="module-view-header">
+      <div class="module-view-icon"><font-awesome-icon icon="file-lines" /></div>
+      <div class="module-view-info">
+        <h1>Reporte Autor</h1>
+        <p>Reporte de autorizaciones</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="reload" :disabled="loading">
+          <font-awesome-icon :icon="loading ? 'spinner' : 'sync-alt'" :spin="loading" />
+          {{ loading ? 'Cargando...' : 'Actualizar' }}
+        </button>
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
+    <div class="module-view-content">
+      <!-- Tabla de datos -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <div class="header-with-badge">
+            <h5><font-awesome-icon icon="list" /> Reporte</h5>
+            <span class="badge-purple" v-if="totalResultados > 0">{{ formatNumber(totalResultados) }} registros totales</span>
+          </div>
+          <div v-if="loading" class="spinner-border"></div>
+        </div>
+        <div class="municipal-card-body table-container" v-if="!loading">
+          <div v-if="rows.length === 0" class="empty-state">
+            <font-awesome-icon icon="inbox" size="3x" class="empty-icon" />
+            <p>Sin datos disponibles</p>
+          </div>
+          <div v-else class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th v-for="c in cols" :key="c">{{ formatLabel(c) }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(r,i) in paginatedRows" :key="i" class="clickable-row">
+                  <td v-for="c in cols" :key="c">{{ formatValue(r[c]) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div v-if="rows.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }} a {{ Math.min(currentPage * itemsPerPage, totalResultados) }} de {{ totalResultados }} registros
+              </span>
+            </div>
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Por página:</label>
+              <select class="municipal-form-control form-control-sm" v-model="itemsPerPage" @change="currentPage=1">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+              <button v-for="page in visiblePages" :key="page" class="btn-sm"
+                      :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                      @click="goToPage(page)">
+                {{ page }}
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="closeDocumentation"
+      title="Ayuda - ReportAutor"
+    >
+      <h3>Reporte de Autorizaciones</h3>
+      <p>Este reporte muestra todos los registros de autorizaciones en el sistema de estacionamiento exclusivo.</p>
+      <h4>Funcionalidades:</h4>
+      <ul>
+        <li><strong>Actualizar:</strong> Refresca los datos del reporte</li>
+        <li><strong>Paginación:</strong> Navegue por los registros usando los controles de paginación</li>
+        <li><strong>Estadísticas:</strong> Visualice estadísticas generales en tiempo real</li>
+      </ul>
+    </DocumentationModal>
+
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ReportAutor'"
+      :moduleName="'estacionamiento_exclusivo'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
+
 <script setup>
-import { ref, computed, onMounted } from 'vue'; import { useApi } from '@/composables/useApi'; import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-const BASE_DB='estacionamiento_exclusivo', OP_REPORT='sp_report_autorizados', OP_STATS='apremiossvn_apremios_estadisticas'
-const { loading, execute } = useApi(); const { showToast, handleApiError } = useLicenciasErrorHandler()
-const rows=ref([]), cols=ref([]), loadingEstadisticas=ref(true), estadisticas=ref([]), currentPage=ref(1), itemsPerPage=ref(25)
-const totalResultados = computed(()=>rows.value.length)
-const totalPages = computed(()=>Math.ceil(totalResultados.value/itemsPerPage.value))
-const paginatedRows = computed(()=>{ const start=(currentPage.value-1)*itemsPerPage.value; return rows.value.slice(start, start+itemsPerPage.value) })
-const visiblePages = computed(()=>{ const pages=[]; const start=Math.max(1,currentPage.value-2); const end=Math.min(totalPages.value,currentPage.value+2); for(let i=start; i<=end; i++) pages.push(i); return pages })
-const goToPage = (p) => { if(p>=1 && p<=totalPages.value) currentPage.value=p }
-const cargarEstadisticas = async () => { loadingEstadisticas.value=true; try{ const result=await execute(OP_STATS, BASE_DB, []); estadisticas.value=Array.isArray(result?.rows)?result.rows:Array.isArray(result)?result:[] }catch(e){ estadisticas.value=[] }finally{ loadingEstadisticas.value=false } }
-const reload = async () => { currentPage.value=1; const t0=performance.now(); try{ const data=await execute(OP_QUERY, BASE_DB, []); const arr=Array.isArray(data?.rows)?data.rows:Array.isArray(data)?data:[]; rows.value=arr; cols.value=arr.length?Object.keys(arr[0]):[]; const dur=performance.now()-t0, txt=dur<1000?`${Math.round(dur)}ms`:`${(dur/1000).toFixed(2)}s`; showToast('success',`${rows.value.length} registro(s) en ${txt}`) }catch(e){ rows.value=[]; cols.value=[]; handleApiError(e) } }
-const formatNumber = (n) => new Intl.NumberFormat('es-MX').format(n); const formatMoney = (v) => Number(v||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'})
-const formatLabel = (k) => k.replace(/_/g,' ').replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()).trim()
-const formatValue = (v) => v===null||v===undefined?'-':typeof v==='boolean'?(v?'Sí':'No'):String(v)
-const getStatIcon = (c) => ({'TOTAL':'chart-bar','VIGENTES':'check-circle','VENCIDOS':'times-circle','CON_EJECUTOR':'user-check','SIN_EJECUTOR':'user-times','IMPORTE_TOTAL':'coins'}[c]||'info-circle')
-const getStatValue = (s) => s.categoria==='IMPORTE_TOTAL'?formatMoney(s.total):formatNumber(s.total)
-onMounted(()=>{ cargarEstadisticas(); reload() })
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { ref, computed } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+
+const BASE_DB = 'estacionamiento_exclusivo'
+const OP_REPORT = 'sp_report_autorizados'
+
+const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+
+const rows = ref([])
+const cols = ref([])
+const currentPage = ref(1)
+const itemsPerPage = ref(25)
+
+const totalResultados = computed(() => rows.value.length)
+const totalPages = computed(() => Math.ceil(totalResultados.value / itemsPerPage.value))
+const paginatedRows = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return rows.value.slice(start, start + itemsPerPage.value)
+})
+const visiblePages = computed(() => {
+  const pages = []
+  const start = Math.max(1, currentPage.value - 2)
+  const end = Math.min(totalPages.value, currentPage.value + 2)
+  for (let i = start; i <= end; i++) pages.push(i)
+  return pages
+})
+
+const goToPage = (p) => {
+  if (p >= 1 && p <= totalPages.value) currentPage.value = p
+}
+
+const reload = async () => {
+  showLoading('Cargando reporte...', 'Consultando autorizaciones')
+  currentPage.value = 1
+  const t0 = performance.now()
+  try {
+    const response = await execute(OP_REPORT, BASE_DB, {
+      p_rec: 0,
+      p_fecha1: new Date('2020-01-01'),
+      p_fecha2: new Date()
+    })
+    let arr = []
+    if (response && response.data) {
+      arr = Array.isArray(response.data) ? response.data : []
+    } else if (response && response.result) {
+      arr = Array.isArray(response.result) ? response.result : []
+    }
+    rows.value = arr
+    cols.value = arr.length ? Object.keys(arr[0]) : []
+    const dur = performance.now() - t0
+    const txt = dur < 1000 ? `${Math.round(dur)}ms` : `${(dur / 1000).toFixed(2)}s`
+    showToast('success', `${rows.value.length} registro(s) en ${txt}`)
+  } catch (e) {
+    rows.value = []
+    cols.value = []
+    handleApiError(e)
+  } finally {
+    hideLoading()
+  }
+}
+
+const formatNumber = (n) => new Intl.NumberFormat('es-MX').format(n)
+const formatLabel = (k) => k.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()
+const formatValue = (v) => v === null || v === undefined ? '-' : typeof v === 'boolean' ? (v ? 'Sí' : 'No') : String(v)
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

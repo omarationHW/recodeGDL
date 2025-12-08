@@ -9,15 +9,24 @@
         <h1>Carga de Carteras</h1>
         <p>Otras Obligaciones - Generación de Carteras de Pago</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-info"
+          @click="loadTablas"
+          :disabled="loading"
+          title="Actualizar"
+        >
+          <font-awesome-icon icon="sync" :spin="loading" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -37,9 +46,6 @@
             <font-awesome-icon icon="list" />
             Selección de Tabla y Ejercicio
           </h5>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
 
         <div class="municipal-card-body">
@@ -132,7 +138,7 @@
             </div>
 
             <!-- Mensaje de no hay unidades -->
-            <div v-if="selectedEjercicio && unidades.length === 0 && !loading" class="alert alert-info">
+            <div v-if="selectedEjercicio && unidades.length === 0 && !loading" class="municipal-alert municipal-alert-info">
               <font-awesome-icon icon="info-circle" />
               No hay unidades para este ejercicio
             </div>
@@ -152,24 +158,8 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
-        </div>
-      </div>
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -188,6 +178,7 @@ import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Router
@@ -199,15 +190,15 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
-  toast,
   showToast,
-  hideToast,
-  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+// Estado local para loading
+const loading = ref(false)
 
 // Estado
 const tablas = ref([])
@@ -233,23 +224,32 @@ const goBack = () => {
 
 // Cargar tablas
 const loadTablas = async () => {
-  setLoading(true, 'Cargando tablas...')
+  // Limpiar selecciones previas
+  selectedTabla.value = ''
+  selectedEjercicio.value = ''
+  ejercicios.value = []
+  unidades.value = []
+
+  loading.value = true
+  showLoading('Cargando tablas...')
 
   try {
     const response = await execute(
-      'SP_CARGACARTERA_TABLAS_GET',
-      'otras_obligaciones',
+      'sp_otras_oblig_get_tablas_all',
+      BASE_DB,
       [],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
+
+    loading.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       tablas.value = response.result.map(t => ({
-        id_34_tab: t.id_34_tab,
-        cve_tab: t.cve_tab?.trim() || '',
-        nombre: t.nombre?.trim() || '',
-        cajero: t.cajero?.trim() || '',
-        auto_tab: t.auto_tab
+        cve_tab: String(t.cve_tab).trim(),
+        nombre: (t.nombre || '').trim()
       }))
       showToast('success', `${tablas.value.length} tabla(s) cargada(s)`)
     } else {
@@ -257,10 +257,10 @@ const loadTablas = async () => {
       showToast('info', 'No se encontraron tablas disponibles')
     }
   } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     tablas.value = []
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -275,17 +275,23 @@ const onTablaChange = async () => {
     return
   }
 
-  setLoading(true, 'Cargando ejercicios...')
+  loading.value = true
+  showLoading('Cargando ejercicios...')
 
   try {
     const response = await execute(
-      'SP_CARGACARTERA_EJERCICIOS_GET',
-      'otras_obligaciones',
+      'sp_cargacartera_get_ejercicios',
+      BASE_DB,
       [
-        { nombre: 'par_cve_tab', valor: selectedTabla.value, tipo: 'string' }
+        { nombre: 'par_cve_tab', valor: selectedTabla.value, tipo: 'varchar' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
+
+    loading.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       ejercicios.value = response.result.map(e => ({
@@ -304,10 +310,10 @@ const onTablaChange = async () => {
       showToast('info', 'No hay ejercicios para esta tabla')
     }
   } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     ejercicios.value = []
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -319,18 +325,24 @@ const onEjercicioChange = async () => {
     return
   }
 
-  setLoading(true, 'Cargando unidades...')
+  loading.value = true
+  showLoading('Cargando unidades...')
 
   try {
     const response = await execute(
-      'SP_CARGACARTERA_UNIDADES_GET',
-      'otras_obligaciones',
+      'sp_cargacartera_get_unidades',
+      BASE_DB,
       [
-        { nombre: 'par_cve_tab', valor: selectedTabla.value, tipo: 'string' },
-        { nombre: 'par_ejer', valor: selectedEjercicio.value, tipo: 'integer' }
+        { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'varchar' },
+        { nombre: 'p_ejercicio', valor: selectedEjercicio.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
+
+    loading.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       unidades.value = response.result.map(u => ({
@@ -346,10 +358,10 @@ const onEjercicioChange = async () => {
       showToast('info', 'No hay unidades para este ejercicio')
     }
   } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     unidades.value = []
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -395,17 +407,23 @@ const handleAplica = async () => {
   }
 
   applying.value = true
+  showLoading('Generando cartera...')
 
   try {
     const response = await execute(
-      'SP_CARGACARTERA_APLICA',
-      'otras_obligaciones',
+      'con34_cgacart_01',
+      BASE_DB,
       [
-        { nombre: 'par_Tabla', valor: selectedTabla.value, tipo: 'string' },
-        { nombre: 'par_Ejer', valor: selectedEjercicio.value, tipo: 'integer' }
+        { nombre: 'par_tabla', valor: selectedTabla.value, tipo: 'varchar' },
+        { nombre: 'par_ejer', valor: selectedEjercicio.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
+
+    applying.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const result = response.result[0]
@@ -440,6 +458,8 @@ const handleAplica = async () => {
       showToast('error', 'Error inesperado en la operación')
     }
   } catch (error) {
+    applying.value = false
+    hideLoading()
     handleApiError(error)
     await Swal.fire({
       icon: 'error',
@@ -447,8 +467,6 @@ const handleAplica = async () => {
       text: 'No se pudo completar la operación',
       confirmButtonColor: '#ea8215'
     })
-  } finally {
-    applying.value = false
   }
 }
 

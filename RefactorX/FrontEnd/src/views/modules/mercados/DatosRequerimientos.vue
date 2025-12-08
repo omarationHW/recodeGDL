@@ -1,176 +1,491 @@
 <template>
-  <div class="datos-requerimientos-page">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Consulta de Requerimientos</li>
-      </ol>
-    </nav>
-    <h2>Consulta Individual de Requerimientos por Folio</h2>
-    <form @submit.prevent="buscarRequerimiento">
-      <div class="form-row">
-        <div class="form-group col-md-2">
-          <label for="id_local">ID Local</label>
-          <input v-model="form.id_local" type="number" class="form-control" id="id_local" required />
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-alt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta de Requerimientos</h1>
+        <p>Inicio > Mercados > Requerimientos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda por Folio
+          </h5>
         </div>
-        <div class="form-group col-md-2">
-          <label for="modulo">Módulo</label>
-          <input v-model="form.modulo" type="number" class="form-control" id="modulo" required />
-        </div>
-        <div class="form-group col-md-2">
-          <label for="folio">Folio</label>
-          <input v-model="form.folio" type="number" class="form-control" id="folio" required />
+        <div class="municipal-card-body">
+          <form @submit.prevent="buscarRequerimiento">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label">ID Local <span class="required">*</span></label>
+                <input v-model.number="form.id_local" type="number" class="municipal-form-control" required :disabled="loading" />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Módulo <span class="required">*</span></label>
+                <input v-model.number="form.modulo" type="number" class="municipal-form-control" required :disabled="loading" />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Folio <span class="required">*</span></label>
+                <input v-model.number="form.folio" type="number" class="municipal-form-control" required :disabled="loading" />
+              </div>
+              <div class="form-group align-self-end">
+                <button type="submit" class="btn-municipal-primary" :disabled="loading">
+                  <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" />
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary">Buscar</button>
-    </form>
 
-    <div v-if="loading" class="mt-3">Cargando...</div>
-    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+      <!-- Resultados -->
+      <template v-if="local && mercado">
+        <div class="row">
+          <!-- Datos del Local -->
+          <div class="col-md-6">
+            <div class="municipal-card">
+              <div class="municipal-card-header">
+                <h5>
+                  <font-awesome-icon icon="store" />
+                  Datos del Local
+                </h5>
+              </div>
+              <div class="municipal-card-body">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="info-label">ID</span>
+                    <span class="info-value">{{ local.id_local }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Oficina</span>
+                    <span class="info-value">{{ local.oficina }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Num. Mercado</span>
+                    <span class="info-value">{{ local.num_mercado }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Categoría</span>
+                    <span class="info-value">{{ local.categoria }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Sección</span>
+                    <span class="info-value">{{ local.seccion }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Letra Local</span>
+                    <span class="info-value">{{ local.letra_local || '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Bloque</span>
+                    <span class="info-value">{{ local.bloque || '-' }}</span>
+                  </div>
+                  <div class="info-item full-width">
+                    <span class="info-label">Nombre</span>
+                    <span class="info-value">{{ local.nombre }}</span>
+                  </div>
+                  <div class="info-item full-width">
+                    <span class="info-label">Descripción</span>
+                    <span class="info-value">{{ local.descripcion_local || '-' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-    <div v-if="local && mercado" class="mt-4">
-      <h4>Datos del Local</h4>
-      <table class="table table-sm table-bordered">
-        <tr><th>ID</th><td>{{ local.id_local }}</td></tr>
-        <tr><th>Oficina</th><td>{{ local.oficina }}</td></tr>
-        <tr><th>Num. Mercado</th><td>{{ local.num_mercado }}</td></tr>
-        <tr><th>Categoria</th><td>{{ local.categoria }}</td></tr>
-        <tr><th>Sección</th><td>{{ local.seccion }}</td></tr>
-        <tr><th>Letra Local</th><td>{{ local.letra_local }}</td></tr>
-        <tr><th>Bloque</th><td>{{ local.bloque }}</td></tr>
-        <tr><th>Nombre</th><td>{{ local.nombre }}</td></tr>
-        <tr><th>Descripción</th><td>{{ local.descripcion_local }}</td></tr>
-      </table>
-      <h4>Datos del Mercado</h4>
-      <table class="table table-sm table-bordered">
-        <tr><th>Descripción</th><td>{{ mercado.descripcion }}</td></tr>
-        <tr><th>Cuenta Ingreso</th><td>{{ mercado.cuenta_ingreso }}</td></tr>
-        <tr><th>Cuenta Energía</th><td>{{ mercado.cuenta_energia }}</td></tr>
-      </table>
+          <!-- Datos del Mercado -->
+          <div class="col-md-6">
+            <div class="municipal-card">
+              <div class="municipal-card-header">
+                <h5>
+                  <font-awesome-icon icon="building" />
+                  Datos del Mercado
+                </h5>
+              </div>
+              <div class="municipal-card-body">
+                <div class="info-grid">
+                  <div class="info-item full-width">
+                    <span class="info-label">Descripción</span>
+                    <span class="info-value">{{ mercado.descripcion }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Cuenta Ingreso</span>
+                    <span class="info-value">{{ mercado.cuenta_ingreso }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Cuenta Energía</span>
+                    <span class="info-value">{{ mercado.cuenta_energia }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Datos del Requerimiento -->
+      <div v-if="requerimiento" class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="clipboard-list" />
+            Datos del Requerimiento
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Folio</span>
+                  <span class="info-value highlight">{{ requerimiento.folio }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Diligencia</span>
+                  <span class="info-value">{{ requerimiento.diligencia }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Estado</span>
+                  <span class="info-value">{{ requerimiento.estado }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Vigencia</span>
+                  <span class="info-value">{{ requerimiento.vigencia }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Clave Practicado</span>
+                  <span class="info-value">{{ requerimiento.clave_practicado }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Importe Global</span>
+                  <span class="info-value currency">{{ formatCurrency(requerimiento.importe_global) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Importe Multa</span>
+                  <span class="info-value currency">{{ formatCurrency(requerimiento.importe_multa) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Importe Recargo</span>
+                  <span class="info-value currency">{{ formatCurrency(requerimiento.importe_recargo) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Importe Gastos</span>
+                  <span class="info-value currency">{{ formatCurrency(requerimiento.importe_gastos) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Fecha Emisión</span>
+                  <span class="info-value">{{ requerimiento.fecha_emision }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Fecha Practicado</span>
+                  <span class="info-value">{{ requerimiento.fecha_practicado }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Zona</span>
+                  <span class="info-value">{{ requerimiento.zona }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Zona Apremio</span>
+                  <span class="info-value">{{ requerimiento.zona_apremio }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Usuario</span>
+                  <span class="info-value">{{ requerimiento.usuario_1 }} ({{ requerimiento.nombre }})</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3" v-if="requerimiento.observaciones">
+            <strong>Observaciones:</strong>
+            <p class="text-muted mb-0">{{ requerimiento.observaciones }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Periodos Requeridos -->
+      <div v-if="periodos && periodos.length" class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="calendar-alt" />
+            Periodos Requeridos
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple">
+              {{ periodos.length }} periodos
+            </span>
+          </div>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Año</th>
+                  <th>Periodo</th>
+                  <th class="text-end">Importe</th>
+                  <th class="text-end">Recargos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in paginatedPeriodos" :key="p.id_control" class="row-hover">
+                  <td>{{ p.ayo }}</td>
+                  <td>{{ p.periodo }}</td>
+                  <td class="text-end">{{ formatCurrency(p.importe) }}</td>
+                  <td class="text-end">{{ formatCurrency(p.recargos) }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Paginación -->
+            <div v-if="periodos.length > 0" class="pagination-container">
+              <div class="pagination-info">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </div>
+              <div class="pagination-controls">
+                <label class="me-2">Registros por página:</label>
+                <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                  <option :value="250">250</option>
+                </select>
+              </div>
+              <div class="pagination-buttons">
+                <button @click="goToPage(1)" :disabled="currentPage === 1" title="Primera página">
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+                <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" title="Página anterior">
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+                <button v-for="page in visiblePages" :key="page"
+                  :class="page === currentPage ? 'active' : ''"
+                  @click="goToPage(page)">
+                  {{ page }}
+                </button>
+                <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" title="Página siguiente">
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+                <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages" title="Última página">
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div v-if="!local && !loading && searched" class="municipal-card">
+        <div class="municipal-card-body text-center py-5">
+          <font-awesome-icon icon="exclamation-circle" size="3x" class="text-warning mb-3" />
+          <p class="text-muted">{{ error || 'No se encontraron datos' }}</p>
+        </div>
+      </div>
     </div>
 
-    <div v-if="requerimiento" class="mt-4">
-      <h4>Datos del Requerimiento</h4>
-      <table class="table table-sm table-bordered">
-        <tr><th>Folio</th><td>{{ requerimiento.folio }}</td></tr>
-        <tr><th>Diligencia</th><td>{{ requerimiento.diligencia }}</td></tr>
-        <tr><th>Importe Global</th><td>{{ requerimiento.importe_global | currency }}</td></tr>
-        <tr><th>Importe Multa</th><td>{{ requerimiento.importe_multa | currency }}</td></tr>
-        <tr><th>Importe Recargo</th><td>{{ requerimiento.importe_recargo | currency }}</td></tr>
-        <tr><th>Importe Gastos</th><td>{{ requerimiento.importe_gastos | currency }}</td></tr>
-        <tr><th>Fecha Emisión</th><td>{{ requerimiento.fecha_emision }}</td></tr>
-        <tr><th>Clave Practicado</th><td>{{ requerimiento.clave_practicado }}</td></tr>
-        <tr><th>Vigencia</th><td>{{ requerimiento.vigencia }}</td></tr>
-        <tr><th>Usuario</th><td>{{ requerimiento.usuario_1 }} ({{ requerimiento.nombre }})</td></tr>
-        <tr><th>Estado</th><td>{{ requerimiento.estado }}</td></tr>
-        <tr><th>Zona</th><td>{{ requerimiento.zona }}</td></tr>
-        <tr><th>Zona Apremio</th><td>{{ requerimiento.zona_apremio }}</td></tr>
-        <tr><th>Fecha Practicado</th><td>{{ requerimiento.fecha_practicado }}</td></tr>
-        <tr><th>Observaciones</th><td>{{ requerimiento.observaciones }}</td></tr>
-      </table>
-    </div>
-
-    <div v-if="periodos && periodos.length" class="mt-4">
-      <h4>Periodos Requeridos</h4>
-      <table class="table table-sm table-bordered">
-        <thead>
-          <tr><th>Año</th><th>Periodo</th><th>Importe</th><th>Recargos</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in periodos" :key="p.id_control">
-            <td>{{ p.ayo }}</td>
-            <td>{{ p.periodo }}</td>
-            <td>{{ p.importe | currency }}</td>
-            <td>{{ p.recargos | currency }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'DatosRequerimientosPage',
-  data() {
-    return {
-      form: {
-        id_local: '',
-        modulo: '',
-        folio: ''
-      },
-      loading: false,
-      error: '',
-      local: null,
-      mercado: null,
-      requerimiento: null,
-      periodos: []
-    }
-  },
-  methods: {
-    async buscarRequerimiento() {
-      this.loading = true;
-      this.error = '';
-      this.local = null;
-      this.mercado = null;
-      this.requerimiento = null;
-      this.periodos = [];
-      try {
-        // 1. Obtener local
-        let res = await this.$axios.post('/api/execute', {
-          action: 'getLocales',
-          params: { id_local: this.form.id_local }
-        });
-        if (!res.data.success || !res.data.data.length) throw new Error('Local no encontrado');
-        this.local = res.data.data[0];
-        // 2. Obtener mercado
-        res = await this.$axios.post('/api/execute', {
-          action: 'getMercado',
-          params: { oficina: this.local.oficina, num_mercado: this.local.num_mercado }
-        });
-        if (!res.data.success || !res.data.data.length) throw new Error('Mercado no encontrado');
-        this.mercado = res.data.data[0];
-        // 3. Obtener requerimiento
-        res = await this.$axios.post('/api/execute', {
-          action: 'getRequerimientos',
-          params: {
-            modulo: this.form.modulo,
-            folio: this.form.folio,
-            control_otr: this.form.id_local
-          }
-        });
-        if (!res.data.success || !res.data.data.length) throw new Error('Requerimiento no encontrado');
-        this.requerimiento = res.data.data[0];
-        // 4. Obtener periodos
-        res = await this.$axios.post('/api/execute', {
-          action: 'getPeriodos',
-          params: { control_otr: this.form.id_local }
-        });
-        this.periodos = res.data.success ? res.data.data : [];
-      } catch (e) {
-        this.error = e.message || 'Error al consultar datos';
-      } finally {
-        this.loading = false;
+<script setup>
+import { ref, computed } from 'vue'
+import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Estado
+const form = ref({
+  id_local: '',
+  modulo: '',
+  folio: ''
+})
+const loading = ref(false)
+const searched = ref(false)
+const error = ref('')
+const local = ref(null)
+const mercado = ref(null)
+const requerimiento = ref(null)
+const periodos = ref([])
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecords = computed(() => periodos.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedPeriodos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return periodos.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
+
+// Toast
+const toast = ref({ show: false, type: 'info', message: '' })
+
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => hideToast(), 5000)
+}
+
+const hideToast = () => { toast.value.show = false }
+
+const getToastIcon = (type) => {
+  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
+  return icons[type] || 'info-circle'
+}
+
+const formatCurrency = (val) => {
+  if (val == null) return '$0.00'
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2
+  }).format(parseFloat(val))
+}
+
+const mostrarAyuda = () => {
+  showToast('info', 'Consulta de requerimientos de pago por folio')
+}
+
+const buscarRequerimiento = async () => {
+  loading.value = true
+  showLoading()
+  searched.value = false
+  error.value = ''
+  local.value = null
+  mercado.value = null
+  requerimiento.value = null
+  periodos.value = []
+
+  try {
+    // 1. Obtener local
+    let res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_locales',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: form.value.id_local }
+        ]
       }
+    })
+
+    if (!res.data?.eResponse?.success || !res.data.eResponse.data?.result?.length) {
+      throw new Error('Local no encontrado')
     }
-  },
-  filters: {
-    currency(val) {
-      if (val == null) return '';
-      return '$' + parseFloat(val).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+    local.value = res.data.eResponse.data.result[0]
+
+    // 2. Obtener mercado
+    res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_mercado',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: local.value.oficina },
+          { Nombre: 'p_num_mercado', Valor: local.value.num_mercado }
+        ]
+      }
+    })
+
+    if (!res.data?.eResponse?.success || !res.data.eResponse.data?.result?.length) {
+      throw new Error('Mercado no encontrado')
     }
+    mercado.value = res.data.eResponse.data.result[0]
+
+    // 3. Obtener requerimiento
+    res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_requerimientos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_modulo', Valor: form.value.modulo },
+          { Nombre: 'p_folio', Valor: form.value.folio },
+          { Nombre: 'p_control_otr', Valor: form.value.id_local }
+        ]
+      }
+    })
+
+    if (!res.data?.eResponse?.success || !res.data.eResponse.data?.result?.length) {
+      throw new Error('Requerimiento no encontrado')
+    }
+    requerimiento.value = res.data.eResponse.data.result[0]
+
+    // 4. Obtener periodos
+    res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_periodos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_control_otr', Valor: form.value.id_local }
+        ]
+      }
+    })
+    periodos.value = res.data?.eResponse?.success ? res.data.eResponse.data?.result || [] : []
+    currentPage.value = 1
+
+    searched.value = true
+    showToast('success', 'Requerimiento encontrado')
+
+  } catch (e) {
+    error.value = e.message || 'Error al consultar datos'
+    searched.value = true
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+    hideLoading()
   }
 }
 </script>
-
-<style scoped>
-.datos-requerimientos-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-.breadcrumb {
-  background: #f8f9fa;
-  margin-bottom: 1rem;
-}
-</style>

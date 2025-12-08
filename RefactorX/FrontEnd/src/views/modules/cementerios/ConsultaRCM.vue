@@ -79,10 +79,19 @@
       <font-awesome-icon icon="exclamation-triangle" />
       No se encontró el control RCM especificado
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ConsultaRCM'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -159,7 +168,6 @@ const buscarRCM = async () => {
       toast.warning('No se encontró el RCM')
     }
   } catch (error) {
-    console.error('Error al buscar RCM:', error)
     toast.error('Error al buscar RCM')
     folio.value = null
   }

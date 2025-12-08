@@ -36,3 +36,9 @@ composer.lock
 # Temporary files
 *.tmp
 *.temp
+
+# Claude
+.claude/
+
+# Backups and temporary folders
+res/

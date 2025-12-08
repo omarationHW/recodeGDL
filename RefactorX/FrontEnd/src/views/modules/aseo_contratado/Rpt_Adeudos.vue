@@ -8,6 +8,25 @@
         <h1>Reporte de Adeudos</h1>
         <p>Aseo Contratado - Reporte detallado de adeudos pendientes</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -253,10 +272,20 @@
         <li>El reporte refleja el estado actual de adeudos</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Rpt_Adeudos'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -265,7 +294,6 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const reporteGenerado = ref(false)
 const datos = ref([])
@@ -306,11 +334,13 @@ const totales = computed(() => {
     recargos: datos.value.reduce((sum, d) => sum + parseFloat(d.importe_recargo || 0), 0),
     multas: datos.value.reduce((sum, d) => sum + parseFloat(d.importe_multa || 0), 0),
     gastos: datos.value.reduce((sum, d) => sum + parseFloat(d.importe_gastos || 0), 0)
+
+const { showLoading, hideLoading } = useGlobalLoading()
   }
 })
 
 const generarReporte = async () => {
-  loading.value = true
+  showLoading()
   reporteGenerado.value = false
 
   try {
@@ -320,7 +350,7 @@ const generarReporte = async () => {
       parVigencia: filtros.value.status_contrato || 'T'
     })
 
-    if (!responseContratos || !responseContratos.data) {
+    if (!responseContratos || !responseContratos) {
       datos.value = []
       reporteGenerado.value = true
       return
@@ -342,8 +372,8 @@ const generarReporte = async () => {
           p_fecha_hasta: null
         })
 
-        if (response && response.data) {
-          return response.data.map(a => ({
+        if (response) {
+          return response.map(a => ({
             ...a,
             num_contrato: contrato.num_contrato,
             nombre_empresa: contrato.nombre_empresa
@@ -351,7 +381,8 @@ const generarReporte = async () => {
         }
         return []
       } catch (error) {
-        console.error(`Error al obtener adeudos del contrato ${contrato.num_contrato}:`, error)
+        hideLoading()
+        handleApiError(error)
         return []
       }
     })
@@ -412,10 +443,11 @@ const generarReporte = async () => {
       showToast('No se encontraron adeudos', 'info')
     }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al generar el reporte', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -473,11 +505,12 @@ const cargarTiposAseo = async () => {
       p_search: null
     })
 
-    if (response && response.data) {
-      tiposAseo.value = response.data
+    if (response) {
+      tiposAseo.value = response
     }
   } catch (error) {
-    console.error('Error al cargar tipos de aseo:', error)
+    hideLoading()
+    handleApiError(error)
   }
 }
 
@@ -489,11 +522,12 @@ const cargarEmpresas = async () => {
       p_search: null
     })
 
-    if (response && response.data) {
-      empresas.value = response.data
+    if (response) {
+      empresas.value = response
     }
   } catch (error) {
-    console.error('Error al cargar empresas:', error)
+    hideLoading()
+    handleApiError(error)
   }
 }
 

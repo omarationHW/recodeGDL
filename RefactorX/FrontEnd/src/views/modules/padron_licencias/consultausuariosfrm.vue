@@ -872,7 +872,6 @@ const cargarTodos = async () => {
       showToast('info', 'No hay usuarios')
     }
   } catch (error) {
-    console.error('Error al cargar todos los usuarios:', error)
     handleApiError(error, 'Error al cargar usuarios')
     usuarios.value = []
     selectedUsuario.value = null
@@ -917,7 +916,6 @@ const buscarPorUsuario = async () => {
       showToast('info', 'No se encontraron usuarios')
     }
   } catch (error) {
-    console.error('Error al buscar usuario:', error)
     handleApiError(error, 'Error al buscar usuario')
     usuarios.value = []
     selectedUsuario.value = null
@@ -962,7 +960,6 @@ const buscarPorNombre = async () => {
       showToast('info', 'No se encontraron usuarios')
     }
   } catch (error) {
-    console.error('Error al buscar por nombre:', error)
     handleApiError(error, 'Error al buscar usuarios')
     usuarios.value = []
     selectedUsuario.value = null
@@ -1008,7 +1005,6 @@ const buscarPorDepartamento = async () => {
       showToast('info', 'No se encontraron usuarios')
     }
   } catch (error) {
-    console.error('Error al buscar por departamento:', error)
     handleApiError(error, 'Error al buscar usuarios')
     usuarios.value = []
     selectedUsuario.value = null
@@ -1185,7 +1181,6 @@ const crearUsuario = async () => {
   } catch (error) {
     hideLoading()
 
-    console.error('Error al crear usuario:', error)
     handleApiError(error, 'Error al crear usuario')
 
     await Swal.fire({
@@ -1290,7 +1285,6 @@ const actualizarUsuario = async () => {
   } catch (error) {
     hideLoading()
 
-    console.error('Error al actualizar usuario:', error)
     handleApiError(error, 'Error al actualizar usuario')
 
     await Swal.fire({
@@ -1393,7 +1387,6 @@ const darBajaUsuario = async () => {
   } catch (error) {
     hideLoading()
 
-    console.error('Error al dar de baja usuario:', error)
     handleApiError(error, 'Error al dar de baja usuario')
 
     await Swal.fire({
@@ -1421,7 +1414,6 @@ const cargarDependencias = async () => {
       dependencias.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar dependencias:', error)
   }
 }
 
@@ -1447,7 +1439,6 @@ const onDependenciaChange = async () => {
       departamentos.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar departamentos:', error)
   }
 }
 
@@ -1473,7 +1464,6 @@ const cargarDeptosModal = async () => {
       deptosModal.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar departamentos modal:', error)
   }
 }
 
@@ -1498,7 +1488,6 @@ const cargarDeptosModalEditar = async () => {
       deptosModalEditar.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar departamentos modal editar:', error)
   }
 }
 

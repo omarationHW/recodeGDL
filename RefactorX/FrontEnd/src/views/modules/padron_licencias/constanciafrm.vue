@@ -926,7 +926,6 @@ const cargarEstadisticas = async () => {
       estadisticas.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
   } finally {
     loadingEstadisticas.value = false
   }
@@ -948,7 +947,6 @@ const abrirModalNuevo = async () => {
       formNuevo.value.folio = response.result[0].next_folio
     }
   } catch (error) {
-    console.error('Error al obtener siguiente folio:', error)
   }
 
   showModalNuevo.value = true
@@ -1354,7 +1352,6 @@ watch(() => formNuevo.value.axo, async (newAxo) => {
         formNuevo.value.folio = response.result[0].next_folio
       }
     } catch (error) {
-      console.error('Error al obtener siguiente folio:', error)
     }
   }
 })

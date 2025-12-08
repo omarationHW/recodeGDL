@@ -9,12 +9,21 @@
         <h1>Actualización de Datos</h1>
         <p>Otras Obligaciones - Modificación de datos generales y específicos</p>
       </div>
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
-        <button class="btn-municipal-secondary" @click="goBack">
-          <font-awesome-icon icon="arrow-left" /> Salir
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+        <button
+          class="btn-municipal-secondary"
+          @click="goBack"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Salir
         </button>
       </div>
     </div>
@@ -31,8 +40,22 @@
 
         <div class="municipal-card-body">
           <div class="form-row">
+            <!-- Selector de tabla -->
+            <div class="form-group">
+              <label class="municipal-form-label">Tipo de Obligación</label>
+              <select
+                class="municipal-form-control"
+                v-model="tipoTabla"
+                @change="onTipoTablaChange"
+              >
+                <option v-for="tabla in tablasDisponibles" :key="tabla.cve_tab" :value="tabla.cve_tab">
+                  {{ tabla.nombre }}
+                </option>
+              </select>
+            </div>
+
             <!-- Campo de búsqueda dinámico según el tipo de tabla -->
-            <div class="form-group" v-if="tipoTabla !== 3">
+            <div class="form-group" v-if="tipoTabla != 3">
               <label class="municipal-form-label">{{ etiquetaControl }}</label>
               <input
                 type="text"
@@ -45,7 +68,7 @@
             </div>
 
             <!-- Para mercados (tipo 3) se usa número de local + letra -->
-            <div class="form-group" v-if="tipoTabla === 3">
+            <div class="form-group" v-if="tipoTabla == 3">
               <label class="municipal-form-label">Número de Local</label>
               <input
                 type="text"
@@ -79,7 +102,7 @@
             </div>
           </div>
 
-          <div class="alert alert-info" v-if="nombreTabla">
+          <div class="municipal-alert municipal-alert-info" v-if="nombreTabla">
             <strong>{{ nombreTabla }}</strong>
           </div>
         </div>
@@ -593,7 +616,7 @@
       <!-- Mensaje si el registro no está vigente -->
       <div class="municipal-card" v-if="registroActual && registroActual.statusregistro !== 'VIGENTE'">
         <div class="municipal-card-body">
-          <div class="alert alert-warning">
+          <div class="municipal-alert municipal-alert-warning">
             <font-awesome-icon icon="exclamation-triangle" />
             Este registro está en estado <strong>{{ registroActual.statusregistro }}</strong>.
             No se pueden realizar modificaciones.
@@ -601,13 +624,6 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
-        </div>
-      </div>
     </div>
 
     <!-- Toast Notifications -->
@@ -644,9 +660,8 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -656,7 +671,9 @@ const {
 const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
-const tipoTabla = ref(route.params.tipo || route.query.tipo || 1) // 1=Tianguis, 2=VíaPública, 3=Mercados, 4=Centrales, 5=Otros
+const loading = ref(false)
+const tipoTabla = ref(route.params.tipo || route.query.tipo || 1)
+const tablasDisponibles = ref([])
 const nombreTabla = ref('')
 const etiquetas = ref({})
 const tiposLocal = ref([])
@@ -750,8 +767,8 @@ const loadEtiquetas = async () => {
   try {
     const response = await execute(
       'sp_otras_oblig_get_etiquetas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' }],
       'guadalajara'
     )
 
@@ -763,12 +780,29 @@ const loadEtiquetas = async () => {
   }
 }
 
+const loadTablasDisponibles = async () => {
+  try {
+    const response = await execute(
+      'sp_otras_oblig_get_tablas_all',
+      BASE_DB,
+      [],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      tablasDisponibles.value = response.result
+    }
+  } catch (error) {
+    console.error('Error al cargar tablas disponibles:', error)
+  }
+}
+
 const loadTablas = async () => {
   try {
     const response = await execute(
       'sp_otras_oblig_get_tablas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' }],
       'guadalajara'
     )
 
@@ -781,11 +815,23 @@ const loadTablas = async () => {
   }
 }
 
+const onTipoTablaChange = async () => {
+  // Limpiar datos anteriores
+  registroActual.value = null
+  busqueda.value.numeroExpediente = ''
+  busqueda.value.numeroLocal = ''
+  busqueda.value.letra = ''
+
+  // Recargar etiquetas y nombre de tabla
+  await loadEtiquetas()
+  await loadTablas()
+}
+
 const loadDependencias = async () => {
   try {
     const response = await execute(
-      'SP_GACTUALIZA_DEPENDENCIAS_GET',
-      'otras_obligaciones',
+      'sp_gactualiza_dependencias_get',
+      BASE_DB,
       [],
       'guadalajara'
     )
@@ -834,14 +880,15 @@ const buscarRegistro = async () => {
     control = (etiquetas.value.abreviatura || '') + busqueda.value.numeroExpediente
   }
 
-  setLoading(true, 'Buscando registro...')
+  loading.value = true
+  showLoading('Buscando registro...')
 
   try {
     const response = await execute(
-      'SP_GACTUALIZA_DATOS_GET',
-      'otras_obligaciones',
+      'sp_otras_oblig_buscar_cont',
+      BASE_DB,
       [
-        { nombre: 'par_tab', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_control', valor: control, tipo: 'string' }
       ],
       'guadalajara'
@@ -854,7 +901,7 @@ const buscarRegistro = async () => {
         await Swal.fire({
           icon: 'info',
           title: 'No encontrado',
-          text: data.concepto_status,
+          text: 'No se encontró ningún registro con ese control',
           confirmButtonColor: '#ea8215'
         })
         registroActual.value = null
@@ -889,7 +936,8 @@ const buscarRegistro = async () => {
     handleApiError(error)
     registroActual.value = null
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -902,9 +950,9 @@ const loadMultasRelacionadas = async () => {
 
   try {
     const response = await execute(
-      'SP_GACTUALIZA_MULTAS_GET',
-      'otras_obligaciones',
-      [{ nombre: 'par_Id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' }],
+      'sp_gactualiza_multas_get',
+      BASE_DB,
+      [{ nombre: 'par_id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' }],
       'guadalajara'
     )
 
@@ -928,8 +976,8 @@ const loadSuspensiones = async () => {
 
   try {
     const response = await execute(
-      'SP_GACTUALIZA_SUSPENSION_GET',
-      'otras_obligaciones',
+      'sp_gactualiza_suspension_get',
+      BASE_DB,
       [{ nombre: 'vid', valor: registroActual.value.id_datos, tipo: 'integer' }],
       'guadalajara'
     )
@@ -994,7 +1042,7 @@ const aplicarCambio = async () => {
     // Determinar SP según opción
     if (opcionSeleccionada.value <= 5) {
       // Datos generales
-      spName = 'SP_GACTUALIZA_GRALES_UPDATE'
+      spName = 'sp_gactualiza_grales_update'
       params = [
         { nombre: 'par_id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
         { nombre: 'par_conces', valor: formData.value.concesionario || '', tipo: 'string' },
@@ -1007,43 +1055,43 @@ const aplicarCambio = async () => {
       ]
     } else if (opcionSeleccionada.value === 6) {
       // Superficie
-      spName = 'SP_GACTUALIZA_SUP_UPDATE'
+      spName = 'sp_gactualiza_sup_update'
       params = [
-        { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
         { nombre: 'par_sup', valor: formData.value.superficie, tipo: 'decimal' },
-        { nombre: 'par_Descrip', valor: registroActual.value.unidades, tipo: 'string' },
-        { nombre: 'par_Axo_Ini', valor: formData.value.axoInicio, tipo: 'integer' },
-        { nombre: 'par_Mes_Ini', valor: formData.value.mesInicio, tipo: 'integer' },
+        { nombre: 'par_descrip', valor: registroActual.value.unidades || '', tipo: 'string' },
+        { nombre: 'par_axo_ini', valor: formData.value.axoInicio, tipo: 'integer' },
+        { nombre: 'par_mes_ini', valor: formData.value.mesInicio, tipo: 'integer' },
         { nombre: 'par_usuario', valor: 'SISTEMA', tipo: 'string' }
       ]
     } else if (opcionSeleccionada.value === 7) {
       // Unidades
-      spName = 'SP_GACTUALIZA_UNIDADES_UPDATE'
+      spName = 'sp_gactualiza_unidades_update'
       params = [
-        { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
         { nombre: 'par_sup', valor: registroActual.value.superficie, tipo: 'decimal' },
-        { nombre: 'par_Descrip', valor: formData.value.unidades, tipo: 'string' },
-        { nombre: 'par_Axo_Ini', valor: formData.value.axoInicio, tipo: 'integer' },
-        { nombre: 'par_Mes_Ini', valor: formData.value.mesInicio, tipo: 'integer' },
+        { nombre: 'par_descrip', valor: formData.value.unidades, tipo: 'string' },
+        { nombre: 'par_axo_ini', valor: formData.value.axoInicio, tipo: 'integer' },
+        { nombre: 'par_mes_ini', valor: formData.value.mesInicio, tipo: 'integer' },
         { nombre: 'par_usuario', valor: 'SISTEMA', tipo: 'string' }
       ]
     } else if (opcionSeleccionada.value === 8) {
       // Inicio obligación
-      spName = 'SP_GACTUALIZA_OBLIG_UPDATE'
+      spName = 'sp_gactualiza_oblig_update'
       params = [
-        { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
         { nombre: 'par_sup', valor: registroActual.value.superficie, tipo: 'decimal' },
-        { nombre: 'par_Descrip', valor: registroActual.value.unidades, tipo: 'string' },
-        { nombre: 'par_Axo_Ini', valor: formData.value.axoInicio, tipo: 'integer' },
-        { nombre: 'par_Mes_Ini', valor: formData.value.mesInicio, tipo: 'integer' },
+        { nombre: 'par_descrip', valor: registroActual.value.unidades || '', tipo: 'string' },
+        { nombre: 'par_axo_ini', valor: formData.value.axoInicio, tipo: 'integer' },
+        { nombre: 'par_mes_ini', valor: formData.value.mesInicio, tipo: 'integer' },
         { nombre: 'par_usuario', valor: 'SISTEMA', tipo: 'string' }
       ]
     }
 
-    const response = await execute(spName, 'otras_obligaciones', params, 'guadalajara')
+    const response = await execute(spName, BASE_DB, params, 'guadalajara')
 
     if (response && response.result && response.result[0]) {
       const data = response.result[0]
@@ -1100,14 +1148,14 @@ const agregarMulta = async () => {
 
   try {
     const response = await execute(
-      'SP_GACTUALIZA_MULTAS_UPDATE',
-      'otras_obligaciones',
+      'sp_gactualiza_multas_update',
+      BASE_DB,
       [
-        { nombre: 'par_Opc', valor: 'A', tipo: 'string' },
-        { nombre: 'par_Dep_Multa', valor: multaForm.value.dependencia, tipo: 'integer' },
-        { nombre: 'par_Id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
-        { nombre: 'par_AxoActa', valor: multaForm.value.axoActa, tipo: 'integer' },
-        { nombre: 'par_NumActa', valor: multaForm.value.numActa, tipo: 'integer' }
+        { nombre: 'par_opc', valor: 'A', tipo: 'string' },
+        { nombre: 'par_dep_multa', valor: multaForm.value.dependencia, tipo: 'integer' },
+        { nombre: 'par_id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
+        { nombre: 'par_axo_acta', valor: multaForm.value.axoActa, tipo: 'integer' },
+        { nombre: 'par_num_acta', valor: multaForm.value.numActa, tipo: 'integer' }
       ],
       'guadalajara'
     )
@@ -1166,14 +1214,14 @@ const actualizarMulta = async (opc, multa) => {
 
   try {
     const response = await execute(
-      'SP_GACTUALIZA_MULTAS_UPDATE',
-      'otras_obligaciones',
+      'sp_gactualiza_multas_update',
+      BASE_DB,
       [
-        { nombre: 'par_Opc', valor: opc, tipo: 'string' },
-        { nombre: 'par_Dep_Multa', valor: multa.dep, tipo: 'integer' },
-        { nombre: 'par_Id_34_datos', valor: multa.id_34_datos, tipo: 'integer' },
-        { nombre: 'par_AxoActa', valor: multa.axo_acta, tipo: 'integer' },
-        { nombre: 'par_NumActa', valor: multa.num_acta, tipo: 'integer' }
+        { nombre: 'par_opc', valor: opc, tipo: 'string' },
+        { nombre: 'par_dep_multa', valor: multa.dep, tipo: 'integer' },
+        { nombre: 'par_id_34_datos', valor: multa.id_34_datos, tipo: 'integer' },
+        { nombre: 'par_axo_acta', valor: multa.axo_acta, tipo: 'integer' },
+        { nombre: 'par_num_acta', valor: multa.num_acta, tipo: 'integer' }
       ],
       'guadalajara'
     )
@@ -1239,16 +1287,16 @@ const crearSuspension = async () => {
 
   try {
     const response = await execute(
-      'SP_GACTUALIZA_SUSPENSION_CREATE',
-      'otras_obligaciones',
+      'sp_gactualiza_suspension_create',
+      BASE_DB,
       [
-        { nombre: 'parOpc', valor: 1, tipo: 'integer' },
-        { nombre: 'parContrato', valor: registroActual.value.id_datos, tipo: 'integer' },
-        { nombre: 'parAxo', valor: suspensionForm.value.axo, tipo: 'integer' },
-        { nombre: 'parMes', valor: suspensionForm.value.mes, tipo: 'integer' },
-        { nombre: 'parDescrip', valor: suspensionForm.value.descripcion, tipo: 'string' },
-        { nombre: 'parUsuario', valor: 'SISTEMA', tipo: 'string' },
-        { nombre: 'parFecSusp', valor: suspensionForm.value.fechaSuspension, tipo: 'date' }
+        { nombre: 'par_opc', valor: 1, tipo: 'integer' },
+        { nombre: 'par_contrato', valor: registroActual.value.id_datos, tipo: 'integer' },
+        { nombre: 'par_axo', valor: suspensionForm.value.axo, tipo: 'integer' },
+        { nombre: 'par_mes', valor: suspensionForm.value.mes, tipo: 'integer' },
+        { nombre: 'par_descrip', valor: suspensionForm.value.descripcion, tipo: 'string' },
+        { nombre: 'par_usuario', valor: 'SISTEMA', tipo: 'string' },
+        { nombre: 'par_fec_susp', valor: suspensionForm.value.fechaSuspension, tipo: 'date' }
       ],
       'guadalajara'
     )
@@ -1300,16 +1348,16 @@ const cancelarSuspension = async (susp) => {
 
   try {
     const response = await execute(
-      'SP_GACTUALIZA_SUSPENSION_CREATE',
-      'otras_obligaciones',
+      'sp_gactualiza_suspension_create',
+      BASE_DB,
       [
-        { nombre: 'parOpc', valor: 2, tipo: 'integer' },
-        { nombre: 'parContrato', valor: registroActual.value.id_datos, tipo: 'integer' },
-        { nombre: 'parAxo', valor: new Date().getFullYear(), tipo: 'integer' },
-        { nombre: 'parMes', valor: new Date().getMonth() + 1, tipo: 'integer' },
-        { nombre: 'parDescrip', valor: '', tipo: 'string' },
-        { nombre: 'parUsuario', valor: 'SISTEMA', tipo: 'string' },
-        { nombre: 'parFecSusp', valor: new Date().toISOString().split('T')[0], tipo: 'date' }
+        { nombre: 'par_opc', valor: 2, tipo: 'integer' },
+        { nombre: 'par_contrato', valor: registroActual.value.id_datos, tipo: 'integer' },
+        { nombre: 'par_axo', valor: new Date().getFullYear(), tipo: 'integer' },
+        { nombre: 'par_mes', valor: new Date().getMonth() + 1, tipo: 'integer' },
+        { nombre: 'par_descrip', valor: '', tipo: 'string' },
+        { nombre: 'par_usuario', valor: 'SISTEMA', tipo: 'string' },
+        { nombre: 'par_fec_susp', valor: new Date().toISOString().split('T')[0], tipo: 'date' }
       ],
       'guadalajara'
     )
@@ -1339,177 +1387,10 @@ const cancelarSuspension = async (susp) => {
 
 // Lifecycle
 onMounted(async () => {
+  await loadTablasDisponibles()
   await loadEtiquetas()
   await loadTablas()
   await loadDependencias()
 })
 </script>
 
-<style scoped>
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.info-item {
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  border-left: 3px solid #ea8215;
-}
-
-.info-item strong {
-  display: block;
-  color: #666;
-  font-size: 0.875rem;
-  margin-bottom: 5px;
-}
-
-.info-item span {
-  color: #333;
-  font-size: 1rem;
-}
-
-.update-form {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.update-form h6 {
-  color: #ea8215;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.badge {
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.badge-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.badge-warning {
-  background-color: #ffc107;
-  color: #333;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.badge-purple {
-  background-color: #6f42c1;
-  color: white;
-  margin-left: 10px;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-}
-
-.btn-icon-success,
-.btn-icon-warning,
-.btn-icon-info,
-.btn-icon-danger {
-  padding: 5px 10px;
-  margin: 0 2px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-icon-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-icon-success:hover {
-  background-color: #218838;
-}
-
-.btn-icon-warning {
-  background-color: #ffc107;
-  color: #333;
-}
-
-.btn-icon-warning:hover {
-  background-color: #e0a800;
-}
-
-.btn-icon-info {
-  background-color: #17a2b8;
-  color: white;
-}
-
-.btn-icon-info:hover {
-  background-color: #138496;
-}
-
-.btn-icon-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-icon-danger:hover {
-  background-color: #c82333;
-}
-
-.alert {
-  padding: 15px;
-  border-radius: 4px;
-  margin: 15px 0;
-}
-
-.alert-info {
-  background-color: #d1ecf1;
-  border: 1px solid #bee5eb;
-  color: #0c5460;
-}
-
-.alert-warning {
-  background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
-  color: #856404;
-}
-
-.mt-3 {
-  margin-top: 1rem;
-}
-
-.input-numero-local {
-  width: 150px;
-  display: inline-block;
-  margin-right: 10px;
-}
-
-.input-letra-local {
-  width: 80px;
-  display: inline-block;
-}
-
-/* SweetAlert custom classes */
-:deep(.swal-confirm-content) {
-  text-align: left;
-  padding: 0 20px;
-}
-
-:deep(.swal-info-list) {
-  list-style: none;
-  padding: 0;
-}
-</style>

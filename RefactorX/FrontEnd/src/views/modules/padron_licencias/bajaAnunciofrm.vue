@@ -191,6 +191,44 @@
             </div>
           </div>
 
+          <!-- Adeudos Pendientes -->
+          <div v-if="adeudos.length > 0" class="mt-3">
+            <div class="alert alert-danger">
+              <font-awesome-icon icon="exclamation-triangle" />
+              <strong>Adeudos Pendientes:</strong> Este anuncio tiene {{ adeudos.length }} adeudo(s) por un total de
+              <strong>{{ new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(totalAdeudos) }}</strong>
+            </div>
+
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead>
+                  <tr>
+                    <th>Concepto</th>
+                    <th>Período</th>
+                    <th class="text-end">Importe</th>
+                    <th class="text-end">Recargos</th>
+                    <th class="text-end">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="adeudo in adeudos" :key="adeudo.id_adeudo || adeudo.id">
+                    <td>{{ adeudo.concepto || adeudo.descripcion || 'N/A' }}</td>
+                    <td>{{ adeudo.periodo || adeudo.anio || 'N/A' }}</td>
+                    <td class="text-end">{{ new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(parseFloat(adeudo.importe) || 0) }}</td>
+                    <td class="text-end">{{ new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(parseFloat(adeudo.recargos) || 0) }}</td>
+                    <td class="text-end"><strong>{{ new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(parseFloat(adeudo.total) || parseFloat(adeudo.importe) || 0) }}</strong></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="table-warning">
+                    <td colspan="4" class="text-end"><strong>TOTAL ADEUDOS:</strong></td>
+                    <td class="text-end"><strong>{{ new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(totalAdeudos) }}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
           <!-- Formulario de Baja -->
           <div class="mt-4" v-if="anuncioData.vigente === 'V'">
             <h6 class="section-title text-danger">
@@ -374,12 +412,15 @@ const showBusqueda = ref(true)
 const primeraBusqueda = ref(false)
 const searchAnuncio = ref(null)
 const anuncioData = ref(null)
+const adeudos = ref([])
+const totalAdeudos = ref(0)
 
 const bajaForm = ref({
   motivo: '',
   anio: new Date().getFullYear(),
   folio: null,
-  bajaError: false
+  bajaError: false,
+  autorizadoPor: null
 })
 
 // Métodos
@@ -418,10 +459,16 @@ const buscarAnuncio = async () => {
 
     if (response && response.result && response.result.length > 0) {
       anuncioData.value = response.result[0]
+
+      // Cargar adeudos del anuncio
+      await cargarAdeudos()
+
       toast.value.duration = durationText
       showToast('success', 'Anuncio encontrado')
     } else {
       anuncioData.value = null
+      adeudos.value = []
+      totalAdeudos.value = 0
       showToast('warning', 'No se encontró el anuncio')
     }
   } catch (error) {
@@ -429,6 +476,33 @@ const buscarAnuncio = async () => {
     anuncioData.value = null
   } finally {
     setLoading(false)
+  }
+}
+
+const cargarAdeudos = async () => {
+  if (!anuncioData.value) return
+
+  try {
+    const response = await execute(
+      'sp_consulta_adeudos_anuncio',
+      'padron_licencias',
+      [{ nombre: 'p_anuncio', valor: searchAnuncio.value, tipo: 'integer' }],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      adeudos.value = response.result
+      totalAdeudos.value = adeudos.value.reduce((sum, a) => {
+        const total = parseFloat(a.total) || parseFloat(a.importe) || 0
+        return sum + total
+      }, 0)
+    } else {
+      adeudos.value = []
+      totalAdeudos.value = 0
+    }
+  } catch (error) {
+    adeudos.value = []
+    totalAdeudos.value = 0
   }
 }
 
@@ -453,6 +527,118 @@ const confirmarBaja = async () => {
       confirmButtonColor: '#ea8215'
     })
     return
+  }
+
+  // Verificar si hay adeudos pendientes
+  if (adeudos.value.length > 0 && totalAdeudos.value > 0) {
+    const formatCurrency = (value) => {
+      return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
+    }
+
+    const resultAdeudos = await Swal.fire({
+      icon: 'warning',
+      title: 'Adeudos Pendientes',
+      html: `
+        <div class="text-start">
+          <p>Este anuncio tiene <strong>${adeudos.value.length} adeudo(s) pendiente(s)</strong> por un total de:</p>
+          <h3 class="text-danger text-center my-3">${formatCurrency(totalAdeudos.value)}</h3>
+          <div style="max-height: 200px; overflow-y: auto;">
+            <table class="table table-sm table-striped">
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Período</th>
+                  <th class="text-end">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${adeudos.value.slice(0, 10).map(a => `
+                  <tr>
+                    <td>${a.concepto || a.descripcion || 'N/A'}</td>
+                    <td>${a.periodo || a.anio || 'N/A'}</td>
+                    <td class="text-end">${formatCurrency(parseFloat(a.total) || parseFloat(a.importe) || 0)}</td>
+                  </tr>
+                `).join('')}
+                ${adeudos.value.length > 10 ? `<tr><td colspan="3" class="text-center text-muted">... y ${adeudos.value.length - 10} más</td></tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+          <p class="text-danger mt-3"><strong>¿Desea continuar con la baja a pesar de los adeudos?</strong></p>
+          <p class="text-muted small">Nota: Esta acción requiere autorización especial.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Continuar con Baja',
+      cancelButtonText: 'Cancelar',
+      width: '600px'
+    })
+
+    if (!resultAdeudos.isConfirmed) {
+      return
+    }
+
+    // Si continúa, requerir autorización especial
+    const authResult = await Swal.fire({
+      icon: 'warning',
+      title: 'Autorización Requerida',
+      html: `
+        <p>La baja de anuncios con adeudos pendientes requiere <strong>autorización de un supervisor</strong>.</p>
+        <p>Ingrese las credenciales del supervisor:</p>
+      `,
+      input: 'text',
+      inputPlaceholder: 'Usuario supervisor',
+      showCancelButton: true,
+      confirmButtonText: 'Validar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ea8215',
+      preConfirm: async (usuario) => {
+        if (!usuario) {
+          Swal.showValidationMessage('Ingrese el usuario supervisor')
+          return false
+        }
+
+        const { value: password } = await Swal.fire({
+          title: 'Contraseña del Supervisor',
+          input: 'password',
+          inputPlaceholder: 'Contraseña',
+          showCancelButton: true,
+          confirmButtonColor: '#ea8215'
+        })
+
+        if (!password) return false
+
+        try {
+          const response = await execute(
+            'sp_validar_supervisor_baja',
+            'padron_licencias',
+            [
+              { nombre: 'p_usuario', valor: usuario, tipo: 'string' },
+              { nombre: 'p_password', valor: password, tipo: 'string' }
+            ],
+            'guadalajara'
+          )
+
+          if (response && response.result && response.result[0]?.autorizado) {
+            return { usuario, autorizado: true }
+          } else {
+            Swal.showValidationMessage('Usuario no autorizado o credenciales inválidas')
+            return false
+          }
+        } catch (error) {
+          Swal.showValidationMessage('Error al validar credenciales')
+          return false
+        }
+      }
+    })
+
+    if (!authResult.isConfirmed || !authResult.value?.autorizado) {
+      showToast('warning', 'Baja cancelada - Se requiere autorización')
+      return
+    }
+
+    bajaForm.value.autorizadoPor = authResult.value.usuario
   }
 
   // Confirmación
@@ -598,13 +784,16 @@ const ejecutarBaja = async () => {
 const cancelar = () => {
   searchAnuncio.value = null
   anuncioData.value = null
+  adeudos.value = []
+  totalAdeudos.value = 0
   primeraBusqueda.value = false
   showBusqueda.value = true
   bajaForm.value = {
     motivo: '',
     anio: new Date().getFullYear(),
     folio: null,
-    bajaError: false
+    bajaError: false,
+    autorizadoPor: null
   }
 }
 

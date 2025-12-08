@@ -106,10 +106,19 @@
       <font-awesome-icon icon="info-circle" />
       No se encontraron folios en este cementerio
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ConsultaJardin'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -208,7 +217,6 @@ const buscarFolios = async () => {
       toast.info('No se encontraron folios con los criterios especificados')
     }
   } catch (error) {
-    console.error('Error al buscar folios:', error)
     toast.error('Error al buscar folios')
   }
 }
@@ -251,7 +259,6 @@ const cargarMas = async () => {
       toast.success(`Se cargaron ${nuevosFolios.length} folio(s) adicionales`)
     }
   } catch (error) {
-    console.error('Error al cargar más folios:', error)
     toast.error('Error al cargar más folios')
   }
 }

@@ -332,6 +332,8 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const showDocumentation = ref(false)
@@ -348,6 +350,8 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const anuncios = ref([])
@@ -472,6 +476,33 @@ const generarReporte = async () => {
   }
 }
 
+// Definición de columnas para exportación
+const columnasExport = computed(() => {
+  const cols = [
+    { header: 'Anuncio', key: 'anuncio', width: 12 },
+    { header: 'Propietario', key: 'propietario', width: 35 },
+    { header: 'Licencia', key: 'licencia', width: 12 },
+    { header: 'Tipo Anuncio', key: 'tipo_anuncio', width: 25 },
+    { header: 'Medidas 1', key: 'medidas1', type: 'number', width: 12 },
+    { header: 'Medidas 2', key: 'medidas2', type: 'number', width: 12 },
+    { header: 'Área m²', key: 'area_anuncio', type: 'number', width: 12 },
+    { header: 'Caras', key: 'num_caras', type: 'integer', width: 8 },
+    { header: 'Ubicación', key: 'ubicacion', width: 35 },
+    { header: 'No. Ext', key: 'numext_ubic', width: 10 },
+    { header: 'Colonia', key: 'colonia_ubic', width: 25 },
+    { header: 'Zona', key: 'zona', width: 10 },
+    { header: 'Fecha Otorg.', key: 'fecha_otorgamiento', type: 'date', width: 15 },
+    { header: 'Estado', key: 'vigente', width: 12 }
+  ]
+
+  // Agregar columna de adeudo si aplica
+  if (showAdeudo.value) {
+    cols.push({ header: 'Adeudo', key: 'adeudo', type: 'currency', width: 15 })
+  }
+
+  return cols
+})
+
 const exportarExcel = async () => {
   if (anuncios.value.length === 0) {
     await Swal.fire({
@@ -483,7 +514,29 @@ const exportarExcel = async () => {
     return
   }
 
-  showToast('info', 'Función de exportación a Excel en desarrollo')
+  showLoading('Generando Excel...', 'Por favor espere')
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Preparar datos con texto de vigencia
+    const datosExport = anuncios.value.map(anun => ({
+      ...anun,
+      vigente: getVigenciaText(anun.vigente)
+    }))
+
+    const success = exportToExcel(datosExport, columnasExport.value, 'Reporte_Anuncios')
+
+    if (success) {
+      showToast('success', `Excel generado con ${anuncios.value.length} anuncios`)
+    } else {
+      showToast('error', 'Error al generar Excel')
+    }
+  } catch (error) {
+    showToast('error', 'Error al generar Excel')
+  } finally {
+    hideLoading()
+  }
 }
 
 const clearFilters = () => {

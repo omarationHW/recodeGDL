@@ -257,7 +257,6 @@ const validarPasswordActual = async () => {
       exito.value = false
     }
   } catch (error) {
-    console.error('Error al validar contraseña:', error)
     mensaje.value = 'Error de conexión con el servidor'
     exito.value = false
     toast.error('Error al validar contraseña')
@@ -355,7 +354,6 @@ const cambiarPassword = async () => {
       exito.value = false
     }
   } catch (error) {
-    console.error('Error al cambiar contraseña:', error)
     mensaje.value = 'Error de conexión con el servidor'
     exito.value = false
     toast.error('Error al cambiar contraseña')

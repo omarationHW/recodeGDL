@@ -10,6 +10,25 @@
         <h1>Pago Múltiple de Adeudos</h1>
         <p>Aseo Contratado - Registro de pagos masivos para múltiples adeudos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -88,7 +107,7 @@
         </div>
 
         <!-- Datos del Contrato -->
-        <div v-if="contratoSeleccionado" class="alert alert-success">
+        <div v-if="contratoSeleccionado" class="municipal-alert municipal-alert-success">
           <h6 class="alert-heading">
             <font-awesome-icon icon="check-circle" class="me-2" />
             Contrato Encontrado
@@ -181,7 +200,7 @@
         <!-- Tabla de Adeudos -->
         <div v-if="adeudosFiltrados.length > 0" class="table-responsive">
           <table class="municipal-table">
-            <thead>
+            <thead class="municipal-table-header">
               <tr>
                 <th style="width: 40px">
                   <input
@@ -238,7 +257,7 @@
           </table>
         </div>
 
-        <div v-else class="alert alert-warning">
+        <div v-else class="municipal-alert municipal-alert-warning">
           <font-awesome-icon icon="info-circle" class="me-2" />
           No hay adeudos pendientes con los filtros seleccionados.
         </div>
@@ -369,7 +388,7 @@
           <div class="municipal-card-body" style="max-height: 300px; overflow-y: auto;">
             <div class="table-responsive">
               <table class="municipal-table">
-                <thead>
+                <thead class="municipal-table-header">
                   <tr>
                     <th>Folio</th>
                     <th>Periodo</th>
@@ -457,10 +476,20 @@
         <li>Es recomendable pagar primero los adeudos más antiguos</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Adeudos_PagMult'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import Swal from 'sweetalert2'
@@ -469,8 +498,10 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 // Estado
@@ -575,7 +606,8 @@ const buscarContrato = async () => {
       contratoSeleccionado.value = null
     }
   } catch (error) {
-    handleError(error, 'Error al buscar contrato')
+    hideLoading()
+    handleApiError(error, 'Error al buscar contrato')
     contratoSeleccionado.value = null
   } finally {
     cargando.value = false
@@ -603,7 +635,8 @@ const buscarPorPredial = async () => {
       contratoSeleccionado.value = null
     }
   } catch (error) {
-    handleError(error, 'Error al buscar por cuenta predial')
+    hideLoading()
+    handleApiError(error, 'Error al buscar por cuenta predial')
     contratoSeleccionado.value = null
   } finally {
     cargando.value = false
@@ -627,7 +660,8 @@ const cargarAdeudos = async () => {
     paso.value = 2
     showToast(`${adeudosDisponibles.value.length} adeudo(s) encontrado(s)`, 'success')
   } catch (error) {
-    handleError(error, 'Error al cargar adeudos')
+    hideLoading()
+    handleApiError(error, 'Error al cargar adeudos')
     adeudosDisponibles.value = []
   } finally {
     cargando.value = false
@@ -703,7 +737,8 @@ const registrarPago = async () => {
     paso.value = 1
 
   } catch (error) {
-    handleError(error, 'Error al registrar pago')
+    hideLoading()
+    handleApiError(error, 'Error al registrar pago')
   } finally {
     registrando.value = false
   }
@@ -737,4 +772,13 @@ const formatFecha = (fecha) => {
   if (!fecha) return 'N/A'
   return new Date(fecha).toLocaleDateString('es-MX')
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

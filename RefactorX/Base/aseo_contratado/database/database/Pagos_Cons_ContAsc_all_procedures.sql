@@ -1,66 +1,57 @@
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
 -- Formulario: Pagos_Cons_ContAsc
--- Generado: 2025-08-27 15:00:04
--- Total SPs: 3
+-- Base de datos: padron_licencias (aseo_contratado)
+-- Actualizado: 2025-12-07
+-- Total SPs: 2
+-- ============================================
+-- Descripcion: Consulta de pagos por contrato de forma ascendente
+-- Permite navegar entre contratos y ver sus pagos con status P
 -- ============================================
 
--- SP 1/3: sp_get_tipo_aseo
--- Tipo: Catalog
--- Descripción: Devuelve todos los tipos de aseo activos para el combo.
--- --------------------------------------------
-
-CREATE OR REPLACE FUNCTION sp_get_tipo_aseo()
-RETURNS TABLE (
-    ctrol_aseo INTEGER,
-    tipo_aseo VARCHAR,
-    descripcion VARCHAR,
-    cta_aplicacion INTEGER
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT ctrol_aseo, tipo_aseo, descripcion, cta_aplicacion
-    FROM ta_16_tipo_aseo
-    ORDER BY ctrol_aseo;
-END;
-$$ LANGUAGE plpgsql;
-
--- ============================================
-
--- SP 2/3: sp_buscar_contratos_asc
+-- SP 1/2: sp_aseo_contratos_ascendente
 -- Tipo: Report
--- Descripción: Busca contratos cuyo número sea mayor o igual al parámetro y por tipo de aseo, orden ascendente.
--- --------------------------------------------
+-- Descripcion: Busca contratos con num_contrato >= al indicado, ordenados ascendentemente
+-- ============================================
+DROP FUNCTION IF EXISTS public.sp_aseo_contratos_ascendente(INTEGER, INTEGER);
 
-CREATE OR REPLACE FUNCTION sp_buscar_contratos_asc(
-    p_num_contrato INTEGER,
-    p_ctrol_aseo INTEGER
+CREATE OR REPLACE FUNCTION public.sp_aseo_contratos_ascendente(
+    p_tipo_aseo_id INTEGER,
+    p_num_contrato INTEGER
 )
 RETURNS TABLE (
     control_contrato INTEGER,
     num_contrato INTEGER,
-    ctrol_aseo INTEGER,
+    tipo_aseo_id INTEGER,
     tipo_aseo VARCHAR,
     descripcion VARCHAR
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT a.control_contrato, a.num_contrato, a.ctrol_aseo, b.tipo_aseo, b.descripcion
-    FROM ta_16_contratos a
-    JOIN ta_16_tipo_aseo b ON a.ctrol_aseo = b.ctrol_aseo
-    WHERE a.num_contrato >= p_num_contrato AND a.ctrol_aseo = p_ctrol_aseo
-    ORDER BY a.num_contrato ASC;
+    SELECT
+        c.control_contrato,
+        c.num_contrato,
+        c.tipo_aseo_id,
+        t.cve_tipo::VARCHAR as tipo_aseo,
+        t.descripcion::VARCHAR
+    FROM ta_16_contratos c
+    JOIN ta_16_tipos_aseo t ON t.tipo_aseo_id = c.tipo_aseo_id
+    WHERE c.num_contrato >= p_num_contrato
+      AND c.tipo_aseo_id = p_tipo_aseo_id
+    ORDER BY c.num_contrato ASC;
 END;
 $$ LANGUAGE plpgsql;
 
--- ============================================
+GRANT EXECUTE ON FUNCTION public.sp_aseo_contratos_ascendente(INTEGER, INTEGER) TO PUBLIC;
 
--- SP 3/3: sp_pagos_por_contrato_asc
+
+-- SP 2/2: sp_aseo_pagos_contrato
 -- Tipo: Report
--- Descripción: Devuelve los pagos del contrato (vigencia = 'P') ordenados por periodo y operación.
--- --------------------------------------------
+-- Descripcion: Obtiene pagos de un contrato con status P (pagado)
+-- ============================================
+DROP FUNCTION IF EXISTS public.sp_aseo_pagos_contrato(INTEGER);
 
-CREATE OR REPLACE FUNCTION sp_pagos_por_contrato_asc(
+CREATE OR REPLACE FUNCTION public.sp_aseo_pagos_contrato(
     p_control_contrato INTEGER
 )
 RETURNS TABLE (
@@ -68,11 +59,11 @@ RETURNS TABLE (
     aso_mes_pago DATE,
     ctrol_operacion INTEGER,
     descripcion VARCHAR,
-    exedencias SMALLINT,
+    exedencias INTEGER,
     importe NUMERIC,
     status_vigencia VARCHAR,
     fecha_hora_pago TIMESTAMP,
-    id_rec SMALLINT,
+    id_rec INTEGER,
     recaudadora VARCHAR,
     caja VARCHAR,
     consec_operacion INTEGER,
@@ -80,17 +71,31 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT a.control_contrato, a.aso_mes_pago, a.ctrol_operacion, b.descripcion,
-           a.exedencias, a.importe, a.status_vigencia, a.fecha_hora_pago, a.id_rec, c.recaudadora,
-           a.caja, a.consec_operacion, a.folio_rcbo
-    FROM ta_16_pagos a
-    JOIN ta_16_operacion b ON b.ctrol_operacion = a.ctrol_operacion
-    JOIN ta_12_recaudadoras c ON c.id_rec = a.id_rec
-    WHERE a.control_contrato = p_control_contrato
-      AND a.status_vigencia = 'P'
-    ORDER BY a.control_contrato, a.aso_mes_pago, a.ctrol_operacion;
+    SELECT
+        p.control_contrato,
+        p.fecha_pago as aso_mes_pago,
+        COALESCE(p.recaudadora_id, 0) as ctrol_operacion,
+        COALESCE(p.forma_pago, 'PAGO')::VARCHAR as descripcion,
+        0::INTEGER as exedencias,
+        COALESCE(p.monto, 0) as importe,
+        'P'::VARCHAR as status_vigencia,
+        p.created_at as fecha_hora_pago,
+        COALESCE(p.recaudadora_id, 0) as id_rec,
+        COALESCE(r.descripcion, '')::VARCHAR as recaudadora,
+        ''::VARCHAR as caja,
+        p.pago_id as consec_operacion,
+        COALESCE(p.recibo, '')::VARCHAR as folio_rcbo
+    FROM ta_16_pagos p
+    LEFT JOIN ta_16_recaudadoras r ON r.recaudadora_id = p.recaudadora_id
+    WHERE p.control_contrato = p_control_contrato
+      AND p.activo = true
+    ORDER BY p.control_contrato, p.fecha_pago, p.pago_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- ============================================
+GRANT EXECUTE ON FUNCTION public.sp_aseo_pagos_contrato(INTEGER) TO PUBLIC;
 
+
+-- ============================================
+-- FIN DEL ARCHIVO
+-- ============================================

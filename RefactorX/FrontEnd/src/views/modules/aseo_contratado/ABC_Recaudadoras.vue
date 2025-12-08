@@ -7,17 +7,17 @@
       </div>
       <div class="module-view-info">
         <h1>Catálogo de Empresas Recaudadoras</h1>
-        <p>Aseo Contratado - Administración de empresas recaudadoras</p>
+        <p>Aseo Contratado - Administración de Recaudadoras</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
       <div class="module-view-actions">
+        <button
+          class="btn-municipal-secondary"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
@@ -39,16 +39,16 @@
               <input
                 type="text"
                 class="municipal-form-control"
-                v-model="searchQuery"
+                v-model="filters.search"
                 placeholder="Descripción o número..."
-                @keyup.enter="handleSearch"
+                @keyup.enter="searchRecaudadoras"
               />
             </div>
           </div>
           <div class="button-group">
             <button
               class="btn-municipal-primary"
-              @click="handleSearch"
+              @click="searchRecaudadoras"
               :disabled="loading"
             >
               <font-awesome-icon icon="search" />
@@ -56,7 +56,7 @@
             </button>
             <button
               class="btn-municipal-secondary"
-              @click="clearSearch"
+              @click="clearFilters"
               :disabled="loading"
             >
               <font-awesome-icon icon="times" />
@@ -72,8 +72,8 @@
             </button>
             <button
               class="btn-municipal-primary"
-              @click="exportToExcel"
-              :disabled="loading || recaudadoras.length === 0"
+              @click="exportarCSV"
+              :disabled="loading || recaudadorasFiltradas.length === 0"
             >
               <font-awesome-icon icon="file-excel" />
               Exportar
@@ -88,7 +88,7 @@
           <h5>
             <font-awesome-icon icon="list" />
             Recaudadoras Registradas
-            <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
+            <span class="badge-info" v-if="recaudadorasFiltradas.length > 0">{{ recaudadorasFiltradas.length }} registros</span>
           </h5>
         </div>
 
@@ -103,36 +103,27 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="recaudadoras.length === 0">
+                <tr v-if="recaudadorasPaginadas.length === 0">
                   <td colspan="3" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron recaudadoras</p>
+                    <font-awesome-icon icon="money-check-alt" size="2x" class="empty-icon" />
+                    <p>No se encontraron recaudadoras registradas</p>
                   </td>
                 </tr>
-                <tr v-else v-for="recaudadora in recaudadoras" :key="recaudadora.num_rec" class="row-hover">
-                  <td>
-                    <span class="badge badge-success">{{ recaudadora.num_rec }}</span>
-                  </td>
+                <tr v-else v-for="recaudadora in recaudadorasPaginadas" :key="recaudadora.num_rec" class="row-hover">
+                  <td><strong class="text-primary">{{ recaudadora.num_rec }}</strong></td>
                   <td>{{ recaudadora.descripcion }}</td>
                   <td>
                     <div class="button-group button-group-sm">
                       <button
-                        class="btn-municipal-info btn-sm"
-                        @click="openViewModal(recaudadora)"
-                        title="Ver detalles"
-                      >
-                        <font-awesome-icon icon="eye" />
-                      </button>
-                      <button
                         class="btn-municipal-primary btn-sm"
-                        @click="openEditModal(recaudadora)"
+                        @click="editRecaudadora(recaudadora)"
                         title="Editar"
                       >
                         <font-awesome-icon icon="edit" />
                       </button>
                       <button
-                        class="btn-municipal-secondary btn-sm"
-                        @click="confirmDelete(recaudadora)"
+                        class="btn-municipal-danger btn-sm"
+                        @click="confirmDeleteRecaudadora(recaudadora)"
                         title="Eliminar"
                       >
                         <font-awesome-icon icon="trash" />
@@ -143,53 +134,60 @@
               </tbody>
             </table>
           </div>
+        </div>
 
-          <!-- Paginación -->
-          <div class="pagination-container" v-if="totalPages > 1">
-            <div class="pagination-info">
-              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }} a {{ Math.min(currentPage * itemsPerPage, totalRecords) }} de {{ totalRecords }} registros
+        <!-- Paginación -->
+        <div class="pagination-container" v-if="recaudadorasFiltradas.length > 0 && !loading">
+          <div class="pagination-info">
+            <font-awesome-icon icon="info-circle" />
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, recaudadorasFiltradas.length) }}
+            de {{ recaudadorasFiltradas.length }} registros
+          </div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <label>Mostrar:</label>
+              <select v-model="itemsPerPage" @change="currentPage = 1">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
             </div>
-            <div class="pagination">
+
+            <div class="pagination-nav">
               <button
-                @click="goToPage(1)"
+                class="pagination-button"
+                @click="currentPage = 1"
                 :disabled="currentPage === 1"
-                class="pagination-btn"
                 title="Primera página"
               >
                 <font-awesome-icon icon="angle-double-left" />
               </button>
               <button
-                @click="goToPage(currentPage - 1)"
+                class="pagination-button"
+                @click="currentPage--"
                 :disabled="currentPage === 1"
-                class="pagination-btn"
-                title="Página anterior"
               >
-                <font-awesome-icon icon="angle-left" />
+                <font-awesome-icon icon="chevron-left" />
               </button>
 
-              <template v-for="page in paginationRange" :key="page">
-                <button
-                  v-if="page !== '...'"
-                  @click="goToPage(page)"
-                  :class="['pagination-btn', { active: currentPage === page }]"
-                >
-                  {{ page }}
-                </button>
-                <span v-else class="pagination-ellipsis">...</span>
-              </template>
+              <span class="pagination-current">
+                Página {{ currentPage }} de {{ totalPages }}
+              </span>
 
               <button
-                @click="goToPage(currentPage + 1)"
-                :disabled="currentPage === totalPages"
-                class="pagination-btn"
-                title="Página siguiente"
+                class="pagination-button"
+                @click="currentPage++"
+                :disabled="currentPage >= totalPages"
               >
-                <font-awesome-icon icon="angle-right" />
+                <font-awesome-icon icon="chevron-right" />
               </button>
               <button
-                @click="goToPage(totalPages)"
-                :disabled="currentPage === totalPages"
-                class="pagination-btn"
+                class="pagination-button"
+                @click="currentPage = totalPages"
+                :disabled="currentPage >= totalPages"
                 title="Última página"
               >
                 <font-awesome-icon icon="angle-double-right" />
@@ -197,329 +195,284 @@
             </div>
           </div>
         </div>
-
-        <div class="municipal-card-body" v-else>
-          <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Cargando recaudadoras...</p>
-          </div>
-        </div>
       </div>
+
     </div>
 
-    <!-- Modal Crear -->
+    <!-- Modal de creación -->
     <Modal
       :show="showCreateModal"
-      @close="closeCreateModal"
       title="Nueva Empresa Recaudadora"
-      size="medium"
+      size="md"
+      @close="closeCreateModal"
     >
-      <template #body>
-        <form @submit.prevent="createRecaudadora" class="modal-form">
-          <div class="form-group">
-            <label for="descripcion" class="municipal-form-label required">Descripción</label>
-            <input
-              type="text"
-              id="descripcion"
-              v-model="formData.descripcion"
-              class="municipal-form-control"
-              maxlength="100"
-              placeholder="Nombre de la empresa recaudadora"
-              required
-            />
-          </div>
-        </form>
-      </template>
+      <form @submit.prevent="createRecaudadora">
+        <div class="form-group">
+          <label class="municipal-form-label">Número: <span class="required">*</span></label>
+          <input
+            type="number"
+            class="municipal-form-control"
+            v-model="formData.num_rec"
+            min="1"
+            required
+            placeholder="Número de recaudadora"
+          />
+          <small class="form-hint">Siguiente disponible: {{ nextNumRec }}</small>
+        </div>
+        <div class="form-group">
+          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            v-model="formData.descripcion"
+            maxlength="100"
+            required
+            placeholder="Nombre de la empresa recaudadora"
+          />
+        </div>
+      </form>
       <template #footer>
-        <button type="button" @click="closeCreateModal" class="btn-secondary">
+        <button class="btn-municipal-secondary" @click="closeCreateModal" :disabled="guardando">
+          <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button type="button" @click="createRecaudadora" class="btn-primary" :disabled="loading">
-          <font-awesome-icon v-if="loading" icon="spinner" spin />
-          Crear Recaudadora
+        <button class="btn-municipal-primary" @click="createRecaudadora" :disabled="guardando">
+          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
+          {{ guardando ? 'Guardando...' : 'Crear Recaudadora' }}
         </button>
       </template>
     </Modal>
 
-    <!-- Modal Editar -->
+    <!-- Modal de edición -->
     <Modal
       :show="showEditModal"
+      :title="`Editar Recaudadora: ${selectedRecaudadora?.descripcion || ''}`"
+      size="md"
       @close="closeEditModal"
-      title="Editar Empresa Recaudadora"
-      size="medium"
     >
-      <template #body>
-        <form @submit.prevent="updateRecaudadora" class="modal-form">
-          <div class="form-group">
-            <label class="municipal-form-label">Número</label>
-            <input
-              type="text"
-              :value="formData.num_rec"
-              class="municipal-form-control"
-              disabled
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="edit_descripcion" class="municipal-form-label required">Descripción</label>
-            <input
-              type="text"
-              id="edit_descripcion"
-              v-model="formData.descripcion"
-              class="municipal-form-control"
-              maxlength="100"
-              required
-            />
-          </div>
-        </form>
-      </template>
+      <form @submit.prevent="updateRecaudadora">
+        <div class="form-group">
+          <label class="municipal-form-label">Número:</label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            :value="formData.num_rec"
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
+          <input
+            type="text"
+            class="municipal-form-control"
+            v-model="formData.descripcion"
+            maxlength="100"
+            required
+          />
+        </div>
+      </form>
       <template #footer>
-        <button type="button" @click="closeEditModal" class="btn-secondary">
+        <button class="btn-municipal-secondary" @click="closeEditModal" :disabled="guardando">
+          <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button type="button" @click="updateRecaudadora" class="btn-primary" :disabled="loading">
-          <font-awesome-icon v-if="loading" icon="spinner" spin />
-          Guardar Cambios
+        <button class="btn-municipal-primary" @click="updateRecaudadora" :disabled="guardando">
+          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
+          {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
       </template>
     </Modal>
-
-    <!-- Modal Ver -->
-    <Modal
-      :show="showViewModal"
-      @close="closeViewModal"
-      title="Detalle de la Recaudadora"
-      size="medium"
-    >
-      <template #body>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <label class="detail-label">Número</label>
-            <p class="detail-value">
-              <span class="badge badge-success">{{ viewData.num_rec }}</span>
-            </p>
-          </div>
-
-          <div class="detail-item full-width">
-            <label class="detail-label">Descripción</label>
-            <p class="detail-value">{{ viewData.descripcion }}</p>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <button type="button" @click="closeViewModal" class="btn-secondary">
-          Cerrar
-        </button>
-        <button type="button" @click="editFromView" class="btn-primary">
-          <font-awesome-icon icon="edit" />
-          Editar
-        </button>
-      </template>
-    </Modal>
-
-    <!-- Modal Documentación -->
-    <DocumentationModal
-      :show="showDocumentation"
-      @close="showDocumentation = false"
-      title="Ayuda - Catálogo de Recaudadoras"
-    >
-      <h3>Catálogo de Empresas Recaudadoras</h3>
-      <p>
-        Este módulo permite administrar el catálogo de empresas recaudadoras
-        que participan en el servicio de aseo contratado.
-      </p>
-
-      <h4>Funcionalidades Principales:</h4>
-      <ul>
-        <li><strong>Crear:</strong> Agregar nuevas empresas recaudadoras</li>
-        <li><strong>Editar:</strong> Modificar información de recaudadoras existentes</li>
-        <li><strong>Eliminar:</strong> Dar de baja recaudadoras no utilizadas</li>
-        <li><strong>Buscar:</strong> Filtrar recaudadoras por descripción o número</li>
-        <li><strong>Exportar:</strong> Generar archivo Excel con el catálogo</li>
-      </ul>
-
-      <h4>Campos:</h4>
-      <ul>
-        <li><strong>Número:</strong> Identificador único asignado automáticamente</li>
-        <li><strong>Descripción:</strong> Nombre de la empresa recaudadora (obligatorio)</li>
-      </ul>
-
-      <h4>Notas Importantes:</h4>
-      <ul>
-        <li>El número se asigna automáticamente al crear una recaudadora</li>
-        <li>La descripción debe ser única en el catálogo</li>
-        <li>No se puede eliminar una recaudadora que esté en uso</li>
-      </ul>
-    </DocumentationModal>
   </div>
+
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'ABC_Recaudadoras'"
+    :moduleName="'aseo_contratado'"
+    @close="closeDocumentation"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import Modal from '@/components/common/Modal.vue'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-const { execute } = useApi()
-const { showToast } = useLicenciasErrorHandler()
+// Constantes
+const BASE_DB = 'aseo_contratado'
+const SCHEMA = 'public'
 
-// Data
+// Composables
+const { execute } = useApi()
+const { isLoading: loading, showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+
+// Documentación
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+
+// Estado
 const recaudadoras = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-const totalRecords = ref(0)
-const searchQuery = ref('')
-const loading = ref(false)
-const showDocumentation = ref(false)
-
-// Modales
+const selectedRecaudadora = ref(null)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
-const showViewModal = ref(false)
+const guardando = ref(false)
+const nextNumRec = ref(1)
 
-// Form Data
+// Filtros
+const filters = ref({
+  search: ''
+})
+
+// Formulario
 const formData = ref({
   num_rec: null,
   descripcion: ''
 })
 
-const viewData = ref({})
-
 // Computed
-const totalPages = computed(() => {
-  return Math.ceil(totalRecords.value / itemsPerPage.value)
-})
+const recaudadorasFiltradas = computed(() => {
+  let result = [...recaudadoras.value]
 
-const paginationRange = computed(() => {
-  const range = []
-  const delta = 2
-
-  for (let i = Math.max(2, currentPage.value - delta); i <= Math.min(totalPages.value - 1, currentPage.value + delta); i++) {
-    range.push(i)
-  }
-
-  if (currentPage.value - delta > 2) {
-    range.unshift('...')
-  }
-  if (currentPage.value + delta < totalPages.value - 1) {
-    range.push('...')
-  }
-
-  range.unshift(1)
-  if (totalPages.value > 1) {
-    range.push(totalPages.value)
-  }
-
-  return range
-})
-
-// Methods
-const loadRecaudadoras = async () => {
-  loading.value = true
-  try {
-    const response = await execute(
-      'SP_ASEO_RECAUDADORAS_LIST',
-      'aseo_contratado',
-      {
-        p_page: currentPage.value,
-        p_limit: itemsPerPage.value,
-        p_search: searchQuery.value || null
-      }
+  if (filters.value.search) {
+    const search = filters.value.search.toLowerCase()
+    result = result.filter(r =>
+      r.descripcion?.toLowerCase().includes(search) ||
+      String(r.num_rec).includes(search)
     )
+  }
 
-    if (response && response.data) {
-      recaudadoras.value = response.data
-      if (response.data.length > 0) {
-        totalRecords.value = response.data[0].total_records || 0
-      } else {
-        totalRecords.value = 0
-      }
+  return result
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(recaudadorasFiltradas.value.length / itemsPerPage.value) || 1
+})
+
+const recaudadorasPaginadas = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return recaudadorasFiltradas.value.slice(start, end)
+})
+
+// Métodos
+async function loadRecaudadoras() {
+  showLoading('Cargando recaudadoras...', 'Obteniendo datos')
+  try {
+    const response = await execute('sp_list_recaudadoras', BASE_DB, [], '', null, SCHEMA)
+
+    if (response?.result) {
+      recaudadoras.value = response.result
+    } else {
+      recaudadoras.value = []
     }
-  } catch (error) {
-    console.error('Error al cargar recaudadoras:', error)
-    showToast('Error al cargar las recaudadoras', 'error')
+  } catch (e) {
+    hideLoading()
+    handleApiError(e)
+    recaudadoras.value = []
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
-const handleSearch = () => {
-  currentPage.value = 1
-  loadRecaudadoras()
-}
-
-const clearSearch = () => {
-  searchQuery.value = ''
-  handleSearch()
-}
-
-const handleItemsPerPageChange = () => {
-  currentPage.value = 1
-  loadRecaudadoras()
-}
-
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    loadRecaudadoras()
+async function loadNextNumRec() {
+  try {
+    const response = await execute('sp_get_next_num_recaudadora', BASE_DB, [], '', null, SCHEMA)
+    if (response?.result?.[0]?.next_num) {
+      nextNumRec.value = response.result[0].next_num
+    }
+  } catch (e) {
+    hideLoading()
+    console.error('Error obteniendo siguiente número:', e)
   }
 }
 
-const openDocumentation = () => {
-  showDocumentation.value = true
+function searchRecaudadoras() {
+  currentPage.value = 1
 }
 
-// Create
-const openCreateModal = () => {
+function clearFilters() {
+  filters.value = {
+    search: ''
+  }
+  currentPage.value = 1
+}
+
+function openCreateModal() {
+  loadNextNumRec()
   formData.value = {
-    num_rec: null,
+    num_rec: nextNumRec.value,
     descripcion: ''
   }
   showCreateModal.value = true
 }
 
-const closeCreateModal = () => {
+function closeCreateModal() {
   showCreateModal.value = false
 }
 
-const createRecaudadora = async () => {
+async function createRecaudadora() {
+  // Validación
+  if (!formData.value.num_rec) {
+    showToast('Ingrese el número de recaudadora', 'warning')
+    return
+  }
   if (!formData.value.descripcion?.trim()) {
-    showToast('La descripción es requerida', 'warning')
+    showToast('Ingrese la descripción', 'warning')
     return
   }
 
-  loading.value = true
-  try {
-    const response = await execute(
-      'SP_ASEO_RECAUDADORAS_CREATE',
-      'aseo_contratado',
-      {
-        p_descripcion: formData.value.descripcion.trim()
-      }
-    )
+  // 1. SweetAlert2 confirmación
+  const confirmResult = await Swal.fire({
+    title: 'Crear Recaudadora',
+    html: `<p>¿Desea crear la recaudadora <strong>${formData.value.descripcion}</strong>?</p>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, crear',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#667eea',
+    cancelButtonColor: '#6c757d'
+  })
 
-    if (response && response.data && response.data[0]) {
-      const result = response.data[0]
-      if (result.success) {
-        showToast(result.message || 'Recaudadora creada exitosamente', 'success')
-        closeCreateModal()
-        loadRecaudadoras()
-      } else {
-        showToast(result.message || 'Error al crear la recaudadora', 'error')
-      }
+  if (!confirmResult.isConfirmed) return
+
+  // 2. Loading
+  showLoading('Creando recaudadora...', 'Guardando datos')
+  guardando.value = true
+
+  try {
+    const params = [
+      { nombre: 'p_num_rec', valor: parseInt(formData.value.num_rec), tipo: 'integer' },
+      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' }
+    ]
+
+    const response = await execute('sp_insert_recaudadora', BASE_DB, params, '', null, SCHEMA)
+
+    if (response?.result?.[0]?.success === false) {
+      showToast(response.result[0].message, 'warning')
+    } else {
+      showToast('Recaudadora creada correctamente', 'success')
+      closeCreateModal()
+      await loadRecaudadoras()
     }
-  } catch (error) {
-    console.error('Error al crear recaudadora:', error)
-    showToast('Error al crear la recaudadora', 'error')
+  } catch (e) {
+    hideLoading()
+    handleApiError(e)
   } finally {
-    loading.value = false
+    hideLoading()
+    guardando.value = false
   }
 }
 
-// Edit
-const openEditModal = (recaudadora) => {
+function editRecaudadora(recaudadora) {
+  selectedRecaudadora.value = recaudadora
   formData.value = {
     num_rec: recaudadora.num_rec,
     descripcion: recaudadora.descripcion || ''
@@ -527,117 +480,134 @@ const openEditModal = (recaudadora) => {
   showEditModal.value = true
 }
 
-const closeEditModal = () => {
+function closeEditModal() {
   showEditModal.value = false
+  selectedRecaudadora.value = null
 }
 
-const updateRecaudadora = async () => {
+async function updateRecaudadora() {
+  // Validación
   if (!formData.value.descripcion?.trim()) {
-    showToast('La descripción es requerida', 'warning')
+    showToast('Ingrese la descripción', 'warning')
     return
   }
 
-  loading.value = true
-  try {
-    const response = await execute(
-      'SP_ASEO_RECAUDADORAS_UPDATE',
-      'aseo_contratado',
-      {
-        p_num_rec: formData.value.num_rec,
-        p_descripcion: formData.value.descripcion.trim()
-      }
-    )
+  // 1. SweetAlert2 confirmación
+  const confirmResult = await Swal.fire({
+    title: 'Actualizar Recaudadora',
+    html: `<p>¿Desea actualizar la recaudadora <strong>${formData.value.descripcion}</strong>?</p>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, actualizar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#667eea',
+    cancelButtonColor: '#6c757d'
+  })
 
-    if (response && response.data && response.data[0]) {
-      const result = response.data[0]
-      if (result.success) {
-        showToast(result.message || 'Recaudadora actualizada exitosamente', 'success')
-        closeEditModal()
-        loadRecaudadoras()
-      } else {
-        showToast(result.message || 'Error al actualizar la recaudadora', 'error')
-      }
+  if (!confirmResult.isConfirmed) return
+
+  // 2. Loading
+  showLoading('Actualizando recaudadora...', 'Guardando cambios')
+  guardando.value = true
+
+  try {
+    const params = [
+      { nombre: 'p_num_rec', valor: parseInt(formData.value.num_rec), tipo: 'integer' },
+      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' }
+    ]
+
+    const response = await execute('sp_update_recaudadora', BASE_DB, params, '', null, SCHEMA)
+
+    if (response?.result?.[0]?.success === false) {
+      showToast(response.result[0].message, 'warning')
+    } else {
+      showToast('Recaudadora actualizada correctamente', 'success')
+      closeEditModal()
+      await loadRecaudadoras()
     }
-  } catch (error) {
-    console.error('Error al actualizar recaudadora:', error)
-    showToast('Error al actualizar la recaudadora', 'error')
+  } catch (e) {
+    hideLoading()
+    handleApiError(e)
   } finally {
-    loading.value = false
+    hideLoading()
+    guardando.value = false
   }
 }
 
-// View
-const openViewModal = (recaudadora) => {
-  viewData.value = { ...recaudadora }
-  showViewModal.value = true
-}
-
-const closeViewModal = () => {
-  showViewModal.value = false
-}
-
-const editFromView = () => {
-  closeViewModal()
-  openEditModal(viewData.value)
-}
-
-// Delete
-const confirmDelete = async (recaudadora) => {
-  const result = await Swal.fire({
-    title: '¿Eliminar recaudadora?',
+async function confirmDeleteRecaudadora(recaudadora) {
+  // 1. SweetAlert2 confirmación
+  const confirmResult = await Swal.fire({
+    title: 'Eliminar Recaudadora',
     html: `
-      <p>¿Está seguro de eliminar la recaudadora:</p>
+      <p>¿Está seguro de eliminar la recaudadora</p>
       <p><strong>${recaudadora.descripcion}</strong>?</p>
-      <p class="text-danger">Esta acción no se puede deshacer.</p>
+      <p class="text-danger"><small>Esta acción no se puede deshacer</small></p>
     `,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#dc3545',
-    cancelButtonColor: '#6c757d',
     confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d'
   })
 
-  if (result.isConfirmed) {
-    await deleteRecaudadora(recaudadora.num_rec)
-  }
-}
+  if (!confirmResult.isConfirmed) return
 
-const deleteRecaudadora = async (num_rec) => {
-  loading.value = true
+  // 2. Loading
+  showLoading('Eliminando recaudadora...', 'Procesando')
+
   try {
-    const response = await execute(
-      'SP_ASEO_RECAUDADORAS_DELETE',
-      'aseo_contratado',
-      {
-        p_num_rec: num_rec
-      }
-    )
+    const params = [
+      { nombre: 'p_num_rec', valor: parseInt(recaudadora.num_rec), tipo: 'integer' }
+    ]
 
-    if (response && response.data && response.data[0]) {
-      const result = response.data[0]
-      if (result.success) {
-        showToast(result.message || 'Recaudadora eliminada exitosamente', 'success')
-        loadRecaudadoras()
-      } else {
-        showToast(result.message || 'Error al eliminar la recaudadora', 'error')
-      }
+    const response = await execute('sp_delete_recaudadora', BASE_DB, params, '', null, SCHEMA)
+
+    if (response?.result?.[0]?.success === false) {
+      showToast(response.result[0].message, 'warning')
+    } else {
+      showToast('Recaudadora eliminada correctamente', 'success')
+      await loadRecaudadoras()
     }
-  } catch (error) {
-    console.error('Error al eliminar recaudadora:', error)
-    showToast('Error al eliminar la recaudadora', 'error')
+  } catch (e) {
+    hideLoading()
+    handleApiError(e)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
-// Export
-const exportToExcel = () => {
-  showToast('Funcionalidad de exportación en desarrollo', 'info')
+function exportarCSV() {
+  if (recaudadorasFiltradas.value.length === 0) {
+    showToast('No hay datos para exportar', 'warning')
+    return
+  }
+
+  const headers = ['Número', 'Descripción']
+  const rows = recaudadorasFiltradas.value.map(r => [
+    r.num_rec,
+    r.descripcion || ''
+  ])
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+  ].join('\n')
+
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `recaudadoras_aseo_${new Date().toISOString().split('T')[0]}.csv`
+  link.click()
+  URL.revokeObjectURL(link.href)
+
+  showToast(`${recaudadorasFiltradas.value.length} registros exportados`, 'success')
 }
 
 // Lifecycle
-onMounted(() => {
-  loadRecaudadoras()
+onMounted(async () => {
+  await loadRecaudadoras()
+  await loadNextNumRec()
 })
 </script>
+

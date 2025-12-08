@@ -5,23 +5,15 @@
         <font-awesome-icon icon="plus-circle" />
       </div>
       <div class="module-view-info">
-        <h1>Reporte de Nuevos</h1>
-        <p>Otras Obligaciones - Alta de nuevos contratos</p>
+        <h1>Alta de Locales</h1>
+        <p>Otras Obligaciones - Rastro - Alta de nuevos contratos</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda y documentación del módulo"
-        >
+        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
-        <button
-          class="btn-municipal-secondary"
-          @click="goBack"
-          :disabled="isLoading"
-        >
+        <button class="btn-municipal-secondary" @click="goBack">
           <font-awesome-icon icon="arrow-left" />
           Salir
         </button>
@@ -31,75 +23,56 @@
     <div class="module-view-content">
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="plus" />
-            Crear Nuevo Local
-          </h5>
+          <h5><font-awesome-icon icon="plus" /> Crear Nuevo Local</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="hashtag" class="me-1" />
-                Control:
-                <span class="required">*</span>
-              </label>
-              <div class="d-flex gap-2">
-                <input
-                  type="text"
-                  v-model="formData.numero"
-                  class="municipal-form-control"
-                  placeholder="Número"
-                  maxlength="3"
-                  style="flex: 1;"
-                />
-                <span class="align-self-center">-</span>
-                <input
-                  type="text"
-                  v-model="formData.letra"
-                  class="municipal-form-control"
-                  placeholder="Letra"
-                  maxlength="2"
-                  style="flex: 1;"
-                />
-              </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Número:</label>
+              <input
+                type="text"
+                v-model="formData.numero"
+                class="municipal-form-control"
+                placeholder="Número"
+                maxlength="6"
+              />
             </div>
-
-            <div class="col-md-6">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="user" class="me-1" />
-                Concesionario:
-                <span class="required">*</span>
-              </label>
+            <div class="form-group">
+              <label class="municipal-form-label">Letra:</label>
+              <input
+                type="text"
+                v-model="formData.letra"
+                class="municipal-form-control"
+                placeholder="Letra"
+                maxlength="2"
+              />
+            </div>
+            <div class="form-group" style="flex: 2;">
+              <label class="municipal-form-label">Concesionario:</label>
               <input
                 type="text"
                 v-model="formData.concesionario"
                 class="municipal-form-control"
+                maxlength="255"
               />
             </div>
           </div>
 
-          <div class="row g-3 mt-2">
-            <div class="col-12">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="map-marker-alt" class="me-1" />
-                Ubicación:
-              </label>
+          <div class="form-row">
+            <div class="form-group" style="flex: 3;">
+              <label class="municipal-form-label">Ubicación:</label>
               <input
                 type="text"
                 v-model="formData.ubicacion"
                 class="municipal-form-control"
+                maxlength="255"
               />
             </div>
           </div>
 
-          <div class="row g-3 mt-2">
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="ruler-combined" class="me-1" />
-                Superficie:
-                <span class="required">*</span>
-              </label>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Superficie (m²):</label>
               <input
                 type="number"
                 v-model.number="formData.superficie"
@@ -108,12 +81,8 @@
                 step="0.01"
               />
             </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="file-alt" class="me-1" />
-                Licencia:
-                <span class="required">*</span>
-              </label>
+            <div class="form-group">
+              <label class="municipal-form-label">Licencia:</label>
               <input
                 type="number"
                 v-model.number="formData.licencia"
@@ -121,28 +90,20 @@
                 :min="0"
               />
             </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="tag" class="me-1" />
-                Tipo Local:
-                <span class="required">*</span>
-              </label>
-              <select
-                v-model="formData.tipoLocal"
-                class="municipal-form-control"
-              >
-                <option value="INTERNO">INTERNO</option>
-                <option value="EXTERNO">EXTERNO</option>
+            <div class="form-group">
+              <label class="municipal-form-label">Tipo Local:</label>
+              <select v-model="formData.tipoLocal" class="municipal-form-control">
+                <option value="">Seleccione...</option>
+                <option v-for="tipo in tiposLocal" :key="tipo.cve_tab" :value="tipo.descripcion">
+                  {{ tipo.descripcion }}
+                </option>
               </select>
             </div>
           </div>
 
-          <div class="row g-3 mt-2">
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="building" class="me-1" />
-                Oficina:
-              </label>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina:</label>
               <input
                 type="number"
                 v-model.number="formData.oficina"
@@ -150,22 +111,17 @@
                 :min="0"
               />
             </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="building" class="me-1" />
-                Sector:
-              </label>
+            <div class="form-group">
+              <label class="municipal-form-label">Sector:</label>
               <input
                 type="text"
                 v-model="formData.sector"
                 class="municipal-form-control"
+                maxlength="10"
               />
             </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="map" class="me-1" />
-                Zona:
-              </label>
+            <div class="form-group">
+              <label class="municipal-form-label">Zona:</label>
               <input
                 type="number"
                 v-model.number="formData.zona"
@@ -175,53 +131,31 @@
             </div>
           </div>
 
-          <div class="row g-3 mt-2">
-            <div class="col-md-6">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="calendar-alt" class="me-1" />
-                Año Inicio:
-                <span class="required">*</span>
-              </label>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Año Inicio:</label>
               <input
                 type="number"
                 v-model.number="formData.anioInicio"
                 class="municipal-form-control"
-                :min="2000"
+                :min="2020"
                 :max="2099"
               />
             </div>
-            <div class="col-md-6">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="calendar" class="me-1" />
-                Mes Inicio:
-                <span class="required">*</span>
-              </label>
-              <select
-                v-model.number="formData.mesInicio"
-                class="municipal-form-control"
-              >
-                <option v-for="mes in meses" :key="mes.value" :value="mes.value">
-                  {{ mes.label }}
-                </option>
+            <div class="form-group">
+              <label class="municipal-form-label">Mes Inicio:</label>
+              <select v-model.number="formData.mesInicio" class="municipal-form-control">
+                <option v-for="mes in meses" :key="mes.value" :value="mes.value">{{ mes.label }}</option>
               </select>
             </div>
           </div>
 
-          <div class="d-flex gap-2 mt-4">
-            <button
-              class="btn-municipal-primary"
-              @click="handleGuardar"
-              :disabled="isLoading"
-            >
-              <font-awesome-icon icon="check" />
-              Crear Local
+          <div class="button-group mt-3">
+            <button class="btn-municipal-primary" @click="handleGuardar">
+              <font-awesome-icon icon="save" /> Aplicar Alta
             </button>
-            <button
-              class="btn-municipal-secondary"
-              @click="handleLimpiar"
-            >
-              <font-awesome-icon icon="eraser" />
-              Limpiar
+            <button class="btn-municipal-secondary" @click="handleLimpiar">
+              <font-awesome-icon icon="eraser" /> Limpiar
             </button>
           </div>
         </div>
@@ -238,19 +172,25 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Swal from 'sweetalert2'
 
+const BASE_DB = 'otras_obligaciones'
 const router = useRouter()
 const { execute } = useApi()
-const { isLoading, startLoading, stopLoading } = useGlobalLoading()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+
+const tiposLocal = ref([])
 
 const formData = reactive({
   numero: '',
@@ -259,7 +199,7 @@ const formData = reactive({
   ubicacion: '',
   superficie: 0,
   licencia: 0,
-  tipoLocal: 'INTERNO',
+  tipoLocal: '',
   oficina: 1,
   sector: '',
   zona: 1,
@@ -282,46 +222,106 @@ const meses = [
   { value: 12, label: '12-Diciembre' }
 ]
 
+const loadTiposLocal = async () => {
+  try {
+    const response = await execute(
+      'sp_otras_oblig_get_tablas',
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: 3, tipo: 'integer' }],
+      'guadalajara'
+    )
+
+    if (response?.result?.length > 0) {
+      tiposLocal.value = response.result
+      if (tiposLocal.value.length > 0) {
+        formData.tipoLocal = tiposLocal.value[0].descripcion
+      }
+    }
+  } catch (error) {
+    handleApiError(error)
+  }
+}
+
 const handleGuardar = async () => {
-  if (!formData.numero || !formData.concesionario || !formData.superficie || !formData.licencia) {
-    showToast('warning', 'Complete los campos requeridos')
+  const currentYear = new Date().getFullYear()
+  const previousYear = currentYear - 1
+
+  if (!formData.numero || formData.numero.trim() === '') {
+    showToast('warning', 'Falta el número de local')
     return
   }
 
-  startLoading('Creando local...')
+  if (!formData.concesionario || formData.concesionario.trim() === '') {
+    showToast('warning', 'Falta el concesionario')
+    return
+  }
+
+  if (!formData.superficie || formData.superficie === 0) {
+    showToast('warning', 'Falta la superficie')
+    return
+  }
+
+  if (formData.anioInicio !== currentYear && formData.anioInicio !== previousYear) {
+    showToast('warning', 'El año debe ser el actual o el anterior')
+    return
+  }
+
+  if (!formData.tipoLocal) {
+    showToast('warning', 'Debe seleccionar un tipo de local')
+    return
+  }
+
+  showLoading('Guardando local...')
+
   try {
-    const control = `${formData.numero}-${formData.letra || ''}`
+    const control = `${formData.numero}${formData.letra ? '-' + formData.letra : ''}`
+    const tipoLocal = (formData.tipoLocal || '').substring(0, 100)
+
     const response = await execute(
       'sp_ins34_rastro_01',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'par_tabla', valor: 3, tipo: 'integer' },
-        { nombre: 'par_control', valor: control, tipo: 'string' },
-        { nombre: 'par_conces', valor: formData.concesionario, tipo: 'string' },
-        { nombre: 'par_ubica', valor: formData.ubicacion, tipo: 'string' },
+        { nombre: 'par_control', valor: control, tipo: 'varchar' },
+        { nombre: 'par_conces', valor: formData.concesionario, tipo: 'varchar' },
+        { nombre: 'par_ubica', valor: formData.ubicacion || '', tipo: 'varchar' },
         { nombre: 'par_sup', valor: formData.superficie, tipo: 'numeric' },
         { nombre: 'par_axo_ini', valor: formData.anioInicio, tipo: 'integer' },
         { nombre: 'par_mes_ini', valor: formData.mesInicio, tipo: 'integer' },
         { nombre: 'par_ofna', valor: formData.oficina, tipo: 'integer' },
-        { nombre: 'par_sector', valor: formData.sector, tipo: 'string' },
+        { nombre: 'par_sector', valor: formData.sector || '', tipo: 'varchar' },
         { nombre: 'par_zona', valor: formData.zona, tipo: 'integer' },
         { nombre: 'par_lic', valor: formData.licencia, tipo: 'integer' },
-        { nombre: 'par_descrip', valor: formData.tipoLocal, tipo: 'string' }
+        { nombre: 'par_descrip', valor: tipoLocal, tipo: 'varchar' }
       ],
       'guadalajara'
     )
 
-    if (response && response.result && response.result[0]?.expression === 0) {
-      showToast('success', 'Local creado exitosamente')
-      handleLimpiar()
-    } else {
-      const mensaje = response?.result?.[0]?.expression_1 || 'Error al crear local'
-      showToast('error', mensaje)
+    hideLoading()
+
+    if (response?.result?.[0]) {
+      const result = response.result[0]
+
+      if (result.expression === 0) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Local creado',
+          text: result.expression_1 || 'Se ejecutó correctamente la creación del Local/Concesión',
+          confirmButtonColor: '#ea8215'
+        })
+        handleLimpiar()
+      } else {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: result.expression_1 || 'Error al crear local',
+          confirmButtonColor: '#ea8215'
+        })
+      }
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-  } finally {
-    stopLoading()
   }
 }
 
@@ -333,7 +333,7 @@ const handleLimpiar = () => {
     ubicacion: '',
     superficie: 0,
     licencia: 0,
-    tipoLocal: 'INTERNO',
+    tipoLocal: tiposLocal.value.length > 0 ? tiposLocal.value[0].descripcion : '',
     oficina: 1,
     sector: '',
     zona: 1,
@@ -342,15 +342,13 @@ const handleLimpiar = () => {
   })
 }
 
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
+const goBack = () => router.push('/otras-obligaciones/menu')
 
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
-
-const goBack = () => {
-  router.push('/otras_obligaciones')
-}
+onMounted(() => {
+  loadTiposLocal()
+})
 </script>
+
+<style scoped>
+/* Estilos en municipal-theme.css */
+</style>

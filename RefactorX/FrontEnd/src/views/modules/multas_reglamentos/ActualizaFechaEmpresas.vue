@@ -35,7 +35,7 @@
             </div>
             <div class="form-group full-width">
               <label class="municipal-form-label">Archivo de folios (.txt)</label>
-              <input class="municipal-form-control" type="file" accept=".txt" @change="onFileChange" :disabled="loading" />
+              <input ref="fileInputRef" class="municipal-form-control" type="file" accept=".txt" @change="onFileChange" :disabled="loading" />
             </div>
           </div>
 
@@ -165,6 +165,7 @@ const errores = ref([])
 const foliosCorrectos = ref(0)
 const foliosIncorrectos = ref(0)
 const foliosProcesados = ref(0)
+const fileInputRef = ref(null) // Referencia al input file
 
 onMounted(async () => {
   await fetchEjecutores()
@@ -173,11 +174,30 @@ onMounted(async () => {
 async function fetchEjecutores() {
   // Debe traer datos reales desde BD vía SP
   try {
+    console.log('🔍 Cargando ejecutores...')
     const data = await execute(OP_GET_EJECUTORES, BASE_DB, [])
-    ejecutores.value = Array.isArray(data) ? data : []
+    console.log('📦 Respuesta ejecutores:', data)
+
+    // La respuesta viene en data.result debido a la estructura del GenericController
+    if (data && Array.isArray(data.result)) {
+      ejecutores.value = data.result
+      console.log('✅ Ejecutores cargados:', ejecutores.value.length)
+    } else if (Array.isArray(data)) {
+      ejecutores.value = data
+      console.log('✅ Ejecutores cargados (array directo):', ejecutores.value.length)
+    } else {
+      ejecutores.value = []
+      console.warn('⚠️ No se encontraron ejecutores')
+    }
+
+    if (ejecutores.value.length === 0) {
+      console.warn('⚠️ El SP no devolvió ejecutores. Verifica que el SP recaudadora_get_ejecutores esté desplegado correctamente.')
+    }
   } catch (e) {
-    // Silencioso: el validador global mostrará feedback
+    console.error('❌ Error al cargar ejecutores:', e)
     ejecutores.value = []
+    // Mostrar error al usuario
+    alert('Error al cargar ejecutores: ' + (e.message || 'Error desconocido') + '\n\nVerifique que el SP recaudadora_get_ejecutores esté desplegado en la base de datos.')
   }
 }
 
@@ -194,9 +214,10 @@ function onFileChange(e) {
 async function parseFile() {
   if (!fileContent.value) return
   try {
-    const payload = [{ name: 'file_content', type: 'C', value: fileContent.value }]
+    const payload = [{ nombre: 'p_file_content', tipo: 'string', valor: fileContent.value }]
     const data = await execute(OP_PARSE_FILE, BASE_DB, payload)
-    folios.value = Array.isArray(data?.folios) ? data.folios : Array.isArray(data) ? data : []
+    // La respuesta viene en data.result debido a la estructura del GenericController
+    folios.value = Array.isArray(data?.result) ? data.result : (Array.isArray(data?.folios) ? data.folios : (Array.isArray(data) ? data : []))
     foliosProcesados.value = 0
     foliosCorrectos.value = 0
     foliosIncorrectos.value = 0
@@ -209,11 +230,11 @@ async function actualizaFolio(idx) {
   if (!f || !filters.value.fechaCorte) return
   try {
     const params = [
-      { name: 'clave_cuenta', type: 'C', value: f.clave_cuenta },
-      { name: 'folio', type: 'I', value: f.folio },
-      { name: 'anio_folio', type: 'I', value: f.anio_folio },
-      { name: 'fecha_practica', type: 'D', value: filters.value.fechaCorte },
-      { name: 'ejecutor', type: 'I', value: filters.value.ejecutor }
+      { nombre: 'p_clave_cuenta', tipo: 'string', valor: f.clave_cuenta },
+      { nombre: 'p_folio', tipo: 'integer', valor: f.folio },
+      { nombre: 'p_anio_folio', tipo: 'integer', valor: f.anio_folio },
+      { nombre: 'p_fecha_practica', tipo: 'string', valor: filters.value.fechaCorte },
+      { nombre: 'p_ejecutor', tipo: 'integer', valor: filters.value.ejecutor }
     ]
     const data = await execute(OP_APLICA_FECHAS, BASE_DB, params)
     applyResult(data, [f])
@@ -227,9 +248,9 @@ async function actualizaTodos() {
   try {
     // Enviar arreglo de folios al SP; estructura genérica por parámetros nombrados
     const params = [
-      { name: 'fecha_practica', type: 'D', value: filters.value.fechaCorte },
-      { name: 'ejecutor', type: 'I', value: filters.value.ejecutor },
-      { name: 'folios_json', type: 'C', value: JSON.stringify(folios.value.map(f => ({
+      { nombre: 'p_fecha_practica', tipo: 'string', valor: filters.value.fechaCorte },
+      { nombre: 'p_ejecutor', tipo: 'integer', valor: filters.value.ejecutor },
+      { nombre: 'p_folios_json', tipo: 'string', valor: JSON.stringify(folios.value.map(f => ({
         clave_cuenta: f.clave_cuenta,
         folio: f.folio,
         anio_folio: f.anio_folio
@@ -277,6 +298,10 @@ function resetAll() {
   foliosCorrectos.value = 0
   foliosIncorrectos.value = 0
   foliosProcesados.value = 0
+  // Limpiar el input file
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
+  }
 }
 
 function formatCurrency(v) {

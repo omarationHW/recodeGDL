@@ -1,24 +1,45 @@
 <template>
   <div class="module-view module-layout">
     <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="gavel" /></div>
+      <div class="module-view-icon"><font-awesome-icon icon="parking" /></div>
       <div class="module-view-info">
-        <h1>Apremios SVN</h1>
-        <p>Seleccione una operación del módulo</p>
+        <h1>Estacionamiento Exclusivo</h1>
+        <p>Gestión de estacionamientos exclusivos y apremios</p>
       </div>
     </div>
 
     <div class="module-view-content">
       <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="list" /> Operaciones Principales</h5>
+        </div>
         <div class="municipal-card-body">
-          <ul>
-            <li><router-link :to="{ name: 'apremiossvn-expedientes' }">Expedientes</router-link></li>
-            <li><router-link :to="{ name: 'apremiossvn-notificaciones' }">Notificaciones</router-link></li>
-            <li><router-link :to="{ name: 'apremiossvn-actuaciones' }">Actuaciones</router-link></li>
-            <li><router-link :to="{ name: 'apremiossvn-pagos' }">Pagos</router-link></li>
-            <li><router-link :to="{ name: 'apremiossvn-reportes' }">Reportes</router-link></li>
-            <li><router-link :to="{ name: 'apremiossvn-fases' }">Control de Fases</router-link></li>
-          </ul>
+          <div class="button-grid">
+            <router-link :to="{ name: 'estacionamiento-exclusivo-expedientes' }" class="btn-municipal-primary">
+              <font-awesome-icon icon="folder-open" />
+              Expedientes
+            </router-link>
+            <router-link :to="{ name: 'estacionamiento-exclusivo-notificaciones' }" class="btn-municipal-primary">
+              <font-awesome-icon icon="bell" />
+              Notificaciones
+            </router-link>
+            <router-link :to="{ name: 'estacionamiento-exclusivo-actuaciones' }" class="btn-municipal-primary">
+              <font-awesome-icon icon="tasks" />
+              Actuaciones
+            </router-link>
+            <router-link :to="{ name: 'estacionamiento-exclusivo-pagos' }" class="btn-municipal-primary">
+              <font-awesome-icon icon="dollar-sign" />
+              Pagos
+            </router-link>
+            <router-link :to="{ name: 'estacionamiento-exclusivo-reportes' }" class="btn-municipal-primary">
+              <font-awesome-icon icon="chart-bar" />
+              Reportes
+            </router-link>
+            <router-link :to="{ name: 'estacionamiento-exclusivo-fases' }" class="btn-municipal-primary">
+              <font-awesome-icon icon="stream" />
+              Control de Fases
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -26,6 +47,7 @@
 </template>
 
 <script setup>
-// Índice del módulo Apremios SVN
+// Índice del módulo Estacionamiento Exclusivo
 </script>
+
 

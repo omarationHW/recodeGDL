@@ -1,278 +1,509 @@
 <template>
-  <div class="condonacion-page">
-    <h1>Condonación de Adeudos</h1>
-    <nav class="breadcrumb">
-      <router-link to="/">Inicio</router-link> /
-      <span>Condonación</span>
-    </nav>
-    <section class="busqueda-local">
-      <h2>Búsqueda de Local</h2>
-      <form @submit.prevent="buscarLocal">
-        <div class="form-row">
-          <label>Oficina</label>
-          <input v-model.number="form.oficina" type="number" required min="1" />
-          <label>Mercado</label>
-          <input v-model.number="form.num_mercado" type="number" required min="1" />
-          <label>Categoria</label>
-          <input v-model.number="form.categoria" type="number" required min="1" />
-          <label>Sección</label>
-          <input v-model="form.seccion" maxlength="2" required />
-          <label>Local</label>
-          <input v-model.number="form.local" type="number" required min="1" />
-          <label>Letra</label>
-          <input v-model="form.letra_local" maxlength="1" />
-          <label>Bloque</label>
-          <input v-model="form.bloque" maxlength="1" />
-          <button type="submit">Buscar</button>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="hand-holding-usd" />
+      </div>
+      <div class="module-view-info">
+        <h1>Condonación de Adeudos</h1>
+        <p>Mercados - Gestión de Condonaciones de Adeudos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-danger" @click="cerrar">
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Búsqueda de Local -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Local
+          </h5>
         </div>
-      </form>
-      <div v-if="local">
-        <p><strong>Nombre:</strong> {{ local.nombre }}</p>
-        <p><strong>Descripción:</strong> {{ local.descripcion_local }}</p>
-        <p><strong>Superficie:</strong> {{ local.superficie }}</p>
-        <p><strong>Clave Cuota:</strong> {{ local.clave_cuota }}</p>
-      </div>
-      <div v-if="error" class="error">{{ error }}</div>
-    </section>
+        <div class="municipal-card-body">
+          <form @submit.prevent="buscarLocal">
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label class="municipal-form-label">Recaudadora *</label>
+                <select class="municipal-form-control" v-model="form.oficina" @change="onOficinaChange" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                    {{ rec.id_rec }} - {{ rec.recaudadora }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="municipal-form-label">Mercado *</label>
+                <select class="municipal-form-control" v-model="form.num_mercado" :disabled="!form.oficina" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                    {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-2 mb-3">
+                <label class="municipal-form-label">Categoría *</label>
+                <input type="number" class="municipal-form-control" v-model.number="form.categoria" required min="1" />
+              </div>
+              <div class="col-md-1 mb-3">
+                <label class="municipal-form-label">Sección *</label>
+                <input type="text" class="municipal-form-control" v-model="form.seccion" maxlength="2" required />
+              </div>
+              <div class="col-md-1 mb-3">
+                <label class="municipal-form-label">Local *</label>
+                <input type="number" class="municipal-form-control" v-model.number="form.local" required min="1" />
+              </div>
+              <div class="col-md-1 mb-3">
+                <label class="municipal-form-label">Letra</label>
+                <input type="text" class="municipal-form-control" v-model="form.letra_local" maxlength="1" />
+              </div>
+              <div class="col-md-1 mb-3">
+                <label class="municipal-form-label">Bloque</label>
+                <input type="text" class="municipal-form-control" v-model="form.bloque" maxlength="1" />
+              </div>
+            </div>
+            <button type="submit" class="btn-municipal-primary" :disabled="loading">
+              <font-awesome-icon icon="search" />
+              Buscar
+            </button>
+          </form>
 
-    <section v-if="local" class="adeudos-section">
-      <h2>Adeudos a Condonar</h2>
-      <button @click="listarAdeudos">Listar Adeudos</button>
-      <table v-if="adeudos.length">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Año</th>
-            <th>Mes</th>
-            <th>Importe</th>
-            <th>Detalle</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(a, idx) in adeudos" :key="idx">
-            <td><input type="checkbox" v-model="a.selected" /></td>
-            <td>{{ a.expression_1 }}</td>
-            <td>{{ a.expression_2 }}</td>
-            <td>{{ a.expression_3 }}</td>
-            <td>{{ a.expression_4 }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-if="adeudos.length">
-        <label>Oficio:</label>
-        <input v-model="oficio" maxlength="13" placeholder="LLL/9999/9999" />
-        <button @click="condonarSeleccionados">Condonar Seleccionados</button>
+          <!-- Datos del Local -->
+          <div v-if="localData" class="mt-3 p-3 bg-light rounded">
+            <h6>Datos del Local</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Nombre:</strong> {{ localData.nombre }}</p>
+                <p><strong>Descripción:</strong> {{ localData.descripcion_local }}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Superficie:</strong> {{ localData.superficie }}</p>
+                <p><strong>Clave Cuota:</strong> {{ localData.clave_cuota }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
 
-    <section v-if="local" class="condonados-section">
-      <h2>Condonados</h2>
-      <button @click="listarCondonados">Listar Condonados</button>
-      <table v-if="condonados.length">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Año</th>
-            <th>Mes</th>
-            <th>Importe</th>
-            <th>Observación</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(c, idx) in condonados" :key="idx">
-            <td><input type="checkbox" v-model="c.selected" /></td>
-            <td>{{ c.axo }}</td>
-            <td>{{ c.periodo }}</td>
-            <td>{{ c.importe }}</td>
-            <td>{{ c.observacion }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-if="condonados.length">
-        <button @click="deshacerCondonacion">Deshacer Condonación Seleccionada</button>
+      <!-- Adeudos a Condonar -->
+      <div v-if="localData" class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="file-invoice-dollar" />
+            Adeudos a Condonar
+            <span v-if="adeudos.length > 0" class="badge bg-warning ms-2">{{ adeudos.length }}</span>
+          </h5>
+          <button class="btn-municipal-primary btn-sm ms-auto" @click="listarAdeudos" :disabled="loading">
+            <font-awesome-icon icon="sync" />
+            Listar
+          </button>
+        </div>
+        <div class="municipal-card-body">
+          <div v-if="adeudos.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;"></th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th>Importe</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(a, idx) in adeudos" :key="idx">
+                  <td><input type="checkbox" class="form-check-input" v-model="a.selected" /></td>
+                  <td>{{ a.axo }}</td>
+                  <td>{{ a.periodo }}</td>
+                  <td>{{ formatCurrency(a.importe) }}</td>
+                  <td>{{ a.detalle }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="mt-3">
+              <div class="row align-items-end">
+                <div class="col-md-4">
+                  <label class="municipal-form-label">Oficio (LLL/9999/9999) *</label>
+                  <input type="text" class="municipal-form-control" v-model="oficio" maxlength="13" placeholder="LLL/9999/9999" />
+                </div>
+                <div class="col-md-4">
+                  <button class="btn-municipal-success" @click="condonarSeleccionados" :disabled="loading">
+                    <font-awesome-icon icon="check" />
+                    Condonar Seleccionados
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-3 text-muted">
+            <p>No hay adeudos pendientes</p>
+          </div>
+        </div>
       </div>
-    </section>
+
+      <!-- Condonados -->
+      <div v-if="localData" class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="history" />
+            Condonaciones Realizadas
+            <span v-if="condonados.length > 0" class="badge bg-info ms-2">{{ condonados.length }}</span>
+          </h5>
+          <button class="btn-municipal-primary btn-sm ms-auto" @click="listarCondonados" :disabled="loading">
+            <font-awesome-icon icon="sync" />
+            Listar
+          </button>
+        </div>
+        <div class="municipal-card-body">
+          <div v-if="condonados.length > 0" class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;"></th>
+                  <th>Año</th>
+                  <th>Mes</th>
+                  <th>Importe</th>
+                  <th>Observación</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(c, idx) in condonados" :key="idx">
+                  <td><input type="checkbox" class="form-check-input" v-model="c.selected" /></td>
+                  <td>{{ c.axo }}</td>
+                  <td>{{ c.periodo }}</td>
+                  <td>{{ formatCurrency(c.importe) }}</td>
+                  <td>{{ c.observacion }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="mt-3">
+              <button class="btn-municipal-warning" @click="deshacerCondonacion" :disabled="loading">
+                <font-awesome-icon icon="undo" />
+                Deshacer Condonación
+              </button>
+            </div>
+          </div>
+          <div v-else class="text-center py-3 text-muted">
+            <p>No hay condonaciones registradas</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'CondonacionPage',
-  data() {
-    return {
-      form: {
-        oficina: '',
-        num_mercado: '',
-        categoria: '',
-        seccion: '',
-        local: '',
-        letra_local: '',
-        bloque: ''
-      },
-      local: null,
-      error: '',
-      adeudos: [],
-      condonados: [],
-      oficio: ''
-    };
-  },
-  methods: {
-    async buscarLocal() {
-      this.error = '';
-      this.local = null;
-      this.adeudos = [];
-      this.condonados = [];
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'buscar_local',
-          data: { ...this.form }
-        });
-        if (res.data.status === 'success') {
-          this.local = res.data.data;
-        } else {
-          this.error = res.data.message;
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useRouter } from 'vue-router';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+const { showLoading, hideLoading } = useGlobalLoading();
+
+const router = useRouter();
+
+// State
+const loading = ref(false);
+const recaudadoras = ref([]);
+const mercados = ref([]);
+const form = ref({
+  oficina: '',
+  num_mercado: '',
+  categoria: '',
+  seccion: '',
+  local: '',
+  letra_local: '',
+  bloque: ''
+});
+const localData = ref(null);
+const adeudos = ref([]);
+const condonados = ref([]);
+const oficio = ref('');
+
+// Helpers
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0);
+};
+
+const showToast = (type, message) => {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: type,
+    title: message,
+    showConfirmButton: false,
+    timer: 3000
+  });
+};
+
+const cerrar = () => {
+  router.push('/mercados');
+};
+
+// Buscar Local
+async function buscarLocal() {
+  loading.value = true;
+  localData.value = null;
+  adeudos.value = [];
+  condonados.value = [];
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_condonacion_buscar_local',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
+          { Nombre: 'p_num_mercado', Valor: form.value.num_mercado, tipo: 'integer' },
+          { Nombre: 'p_categoria', Valor: form.value.categoria, tipo: 'integer' },
+          { Nombre: 'p_seccion', Valor: form.value.seccion },
+          { Nombre: 'p_local', Valor: form.value.local, tipo: 'integer' },
+          { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
+          { Nombre: 'p_bloque', Valor: form.value.bloque || null }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      const result = response.data.eResponse.data.result;
+      if (result && result.length > 0) {
+        localData.value = result[0];
+        showToast('success', 'Local encontrado');
+        listarAdeudos();
+        listarCondonados();
+      } else {
+        showToast('warning', 'Local no encontrado');
+      }
+    } else {
+      showToast('error', response.data?.eResponse?.message || 'Error al buscar');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al buscar local');
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Listar Adeudos
+async function listarAdeudos() {
+  if (!localData.value) return;
+  loading.value = true;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_condonacion_listar_adeudos',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: localData.value.id_local, tipo: 'integer' }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      adeudos.value = (response.data.eResponse.data.result || []).map(a => ({ ...a, selected: false }));
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Condonar Seleccionados
+async function condonarSeleccionados() {
+  if (!oficio.value || oficio.value.trim().length < 10) {
+    showToast('warning', 'Ingrese un oficio válido (mín. 10 caracteres)');
+    return;
+  }
+
+  const seleccionados = adeudos.value.filter(a => a.selected);
+  if (seleccionados.length === 0) {
+    showToast('warning', 'Seleccione al menos un adeudo');
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: '¿Condonar adeudos?',
+    text: `Se condonarán ${seleccionados.length} adeudo(s)`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, condonar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  loading.value = true;
+  let exitosos = 0;
+
+  try {
+    for (const a of seleccionados) {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_condonacion_condonar',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_id_local', Valor: localData.value.id_local, tipo: 'integer' },
+            { Nombre: 'p_axo', Valor: a.axo, tipo: 'integer' },
+            { Nombre: 'p_periodo', Valor: a.periodo, tipo: 'integer' },
+            { Nombre: 'p_importe', Valor: a.importe, tipo: 'numeric' },
+            { Nombre: 'p_oficio', Valor: oficio.value }
+          ]
         }
-      } catch (e) {
-        this.error = e.response?.data?.message || e.message;
-      }
-    },
-    async listarAdeudos() {
-      if (!this.local) return;
-      this.error = '';
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'listar_adeudos',
-          data: { id_local: this.local.id_local }
-        });
-        if (res.data.status === 'success') {
-          this.adeudos = (res.data.data || []).map(a => ({ ...a, selected: false }));
-        } else {
-          this.error = res.data.message;
-        }
-      } catch (e) {
-        this.error = e.response?.data?.message || e.message;
-      }
-    },
-    async condonarSeleccionados() {
-      if (!this.oficio || this.oficio.trim().length < 10) {
-        this.error = 'Debe ingresar el número de oficio válido';
-        return;
-      }
-      const seleccionados = this.adeudos.filter(a => a.selected);
-      if (!seleccionados.length) {
-        this.error = 'Debe seleccionar al menos un adeudo';
-        return;
-      }
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'condonar_adeudos',
-          data: {
-            id_local: this.local.id_local,
-            oficio: this.oficio,
-            adeudos: seleccionados.map(a => ({
-              axo: a.expression_1,
-              periodo: a.expression_2,
-              importe: a.expression_3
-            }))
-          }
-        });
-        if (res.data.status === 'success') {
-          this.listarAdeudos();
-          this.listarCondonados();
-        } else {
-          this.error = res.data.message;
-        }
-      } catch (e) {
-        this.error = e.response?.data?.message || e.message;
-      }
-    },
-    async listarCondonados() {
-      if (!this.local) return;
-      this.error = '';
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'listar_condonados',
-          data: { id_local: this.local.id_local }
-        });
-        if (res.data.status === 'success') {
-          this.condonados = (res.data.data || []).map(c => ({ ...c, selected: false }));
-        } else {
-          this.error = res.data.message;
-        }
-      } catch (e) {
-        this.error = e.response?.data?.message || e.message;
-      }
-    },
-    async deshacerCondonacion() {
-      const seleccionados = this.condonados.filter(c => c.selected);
-      if (!seleccionados.length) {
-        this.error = 'Debe seleccionar al menos un condonado';
-        return;
-      }
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'deshacer_condonacion',
-          data: {
-            id_local: this.local.id_local,
-            condonados: seleccionados.map(c => ({
-              id_cancelacion: c.id_cancelacion,
-              id_local: c.id_local,
-              axo: c.axo,
-              periodo: c.periodo,
-              importe: c.importe,
-              observacion: c.observacion
-            }))
-          }
-        });
-        if (res.data.status === 'success') {
-          this.listarAdeudos();
-          this.listarCondonados();
-        } else {
-          this.error = res.data.message;
-        }
-      } catch (e) {
-        this.error = e.response?.data?.message || e.message;
+      });
+
+      if (response.data?.eResponse?.success) {
+        exitosos++;
       }
     }
-  }
-};
-</script>
 
-<style scoped>
-.condonacion-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem;
+    showToast('success', `${exitosos} adeudo(s) condonado(s)`);
+    listarAdeudos();
+    listarCondonados();
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al condonar');
+  } finally {
+    loading.value = false;
+  }
 }
-.breadcrumb {
-  margin-bottom: 1rem;
+
+// Listar Condonados
+async function listarCondonados() {
+  if (!localData.value) return;
+  loading.value = true;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_condonacion_listar_condonados',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_local', Valor: localData.value.id_local, tipo: 'integer' }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      condonados.value = (response.data.eResponse.data.result || []).map(c => ({ ...c, selected: false }));
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    loading.value = false;
+  }
 }
-.busqueda-local, .adeudos-section, .condonados-section {
-  margin-bottom: 2rem;
-  background: #f8f8f8;
-  padding: 1rem;
-  border-radius: 6px;
+
+// Deshacer Condonación
+async function deshacerCondonacion() {
+  const seleccionados = condonados.value.filter(c => c.selected);
+  if (seleccionados.length === 0) {
+    showToast('warning', 'Seleccione al menos una condonación');
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: '¿Deshacer condonación?',
+    text: `Se deshará ${seleccionados.length} condonación(es)`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'Sí, deshacer',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
+
+  loading.value = true;
+  let exitosos = 0;
+
+  try {
+    for (const c of seleccionados) {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_condonacion_deshacer',
+          Base: 'mercados',
+          Parametros: [
+            { Nombre: 'p_id_cancelacion', Valor: c.id_cancelacion, tipo: 'integer' },
+            { Nombre: 'p_id_local', Valor: c.id_local, tipo: 'integer' },
+            { Nombre: 'p_axo', Valor: c.axo, tipo: 'integer' },
+            { Nombre: 'p_periodo', Valor: c.periodo, tipo: 'integer' },
+            { Nombre: 'p_importe', Valor: c.importe, tipo: 'numeric' }
+          ]
+        }
+      });
+
+      if (response.data?.eResponse?.success) {
+        exitosos++;
+      }
+    }
+
+    showToast('success', `${exitosos} condonación(es) deshecha(s)`);
+    listarAdeudos();
+    listarCondonados();
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('error', 'Error al deshacer');
+  } finally {
+    loading.value = false;
+  }
 }
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
+
+// Cargar Recaudadoras
+async function fetchRecaudadoras() {
+  showLoading('Cargando Condonación', 'Preparando oficinas recaudadoras...');
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    });
+    if (response.data?.eResponse?.success) {
+      recaudadoras.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error al cargar recaudadoras:', error);
+  } finally {
+    hideLoading();
+  }
 }
-.form-row label {
-  min-width: 60px;
+
+// Cambio de Oficina
+async function onOficinaChange() {
+  form.value.num_mercado = '';
+  mercados.value = [];
+  if (!form.value.oficina) return;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_consulta_locales_get_mercados',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina), tipo: 'integer' }
+        ]
+      }
+    });
+    if (response.data?.eResponse?.success) {
+      mercados.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error al cargar mercados:', error);
+  }
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-table th, table td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-}
-.error {
-  color: red;
-  margin-top: 1rem;
-}
-</style>
+
+onMounted(() => {
+  fetchRecaudadoras();
+});
+</script>

@@ -207,10 +207,19 @@
       <font-awesome-icon icon="exclamation-triangle" />
       No se encontró el folio especificado
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ConIndividual'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -299,7 +308,6 @@ const buscarFolio = async () => {
       toast.warning('No se encontró el folio')
     }
   } catch (error) {
-    console.error('Error al buscar folio:', error)
     toast.error('Error al buscar folio')
     folio.value = null
     pagos.value = []
@@ -324,7 +332,6 @@ const cargarPagos = async () => {
 
     pagos.value = response.result || []
   } catch (error) {
-    console.error('Error al cargar pagos:', error)
     toast.error('Error al cargar historial de pagos')
     pagos.value = []
   }

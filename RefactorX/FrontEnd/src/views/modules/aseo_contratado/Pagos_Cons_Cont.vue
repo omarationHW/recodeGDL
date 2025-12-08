@@ -9,6 +9,25 @@
         <h1>Consulta de Pagos por Contrato</h1>
         <p>Aseo Contratado - Historial de pagos realizados</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -44,7 +63,7 @@
     </div>
 
     <div v-if="contratoSeleccionado">
-      <div class="alert alert-info">
+      <div class="municipal-alert municipal-alert-info">
         <strong>Contrato:</strong> {{ contratoSeleccionado.num_contrato }} -
         <strong>Contribuyente:</strong> {{ contratoSeleccionado.contribuyente }}
       </div>
@@ -86,7 +105,7 @@
         <div class="municipal-card-body">
           <div class="table-responsive">
             <table class="municipal-table">
-              <thead>
+              <thead class="municipal-table-header">
                 <tr>
                   <th>Fecha Pago</th>
                   <th>Recibo</th>
@@ -118,10 +137,20 @@
       title="Consulta de Pagos">
       <p>Consulte el historial completo de pagos realizados por un contrato.</p>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Pagos_Cons_Cont'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -129,8 +158,10 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 const cargando = ref(false)
@@ -164,7 +195,8 @@ const buscar = async () => {
       showToast('Contrato no encontrado', 'error')
     }
   } catch (error) {
-    handleError(error, 'Error al buscar')
+    hideLoading()
+    handleApiError(error, 'Error al buscar')
   } finally {
     cargando.value = false
   }
@@ -173,4 +205,13 @@ const buscar = async () => {
 const exportar = () => showToast('Exportando...', 'info')
 const formatCurrency = (value) => new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value || 0)
 const formatFecha = (fecha) => fecha ? new Date(fecha).toLocaleDateString('es-MX') : 'N/A'
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

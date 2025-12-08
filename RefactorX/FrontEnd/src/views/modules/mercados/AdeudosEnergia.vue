@@ -1,215 +1,503 @@
 <template>
-  <div class="adeudos-energia-page">
-    <div class="breadcrumb">
-      <span>Inicio</span> &gt; <span>Reportes</span> &gt; <span class="active">Adeudos Energía</span>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Adeudos de Energía Eléctrica</h1>
+        <p>Inicio > Reportes > Adeudos de Energía Eléctrica</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || adeudos.length === 0">
+          <font-awesome-icon icon="file-excel" />
+          Exportar Excel
+        </button>
+        <button class="btn-municipal-primary" @click="imprimir" :disabled="loading || adeudos.length === 0">
+          <font-awesome-icon icon="print" />
+          Imprimir
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
-    <h1>Listado de Adeudos de Energía Eléctrica</h1>
-    <div class="form-row">
-      <label>Año de Adeudo</label>
-      <input type="number" v-model="axo" min="1994" max="2999" />
-      <label>Oficina</label>
-      <select v-model="oficina">
-        <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option>
-      </select>
-      <button @click="buscar" :disabled="loading">Buscar</button>
-      <button @click="exportarExcel" :disabled="loading || !adeudos.length">Excel</button>
-      <button @click="imprimir" :disabled="loading || !adeudos.length">Imprimir</button>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Consulta
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+        </div>
+
+        <div v-show="showFilters" class="municipal-card-body">
+          <!-- Filtros en una sola fila -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="selectedOficina" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Año <span class="required">*</span></label>
+              <input type="number" class="municipal-form-control" v-model.number="axo" min="1995" max="2999"
+                placeholder="Año" :disabled="loading" />
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="text-end">
+                <button class="btn-municipal-primary me-2" @click="buscar" :disabled="loading">
+                  <font-awesome-icon icon="search" />
+                  Buscar
+                </button>
+                <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                  <font-awesome-icon icon="eraser" />
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de resultados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Resultados de Adeudos de Energía
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="adeudos.length > 0">
+              {{ formatNumber(adeudos.length) }} registros
+            </span>
+          </div>
+        </div>
+
+        <div class="municipal-card-body table-container">
+          <!-- Mensaje de loading -->
+          <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando datos, por favor espere...</p>
+          </div>
+
+          <!-- Mensaje de error -->
+          <div v-else-if="error" class="alert alert-danger" role="alert">
+            <font-awesome-icon icon="exclamation-triangle" />
+            {{ error }}
+          </div>
+
+          <!-- Tabla -->
+          <div v-else class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Rec.</th>
+                  <th>Merc.</th>
+                  <th>Cat.</th>
+                  <th>Sec.</th>
+                  <th>Local</th>
+                  <th>Letra</th>
+                  <th>Bloque</th>
+                  <th>Cve Consumo</th>
+                  <th>Nombre</th>
+                  <th>Adicionales</th>
+                  <th>Año</th>
+                  <th>Adeudo</th>
+                  <th>Cuota</th>
+                  <th>Meses</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="adeudos.length === 0 && !searchPerformed">
+                  <td colspan="14" class="text-center text-muted">
+                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <p>Utiliza los filtros de búsqueda para consultar adeudos de energía</p>
+                  </td>
+                </tr>
+                <tr v-else-if="adeudos.length === 0">
+                  <td colspan="14" class="text-center text-muted">
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No se encontraron adeudos con los criterios especificados</p>
+                  </td>
+                </tr>
+                <tr v-else v-for="(row, index) in paginatedAdeudos" :key="index" @click="selectedAdeudo = row"
+                  :class="{ 'table-row-selected': selectedAdeudo === row }" class="row-hover">
+                  <td>{{ row.oficina }}</td>
+                  <td>{{ row.num_mercado }}</td>
+                  <td>{{ row.categoria }}</td>
+                  <td>{{ row.seccion }}</td>
+                  <td><strong class="text-primary">{{ row.local }}</strong></td>
+                  <td>{{ row.letra_local }}</td>
+                  <td>{{ row.bloque }}</td>
+                  <td>{{ row.cve_consumo }}</td>
+                  <td>{{ row.nombre }}</td>
+                  <td>{{ row.local_adicional }}</td>
+                  <td>{{ row.axo }}</td>
+                  <td class="text-end">
+                    <strong class="text-danger">{{ formatCurrency(row.adeudo) }}</strong>
+                  </td>
+                  <td class="text-end">
+                    <strong class="text-success">{{ formatCurrency(row.cuota) }}</strong>
+                  </td>
+                  <td>{{ row.meses }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="adeudos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select class="municipal-form-control form-control-sm" :value="itemsPerPage"
+                @change="changePageSize($event.target.value)" style="width: auto; display: inline-block;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"
+                title="Primera página">
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1" title="Página anterior">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button v-for="page in visiblePages" :key="page" class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages" title="Página siguiente">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages" title="Última página">
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div v-if="loading" class="loading">Cargando...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <table v-if="adeudos.length" class="adeudos-table">
-      <thead>
-        <tr>
-          <th>Rec.</th>
-          <th>Merc.</th>
-          <th>Cat.</th>
-          <th>Sec.</th>
-          <th>Local</th>
-          <th>Letra</th>
-          <th>Bloque</th>
-          <th>Consumo</th>
-          <th>Nombre</th>
-          <th>Adicionales</th>
-          <th>Cuota Bim/Mes</th>
-          <th>Año Adeudo</th>
-          <th>Adeudo</th>
-          <th>Periodo Adeudo</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in adeudos" :key="row.id_local + '-' + row.id_energia">
-          <td>{{ row.oficina }}</td>
-          <td>{{ row.num_mercado }}</td>
-          <td>{{ row.categoria }}</td>
-          <td>{{ row.seccion }}</td>
-          <td>{{ row.local }}</td>
-          <td>{{ row.letra_local }}</td>
-          <td>{{ row.bloque }}</td>
-          <td>{{ row.cve_consumo }}</td>
-          <td>{{ row.nombre }}</td>
-          <td>{{ row.local_adicional }}</td>
-          <td>{{ row.cuota | currency }}</td>
-          <td>{{ row.axo }}</td>
-          <td>{{ row.adeudo | currency }}</td>
-          <td>{{ row.meses }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-if="!loading && !adeudos.length" class="no-data">No hay datos para los filtros seleccionados.</div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AdeudosEnergiaPage',
-  data() {
-    const currentYear = new Date().getFullYear();
-    return {
-      axo: currentYear,
-      oficina: '',
-      recaudadoras: [],
-      adeudos: [],
-      loading: false,
-      error: ''
-    };
-  },
-  filters: {
-    currency(val) {
-      if (typeof val === 'number') return '$' + val.toLocaleString('es-MX', {minimumFractionDigits: 2});
-      return val;
-    }
-  },
-  created() {
-    this.fetchRecaudadoras();
-  },
-  methods: {
-    async fetchRecaudadoras() {
-      this.loading = true;
-      this.error = '';
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.getRecaudadoras',
-          payload: {}
-        });
-        if (res.data.status === 'success') {
-          this.recaudadoras = res.data.data;
-          if (this.recaudadoras.length) this.oficina = this.recaudadoras[0].id_rec;
-        } else {
-          this.error = res.data.message || 'Error al cargar recaudadoras';
-        }
-      } catch (error) {
-        this.error = error.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async buscar() {
-      this.loading = true;
-      this.error = '';
-      this.adeudos = [];
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.getAdeudosEnergia',
-          payload: {axo: this.axo, oficina: this.oficina}
-        });
-        if (res.data.status === 'success') {
-          this.adeudos = res.data.data;
-        } else {
-          this.error = res.data.message || 'Error al consultar adeudos';
-        }
-      } catch (error) {
-        this.error = error.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async exportarExcel() {
-      // Puede implementarse descarga de archivo en backend, aquí solo ejemplo
-      this.loading = true;
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.exportExcel',
-          payload: {axo: this.axo, oficina: this.oficina}
-        });
-        if (res.data.status === 'success') {
-          // El frontend debe convertir res.data.data a Excel (puede usar SheetJS)
-          alert('Exportación a Excel simulada. Integrar SheetJS para descarga real.');
-        } else {
-          this.error = res.data.message || 'Error al exportar';
-        }
-      } catch (error) {
-        this.error = error.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async imprimir() {
-      // Puede implementarse generación de PDF en backend, aquí solo ejemplo
-      this.loading = true;
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.printReport',
-          payload: {axo: this.axo, oficina: this.oficina}
-        });
-        if (res.data.status === 'success') {
-          // El frontend debe mostrar el PDF generado
-          alert('Impresión simulada. Integrar generación de PDF para impresión real.');
-        } else {
-          this.error = res.data.message || 'Error al imprimir';
-        }
-      } catch (error) {
-        this.error = error.message;
-      } finally {
-        this.loading = false;
-      }
-    }
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Estado
+const showFilters = ref(true)
+const recaudadoras = ref([])
+const selectedOficina = ref('')
+const axo = ref(new Date().getFullYear())
+const adeudos = ref([])
+const selectedAdeudo = ref(null)
+const loading = ref(false)
+const error = ref('')
+const searchPerformed = ref(false)
+
+// Toast
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(25)
+const totalRecords = computed(() => adeudos.value.length)
+
+// Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
+const mostrarAyuda = () => {
+  showToast('info', 'Ayuda: Seleccione una oficina y año para consultar los adeudos de energía eléctrica')
+}
+
+const showToast = (type, message) => {
+  toast.value = {
+    show: true,
+    type,
+    message
   }
-};
+  setTimeout(() => {
+    hideToast()
+  }, 5000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'times-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+const fetchRecaudadoras = async () => {
+  showLoading('Cargando Adeudos de Energía', 'Preparando oficinas recaudadoras...')
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'padron_licencias',
+        Parametros: []
+      }
+    })
+
+    if (res.data.eResponse.success === true) {
+      recaudadoras.value = res.data.eResponse.data.result || []
+      if (recaudadoras.value.length > 0) {
+        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+      }
+    } else {
+      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al cargar recaudadoras'
+    console.error('Error al cargar recaudadoras:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
+}
+
+const buscar = async () => {
+  if (!selectedOficina.value || !axo.value) {
+    error.value = 'Debe seleccionar oficina y año'
+    showToast('warning', error.value)
+    return
+  }
+
+  if (axo.value < 1995 || axo.value > 2999) {
+    error.value = 'El año debe estar entre 1995 y 2999'
+    showToast('warning', error.value)
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+  adeudos.value = []
+  selectedAdeudo.value = null
+  searchPerformed.value = true
+  currentPage.value = 1
+
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_adeudos_energia',
+        Base: 'mercados',
+        Parametros: [
+          { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
+          { nombre: 'p_oficina', valor: selectedOficina.value, tipo: 'integer' }
+        ]
+      }
+    })
+    if (res.data.eResponse && res.data.eResponse.success === true) {
+      adeudos.value = res.data.eResponse.data.result || []
+      if (adeudos.value.length > 0) {
+        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`)
+        showFilters.value = false
+      } else {
+        showToast('info', 'No se encontraron adeudos con los criterios especificados')
+      }
+    } else {
+      error.value = res.data.eResponse?.message || 'Error al consultar adeudos'
+      showToast('error', error.value)
+    }
+  } catch (err) {
+    error.value = 'Error de conexión al consultar adeudos'
+    console.error('Error al buscar adeudos:', err)
+    showToast('error', error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const limpiarFiltros = () => {
+  selectedOficina.value = ''
+  axo.value = new Date().getFullYear()
+  adeudos.value = []
+  selectedAdeudo.value = null
+  error.value = ''
+  searchPerformed.value = false
+  currentPage.value = 1
+  showToast('info', 'Filtros limpiados')
+}
+
+const exportarExcel = () => {
+  if (adeudos.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+  // TODO: Implementar exportación a Excel
+  showToast('info', 'Funcionalidad de exportación a Excel en desarrollo')
+}
+
+const imprimir = () => {
+  if (adeudos.value.length === 0) {
+    showToast('warning', 'No hay datos para imprimir')
+    return
+  }
+  // TODO: Implementar impresión
+  showToast('info', 'Funcionalidad de impresión en desarrollo')
+}
+
+// Utilidades
+const formatCurrency = (val) => {
+  if (val === null || val === undefined || val === '') return 'N/A'
+  const num = typeof val === 'number' ? val : parseFloat(val)
+  if (isNaN(num)) return 'N/A'
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
+// Paginación - Computed
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
+})
+
+const paginatedAdeudos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return adeudos.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedAdeudo.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedAdeudo.value = null
+}
+
+// Lifecycle
+onMounted(() => {
+  fetchRecaudadoras()
+})
 </script>
 
 <style scoped>
-.adeudos-energia-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-.breadcrumb {
-  font-size: 0.9rem;
-  color: #888;
+/* Los estilos están definidos en municipal-theme.css */
+/* Estilos adicionales específicos del componente si son necesarios */
+
+.empty-icon {
+  color: #ccc;
   margin-bottom: 1rem;
 }
-.form-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+
+.text-end {
+  text-align: right;
 }
-.form-row label {
-  font-weight: bold;
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
 }
-.adeudos-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+
+.table-row-selected {
+  background-color: #fff3cd !important;
 }
-.adeudos-table th, .adeudos-table td {
-  border: 1px solid #ccc;
-  padding: 0.3rem 0.5rem;
-  text-align: left;
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+  cursor: pointer;
 }
-.adeudos-table th {
-  background: #f5f5f5;
+
+.required {
+  color: #dc3545;
 }
-.loading {
-  color: #007bff;
-  font-weight: bold;
-}
-.error {
-  color: #b00;
-  font-weight: bold;
-}
-.no-data {
-  color: #888;
-  margin-top: 2rem;
+
+/* Override para columnas numéricas */
+.municipal-table td.text-end,
+.municipal-table th.text-end {
+  text-align: right;
 }
 </style>

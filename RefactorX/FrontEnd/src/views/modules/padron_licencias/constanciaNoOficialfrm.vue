@@ -283,6 +283,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
@@ -291,6 +292,7 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 
 // Estado
 const searchForm = ref({

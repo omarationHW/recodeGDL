@@ -9,10 +9,23 @@
         <h1>{{ nombreTabla ? 'ALTA DE: ' + nombreTabla : 'Nuevos Registros' }}</h1>
         <p>Otras Obligaciones - Registro de nuevos contratos y obligaciones</p>
       </div>
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="cargarDatosIniciales"
+          title="Actualizar datos"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button class="btn-municipal-secondary" @click="goBack">
           <font-awesome-icon icon="arrow-left" /> Salir
         </button>
@@ -23,7 +36,7 @@
       <!-- Información del tipo de registro -->
       <div class="municipal-card" v-if="nombreTabla">
         <div class="municipal-card-body">
-          <div class="alert alert-info">
+          <div class="municipal-alert municipal-alert-info">
             <font-awesome-icon icon="info-circle" />
             <strong>{{ labelBusqueda }}</strong>
           </div>
@@ -275,11 +288,10 @@
                   placeholder="Año"
                   maxlength="4"
                   min="2020"
-                  :max="axoActual"
                   style="width: 150px;"
                 >
                 <small class="form-text text-muted">
-                  Año {{ axoActual - 1 }} o {{ axoActual }}
+                  Año actual o mayor igual a 2020
                 </small>
               </div>
 
@@ -325,22 +337,6 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
     </div>
   </div>
 
@@ -357,6 +353,7 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
@@ -367,15 +364,9 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 // Referencias a inputs
 const numeroExpInput = ref(null)
@@ -433,7 +424,7 @@ const mostrarSuperficie = computed(() => {
 
 // Métodos
 const goBack = () => {
-  router.push('/otras_obligaciones')
+  router.push('/otras-obligaciones/menu')
 }
 
 // Focus helpers
@@ -507,9 +498,9 @@ const focusTipoLocal = () => {
 const loadEtiquetas = async () => {
   try {
     const response = await execute(
-      'sp_otras_oblig_get_etiquetas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value.toString(), tipo: 'string' }],
+      'get_etiquetas',
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
     )
 
@@ -517,7 +508,7 @@ const loadEtiquetas = async () => {
       etiquetas.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error al cargar etiquetas:', error)
+    handleApiError(error)
   }
 }
 
@@ -525,9 +516,9 @@ const loadEtiquetas = async () => {
 const loadTablas = async () => {
   try {
     const response = await execute(
-      'sp_otras_oblig_get_tablas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value.toString(), tipo: 'string' }],
+      'get_tablas',
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
     )
 
@@ -541,7 +532,7 @@ const loadTablas = async () => {
       }
     }
   } catch (error) {
-    console.error('Error al cargar tablas:', error)
+    handleApiError(error)
   }
 }
 
@@ -585,13 +576,15 @@ const validarFormulario = () => {
     return 'Seleccione el TIPO DE LOCAL / UNIDADES'
   }
 
-  // Validar año
+  // Validar año (debe ser >= 2020 y ser año actual o el anterior)
   if (formData.value.axoInicio < 2020) {
     return 'El año de inicio debe ser mayor o igual a 2020'
   }
 
-  if (formData.value.axoInicio < (axoActual - 1) || formData.value.axoInicio > axoActual) {
-    return `El año de inicio de obligación puede ser ${axoActual - 1} o ${axoActual}, intenta con otro`
+  // Validación según Delphi: (StrToInt(Trim(FEdtAso.Text)) = Aso_Act) or (StrToInt(Trim(FEdtAso.Text)) >= 2020)
+  // Línea 236: if (StrToInt(Trim(FEdtAso.Text)) = Aso_Act) or (StrToInt(Trim(FEdtAso.Text)) >= 2020)
+  if (formData.value.axoInicio !== axoActual && formData.value.axoInicio < 2020) {
+    return `El Año de Inicio de obligacion puede ser 1 menor al actual ó el actual, intenta con otro`
   }
 
   return null
@@ -652,21 +645,21 @@ const aplicarAlta = async () => {
   }
 
   saving.value = true
-  setLoading(true, 'Guardando registro...')
+  showLoading('Guardando registro...')
 
   try {
     // Si no se muestra superficie (tipo 5), usar 1 como valor por defecto
     const superficie = mostrarSuperficie.value ? formData.value.superficie : 1
 
     const response = await execute(
-      'sp_gnuevos_alta',
-      'otras_obligaciones',
+      'ins34_gen_contrato',
+      BASE_DB,
       [
-        { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tabla', valor: tipoTabla.value, tipo: 'string' },
         { nombre: 'par_control', valor: control, tipo: 'string' },
         { nombre: 'par_conces', valor: formData.value.concesionario, tipo: 'string' },
         { nombre: 'par_ubica', valor: formData.value.ubicacion, tipo: 'string' },
-        { nombre: 'par_sup', valor: superficie, tipo: 'decimal' },
+        { nombre: 'par_sup', valor: superficie, tipo: 'numeric' },
         { nombre: 'par_Axo_Ini', valor: formData.value.axoInicio, tipo: 'integer' },
         { nombre: 'par_Mes_Ini', valor: formData.value.mesInicio, tipo: 'integer' },
         { nombre: 'par_ofna', valor: formData.value.oficina, tipo: 'integer' },
@@ -713,7 +706,7 @@ const aplicarAlta = async () => {
     handleApiError(error)
   } finally {
     saving.value = false
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -748,15 +741,37 @@ const limpiarFormulario = () => {
   })
 }
 
+// Cargar datos iniciales
+const cargarDatosIniciales = async () => {
+  showLoading('Cargando datos iniciales...')
+
+  try {
+    await loadEtiquetas()
+    await loadTablas()
+    showToast('success', 'Datos actualizados')
+  } finally {
+    hideLoading()
+  }
+
+  // Hacer foco en el primer campo
+  nextTick(() => {
+    if (tipoTabla.value === 3 && numeroLocalInput.value) {
+      numeroLocalInput.value.focus()
+    } else if (numeroExpInput.value) {
+      numeroExpInput.value.focus()
+    }
+  })
+}
+
 // Lifecycle
 onMounted(async () => {
-  setLoading(true, 'Cargando datos iniciales...')
+  showLoading('Cargando datos iniciales...')
 
   try {
     await loadEtiquetas()
     await loadTablas()
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 
   // Hacer foco en el primer campo

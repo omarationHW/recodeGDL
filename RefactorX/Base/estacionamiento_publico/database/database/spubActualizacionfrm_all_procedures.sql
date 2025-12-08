@@ -2,10 +2,75 @@
 -- STORED PROCEDURES CONSOLIDADOS
 -- Formulario: spubActualizacionfrm
 -- Generado: 2025-08-27 14:48:13
--- Total SPs: 7
+-- Total SPs: 8
 -- ============================================
 
--- SP 1/7: sppubmodi
+-- SP 0/8: sp_get_estacionamiento_by_numesta
+-- Tipo: Query
+-- Descripción: Busca un estacionamiento por su número (numesta)
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_get_estacionamiento_by_numesta(
+    p_numesta integer
+) RETURNS TABLE (
+    id integer,
+    pubcategoria_id integer,
+    categoria varchar(2),
+    descripcion varchar,
+    numesta integer,
+    sector varchar(1),
+    nomsector varchar(8),
+    zona integer,
+    subzona integer,
+    numlicencia integer,
+    axolicencias integer,
+    cvecuenta integer,
+    nombre varchar(100),
+    calle varchar(100),
+    numext varchar(6),
+    telefono varchar(15),
+    rfc varchar(15),
+    cupo integer,
+    fecha_at date,
+    fecha_inicial date,
+    fecha_vencimiento date,
+    movto_cve varchar(1),
+    solicitud integer,
+    control integer
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT a.id, a.pubcategoria_id,
+           TRIM(b.categoria)::varchar(2) as categoria,
+           TRIM(b.descripcion)::varchar as descripcion,
+           a.numesta,
+           TRIM(a.sector)::varchar(1) as sector,
+           CASE TRIM(a.sector)
+               WHEN 'J' THEN 'JUAREZ'::varchar(8)
+               WHEN 'H' THEN 'HIDALGO'::varchar(8)
+               WHEN 'L' THEN 'LIBERTAD'::varchar(8)
+               WHEN 'R' THEN 'REFORMA'::varchar(8)
+               ELSE 'S/N'::varchar(8)
+           END AS nomsector,
+           a.zona, a.subzona, a.numlicencia, a.axolicencias, a.cvecuenta,
+           TRIM(a.nombre)::varchar(100) as nombre,
+           TRIM(a.calle)::varchar(100) as calle,
+           TRIM(a.numext)::varchar(6) as numext,
+           TRIM(a.telefono)::varchar(15) as telefono,
+           COALESCE(TRIM(a.rfc), '')::varchar(15) as rfc,
+           a.cupo, a.fecha_at, a.fecha_inicial, a.fecha_vencimiento,
+           COALESCE(TRIM(a.movto_cve), 'A')::varchar(1) as movto_cve,
+           COALESCE(a.solicitud, 0)::integer as solicitud,
+           COALESCE(a.control, 0)::integer as control
+    FROM public.pubmain a
+    JOIN public.pubcategoria b ON b.id = a.pubcategoria_id
+    WHERE a.numesta = p_numesta;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+
+-- SP 1/8: sppubmodi
 -- Tipo: CRUD
 -- Descripción: Actualiza los datos de un estacionamiento público
 -- --------------------------------------------

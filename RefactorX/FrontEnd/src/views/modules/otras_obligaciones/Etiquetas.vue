@@ -9,15 +9,32 @@
         <h1>Catálogo de Etiquetas</h1>
         <p>Otras Obligaciones - Configuración de Etiquetas por Tabla</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-info"
+          @click="loadTablas"
+          :disabled="loading || loadingEtiquetas"
+          title="Actualizar"
+        >
+          <font-awesome-icon icon="sync" :spin="loading || loadingEtiquetas" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-secondary"
+          @click="openTechDocs"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -37,9 +54,6 @@
             <font-awesome-icon icon="table" />
             Seleccionar Tabla
           </h5>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
 
         <div class="municipal-card-body">
@@ -71,9 +85,6 @@
             <font-awesome-icon icon="edit" />
             Configuración de Etiquetas para Tabla "{{ selectedTabla }}"
           </h5>
-          <div v-if="loadingEtiquetas" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando etiquetas...</span>
-          </div>
         </div>
 
         <div class="municipal-card-body" v-if="!loadingEtiquetas && etiquetas">
@@ -326,24 +337,8 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading || loadingEtiquetas" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>{{ loading ? 'Cargando tablas...' : 'Cargando etiquetas...' }}</p>
-        </div>
-      </div>
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -354,14 +349,24 @@
     :moduleName="'otras_obligaciones'"
     @close="closeDocumentation"
   />
+
+  <!-- Modal de Documentacion Tecnica -->
+  <TechnicalDocsModal
+    :show="showTechDocs"
+    :componentName="'Etiquetas'"
+    :moduleName="'otras_obligaciones'"
+    @close="closeTechDocs"
+  />
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Router
@@ -369,19 +374,22 @@ const router = useRouter()
 
 // Composables
 const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
+const openTechDocs = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
-  toast,
   showToast,
-  hideToast,
-  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+// Estado local para loading
+const loading = ref(false)
 
 // Estado
 const tablas = ref([])
@@ -405,43 +413,49 @@ const goBack = () => {
 
 // Cargar tablas disponibles
 const loadTablas = async () => {
-  setLoading(true, 'Cargando tablas...')
+  // Limpiar selecciones previas
+  selectedTabla.value = ''
+  etiquetas.value = null
+  etiquetasOriginal.value = null
+
+  loading.value = true
+  showLoading('Cargando tablas...')
 
   try {
     const response = await execute(
-      'SP_ETIQUETAS_TABLAS_GET',
-      'otras_obligaciones',
+      'sp_otras_oblig_get_tablas_all',
+      BASE_DB,
       [],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
-    if (response && response.result) {
+    loading.value = false
+    hideLoading()
+
+    if (response && response.result && response.result.length > 0) {
       tablas.value = response.result.map(tabla => ({
-        id_34_tab: tabla.id_34_tab,
-        cve_tab: tabla.cve_tab,
-        nombre: tabla.nombre,
-        cajero: tabla.cajero,
-        auto_tab: tabla.auto_tab
+        cve_tab: String(tabla.cve_tab).trim(),
+        nombre: (tabla.nombre || '').trim()
       }))
 
-      if (tablas.value.length > 0) {
-        showToast('success', `${tablas.value.length} tabla(s) cargada(s)`)
+      showToast('success', `${tablas.value.length} tabla(s) cargada(s)`)
 
-        // Seleccionar la primera tabla automáticamente
+      // Seleccionar la primera tabla automáticamente
+      if (tablas.value.length > 0) {
         selectedTabla.value = tablas.value[0].cve_tab
-        onTablaChange()
-      } else {
-        showToast('info', 'No se encontraron tablas disponibles')
+        await onTablaChange()
       }
     } else {
       tablas.value = []
-      showToast('info', 'No se encontraron tablas')
+      showToast('info', 'No se encontraron tablas disponibles')
     }
   } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     tablas.value = []
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -454,16 +468,22 @@ const onTablaChange = async () => {
   }
 
   loadingEtiquetas.value = true
+  showLoading('Cargando etiquetas...')
 
   try {
     const response = await execute(
-      'SP_ETIQUETAS_GET',
-      'otras_obligaciones',
+      'sp_etiquetas_get_by_tabla',
+      BASE_DB,
       [
-        { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'string' }
+        { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'varchar' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
+
+    loadingEtiquetas.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const data = response.result[0]
@@ -526,11 +546,11 @@ const onTablaChange = async () => {
       showToast('info', 'No se encontraron etiquetas. Se crearán nuevas al guardar.')
     }
   } catch (error) {
+    loadingEtiquetas.value = false
+    hideLoading()
     handleApiError(error)
     etiquetas.value = null
     etiquetasOriginal.value = null
-  } finally {
-    loadingEtiquetas.value = false
   }
 }
 
@@ -565,75 +585,73 @@ const saveEtiquetas = async () => {
   })
 
   if (!confirmResult.isConfirmed) {
+    showToast('info', 'Operación cancelada')
     return
   }
 
   saving.value = true
+  showLoading('Guardando etiquetas...')
 
   try {
     const params = [
-      { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'string' },
-      { nombre: 'p_abreviatura', valor: etiquetas.value.abreviatura || ' ', tipo: 'string' },
-      { nombre: 'p_etiq_control', valor: etiquetas.value.etiq_control || ' ', tipo: 'string' },
-      { nombre: 'p_concesionario', valor: etiquetas.value.concesionario || ' ', tipo: 'string' },
-      { nombre: 'p_ubicacion', valor: etiquetas.value.ubicacion || ' ', tipo: 'string' },
-      { nombre: 'p_superficie', valor: etiquetas.value.superficie || ' ', tipo: 'string' },
-      { nombre: 'p_fecha_inicio', valor: etiquetas.value.fecha_inicio || ' ', tipo: 'string' },
-      { nombre: 'p_fecha_fin', valor: etiquetas.value.fecha_fin || ' ', tipo: 'string' },
-      { nombre: 'p_recaudadora', valor: etiquetas.value.recaudadora || ' ', tipo: 'string' },
-      { nombre: 'p_sector', valor: etiquetas.value.sector || ' ', tipo: 'string' },
-      { nombre: 'p_zona', valor: etiquetas.value.zona || ' ', tipo: 'string' },
-      { nombre: 'p_licencia', valor: etiquetas.value.licencia || ' ', tipo: 'string' },
-      { nombre: 'p_fecha_cancelacion', valor: etiquetas.value.fecha_cancelacion || ' ', tipo: 'string' },
-      { nombre: 'p_unidad', valor: etiquetas.value.unidad || ' ', tipo: 'string' },
-      { nombre: 'p_categoria', valor: etiquetas.value.categoria || ' ', tipo: 'string' },
-      { nombre: 'p_seccion', valor: etiquetas.value.seccion || ' ', tipo: 'string' },
-      { nombre: 'p_bloque', valor: etiquetas.value.bloque || ' ', tipo: 'string' },
-      { nombre: 'p_nombre_comercial', valor: etiquetas.value.nombre_comercial || ' ', tipo: 'string' },
-      { nombre: 'p_lugar', valor: etiquetas.value.lugar || ' ', tipo: 'string' },
-      { nombre: 'p_obs', valor: etiquetas.value.obs || ' ', tipo: 'string' }
+      { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'varchar' },
+      { nombre: 'p_abreviatura', valor: etiquetas.value.abreviatura || '', tipo: 'varchar' },
+      { nombre: 'p_etiq_control', valor: etiquetas.value.etiq_control || '', tipo: 'varchar' },
+      { nombre: 'p_concesionario', valor: etiquetas.value.concesionario || '', tipo: 'varchar' },
+      { nombre: 'p_ubicacion', valor: etiquetas.value.ubicacion || '', tipo: 'varchar' },
+      { nombre: 'p_superficie', valor: etiquetas.value.superficie || '', tipo: 'varchar' },
+      { nombre: 'p_fecha_inicio', valor: etiquetas.value.fecha_inicio || '', tipo: 'varchar' },
+      { nombre: 'p_fecha_fin', valor: etiquetas.value.fecha_fin || '', tipo: 'varchar' },
+      { nombre: 'p_recaudadora', valor: etiquetas.value.recaudadora || '', tipo: 'varchar' },
+      { nombre: 'p_sector', valor: etiquetas.value.sector || '', tipo: 'varchar' },
+      { nombre: 'p_zona', valor: etiquetas.value.zona || '', tipo: 'varchar' },
+      { nombre: 'p_licencia', valor: etiquetas.value.licencia || '', tipo: 'varchar' },
+      { nombre: 'p_fecha_cancelacion', valor: etiquetas.value.fecha_cancelacion || '', tipo: 'varchar' },
+      { nombre: 'p_unidad', valor: etiquetas.value.unidad || '', tipo: 'varchar' },
+      { nombre: 'p_categoria', valor: etiquetas.value.categoria || '', tipo: 'varchar' },
+      { nombre: 'p_seccion', valor: etiquetas.value.seccion || '', tipo: 'varchar' },
+      { nombre: 'p_bloque', valor: etiquetas.value.bloque || '', tipo: 'varchar' },
+      { nombre: 'p_nombre_comercial', valor: etiquetas.value.nombre_comercial || '', tipo: 'varchar' },
+      { nombre: 'p_lugar', valor: etiquetas.value.lugar || '', tipo: 'varchar' },
+      { nombre: 'p_obs', valor: etiquetas.value.obs || '', tipo: 'varchar' }
     ]
 
     const response = await execute(
-      'SP_ETIQUETAS_UPDATE',
-      'otras_obligaciones',
+      'sp_etiquetas_update',
+      BASE_DB,
       params,
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
-    if (response && response.result && response.result[0]) {
-      const result = response.result[0]
+    saving.value = false
+    hideLoading()
 
-      if (result.success === 1) {
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Actualización exitosa!',
-          text: result.message || 'Las etiquetas han sido actualizadas correctamente',
-          confirmButtonColor: '#ea8215',
-          timer: 2000
-        })
+    if (response) {
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Actualización exitosa!',
+        text: 'Las etiquetas han sido actualizadas correctamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
 
-        showToast('success', 'Etiquetas actualizadas correctamente')
+      showToast('success', 'Etiquetas actualizadas correctamente')
 
-        // Recargar etiquetas
-        onTablaChange()
-      } else {
-        await Swal.fire({
-          icon: 'error',
-          title: 'Error al actualizar',
-          text: result.message || 'No se pudieron actualizar las etiquetas',
-          confirmButtonColor: '#ea8215'
-        })
-      }
+      // Recargar etiquetas
+      await onTablaChange()
     } else {
       await Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Respuesta inesperada del servidor',
+        text: 'No se pudieron actualizar las etiquetas',
         confirmButtonColor: '#ea8215'
       })
     }
   } catch (error) {
+    saving.value = false
+    hideLoading()
     handleApiError(error)
     await Swal.fire({
       icon: 'error',
@@ -641,8 +659,6 @@ const saveEtiquetas = async () => {
       text: 'No se pudieron actualizar las etiquetas',
       confirmButtonColor: '#ea8215'
     })
-  } finally {
-    saving.value = false
   }
 }
 

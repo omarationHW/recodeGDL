@@ -1,38 +1,40 @@
--- Stored Procedure: sp_get_remesa_detalle_mpio
--- Tipo: Report
--- Descripción: Obtiene el detalle de una remesa municipal (tabla ta14_datos_mpio) por nombre de remesa.
--- Generado para formulario: ConsRemesas
--- Fecha: 2025-08-27 13:30:41
+-- =============================================================================
+-- STORED PROCEDURE: sp_get_remesa_detalle_mpio
+-- Base: estacionamiento_publico
+-- Esquema: public
+-- Formulario: ConsRemesas / ConsRemesasPublicos.vue
+-- Descripcion: Obtiene detalle de remesa desde ta14_datos_edo por patron de num_remesa
+-- =============================================================================
 
-CREATE OR REPLACE FUNCTION sp_get_remesa_detalle_mpio(remesa_param character varying)
+DROP FUNCTION IF EXISTS public.sp_get_remesa_detalle_mpio(varchar);
+
+CREATE OR REPLACE FUNCTION public.sp_get_remesa_detalle_mpio(remesa_param VARCHAR)
 RETURNS TABLE(
-    idrmunicipio integer,
-    tipoact varchar,
-    folio bigint,
-    fechagenreq date,
     placa varchar,
-    folionot varchar,
-    fechanot date,
+    axo integer,
+    folio numeric,
     fechapago date,
-    fechacancelado date,
-    importe numeric,
-    clave varchar,
-    fechaalta date,
-    fechavenc date,
-    folioec varchar,
-    folioecmpio varchar,
-    gastos numeric,
-    remesa varchar,
-    fecharemesa date
-) AS $$
+    importe numeric
+) AS $func$
+DECLARE
+    v_patron VARCHAR;
 BEGIN
+    -- Construir patrón de búsqueda: 'r' + número de remesa
+    v_patron := '%r' || TRIM(remesa_param) || '%';
+
     RETURN QUERY
     SELECT
-        t.idrmunicipio, t.tipoact, t.folio, t.fechagenreq, t.placa,
-        t.folionot, t.fechanot, t.fechapago, t.fechacancelado, t.importe,
-        t.clave, t.fechaalta, t.fechavenc, t.folioec, t.folioecmpio,
-        t.gastos, t.remesa, t.fecharemesa
-    FROM ta14_datos_mpio t
-    WHERE t.remesa = remesa_param;
+        TRIM(t.placa)::varchar,
+        EXTRACT(YEAR FROM t.fechaalta)::integer AS axo,
+        t.folio,
+        t.fechapago,
+        t.importe
+    FROM public.ta14_datos_edo t
+    WHERE t.remesa LIKE v_patron
+    ORDER BY t.fechapago DESC NULLS LAST;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- FIN STORED PROCEDURE
+-- =============================================================================

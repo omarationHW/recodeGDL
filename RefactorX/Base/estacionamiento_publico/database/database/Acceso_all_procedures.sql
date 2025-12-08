@@ -60,9 +60,9 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT a.axo, a.folio, a.placa, a.fecha_folio, a.estado, a.infraccion, b.tarifa, 'Vigente'::TEXT
+  SELECT a.axo::INT, a.folio::INT, a.placa::TEXT, a.fecha_folio, a.estado::INT, a.infraccion::INT, COALESCE(b.tarifa, 0)::NUMERIC, 'Vigente'::TEXT
   FROM ta14_folios_adeudo a
-  JOIN ta14_tarifas b ON a.infraccion = b.num_clave AND a.fecha_folio BETWEEN b.fecha_inicial AND b.fecha_fin
+  LEFT JOIN ta14_tarifas b ON a.infraccion = b.num_clave AND a.fecha_folio BETWEEN b.fecha_inicial AND b.fecha_fin
   WHERE a.axo = p_year
     AND (p_folio IS NULL OR a.folio = p_folio)
     AND (p_placa IS NULL OR a.placa = p_placa)

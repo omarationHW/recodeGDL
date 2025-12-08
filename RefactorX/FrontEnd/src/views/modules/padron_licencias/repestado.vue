@@ -312,6 +312,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
 import Swal from 'sweetalert2'
 
 const showDocumentation = ref(false)
@@ -328,6 +329,7 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
 
 // Estado
 const tramite = ref(null)
@@ -427,7 +429,27 @@ const exportarExcel = async () => {
     return
   }
 
-  showToast('info', 'Función de exportación a Excel en desarrollo')
+  try {
+    const columns = [
+      { header: 'ID Revisión', key: 'id_revision', width: 12 },
+      { header: 'Fecha Revisión', key: 'fecha_revision', type: 'datetime', width: 20 },
+      { header: 'Dependencia', key: 'dependencia', width: 25 },
+      { header: 'Resultado', key: 'resultado', width: 15 },
+      { header: 'Usuario Revisó', key: 'usuario_reviso', width: 20 },
+      { header: 'Observaciones', key: 'observaciones', width: 40 }
+    ]
+
+    const filename = `Revisiones_Tramite_${tramite.value?.id_tramite || 'N-A'}`
+    const success = exportToExcel(revisiones.value, columns, filename, 'Revisiones')
+
+    if (success) {
+      showToast('success', `Excel exportado: ${revisiones.value.length} revisiones`)
+    } else {
+      showToast('error', 'Error al exportar Excel')
+    }
+  } catch (error) {
+    showToast('error', 'Error al generar el archivo Excel')
+  }
 }
 
 const clearFilters = () => {

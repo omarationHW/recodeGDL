@@ -1,127 +1,428 @@
 <template>
-  <div class="pagos-ene-cons-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Pagos Energía Eléctrica</li>
-      </ol>
-    </nav>
-    <h2>Consulta de Pagos de Energía Eléctrica</h2>
-    <div class="card mb-3">
-      <div class="card-body">
-        <form @submit.prevent="fetchPagos">
-          <div class="row g-2 align-items-end">
-            <div class="col-md-4">
-              <label for="id_energia" class="form-label">ID Energía</label>
-              <input v-model="form.id_energia" type="number" class="form-control" id="id_energia" required />
-            </div>
-            <div class="col-md-2">
-              <button type="submit" class="btn btn-primary">Buscar</button>
-            </div>
-          </div>
-        </form>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta de Pagos de Energía Eléctrica</h1>
+        <p>Inicio > Mercados > Pagos Energía</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="exportarExcel"
+          :disabled="loading || pagos.length === 0">
+          <font-awesome-icon icon="file-excel" />
+          Exportar
+        </button>
+        <button class="btn-municipal-primary" @click="imprimir"
+          :disabled="loading || pagos.length === 0">
+          <font-awesome-icon icon="print" />
+          Imprimir
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
-    <div v-if="loading" class="alert alert-info">Cargando...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="pagos.length">
-      <table class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>Control</th>
-            <th>Año</th>
-            <th>Mes</th>
-            <th>Fecha</th>
-            <th>Rec</th>
-            <th>Caja</th>
-            <th>Oper.</th>
-            <th>Importe</th>
-            <th>Partida</th>
-            <th>Actualización</th>
-            <th>Usuario</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="pago in pagos" :key="pago.id_pago_energia">
-            <td>{{ pago.id_energia }}</td>
-            <td>{{ pago.axo }}</td>
-            <td>{{ pago.periodo }}</td>
-            <td>{{ formatDate(pago.fecha_pago) }}</td>
-            <td>{{ pago.oficina_pago }}</td>
-            <td>{{ pago.caja_pago }}</td>
-            <td>{{ pago.operacion_pago }}</td>
-            <td>{{ pago.importe_pago | currency }}</td>
-            <td>{{ pago.folio }}</td>
-            <td>{{ formatDateTime(pago.fecha_modificacion) }}</td>
-            <td>{{ pago.usuario }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div v-else-if="!loading && !error">
-      <div class="alert alert-warning">No hay pagos registrados para este ID Energía.</div>
-    </div>
-    <div class="mt-4">
-      <router-link class="btn btn-secondary" to="/">Regresar</router-link>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Búsqueda de Pagos
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+        </div>
+
+        <div v-show="showFilters" class="municipal-card-body">
+          <form @submit.prevent="buscarPagos">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label">ID Energía <span class="required">*</span></label>
+                <input
+                  v-model="form.id_energia"
+                  type="number"
+                  class="municipal-form-control"
+                  required
+                  :disabled="loading"
+                  placeholder="Ingrese el ID de energía">
+              </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="row mt-3">
+              <div class="col-12">
+                <div class="text-end">
+                  <button type="submit" class="btn-municipal-primary me-2" :disabled="loading">
+                    <font-awesome-icon icon="search" />
+                    Buscar
+                  </button>
+                  <button type="button" class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
+                    <font-awesome-icon icon="eraser" />
+                    Limpiar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tabla: Resultados de Búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Pagos de Energía Eléctrica
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="pagos.length > 0">
+              {{ formatNumber(pagos.length) }} registros
+            </span>
+          </div>
+        </div>
+
+        <div class="municipal-card-body table-container">
+          <!-- Mensaje de error -->
+          <div v-if="error" class="alert alert-danger" role="alert">
+            <font-awesome-icon icon="exclamation-triangle" />
+            {{ error }}
+          </div>
+
+          <!-- Tabla (loading es manejado por useGlobalLoading) -->
+          <div v-else class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Control</th>
+                  <th>Año</th>
+                  <th>Periodo</th>
+                  <th>Fecha Pago</th>
+                  <th>Recaudadora</th>
+                  <th>Caja</th>
+                  <th>Operación</th>
+                  <th class="text-end">Importe</th>
+                  <th>Folio</th>
+                  <th>Actualización</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="pagos.length === 0 && !searchPerformed">
+                  <td colspan="11" class="text-center text-muted">
+                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <p>Ingrese un ID de energía para consultar los pagos</p>
+                  </td>
+                </tr>
+                <tr v-else-if="pagos.length === 0">
+                  <td colspan="11" class="text-center text-muted">
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No se encontraron pagos para este ID de energía</p>
+                  </td>
+                </tr>
+                <tr v-else v-for="pago in paginatedPagos" :key="pago.id_pago_energia" class="row-hover">
+                  <td><strong class="text-primary">{{ pago.id_energia }}</strong></td>
+                  <!-- Badge de año con estilo purple gradient -->
+                  <td><span class="badge-purple" style="font-weight: 600;">{{ pago.axo }}</span></td>
+                  <!-- Badge de periodo con estilo purple gradient -->
+                  <td><span class="badge-purple" style="font-weight: 500;">P{{ pago.periodo }}</span></td>
+                  <td>
+                    <font-awesome-icon icon="calendar-alt" style="font-size: 0.85rem; margin-right: 0.35rem;" class="text-muted" />
+                    {{ formatDate(pago.fecha_pago) }}
+                  </td>
+                  <td>{{ pago.oficina_pago }}</td>
+                  <td>{{ pago.caja_pago }}</td>
+                  <td>{{ pago.operacion_pago }}</td>
+                  <td class="text-end">
+                    <!-- Importe con estilo monospace verde -->
+                    <span style="color: #28a745; font-weight: 700; font-size: 1.05rem; font-family: 'Courier New', monospace;">{{ formatCurrency(pago.importe_pago) }}</span>
+                  </td>
+                  <td>
+                    <!-- Folio badge con fondo azul claro -->
+                    <span class="badge-info" style="font-family: 'Courier New', monospace;">{{ pago.folio || 'N/A' }}</span>
+                  </td>
+                  <td>{{ formatDateTime(pago.fecha_modificacion) }}</td>
+                  <td>
+                    <font-awesome-icon icon="user" style="font-size: 0.85rem; margin-right: 0.35rem;" class="text-muted" />
+                    {{ pago.id_usuario || 'N/A' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="pagos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, pagos.length) }}
+                de {{ pagos.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changeItemsPerPage($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'PagosEneConsPage',
-  data() {
-    return {
-      form: {
-        id_energia: ''
-      },
-      pagos: [],
-      loading: false,
-      error: ''
-    };
-  },
-  methods: {
-    async fetchPagos() {
-      this.loading = true;
-      this.error = '';
-      this.pagos = [];
-      try {
-        const response = await this.$axios.post('/api/execute', {
-          action: 'getPagosEnergia',
-          params: { id_energia: this.form.id_energia }
-        });
-        if (response.data.success) {
-          this.pagos = response.data.data;
-        } else {
-          this.error = response.data.message || 'Error al consultar pagos.';
-        }
-      } catch (e) {
-        this.error = e.response?.data?.message || e.message || 'Error de red.';
-      } finally {
-        this.loading = false;
-      }
-    },
-    formatDate(dateStr) {
-      if (!dateStr) return '';
-      return new Date(dateStr).toLocaleDateString();
-    },
-    formatDateTime(dateStr) {
-      if (!dateStr) return '';
-      return new Date(dateStr).toLocaleString();
-    }
-  },
-  filters: {
-    currency(val) {
-      if (typeof val !== 'number') return val;
-      return val.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    }
-  }
-};
-</script>
+<script setup>
+import { ref, computed } from 'vue'
+import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 
-<style scoped>
-.pagos-ene-cons-page {
-  max-width: 900px;
-  margin: 0 auto;
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
+
+// Estado
+const showFilters = ref(true)
+const loading = ref(false)
+const error = ref('')
+const searchPerformed = ref(false)
+
+// Formulario
+const form = ref({
+  id_energia: ''
+})
+
+// Datos
+const pagos = ref([])
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const itemsPerPageOptions = [10, 25, 50, 100]
+
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(pagos.value.length / itemsPerPage.value)
+})
+
+const paginatedPagos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return pagos.value.slice(start, end)
+})
+
+const paginationInfo = computed(() => {
+  const start = pagos.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+  const end = Math.min(currentPage.value * itemsPerPage.value, pagos.value.length)
+  return `${start} - ${end} de ${formatNumber(pagos.value.length)}`
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de UI
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
 }
-</style>
+
+const mostrarAyuda = () => {
+  showToast('Ingrese el ID de energía para consultar todos los pagos realizados para ese servicio.', 'info')
+}
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changeItemsPerPage = (newSize) => {
+  itemsPerPage.value = newSize
+  currentPage.value = 1 // Reset a la primera página
+}
+
+const resetPagination = () => {
+  currentPage.value = 1
+  itemsPerPage.value = 10
+}
+
+// Utilidades
+const formatCurrency = (val) => {
+  if (val === null || val === undefined || val === '') return 'N/A'
+  const num = typeof val === 'number' ? val : parseFloat(val)
+  if (isNaN(num)) return 'N/A'
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  try {
+    return new Date(dateStr).toLocaleDateString('es-MX')
+  } catch (e) {
+    return dateStr
+  }
+}
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  try {
+    return new Date(dateStr).toLocaleString('es-MX')
+  } catch (e) {
+    return dateStr
+  }
+}
+
+// Búsqueda
+const buscarPagos = async () => {
+  if (!form.value.id_energia) {
+    error.value = 'Debe ingresar un ID de energía'
+    showToast(error.value, 'warning')
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+  pagos.value = []
+  searchPerformed.value = true
+
+  try {
+    showLoading('Consultando pagos de energía', 'Por favor espere...')
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_cons_pagos_energia',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_id_energia', Valor: parseInt(form.value.id_energia) }
+        ]
+      }
+    })
+
+    if (response.data.eResponse && response.data.eResponse.success === true) {
+      pagos.value = response.data.eResponse.data.result || []
+      if (pagos.value.length === 0) {
+        showToast('No se encontraron pagos para este ID de energía', 'info')
+      } else {
+        showToast(`Se encontraron ${pagos.value.length} pagos`, 'success')
+        showFilters.value = false
+      }
+    } else {
+      error.value = response.data.eResponse?.message || 'Error al buscar pagos'
+      showToast(error.value, 'error')
+    }
+  } catch (err) {
+    error.value = err.response?.data?.eResponse?.message || 'Error al buscar pagos'
+    console.error('Error al buscar pagos:', err)
+    showToast(error.value, 'error')
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
+}
+
+const limpiarFiltros = () => {
+  form.value.id_energia = ''
+  pagos.value = []
+  error.value = ''
+  searchPerformed.value = false
+  resetPagination()
+  showToast('Filtros limpiados', 'info')
+}
+
+const exportarExcel = () => {
+  if (pagos.value.length === 0) {
+    showToast('No hay datos para exportar', 'warning')
+    return
+  }
+  showToast('Funcionalidad de exportación en desarrollo', 'info')
+}
+
+const imprimir = () => {
+  if (pagos.value.length === 0) {
+    showToast('No hay datos para imprimir', 'warning')
+    return
+  }
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
+}
+</script>

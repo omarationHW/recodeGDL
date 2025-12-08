@@ -28,7 +28,7 @@
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="consultar">
+            <button class="btn-municipal-primary" :disabled="loading || !isConsultarEnabled" @click="consultar">
               <font-awesome-icon icon="search" /> Consultar
             </button>
             <button class="btn-municipal-secondary" :disabled="loading || registros.length === 0" @click="aplicar">
@@ -40,11 +40,31 @@
 
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="list" /> Resultados</h5>
+          <h5>
+            <font-awesome-icon icon="list" /> Resultados
+            <span v-if="registros.length > 0" class="badge-info">{{ registros.length }} registros</span>
+          </h5>
           <div v-if="loading" class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
         </div>
-        <div class="municipal-card-body table-container" v-if="!loading">
-          <div class="table-responsive">
+        <div class="municipal-card-body table-container">
+          <div v-if="loading" class="text-center text-muted" style="padding: 2rem;">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Consultando saldos a favor...</p>
+          </div>
+          <div v-else-if="registros.length === 0 && hasSearched" class="text-center text-muted" style="padding: 2rem;">
+            <font-awesome-icon icon="inbox" size="3x" style="opacity: 0.3; margin-bottom: 1rem;" />
+            <h5>No se encontraron saldos a favor</h5>
+            <p>Intenta con otros parámetros de búsqueda o verifica que los datos existan en la base de datos.</p>
+            <p class="text-muted"><small>Tip: Puedes buscar sin especificar cuenta para ver todos los registros</small></p>
+          </div>
+          <div v-else-if="!hasSearched" class="text-center text-muted" style="padding: 2rem;">
+            <font-awesome-icon icon="search" size="3x" style="opacity: 0.3; margin-bottom: 1rem;" />
+            <h5>Inicia una búsqueda</h5>
+            <p>Ingresa los parámetros y haz clic en "Consultar" para buscar saldos a favor</p>
+          </div>
+          <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -67,20 +87,24 @@
                     </span>
                   </td>
                 </tr>
-                <tr v-if="registros.length === 0">
-                  <td colspan="5" class="text-center text-muted">Sin registros</td>
-                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos' // TODO confirmar
@@ -89,26 +113,60 @@ const OP_APLICA_SALDOS = 'RECAUDADORA_APLICA_SDOS_FAVOR' // TODO confirmar
 
 const { loading, execute } = useApi()
 
-const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear(), folio: null })
+const filters = ref({ cuenta: '', ejercicio: null, folio: null })
 const registros = ref([])
+const hasSearched = ref(false)
+
+// Computed: habilitar botón Consultar si al menos uno de los campos tiene datos
+const isConsultarEnabled = computed(() => {
+  const tieneCuenta = filters.value.cuenta && filters.value.cuenta.trim() !== ''
+  const tieneEjercicio = filters.value.ejercicio !== null && filters.value.ejercicio !== ''
+  const tieneFolio = filters.value.folio !== null && filters.value.folio !== ''
+
+  // Habilitar si al menos uno tiene datos
+  return tieneCuenta || tieneEjercicio || tieneFolio
+})
 
 async function consultar() {
   registros.value = []
+  hasSearched.value = true
+
+  // Preparar parámetros: enviar null si están vacíos
   const params = [
-    { name: 'clave_cuenta', type: 'C', value: String(filters.value.cuenta || '') },
-    { name: 'ejercicio', type: 'I', value: Number(filters.value.ejercicio || 0) },
-    { name: 'folio', type: 'I', value: Number(filters.value.folio || 0) }
+    {
+      nombre: 'p_clave_cuenta',
+      tipo: 'string',
+      valor: filters.value.cuenta && filters.value.cuenta.trim() !== '' ? String(filters.value.cuenta) : null
+    },
+    {
+      nombre: 'p_ejercicio',
+      tipo: 'integer',
+      valor: filters.value.ejercicio !== null && filters.value.ejercicio !== '' ? Number(filters.value.ejercicio) : null
+    },
+    {
+      nombre: 'p_folio',
+      tipo: 'integer',
+      valor: filters.value.folio !== null && filters.value.folio !== '' ? Number(filters.value.folio) : null
+    }
   ]
+
+  console.log('Parámetros enviados:', params)
+
   try {
     const data = await execute(OP_CONSULTA_SALDOS, BASE_DB, params)
-    registros.value = Array.isArray(data) ? data : []
-  } catch (e) {}
+    console.log('Respuesta del SP:', data)
+    // La respuesta viene en data.result debido a la estructura del GenericController
+    registros.value = Array.isArray(data?.result) ? data.result : (Array.isArray(data) ? data : [])
+    console.log('Registros procesados:', registros.value.length, 'registros')
+  } catch (e) {
+    console.error('Error en consulta:', e)
+  }
 }
 
 async function aplicar() {
   if (registros.value.length === 0) return
   const params = [
-    { name: 'registros', type: 'C', value: JSON.stringify(registros.value) }
+    { nombre: 'p_registros', tipo: 'string', valor: JSON.stringify(registros.value) }
   ]
   try {
     await execute(OP_APLICA_SALDOS, BASE_DB, params)

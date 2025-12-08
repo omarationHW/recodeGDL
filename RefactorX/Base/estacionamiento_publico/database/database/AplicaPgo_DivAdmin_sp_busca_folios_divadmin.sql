@@ -1,61 +1,59 @@
--- Stored Procedure: sp_busca_folios_divadmin
--- Tipo: Report
--- Descripción: Busca folios de adeudo según opción de búsqueda (por placa, por placa y folio, por año y folio) para pagos diversos admin.
--- Generado para formulario: AplicaPgo_DivAdmin
--- Fecha: 2025-08-27 13:22:25
+-- =============================================================================
+-- STORED PROCEDURE: sp_busca_folios_divadmin
+-- Base: estacionamiento_publico
+-- Esquema: public
+-- Descripcion: Busca folios de adeudo segun opcion de busqueda
+--   opcion=0: Por placa
+--   opcion=1: Por placa + folio
+--   opcion=2: Por axo + folio
+-- Formulario: AplicaPgo_DivAdmin
+-- =============================================================================
 
-CREATE OR REPLACE FUNCTION sp_busca_folios_divadmin(
-    opcion integer,
-    placa varchar,
+DROP FUNCTION IF EXISTS public.sp_busca_folios_divadmin(integer, varchar, integer, integer);
+
+CREATE OR REPLACE FUNCTION public.sp_busca_folios_divadmin(
+    p_opcion INTEGER,
+    p_placa VARCHAR,
+    p_folio INTEGER,
+    p_axo INTEGER
+) RETURNS TABLE (
+    axo smallint,
     folio integer,
-    axo integer
-)
-RETURNS TABLE (
-    ret_axo integer,
-    ret_folio integer,
-    ret_placa varchar,
+    placa varchar,
     fecha_folio date,
-    estado smallint,
     infraccion smallint,
+    estado smallint,
     tarifa numeric,
-    porc_cobro numeric,
-    descripcion varchar,
-    pago varchar,
-    usu_inicial integer,
-    notif varchar,
-    num_acuerdo integer,
-    costo_fijo01 numeric,
-    ord varchar,
-    afec varchar,
     zona smallint,
-    espacio smallint,
-    fecha_baja varchar
-) AS $$
+    espacio smallint
+) AS $func$
 BEGIN
     RETURN QUERY
-    SELECT 
-        a.axo, a.folio, a.placa, a.fecha_folio, a.estado, a.infraccion, b.tarifa,
-        COALESCE(f.porc_cobro, 100) as porc_cobro,
-        'Vigente' as descripcion,
-        '' as pago,
-        a.usu_inicial,
-        n.folionot as notif,
-        COALESCE(a.num_acuerdo,0) as num_acuerdo,
-        b.costo_fijo01,
-        CASE a.infraccion WHEN 1 THEN 'A' WHEN 2 THEN 'A' WHEN 3 THEN 'A' ELSE 'B' END as ord,
-        'A' as afec,
+    SELECT
+        a.axo,
+        a.folio,
+        TRIM(a.placa)::varchar as placa,
+        a.fecha_folio,
+        a.infraccion,
+        a.estado,
+        COALESCE(t.tarifa, 0) as tarifa,
         a.zona,
-        a.espacio,
-        '' as fecha_baja
-    FROM ta14_folios_adeudo a
-    JOIN ta14_tarifas b ON a.infraccion = b.num_clave AND a.fecha_folio BETWEEN b.fecha_inicial AND b.fecha_fin
-    LEFT JOIN ta14_folios_free f ON a.axo = f.axo AND a.folio = f.folio AND f.clave = 'A'
-    LEFT JOIN ta14_notifica_edo n ON a.num_acuerdo = n.num_acuerdo AND n.num_acuerdo IS NOT NULL
-    WHERE (
-        (opcion = 0 AND a.placa = placa)
-        OR (opcion = 1 AND a.placa = placa AND a.folio = folio)
-        OR (opcion = 2 AND a.axo = axo AND a.folio = folio)
-    )
-    ORDER BY ord, a.axo, a.placa, a.folio;
+        a.espacio
+    FROM public.ta14_folios_adeudo a
+    LEFT JOIN public.ta14_tarifas t ON a.infraccion = t.num_clave
+        AND a.fecha_folio BETWEEN t.fecha_inicial AND t.fecha_fin
+    WHERE
+        CASE
+            WHEN p_opcion = 0 THEN TRIM(a.placa) = UPPER(TRIM(p_placa))
+            WHEN p_opcion = 1 THEN TRIM(a.placa) = UPPER(TRIM(p_placa)) AND a.folio = p_folio
+            WHEN p_opcion = 2 THEN a.axo = p_axo AND a.folio = p_folio
+            ELSE false
+        END
+        AND a.estado NOT IN (2, 14)  -- Excluir pagados
+    ORDER BY a.axo DESC, a.folio DESC;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- FIN STORED PROCEDURE
+-- =============================================================================

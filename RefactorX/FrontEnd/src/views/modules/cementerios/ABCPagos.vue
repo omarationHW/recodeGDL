@@ -9,6 +9,25 @@
         <h1>Registro de Pagos</h1>
         <p>Cementerios - Alta y baja de pagos por folio/cuenta RCM</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -226,7 +245,7 @@
               </tfoot>
             </table>
           </div>
-          <div v-else class="alert alert-warning">
+          <div v-else class="municipal-alert municipal-alert-warning">
             No hay adeudos pendientes para este folio
           </div>
 
@@ -310,7 +329,7 @@
               </tbody>
             </table>
           </div>
-          <div v-else class="alert alert-info">
+          <div v-else class="municipal-alert municipal-alert-info">
             No hay pagos registrados para este folio
           </div>
 
@@ -366,10 +385,19 @@
         <li>Confirme la operación</li>
       </ol>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ABCPagos'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -468,7 +496,6 @@ const cargarAdeudosPendientes = async () => {
 
     adeudosPendientes.value = response || []
   } catch (error) {
-    console.error('Error al cargar adeudos:', error)
     adeudosPendientes.value = []
   } finally {
     loading.value = false
@@ -491,7 +518,6 @@ const cargarPagosRegistrados = async () => {
 
     pagosRegistrados.value = response || []
   } catch (error) {
-    console.error('Error al cargar pagos:', error)
     pagosRegistrados.value = []
   } finally {
     loading.value = false
@@ -681,4 +707,13 @@ const formatNumber = (number) => {
   if (!number) return '0.00'
   return Number(number).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

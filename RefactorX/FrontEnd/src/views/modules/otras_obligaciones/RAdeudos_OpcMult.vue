@@ -11,9 +11,25 @@
       </div>
       <div class="button-group ms-auto">
         <button
+          v-if="adeudos.length > 0"
+          class="btn-municipal-success"
+          @click="imprimirReporte"
+        >
+          <font-awesome-icon icon="print" />
+          Imprimir
+        </button>
+        <button
+          v-if="adeudos.length > 0"
+          class="btn-municipal-secondary"
+          @click="exportarExcel"
+        >
+          <font-awesome-icon icon="file-excel" />
+          Excel
+        </button>
+        <button
           class="btn-municipal-purple"
           @click="openDocumentation"
-          title="Ayuda y documentación del módulo"
+          title="Ayuda"
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
@@ -21,7 +37,6 @@
         <button
           class="btn-municipal-secondary"
           @click="goBack"
-          :disabled="isLoading"
         >
           <font-awesome-icon icon="arrow-left" />
           Salir
@@ -142,73 +157,42 @@
         <div class="municipal-card-body">
           <div class="info-grid">
             <div class="info-item" v-if="datosGenerales.concesionario">
-              <label>
-                <font-awesome-icon icon="user" class="me-1" />
-                Concesionario:
-              </label>
+              <strong>Concesionario:</strong>
               <span>{{ datosGenerales.concesionario }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.ubicacion">
-              <label>
-                <font-awesome-icon icon="map-marker-alt" class="me-1" />
-                Ubicación:
-              </label>
+              <strong>Ubicación:</strong>
               <span>{{ datosGenerales.ubicacion }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.superficie">
-              <label>
-                <font-awesome-icon icon="ruler-combined" class="me-1" />
-                Superficie:
-              </label>
+              <strong>Superficie:</strong>
               <span>{{ datosGenerales.superficie }} m²</span>
             </div>
             <div class="info-item" v-if="datosGenerales.fecha_inicio">
-              <label>
-                <font-awesome-icon icon="calendar-alt" class="me-1" />
-                Fecha de Inicio:
-              </label>
+              <strong>Fecha de Inicio:</strong>
               <span>{{ formatDate(datosGenerales.fecha_inicio) }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.sector">
-              <label>
-                <font-awesome-icon icon="building" class="me-1" />
-                Sector:
-              </label>
+              <strong>Sector:</strong>
               <span>{{ datosGenerales.sector }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.id_zona">
-              <label>
-                <font-awesome-icon icon="map" class="me-1" />
-                Zona:
-              </label>
+              <strong>Zona:</strong>
               <span>{{ datosGenerales.id_zona }}</span>
             </div>
             <div class="info-item" v-if="datosGenerales.licencia">
-              <label>
-                <font-awesome-icon icon="file-alt" class="me-1" />
-                Licencia:
-              </label>
+              <strong>Licencia:</strong>
               <span>{{ datosGenerales.licencia }}</span>
             </div>
-            <div class="info-item" v-if="datosGenerales.descrip_unidad">
-              <label>
-                <font-awesome-icon icon="tag" class="me-1" />
-                Tipo de Unidad:
-              </label>
-              <span>{{ datosGenerales.descrip_unidad }}</span>
-            </div>
             <div class="info-item" v-if="datosGenerales.descrip_stat">
-              <label>
-                <font-awesome-icon icon="flag" class="me-1" />
-                Estado:
-              </label>
+              <strong>Estado:</strong>
               <span class="badge badge-purple">{{ datosGenerales.descrip_stat }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Parámetros de Ejecución (solo para opción Pagado) -->
+      <!-- Parámetros de Pago (solo para opción Pagado) -->
       <div class="municipal-card" v-if="datosGenerales && selectedOpcion === '1'">
         <div class="municipal-card-header">
           <h5>
@@ -216,91 +200,36 @@
             Parámetros de Pago
           </h5>
         </div>
-
         <div class="municipal-card-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="calendar" class="me-1" />
-                <strong>Fecha de Pago:</strong>
-                <span class="required">*</span>
-              </label>
-              <input
-                v-model="parametros.fechaPago"
-                type="date"
-                class="municipal-form-control"
-              />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Fecha de Pago:</label>
+              <input v-model="parametros.fechaPago" type="date" class="municipal-form-control" />
             </div>
-            <div class="col-md-6">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="building" class="me-1" />
-                <strong>Recaudadora:</strong>
-                <span class="required">*</span>
-              </label>
-              <select
-                v-model="parametros.recaudadora"
-                class="municipal-form-control"
-              >
-                <option value="">-- Seleccione --</option>
-                <option
-                  v-for="rec in recaudadoras"
-                  :key="rec.id_rec"
-                  :value="rec.id_rec"
-                >
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
-                </option>
+            <div class="form-group">
+              <label class="municipal-form-label">Recaudadora:</label>
+              <select v-model.number="parametros.recaudadora" class="municipal-form-control">
+                <option :value="0">0 - SIN RECAUDADORA</option>
+                <option :value="1">1 - RECAUDADORA 1</option>
+                <option :value="2">2 - RECAUDADORA 2</option>
+                <option :value="3">3 - RECAUDADORA 3</option>
+                <option :value="4">4 - RECAUDADORA 4</option>
+                <option :value="5">5 - RECAUDADORA 5</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Caja:</label>
+              <input v-model="parametros.caja" type="text" class="municipal-form-control" maxlength="5" placeholder="01" />
             </div>
           </div>
-
-          <div class="row g-3 mt-2">
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="cash-register" class="me-1" />
-                <strong>Caja:</strong>
-                <span class="required">*</span>
-              </label>
-              <select
-                v-model="parametros.caja"
-                class="municipal-form-control"
-              >
-                <option value="">-- Seleccione --</option>
-                <option
-                  v-for="caja in cajas"
-                  :key="caja.caja"
-                  :value="caja.caja"
-                >
-                  {{ caja.caja }}
-                </option>
-              </select>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Consecutivo:</label>
+              <input v-model.number="parametros.consecutivo" type="number" class="municipal-form-control" min="0" />
             </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="sort-numeric-up" class="me-1" />
-                <strong>Consecutivo Operación:</strong>
-                <span class="required">*</span>
-              </label>
-              <input
-                v-model.number="parametros.consecutivo"
-                type="number"
-                class="municipal-form-control"
-                min="1"
-                placeholder="Consecutivo"
-              />
-            </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="receipt" class="me-1" />
-                <strong>Folio Recibo:</strong>
-                <span class="required">*</span>
-              </label>
-              <input
-                v-model="parametros.folioRecibo"
-                type="text"
-                class="municipal-form-control"
-                maxlength="20"
-                placeholder="Folio"
-              />
+            <div class="form-group">
+              <label class="municipal-form-label">Folio Recibo:</label>
+              <input v-model="parametros.folioRecibo" type="text" class="municipal-form-control" maxlength="20" />
             </div>
           </div>
         </div>
@@ -311,9 +240,9 @@
         <div class="municipal-card-header">
           <h5>
             <font-awesome-icon icon="list-alt" />
-            Adeudos Disponibles
+            Adeudos Disponibles ({{ adeudos.length }})
           </h5>
-          <span class="badge badge-purple">{{ adeudosSeleccionados.length }} / {{ adeudos.length }} seleccionados</span>
+          <span class="badge badge-purple">{{ adeudosSeleccionados.length }} seleccionados</span>
         </div>
 
         <div class="municipal-card-body">
@@ -335,30 +264,12 @@
                       title="Seleccionar todos"
                     />
                   </th>
-                  <th style="width: 10%;">
-                    <font-awesome-icon icon="calendar-alt" class="me-1" />
-                    Año
-                  </th>
-                  <th style="width: 15%;">
-                    <font-awesome-icon icon="calendar" class="me-1" />
-                    Mes
-                  </th>
-                  <th style="width: 15%;">
-                    <font-awesome-icon icon="clock" class="me-1" />
-                    Periodo
-                  </th>
-                  <th style="width: 20%; text-align: right;">
-                    <font-awesome-icon icon="dollar-sign" class="me-1" />
-                    Importe
-                  </th>
-                  <th style="width: 20%; text-align: right;">
-                    <font-awesome-icon icon="percent" class="me-1" />
-                    Recargos
-                  </th>
-                  <th style="width: 15%; text-align: right;">
-                    <font-awesome-icon icon="calculator" class="me-1" />
-                    Total
-                  </th>
+                  <th class="text-center">Año</th>
+                  <th class="text-center">Mes</th>
+                  <th class="text-center">Periodo</th>
+                  <th class="text-right">Importe</th>
+                  <th class="text-right">Recargos</th>
+                  <th class="text-right">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -369,22 +280,22 @@
                       v-model="adeudo.seleccionado"
                     />
                   </td>
-                  <td>{{ adeudo.axo }}</td>
-                  <td>{{ getMesNombre(adeudo.mes) }}</td>
-                  <td>{{ formatDate(adeudo.periodo) }}</td>
-                  <td class="text-end">{{ formatCurrency(adeudo.importe) }}</td>
-                  <td class="text-end">{{ formatCurrency(adeudo.recargo) }}</td>
-                  <td class="text-end">
+                  <td class="text-center">{{ adeudo.axo }}</td>
+                  <td class="text-center">{{ getMesNombre(adeudo.mes) }}</td>
+                  <td class="text-center">{{ formatDate(adeudo.periodo) }}</td>
+                  <td class="text-right">{{ formatCurrency(adeudo.importe) }}</td>
+                  <td class="text-right">{{ formatCurrency(adeudo.recargo) }}</td>
+                  <td class="text-right">
                     <strong>{{ formatCurrency(adeudo.importe + adeudo.recargo) }}</strong>
                   </td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr class="municipal-table-footer">
-                  <td colspan="4" class="text-end"><strong>TOTALES:</strong></td>
-                  <td class="text-end"><strong>{{ formatCurrency(totalImporte) }}</strong></td>
-                  <td class="text-end"><strong>{{ formatCurrency(totalRecargos) }}</strong></td>
-                  <td class="text-end"><strong>{{ formatCurrency(totalGeneral) }}</strong></td>
+                  <td colspan="4" class="text-right"><strong>TOTALES:</strong></td>
+                  <td class="text-right"><strong>{{ formatCurrency(totalImporte) }}</strong></td>
+                  <td class="text-right"><strong>{{ formatCurrency(totalRecargos) }}</strong></td>
+                  <td class="text-right"><strong>{{ formatCurrency(totalGeneral) }}</strong></td>
                 </tr>
               </tfoot>
             </table>
@@ -438,26 +349,25 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
+import * as XLSX from 'xlsx'
 
-// Router
 const router = useRouter()
-
-// Composables
+const BASE_DB = 'otras_obligaciones'
 const { execute } = useApi()
-const { isLoading, startLoading, stopLoading } = useGlobalLoading()
-const { toast, showToast, hideToast, handleApiError } = useLicenciasErrorHandler()
+const { isLoading, showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { exportToPdf } = usePdfExport()
 
 // Estado
 const showDocumentation = ref(false)
-const recaudadoras = ref([])
-const cajas = ref([])
 const selectedOpcion = ref('')
 const busqueda = ref({
   numLocal: '',
@@ -471,12 +381,12 @@ const buscado = ref(false)
 // Referencias
 const letraInput = ref(null)
 
-// Parámetros para operación Pagado
+// Parámetros de pago
 const parametros = ref({
   fechaPago: new Date().toISOString().split('T')[0],
-  recaudadora: '',
-  caja: '',
-  consecutivo: null,
+  recaudadora: 0,
+  caja: '01',
+  consecutivo: 0,
   folioRecibo: ''
 })
 
@@ -525,25 +435,12 @@ const totalGeneral = computed(() => {
 })
 
 const canEjecutar = computed(() => {
-  if (adeudosSeleccionados.value.length === 0 || saving.value) {
-    return false
-  }
-
-  // Si es opción Pagado, validar parámetros adicionales
-  if (selectedOpcion.value === '1') {
-    return parametros.value.fechaPago &&
-           parametros.value.recaudadora &&
-           parametros.value.caja &&
-           parametros.value.consecutivo &&
-           parametros.value.folioRecibo
-  }
-
-  return true
+  return adeudosSeleccionados.value.length > 0 && !saving.value
 })
 
 // Métodos
 const goBack = () => {
-  router.push('/otras_obligaciones')
+  router.push('/otras-obligaciones/menu')
 }
 
 const openDocumentation = () => {
@@ -596,41 +493,6 @@ const toggleTodos = () => {
   adeudos.value.forEach(a => a.seleccionado = nuevoEstado)
 }
 
-// Cargar recaudadoras
-const loadRecaudadoras = async () => {
-  try {
-    const response = await execute(
-      'con34_rdetade_021',
-      'otras_obligaciones',
-      [],
-      'guadalajara'
-    )
-
-    if (response && response.result && response.result.length > 0) {
-      recaudadoras.value = response.result
-      if (recaudadoras.value.length > 0) {
-        parametros.value.recaudadora = recaudadoras.value[0].id_rec
-      }
-    } else {
-      recaudadoras.value = []
-    }
-  } catch (error) {
-    console.warn('Error al cargar recaudadoras:', error)
-    recaudadoras.value = []
-  }
-}
-
-// Cargar cajas
-const loadCajas = async () => {
-  try {
-    // Usar valores por defecto
-    cajas.value = [{ caja: '01' }, { caja: '02' }]
-    parametros.value.caja = '01'
-  } catch (error) {
-    console.warn('Error al cargar cajas:', error)
-  }
-}
-
 // Evento al cambiar la opción
 const onOpcionChange = () => {
   limpiarBusqueda()
@@ -643,39 +505,38 @@ const buscarConcesion = async () => {
     return
   }
 
-  // Validar número de local
   if (!busqueda.value.numLocal || busqueda.value.numLocal === '0') {
     showToast('warning', 'Falta el dato del NUMERO DE LOCAL, intentalo de nuevo')
     return
   }
 
-  // Construir el control: número-letra o solo número
   const control = busqueda.value.letra
     ? `${busqueda.value.numLocal}-${busqueda.value.letra}`
     : busqueda.value.numLocal
 
-  startLoading('Buscando local...')
+  showLoading('Buscando local...')
 
   try {
-    // Buscar datos generales (usando la tabla 3 para mercados)
     const response = await execute(
-      'con34_1datos_03',
-      'otras_obligaciones',
+      'gconsulta2_sp_busca_cont',
+      BASE_DB,
       [
-        { nombre: 'par_control', valor: control, tipo: 'string' }
+        { nombre: 'par_tab', valor: 3, tipo: 'integer' },
+        { nombre: 'par_control', valor: control, tipo: 'varchar' }
       ],
       'guadalajara'
     )
 
-    if (response && response.result && response.result.length > 0) {
+    hideLoading()
+
+    if (response?.result?.length > 0 && response.result[0].status !== -1) {
       datosGenerales.value = response.result[0]
+      datosGenerales.value.control = control
       buscado.value = true
       showToast('success', 'Local encontrado')
 
-      // Buscar adeudos
-      await buscarAdeudos(datosGenerales.value.id_34_datos)
+      await buscarAdeudos(datosGenerales.value.id_datos)
 
-      // Verificar si encontró adeudos
       if (adeudos.value.length === 0) {
         showToast('info', 'No tiene adeudo alguno al periodo de vencimiento actual')
       }
@@ -686,12 +547,11 @@ const buscarConcesion = async () => {
       buscado.value = true
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
     datosGenerales.value = null
     adeudos.value = []
     buscado.value = true
-  } finally {
-    stopLoading()
   }
 }
 
@@ -700,14 +560,14 @@ const buscarAdeudos = async (idDatos) => {
   try {
     const response = await execute(
       'con34_rdetade_021',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'p_id_datos', valor: idDatos, tipo: 'integer' }
       ],
       'guadalajara'
     )
 
-    if (response && response.result && response.result.length > 0) {
+    if (response?.result?.length > 0) {
       adeudos.value = response.result.map(a => ({
         ...a,
         seleccionado: false
@@ -781,22 +641,22 @@ const ejecutarAccion = async () => {
 
       try {
         const params = [
-          { nombre: 'par_id_datos', valor: adeudo.registro, tipo: 'integer' },
+          { nombre: 'par_id_datos', valor: datosGenerales.value.id_datos, tipo: 'integer' },
           { nombre: 'par_axo', valor: adeudo.axo, tipo: 'integer' },
           { nombre: 'par_mes', valor: adeudo.mes, tipo: 'integer' },
           { nombre: 'par_fecha', valor: parametros.value.fechaPago, tipo: 'date' },
-          { nombre: 'par_id_rec', valor: parametros.value.recaudadora || 0, tipo: 'integer' },
-          { nombre: 'par_caja', valor: parametros.value.caja || '', tipo: 'string' },
-          { nombre: 'par_consec', valor: parametros.value.consecutivo || 0, tipo: 'integer' },
-          { nombre: 'par_folio_rcbo', valor: parametros.value.folioRecibo || '', tipo: 'string' },
-          { nombre: 'par_tab', valor: 'E', tipo: 'string' },
+          { nombre: 'par_id_rec', valor: parametros.value.recaudadora, tipo: 'integer' },
+          { nombre: 'par_caja', valor: parametros.value.caja, tipo: 'string' },
+          { nombre: 'par_consec', valor: parametros.value.consecutivo, tipo: 'integer' },
+          { nombre: 'par_folio_rcbo', valor: parametros.value.folioRecibo, tipo: 'string' },
+          { nombre: 'par_tab', valor: '3', tipo: 'string' },
           { nombre: 'par_status', valor: statusCode, tipo: 'string' },
           { nombre: 'par_opc', valor: 'B', tipo: 'string' }
         ]
 
         const response = await execute(
           'upd34_ade_01',
-          'otras_obligaciones',
+          BASE_DB,
           params,
           'guadalajara'
         )
@@ -834,7 +694,7 @@ const ejecutarAccion = async () => {
       showToast('success', `${procesados} adeudo(s) procesado(s)`)
 
       // Recargar adeudos
-      await buscarAdeudos(datosGenerales.value.id_34_datos)
+      await buscarAdeudos(datosGenerales.value.id_datos)
     } else if (procesados > 0 && errores > 0) {
       await Swal.fire({
         icon: 'warning',
@@ -856,7 +716,7 @@ const ejecutarAccion = async () => {
       showToast('warning', `${procesados} procesado(s), ${errores} error(es)`)
 
       // Recargar adeudos
-      await buscarAdeudos(datosGenerales.value.id_34_datos)
+      await buscarAdeudos(datosGenerales.value.id_datos)
     } else {
       await Swal.fire({
         icon: 'error',
@@ -889,6 +749,83 @@ const ejecutarAccion = async () => {
   }
 }
 
+// Imprimir reporte
+const imprimirReporte = () => {
+  if (adeudos.value.length === 0) {
+    showToast('warning', 'No hay datos para imprimir')
+    return
+  }
+
+  const columns = [
+    { header: 'Año', key: 'axo', type: 'number' },
+    { header: 'Mes', key: 'mesNombre', type: 'string' },
+    { header: 'Periodo', key: 'periodo', type: 'string' },
+    { header: 'Importe', key: 'importe', type: 'currency' },
+    { header: 'Recargos', key: 'recargo', type: 'currency' },
+    { header: 'Total', key: 'total', type: 'currency' }
+  ]
+
+  const data = adeudos.value.map(a => ({
+    axo: a.axo,
+    mesNombre: getMesNombre(a.mes),
+    periodo: formatDate(a.periodo),
+    importe: a.importe,
+    recargo: a.recargo,
+    total: a.importe + a.recargo
+  }))
+
+  const opcionNombre = {
+    '1': 'DAR DE PAGADO',
+    '2': 'CONDONAR',
+    '3': 'CANCELAR',
+    '4': 'PRESCRIBIR'
+  }
+
+  exportToPdf(data, columns, {
+    title: `Adeudos - ${opcionNombre[selectedOpcion.value] || 'Opciones Múltiples'}`,
+    subtitle: `Control: ${datosGenerales.value?.control || ''} - ${datosGenerales.value?.concesionario || ''} - Total: ${formatCurrency(totalGeneral.value)}`,
+    orientation: 'landscape'
+  })
+}
+
+// Exportar a Excel
+const exportarExcel = () => {
+  if (adeudos.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
+  try {
+    const exportData = adeudos.value.map(a => ({
+      'Año': a.axo,
+      'Mes': getMesNombre(a.mes),
+      'Periodo': formatDate(a.periodo),
+      'Importe': a.importe,
+      'Recargos': a.recargo,
+      'Total': a.importe + a.recargo
+    }))
+
+    exportData.push({
+      'Año': '',
+      'Mes': '',
+      'Periodo': 'TOTALES:',
+      'Importe': totalImporte.value,
+      'Recargos': totalRecargos.value,
+      'Total': totalGeneral.value
+    })
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Adeudos')
+
+    const control = datosGenerales.value?.control || 'Sin_Control'
+    XLSX.writeFile(wb, `RAdeudos_OpcMult_${control}_${new Date().toISOString().slice(0,10)}.xlsx`)
+    showToast('success', 'Archivo exportado')
+  } catch (error) {
+    showToast('error', 'Error al exportar')
+  }
+}
+
 // Limpiar búsqueda
 const limpiarBusqueda = () => {
   busqueda.value.numLocal = ''
@@ -898,9 +835,4 @@ const limpiarBusqueda = () => {
   buscado.value = false
 }
 
-// Lifecycle
-onMounted(() => {
-  loadRecaudadoras()
-  loadCajas()
-})
 </script>

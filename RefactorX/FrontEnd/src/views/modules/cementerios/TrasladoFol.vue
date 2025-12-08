@@ -295,10 +295,19 @@
         </section>
       </div>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'TrasladoFol'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -370,7 +379,6 @@ const verificarFolios = async () => {
     await cargarPagosOrigen()
 
   } catch (error) {
-    console.error('Error al verificar folios:', error)
     showError('Error al verificar los folios')
   }
 }
@@ -389,7 +397,6 @@ const cargarPagosOrigen = async () => {
       showError('El folio origen no tiene pagos para trasladar')
     }
   } catch (error) {
-    console.error('Error al cargar pagos:', error)
     showError('Error al cargar los pagos')
   }
 }
@@ -462,7 +469,6 @@ const confirmarTraslado = async () => {
       showError(resultTraslado.mensaje || 'Error al trasladar pagos')
     }
   } catch (error) {
-    console.error('Error al trasladar pagos:', error)
     showError('Error al trasladar los pagos')
   }
 }
@@ -491,6 +497,15 @@ const formatDate = (date) => {
   if (!date) return ''
   return new Date(date).toLocaleDateString('es-MX')
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 
 <style scoped>

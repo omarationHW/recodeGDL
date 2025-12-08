@@ -107,10 +107,19 @@
       <font-awesome-icon icon="check-circle" />
       No hay cuentas por cobrar en el período especificado
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Rep_a_Cobrar'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -190,7 +199,6 @@ const generarReporte = async () => {
       toast.success('No hay cuentas por cobrar')
     }
   } catch (error) {
-    console.error('Error al generar reporte:', error)
     toast.error('Error al generar reporte')
   }
 }
@@ -204,7 +212,6 @@ const cargarCementerios = async () => {
     const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
     cementerios.value = response.result || []
   } catch (error) {
-    console.error('Error al cargar cementerios:', error)
   }
 }
 

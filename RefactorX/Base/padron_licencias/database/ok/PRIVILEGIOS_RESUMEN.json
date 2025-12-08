@@ -1,0 +1,415 @@
+{
+  "componente": "privilegios",
+  "modulo": "padron_licencias",
+  "fecha_implementacion": "2025-11-20",
+  "schema": "public",
+  "total_sps": 7,
+  "archivo_principal": "PRIVILEGIOS_all_procedures_IMPLEMENTED.sql",
+  "lineas_codigo": 564,
+  "stored_procedures": [
+    {
+      "numero": 1,
+      "nombre": "sp_get_usuarios_privilegios",
+      "tipo": "Catalog",
+      "descripcion": "Obtiene la lista de usuarios con privilegios del sistema",
+      "parametros": [
+        {
+          "nombre": "p_campo",
+          "tipo": "TEXT",
+          "requerido": false,
+          "default": "usuario",
+          "descripcion": "Campo por el cual ordenar"
+        },
+        {
+          "nombre": "p_filtro",
+          "tipo": "TEXT",
+          "requerido": false,
+          "default": "",
+          "descripcion": "Texto para filtrar por usuario o nombres"
+        },
+        {
+          "nombre": "p_offset",
+          "tipo": "INTEGER",
+          "requerido": false,
+          "default": 0,
+          "descripcion": "Número de registros a saltar"
+        },
+        {
+          "nombre": "p_limit",
+          "tipo": "INTEGER",
+          "requerido": false,
+          "default": 20,
+          "descripcion": "Número máximo de registros a retornar"
+        }
+      ],
+      "retorna": [
+        "usuario (VARCHAR)",
+        "nombres (VARCHAR)",
+        "baja (DATE)",
+        "nombredepto (VARCHAR)",
+        "total_registros (BIGINT)"
+      ],
+      "tablas_usadas": [
+        "c_programas",
+        "aud_auto",
+        "autoriza",
+        "usuarios",
+        "deptos"
+      ],
+      "caracteristicas": [
+        "UNION de tablas aud_auto y autoriza",
+        "Filtrado case-insensitive",
+        "Ordenamiento dinámico",
+        "Paginación con COUNT(*) OVER()",
+        "Validación de offset y limit"
+      ]
+    },
+    {
+      "numero": 2,
+      "nombre": "sp_get_permisos_usuario",
+      "tipo": "Catalog",
+      "descripcion": "Obtiene todos los permisos asignados a un usuario específico",
+      "parametros": [
+        {
+          "nombre": "p_usuario",
+          "tipo": "VARCHAR",
+          "requerido": true,
+          "descripcion": "Usuario del cual se consultarán los permisos"
+        }
+      ],
+      "retorna": [
+        "num_tag (INTEGER)",
+        "descripcion (VARCHAR)",
+        "seleccionado (VARCHAR)",
+        "grupo (SMALLINT)",
+        "feccap (DATE)",
+        "capturista (VARCHAR)",
+        "usuario (VARCHAR)"
+      ],
+      "tablas_usadas": [
+        "c_programas",
+        "autoriza"
+      ],
+      "caracteristicas": [
+        "Validación de parámetro requerido",
+        "Filtrado por rango num_tag 8000-8999",
+        "Ordenamiento por grupo y num_tag"
+      ]
+    },
+    {
+      "numero": 3,
+      "nombre": "sp_get_auditoria_usuario",
+      "tipo": "Report",
+      "descripcion": "Obtiene la bitácora de auditoría de permisos de un usuario",
+      "parametros": [
+        {
+          "nombre": "p_usuario",
+          "tipo": "VARCHAR",
+          "requerido": true,
+          "descripcion": "Usuario del cual se consultará la auditoría"
+        }
+      ],
+      "retorna": [
+        "num_tag (INTEGER)",
+        "descripcion (VARCHAR)",
+        "id (INTEGER)",
+        "fechahora (TIMESTAMP)",
+        "equipo (VARCHAR)",
+        "proc (VARCHAR)",
+        "usuario (VARCHAR)"
+      ],
+      "tablas_usadas": [
+        "c_programas",
+        "aud_auto"
+      ],
+      "caracteristicas": [
+        "Interpretación de códigos (I=Asignado, D=Eliminado, U=Actualizado)",
+        "Validación de parámetro requerido",
+        "Ordenamiento descendente por fecha"
+      ]
+    },
+    {
+      "numero": 4,
+      "nombre": "sp_get_mov_tramites",
+      "tipo": "Report",
+      "descripcion": "Obtiene todos los movimientos de trámites realizados por un usuario",
+      "parametros": [
+        {
+          "nombre": "p_usuario",
+          "tipo": "VARCHAR",
+          "requerido": true,
+          "descripcion": "Usuario del cual se consultarán los movimientos"
+        },
+        {
+          "nombre": "p_fechaini",
+          "tipo": "DATE",
+          "requerido": true,
+          "descripcion": "Fecha inicial del rango de búsqueda"
+        },
+        {
+          "nombre": "p_fechafin",
+          "tipo": "DATE",
+          "requerido": true,
+          "descripcion": "Fecha final del rango de búsqueda"
+        }
+      ],
+      "retorna": [
+        "66 campos de la tabla sysbacktram (completa)"
+      ],
+      "tablas_usadas": [
+        "sysbacktram"
+      ],
+      "caracteristicas": [
+        "Validación de todos los parámetros requeridos",
+        "Validación de rango de fechas",
+        "Ordenamiento descendente por tiempo"
+      ]
+    },
+    {
+      "numero": 5,
+      "nombre": "sp_get_mov_licencias",
+      "tipo": "Report",
+      "descripcion": "Obtiene todos los movimientos de licencias realizados por un usuario",
+      "parametros": [
+        {
+          "nombre": "p_usuario",
+          "tipo": "VARCHAR",
+          "requerido": true,
+          "descripcion": "Usuario del cual se consultarán los movimientos"
+        },
+        {
+          "nombre": "p_fechaini",
+          "tipo": "DATE",
+          "requerido": true,
+          "descripcion": "Fecha inicial del rango de búsqueda"
+        },
+        {
+          "nombre": "p_fechafin",
+          "tipo": "DATE",
+          "requerido": true,
+          "descripcion": "Fecha final del rango de búsqueda"
+        }
+      ],
+      "retorna": [
+        "55 campos de sysbacklcs (completa)"
+      ],
+      "tablas_usadas": [
+        "get_sysbacklcs (función auxiliar)",
+        "sysbacklcs (fallback)"
+      ],
+      "caracteristicas": [
+        "Utiliza función auxiliar get_sysbacklcs",
+        "Manejo de excepciones si función no existe",
+        "Fallback a tabla directa",
+        "Validación completa de parámetros"
+      ]
+    },
+    {
+      "numero": 6,
+      "nombre": "sp_get_deptos",
+      "tipo": "Catalog",
+      "descripcion": "Obtiene el catálogo de departamentos que tienen usuarios con privilegios",
+      "parametros": [],
+      "retorna": [
+        "cvedepto (INTEGER)",
+        "nombredepto (VARCHAR)"
+      ],
+      "tablas_usadas": [
+        "c_programas",
+        "autoriza",
+        "usuarios",
+        "deptos"
+      ],
+      "caracteristicas": [
+        "Agrupación para evitar duplicados",
+        "Filtrado por num_tag 8000-8999",
+        "Exclusión de departamentos NULL",
+        "Ordenamiento alfabético"
+      ]
+    },
+    {
+      "numero": 7,
+      "nombre": "sp_get_revisiones",
+      "tipo": "Report",
+      "descripcion": "Obtiene las revisiones realizadas por un usuario en un rango de fechas",
+      "parametros": [
+        {
+          "nombre": "p_fechaini",
+          "tipo": "DATE",
+          "requerido": true,
+          "descripcion": "Fecha inicial del rango de búsqueda"
+        },
+        {
+          "nombre": "p_fechafin",
+          "tipo": "DATE",
+          "requerido": true,
+          "descripcion": "Fecha final del rango de búsqueda"
+        },
+        {
+          "nombre": "p_usuario",
+          "tipo": "VARCHAR",
+          "requerido": true,
+          "descripcion": "Usuario revisor"
+        }
+      ],
+      "retorna": [
+        "id_revision (INTEGER)",
+        "id_tramite (INTEGER)",
+        "dependencia (VARCHAR)",
+        "fecha_inicio (DATE)",
+        "fecha_termino (DATE)",
+        "estatus_revision (VARCHAR)",
+        "fecha_revision (DATE)",
+        "usr_revisa (VARCHAR)",
+        "estatus_seguimiento (VARCHAR)",
+        "observacion (TEXT)",
+        "fecha_seguimiento (DATE)"
+      ],
+      "tablas_usadas": [
+        "revisiones",
+        "seg_revision",
+        "c_dependencias"
+      ],
+      "caracteristicas": [
+        "JOIN con 3 tablas",
+        "Validación completa de parámetros",
+        "Validación de rango de fechas",
+        "Ordenamiento descendente"
+      ]
+    }
+  ],
+  "tablas_referenciadas": [
+    {
+      "nombre": "c_programas",
+      "descripcion": "Catálogo de programas/módulos del sistema",
+      "schema": "public"
+    },
+    {
+      "nombre": "autoriza",
+      "descripcion": "Autorizaciones de usuarios a programas",
+      "schema": "public"
+    },
+    {
+      "nombre": "aud_auto",
+      "descripcion": "Auditoría de autorizaciones",
+      "schema": "public"
+    },
+    {
+      "nombre": "usuarios",
+      "descripcion": "Catálogo de usuarios del sistema",
+      "schema": "public"
+    },
+    {
+      "nombre": "deptos",
+      "descripcion": "Catálogo de departamentos",
+      "schema": "public"
+    },
+    {
+      "nombre": "c_dependencias",
+      "descripcion": "Catálogo de dependencias",
+      "schema": "public"
+    },
+    {
+      "nombre": "sysbacktram",
+      "descripcion": "Bitácora de movimientos en trámites",
+      "schema": "public"
+    },
+    {
+      "nombre": "sysbacklcs",
+      "descripcion": "Bitácora de movimientos en licencias",
+      "schema": "public"
+    },
+    {
+      "nombre": "revisiones",
+      "descripcion": "Registro de revisiones",
+      "schema": "public"
+    },
+    {
+      "nombre": "seg_revision",
+      "descripcion": "Seguimiento de revisiones",
+      "schema": "public"
+    }
+  ],
+  "caracteristicas_especiales": [
+    "Validación robusta de parámetros requeridos",
+    "Paginación con COUNT(*) OVER()",
+    "Manejo de excepciones con fallback",
+    "Ordenamiento dinámico por campo",
+    "Filtrado case-insensitive",
+    "Interpretación de códigos a texto legible",
+    "Uso de CTE (WITH clauses)",
+    "LEFT JOIN para relaciones opcionales",
+    "Validación de rangos de fechas",
+    "Mensajes de error descriptivos"
+  ],
+  "metricas": {
+    "total_parametros": 18,
+    "parametros_requeridos": 11,
+    "parametros_opcionales": 7,
+    "validaciones_implementadas": 21,
+    "exception_handlers": 1,
+    "tablas_unicas": 10,
+    "sps_catalog": 3,
+    "sps_report": 4
+  },
+  "archivos_generados": [
+    {
+      "nombre": "PRIVILEGIOS_all_procedures_IMPLEMENTED.sql",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/",
+      "tipo": "SQL Implementation",
+      "lineas": 564,
+      "descripcion": "Archivo principal con los 7 stored procedures"
+    },
+    {
+      "nombre": "PRIVILEGIOS_RESUMEN_IMPLEMENTACION.md",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/",
+      "tipo": "Markdown Documentation",
+      "descripcion": "Documentación completa de la implementación"
+    },
+    {
+      "nombre": "PRIVILEGIOS_VERIFICACION.sql",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/",
+      "tipo": "SQL Test Script",
+      "descripcion": "Script de verificación y tests"
+    },
+    {
+      "nombre": "PRIVILEGIOS_RESUMEN.json",
+      "ruta": "C:/Sistemas/RefactorX/Guadalajara/RecodePHP/GDL/RefactorX/Base/padron_licencias/database/ok/",
+      "tipo": "JSON Summary",
+      "descripcion": "Resumen estructurado en formato JSON"
+    }
+  ],
+  "despliegue": {
+    "prerequisitos": [
+      "Schema public debe existir",
+      "Tablas referenciadas deben existir",
+      "Función auxiliar get_sysbacklcs() opcional (tiene fallback)"
+    ],
+    "comando_despliegue": "psql -d padron_licencias -f PRIVILEGIOS_all_procedures_IMPLEMENTED.sql",
+    "comando_verificacion": "psql -d padron_licencias -f PRIVILEGIOS_VERIFICACION.sql",
+    "orden_ejecucion": "Cualquier orden (no hay dependencias entre SPs)"
+  },
+  "compatibilidad": {
+    "postgresql_version": "9.6+",
+    "caracteristicas_usadas": [
+      "plpgsql",
+      "Window functions (COUNT OVER)",
+      "CTE (WITH clauses)",
+      "EXCEPTION handling",
+      "CASE expressions",
+      "LEFT JOIN"
+    ]
+  },
+  "referencias": {
+    "archivo_original": "privilegios_all_procedures.sql",
+    "archivo_anterior": "79_SP_LICENCIAS_PRIVILEGIOS_EXACTO_all_procedures.sql",
+    "cambios_principales": [
+      "Agregados SPs 2, 4 y 6 que faltaban",
+      "Validaciones de parámetros en todos los SPs",
+      "Comentarios explicativos detallados",
+      "Manejo de excepciones mejorado",
+      "Paginación con total_registros",
+      "Ordenamiento explícito en todos los queries"
+    ]
+  }
+}

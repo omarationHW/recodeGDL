@@ -9,6 +9,25 @@
         <h1>Baja de Registros</h1>
         <p>Otras Obligaciones - Cancelación de contratos/concesiones</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -31,8 +50,31 @@
 
         <div class="municipal-card-body">
           <div class="form-row">
+            <!-- Selector de Tabla -->
+            <div class="form-group">
+              <label class="municipal-form-label">
+                <strong>Tabla/Rubro</strong>
+                <span class="required">*</span>
+              </label>
+              <select
+                v-model="tipoTabla"
+                @change="onTablaChange"
+                class="municipal-form-control"
+                :disabled="loading"
+              >
+                <option value="">-- Seleccione --</option>
+                <option
+                  v-for="tabla in tablas"
+                  :key="tabla.cve_tab"
+                  :value="tabla.cve_tab"
+                >
+                  {{ tabla.cve_tab }} - {{ tabla.nombre }}
+                </option>
+              </select>
+            </div>
+
             <!-- Campo de búsqueda dinámico según el tipo de tabla -->
-            <div class="form-group" v-if="tipoTabla !== 3">
+            <div class="form-group" v-if="tipoTabla && tipoTabla != 3">
               <label class="municipal-form-label">{{ etiquetaControl }}</label>
               <input
                 type="text"
@@ -46,7 +88,7 @@
             </div>
 
             <!-- Para mercados (tipo 3) se usa número de local + letra -->
-            <div class="form-group" v-if="tipoTabla === 3">
+            <div class="form-group" v-if="tipoTabla && tipoTabla == 3">
               <label class="municipal-form-label">Número de Local</label>
               <input
                 type="text"
@@ -68,12 +110,11 @@
               >
             </div>
 
-            <div class="form-group">
-              <label class="municipal-form-label">&nbsp;</label>
+            <div class="form-group" v-if="tipoTabla" style="align-self: flex-end;">
               <button
                 class="btn-municipal-primary"
                 @click="buscarRegistro"
-                :disabled="loading"
+                :disabled="loading || !tipoTabla"
               >
                 <font-awesome-icon icon="search" />
                 Buscar
@@ -81,7 +122,7 @@
             </div>
           </div>
 
-          <div class="alert alert-info" v-if="nombreTabla">
+          <div class="municipal-alert municipal-alert-info" v-if="nombreTabla">
             <strong>CANCELACIÓN DE: {{ nombreTabla }}</strong>
           </div>
         </div>
@@ -287,7 +328,7 @@
       <!-- Mensaje si el registro no está vigente -->
       <div class="municipal-card" v-if="registroActual && registroActual.statusregistro !== 'VIGENTE'">
         <div class="municipal-card-body">
-          <div class="alert alert-warning">
+          <div class="municipal-alert municipal-alert-warning">
             <font-awesome-icon icon="exclamation-triangle" />
             Este registro está en estado <strong>{{ registroActual.statusregistro }}</strong>.
             No se puede aplicar la baja.
@@ -295,22 +336,6 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
     </div>
   </div>
 
@@ -319,6 +344,14 @@
     :componentName="'GBaja'"
     :moduleName="'otras_obligaciones'"
     @close="closeDocumentation"
+  />
+
+  <!-- Modal de Documentacion Tecnica -->
+  <TechnicalDocsModal
+    :show="showTechDocs"
+    :componentName="'GBaja'"
+    :moduleName="'otras_obligaciones'"
+    @close="showTechDocs = false"
   />
 
   <!-- Modal de pagos -->
@@ -330,30 +363,34 @@
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import ModalPagos from '@/components/modules/otras_obligaciones/ModalPagos.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const router = useRouter()
 const route = useRoute()
 const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
+const mostrarDocumentacion = () => showTechDocs.value = true
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
-  toast,
   showToast,
-  hideToast,
-  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+// Estado local para loading
+const loading = ref(false)
 
 // Referencias
 const expedienteInput = ref(null)
@@ -361,7 +398,8 @@ const localInput = ref(null)
 const letraInput = ref(null)
 
 // Estado
-const tipoTabla = ref(route.params.tipo || route.query.tipo || 1) // 1=Tianguis, 2=VíaPública, 3=Mercados, 4=Centrales, 5=Otros
+const tipoTabla = ref(route.params.tablaId || route.params.tipo || route.query.tablaId || route.query.tipo || '')
+const tablas = ref([])
 const nombreTabla = ref('')
 const etiquetas = ref({})
 const registroActual = ref(null)
@@ -439,12 +477,53 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
-// Cargar etiquetas y tablas
+// Cargar todas las tablas para el dropdown
+const loadAllTablas = async () => {
+  try {
+    const response = await execute(
+      'sp_otras_oblig_get_tablas_all',
+      BASE_DB,
+      [],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      tablas.value = response.result.map(t => ({
+        cve_tab: String(t.cve_tab).trim(),
+        nombre: (t.nombre || '').trim()
+      }))
+    }
+  } catch (error) {
+    console.error('Error al cargar tablas:', error)
+  }
+}
+
+// Evento al cambiar tabla
+const onTablaChange = async () => {
+  // Limpiar datos anteriores
+  registroActual.value = null
+  adeudosDetalle.value = []
+  adeudosTotales.value = []
+  busqueda.value = {
+    numeroExpediente: '',
+    numeroLocal: '',
+    letra: ''
+  }
+
+  if (tipoTabla.value) {
+    await loadEtiquetas()
+    await loadTablaInfo()
+  }
+}
+
+// Cargar etiquetas de la tabla seleccionada
 const loadEtiquetas = async () => {
+  if (!tipoTabla.value) return
+
   try {
     const response = await execute(
       'sp_otras_oblig_get_etiquetas',
-      'otras_obligaciones',
+      BASE_DB,
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
     )
@@ -457,11 +536,14 @@ const loadEtiquetas = async () => {
   }
 }
 
-const loadTablas = async () => {
+// Cargar info de la tabla seleccionada
+const loadTablaInfo = async () => {
+  if (!tipoTabla.value) return
+
   try {
     const response = await execute(
       'sp_otras_oblig_get_tablas',
-      'otras_obligaciones',
+      BASE_DB,
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
     )
@@ -470,15 +552,21 @@ const loadTablas = async () => {
       nombreTabla.value = response.result[0].nombre
     }
   } catch (error) {
-    console.error('Error al cargar tablas:', error)
+    console.error('Error al cargar info de tabla:', error)
   }
 }
 
 // Buscar registro
 const buscarRegistro = async () => {
+  // Validar tabla seleccionada
+  if (!tipoTabla.value) {
+    showToast('warning', 'Seleccione una tabla primero')
+    return
+  }
+
   let control = ''
 
-  if (tipoTabla.value === 3) {
+  if (tipoTabla.value == 3) {
     // Mercados: número-letra
     if (!busqueda.value.numeroLocal || busqueda.value.numeroLocal === '0') {
       await Swal.fire({
@@ -507,18 +595,23 @@ const buscarRegistro = async () => {
     control = (etiquetas.value.abreviatura || '') + busqueda.value.numeroExpediente
   }
 
-  setLoading(true, 'Buscando registro...')
+  loading.value = true
+  showLoading('Buscando registro...')
 
   try {
     const response = await execute(
-      'SP_GBAJA_DATOS_GET',
-      'otras_obligaciones',
+      'spcob34_gdatosg_02',
+      BASE_DB,
       [
-        { nombre: 'par_tab', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_control', valor: control, tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    // Ocultar loading antes de mostrar resultados o alertas
+    loading.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const data = response.result[0]
@@ -540,7 +633,7 @@ const buscarRegistro = async () => {
           await Swal.fire({
             icon: 'warning',
             title: 'Registro no vigente',
-            text: `REGISTRO EN SUSPENSION O CANCELADO, intentalo de nuevo`,
+            text: 'REGISTRO EN SUSPENSION O CANCELADO, intentalo de nuevo',
             confirmButtonColor: '#ea8215'
           })
         } else {
@@ -564,7 +657,8 @@ const buscarRegistro = async () => {
     handleApiError(error)
     registroActual.value = null
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -579,10 +673,10 @@ const loadAdeudos = async () => {
   try {
     // Detalle de adeudos
     const responseDetalle = await execute(
-      'SP_GBAJA_ADEUDOS_DETALLE',
-      'otras_obligaciones',
+      'spcob34_gdetade_01',
+      BASE_DB,
       [
-        { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
         { nombre: 'par_aso', valor: bajaForm.value.axoFin, tipo: 'integer' },
         { nombre: 'par_mes', valor: bajaForm.value.mesFin, tipo: 'integer' }
@@ -598,10 +692,10 @@ const loadAdeudos = async () => {
 
     // Totales de adeudos
     const responseTotales = await execute(
-      'SP_GBAJA_ADEUDOS_TOTALES',
-      'otras_obligaciones',
+      'spcob34_gtotade_01',
+      BASE_DB,
       [
-        { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
         { nombre: 'par_aso', valor: bajaForm.value.axoFin, tipo: 'integer' },
         { nombre: 'par_mes', valor: bajaForm.value.mesFin, tipo: 'integer' }
@@ -630,8 +724,8 @@ const checkPagos = async () => {
 
   try {
     const response = await execute(
-      'SP_GBAJA_PAGOS_GET',
-      'otras_obligaciones',
+      'spcob34_gpagados',
+      BASE_DB,
       [{ nombre: 'p_Control', valor: registroActual.value.id_datos, tipo: 'integer' }],
       'guadalajara'
     )
@@ -660,6 +754,17 @@ const aplicarBaja = async () => {
       icon: 'warning',
       title: 'Campos requeridos',
       text: 'Debe especificar el año y mes de finalización',
+      confirmButtonColor: '#ea8215'
+    })
+    return
+  }
+
+  // Validación: Solo registros VIGENTES pueden darse de baja
+  if (registroActual.value.statusregistro !== 'VIGENTE') {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Registro no válido',
+      text: 'Solo se pueden dar de baja registros VIGENTES',
       confirmButtonColor: '#ea8215'
     })
     return
@@ -696,10 +801,10 @@ const aplicarBaja = async () => {
 
   try {
     const response = await execute(
-      'SP_GBAJA_APLICAR',
-      'otras_obligaciones',
+      'del34_gen_contrato',
+      BASE_DB,
       [
-        { nombre: 'par_tabla', valor: tipoTabla.value.toString(), tipo: 'string' },
+        { nombre: 'par_tabla', valor: parseInt(tipoTabla.value), tipo: 'integer' },
         { nombre: 'par_id_34_datos', valor: registroActual.value.id_datos, tipo: 'integer' },
         { nombre: 'par_Axo_Fin', valor: bajaForm.value.axoFin, tipo: 'integer' },
         { nombre: 'par_Mes_Fin', valor: bajaForm.value.mesFin, tipo: 'integer' },
@@ -712,13 +817,13 @@ const aplicarBaja = async () => {
       const data = response.result[0]
 
       await Swal.fire({
-        icon: data.status === 0 ? 'success' : 'error',
-        title: data.status === 0 ? 'Baja aplicada' : 'Error',
+        icon: data.status === 1 ? 'success' : 'error',
+        title: data.status === 1 ? 'Baja aplicada' : 'Error',
         text: data.concepto_status,
         confirmButtonColor: '#ea8215'
       })
 
-      if (data.status === 0) {
+      if (data.status === 1) {
         // Limpiar formulario y recargar
         registroActual.value = null
         adeudosDetalle.value = []
@@ -743,15 +848,13 @@ const aplicarBaja = async () => {
 
 // Lifecycle
 onMounted(async () => {
-  await loadEtiquetas()
-  await loadTablas()
+  // Cargar todas las tablas para el dropdown
+  await loadAllTablas()
 
-  // Focus en el campo de búsqueda apropiado
-  await nextTick()
-  if (tipoTabla.value === 3) {
-    localInput.value?.focus()
-  } else {
-    expedienteInput.value?.focus()
+  // Si viene con tabla preseleccionada, cargar sus datos
+  if (tipoTabla.value) {
+    await loadEtiquetas()
+    await loadTablaInfo()
   }
 })
 </script>

@@ -9,15 +9,24 @@
         <h1>Consulta de Registros</h1>
         <p>{{ tituloTabla }}</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
       <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-info"
+          @click="cargarConfiguracion"
+          :disabled="loading"
+          title="Actualizar"
+        >
+          <font-awesome-icon icon="sync" :spin="loading" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           @click="goBack"
@@ -218,6 +227,7 @@
               Ver Histórico
             </button>
             <button
+              v-if="tieneGastosOMultas"
               class="btn-municipal-secondary"
               @click="verApremios"
               :disabled="loading"
@@ -312,82 +322,8 @@
         </div>
       </div>
 
-      <!-- Modal de pagos realizados -->
-      <div v-if="showModalPagos" class="modal-overlay" @click.self="closeModalPagos">
-        <div class="modal-container modal-lg">
-          <div class="modal-header">
-            <h3>
-              <font-awesome-icon icon="money-bill-wave" />
-              Pagos Realizados
-            </h3>
-            <button class="modal-close" @click="closeModalPagos">
-              <font-awesome-icon icon="times" />
-            </button>
-          </div>
-
-          <div class="modal-body">
-            <div class="table-responsive">
-              <table class="municipal-table">
-                <thead class="municipal-table-header">
-                  <tr>
-                    <th>Fecha/Hora Pago</th>
-                    <th>Periodo</th>
-                    <th class="text-right">Importe</th>
-                    <th class="text-right">Recargo</th>
-                    <th>Folio Recibo</th>
-                    <th>Caja</th>
-                    <th>Usuario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="pago in pagosRealizados" :key="pago.id_34_pagos" class="row-hover">
-                    <td>{{ formatDateTime(pago.fecha_hora_pago) }}</td>
-                    <td>{{ formatDate(pago.periodo) }}</td>
-                    <td class="text-right">{{ formatCurrency(pago.importe) }}</td>
-                    <td class="text-right">{{ formatCurrency(pago.recargo) }}</td>
-                    <td>{{ pago.folio_recibo }}</td>
-                    <td>{{ pago.caja }}</td>
-                    <td>{{ pago.usuario }}</td>
-                  </tr>
-                </tbody>
-                <tfoot class="municipal-table-footer">
-                  <tr>
-                    <td colspan="2" class="fw-bold">TOTAL PAGADO:</td>
-                    <td class="text-right fw-bold">{{ formatCurrency(totalPagosImporte) }}</td>
-                    <td class="text-right fw-bold">{{ formatCurrency(totalPagosRecargo) }}</td>
-                    <td colspan="3"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button class="btn-municipal-secondary" @click="closeModalPagos">
-              Cerrar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>{{ loadingMessage }}</p>
-        </div>
-      </div>
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -419,16 +355,15 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
 const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
-  toast,
   showToast,
-  hideToast,
-  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+// Estado local para loading
+const loading = ref(false)
 
 // Estado
 const tipoTabla = ref(route.params.tabla || route.query.tabla || '1')
@@ -442,8 +377,6 @@ const datosContrato = ref(null)
 const adeudos = ref([])
 const pagosRealizados = ref([])
 const tienePagos = ref(false)
-const showModalPagos = ref(false)
-const loadingMessage = ref('Cargando...')
 
 // Computed
 const tituloTabla = computed(() => {
@@ -485,12 +418,13 @@ const totalGeneral = computed(() => {
   return adeudos.value.reduce((sum, item) => sum + calcularTotalAdeudo(item), 0)
 })
 
-const totalPagosImporte = computed(() => {
-  return pagosRealizados.value.reduce((sum, item) => sum + (item.importe || 0), 0)
-})
-
-const totalPagosRecargo = computed(() => {
-  return pagosRealizados.value.reduce((sum, item) => sum + (item.recargo || 0), 0)
+const tieneGastosOMultas = computed(() => {
+  return adeudos.value.some(adeudo => {
+    const conceptoLower = (adeudo.concepto || '').toLowerCase()
+    return conceptoLower.includes('gastos') ||
+           conceptoLower.includes('multa') ||
+           (adeudo.multa_pagar && adeudo.multa_pagar > 0)
+  })
 })
 
 // Métodos
@@ -531,15 +465,18 @@ const focusLetra = () => {
 }
 
 const cargarConfiguracion = async () => {
-  setLoading(true, 'Cargando configuración...')
+  loading.value = true
+  showLoading('Cargando configuración...')
 
   try {
     // Cargar etiquetas
     const responseEtiq = await execute(
-      'sp_otras_oblig_get_etiquetas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
-      'guadalajara'
+      'sp_gconsulta_get_etiquetas',
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
+      '',
+      null,
+      'public'
     )
 
     if (responseEtiq && responseEtiq.result && responseEtiq.result.length > 0) {
@@ -548,20 +485,27 @@ const cargarConfiguracion = async () => {
 
     // Cargar información de la tabla
     const responseTabla = await execute(
-      'sp_otras_oblig_get_tablas',
-      'otras_obligaciones',
-      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
-      'guadalajara'
+      'sp_gconsulta_get_tabla_info',
+      BASE_DB,
+      [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
+      '',
+      null,
+      'public'
     )
+
+    loading.value = false
+    hideLoading()
 
     if (responseTabla && responseTabla.result && responseTabla.result.length > 0) {
       infoTabla.value = responseTabla.result[0]
     }
 
+    showToast('success', 'Configuración cargada')
+
   } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -598,22 +542,26 @@ const buscarRegistro = async () => {
   }
 
   const startTime = performance.now()
-  showLoading()
-  setLoading(true, 'Buscando registro...')
+  loading.value = true
+  showLoading('Buscando registro...')
 
   try {
     // Buscar datos del contrato
     const responseDatos = await execute(
-      'SP_GCONSULTA_DATOS_GET',
-      'otras_obligaciones',
+      'sp_gconsulta_buscar_registro',
+      BASE_DB,
       [
-        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
-        { nombre: 'par_control', valor: control, tipo: 'string' }
+        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' },
+        { nombre: 'par_control', valor: control, tipo: 'varchar' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
     if (!responseDatos || !responseDatos.result || responseDatos.result[0]?.status === -1) {
+      loading.value = false
+      hideLoading()
       await Swal.fire({
         icon: 'error',
         title: 'No encontrado',
@@ -639,37 +587,39 @@ const buscarRegistro = async () => {
     // Verificar si tiene pagos
     await verificarPagos(datosContrato.value.id_datos)
 
+    loading.value = false
+    hideLoading()
+
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
     const timeMessage = duration < 1 ? `${(duration * 1000).toFixed(0)}ms` : `${duration}s`
-    showToast('success', 'Registro cargado correctamente', timeMessage)
+    showToast('success', `Registro cargado correctamente (${timeMessage})`)
 
   } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     datosContrato.value = null
     adeudos.value = []
     pagosRealizados.value = []
     tienePagos.value = false
-  } finally {
-    setLoading(false)
-    hideLoading()
   }
 }
 
 const cargarAdeudos = async (idDatos, ano, mes) => {
-  setLoading(true, 'Cargando adeudos...')
-
   try {
     const responseAdeudos = await execute(
-      'SP_GCONSULTA_ADEUDOS_GET',
-      'otras_obligaciones',
+      'sp_gconsulta_get_adeudos',
+      BASE_DB,
       [
-        { nombre: 'par_tabla', valor: tipoTabla.value, tipo: 'string' },
+        { nombre: 'par_tabla', valor: tipoTabla.value, tipo: 'varchar' },
         { nombre: 'par_id_datos', valor: idDatos, tipo: 'integer' },
-        { nombre: 'par_aso', valor: ano, tipo: 'integer' },
+        { nombre: 'par_ano', valor: ano, tipo: 'integer' },
         { nombre: 'par_mes', valor: mes, tipo: 'integer' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
     if (responseAdeudos && responseAdeudos.result) {
@@ -681,18 +631,18 @@ const cargarAdeudos = async (idDatos, ano, mes) => {
   } catch (error) {
     handleApiError(error)
     adeudos.value = []
-  } finally {
-    setLoading(false)
   }
 }
 
 const verificarPagos = async (idDatos) => {
   try {
     const responsePagos = await execute(
-      'SP_GCONSULTA_PAGADOS_GET',
-      'otras_obligaciones',
-      [{ nombre: 'p_Control', valor: idDatos, tipo: 'integer' }],
-      'guadalajara'
+      'sp_gconsulta_get_pagados',
+      BASE_DB,
+      [{ nombre: 'p_id_datos', valor: idDatos, tipo: 'integer' }],
+      '',
+      null,
+      'public'
     )
 
     if (responsePagos && responsePagos.result && responsePagos.result.length > 0) {
@@ -737,21 +687,179 @@ const expandirAdeudo = async (adeudo) => {
   await cargarAdeudos(datosContrato.value.id_datos, adeudo.axo, adeudo.mes)
 }
 
-const verPagados = () => {
-  showModalPagos.value = true
-}
+const verPagados = async () => {
+  if (!datosContrato.value) return
 
-const closeModalPagos = () => {
-  showModalPagos.value = false
+  loading.value = true
+  showLoading('Cargando pagos realizados...')
+
+  try {
+    const response = await execute(
+      'sp_gconsulta_get_pagados',
+      BASE_DB,
+      [{ nombre: 'p_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
+      '',
+      null,
+      'public'
+    )
+
+    loading.value = false
+    hideLoading()
+
+    if (response && response.result && response.result.length > 0) {
+      const pagos = response.result
+
+      // Calcular totales
+      const totalImporte = pagos.reduce((sum, p) => sum + (p.importe || 0), 0)
+      const totalRecargo = pagos.reduce((sum, p) => sum + (p.recargo || 0), 0)
+
+      // Construir tabla HTML
+      let tablaHtml = `
+        <div style="max-height: 400px; overflow-y: auto;">
+          <table class="swal2-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #ea8215; color: white;">
+                <th style="padding: 8px; text-align: left;">Fecha/Hora</th>
+                <th style="padding: 8px; text-align: left;">Periodo</th>
+                <th style="padding: 8px; text-align: right;">Importe</th>
+                <th style="padding: 8px; text-align: right;">Recargo</th>
+                <th style="padding: 8px; text-align: left;">Recibo</th>
+              </tr>
+            </thead>
+            <tbody>
+      `
+
+      pagos.forEach((pago, index) => {
+        const bgColor = index % 2 === 0 ? '#fff' : '#f8f9fa'
+        tablaHtml += `
+          <tr style="background: ${bgColor};">
+            <td style="padding: 6px 8px;">${formatDateTime(pago.fecha_hora_pago)}</td>
+            <td style="padding: 6px 8px;">${formatDate(pago.periodo)}</td>
+            <td style="padding: 6px 8px; text-align: right;">${formatCurrency(pago.importe)}</td>
+            <td style="padding: 6px 8px; text-align: right;">${formatCurrency(pago.recargo)}</td>
+            <td style="padding: 6px 8px;">${pago.folio_recibo || 'S/N'}</td>
+          </tr>
+        `
+      })
+
+      tablaHtml += `
+            </tbody>
+            <tfoot>
+              <tr style="background: #343a40; color: white; font-weight: bold;">
+                <td colspan="2" style="padding: 8px;">TOTAL:</td>
+                <td style="padding: 8px; text-align: right;">${formatCurrency(totalImporte)}</td>
+                <td style="padding: 8px; text-align: right;">${formatCurrency(totalRecargo)}</td>
+                <td style="padding: 8px;"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `
+
+      await Swal.fire({
+        title: '💰 Pagos Realizados',
+        html: tablaHtml,
+        width: '800px',
+        confirmButtonColor: '#ea8215',
+        confirmButtonText: 'Cerrar'
+      })
+    } else {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Sin pagos',
+        text: 'No se encontraron pagos realizados para este registro',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+  } catch (error) {
+    loading.value = false
+    hideLoading()
+    handleApiError(error)
+  }
 }
 
 const verHistorico = async () => {
-  await Swal.fire({
-    icon: 'info',
-    title: 'Histórico',
-    text: 'La funcionalidad de histórico estará disponible próximamente',
-    confirmButtonColor: '#ea8215'
-  })
+  if (!datosContrato.value) return
+
+  loading.value = true
+  showLoading('Cargando histórico...')
+
+  try {
+    const response = await execute(
+      'sp_gconsulta_get_historico',
+      BASE_DB,
+      [{ nombre: 'p_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
+      '',
+      null,
+      'public'
+    )
+
+    loading.value = false
+    hideLoading()
+
+    if (response && response.result && response.result.length > 0) {
+      const movimientos = response.result
+
+      // Construir tabla HTML
+      let tablaHtml = `
+        <div style="max-height: 400px; overflow-y: auto;">
+          <table class="swal2-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #6f42c1; color: white;">
+                <th style="padding: 8px; text-align: left;">Fecha</th>
+                <th style="padding: 8px; text-align: center;">Tipo</th>
+                <th style="padding: 8px; text-align: left;">Descripción</th>
+                <th style="padding: 8px; text-align: right;">Importe</th>
+              </tr>
+            </thead>
+            <tbody>
+      `
+
+      movimientos.forEach((mov, index) => {
+        const bgColor = index % 2 === 0 ? '#fff' : '#f8f9fa'
+        const tipoBadge = mov.tipo_movimiento === 'PAGO'
+          ? '<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">PAGO</span>'
+          : '<span style="background: #17a2b8; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">ADEUDO</span>'
+
+        tablaHtml += `
+          <tr style="background: ${bgColor};">
+            <td style="padding: 6px 8px;">${formatDateTime(mov.fecha)}</td>
+            <td style="padding: 6px 8px; text-align: center;">${tipoBadge}</td>
+            <td style="padding: 6px 8px;">${mov.descripcion}</td>
+            <td style="padding: 6px 8px; text-align: right;">${formatCurrency(mov.importe)}</td>
+          </tr>
+        `
+      })
+
+      tablaHtml += `
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px; font-size: 12px; color: #666;">
+          Total de movimientos: <strong>${movimientos.length}</strong>
+        </p>
+      `
+
+      await Swal.fire({
+        title: '📋 Histórico de Movimientos',
+        html: tablaHtml,
+        width: '850px',
+        confirmButtonColor: '#ea8215',
+        confirmButtonText: 'Cerrar'
+      })
+    } else {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Sin histórico',
+        text: 'No se encontraron movimientos en el histórico para este registro',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+  } catch (error) {
+    loading.value = false
+    hideLoading()
+    handleApiError(error)
+  }
 }
 
 const verApremios = async () => {

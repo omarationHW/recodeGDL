@@ -90,10 +90,19 @@
       <font-awesome-icon icon="info-circle" />
       No se encontraron folios con el nombre especificado
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ConsultaNombre'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -167,7 +176,6 @@ const buscarPorNombre = async () => {
       toast.info('No se encontraron folios con el nombre especificado')
     }
   } catch (error) {
-    console.error('Error al buscar por nombre:', error)
     toast.error('Error al buscar folios')
     folios.value = []
   }

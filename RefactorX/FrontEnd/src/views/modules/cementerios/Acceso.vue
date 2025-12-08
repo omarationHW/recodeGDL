@@ -183,7 +183,6 @@ const handleLogin = async () => {
       error.value = 'Usuario o contraseña incorrectos'
     }
   } catch (err) {
-    console.error('Error al validar usuario:', err)
     error.value = 'Error de conexión con el servidor'
     intentos.value++
   } finally {
@@ -217,7 +216,6 @@ const registrarAcceso = async (idUsuario) => {
       'public'
     , '', null, 'comun')
   } catch (err) {
-    console.error('Error al registrar acceso:', err)
   }
 }
 

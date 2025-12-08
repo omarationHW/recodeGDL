@@ -8,6 +8,25 @@
         <h1>Reporte de Contratos</h1>
         <p>Aseo Contratado - Reporte general de contratos registrados</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -222,19 +241,30 @@
       <h4>Exportación:</h4>
       <p>Puede exportar el reporte a Excel o PDF para su distribución o análisis posterior.</p>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Rpt_Contratos'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const reporteGenerado = ref(false)
 const datos = ref([])
@@ -264,7 +294,7 @@ const totales = computed(() => {
 })
 
 const generarReporte = async () => {
-  loading.value = true
+  showLoading()
   try {
     // Obtener todos los contratos
     const parVigencia = filtros.value.status_contrato === 'N' ? 'V' :
@@ -275,7 +305,7 @@ const generarReporte = async () => {
       parVigencia: parVigencia
     })
 
-    let contratos = response && response.data ? response.data : []
+    let contratos = response || []
 
     // Aplicar filtros adicionales localmente
     if (filtros.value.num_empresa) {
@@ -313,10 +343,11 @@ const generarReporte = async () => {
     reporteGenerado.value = true
     showToast(`Reporte generado: ${contratos.length} contratos encontrados`, 'success')
   } catch (error) {
+    hideLoading()
     showToast('Error al generar reporte', 'error')
-    console.error('Error:', error)
+    handleApiError(error)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -396,9 +427,10 @@ const cargarEmpresas = async () => {
       p_limit: 1000,
       p_search: null
     })
-    if (response && response.data) empresas.value = response.data
+    if (response) empresas.value = response
   } catch (error) {
-    console.error('Error al cargar empresas:', error)
+    hideLoading()
+    handleApiError(error)
   }
 }
 

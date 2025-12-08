@@ -843,7 +843,6 @@ const registrarSolicitud = async () => {
       })
     }
   } catch (error) {
-    console.error('Error al registrar solicitud:', error)
 
     // Cerrar loading ANTES de mostrar el mensaje
     hideLoading()

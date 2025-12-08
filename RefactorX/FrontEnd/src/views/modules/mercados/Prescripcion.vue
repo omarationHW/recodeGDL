@@ -1,283 +1,609 @@
 <template>
-  <div class="prescripcion-page">
-    <h1>Prescripción de Adeudos de Energía Eléctrica</h1>
-    <nav class="breadcrumb">
-      <span>Inicio</span> &gt; <span>Prescripción de Adeudos</span>
-    </nav>
-    <form @submit.prevent="buscarLocal">
-      <div class="form-row">
-        <label>Mercado:</label>
-        <select v-model="form.mercado" @change="onMercadoChange">
-          <option v-for="m in mercados" :key="m.id_energia" :value="m">
-            {{ m.oficina }} - {{ m.num_mercado_nvo }} - {{ m.categoria }} - {{ m.descripcion }}
-          </option>
-        </select>
-        <label>Sección:</label>
-        <select v-model="form.seccion">
-          <option v-for="s in secciones" :key="s.seccion" :value="s.seccion">{{ s.seccion }}</option>
-        </select>
-        <label>Local:</label>
-        <input v-model="form.local" type="number" min="1" required />
-        <label>Letra:</label>
-        <input v-model="form.letra_local" maxlength="2" />
-        <label>Bloque:</label>
-        <input v-model="form.bloque" maxlength="2" />
-        <label>Movimiento:</label>
-        <select v-model="form.movimiento">
-          <option value="Prescripcion">Prescripción</option>
-          <option value="Condonacion">Condonación</option>
-        </select>
-        <button type="submit">Buscar</button>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="hourglass-end" />
       </div>
-    </form>
-    <div v-if="local">
-      <div class="local-info">
-        <strong>Nombre:</strong> {{ local.nombre }}<br />
-        <strong>Adicionales:</strong> {{ local.local_adicional }}
+      <div class="module-view-info">
+        <h1>Prescripción de Adeudos de Energía</h1>
+        <p>Mercados > Prescripción de Adeudos de Energía Eléctrica</p>
       </div>
-      <div class="oficio-row">
-        <label>Oficio:</label>
-        <input v-model="oficio" maxlength="13" placeholder="LLL/9999/9999" />
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
-      <div class="grids-row">
-        <div class="adeudos-grid">
-          <h2>Adeudos</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Año</th><th>Mes</th><th>Consumo</th><th>Cantidad</th><th>Importe</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(a, idx) in adeudos" :key="a.id_adeudo_energia">
-                <td>{{ a.axo }}</td>
-                <td>{{ a.periodo }}</td>
-                <td>{{ a.cve_consumo }}</td>
-                <td>{{ a.cantidad }}</td>
-                <td>{{ a.importe }}</td>
-                <td><input type="checkbox" v-model="selectedAdeudos" :value="a" /></td>
-              </tr>
-            </tbody>
-          </table>
-          <button @click="prescribirAdeudos" :disabled="selectedAdeudos.length === 0 || !oficio">Prescribir</button>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Formulario de búsqueda de local -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Local
+          </h5>
         </div>
-        <div class="prescripcion-grid">
-          <h2>{{ form.movimiento === 'Prescripcion' ? 'Prescripción' : 'Condonación' }}</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Año</th><th>Mes</th><th>Consumo</th><th>Cantidad</th><th>Importe</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(p, idx) in prescripcion" :key="p.id_cancelacion">
-                <td>{{ p.axo }}</td>
-                <td>{{ p.periodo }}</td>
-                <td>{{ p.cve_consumo }}</td>
-                <td>{{ p.cantidad }}</td>
-                <td>{{ p.importe }}</td>
-                <td><input type="checkbox" v-model="selectedPrescripcion" :value="p" /></td>
-              </tr>
-            </tbody>
-          </table>
-          <button @click="quitarPrescripcion" :disabled="selectedPrescripcion.length === 0">Quitar</button>
+
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="form.oficina" @change="onOficinaChange" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="form.mercado" @change="onMercadoChange"
+                :disabled="loading || !form.oficina">
+                <option value="">Seleccione...</option>
+                <option v-for="m in mercadosFiltrados" :key="m.num_mercado_nvo" :value="m.num_mercado_nvo">
+                  {{ m.num_mercado_nvo }} - {{ m.descripcion }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Categoría <span class="required">*</span></label>
+              <input type="number" class="municipal-form-control" v-model.number="form.categoria" placeholder="Categoría"
+                :disabled="loading || !form.mercado" min="1" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Sección <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="form.seccion" :disabled="loading || !form.mercado">
+                <option value="">Seleccione...</option>
+                <option v-for="s in secciones" :key="s.seccion" :value="s.seccion">
+                  {{ s.seccion }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Local <span class="required">*</span></label>
+              <input type="number" class="municipal-form-control" v-model.number="form.local" placeholder="Local"
+                :disabled="loading" min="1" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Letra</label>
+              <input type="text" class="municipal-form-control" v-model="form.letra_local" placeholder="Letra"
+                maxlength="2" :disabled="loading" />
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Bloque</label>
+              <input type="text" class="municipal-form-control" v-model="form.bloque" placeholder="Bloque" maxlength="2"
+                :disabled="loading" />
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="text-end">
+                <button class="btn-municipal-primary" @click="buscarLocal" :disabled="loading">
+                  <font-awesome-icon icon="search" />
+                  Buscar Local
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del local encontrado -->
+      <div v-if="localEncontrado" class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="store" />
+            Información del Local
+          </h5>
+        </div>
+
+        <div class="municipal-card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Nombre:</strong> {{ localEncontrado.nombre || 'N/A' }}</p>
+              <p><strong>Superficie:</strong> {{ localEncontrado.superficie || 'N/A' }} m²</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Giro:</strong> {{ localEncontrado.giro || 'N/A' }}</p>
+              <p><strong>Clave Cuota:</strong> {{ localEncontrado.clave_cuota || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-4">
+              <label class="municipal-form-label">Número de Oficio <span class="required">*</span></label>
+              <input type="text" class="municipal-form-control" v-model="numeroOficio" placeholder="Número de oficio"
+                maxlength="50" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grids de Adeudos y Prescripciones -->
+      <div v-if="localEncontrado" class="row">
+        <!-- Grid de Adeudos Pendientes -->
+        <div class="col-md-6">
+          <div class="municipal-card">
+            <div class="municipal-card-header header-with-badge">
+              <h5>
+                <font-awesome-icon icon="file-invoice-dollar" />
+                Adeudos de Energía Pendientes
+              </h5>
+              <div class="header-right">
+                <span class="badge-purple" v-if="adeudosPendientes.length > 0">
+                  {{ adeudosPendientes.length }} adeudos
+                </span>
+              </div>
+            </div>
+
+            <div class="municipal-card-body">
+              <div v-if="loadingAdeudos" class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+
+              <div v-else class="table-responsive">
+                <table class="municipal-table">
+                  <thead class="municipal-table-header">
+                    <tr>
+                      <th>Año</th>
+                      <th>Mes</th>
+                      <th>Consumo</th>
+                      <th>Cantidad</th>
+                      <th>Importe</th>
+                      <th>Sel</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="adeudosPendientes.length === 0">
+                      <td colspan="6" class="text-center text-muted">
+                        <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                        <p>No hay adeudos pendientes</p>
+                      </td>
+                    </tr>
+                    <tr v-else v-for="adeudo in adeudosPendientes" :key="adeudo.id_adeudo_energia">
+                      <td>{{ adeudo.axo }}</td>
+                      <td>{{ adeudo.periodo }}</td>
+                      <td>{{ adeudo.cve_consumo }}</td>
+                      <td>{{ adeudo.cantidad }}</td>
+                      <td class="text-end">{{ formatCurrency(adeudo.importe) }}</td>
+                      <td class="text-center">
+                        <input type="checkbox" v-model="adeudosSeleccionados" :value="adeudo" />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div v-if="adeudosPendientes.length > 0" class="text-end mt-3">
+                <button class="btn-municipal-danger" @click="prescribirSeleccionados"
+                  :disabled="adeudosSeleccionados.length === 0 || !numeroOficio || loading">
+                  <font-awesome-icon icon="ban" />
+                  Prescribir Seleccionados ({{ adeudosSeleccionados.length }})
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de Adeudos Prescritos -->
+        <div class="col-md-6">
+          <div class="municipal-card">
+            <div class="municipal-card-header header-with-badge">
+              <h5>
+                <font-awesome-icon icon="check-circle" />
+                Adeudos Prescritos/Condonados
+              </h5>
+              <div class="header-right">
+                <span class="badge-success" v-if="adeudosPrescritos.length > 0">
+                  {{ adeudosPrescritos.length }} prescritos
+                </span>
+              </div>
+            </div>
+
+            <div class="municipal-card-body">
+              <div v-if="loadingPrescritos" class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+
+              <div v-else class="table-responsive">
+                <table class="municipal-table">
+                  <thead class="municipal-table-header">
+                    <tr>
+                      <th>Año</th>
+                      <th>Mes</th>
+                      <th>Consumo</th>
+                      <th>Cantidad</th>
+                      <th>Importe</th>
+                      <th>Sel</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="adeudosPrescritos.length === 0">
+                      <td colspan="6" class="text-center text-muted">
+                        <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                        <p>No hay adeudos prescritos</p>
+                      </td>
+                    </tr>
+                    <tr v-else v-for="adeudo in adeudosPrescritos" :key="adeudo.id_cancelacion">
+                      <td>{{ adeudo.axo }}</td>
+                      <td>{{ adeudo.periodo }}</td>
+                      <td>{{ adeudo.cve_consumo }}</td>
+                      <td>{{ adeudo.cantidad }}</td>
+                      <td class="text-end">{{ formatCurrency(adeudo.importe) }}</td>
+                      <td class="text-center">
+                        <input type="checkbox" v-model="prescritosSeleccionados" :value="adeudo" />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div v-if="adeudosPrescritos.length > 0" class="text-end mt-3">
+                <button class="btn-municipal-warning" @click="quitarPrescripcionSeleccionados"
+                  :disabled="prescritosSeleccionados.length === 0 || loading">
+                  <font-awesome-icon icon="undo" />
+                  Quitar Prescripción ({{ prescritosSeleccionados.length }})
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="success" class="success">{{ success }}</div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'PrescripcionPage',
-  data() {
-    return {
-      mercados: [],
-      secciones: [],
-      form: {
-        mercado: null,
-        seccion: '',
-        local: '',
-        letra_local: '',
-        bloque: '',
-        movimiento: 'Prescripcion'
-      },
-      local: null,
-      oficio: '',
-      adeudos: [],
-      prescripcion: [],
-      selectedAdeudos: [],
-      selectedPrescripcion: [],
-      error: '',
-      success: ''
-    };
-  },
-  created() {
-    this.fetchCatalogos();
-  },
-  methods: {
-    async fetchCatalogos() {
-      // Fetch mercados
-      let res = await this.api('catalogo_mercados', {});
-      if (res.status === 'success') this.mercados = res.data;
-      res = await this.api('catalogo_secciones', {});
-      if (res.status === 'success') this.secciones = res.data;
-    },
-    async buscarLocal() {
-      this.error = '';
-      this.success = '';
-      this.local = null;
-      this.adeudos = [];
-      this.prescripcion = [];
-      this.selectedAdeudos = [];
-      this.selectedPrescripcion = [];
-      if (!this.form.mercado) {
-        this.error = 'Seleccione un mercado.';
-        return;
-      }
-      const req = {
-        oficina: this.form.mercado.oficina,
-        num_mercado: this.form.mercado.num_mercado_nvo,
-        categoria: this.form.mercado.categoria,
-        seccion: this.form.seccion,
-        local: this.form.local,
-        letra_local: this.form.letra_local,
-        bloque: this.form.bloque
-      };
-      let res = await this.api('buscar_local', req);
-      if (res.status === 'success') {
-        this.local = res.data;
-        await this.cargarAdeudosPrescripcion();
-      } else {
-        this.error = res.message;
-      }
-    },
-    async cargarAdeudosPrescripcion() {
-      if (!this.local) return;
-      let res = await this.api('listar_adeudos', { id_energia: this.local.id_energia });
-      if (res.status === 'success') this.adeudos = res.data;
-      res = await this.api('listar_prescripcion', { id_energia: this.local.id_energia });
-      if (res.status === 'success') this.prescripcion = res.data;
-    },
-    async prescribirAdeudos() {
-      if (!this.oficio) {
-        this.error = 'Debe capturar el número de oficio.';
-        return;
-      }
-      if (this.selectedAdeudos.length === 0) {
-        this.error = 'Seleccione al menos un adeudo.';
-        return;
-      }
-      let res = await this.api('prescribir_adeudos', {
-        id_energia: this.local.id_energia,
-        adeudos: this.selectedAdeudos,
-        oficio: this.oficio,
-        movimiento: this.form.movimiento
-      });
-      if (res.status === 'success') {
-        this.success = res.message;
-        await this.cargarAdeudosPrescripcion();
-      } else {
-        this.error = res.message;
-      }
-    },
-    async quitarPrescripcion() {
-      if (this.selectedPrescripcion.length === 0) {
-        this.error = 'Seleccione al menos una prescripción.';
-        return;
-      }
-      let res = await this.api('quitar_prescripcion', {
-        id_energia: this.local.id_energia,
-        prescripciones: this.selectedPrescripcion
-      });
-      if (res.status === 'success') {
-        this.success = res.message;
-        await this.cargarAdeudosPrescripcion();
-      } else {
-        this.error = res.message;
-      }
-    },
-    async api(action, data) {
-      // Simulación de llamada API
-      try {
-        const resp = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ eRequest: { action, data, user: { id: 1 } } })
-        });
-        const json = await resp.json();
-        return json.eResponse;
-      } catch (e) {
-        return { status: 'error', message: e.message };
-      }
-    },
-    onMercadoChange() {
-      // Reset seccion/local al cambiar mercado
-      this.form.seccion = '';
-      this.form.local = '';
-      this.form.letra_local = '';
-      this.form.bloque = '';
-    }
-  }
-};
-</script>
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
-<style scoped>
-.prescripcion-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Estado
+const loading = ref(false)
+const loadingAdeudos = ref(false)
+const loadingPrescritos = ref(false)
+const recaudadoras = ref([])
+const mercados = ref([])
+const secciones = ref([])
+const form = ref({
+  oficina: '',
+  mercado: '',
+  categoria: 1,
+  seccion: '',
+  local: '',
+  letra_local: '',
+  bloque: ''
+})
+const localEncontrado = ref(null)
+const numeroOficio = ref('')
+const adeudosPendientes = ref([])
+const adeudosPrescritos = ref([])
+const adeudosSeleccionados = ref([])
+const prescritosSeleccionados = ref([])
+
+// Toast
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+// Computed
+const mercadosFiltrados = computed(() => {
+  if (!form.value.oficina) return []
+  return mercados.value.filter(m => m.oficina === form.value.oficina)
+})
+
+// Métodos
+const showToast = (type, message) => {
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+  setTimeout(() => {
+    hideToast()
+  }, 5000)
 }
-.breadcrumb {
-  margin-bottom: 1rem;
-  color: #888;
+
+const hideToast = () => {
+  toast.value.show = false
 }
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 1rem;
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'times-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
 }
-.local-info {
-  margin: 1rem 0;
-  font-size: 1.1em;
+
+const mostrarAyuda = () => {
+  showToast('info', 'Complete los datos del local para buscar sus adeudos de energía y proceder con la prescripción')
 }
-.oficio-row {
-  margin-bottom: 1rem;
+
+const formatCurrency = (value) => {
+  if (!value) return '$0.00'
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
 }
-.grids-row {
-  display: flex;
-  gap: 2rem;
+
+const fetchRecaudadoras = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_recaudadoras',
+        Base: 'mercados',
+        Parametros: []
+      }
+    })
+    if (res.data.eResponse.success) {
+      recaudadoras.value = res.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar recaudadoras:', err)
+  }
 }
-.adeudos-grid, .prescripcion-grid {
-  flex: 1;
-  background: #f9f9f9;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px #eee;
+
+const fetchMercados = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_reporte_catalogo_mercados',
+        Base: 'mercados',
+        Parametros: []
+      }
+    })
+    if (res.data.eResponse.success) {
+      mercados.value = res.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar mercados:', err)
+  }
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
+
+const fetchSecciones = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_secciones',
+        Base: 'mercados',
+        Parametros: []
+      }
+    })
+    if (res.data.eResponse.success) {
+      secciones.value = res.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar secciones:', err)
+  }
 }
-th, td {
-  border: 1px solid #ddd;
-  padding: 0.4rem 0.6rem;
-  text-align: left;
+
+const onOficinaChange = () => {
+  form.value.mercado = ''
+  form.value.seccion = ''
+  form.value.local = ''
+  localEncontrado.value = null
 }
-th {
-  background: #f0f0f0;
+
+const onMercadoChange = () => {
+  form.value.seccion = ''
+  form.value.local = ''
+  localEncontrado.value = null
 }
-.error {
-  color: #b00;
-  margin-top: 1rem;
+
+const buscarLocal = async () => {
+  if (!form.value.oficina || !form.value.mercado || !form.value.categoria || !form.value.seccion || !form.value.local) {
+    showToast('warning', 'Complete los campos requeridos para buscar el local')
+    return
+  }
+
+  loading.value = true
+  localEncontrado.value = null
+  adeudosPendientes.value = []
+  adeudosPrescritos.value = []
+  adeudosSeleccionados.value = []
+  prescritosSeleccionados.value = []
+
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_localesmodif_buscar_local',
+        Base: 'mercados',
+        Parametros: [
+          { nombre: 'p_oficina', valor: form.value.oficina, tipo: 'integer' },
+          { nombre: 'p_num_mercado', valor: form.value.mercado, tipo: 'integer' },
+          { nombre: 'p_categoria', valor: form.value.categoria, tipo: 'integer' },
+          { nombre: 'p_seccion', valor: form.value.seccion, tipo: 'string' },
+          { nombre: 'p_local', valor: form.value.local, tipo: 'integer' },
+          { nombre: 'p_letra_local', valor: form.value.letra_local || null, tipo: 'string' },
+          { nombre: 'p_bloque', valor: form.value.bloque || null, tipo: 'string' }
+        ]
+      }
+    })
+
+    if (res.data.eResponse.success) {
+      const result = res.data.eResponse.data.result || []
+      if (result.length > 0) {
+        localEncontrado.value = result[0]
+        showToast('success', 'Local encontrado')
+        await cargarAdeudos()
+      } else {
+        showToast('warning', 'No se encontró el local con los datos especificados')
+      }
+    } else {
+      showToast('error', res.data.eResponse.message || 'Error al buscar local')
+    }
+  } catch (err) {
+    console.error('Error al buscar local:', err)
+    showToast('error', 'Error de conexión al buscar local')
+  } finally {
+    loading.value = false
+  }
 }
-.success {
-  color: #080;
-  margin-top: 1rem;
+
+const cargarAdeudos = async () => {
+  if (!localEncontrado.value || !localEncontrado.value.id_energia) return
+
+  loadingAdeudos.value = true
+  loadingPrescritos.value = true
+
+  try {
+    // Cargar adeudos pendientes
+    const resAdeudos = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_listar_adeudos_energia',
+        Base: 'mercados',
+        Parametros: [
+          { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' }
+        ]
+      }
+    })
+
+    if (resAdeudos.data.eResponse.success) {
+      adeudosPendientes.value = resAdeudos.data.eResponse.data.result || []
+    }
+
+    // Cargar adeudos prescritos
+    const resPrescritos = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_listar_prescripciones',
+        Base: 'mercados',
+        Parametros: [
+          { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' }
+        ]
+      }
+    })
+
+    if (resPrescritos.data.eResponse.success) {
+      adeudosPrescritos.value = resPrescritos.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar adeudos:', err)
+    showToast('error', 'Error al cargar adeudos del local')
+  } finally {
+    loadingAdeudos.value = false
+    loadingPrescritos.value = false
+  }
 }
-</style>
+
+const prescribirSeleccionados = async () => {
+  if (adeudosSeleccionados.value.length === 0) {
+    showToast('warning', 'Seleccione al menos un adeudo para prescribir')
+    return
+  }
+
+  if (!numeroOficio.value.trim()) {
+    showToast('warning', 'Debe ingresar el número de oficio')
+    return
+  }
+
+  loading.value = true
+
+  try {
+    for (const adeudo of adeudosSeleccionados.value) {
+      await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_prescribir_adeudo',
+          Base: 'mercados',
+          Parametros: [
+            { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' },
+            { nombre: 'p_axo', valor: adeudo.axo, tipo: 'smallint' },
+            { nombre: 'p_periodo', valor: adeudo.periodo, tipo: 'smallint' },
+            { nombre: 'p_cve_consumo', valor: adeudo.cve_consumo, tipo: 'string' },
+            { nombre: 'p_cantidad', valor: adeudo.cantidad, tipo: 'numeric' },
+            { nombre: 'p_importe', valor: adeudo.importe, tipo: 'numeric' },
+            { nombre: 'p_clave_canc', valor: numeroOficio.value, tipo: 'string' },
+            { nombre: 'p_observacion', valor: 'Prescripción de adeudo', tipo: 'string' },
+            { nombre: 'p_id_usuario', valor: 1, tipo: 'integer' }
+          ]
+        }
+      })
+    }
+
+    showToast('success', `Se prescribieron ${adeudosSeleccionados.value.length} adeudo(s) exitosamente`)
+    adeudosSeleccionados.value = []
+    await cargarAdeudos()
+  } catch (err) {
+    console.error('Error al prescribir adeudos:', err)
+    showToast('error', 'Error al prescribir adeudos')
+  } finally {
+    loading.value = false
+  }
+}
+
+const quitarPrescripcionSeleccionados = async () => {
+  if (prescritosSeleccionados.value.length === 0) {
+    showToast('warning', 'Seleccione al menos una prescripción para quitar')
+    return
+  }
+
+  loading.value = true
+
+  try {
+    for (const prescrito of prescritosSeleccionados.value) {
+      await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_quitar_prescripcion',
+          Base: 'mercados',
+          Parametros: [
+            { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' },
+            { nombre: 'p_axo', valor: prescrito.axo, tipo: 'smallint' },
+            { nombre: 'p_periodo', valor: prescrito.periodo, tipo: 'smallint' },
+            { nombre: 'p_cve_consumo', valor: prescrito.cve_consumo, tipo: 'string' },
+            { nombre: 'p_cantidad', valor: prescrito.cantidad, tipo: 'numeric' },
+            { nombre: 'p_importe', valor: prescrito.importe, tipo: 'numeric' },
+            { nombre: 'p_id_usuario', valor: 1, tipo: 'integer' },
+            { nombre: 'p_id_cancelacion', valor: prescrito.id_cancelacion, tipo: 'integer' }
+          ]
+        }
+      })
+    }
+
+    showToast('success', `Se quitaron ${prescritosSeleccionados.value.length} prescripción(es) exitosamente`)
+    prescritosSeleccionados.value = []
+    await cargarAdeudos()
+  } catch (err) {
+    console.error('Error al quitar prescripción:', err)
+    showToast('error', 'Error al quitar prescripción')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Lifecycle
+onMounted(async () => {
+  showLoading('Cargando Prescripción', 'Preparando catálogos...')
+  try {
+    await Promise.all([fetchRecaudadoras(), fetchMercados(), fetchSecciones()])
+  } finally {
+    hideLoading()
+  }
+})
+</script>

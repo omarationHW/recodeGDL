@@ -916,7 +916,6 @@ const loadStats = async () => {
       stats.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error al cargar stats:', error)
   } finally {
     loadingStats.value = false
   }

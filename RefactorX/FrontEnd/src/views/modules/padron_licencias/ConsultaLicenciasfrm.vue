@@ -364,13 +364,18 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { execute } from '@/services/apiService'
+import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useExcelExport } from '@/composables/useExcelExport'
+import { usePdfExport } from '@/composables/usePdfExport'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
+const { execute, loading } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
+const { exportToExcel } = useExcelExport()
+const { exportToPdf } = usePdfExport()
 const showDocumentation = ref(false)
 const closeDocumentation = () => showDocumentation.value = false
 
@@ -459,7 +464,6 @@ const cargarEstadisticas = async () => {
       estadisticas.value = response.data
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
   } finally {
     loadingEstadisticas.value = false
   }
@@ -591,7 +595,6 @@ const buscarLicencias = async () => {
     }
   } catch (error) {
     hideLoading()
-    console.error('Error al buscar licencias:', error)
     await Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -638,22 +641,115 @@ const establecerFechasPorDefecto = () => {
   filtros.value.fecha_desde = seisMesesAtras.toISOString().split('T')[0]
 }
 
+// Definición de columnas para exportación
+const columnasExport = [
+  { header: 'ID', key: 'id_licencia', type: 'integer', width: 10 },
+  { header: 'Licencia', key: 'licencia', type: 'integer', width: 12 },
+  { header: 'Vigente', key: 'vigente_texto', width: 12 },
+  { header: 'Propietario', key: 'propietario', width: 35 },
+  { header: 'RFC', key: 'rfc', width: 15 },
+  { header: 'Giro', key: 'descripcion_giro', width: 30 },
+  { header: 'Actividad', key: 'actividad', width: 25 },
+  { header: 'Ubicación', key: 'ubicacion', width: 35 },
+  { header: 'Colonia', key: 'colonia_ubic', width: 20 },
+  { header: 'Empleados', key: 'num_empleados', type: 'integer', width: 10 },
+  { header: 'Fecha Otorgamiento', key: 'fecha_otorgamiento_fmt', width: 18 }
+]
+
 const exportarExcel = async () => {
-  await Swal.fire({
-    icon: 'info',
-    title: 'Exportar a Excel',
-    text: 'Funcionalidad en desarrollo',
-    confirmButtonText: 'Entendido'
-  })
+  if (licencias.value.length === 0) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Sin datos',
+      text: 'No hay licencias para exportar. Realice una búsqueda primero.',
+      confirmButtonText: 'Entendido'
+    })
+    return
+  }
+
+  showLoading('Exportando a Excel...', 'Generando archivo')
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Preparar datos con formato
+    const datosExport = licencias.value.map(lic => ({
+      ...lic,
+      vigente_texto: getVigenteTexto(lic.vigente),
+      fecha_otorgamiento_fmt: formatDate(lic.fecha_otorgamiento)
+    }))
+
+    const success = exportToExcel(datosExport, columnasExport, 'Consulta_Licencias')
+
+    if (success) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Excel generado',
+        text: `Se exportaron ${licencias.value.length} licencias correctamente`,
+        timer: 2000,
+        showConfirmButton: false
+      })
+    }
+  } catch (error) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Ocurrió un error al generar el archivo Excel',
+      confirmButtonText: 'Entendido'
+    })
+  } finally {
+    hideLoading()
+  }
 }
 
 const exportarPDF = async () => {
-  await Swal.fire({
-    icon: 'info',
-    title: 'Exportar a PDF',
-    text: 'Funcionalidad en desarrollo',
-    confirmButtonText: 'Entendido'
-  })
+  if (licencias.value.length === 0) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Sin datos',
+      text: 'No hay licencias para exportar. Realice una búsqueda primero.',
+      confirmButtonText: 'Entendido'
+    })
+    return
+  }
+
+  showLoading('Generando PDF...', 'Preparando documento')
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Preparar datos con formato
+    const datosExport = licencias.value.map(lic => ({
+      ...lic,
+      vigente_texto: getVigenteTexto(lic.vigente),
+      fecha_otorgamiento_fmt: formatDate(lic.fecha_otorgamiento)
+    }))
+
+    const success = exportToPdf(datosExport, columnasExport, {
+      title: 'Consulta de Licencias',
+      subtitle: `Filtros aplicados - Total: ${formatNumber(totalResultados.value)} registros`,
+      orientation: 'landscape'
+    })
+
+    if (success) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'PDF generado',
+        text: 'El documento se ha enviado a impresión',
+        timer: 2000,
+        showConfirmButton: false
+      })
+    }
+  } catch (error) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Ocurrió un error al generar el PDF',
+      confirmButtonText: 'Entendido'
+    })
+  } finally {
+    hideLoading()
+  }
 }
 
 const openDocumentation = () => {

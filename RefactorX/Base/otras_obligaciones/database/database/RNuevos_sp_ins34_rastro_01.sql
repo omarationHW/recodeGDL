@@ -26,11 +26,11 @@ DECLARE
 BEGIN
     SELECT COUNT(*) INTO v_exists FROM t34_datos WHERE control = par_control;
     IF v_exists > 0 THEN
-        RETURN QUERY SELECT 1 AS expression, 'Ya existe LOCAL con este dato, intentalo de nuevo' AS expression_1;
+        RETURN QUERY SELECT 1::INTEGER AS expression, 'Ya existe LOCAL con este dato, intentalo de nuevo'::VARCHAR AS expression_1;
         RETURN;
     END IF;
-    -- Buscar id_unidad por descripcion
-    SELECT id_34_unidad INTO v_id_unidad FROM t34_unidades WHERE descripcion = par_Descrip AND cve_tab = par_tabla LIMIT 1;
+    -- Buscar id_unidad por descripcion (cve_tab es character, par_tabla es integer)
+    SELECT id_34_unidad INTO v_id_unidad FROM t34_unidades WHERE descripcion = par_Descrip AND cve_tab = par_tabla::varchar LIMIT 1;
     IF v_id_unidad IS NULL THEN
         v_id_unidad := 1; -- fallback
     END IF;
@@ -39,6 +39,6 @@ BEGIN
     ) VALUES (
         par_tabla, par_control, par_conces, par_ubica, par_sup, make_date(par_Axo_Ini, par_Mes_Ini, 1), par_ofna, par_sector, par_zona, par_lic, v_id_unidad, v_id_stat
     );
-    RETURN QUERY SELECT 0 AS expression, 'Se ejecutó correctamente la creación del Local/Concesión' AS expression_1;
+    RETURN QUERY SELECT 0::INTEGER AS expression, 'Se ejecutó correctamente la creación del Local/Concesión'::VARCHAR AS expression_1;
 END;
 $$ LANGUAGE plpgsql;

@@ -981,7 +981,7 @@ import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { handleError, showToast } = useLicenciasErrorHandler()
+const { handleApiError, showToast, toast, hideToast, getToastIcon } = useLicenciasErrorHandler()
 const route = useRoute()
 const router = useRouter()
 
@@ -1183,8 +1183,7 @@ const buscarTramite = async () => {
     showToast('success', `Trámite cargado - Folio: ${tramite.folio || 'N/A'}`, durationText)
 
   } catch (error) {
-    console.error('Error al buscar trámite:', error)
-    handleError(error)
+    handleApiError(error)
   } finally {
     hideLoading()
   }
@@ -1206,7 +1205,6 @@ const cargarGiro = async (idGiro) => {
       giroSeleccionado.value = `[${giro.id_giro}] ${giro.descripcion}`
     }
   } catch (error) {
-    console.error('Error al cargar giro:', error)
   }
 }
 
@@ -1444,8 +1442,7 @@ const confirmarActualizacion = async () => {
 
   } catch (error) {
     hideLoading()
-    console.error('Error al actualizar trámite:', error)
-    handleError(error)
+    handleApiError(error)
   }
 }
 
@@ -1505,7 +1502,6 @@ const buscarGiros = async () => {
       girosEncontrados.value = response.result
     }
   } catch (error) {
-    console.error('Error al buscar giros:', error)
     girosEncontrados.value = []
   }
 }
@@ -1550,7 +1546,6 @@ const buscarCalles = async () => {
       callesEncontradas.value = response.result
     }
   } catch (error) {
-    console.error('Error al buscar calles:', error)
     callesEncontradas.value = []
   }
 }

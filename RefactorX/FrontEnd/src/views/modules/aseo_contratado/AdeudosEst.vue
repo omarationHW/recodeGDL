@@ -8,6 +8,25 @@
         <h1>Consulta de Estatus de Adeudos</h1>
         <p>Aseo Contratado - Análisis estadístico del estado de adeudos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -277,19 +296,30 @@
       <h4>Exportación:</h4>
       <p>Los resultados pueden exportarse a Excel para análisis adicional.</p>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'AdeudosEst'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const consultaRealizada = ref(false)
 const detalleContratos = ref([])
@@ -372,7 +402,7 @@ const datosAgrupados = computed(() => {
 })
 
 const consultarEstatus = async () => {
-  loading.value = true
+  showLoading()
   try {
     // 1. Obtener todos los contratos según filtros
     const parVigencia = filtros.value.status_contrato === 'N' ? 'V' :
@@ -383,7 +413,7 @@ const consultarEstatus = async () => {
       parVigencia: parVigencia
     })
 
-    let contratos = responseContratos && responseContratos.data ? responseContratos.data : []
+    let contratos = responseContratos || []
 
     // 2. Para cada contrato, obtener sus adeudos
     const detallePromises = contratos.map(async (contrato) => {
@@ -394,7 +424,7 @@ const consultarEstatus = async () => {
           p_fecha_hasta: null
         })
 
-        const adeudos = responseAdeudos && responseAdeudos.data ? responseAdeudos.data : []
+        const adeudos = responseAdeudos || []
 
         // Filtrar por ejercicio si está especificado
         const adeudosFiltrados = filtros.value.ejercicio ?
@@ -407,6 +437,7 @@ const consultarEstatus = async () => {
           monto_adeudado: adeudosFiltrados.reduce((sum, a) => sum + parseFloat(a.total_periodo || 0), 0)
         }
       } catch (error) {
+        hideLoading()
         return {
           ...contrato,
           periodos_adeudados: 0,
@@ -428,10 +459,11 @@ const consultarEstatus = async () => {
     consultaRealizada.value = true
     showToast(`Consulta realizada: ${resultado.length} contratos procesados`, 'success')
   } catch (error) {
+    hideLoading()
     showToast('Error al consultar estatus', 'error')
-    console.error('Error:', error)
+    handleApiError(error)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 

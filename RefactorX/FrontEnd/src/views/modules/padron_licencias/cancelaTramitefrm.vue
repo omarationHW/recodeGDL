@@ -341,7 +341,7 @@ import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { handleError, showToast } = useLicenciasErrorHandler()
+const { handleApiError, showToast, toast, hideToast, getToastIcon } = useLicenciasErrorHandler()
 
 // Estado
 const searchIdTramite = ref('')
@@ -417,7 +417,6 @@ const buscarTramite = async () => {
           giroDescripcion.value = 'Giro no encontrado'
         }
       } catch (error) {
-        console.error('Error al buscar giro:', error)
         giroDescripcion.value = 'Error al cargar giro'
       }
     } else {
@@ -430,8 +429,7 @@ const buscarTramite = async () => {
 
     showToast('success', 'Trámite encontrado', durationText)
   } catch (error) {
-    console.error('Error al buscar trámite:', error)
-    handleError(error)
+    handleApiError(error)
     tramiteData.value = null
     giroDescripcion.value = ''
   } finally {
@@ -577,9 +575,8 @@ const confirmarCancelacion = async () => {
       showToast('error', 'No se pudo cancelar el trámite', 'Respuesta inválida del servidor')
     }
   } catch (error) {
-    console.error('Error al cancelar trámite:', error)
     hideLoading()
-    handleError(error)
+    handleApiError(error)
   }
 }
 

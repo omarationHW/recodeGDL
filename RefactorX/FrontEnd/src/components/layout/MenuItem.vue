@@ -7,7 +7,7 @@
         @click="toggleExpanded"
         :class="{ 'expanded': isExpanded, 'highlight': hasSearchMatch }"
       >
-        <font-awesome-icon :icon="item.icon" class="nav-icon" />
+        <font-awesome-icon :icon="item.icon || 'folder'" class="nav-icon" />
         <span class="nav-text" v-html="highlightedLabel"></span>
         <font-awesome-icon
           :icon="isExpanded ? 'chevron-down' : 'chevron-right'"
@@ -36,7 +36,7 @@
       class="nav-link"
       :class="{ 'active': isActive, 'highlight': hasSearchMatch }"
     >
-      <font-awesome-icon :icon="item.icon" class="nav-icon" />
+      <font-awesome-icon :icon="item.icon || 'file'" class="nav-icon" />
       <span class="nav-text" v-html="highlightedLabel"></span>
     </router-link>
   </li>

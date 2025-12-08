@@ -11,12 +11,29 @@
       </div>
       <div class="button-group ms-auto">
         <button
+          class="btn-municipal-danger"
+          @click="iniciarBajaMasiva"
+          :disabled="selectedItems.length === 0"
+          v-if="licencias.length > 0"
+        >
+          <font-awesome-icon icon="trash-alt" />
+          Baja Masiva ({{ selectedItems.length }})
+        </button>
+        <button
           class="btn-municipal-success"
           @click="exportarExcel"
           :disabled="licencias.length === 0"
         >
           <font-awesome-icon icon="file-excel" />
-          Exportar Excel
+          Excel
+        </button>
+        <button
+          class="btn-municipal-danger"
+          @click="exportarPDF"
+          :disabled="licencias.length === 0"
+        >
+          <font-awesome-icon icon="file-pdf" />
+          PDF
         </button>
         <button
           class="btn-municipal-primary"
@@ -198,6 +215,14 @@
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
+                <th class="th-checkbox">
+                  <input
+                    type="checkbox"
+                    :checked="allSelected"
+                    @change="toggleSelectAll"
+                    title="Seleccionar todos"
+                  >
+                </th>
                 <th>Número</th>
                 <th>Propietario</th>
                 <th>Giro</th>
@@ -209,7 +234,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="licencia in licencias" :key="licencia.numero" class="row-hover">
+              <tr v-for="licencia in licencias" :key="licencia.numero" class="row-hover" :class="{ 'row-selected': isSelected(licencia) }">
+                <td class="td-checkbox">
+                  <input
+                    type="checkbox"
+                    :checked="isSelected(licencia)"
+                    @change="toggleSelection(licencia)"
+                  >
+                </td>
                 <td><strong class="text-primary">{{ licencia.numero || 'N/A' }}</strong></td>
                 <td>{{ licencia.propietario || 'N/A' }}</td>
                 <td>
@@ -252,7 +284,7 @@
                 </td>
               </tr>
               <tr v-if="licencias.length === 0">
-                <td colspan="8" class="empty-state">
+                <td colspan="9" class="empty-state">
                   <div class="empty-state-content">
                     <font-awesome-icon icon="inbox" class="empty-state-icon" />
                     <p class="empty-state-text">No se encontraron licencias vigentes</p>
@@ -479,6 +511,73 @@
   </div>
   <!-- /module-view -->
 
+    <!-- Modal de Baja Masiva -->
+    <Modal
+      :show="showBajaMasivaModal"
+      title="Confirmar Baja Masiva"
+      size="lg"
+      @close="showBajaMasivaModal = false"
+      :showDefaultFooter="false"
+    >
+      <div class="baja-masiva-content">
+        <div class="alert alert-warning">
+          <font-awesome-icon icon="exclamation-triangle" class="me-2" />
+          <strong>¡Atención!</strong> Esta acción dará de baja las siguientes {{ selectedItems.length }} licencias.
+        </div>
+
+        <div class="selected-licenses-list">
+          <h6>Licencias seleccionadas:</h6>
+          <div class="licenses-scroll">
+            <table class="municipal-table table-sm">
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Propietario</th>
+                  <th>Estado Actual</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in selectedItems" :key="item.numero">
+                  <td><strong>{{ item.numero }}</strong></td>
+                  <td>{{ item.propietario }}</td>
+                  <td>
+                    <span class="badge" :class="getStatusBadge(item.estado)">
+                      {{ item.estado }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="form-group mt-3">
+          <label class="municipal-form-label">Motivo de la baja (requerido):</label>
+          <textarea
+            v-model="motivoBaja"
+            class="municipal-form-control"
+            rows="3"
+            placeholder="Ingrese el motivo de la baja masiva..."
+          ></textarea>
+        </div>
+
+        <div class="modal-actions mt-4">
+          <button
+            class="btn-municipal-danger"
+            @click="ejecutarBajaMasiva"
+            :disabled="!motivoBaja || bajaMasivaEnProceso"
+          >
+            <font-awesome-icon :icon="bajaMasivaEnProceso ? 'spinner' : 'trash-alt'" :spin="bajaMasivaEnProceso" />
+            {{ bajaMasivaEnProceso ? 'Procesando...' : 'Confirmar Baja Masiva' }}
+          </button>
+          <button class="btn-municipal-secondary" @click="showBajaMasivaModal = false" :disabled="bajaMasivaEnProceso">
+            <font-awesome-icon icon="times" />
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </Modal>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
       :show="showDocumentation"
@@ -494,6 +593,8 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
+import { usePdfExport } from '@/composables/usePdfExport'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
@@ -510,6 +611,8 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
+const { exportToPdf } = usePdfExport()
 
 // Importar useGlobalLoading para el loading estándar
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -524,6 +627,13 @@ const selectedLicencia = ref(null)
 const showDetailModal = ref(false)
 const loadingStats = ref(false)
 const showFilters = ref(false)
+const loading = ref(false)
+
+// Estado para selección múltiple y baja masiva
+const selectedItems = ref([])
+const showBajaMasivaModal = ref(false)
+const motivoBaja = ref('')
+const bajaMasivaEnProceso = ref(false)
 
 // Stats
 const stats = ref({
@@ -571,6 +681,22 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// Computed para selección
+const allSelected = computed(() => {
+  return licencias.value.length > 0 && selectedItems.value.length === licencias.value.length
+})
+
+// Definición de columnas para exportación
+const columnasExport = [
+  { header: 'Número', key: 'numero', width: 15 },
+  { header: 'Propietario', key: 'propietario', width: 35 },
+  { header: 'Giro', key: 'giro', width: 30 },
+  { header: 'Ubicación', key: 'ubicacion', width: 40 },
+  { header: 'Zona', key: 'zona', width: 15 },
+  { header: 'Fecha Otorgamiento', key: 'fecha_otorgamiento', type: 'date', width: 18 },
+  { header: 'Estado', key: 'estado', width: 15 }
+]
+
 // Calcular estadísticas desde la base de datos (OPTIMIZADO - 1 sola consulta)
 const loadStats = async () => {
   loadingStats.value = true
@@ -594,7 +720,6 @@ const loadStats = async () => {
       }
     }
   } catch (error) {
-    console.error('Error cargando estadísticas:', error)
     stats.value = {
       totalLicencias: 0,
       totalVigentes: 0,
@@ -718,24 +843,161 @@ const verDetalle = (licencia) => {
   showDetailModal.value = true
 }
 
-const exportarExcel = async () => {
-  await Swal.fire({
-    icon: 'info',
-    title: 'Exportar a Excel',
-    text: 'Esta funcionalidad está en desarrollo',
-    confirmButtonColor: '#ea8215'
-  })
-  showToast('info', 'Funcionalidad de exportación a Excel en desarrollo')
+// Funciones de selección múltiple
+const isSelected = (licencia) => {
+  return selectedItems.value.some(item => item.numero === licencia.numero)
 }
 
-const generarPDF = async () => {
-  await Swal.fire({
-    icon: 'info',
-    title: 'Generar PDF',
-    text: 'Esta funcionalidad está en desarrollo',
-    confirmButtonColor: '#ea8215'
-  })
-  showToast('info', 'Funcionalidad de generación de PDF en desarrollo')
+const toggleSelection = (licencia) => {
+  const index = selectedItems.value.findIndex(item => item.numero === licencia.numero)
+  if (index === -1) {
+    selectedItems.value.push(licencia)
+  } else {
+    selectedItems.value.splice(index, 1)
+  }
+}
+
+const toggleSelectAll = () => {
+  if (allSelected.value) {
+    selectedItems.value = []
+  } else {
+    selectedItems.value = [...licencias.value]
+  }
+}
+
+const clearSelection = () => {
+  selectedItems.value = []
+}
+
+// Funciones de Baja Masiva
+const iniciarBajaMasiva = () => {
+  if (selectedItems.value.length === 0) {
+    showToast('warning', 'Seleccione al menos una licencia')
+    return
+  }
+  motivoBaja.value = ''
+  showBajaMasivaModal.value = true
+}
+
+const ejecutarBajaMasiva = async () => {
+  if (!motivoBaja.value.trim()) {
+    showToast('warning', 'Debe ingresar un motivo para la baja')
+    return
+  }
+
+  bajaMasivaEnProceso.value = true
+
+  try {
+    // Preparar lista de números de licencia
+    const numerosLicencias = selectedItems.value.map(item => item.numero).join(',')
+
+    const response = await execute(
+      'LicenciasVigentesfrm_sp_baja_masiva',
+      'padron_licencias',
+      [
+        { nombre: 'p_numeros_licencia', valor: numerosLicencias, tipo: 'string' },
+        { nombre: 'p_motivo', valor: motivoBaja.value.trim(), tipo: 'string' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result) {
+      const resultado = response.result[0] || {}
+      const procesadas = resultado.procesadas || selectedItems.value.length
+      const errores = resultado.errores || 0
+
+      if (errores === 0) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Baja Masiva Completada',
+          text: `Se dieron de baja ${procesadas} licencias correctamente`,
+          confirmButtonColor: '#28a745'
+        })
+        showToast('success', `${procesadas} licencias dadas de baja`)
+      } else {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Baja Masiva Parcial',
+          html: `Procesadas: ${procesadas}<br>Con errores: ${errores}`,
+          confirmButtonColor: '#ea8215'
+        })
+        showToast('warning', `${procesadas} procesadas, ${errores} con errores`)
+      }
+
+      // Cerrar modal y recargar datos
+      showBajaMasivaModal.value = false
+      clearSelection()
+      loadLicencias()
+      loadStats()
+    } else {
+      throw new Error('Respuesta inválida del servidor')
+    }
+  } catch (error) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error en Baja Masiva',
+      text: error.message || 'Error al procesar la baja masiva',
+      confirmButtonColor: '#dc3545'
+    })
+    handleApiError(error)
+  } finally {
+    bajaMasivaEnProceso.value = false
+  }
+}
+
+// Funciones de Exportación
+const exportarExcel = async () => {
+  if (licencias.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
+  showLoading('Generando Excel...', 'Por favor espere')
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const success = exportToExcel(licencias.value, columnasExport, 'Licencias_Vigentes')
+
+    if (success) {
+      showToast('success', 'Excel generado correctamente')
+    } else {
+      showToast('error', 'Error al generar Excel')
+    }
+  } catch (error) {
+    showToast('error', 'Error al generar Excel')
+  } finally {
+    hideLoading()
+  }
+}
+
+const exportarPDF = async () => {
+  if (licencias.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
+  showLoading('Generando PDF...', 'Por favor espere')
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const success = exportToPdf(licencias.value, columnasExport, {
+      title: 'Reporte de Licencias Vigentes',
+      subtitle: `Generado el ${new Date().toLocaleDateString('es-MX')}`,
+      orientation: 'landscape'
+    })
+
+    if (success) {
+      showToast('success', 'PDF generado correctamente')
+    } else {
+      showToast('error', 'Error al generar PDF')
+    }
+  } catch (error) {
+    showToast('error', 'Error al generar PDF')
+  } finally {
+    hideLoading()
+  }
 }
 
 const getStatusBadge = (estado) => {
@@ -784,4 +1046,86 @@ onMounted(() => {
   // La tabla de licencias solo se carga al presionar "Actualizar"
 })
 </script>
+
+<style scoped>
+/* Estilos para checkbox de selección */
+.th-checkbox,
+.td-checkbox {
+  width: 40px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.th-checkbox input[type="checkbox"],
+.td-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--municipal-primary, #ea8215);
+}
+
+/* Fila seleccionada */
+.row-selected {
+  background-color: rgba(234, 130, 21, 0.1) !important;
+}
+
+.row-selected:hover {
+  background-color: rgba(234, 130, 21, 0.15) !important;
+}
+
+/* Estilos para modal de baja masiva */
+.baja-masiva-content .alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.selected-licenses-list h6 {
+  color: var(--municipal-text, #333);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.licenses-scroll {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--municipal-border, #dee2e6);
+  border-radius: 0.375rem;
+}
+
+.licenses-scroll .municipal-table {
+  margin-bottom: 0;
+}
+
+.licenses-scroll .municipal-table th,
+.licenses-scroll .municipal-table td {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.modal-actions .btn-municipal-danger,
+.modal-actions .btn-municipal-secondary {
+  min-width: 150px;
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
+</style>
 

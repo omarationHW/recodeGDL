@@ -9,6 +9,25 @@
         <h1>Contratos por Empresa</h1>
         <p>Aseo Contratado - Consulta de contratos agrupados por empresa prestadora del servicio</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -137,7 +156,7 @@
         <div class="municipal-card-body">
           <div class="table-responsive">
             <table class="municipal-table">
-              <thead>
+              <thead class="municipal-table-header">
                 <tr>
                   <th>Contrato</th>
                   <th>Contribuyente</th>
@@ -177,7 +196,7 @@
       </div>
     </div>
 
-    <div v-else-if="empresaSeleccionada && !cargando" class="alert alert-warning">
+    <div v-else-if="empresaSeleccionada && !cargando" class="municipal-alert municipal-alert-warning">
       <font-awesome-icon icon="info-circle" class="me-2" />
       No se encontraron contratos para esta empresa con los filtros seleccionados.
     </div>
@@ -193,10 +212,20 @@
         <li>Detalle completo de cada contrato</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Empresas_Contratos'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -204,8 +233,10 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 const cargando = ref(false)
@@ -246,7 +277,8 @@ const cargarContratos = async () => {
     contratos.value = respContratos || []
     showToast(`${contratos.value.length} contrato(s) encontrado(s)`, 'success')
   } catch (error) {
-    handleError(error, 'Error al cargar contratos')
+    hideLoading()
+    handleApiError(error, 'Error al cargar contratos')
   } finally {
     cargando.value = false
   }
@@ -271,8 +303,18 @@ onMounted(async () => {
     const resp = await execute('SP_ASEO_EMPRESAS_LIST', 'aseo_contratado', {})
     empresas.value = resp || []
   } catch (error) {
-    handleError(error, 'Error al cargar empresas')
+    hideLoading()
+    handleApiError(error, 'Error al cargar empresas')
   }
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 

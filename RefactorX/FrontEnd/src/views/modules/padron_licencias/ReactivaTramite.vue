@@ -384,7 +384,6 @@ const cargarGiroDescripcion = async () => {
       giroDescripcion.value = response.result[0].descripcion
     }
   } catch (error) {
-    console.error('Error al cargar descripción del giro:', error)
     giroDescripcion.value = tramiteData.value.id_giro?.toString() || ''
   }
 }

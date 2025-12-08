@@ -8,6 +8,25 @@
         <h1>Inserción Masiva de Adeudos</h1>
         <p>Aseo Contratado - Insertar adeudos a múltiples contratos simultáneamente</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -172,7 +191,7 @@
           <h5><font-awesome-icon icon="eye" /> Paso 3: Vista Previa</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="alert alert-info">
+          <div class="municipal-alert municipal-alert-info">
             <font-awesome-icon icon="info-circle" />
             Se insertarán <strong>{{ contratosSeleccionados.length }}</strong> adeudos para el periodo
             <strong>{{ formatPeriodo(parametrosAdeudo.periodo) }}</strong>
@@ -224,7 +243,7 @@
           <h5><font-awesome-icon icon="check-circle" /> Resultados de la Inserción</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="alert alert-success">
+          <div class="municipal-alert municipal-alert-success">
             <font-awesome-icon icon="check-circle" />
             Proceso completado: {{ resultados.filter(r => r.exito).length }} de {{ resultados.length }} adeudos insertados correctamente
           </div>
@@ -308,20 +327,31 @@
         <li>Utilizar la vista previa para validar los datos</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'AdeudosMult_Ins'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const loadingContratos = ref(false)
 const showDocumentation = ref(false)
 const contratos = ref([])
@@ -360,7 +390,7 @@ const cargarContratos = async () => {
       parVigencia: parVigencia
     })
 
-    let lista = response && response.data ? response.data : []
+    let lista = response || []
 
     // Filtrar por empresa si está seleccionada
     if (filtros.value.num_empresa) {
@@ -371,8 +401,9 @@ const cargarContratos = async () => {
     contratosSeleccionados.value = []
     showToast(`${lista.length} contratos encontrados`, 'success')
   } catch (error) {
+    hideLoading()
     showToast('Error al cargar contratos', 'error')
-    console.error('Error:', error)
+    handleApiError(error)
   } finally {
     loadingContratos.value = false
   }
@@ -425,7 +456,7 @@ const confirmarInsercion = async () => {
 }
 
 const insertarAdeudos = async () => {
-  loading.value = true
+  showLoading()
   resultados.value = []
 
   try {
@@ -454,6 +485,7 @@ const insertarAdeudos = async () => {
           mensaje: 'Adeudo insertado correctamente'
         })
       } catch (error) {
+        hideLoading()
         resultados.value.push({
           num_contrato: contrato.num_contrato,
           empresa: contrato.empresa,
@@ -469,10 +501,11 @@ const insertarAdeudos = async () => {
     // Limpiar selección
     contratosSeleccionados.value = []
   } catch (error) {
+    hideLoading()
     showToast('Error en el proceso de inserción', 'error')
-    console.error('Error:', error)
+    handleApiError(error)
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -534,7 +567,8 @@ const cargarDatos = async () => {
     })
     if (responseCves && responseCves.data) clavesOperacion.value = responseCves.data
   } catch (error) {
-    console.error('Error al cargar datos iniciales:', error)
+    hideLoading()
+    handleApiError(error)
   }
 }
 

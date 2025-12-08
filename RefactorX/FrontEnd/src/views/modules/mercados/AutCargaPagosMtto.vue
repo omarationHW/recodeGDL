@@ -1,219 +1,419 @@
 <template>
-  <div class="aut-carga-pagos-mtto-page">
-    <h1>Autorizar Fecha de Ingreso</h1>
-    <div class="breadcrumb">
-      <router-link to="/">Inicio</router-link> / Autorizar Fecha de Ingreso
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="user-shield" />
+      </div>
+      <div class="module-view-info">
+        <h1>Autorizar Fecha de Ingreso</h1>
+        <p>Mercados - Mantenimiento de Autorizaciones de Fechas</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-primary"
+          @click="cargarDatos"
+          :disabled="loading"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+        <button
+          class="btn-municipal-danger"
+          @click="cerrar"
+        >
+          <font-awesome-icon icon="times" />
+          Cerrar
+        </button>
+      </div>
     </div>
-    <form @submit.prevent="onSubmit">
-      <div class="form-group">
-        <label for="fecha_ingreso">Fecha Ingreso</label>
-        <input type="date" v-model="form.fecha_ingreso" class="form-control" required />
+
+    <div class="module-view-content">
+      <!-- Formulario de Autorización -->
+      <div class="municipal-card mb-3">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="calendar-check" />
+            {{ editing ? 'Modificar Autorización' : 'Nueva Autorización' }}
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="guardarAutorizacion">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="municipal-form-label">Fecha Ingreso *</label>
+                <input
+                  type="date"
+                  class="municipal-form-control"
+                  v-model="form.fecha_ingreso"
+                  required
+                  :disabled="editing"
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="municipal-form-label">Permiso *</label>
+                <select class="municipal-form-control" v-model="form.autorizar" required>
+                  <option value="S">✓ AUTORIZAR FECHA</option>
+                  <option value="N">✗ BLOQUEAR FECHA</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="municipal-form-label">Fecha Límite *</label>
+                <input
+                  type="date"
+                  class="municipal-form-control"
+                  v-model="form.fecha_limite"
+                  required
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="municipal-form-label">Usuario con Permiso *</label>
+                <select class="municipal-form-control" v-model.number="form.id_usupermiso" required>
+                  <option value="">Seleccione...</option>
+                  <option
+                    v-for="user in usuarios"
+                    :key="user.id_usuario"
+                    :value="user.id_usuario"
+                  >
+                    {{ user.nombre }} ({{ user.usuario }})
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label class="municipal-form-label">Comentarios</label>
+                <textarea
+                  class="municipal-form-control"
+                  v-model="form.comentarios"
+                  rows="4"
+                  @input="toUpperCase"
+                  style="text-transform: uppercase;"
+                ></textarea>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+              <button class="btn-municipal-success" type="submit" :disabled="loading">
+                <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+                <font-awesome-icon icon="save" v-if="!loading" />
+                {{ editing ? 'Actualizar' : 'Guardar' }}
+              </button>
+              <button class="btn-municipal-secondary" type="button" @click="cancelar">
+                <font-awesome-icon icon="times" />
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="autorizar">Permiso</label>
-        <select v-model="form.autorizar" class="form-control" required>
-          <option value="S">AUTORIZAR FECHA</option>
-          <option value="N">BLOQUEAR FECHA</option>
-        </select>
+
+      <!-- Lista de Autorizaciones -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Fechas Autorizadas
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <!-- Loading Spinner -->
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+
+          <!-- Tabla -->
+          <div v-else class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th>Fecha Ingreso</th>
+                  <th>Permiso</th>
+                  <th>Fecha Límite</th>
+                  <th>Usuario Permiso</th>
+                  <th>Comentarios</th>
+                  <th>Actualización</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in fechas" :key="`${item.fecha_ingreso}-${item.oficina}`">
+                  <td>{{ formatDate(item.fecha_ingreso) }}</td>
+                  <td>
+                    <span :class="item.autorizar === 'S' ? 'badge bg-success' : 'badge bg-danger'">
+                      {{ item.autorizar === 'S' ? 'AUTORIZAR' : 'BLOQUEAR' }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(item.fecha_limite) }}</td>
+                  <td>{{ item.nombre }}</td>
+                  <td>{{ item.comentarios }}</td>
+                  <td>{{ formatDateTime(item.actualizacion) }}</td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-municipal-warning"
+                      @click="editarFecha(item)"
+                      :disabled="loading"
+                    >
+                      <font-awesome-icon icon="edit" />
+                      Editar
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="fechas.length === 0">
+                  <td colspan="7" class="text-center text-muted">
+                    No hay fechas autorizadas
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="fecha_limite">Fecha Límite</label>
-        <input type="date" v-model="form.fecha_limite" class="form-control" required />
-      </div>
-      <div class="form-group">
-        <label for="id_usupermiso">Usuario Permiso</label>
-        <select v-model="form.id_usupermiso" class="form-control" required>
-          <option value="">Seleccione un usuario...</option>
-          <option v-for="user in users" :key="user.id_usuario" :value="user.id_usuario">
-            {{ user.nombre }}
-          </option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="comentarios">Comentario</label>
-        <textarea v-model="form.comentarios" @input="toUpperCase" rows="4" class="form-control"></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Aceptar</button>
-        <button type="button" class="btn btn-secondary" @click="onCancel">Cancelar</button>
-      </div>
-    </form>
-    <hr />
-    <h2>Fechas Autorizadas</h2>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Fecha Ingreso</th>
-          <th>Permiso</th>
-          <th>Fecha Límite</th>
-          <th>Usuario Permiso</th>
-          <th>Comentario</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in fechas" :key="item.fecha_ingreso">
-          <td>{{ item.fecha_ingreso }}</td>
-          <td>{{ item.autorizar === 'S' ? 'AUTORIZAR' : 'BLOQUEAR' }}</td>
-          <td>{{ item.fecha_limite }}</td>
-          <td>{{ item.nombre }}</td>
-          <td>{{ item.comentarios }}</td>
-          <td>
-            <button @click="onEdit(item)" class="btn btn-sm btn-warning">Editar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="success" class="alert alert-success">{{ success }}</div>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AutCargaPagosMttoPage',
-  data() {
-    return {
-      form: {
-        fecha_ingreso: '',
-        autorizar: 'S',
-        fecha_limite: '',
-        id_usupermiso: '',
-        comentarios: ''
-      },
-      users: [],
-      fechas: [],
-      editing: false,
-      oficina: null, // Puede venir de store o props
-      error: '',
-      success: ''
-    };
-  },
-  created() {
-    // Suponiendo que la oficina viene del usuario autenticado
-    this.oficina = 1; // Valor por defecto sin store
-    this.loadUsers();
-    this.loadFechas();
-  },
-  methods: {
-    async loadUsers() {
-      // Simulamos datos de usuarios
-      setTimeout(() => {
-        this.users = [
-          { id_usuario: 1, nombre: 'Juan Pérez' },
-          { id_usuario: 2, nombre: 'María García' },
-          { id_usuario: 3, nombre: 'Carlos López' }
-        ];
-      }, 200);
-    },
-    async loadFechas() {
-      // Simulamos datos de fechas autorizadas
-      setTimeout(() => {
-        this.fechas = [
-          {
-            fecha_ingreso: '2024-01-15',
-            autorizar: 'S',
-            fecha_limite: '2024-01-30',
-            nombre: 'Juan Pérez',
-            comentarios: 'AUTORIZACIÓN MENSUAL PARA PAGOS DE LOCALES'
-          },
-          {
-            fecha_ingreso: '2024-01-10',
-            autorizar: 'N', 
-            fecha_limite: '2024-01-25',
-            nombre: 'María García',
-            comentarios: 'FECHA BLOQUEADA PARA REVISIÓN'
-          }
-        ];
-      }, 300);
-    },
-    async onSubmit() {
-      this.error = '';
-      this.success = '';
-      // Validación básica
-      if (!this.form.fecha_ingreso || !this.form.fecha_limite || !this.form.id_usupermiso) {
-        this.error = 'Todos los campos son obligatorios';
-        return;
-      }
-      
-      // Simulamos el envío
-      setTimeout(() => {
-        const userName = this.users.find(u => u.id_usuario == this.form.id_usupermiso)?.nombre || 'Usuario';
-        
-        if (this.editing) {
-          // Actualizar registro existente
-          const index = this.fechas.findIndex(f => f.fecha_ingreso === this.form.fecha_ingreso);
-          if (index !== -1) {
-            this.fechas[index] = {
-              ...this.form,
-              nombre: userName
-            };
-          }
-          this.success = 'Actualizado correctamente';
-        } else {
-          // Agregar nuevo registro
-          this.fechas.push({
-            ...this.form,
-            nombre: userName
-          });
-          this.success = 'Registrado correctamente';
-        }
-        
-        this.onCancel();
-      }, 500);
-    },
-    onEdit(item) {
-      this.form = {
-        fecha_ingreso: item.fecha_ingreso,
-        autorizar: item.autorizar,
-        fecha_limite: item.fecha_limite,
-        id_usupermiso: item.id_usupermiso,
-        comentarios: item.comentarios
-      };
-      this.editing = true;
-      this.success = '';
-      this.error = '';
-    },
-    onCancel() {
-      this.form = {
-        fecha_ingreso: '',
-        autorizar: 'S',
-        fecha_limite: '',
-        id_usupermiso: '',
-        comentarios: ''
-      };
-      this.editing = false;
-      this.error = '';
-      this.success = '';
-    },
-    toUpperCase(e) {
-      this.form.comentarios = this.form.comentarios.toUpperCase();
-    }
-  }
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import {
+  faUserShield, faCalendarCheck, faList, faSave, faTimes,
+  faQuestionCircle, faSyncAlt, faEdit
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+
+library.add(
+  faUserShield, faCalendarCheck, faList, faSave, faTimes,
+  faQuestionCircle, faSyncAlt, faEdit
+);
+
+const router = useRouter();
+const { showLoading, hideLoading } = useGlobalLoading();
+
+// Helper para mostrar toasts
+const showToast = (icon, title) => {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon,
+    title,
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true
+  });
 };
+
+// Estados
+const loading = ref(false);
+const usuarios = ref([]);
+const fechas = ref([]);
+const editing = ref(false);
+
+// Formulario
+const form = ref({
+  fecha_ingreso: '',
+  oficina: 1, // TODO: Obtener de sesión
+  autorizar: 'S',
+  fecha_limite: '',
+  id_usupermiso: '',
+  comentarios: ''
+});
+
+// Cargar datos iniciales
+onMounted(() => {
+  cargarUsuarios();
+  cargarDatos();
+});
+
+// Cargar usuarios con permiso
+async function cargarUsuarios() {
+  try {
+    showLoading('Cargando usuarios', 'Por favor espere');
+    const p_oficina = 1; // TODO: Obtener de sesión
+
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_get_users_with_permission',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(p_oficina) }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+      usuarios.value = response.data.eResponse.data.result;
+    }
+  } catch (error) {
+    console.error('Error al cargar usuarios:', error);
+    showToast('error', 'Error al cargar usuarios con permiso');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Cargar fechas autorizadas
+async function cargarDatos() {
+  loading.value = true;
+
+  try {
+    showLoading('Cargando fechas autorizadas', 'Por favor espere');
+    const p_oficina = 1; // TODO: Obtener de sesión
+
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_list_autcargapag',
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(p_oficina) }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+      fechas.value = response.data.eResponse.data.result;
+    } else {
+      fechas.value = [];
+    }
+  } catch (error) {
+    console.error('Error al cargar fechas:', error);
+    showToast('error', 'Error al cargar fechas autorizadas');
+    fechas.value = [];
+  } finally {
+    loading.value = false;
+    hideLoading();
+  }
+}
+
+// Guardar autorización (agregar o modificar)
+async function guardarAutorizacion() {
+  loading.value = true;
+
+  try {
+    showLoading('Guardando autorización', 'Por favor espere');
+    const operacion = editing.value ? 'sp_update_autcargapag' : 'sp_insert_autcargapag';
+    const ahora = new Date().toISOString();
+
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: operacion,
+        Base: 'mercados',
+        Parametros: [
+          { Nombre: 'p_fecha_ingreso', Valor: form.value.fecha_ingreso },
+          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
+          { Nombre: 'p_autorizar', Valor: form.value.autorizar },
+          { Nombre: 'p_fecha_limite', Valor: form.value.fecha_limite },
+          { Nombre: 'p_id_usupermiso', Valor: parseInt(form.value.id_usupermiso) },
+          { Nombre: 'p_comentarios', Valor: form.value.comentarios.toUpperCase() },
+          { Nombre: 'p_id_usuario', Valor: 1 }, // TODO: Obtener de sesión
+          { Nombre: 'p_actualizacion', Valor: ahora }
+        ]
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      showToast('success', editing.value ? 'Autorización actualizada' : 'Autorización creada');
+      cancelar();
+      await cargarDatos();
+    }
+  } catch (error) {
+    console.error('Error al guardar autorización:', error);
+    showToast('error', 'Error al guardar autorización');
+  } finally {
+    loading.value = false;
+    hideLoading();
+  }
+}
+
+// Editar fecha
+function editarFecha(item) {
+  form.value = {
+    fecha_ingreso: item.fecha_ingreso?.split('T')[0] || item.fecha_ingreso,
+    oficina: item.oficina,
+    autorizar: item.autorizar,
+    fecha_limite: item.fecha_limite?.split('T')[0] || item.fecha_limite,
+    id_usupermiso: item.id_usupermiso,
+    comentarios: item.comentarios || ''
+  };
+  editing.value = true;
+
+  // Scroll al formulario
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Cancelar edición
+function cancelar() {
+  form.value = {
+    fecha_ingreso: '',
+    oficina: 1, // TODO: Obtener de sesión
+    autorizar: 'S',
+    fecha_limite: '',
+    id_usupermiso: '',
+    comentarios: ''
+  };
+  editing.value = false;
+}
+
+// Convertir a mayúsculas
+function toUpperCase() {
+  form.value.comentarios = form.value.comentarios.toUpperCase();
+}
+
+// Formato de fecha
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('es-MX');
+}
+
+// Formato de fecha y hora
+function formatDateTime(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleString('es-MX');
+}
+
+// Mostrar ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Autorizar Fecha de Ingreso',
+    html: `
+      <div style="text-align: left;">
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Complete el formulario para crear una nueva autorización de fecha</li>
+          <li>Seleccione si desea AUTORIZAR o BLOQUEAR la fecha</li>
+          <li>Indique la fecha límite de validez de la autorización</li>
+          <li>Seleccione el usuario que tendrá el permiso</li>
+          <li>Agregue comentarios explicativos (se convertirán a mayúsculas)</li>
+          <li>Use "Guardar" para crear o "Actualizar" para modificar</li>
+          <li>Puede editar autorizaciones existentes haciendo clic en "Editar"</li>
+        </ol>
+        <p><strong>Nota:</strong> La fecha de ingreso no puede modificarse una vez creada.</p>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
+// Cerrar
+function cerrar() {
+  router.push('/');
+}
 </script>
 
-<style scoped>
-.aut-carga-pagos-mtto-page {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-.form-group {
-  margin-bottom: 1rem;
-}
-.form-actions {
-  margin-top: 1rem;
-}
-.table {
-  width: 100%;
-  margin-top: 2rem;
-}
-.breadcrumb {
-  margin-bottom: 1rem;
-  font-size: 0.9em;
-}
-.alert {
-  margin-top: 1rem;
-}
-</style>

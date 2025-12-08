@@ -167,10 +167,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Bonificacion1'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -251,7 +260,6 @@ const buscarFolio = async () => {
       toast.warning('No se encontró el folio')
     }
   } catch (error) {
-    console.error('Error al buscar folio:', error)
     toast.error('Error al buscar folio')
     folio.value = null
   }
@@ -305,7 +313,6 @@ const cargarBonificaciones = async () => {
 
     bonificaciones.value = response.result || []
   } catch (error) {
-    console.error('Error al cargar bonificaciones:', error)
     bonificaciones.value = []
   }
 }
@@ -377,7 +384,6 @@ const aplicarBonificacion = async () => {
       toast.error(response.result[0]?.mensaje || 'Error al aplicar bonificación')
     }
   } catch (error) {
-    console.error('Error al aplicar bonificación:', error)
     toast.error('Error al aplicar bonificación')
   }
 }

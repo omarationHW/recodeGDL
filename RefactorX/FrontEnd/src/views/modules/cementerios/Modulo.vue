@@ -166,10 +166,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Modulo'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
@@ -242,7 +251,6 @@ const validarUsuario = async () => {
       }
     }
   } catch (error) {
-    console.error('Error al validar usuario:', error)
     resultadoUsuario.value = {
       success: false,
       mensaje: 'Error de conexión con el servidor'
@@ -270,7 +278,6 @@ const consultarHora = async () => {
       })
     }
   } catch (error) {
-    console.error('Error al obtener hora:', error)
     // Fallback a hora local
     horaServidor.value = new Date().toLocaleString('es-MX', {
       dateStyle: 'full',
@@ -310,7 +317,6 @@ const verificarVersion = async () => {
 
     toast.info(resultadoVersion.value.mensaje)
   } catch (error) {
-    console.error('Error al verificar versión:', error)
     resultadoVersion.value = {
       hayNueva: false,
       mensaje: 'No se pudo verificar la versión'
@@ -318,6 +324,15 @@ const verificarVersion = async () => {
     toast.error('Error al verificar versión')
   }
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 
 <style scoped>

@@ -10,6 +10,10 @@
         <p>Otras Obligaciones - Generación de reporte de padrón con adeudos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
         <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
@@ -83,9 +87,13 @@
               <font-awesome-icon icon="file-alt" />
               Generar Reporte
             </button>
-            <button class="btn-municipal-success" @click="handleExportar" :disabled="loading || padronData.length === 0">
+            <button class="btn-municipal-success" @click="handleImprimir" :disabled="loading || padronData.length === 0">
+              <font-awesome-icon icon="print" />
+              Imprimir
+            </button>
+            <button class="btn-municipal-secondary" @click="handleExportar" :disabled="loading || padronData.length === 0">
               <font-awesome-icon icon="file-excel" />
-              Exportar Excel
+              Excel
             </button>
           </div>
         </div>
@@ -105,26 +113,26 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>{{ etiquetas.etiq_control }}</th>
-                  <th>{{ etiquetas.concesionario }}</th>
-                  <th>{{ etiquetas.ubicacion }}</th>
-                  <th class="text-end">{{ etiquetas.superficie }}</th>
-                  <th class="text-center">{{ etiquetas.licencia }}</th>
-                  <th>{{ etiquetas.sector }}</th>
-                  <th class="text-center">{{ etiquetas.zona }}</th>
-                  <th class="text-end">Adeudo</th>
+                  <th>{{ etiquetas.etiq_control || 'Control' }}</th>
+                  <th>{{ etiquetas.concesionario || 'Concesionario' }}</th>
+                  <th>{{ etiquetas.ubicacion || 'Ubicación' }}</th>
+                  <th class="text-end">{{ etiquetas.superficie || 'Superficie' }}</th>
+                  <th class="text-center">{{ etiquetas.licencia || 'Licencia' }}</th>
+                  <th>{{ etiquetas.sector || 'Sector' }}</th>
+                  <th class="text-center">{{ etiquetas.zona || 'Zona' }}</th>
+                  <th class="text-end">Adeudo Total</th>
                   <th class="text-center">Opciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(item, index) in padronData" :key="index">
-                  <td>{{ item.control }}</td>
+                <tr v-for="(item, index) in padronData" :key="index" class="row-hover">
+                  <td><span class="badge badge-purple">{{ item.control }}</span></td>
                   <td>{{ item.concesionario }}</td>
                   <td>{{ item.ubicacion }}</td>
-                  <td class="text-end">{{ item.superficie }}</td>
-                  <td class="text-center">{{ item.licencia }}</td>
-                  <td>{{ item.sector }}</td>
-                  <td class="text-center">{{ item.zona }}</td>
+                  <td class="text-end">{{ formatNumber(item.superficie, 2) }}</td>
+                  <td class="text-center">{{ item.licencia || '-' }}</td>
+                  <td>{{ item.sector || '-' }}</td>
+                  <td class="text-center">{{ item.id_zona || '-' }}</td>
                   <td class="text-end fw-bold text-success">{{ formatCurrency(item.total_adeudo) }}</td>
                   <td class="text-center">
                     <button class="btn btn-sm btn-info" @click="verDetalle(item)" title="Ver Detalle">
@@ -160,24 +168,33 @@
               <table class="table table-municipal">
                 <thead>
                   <tr>
-                    <th>Concepto</th>
+                    <th>Descripción</th>
                     <th class="text-right">Adeudo</th>
-                    <th class="text-right">Recargos</th>
-                    <th class="text-right">Multas</th>
-                    <th class="text-right">Gastos</th>
-                    <th class="text-right">Actualización</th>
+                    <th class="text-right">Recargo</th>
+                    <th class="text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(det, idx) in detalleAdeudos" :key="idx">
-                    <td>{{ det.concepto }}</td>
-                    <td class="text-right">{{ formatCurrency(det.importe_adeudos) }}</td>
-                    <td class="text-right">{{ formatCurrency(det.importe_recargos) }}</td>
-                    <td class="text-right">{{ formatCurrency(det.importe_multa) }}</td>
-                    <td class="text-right">{{ formatCurrency(det.importe_gastos) }}</td>
-                    <td class="text-right">{{ formatCurrency(det.importe_actualizacion) }}</td>
+                    <td>{{ det.descripcion }}</td>
+                    <td class="text-right">{{ formatCurrency(det.adeudo) }}</td>
+                    <td class="text-right">{{ formatCurrency(det.recargo) }}</td>
+                    <td class="text-right fw-bold text-success">
+                      {{ formatCurrency((parseFloat(det.adeudo) || 0) + (parseFloat(det.recargo) || 0)) }}
+                    </td>
                   </tr>
                 </tbody>
+                <tfoot>
+                  <tr class="table-footer-total">
+                    <td colspan="3" class="text-right"><strong>TOTAL:</strong></td>
+                    <td class="text-right">
+                      <strong class="text-success">
+                        {{ formatCurrency(detalleAdeudos.reduce((sum, det) =>
+                          sum + (parseFloat(det.adeudo) || 0) + (parseFloat(det.recargo) || 0), 0)) }}
+                      </strong>
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
@@ -187,22 +204,6 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
     </div>
 
     <!-- Modal de documentación -->
@@ -212,31 +213,37 @@
       :moduleName="'otras_obligaciones'"
       @close="closeDocumentation"
     />
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'GRep_Padron'"
+      :moduleName="'otras_obligaciones'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { usePdfExport } from '@/composables/usePdfExport'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import * as XLSX from 'xlsx'
 
 const router = useRouter()
 const { execute } = useApi()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const BASE_DB = 'otras_obligaciones'
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
+const { exportToPdf } = usePdfExport()
+const loading = ref(false)
 const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 const dialogDetalle = ref(false)
 const padronData = ref([])
 const detalleAdeudos = ref([])
@@ -247,9 +254,9 @@ const loadingVigencias = ref(false)
 const loadingEtiquetas = ref(false)
 
 const formData = reactive({
-  tabla: 3,
+  tabla: 3, // Se puede parametrizar si se recibe desde route
   vigencia_cont: 'TODOS',
-  tipo_adeudos: 'V',
+  tipo_adeudos: 'V', // V = Vencidos, A = Acumulados al Periodo
   anio: new Date().getFullYear(),
   mes: new Date().getMonth() + 1
 })
@@ -287,8 +294,14 @@ const formatCurrency = (value) => {
   if (!value && value !== 0) return '$0.00'
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
-    currency: 'MXN'
+    currency: 'MXN',
+    minimumFractionDigits: 2
   }).format(value)
+}
+
+const formatNumber = (value, decimals = 2) => {
+  if (value === null || value === undefined) return '0.00'
+  return parseFloat(value).toFixed(decimals)
 }
 
 const handleTipoAdeudosChange = () => {
@@ -301,26 +314,22 @@ const handleTipoAdeudosChange = () => {
 
 const cargarVigencias = async () => {
   loadingVigencias.value = true
-  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'sp_padron_vigencias',
-      'otras_obligaciones',
+      'grep_padron_sp_vigencias_get',
+      BASE_DB,
       [
-        { nombre: 'par_tab', valor: formData.tabla, tipo: 'integer' }
+        { nombre: 'par_tab', valor: String(formData.tabla), tipo: 'string' }
       ],
       'guadalajara'
     )
 
-    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
-
     if (response && response.result) {
       vigencias.value = response.result || []
-      showToast('success', `${vigencias.value.length} vigencia(s) cargada(s) (${duration}s)`)
     }
   } catch (error) {
-    handleApiError(error)
+    console.error('Error cargando vigencias:', error)
     vigencias.value = []
   } finally {
     loadingVigencias.value = false
@@ -329,26 +338,22 @@ const cargarVigencias = async () => {
 
 const cargarEtiquetas = async () => {
   loadingEtiquetas.value = true
-  const startTime = performance.now()
 
   try {
     const response = await execute(
-      'sp_padron_etiquetas',
-      'otras_obligaciones',
+      'sp_gfacturacion_get_etiquetas',
+      BASE_DB,
       [
-        { nombre: 'par_tab', valor: formData.tabla, tipo: 'integer' }
+        { nombre: 'par_tab', valor: String(formData.tabla), tipo: 'string' }
       ],
       'guadalajara'
     )
 
-    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
-
     if (response && response.result && response.result.length > 0) {
       etiquetas.value = response.result[0]
-      showToast('success', `Etiquetas cargadas (${duration}s)`)
     }
   } catch (error) {
-    handleApiError(error)
+    console.error('Error cargando etiquetas:', error)
   } finally {
     loadingEtiquetas.value = false
   }
@@ -360,20 +365,17 @@ const handleGenerarReporte = async () => {
     return
   }
 
-  setLoading(true, 'Generando reporte...')
+  loading.value = true
   showLoading('Consultando padrón de concesiones...')
-  const startTime = performance.now()
 
   try {
-    // Obtener concesiones
+    // Obtener concesiones - SP solo toma 2 parámetros: par_tab y par_vigencia
     const response = await execute(
-      'sp_padron_concesiones_get',
-      'otras_obligaciones',
+      'grep_padron_sp_concesiones_get',
+      BASE_DB,
       [
-        { nombre: 'p_vigencia', valor: formData.vigencia_cont === 'TODOS' ? 'T' : formData.vigencia_cont, tipo: 'string' },
-        { nombre: 'p_tipo_adeudo', valor: formData.tipo_adeudos, tipo: 'string' },
-        { nombre: 'p_anio', valor: formData.anio, tipo: 'integer' },
-        { nombre: 'p_mes', valor: String(formData.mes).padStart(2, '0'), tipo: 'string' }
+        { nombre: 'par_tab', valor: formData.tabla, tipo: 'integer' },
+        { nombre: 'par_vigencia', valor: formData.vigencia_cont === 'TODOS' ? 'T' : formData.vigencia_cont, tipo: 'varchar' }
       ],
       'guadalajara'
     )
@@ -386,29 +388,25 @@ const handleGenerarReporte = async () => {
         const item = padronData.value[i]
         showLoading(`Calculando adeudos... ${i + 1}/${padronData.value.length}`)
 
-        const fecha = `${formData.anio}-${String(formData.mes).padStart(2, '0')}`
-
         const adeudosResponse = await execute(
-          'sp_padron_adeudos_get',
-          'otras_obligaciones',
+          'grep_padron_sp_adeudos_get',
+          BASE_DB,
           [
-            { nombre: 'p_control', valor: item.id_34_datos, tipo: 'integer' },
-            { nombre: 'p_tipo', valor: formData.tipo_adeudos, tipo: 'string' },
-            { nombre: 'p_fecha', valor: fecha, tipo: 'string' }
+            { nombre: 'par_id_datos', valor: item.id_34_datos, tipo: 'integer' }
           ],
           'guadalajara'
         )
 
         const adeudos = adeudosResponse?.result || []
+        // Calcular total de adeudos (adeudo + recargo)
         item.total_adeudo = adeudos.reduce((sum, ade) =>
-          sum + (ade.adeudo || 0) + (ade.recargo || 0), 0
+          sum + (parseFloat(ade.adeudo) || 0) + (parseFloat(ade.recargo) || 0), 0
         )
         item.adeudos = adeudos
       }
 
-      const duration = ((performance.now() - startTime) / 1000).toFixed(2)
       hideLoading()
-      showToast('success', `Reporte generado: ${padronData.value.length} registro(s) (${duration}s)`)
+      showToast('success', `Reporte generado: ${padronData.value.length} registro(s)`)
     } else {
       hideLoading()
       showToast('info', 'No se encontraron registros')
@@ -419,7 +417,7 @@ const handleGenerarReporte = async () => {
     handleApiError(error)
     padronData.value = []
   } finally {
-    setLoading(false)
+    loading.value = false
   }
 }
 
@@ -467,12 +465,48 @@ const closeDocumentation = () => {
   showDocumentation.value = false
 }
 
-const goBack = () => {
-  router.push('/otras_obligaciones')
+const mostrarDocumentacion = () => {
+  showTechDocs.value = true
 }
 
-onMounted(() => {
-  cargarVigencias()
-  cargarEtiquetas()
+const closeTechDocs = () => {
+  showTechDocs.value = false
+}
+
+const handleImprimir = () => {
+  if (padronData.value.length === 0) {
+    showToast('warning', 'No hay datos para imprimir')
+    return
+  }
+
+  const columns = [
+    { header: 'Control', key: 'control', type: 'string' },
+    { header: 'Concesionario', key: 'concesionario', type: 'string' },
+    { header: 'Ubicación', key: 'ubicacion', type: 'string' },
+    { header: 'Superficie', key: 'superficie', type: 'number' },
+    { header: 'Sector', key: 'sector', type: 'string' },
+    { header: 'Zona', key: 'zona', type: 'number' },
+    { header: 'Adeudo Total', key: 'total_adeudo', type: 'currency' }
+  ]
+
+  const tipoAdeudo = formData.tipo_adeudos === 'V' ? 'Vencidos' : 'Acumulados'
+
+  exportToPdf(padronData.value, columns, {
+    title: 'Reporte de Padrón con Adeudos - Rastro',
+    subtitle: `Tipo: ${tipoAdeudo} - Vigencia: ${formData.vigencia_cont} - Total: ${formatCurrency(totalGeneral.value)}`,
+    orientation: 'landscape'
+  })
+}
+
+const goBack = () => {
+  router.push('/otras-obligaciones/menu')
+}
+
+onMounted(async () => {
+  try {
+    await Promise.all([cargarVigencias(), cargarEtiquetas()])
+  } catch (e) {
+    console.error('Error inicializando:', e)
+  }
 })
 </script>

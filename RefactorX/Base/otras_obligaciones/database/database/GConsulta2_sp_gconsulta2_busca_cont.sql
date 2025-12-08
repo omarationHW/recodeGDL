@@ -31,9 +31,31 @@ RETURNS TABLE (
   zona integer,
   licencia integer,
   giro integer
-) AS $$
+) AS $func$
 BEGIN
-  RETURN QUERY SELECT status, concepto_status, id_datos, concesionario, ubicacion, nomcomercial, lugar, obs, adicionales, statusregistro, unidades, categoria, seccion, bloque, sector, superficie, fechainicio, fechafin, recaudadora, zona, licencia, giro
-  FROM cob34_gdatosg_02(par_tab::text, par_control);
+  RETURN QUERY SELECT
+    f.status,
+    f.concepto_status::varchar,
+    f.id_datos,
+    f.concesionario::varchar,
+    f.ubicacion::varchar,
+    f.nomcomercial::varchar,
+    f.lugar::varchar,
+    f.obs::varchar,
+    f.adicionales::varchar,
+    f.statusregistro::varchar,
+    f.unidades::varchar,
+    f.categoria::varchar,
+    f.seccion::varchar,
+    f.bloque::varchar,
+    f.sector::varchar,
+    f.superficie,
+    f.fechainicio,
+    f.fechafin,
+    f.recaudadora,
+    f.zona,
+    f.licencia,
+    f.giro
+  FROM cob34_gdatosg_02(par_tab::text, par_control) f;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;

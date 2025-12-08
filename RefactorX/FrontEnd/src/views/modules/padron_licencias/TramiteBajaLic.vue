@@ -412,6 +412,36 @@ const tramitarBaja = async () => {
     return
   }
 
+  // Verificar adeudos pendientes
+  if (adeudos.value && adeudos.value.total_adeudo > 0) {
+    const resultAdeudos = await Swal.fire({
+      icon: 'warning',
+      title: 'Adeudos Pendientes',
+      html: `
+        <div style="text-align: left;">
+          <p>Esta licencia tiene adeudos pendientes:</p>
+          <ul style="list-style: none; padding: 0; margin: 15px 0;">
+            <li><strong>Adeudo Total:</strong> $${formatCurrency(adeudos.value.total_adeudo)}</li>
+            <li><strong>Adeudo Vigente:</strong> $${formatCurrency(adeudos.value.adeudo_vigente)}</li>
+            <li><strong>Recargos:</strong> $${formatCurrency(adeudos.value.recargos)}</li>
+          </ul>
+          <p class="text-danger"><strong>¿Desea continuar con el trámite de baja?</strong></p>
+          <p class="text-muted" style="font-size: 0.85em;">Nota: Los adeudos serán recalculados proporcionalmente.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Continuar con Trámite',
+      cancelButtonText: 'Cancelar',
+      width: '500px'
+    })
+
+    if (!resultAdeudos.isConfirmed) {
+      return
+    }
+  }
+
   // Confirmación
   const result = await Swal.fire({
     title: '¿Confirmar baja de licencia?',

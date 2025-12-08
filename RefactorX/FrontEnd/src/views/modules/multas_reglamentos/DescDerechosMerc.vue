@@ -29,7 +29,7 @@
 
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="list" /> Registros</h5>
+          <h5><font-awesome-icon icon="list" /> Registros ({{ rows.length }} registros)</h5>
           <div v-if="loading" class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
         </div>
         <div class="municipal-card-body table-container" v-if="!loading">
@@ -45,43 +45,87 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, idx) in rows" :key="idx" class="row-hover">
+                <tr v-for="(r, idx) in paginatedRows" :key="idx" class="row-hover">
                   <td><code>{{ r.clave_cuenta }}</code></td>
                   <td>{{ r.descuento }}</td>
                   <td>{{ r.desde }}</td>
                   <td>{{ r.hasta }}</td>
                   <td>{{ r.estatus }}</td>
                 </tr>
-                <tr v-if="rows.length===0"><td colspan="5" class="text-center text-muted">Sin registros</td></tr>
+                <tr v-if="rows.length === 0">
+                  <td colspan="5" class="text-center text-muted">Sin registros</td>
+                </tr>
               </tbody>
             </table>
           </div>
+
+          <!-- Paginación -->
+          <div v-if="rows.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
+            </div>
+            <div class="pagination-controls">
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === 1"
+                @click="currentPage--"
+              >
+                <font-awesome-icon icon="chevron-left" /> Anterior
+              </button>
+              <span class="pagination-page">Página {{ currentPage }} de {{ totalPages }}</span>
+              <button
+                class="btn-pagination"
+                :disabled="currentPage === totalPages"
+                @click="currentPage++"
+              >
+                Siguiente <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
-const OP_LIST = 'RECAUDADORA_DESCDERECHOS_MERC' // TODO confirmar
+const OP_LIST = 'RECAUDADORA_DESCDERECHOS_MERC'
+const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
 
 const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear() })
 const rows = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 10
+
+// Paginación
+const totalPages = computed(() => Math.ceil(rows.value.length / itemsPerPage))
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage)
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, rows.value.length))
+const paginatedRows = computed(() => rows.value.slice(startIndex.value, endIndex.value))
 
 async function reload() {
   const params = [
-    { name: 'clave_cuenta', type: 'C', value: String(filters.value.cuenta || '') },
-    { name: 'ejercicio', type: 'I', value: Number(filters.value.ejercicio || 0) }
+    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') },
+    { nombre: 'p_ejercicio', tipo: 'int', valor: Number(filters.value.ejercicio || 0) }
   ]
+
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
-    rows.value = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
+    rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    currentPage.value = 1 // Reset a la primera página
   } catch (e) {
     rows.value = []
   }
@@ -89,4 +133,51 @@ async function reload() {
 
 reload()
 </script>
+
+<style scoped>
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px;
+  border-top: 1px solid #dee2e6;
+}
+
+.pagination-info {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.pagination-page {
+  color: #495057;
+  font-weight: 500;
+}
+
+.btn-pagination {
+  padding: 8px 16px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>
 

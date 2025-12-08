@@ -69,6 +69,13 @@
         </div>
       </div>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -89,15 +96,18 @@ const rows = ref([])
 
 async function reload() {
   const params = [
-    { name: 'clave_cuenta', type: 'C', value: String(filters.value.cuenta || '') },
-    { name: 'ejercicio', type: 'I', value: Number(filters.value.ejercicio || 0) },
-    { name: 'offset', type: 'I', value: (page.value - 1) * pageSize.value },
-    { name: 'limit', type: 'I', value: pageSize.value }
+    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') },
+    { nombre: 'p_ejercicio', tipo: 'integer', valor: Number(filters.value.ejercicio || 0) },
+    { nombre: 'p_offset', tipo: 'integer', valor: (page.value - 1) * pageSize.value },
+    { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
   ]
   try {
     const data = await execute(OP_LIST, BASE_DB, params)
-    rows.value = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
-    total.value = Number(data?.total ?? rows.value.length)
+    // El backend devuelve data.result en lugar de data.rows
+    const result = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
+    rows.value = result
+    // Extraer total_registros de la primera fila si existe
+    total.value = result.length > 0 && result[0].total_registros ? Number(result[0].total_registros) : 0
   } catch (e) {
     rows.value = []
     total.value = 0

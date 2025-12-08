@@ -1,197 +1,27 @@
 <template>
-  <div class="rpt-emision-energia-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Emisión Recibos Energía</li>
-      </ol>
-    </nav>
-    <h2>Emisión de Recibos de Energía Eléctrica</h2>
-    <form @submit.prevent="onSubmit" class="mb-4">
-      <div class="row mb-2">
-        <div class="col-md-3">
-          <label>Oficina Recaudadora</label>
-          <select v-model="form.oficina" class="form-control" required>
-            <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label>Mercado</label>
-          <select v-model="form.mercado" class="form-control" required>
-            <option v-for="m in mercados" :key="m.id" :value="m.id">{{ m.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <label>Año</label>
-          <input type="number" v-model="form.axo" class="form-control" required min="2000" max="2100">
-        </div>
-        <div class="col-md-2">
-          <label>Periodo (Mes)</label>
-          <select v-model="form.periodo" class="form-control" required>
-            <option v-for="mes in meses" :key="mes.value" :value="mes.value">{{ mes.label }}</option>
-          </select>
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary">Consultar</button>
-        </div>
-      </div>
-    </form>
-    <div v-if="loading" class="alert alert-info">Cargando datos...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="result && result.length">
-      <h4>Recibos de Energía</h4>
-      <table class="table table-bordered table-sm">
-        <thead>
-          <tr>
-            <th>Datos Local</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Cuenta Energía</th>
-            <th>Locales</th>
-            <th>Kilowhatts</th>
-            <th>Importe</th>
-            <th>Tipo Consumo</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in result" :key="row.id_energia">
-            <td>{{ row.datoslocal }}</td>
-            <td>{{ row.nombre }}</td>
-            <td>{{ row.descripcion }}</td>
-            <td>{{ row.cuenta_energia }}</td>
-            <td>{{ row.local_adicional }}</td>
-            <td>{{ row.cantidad }}</td>
-            <td>{{ row.importe_energia | currency }}</td>
-            <td>{{ row.descripcion_consumo }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="mt-3">
-        <button class="btn btn-success" @click="onPrint">Imprimir</button>
-        <button class="btn btn-secondary ml-2" @click="onPreview">Previsualizar</button>
-      </div>
+  <div class="module-view">
+    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="file-alt" /></div><div class="module-view-info"><h1>Emisión de Energía</h1><p>Inicio > Reportes > Emisión Recibos de Energía</p></div><div class="button-group ms-auto"><button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || datos.length === 0"><font-awesome-icon icon="file-excel" />Exportar Excel</button><button class="btn-municipal-primary" @click="imprimir" :disabled="loading || datos.length === 0"><font-awesome-icon icon="print" />Imprimir</button><button class="btn-municipal-purple" @click="mostrarAyuda"><font-awesome-icon icon="question-circle" />Ayuda</button></div></div>
+    <div class="module-view-content">
+      <div class="municipal-card"><div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;"><h5><font-awesome-icon icon="filter" />Filtros de Consulta<font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" /></h5></div><div v-show="showFilters" class="municipal-card-body"><div class="form-row"><div class="form-group"><label class="municipal-form-label">Oficina</label><input v-model.number="filters.oficina" type="number" class="municipal-form-control" min="1" /></div><div class="form-group"><label class="municipal-form-label">Mercado</label><input v-model.number="filters.mercado" type="number" class="municipal-form-control" min="1" /></div><div class="form-group"><label class="municipal-form-label">Año</label><input v-model.number="filters.axo" type="number" class="municipal-form-control" min="2000" max="2100" /></div><div class="form-group"><label class="municipal-form-label">Periodo (Mes)</label><input v-model.number="filters.periodo" type="number" class="municipal-form-control" min="1" max="12" /></div></div><div class="row mt-3"><div class="col-12 text-end"><button class="btn-municipal-primary me-2" @click="consultar" :disabled="loading"><font-awesome-icon icon="search" />Consultar</button><button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading"><font-awesome-icon icon="eraser" />Limpiar</button></div></div></div></div>
+      <div class="municipal-card"><div class="municipal-card-header header-with-badge"><h5><font-awesome-icon icon="list" />{{ tituloReporte }}</h5><div class="header-right"><span class="badge-purple" v-if="datos.length > 0">{{ formatNumber(datos.length) }} registros</span></div></div><div class="municipal-card-body table-container"><div v-if="loading" class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Generando reporte...</p></div><div v-else class="table-responsive"><table class="municipal-table"><thead class="municipal-table-header sticky-header"><tr><th>Datos Local</th><th>Nombre</th><th>Descripción</th><th>Cuenta Energía</th><th>Locales</th><th>Cantidad</th><th class="text-end">Importe</th><th>Tipo Consumo</th></tr></thead><tbody><tr v-if="datos.length === 0 && !consultaRealizada"><td colspan="8" class="text-center text-muted"><font-awesome-icon icon="search" size="2x" class="empty-icon" /><p>Utiliza los filtros</p></td></tr><tr v-else-if="datos.length === 0"><td colspan="8" class="text-center text-muted"><font-awesome-icon icon="inbox" size="2x" class="empty-icon" /><p>No se encontraron resultados</p></td></tr><tr v-else v-for="(row, index) in paginatedDatos" :key="index" class="row-hover"><td>{{ row.datoslocal }}</td><td>{{ row.nombre }}</td><td>{{ row.descripcion }}</td><td>{{ row.cuenta_energia }}</td><td>{{ row.local_adicional }}</td><td>{{ row.cantidad }}</td><td class="text-end">{{ formatCurrency(row.importe_energia) }}</td><td>{{ row.descripcion_consumo }}</td></tr></tbody></table></div><div v-if="datos.length > 0" class="pagination-container"><div class="pagination-info">Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ datos.length }} registros</div><div class="pagination-controls"><label>Registros por página:</label><select v-model.number="pageSize" class="municipal-form-control" style="width: auto; display: inline-block;"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option><option :value="250">250</option></select></div><div class="pagination-buttons"><button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-left" /></button><span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span><button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-right" /></button></div></div></div></div>
     </div>
-    <div v-else-if="result && !result.length">
-      <div class="alert alert-warning">No se encontraron datos para los parámetros seleccionados.</div>
-    </div>
+    <div v-if="toast.show" :class="['toast-notification', `toast-${toast.type}`]"><font-awesome-icon :icon="getToastIcon()" /><span>{{ toast.message }}</span></div>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'RptEmisionEnergiaPage',
-  data() {
-    return {
-      form: {
-        oficina: '',
-        mercado: '',
-        axo: new Date().getFullYear(),
-        periodo: (new Date().getMonth() + 1)
-      },
-      oficinas: [],
-      mercados: [],
-      meses: [
-        { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
-        { value: 4, label: 'Abril' }, { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
-        { value: 7, label: 'Julio' }, { value: 8, label: 'Agosto' }, { value: 9, label: 'Septiembre' },
-        { value: 10, label: 'Octubre' }, { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' }
-      ],
-      result: null,
-      loading: false,
-      error: '',
-    }
-  },
-  filters: {
-    currency(val) {
-      if (typeof val !== 'number') return val;
-      return '$' + val.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-    }
-  },
-  created() {
-    this.fetchOficinas();
-  },
-  watch: {
-    'form.oficina'(val) {
-      if (val) this.fetchMercados(val);
-    }
-  },
-  methods: {
-    fetchOficinas() {
-      // Simulación: Reemplazar por llamada real a API
-      this.oficinas = [
-        { id: 1, nombre: 'Zona Centro' },
-        { id: 2, nombre: 'Zona Olímpica' },
-        { id: 3, nombre: 'Zona Oblatos' },
-        { id: 4, nombre: 'Zona Minerva' },
-        { id: 5, nombre: 'Cruz del Sur' }
-      ];
-    },
-    fetchMercados(oficinaId) {
-      // Simulación: Reemplazar por llamada real a API
-      this.mercados = [
-        { id: 1, nombre: 'Mercado de Abastos' },
-        { id: 2, nombre: 'Mercado Libertad' },
-        { id: 3, nombre: 'Mercado San Juan de Dios' }
-      ];
-    },
-    async onSubmit() {
-      this.loading = true;
-      this.error = '';
-      this.result = null;
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'getEmisionEnergia',
-            params: this.form
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          this.result = data.data;
-        } else {
-          this.error = data.message || 'Error al consultar.';
-        }
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async onPrint() {
-      // Puede abrir PDF o trigger de impresión
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'printEmisionEnergia',
-            params: this.form
-          })
-        });
-        const data = await res.json();
-        if (data.success && data.data && data.data.pdf_url) {
-          window.open(data.data.pdf_url, '_blank');
-        } else {
-          alert('No se pudo generar el PDF.');
-        }
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    },
-    async onPreview() {
-      // Puede mostrar preview en modal o similar
-      alert('Funcionalidad de previsualización no implementada.');
-    }
-  }
-}
+<script setup>
+import { ref, computed } from 'vue'; import axios from 'axios';
+const loading = ref(false); const showFilters = ref(true); const consultaRealizada = ref(false); const datos = ref([]); const filters = ref({ oficina: 1, mercado: 1, axo: new Date().getFullYear(), periodo: new Date().getMonth() + 1 }); const currentPage = ref(1); const pageSize = ref(25); const toast = ref({ show: false, message: '', type: 'info' });
+const tituloReporte = computed(() => 'Emisión de Recibos de Energía Eléctrica'); const totalPages = computed(() => Math.ceil(datos.value.length / pageSize.value)); const startIndex = computed(() => (currentPage.value - 1) * pageSize.value); const endIndex = computed(() => Math.min(startIndex.value + pageSize.value, datos.value.length)); const paginatedDatos = computed(() => datos.value.slice(startIndex.value, endIndex.value));
+const toggleFilters = () => { showFilters.value = !showFilters.value; }; const consultar = async () => { loading.value = true; consultaRealizada.value = true; datos.value = []; currentPage.value = 1; try { const response = await axios.post('/api/generic', { eRequest: 
+{ Operacion: 'sp_rpt_emision_energia', Base: 'mercados', 
+Parametros: [
+  { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
+          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
+          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
+          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) }]}});
+          
+  // filters.value.oficina, filters.value.mercado, filters.value.axo, filters.value.periodo] } }); 
+// p_oficina integer, p_mercado integer, p_axo integer, p_periodo integer)
+if (response.data.eResponse?.success && response.data.eResponse?.data?.result) { datos.value = response.data.eResponse.data.result; showToast(datos.value.length === 0 ? 'No se encontraron resultados' : `Se encontraron ${datos.value.length} registros`, datos.value.length === 0 ? 'info' : 'success'); } else { showToast('No se encontraron resultados', 'warning'); } } catch (error) { console.error('Error:', error); showToast('Error al consultar', 'error'); } finally { loading.value = false; } }; const limpiarFiltros = () => { filters.value = { oficina: 1, mercado: 1, axo: new Date().getFullYear(), periodo: new Date().getMonth() + 1 }; datos.value = []; consultaRealizada.value = false; currentPage.value = 1; }; const exportarExcel = () => { showToast('Funcionalidad en desarrollo', 'info'); }; const imprimir = () => { window.print(); }; const mostrarAyuda = () => { showToast('Emisión de recibos de energía eléctrica. Filtre por oficina, mercado, año y periodo.', 'info'); }; const previousPage = () => { if (currentPage.value > 1) currentPage.value--; }; const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; }; const formatCurrency = (value) => { if (value === null || value === undefined) return '$0.00'; return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value); }; const formatNumber = (value) => { if (value === null || value === undefined) return '0'; return new Intl.NumberFormat('es-MX').format(value); }; const showToast = (message, type = 'info') => { toast.value = { show: true, message, type }; setTimeout(() => { toast.value.show = false; }, 3000); }; const getToastIcon = () => { const icons = { success: 'check-circle', error: 'exclamation-circle', warning: 'exclamation-triangle', info: 'info-circle' }; return icons[toast.value.type] || 'info-circle'; };
 </script>
-
-<style scoped>
-.rpt-emision-energia-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-</style>
+<style scoped>@media print { .module-view-header, .municipal-card-header, .pagination-container, .button-group { display: none !important; } .municipal-table { font-size: 10px; } .sticky-header { position: static !important; } } .sticky-header { position: sticky; top: 0; background-color: #fff; z-index: 10; } .table-container { max-height: 600px; overflow-y: auto; } .empty-icon { color: #ccc; margin-bottom: 1rem; } .row-hover:hover { background-color: #f0f8ff; cursor: pointer; } .header-with-badge { display: flex; justify-content: space-between; align-items: center; } .header-right { display: flex; gap: 0.5rem; } .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding: 1rem; border-top: 1px solid #dee2e6; } .pagination-info { font-size: 0.9rem; color: #666; } .pagination-controls { display: flex; align-items: center; gap: 0.5rem; } .pagination-controls label { margin: 0; font-size: 0.9rem; } .pagination-controls select { width: auto; } .pagination-buttons { display: flex; align-items: center; } .toast-notification { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.5rem; background-color: #fff; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 0.75rem; z-index: 9999; animation: slideIn 0.3s ease-out; } .toast-success { border-left: 4px solid #28a745; } .toast-error { border-left: 4px solid #dc3545; } .toast-warning { border-left: 4px solid #ffc107; } .toast-info { border-left: 4px solid #17a2b8; } @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }</style>

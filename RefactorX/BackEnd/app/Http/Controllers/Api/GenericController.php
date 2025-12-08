@@ -23,22 +23,22 @@ class GenericController
                 'allowed_schemas' => ['public', 'comun']
             ],
             'aseo_contratado' => [
-                'database' => 'aseo_contratado',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
-            ],
-            'aseo' => [
-                'database' => 'aseo_contratado',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
-            ],
-            'cementerio' => [
                 'database' => 'padron_licencias',
                 'schema' => 'public',
                 'allowed_schemas' => ['public', 'comun']
             ],
-            'cementerios' => [
+            'aseo' => [
                 'database' => 'padron_licencias',
+                'schema' => 'public',
+                'allowed_schemas' => ['public', 'comun']
+            ],
+            'cementerio' => [
+                'database' => 'cementerio',
+                'schema' => 'public',
+                'allowed_schemas' => ['public', 'comun']
+            ],
+            'cementerios' => [
+                'database' => 'cementerio',
                 'schema' => 'public',
                 'allowed_schemas' => ['public', 'comun']
             ],
@@ -48,9 +48,9 @@ class GenericController
                 'allowed_schemas' => ['public']
             ],
             'estacionamiento_publico' => [
-                'database' => 'padron_licencias',
+                'database' => 'estacionamiento_publico',
                 'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'allowed_schemas' => ['public']
             ],
             'estacionamientos' => [
                 'database' => 'padron_licencias',
@@ -152,6 +152,9 @@ class GenericController
      */
     public function execute(Request $request)
     {
+        // Aumentar timeout para operaciones largas (120 segundos)
+        set_time_limit(120);
+
         try {
             Log::info("🌐 REQUEST: " . $request->method() . " " . $request->path());
             Log::info("🔍 RAW INPUT: " . $request->getContent());
@@ -304,12 +307,34 @@ class GenericController
                     // Mantener null como null para que el SP pueda usar sus valores por defecto
 
                     $paramMap[$param['nombre']] = $valor;
+
+                    // Fix para compatibilidad de parámetros id vs p_id
+                    if ($param['nombre'] === 'id' && !isset($paramMap['p_id'])) {
+                        $paramMap['p_id'] = $valor;
+                    }
+                    if ($param['nombre'] === 'p_id' && !isset($paramMap['id'])) {
+                        $paramMap['id'] = $valor;
+                    }
                 }
             }
 
+            // Procesar parámetros para el SP - buscar primero p_id, luego id
             foreach ($parametros as $param) {
                 if (isset($param['nombre'])) {
-                    $spParametros[] = $paramMap[$param['nombre']];
+                    $nombreParam = $param['nombre'];
+
+                    // Si el parámetro es 'id' pero existe 'p_id' en el map, usar p_id
+                    if ($nombreParam === 'id' && isset($paramMap['p_id'])) {
+                        $spParametros[] = $paramMap['p_id'];
+                    }
+                    // Si el parámetro es 'p_id' pero solo existe 'id', usar id
+                    elseif ($nombreParam === 'p_id' && !isset($paramMap['p_id']) && isset($paramMap['id'])) {
+                        $spParametros[] = $paramMap['id'];
+                    }
+                    // Caso normal
+                    else {
+                        $spParametros[] = $paramMap[$nombreParam] ?? null;
+                    }
                 }
             }
 

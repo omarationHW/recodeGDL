@@ -11,6 +11,15 @@
       </div>
       <div class="button-group ms-auto">
         <button
+          class="btn-municipal-info"
+          @click="loadTablas"
+          :disabled="loading || loadingTablas"
+          title="Actualizar"
+        >
+          <font-awesome-icon icon="sync" :spin="loading || loadingTablas" />
+          Actualizar
+        </button>
+        <button
           class="btn-municipal-purple"
           @click="openDocumentation"
           title="Ayuda"
@@ -37,17 +46,14 @@
             <font-awesome-icon icon="table" />
             Seleccionar Tabla a Cargar Valores
           </h5>
-          <div v-if="loadingTablas" class="spinner-border spinner-border-sm" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
 
         <div class="municipal-card-body">
-          <div class="row g-3">
-            <div class="col-12">
+          <div class="form-row">
+            <div class="form-group full-width">
               <label class="municipal-form-label">
-                <strong>Tabla a Cargar Valores:</strong>
-                <span class="text-danger">*</span>
+                <strong>Tabla a Cargar Valores</strong>
+                <span class="required">*</span>
               </label>
               <select
                 v-model="selectedTabla"
@@ -77,9 +83,6 @@
             Valores a Cargar
             <span class="badge badge-purple" v-if="valores.length > 0">{{ valores.length }} filas</span>
           </h5>
-          <div v-if="loading" class="spinner-border spinner-border-sm" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
 
         <div class="municipal-card-body">
@@ -104,7 +107,7 @@
                       type="number"
                       min="2000"
                       max="2100"
-                      class="form-control form-control-sm"
+                      class="municipal-form-control municipal-form-control-sm"
                       :class="{'is-invalid': !isValidEjercicio(row.ejercicio)}"
                       placeholder="YYYY"
                     />
@@ -114,7 +117,7 @@
                       v-model="row.cve_unidad"
                       type="text"
                       maxlength="1"
-                      class="form-control form-control-sm"
+                      class="municipal-form-control municipal-form-control-sm text-center text-uppercase"
                       :class="{'is-invalid': !isValidCveUnidad(row.cve_unidad)}"
                       placeholder="U"
                     />
@@ -124,7 +127,7 @@
                       v-model="row.cve_operatividad"
                       type="text"
                       maxlength="1"
-                      class="form-control form-control-sm"
+                      class="municipal-form-control municipal-form-control-sm text-center text-uppercase"
                       :class="{'is-invalid': !isValidCveOperatividad(row.cve_operatividad)}"
                       placeholder="O"
                     />
@@ -134,7 +137,7 @@
                       v-model="row.descripcion"
                       type="text"
                       maxlength="100"
-                      class="form-control form-control-sm"
+                      class="municipal-form-control municipal-form-control-sm"
                       :class="{'is-invalid': !isValidDescripcion(row.descripcion)}"
                       placeholder="Descripción de la unidad"
                     />
@@ -145,7 +148,7 @@
                       type="number"
                       min="0"
                       step="0.01"
-                      class="form-control form-control-sm"
+                      class="municipal-form-control municipal-form-control-sm text-end"
                       :class="{'is-invalid': !isValidCosto(row.costo)}"
                       placeholder="0.00"
                     />
@@ -153,7 +156,7 @@
                   <td class="text-center">
                     <button
                       type="button"
-                      class="btn btn-sm btn-danger"
+                      class="btn-municipal-danger btn-municipal-sm"
                       @click="removeRow(idx)"
                       :disabled="valores.length <= 1"
                       title="Eliminar fila"
@@ -179,15 +182,13 @@
           </div>
 
           <!-- Información de validación -->
-          <div class="alert alert-info d-flex align-items-center mt-3" v-if="valores.length > 0">
+          <div class="municipal-alert municipal-alert-info mt-3" v-if="valores.length > 0">
             <font-awesome-icon icon="info-circle" class="me-2" />
-            <div>
-              <strong>Información:</strong> Se insertarán {{ filasValidas }} de {{ valores.length }} filas.
-              <span v-if="filasInvalidas > 0" class="text-warning ms-2">
-                <font-awesome-icon icon="exclamation-triangle" class="me-1" />
-                {{ filasInvalidas }} fila(s) incompleta(s) serán omitidas
-              </span>
-            </div>
+            <strong>Información:</strong> Se insertarán {{ filasValidas }} de {{ valores.length }} filas.
+            <span v-if="filasInvalidas > 0" class="municipal-alert municipal-alert-warning ms-2" style="display: inline; padding: 4px 8px;">
+              <font-awesome-icon icon="exclamation-triangle" class="me-1" />
+              {{ filasInvalidas }} fila(s) incompleta(s) serán omitidas
+            </span>
           </div>
 
           <!-- Botones de acción -->
@@ -224,24 +225,8 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
-        </div>
-      </div>
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -260,6 +245,7 @@ import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Router
@@ -271,15 +257,15 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
-  toast,
   showToast,
-  hideToast,
-  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+// Estado local para loading
+const loading = ref(false)
 
 // Estado
 const tablas = ref([])
@@ -340,35 +326,45 @@ const goBack = () => {
 
 // Cargar tablas disponibles
 const loadTablas = async () => {
+  // Limpiar selecciones previas
+  selectedTabla.value = ''
+  valores.value = []
+
   loadingTablas.value = true
-  const startTime = performance.now()
+  loading.value = true
+  showLoading('Cargando tablas...')
 
   try {
     const response = await execute(
-      'sp_get_tablas',
-      'otras_obligaciones',
+      'sp_otras_oblig_get_tablas_all',
+      BASE_DB,
       [],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
+
+    loadingTablas.value = false
+    loading.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       tablas.value = response.result.map(tabla => ({
-        id_34_tab: tabla.id_34_tab,
-        cve_tab: tabla.cve_tab,
-        nombre: tabla.nombre
+        cve_tab: String(tabla.cve_tab).trim(),
+        nombre: (tabla.nombre || '').trim()
       }))
 
-      const duration = ((performance.now() - startTime) / 1000).toFixed(2)
-      showToast('success', `${tablas.value.length} tabla(s) disponible(s) (${duration}s)`)
+      showToast('success', `${tablas.value.length} tabla(s) disponible(s)`)
     } else {
       tablas.value = []
       showToast('info', 'No se encontraron tablas disponibles')
     }
   } catch (error) {
+    loadingTablas.value = false
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     tablas.value = []
-  } finally {
-    loadingTablas.value = false
   }
 }
 
@@ -379,43 +375,48 @@ const onTablaChange = async () => {
     return
   }
 
-  setLoading(true, 'Cargando unidades...')
-  const startTime = performance.now()
+  loading.value = true
+  showLoading('Cargando unidades...')
 
   try {
     const response = await execute(
       'sp_get_unidades_by_tabla',
-      'otras_obligaciones',
+      BASE_DB,
       [
-        { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'string' }
+        { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'varchar' }
       ],
-      'guadalajara'
+      '',
+      null,
+      'public'
     )
 
-    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
+    loading.value = false
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
-      // Pre-cargar con los datos del ejercicio actual + 1
+      // Pre-cargar con los datos del ejercicio anterior + 1
+      // Delphi: QryUnidades.ParamByName('ejer').AsInteger := StrToInt(FLabelEjercicio.Caption) + 1;
+      const ejercicioAnterior = response.result[0].ejercicio
       valores.value = response.result.map(unidad => ({
-        ejercicio: unidad.ejercicio + 1, // Siguiente ejercicio
+        ejercicio: ejercicioAnterior + 1, // Siguiente ejercicio respecto al anterior en BD
         cve_unidad: unidad.cve_unidad,
         cve_operatividad: unidad.cve_operatividad,
         descripcion: unidad.descripcion,
         costo: 0 // Costo en 0 para que el usuario lo capture
       }))
 
-      showToast('success', `${valores.value.length} unidad(es) cargada(s) para el ejercicio ${currentYear + 1} (${duration}s)`)
+      showToast('success', `${valores.value.length} unidad(es) cargada(s) para el ejercicio ${ejercicioAnterior + 1}`)
     } else {
       // Si no hay datos, crear filas vacías
       valores.value = Array.from({ length: 10 }, () => createEmptyRow())
       showToast('info', 'No se encontraron unidades previas. Se crearon 10 filas vacías.')
     }
   } catch (error) {
+    loading.value = false
+    hideLoading()
     handleApiError(error)
     // En caso de error, crear filas vacías
     valores.value = Array.from({ length: 10 }, () => createEmptyRow())
-  } finally {
-    setLoading(false)
   }
 }
 
@@ -486,14 +487,16 @@ const aplicaValores = async () => {
   })
 
   if (!confirmResult.isConfirmed) {
+    showToast('info', 'Operación cancelada')
     return
   }
 
   saving.value = true
+  showLoading('Insertando valores...')
+
   let insertados = 0
   let errores = 0
   const mensajesError = []
-  const startTime = performance.now()
 
   try {
     // Preparar el array JSON con las unidades
@@ -508,13 +511,15 @@ const aplicaValores = async () => {
     // Insertar todas las filas en una sola llamada
     try {
       const response = await execute(
-        'sp_insert_unidades',
-        'otras_obligaciones',
+        'sp_cargavalores_insert_unidades',
+        BASE_DB,
         [
-          { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'string' },
+          { nombre: 'p_cve_tab', valor: selectedTabla.value, tipo: 'varchar' },
           { nombre: 'p_unidades', valor: JSON.stringify(unidadesJSON), tipo: 'jsonb' }
         ],
-        'guadalajara'
+        '',
+        null,
+        'public'
       )
 
       if (response && response.result) {
@@ -528,7 +533,8 @@ const aplicaValores = async () => {
       mensajesError.push(error.message || 'Error al insertar las unidades')
     }
 
-    const duration = ((performance.now() - startTime) / 1000).toFixed(2)
+    saving.value = false
+    hideLoading()
 
     // Mostrar resultado
     if (insertados > 0 && errores === 0) {
@@ -538,14 +544,13 @@ const aplicaValores = async () => {
         html: `
           <div style="text-align: center;">
             <p style="font-size: 1.1em; margin: 10px 0;">Se insertaron correctamente <strong>${insertados}</strong> valor(es).</p>
-            <p style="font-size: 0.9em; color: #6c757d;">Tiempo: ${duration}s</p>
           </div>
         `,
         confirmButtonColor: '#ea8215',
         timer: 3000
       })
 
-      showToast('success', `${insertados} valor(es) insertado(s) correctamente (${duration}s)`)
+      showToast('success', `${insertados} valor(es) insertado(s) correctamente`)
 
       // Recargar las unidades
       await onTablaChange()
@@ -591,6 +596,8 @@ const aplicaValores = async () => {
       showToast('error', 'No se insertaron valores')
     }
   } catch (error) {
+    saving.value = false
+    hideLoading()
     handleApiError(error)
     await Swal.fire({
       icon: 'error',
@@ -598,8 +605,6 @@ const aplicaValores = async () => {
       text: 'No se pudieron insertar los valores',
       confirmButtonColor: '#ea8215'
     })
-  } finally {
-    saving.value = false
   }
 }
 

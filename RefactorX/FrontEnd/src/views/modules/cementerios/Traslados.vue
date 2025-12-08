@@ -254,10 +254,19 @@
         </section>
       </div>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Traslados'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -309,7 +318,6 @@ onMounted(async () => {
     const result = await callProcedure('sp_cem_listar_cementerios', {})
     cementerios.value = result.data || []
   } catch (error) {
-    console.error('Error al cargar cementerios:', error)
   }
 })
 
@@ -359,7 +367,6 @@ const verificarUbicaciones = async () => {
     }
 
   } catch (error) {
-    console.error('Error al verificar ubicaciones:', error)
     showError('Error al verificar las ubicaciones')
   }
 }
@@ -407,7 +414,6 @@ const confirmarTraslado = async () => {
       showError(resultTraslado.mensaje || 'Error al trasladar')
     }
   } catch (error) {
-    console.error('Error al trasladar:', error)
     showError('Error al realizar el traslado')
   }
 }
@@ -428,6 +434,15 @@ const formatDate = (date) => {
   if (!date) return ''
   return new Date(date).toLocaleDateString('es-MX')
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 
 <style scoped>

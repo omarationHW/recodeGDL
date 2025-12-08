@@ -9,6 +9,25 @@
         <h1>Inicialización de Obligaciones</h1>
         <p>Aseo Contratado - Establece el periodo inicial de facturación para contratos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -121,7 +140,7 @@
         <h5>Paso 2: Configurar Periodo Inicial ({{ contratosSeleccionados.length }} seleccionados)</h5>
       </div>
         <div class="municipal-card-body">
-          <div class="alert alert-success">
+          <div class="municipal-alert municipal-alert-success">
             <font-awesome-icon icon="lightbulb" class="me-2" />
             <strong>Periodo Inicial:</strong> Es el periodo a partir del cual el contrato comenzará a generar obligaciones de pago.
             Se debe especificar en formato YYYYMM (Año + Mes).
@@ -157,7 +176,7 @@
 
           <div v-if="periodoInicial && validarPeriodo()" class="row mb-3">
             <div class="col-md-12">
-              <div class="alert alert-info">
+              <div class="municipal-alert municipal-alert-info">
                 <strong>Periodo a establecer:</strong> {{ formatPeriodo(periodoInicial) }}
                 <span v-if="generarAdeudos === 'SI'" class="ms-3">
                   <font-awesome-icon icon="exclamation-triangle" class="text-warning" />
@@ -218,10 +237,20 @@
         <li><strong>Sí:</strong> Calcula y registra todos los periodos adeudados desde el periodo inicial hasta el actual</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Upd_IniObl'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -230,8 +259,10 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 const cargando = ref(false)
@@ -267,7 +298,8 @@ const buscarContratos = async () => {
     contratosSeleccionados.value = []
     showToast(`${contratos.value.length} contrato(s) sin periodo inicial`, contratos.value.length > 0 ? 'warning' : 'success')
   } catch (error) {
-    handleError(error, 'Error al buscar contratos')
+    hideLoading()
+    handleApiError(error, 'Error al buscar contratos')
   } finally {
     cargando.value = false
   }
@@ -359,7 +391,8 @@ const inicializarObligaciones = async () => {
     await buscarContratos()
     cancelar()
   } catch (error) {
-    handleError(error, 'Error al inicializar obligaciones')
+    hideLoading()
+    handleApiError(error, 'Error al inicializar obligaciones')
   } finally {
     cargando.value = false
   }
@@ -397,7 +430,17 @@ onMounted(async () => {
     zonas.value = respZonas || []
     empresas.value = respEmpresas || []
   } catch (error) {
-    console.error('Error al cargar catálogos:', error)
+    hideLoading()
+    handleApiError(error)
   }
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

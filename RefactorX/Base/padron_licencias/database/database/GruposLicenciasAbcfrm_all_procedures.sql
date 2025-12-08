@@ -14,10 +14,10 @@ CREATE OR REPLACE FUNCTION sp_list_grupos_licencias(p_descripcion TEXT DEFAULT '
 RETURNS TABLE(id INTEGER, descripcion TEXT) AS $$
 BEGIN
   RETURN QUERY
-    SELECT id, descripcion
-    FROM lic_grupos
-    WHERE (p_descripcion IS NULL OR p_descripcion = '' OR descripcion ILIKE '%' || p_descripcion || '%')
-    ORDER BY descripcion;
+    SELECT g.id, g.descripcion
+    FROM lic_grupos g
+    WHERE (p_descripcion IS NULL OR p_descripcion = '' OR g.descripcion ILIKE '%' || p_descripcion || '%')
+    ORDER BY g.descripcion;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -32,9 +32,9 @@ CREATE OR REPLACE FUNCTION sp_get_grupo_licencia(p_id INTEGER)
 RETURNS TABLE(id INTEGER, descripcion TEXT) AS $$
 BEGIN
   RETURN QUERY
-    SELECT id, descripcion
-    FROM lic_grupos
-    WHERE id = p_id;
+    SELECT g.id, g.descripcion
+    FROM lic_grupos g
+    WHERE g.id = p_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -48,12 +48,13 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sp_insert_grupo_licencia(p_descripcion TEXT)
 RETURNS TABLE(id INTEGER, descripcion TEXT) AS $$
 DECLARE
-  new_id INTEGER;
+  v_new_id INTEGER;
+  v_descripcion TEXT;
 BEGIN
   INSERT INTO lic_grupos(descripcion)
   VALUES (UPPER(TRIM(p_descripcion)))
-  RETURNING id, descripcion INTO new_id, p_descripcion;
-  RETURN QUERY SELECT new_id, p_descripcion;
+  RETURNING lic_grupos.id, lic_grupos.descripcion INTO v_new_id, v_descripcion;
+  RETURN QUERY SELECT v_new_id, v_descripcion;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -67,10 +68,10 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sp_update_grupo_licencia(p_id INTEGER, p_descripcion TEXT)
 RETURNS TABLE(id INTEGER, descripcion TEXT) AS $$
 BEGIN
-  UPDATE lic_grupos
+  UPDATE lic_grupos g
   SET descripcion = UPPER(TRIM(p_descripcion))
-  WHERE id = p_id;
-  RETURN QUERY SELECT id, descripcion FROM lic_grupos WHERE id = p_id;
+  WHERE g.id = p_id;
+  RETURN QUERY SELECT g.id, g.descripcion FROM lic_grupos g WHERE g.id = p_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -83,8 +84,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION sp_delete_grupo_licencia(p_id INTEGER)
 RETURNS TABLE(id INTEGER) AS $$
+DECLARE
+  v_deleted_id INTEGER;
 BEGIN
-  DELETE FROM lic_grupos WHERE id = p_id RETURNING id;
+  DELETE FROM lic_grupos g WHERE g.id = p_id RETURNING g.id INTO v_deleted_id;
+  IF v_deleted_id IS NOT NULL THEN
+    RETURN QUERY SELECT v_deleted_id;
+  END IF;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -9,6 +9,25 @@
         <h1>Gestión de Adeudos</h1>
         <p>{{ tituloTabla }}</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -281,7 +300,7 @@
                   <td class="text-right font-weight-bold">{{ formatCurrency(totalMultas) }}</td>
                   <td class="text-right font-weight-bold">{{ formatCurrency(totalActualizacion) }}</td>
                   <td class="text-right font-weight-bold">{{ formatCurrency(totalGastos) }}</td>
-                  <td class="text-right font-weight-bold" style="font-size: 1.2rem;">
+                  <td class="text-right font-weight-bold fs-5">
                     {{ formatCurrency(totalGeneral) }}
                   </td>
                 </tr>
@@ -342,14 +361,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Loading overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>{{ loadingMessage }}</p>
-        </div>
-      </div>
     </div>
     <!-- /module-view-content -->
 
@@ -371,14 +382,24 @@
     :moduleName="'otras_obligaciones'"
     @close="closeDocumentation"
   />
+
+  <!-- Modal de Documentacion Tecnica -->
+  <TechnicalDocsModal
+    :show="showTechDocs"
+    :componentName="'GAdeudos'"
+    :moduleName="'otras_obligaciones'"
+    @close="showTechDocs = false"
+  />
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 // Router
@@ -387,21 +408,24 @@ const router = useRouter()
 
 // Composables
 const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
+const mostrarDocumentacion = () => showTechDocs.value = true
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
+const loading = ref(false)
 const tipoTabla = ref(route.params.tabla || route.query.tabla || '1')
 const etiquetas = ref({})
 const infoTabla = ref({})
@@ -476,13 +500,14 @@ const onTipoAdeudosChange = () => {
 }
 
 const cargarConfiguracion = async () => {
-  setLoading(true, 'Cargando configuración...')
+  loading.value = true
+  showLoading('Cargando configuración...')
 
   try {
     // Cargar etiquetas
     const responseEtiq = await execute(
       'sp_otras_oblig_get_etiquetas',
-      'otras_obligaciones',
+      BASE_DB,
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
     )
@@ -494,7 +519,7 @@ const cargarConfiguracion = async () => {
     // Cargar información de la tabla
     const responseTabla = await execute(
       'sp_otras_oblig_get_tablas',
-      'otras_obligaciones',
+      BASE_DB,
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' }],
       'guadalajara'
     )
@@ -506,7 +531,8 @@ const cargarConfiguracion = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -544,21 +570,23 @@ const buscarAdeudos = async () => {
     return
   }
 
-  // Construir número de control
+  // Construir número de control (trim para quitar espacios de la abreviatura)
   let control = ''
   if (tipoTabla.value === '3') {
     control = letraLocal.value ? `${numLocal.value}-${letraLocal.value}` : String(numLocal.value)
   } else {
-    control = `${etiquetas.value.abreviatura || ''}${numExpediente.value}`
+    const abrev = (etiquetas.value.abreviatura || '').trim()
+    control = `${abrev}${String(numExpediente.value).trim()}`
   }
 
-  setLoading(true, 'Buscando contrato...')
+  loading.value = true
+  showLoading('Buscando contrato...')
 
   try {
-    // Buscar datos del contrato
+    // Buscar datos del contrato con SP correcto: spcob34_gdatosg_02
     const responseDatos = await execute(
-      'SP_GADEUDOS_DATOS_GET',
-      'otras_obligaciones',
+      'spcob34_gdatosg_02',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
         { nombre: 'par_control', valor: control, tipo: 'string' }
@@ -566,7 +594,10 @@ const buscarAdeudos = async () => {
       'guadalajara'
     )
 
-    if (!responseDatos || !responseDatos.result || responseDatos.result[0]?.status === -1) {
+    // Validar respuesta completa
+    if (!responseDatos || !responseDatos.result || responseDatos.result.length === 0 || responseDatos.result[0]?.status === -1) {
+      loading.value = false
+      hideLoading()
       await Swal.fire({
         icon: 'error',
         title: 'No encontrado',
@@ -581,47 +612,96 @@ const buscarAdeudos = async () => {
 
     datosContrato.value = responseDatos.result[0]
 
+    // Validar que tenemos id_datos
+    if (!datosContrato.value || !datosContrato.value.id_datos) {
+      loading.value = false
+      hideLoading()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de datos',
+        text: 'No se pudo obtener el ID del contrato',
+        confirmButtonColor: '#ea8215'
+      })
+      return
+    }
+
     // Construir parámetro de fecha
     const fechaParam = `${anoConsulta.value}-${mesConsulta.value}`
 
-    // Buscar adeudos concentrados
-    setLoading(true, 'Cargando adeudos...')
-    const responseConcentrado = await execute(
-      'SP_GADEUDOS_DETALLE_01',
-      'otras_obligaciones',
-      [
-        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
-        { nombre: 'par_Control', valor: datosContrato.value.id_datos, tipo: 'integer' },
-        { nombre: 'par_Rep', valor: tipoAdeudos.value, tipo: 'string' },
-        { nombre: 'par_Fecha', valor: fechaParam, tipo: 'string' }
-      ],
-      'guadalajara'
-    )
+    // Preguntar al usuario qué tipo de reporte desea
+    loading.value = false
+    hideLoading()
+    const tipoReporte = await Swal.fire({
+      icon: 'question',
+      title: '¿Qué tipo de reporte desea?',
+      text: 'Seleccione el formato de estado de cuenta',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Concentrado',
+      denyButtonText: 'Detallado',
+      cancelButtonText: 'Ambos',
+      confirmButtonColor: '#ea8215',
+      denyButtonColor: '#6c757d',
+      cancelButtonColor: '#0d6efd'
+    })
 
-    if (responseConcentrado && responseConcentrado.result) {
-      adeudosConcentrados.value = responseConcentrado.result.filter(r => r.concepto)
-    } else {
-      adeudosConcentrados.value = []
+    // Si el usuario cerró el diálogo (ESC o click afuera), cancelar
+    if (tipoReporte.isDismissed && tipoReporte.dismiss !== Swal.DismissReason.cancel) {
+      return
     }
 
-    // Buscar adeudos detallados
-    const responseDetallado = await execute(
-      'SP_GADEUDOS_DETALLE_02',
-      'otras_obligaciones',
-      [
-        { nombre: 'par_tab', valor: tipoTabla.value, tipo: 'string' },
-        { nombre: 'par_Control', valor: datosContrato.value.id_datos, tipo: 'integer' },
-        { nombre: 'par_Rep', valor: tipoAdeudos.value, tipo: 'string' },
-        { nombre: 'par_Fecha', valor: fechaParam, tipo: 'string' }
-      ],
-      'guadalajara'
-    )
+    // Determinar qué cargar
+    const cargarConcentrado = tipoReporte.isConfirmed || tipoReporte.dismiss === Swal.DismissReason.cancel
+    const cargarDetallado = tipoReporte.isDenied || tipoReporte.dismiss === Swal.DismissReason.cancel
 
-    if (responseDetallado && responseDetallado.result) {
-      adeudosDetallados.value = responseDetallado.result.filter(r => r.concepto)
-    } else {
-      adeudosDetallados.value = []
+    loading.value = true
+    showLoading('Cargando adeudos...')
+
+    // Cargar concentrado
+    if (cargarConcentrado) {
+      const responseConcentrado = await execute(
+        'con34_gdetade_01',
+        BASE_DB,
+        [
+          { nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' },
+          { nombre: 'par_control', valor: datosContrato.value.id_datos, tipo: 'integer' },
+          { nombre: 'par_rep', valor: tipoAdeudos.value, tipo: 'string' },
+          { nombre: 'par_fecha', valor: fechaParam, tipo: 'string' }
+        ],
+        'guadalajara'
+      )
+
+      if (responseConcentrado && responseConcentrado.result) {
+        adeudosConcentrados.value = responseConcentrado.result.filter(r => r.concepto)
+      } else {
+        adeudosConcentrados.value = []
+      }
     }
+
+    // Cargar detallado
+    if (cargarDetallado) {
+      const responseDetallado = await execute(
+        'con34_gdetade_02',
+        BASE_DB,
+        [
+          { nombre: 'par_tab', valor: parseInt(tipoTabla.value), tipo: 'integer' },
+          { nombre: 'par_control', valor: datosContrato.value.id_datos, tipo: 'integer' },
+          { nombre: 'par_rep', valor: tipoAdeudos.value, tipo: 'string' },
+          { nombre: 'par_fecha', valor: fechaParam, tipo: 'string' }
+        ],
+        'guadalajara'
+      )
+
+      if (responseDetallado && responseDetallado.result) {
+        adeudosDetallados.value = responseDetallado.result.filter(r => r.concepto)
+      } else {
+        adeudosDetallados.value = []
+      }
+    }
+
+    // Ocultar loading antes de mostrar resultado
+    loading.value = false
+    hideLoading()
 
     if (adeudosConcentrados.value.length === 0 && adeudosDetallados.value.length === 0) {
       await Swal.fire({
@@ -640,7 +720,8 @@ const buscarAdeudos = async () => {
     adeudosConcentrados.value = []
     adeudosDetallados.value = []
   } finally {
-    setLoading(false)
+    loading.value = false
+    hideLoading()
   }
 }
 
@@ -740,32 +821,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.input-with-prefix {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.input-prefix {
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.input-uppercase {
-  text-transform: uppercase;
-}
-
-.alert-info-legal {
-  margin-top: 20px;
-  padding: 15px;
-  background: #e7f3ff;
-  border-left: 4px solid #2196f3;
-}
-
-.legal-text {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-</style>

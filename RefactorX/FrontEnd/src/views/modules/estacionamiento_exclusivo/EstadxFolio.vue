@@ -13,16 +13,6 @@
       </div>
     </div>
     <div class="module-view-content">
-      <div class="stats-grid" v-if="loadingEstadisticas">
-        <div class="stat-card stat-card-loading" v-for="n in 6" :key="`loading-${n}`">
-          <div class="stat-content"><div class="skeleton-icon"></div><div class="skeleton-number"></div><div class="skeleton-label"></div><div class="skeleton-percentage"></div></div>
-        </div>
-      </div>
-      <div class="stats-grid" v-else-if="estadisticas.length > 0">
-        <div class="stat-card" v-for="stat in estadisticas" :key="stat.categoria" :class="`stat-${stat.clase}`">
-          <div class="stat-content"><div class="stat-icon"><font-awesome-icon :icon="getStatIcon(stat.categoria)" /></div><h3 class="stat-number">{{ getStatValue(stat) }}</h3><p class="stat-label">{{ stat.descripcion }}</p><small class="stat-percentage" v-if="stat.porcentaje > 0">{{ stat.porcentaje.toFixed(1) }}%</small></div>
-        </div>
-      </div>
       <div class="municipal-card">
         <div class="municipal-card-header clickable-header" @click="toggleFilters"><h5><font-awesome-icon icon="filter" /> Criterios de Búsqueda <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" /></h5></div>
         <div v-show="showFilters" class="municipal-card-body">
@@ -43,26 +33,93 @@
         </div>
       </div>
     </div>
+    
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="closeDocumentation"
+      title="Ayuda - EstadxFolio"
+    >
+      <h3>Estadx Folio</h3>
+      <p>Documentacion del modulo Estacionamiento Exclusivo.</p>
+    </DocumentationModal>
+
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'EstadxFolio'"
+      :moduleName="'estacionamiento_exclusivo'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-const BASE_DB='estacionamiento_exclusivo', OP_QUERY='estadxfolio_stats', OP_STATS='apremiossvn_apremios_estadisticas'
+
+const BASE_DB = 'estacionamiento_exclusivo'
+const OP_QUERY = 'estadxfolio_stats'
+
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast, handleApiError } = useLicenciasErrorHandler()
-const showFilters=ref(true), filters=ref({folio:''}), data=ref(null), primeraBusqueda=ref(false), loadingEstadisticas=ref(true), estadisticas=ref([]), activeTab=ref('structured')
-const cargarEstadisticas = async () => { loadingEstadisticas.value=true; try{ const result=await execute(OP_STATS, BASE_DB, []); estadisticas.value=Array.isArray(result?.rows)?result.rows:Array.isArray(result)?result:[] }catch(e){ estadisticas.value=[] }finally{ loadingEstadisticas.value=false } }
-const reload = async () => { if(!filters.value.folio){ showToast('error','Debe ingresar un folio'); return }; showFilters.value=false; primeraBusqueda.value=true; const t0=performance.now(); try{ data.value=await execute(OP_QUERY, BASE_DB, [{name:'folio',type:'C',value:String(filters.value.folio||'')}]); const dur=performance.now()-t0, txt=dur<1000?`${Math.round(dur)}ms`:`${(dur/1000).toFixed(2)}s`, cnt=!data.value?0:Array.isArray(data.value)?data.value.length:1; showToast('success',`Consulta en ${txt} - ${cnt} registro(s)`) }catch(e){ data.value=null; handleApiError(e) } }
+
+const showFilters = ref(true)
+const filters = ref({ folio: '' })
+const data = ref(null)
+const primeraBusqueda = ref(false)
+const activeTab = ref('structured')
+
+const reload = async () => {
+  if (!filters.value.folio) {
+    showToast('error', 'Debe ingresar un folio')
+    return
+  }
+  showLoading('Consultando estatus...', 'Buscando folio')
+  showFilters.value = false
+  primeraBusqueda.value = true
+  const t0 = performance.now()
+  try {
+    const response = await execute(OP_QUERY, BASE_DB, [
+      { name: 'p_modulo', type: 'I', value: 28 },
+      { name: 'p_rec', type: 'I', value: 1 },
+      { name: 'p_fol1', type: 'I', value: parseInt(filters.value.folio || 0) },
+      { name: 'p_fol2', type: 'I', value: parseInt(filters.value.folio || 0) }
+    ])
+    if (response && response.data) {
+      data.value = Array.isArray(response.data) ? response.data : response.data
+    } else if (response && response.result) {
+      data.value = Array.isArray(response.result) ? response.result : response.result
+    } else {
+      data.value = null
+    }
+    const dur = performance.now() - t0
+    const txt = dur < 1000 ? `${Math.round(dur)}ms` : `${(dur / 1000).toFixed(2)}s`
+    const cnt = !data.value ? 0 : Array.isArray(data.value) ? data.value.length : 1
+    showToast('success', `Consulta en ${txt} - ${cnt} registro(s)`)
+  } catch (e) {
+    data.value = null
+    handleApiError(e)
+  } finally {
+    hideLoading()
+  }
+}
 const limpiarFiltros = () => { filters.value={folio:''}; data.value=null; primeraBusqueda.value=false }
 const toggleFilters = () => { showFilters.value=!showFilters.value }
 const formatNumber = (n) => new Intl.NumberFormat('es-MX').format(n)
-const formatMoney = (v) => Number(v||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'})
 const formatLabel = (k) => k.replace(/_/g,' ').replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()).trim()
 const formatValue = (v) => v===null||v===undefined?'-':typeof v==='boolean'?(v?'Sí':'No'):typeof v==='object'?JSON.stringify(v):String(v)
 const getColumns = (a) => !a||a.length===0?[]:Object.keys(a[0])
-const getStatIcon = (c) => ({'TOTAL':'chart-bar','VIGENTES':'check-circle','VENCIDOS':'times-circle','CON_EJECUTOR':'user-check','SIN_EJECUTOR':'user-times','IMPORTE_TOTAL':'coins'}[c]||'info-circle')
-const getStatValue = (s) => s.categoria==='IMPORTE_TOTAL'?formatMoney(s.total):formatNumber(s.total)
-onMounted(()=>{ cargarEstadisticas() })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

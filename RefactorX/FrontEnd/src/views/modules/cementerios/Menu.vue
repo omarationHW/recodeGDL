@@ -8,6 +8,25 @@
         <h1>Módulo de Cementerios</h1>
         <p>Sistema Municipal de Gestión de Cementerios</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
     </div>
 
     <div class="module-view-content">
@@ -233,13 +252,43 @@
         </div>
       </div>
     </div>
+    
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="closeDocumentation"
+      title="Ayuda - Menu"
+    >
+      <h3>Menu</h3>
+      <p>Documentacion del modulo Cementerios.</p>
+    </DocumentationModal>
+
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Menu'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 onMounted(() => {
-  console.log('Menú de Cementerios cargado')
+  // Lifecycle hook
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

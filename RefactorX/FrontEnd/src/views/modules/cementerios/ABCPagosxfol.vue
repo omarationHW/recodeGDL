@@ -119,10 +119,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ABCPagosxfol'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -223,7 +232,6 @@ const buscarPagos = async () => {
       toast.info('No hay pagos registrados para este folio')
     }
   } catch (error) {
-    console.error('Error al buscar pagos:', error)
     toast.error('Error al buscar pagos')
   }
 }
@@ -287,7 +295,6 @@ const registrarPago = async () => {
       toast.error(response.result[0]?.mensaje || 'Error al registrar pago')
     }
   } catch (error) {
-    console.error('Error al registrar pago:', error)
     toast.error('Error al registrar pago')
   }
 }
@@ -355,7 +362,6 @@ const eliminarPago = async (anio) => {
         toast.error(response.result[0]?.mensaje || 'Error al eliminar pago')
       }
     } catch (error) {
-      console.error('Error al eliminar pago:', error)
       toast.error('Error al eliminar pago')
     }
   }

@@ -9,6 +9,25 @@
         <h1>Control de Importación Catastral</h1>
         <p>Aseo Contratado - Sincronización y validación con el padrón catastral municipal</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -326,10 +345,20 @@
         </div>
       </div>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Ctrol_Imp_Cat'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -338,8 +367,10 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 const cargando = ref(false)
@@ -412,8 +443,9 @@ const verificarSincronizacion = async () => {
 
     showToast(`Verificación completada: ${resultados.value.length} registros analizados`, 'success')
   } catch (error) {
+    hideLoading()
     agregarLog('error', `Error en verificación: ${error.message}`)
-    handleError(error, 'Error al verificar sincronización')
+    handleApiError(error, 'Error al verificar sincronización')
   } finally {
     cargando.value = false
   }
@@ -464,8 +496,9 @@ const actualizarDesdeCatastro = async () => {
       await cargarEstadisticas()
     }
   } catch (error) {
+    hideLoading()
     agregarLog('error', `Error en actualización: ${error.message}`)
-    handleError(error, 'Error al actualizar desde catastro')
+    handleApiError(error, 'Error al actualizar desde catastro')
   } finally {
     cargando.value = false
   }
@@ -506,7 +539,8 @@ const cargarEstadisticas = async () => {
       estadisticas.value = response[0]
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
+    hideLoading()
+    handleApiError(error)
   }
 }
 
@@ -573,5 +607,14 @@ const getLogIcon = (tipo) => {
 onMounted(() => {
   cargarEstadisticas()
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 

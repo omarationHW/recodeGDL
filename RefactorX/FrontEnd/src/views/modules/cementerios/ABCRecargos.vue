@@ -9,6 +9,25 @@
         <h1>ABC de Recargos</h1>
         <p>Gestión de porcentajes de recargos mensuales</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button class="btn-municipal-info" @click="mostrarAyuda = true">
         <font-awesome-icon icon="question-circle" />
         Ayuda
@@ -235,10 +254,19 @@
         </section>
       </div>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ABCRecargos'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -345,7 +373,6 @@ const verificarPeriodo = async () => {
       showError(result.mensaje || 'Error al verificar período')
     }
   } catch (error) {
-    console.error('Error al verificar período:', error)
     showError('Error al verificar el período')
   }
 }
@@ -359,7 +386,6 @@ const cargarRecargosDelMes = async () => {
 
     recargosDelMes.value = result.data || []
   } catch (error) {
-    console.error('Error al cargar recargos:', error)
     recargosDelMes.value = []
   }
 }
@@ -407,7 +433,6 @@ const guardarRecargo = async () => {
       showError(resultRegistro.mensaje || 'Error al guardar recargo')
     }
   } catch (error) {
-    console.error('Error al guardar recargo:', error)
     showError('Error al guardar el recargo')
   }
 }
@@ -437,6 +462,15 @@ const formatDate = (date) => {
   if (!date) return ''
   return new Date(date).toLocaleDateString('es-MX')
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 
 <style scoped>

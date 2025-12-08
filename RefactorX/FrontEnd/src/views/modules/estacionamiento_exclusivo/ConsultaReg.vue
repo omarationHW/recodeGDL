@@ -18,31 +18,6 @@
     </div>
 
     <div class="module-view-content">
-      <!-- ========== STATS CARDS CON LOADING SKELETON ========== -->
-      <div class="stats-grid" v-if="loadingEstadisticas">
-        <div class="stat-card stat-card-loading" v-for="n in 6" :key="`loading-${n}`">
-          <div class="stat-content">
-            <div class="skeleton-icon"></div>
-            <div class="skeleton-number"></div>
-            <div class="skeleton-label"></div>
-            <div class="skeleton-percentage"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-grid" v-else-if="estadisticas.length > 0">
-        <div class="stat-card" v-for="stat in estadisticas" :key="stat.categoria" :class="`stat-${stat.clase}`">
-          <div class="stat-content">
-            <div class="stat-icon">
-              <font-awesome-icon :icon="getStatIcon(stat.categoria)" />
-            </div>
-            <h3 class="stat-number">{{ getStatValue(stat) }}</h3>
-            <p class="stat-label">{{ stat.descripcion }}</p>
-            <small class="stat-percentage" v-if="stat.porcentaje > 0">{{ stat.porcentaje.toFixed(1) }}%</small>
-          </div>
-        </div>
-      </div>
-
       <!-- ========== FILTROS COLAPSABLES ========== -->
       <div class="municipal-card">
         <div class="municipal-card-header clickable-header" @click="toggleFilters">
@@ -168,28 +143,44 @@
         </div>
       </div>
     </div>
+    
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="closeDocumentation"
+      title="Ayuda - ConsultaReg"
+    >
+      <h3>Consulta Reg</h3>
+      <p>Documentacion del modulo Estacionamiento Exclusivo.</p>
+    </DocumentationModal>
+
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ConsultaReg'"
+      :moduleName="'estacionamiento_exclusivo'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
 // ========== CONSTANTES ==========
 const BASE_DB = 'estacionamiento_exclusivo'
 const OP_QUERY = 'sp_consultareg_mercados'
-const OP_STATS = 'apremiossvn_apremios_estadisticas'
 
 // ========== COMPOSABLES ==========
 const { loading, execute } = useApi()
-const {
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 // ========== ESTADO - FILTROS ==========
 const showFilters = ref(true)
@@ -201,27 +192,8 @@ const filters = ref({
 const data = ref(null)
 const primeraBusqueda = ref(false)
 
-// ========== ESTADO - ESTADÍSTICAS ==========
-const loadingEstadisticas = ref(true)
-const estadisticas = ref([])
-
 // ========== ESTADO - VISTA ==========
 const activeTab = ref('structured')
-
-// ========== FUNCIONES - ESTADÍSTICAS ==========
-const cargarEstadisticas = async () => {
-  loadingEstadisticas.value = true
-  try {
-    const result = await execute(OP_STATS, BASE_DB, [])
-    const arr = Array.isArray(result?.rows) ? result.rows : Array.isArray(result) ? result : []
-    estadisticas.value = arr
-  } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
-    estadisticas.value = []
-  } finally {
-    loadingEstadisticas.value = false
-  }
-}
 
 // ========== FUNCIONES - BÚSQUEDA ==========
 const buscar = async () => {
@@ -230,29 +202,37 @@ const buscar = async () => {
     return
   }
 
+  showLoading('Consultando registro...', 'Buscando información')
   showFilters.value = false
   primeraBusqueda.value = true
   const startTime = performance.now()
 
   try {
-    const result = await execute(OP_QUERY, BASE_DB, [
-      { name: 'registro', type: 'C', value: String(filters.value.registro || '') }
+    const response = await execute(OP_QUERY, BASE_DB, [
+      { name: 'p_id_local', type: 'I', value: parseInt(filters.value.registro || 0) }
     ])
 
-    data.value = result
+    if (response && response.data) {
+      data.value = Array.isArray(response.data) ? response.data : response.data
+    } else if (response && response.result) {
+      data.value = Array.isArray(response.result) ? response.result : response.result
+    } else {
+      data.value = null
+    }
 
-    // Toast con timing
     const endTime = performance.now()
     const duration = endTime - startTime
     const durationText = duration < 1000
       ? `${Math.round(duration)}ms`
       : `${(duration / 1000).toFixed(2)}s`
 
-    const count = !result ? 0 : Array.isArray(result) ? result.length : 1
+    const count = !data.value ? 0 : Array.isArray(data.value) ? data.value.length : 1
     showToast('success', `Consulta completada en ${durationText} - ${count} registro(s)`)
   } catch (error) {
     data.value = null
     handleApiError(error)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -305,31 +285,12 @@ const getColumns = (arr) => {
   return Object.keys(arr[0])
 }
 
-const getStatIcon = (categoria) => {
-  const icons = {
-    'TOTAL': 'chart-bar',
-    'VIGENTES': 'check-circle',
-    'VENCIDOS': 'times-circle',
-    'CON_EJECUTOR': 'user-check',
-    'SIN_EJECUTOR': 'user-times',
-    'IMPORTE_TOTAL': 'coins'
-  }
-  return icons[categoria] || 'info-circle'
-}
 
-const getStatValue = (stat) => {
-  // Si es IMPORTE_TOTAL, mostrar como dinero
-  if (stat.categoria === 'IMPORTE_TOTAL') {
-    return formatMoney(stat.total)
-  }
-  // Si no, mostrar como número
-  return formatNumber(stat.total)
-}
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const closeTechDocs = () => showTechDocs.value = false
 
-// ========== LIFECYCLE ==========
-onMounted(() => {
-  cargarEstadisticas() // SOLO stats, NO datos
-  // El usuario debe ingresar un registro y hacer clic en "Buscar"
-})
 </script>
 

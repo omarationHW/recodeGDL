@@ -1,21 +1,29 @@
 -- ============================================
 -- STORED PROCEDURES CONSOLIDADOS
 -- Formulario: Contratos_Adeudos
--- Generado: 2025-08-27 14:11:20
+-- Base de datos: aseo_contratado
+-- Actualizado: 2025-12-07
 -- Total SPs: 1
+-- ============================================
+-- Descripción: Reporte de contratos con adeudos pendientes
+-- Filtros según Delphi original:
+--   parTipo: C=Zona Centro, H=Hospitalario, O=Ordinario, T=Todos
+--   parVigencia: V=Vigente, N=Conveniado, C=Cancelado, S=Suspendido, T=Todos
+--   parReporte: V=Periodos Vencidos, T=Otro Periodo
+--   pref: Periodo en formato YYYY-MM
 -- ============================================
 
 -- SP 1/1: sp16_contratos_adeudo
 -- Tipo: Report
--- Descripción: Obtiene la relación de contratos con adeudos y datos relacionados, filtrando por tipo de aseo, vigencia, tipo de reporte y periodo pref.
--- --------------------------------------------
+-- Descripción: Obtiene la relación de contratos con adeudos pendientes
+-- ============================================
+DROP FUNCTION IF EXISTS public.sp16_contratos_adeudo(VARCHAR, VARCHAR, VARCHAR, VARCHAR);
 
--- PostgreSQL version of sp16_contratos_adeudo
-CREATE OR REPLACE FUNCTION sp16_contratos_adeudo(
-    parTipo VARCHAR,
-    parVigencia VARCHAR,
-    parReporte VARCHAR,
-    pref VARCHAR
+CREATE OR REPLACE FUNCTION public.sp16_contratos_adeudo(
+    p_tipo VARCHAR,        -- Tipo de aseo: C, H, O, T (todos)
+    p_vigencia VARCHAR,    -- Status: V=Vigente, N=Conveniado, C=Cancelado, S=Suspendido, T=Todos
+    p_reporte VARCHAR,     -- V=Vencidos, T=Otro periodo
+    p_periodo VARCHAR      -- YYYY-MM
 )
 RETURNS TABLE (
     control_contrato INTEGER,
@@ -44,54 +52,72 @@ RETURNS TABLE (
     documentos VARCHAR,
     licencias VARCHAR
 ) AS $$
+DECLARE
+    v_tipo_filter VARCHAR;
+    v_vigencia_filter VARCHAR;
 BEGIN
+    -- Construir filtro de tipo
+    IF p_tipo = 'T' OR p_tipo IS NULL THEN
+        v_tipo_filter := '%';
+    ELSE
+        v_tipo_filter := p_tipo;
+    END IF;
+
+    -- Construir filtro de vigencia
+    IF p_vigencia = 'T' OR p_vigencia IS NULL THEN
+        v_vigencia_filter := '%';
+    ELSE
+        v_vigencia_filter := p_vigencia;
+    END IF;
+
     RETURN QUERY
-    SELECT 
+    SELECT
         c.control_contrato,
         c.num_contrato,
-        c.calle,
-        c.numext,
-        c.numint,
-        c.colonia,
-        c.sector,
-        CASE c.status_vigencia
-            WHEN 'V' THEN 'VIGENTE'
-            WHEN 'N' THEN 'CONVENIADO'
-            WHEN 'C' THEN 'CANCELADO'
-            WHEN 'S' THEN 'SUSPENDIDO'
-            ELSE c.status_vigencia
-        END AS status_contrato,
-        c.num_empresa,
-        e.descripcion AS nombre_empresa,
-        ta.descripcion AS tipo_aseo_descripcion,
-        u.cve_recolec AS cve_recoleccion,
-        u.descripcion AS unidad_recoleccion,
-        c.cantidad_recolec AS cantidad_recoleccion,
-        to_char(c.aso_mes_oblig, 'YYYY-MM') AS inicio_oblig,
-        to_char(c.fecha_hora_baja, 'YYYY-MM') AS fin_oblig,
-        0 AS adeudos_scr, -- Aquí deberías calcular los adeudos condonados/cancelados/prescritos
-        0 AS adeudos_pag, -- Aquí deberías calcular los pagados
-        '' AS primer_adeudo, -- Aquí deberías calcular el primer adeudo
-        0 AS adeudos, -- Aquí deberías calcular los adeudos vigentes
-        0 AS recargos, -- Aquí deberías calcular los recargos
-        0 AS req_multa, -- Aquí deberías calcular la multa
-        0 AS req_gastos, -- Aquí deberías calcular los gastos
-        '' AS documentos, -- Aquí deberías concatenar los documentos
-        '' AS licencias -- Aquí deberías concatenar las licencias
+        COALESCE(c.calle, '')::VARCHAR as calle,
+        COALESCE(c.num_ext, '')::VARCHAR as numext,
+        COALESCE(c.num_int, '')::VARCHAR as numint,
+        COALESCE(c.colonia, '')::VARCHAR as colonia,
+        COALESCE(c.sector, '')::VARCHAR as sector,
+        c.status_contrato::VARCHAR,
+        COALESCE(c.num_empresa, 0)::INTEGER as num_empresa,
+        COALESCE(e.nombre_empresa, 'SIN EMPRESA')::VARCHAR as nombre_empresa,
+        COALESCE(ta.descripcion, '')::VARCHAR as tipo_aseo_descripcion,
+        ''::VARCHAR as cve_recoleccion,
+        ''::VARCHAR as unidad_recoleccion,
+        0::INTEGER as cantidad_recoleccion,
+        TO_CHAR(c.aso_mes_oblig, 'YYYY-MM')::VARCHAR as inicio_oblig,
+        ''::VARCHAR as fin_oblig,
+        COALESCE(SUM(CASE WHEN p.status_vigencia = 'V' THEN p.importe ELSE 0 END), 0)::NUMERIC as adeudos_scr,
+        COALESCE(SUM(CASE WHEN p.status_vigencia = 'P' THEN p.importe ELSE 0 END), 0)::NUMERIC as adeudos_pag,
+        MIN(TO_CHAR(p.aso_mes_pago, 'YYYY-MM'))::VARCHAR as primer_adeudo,
+        COALESCE(SUM(CASE WHEN p.status_vigencia = 'V' THEN p.importe ELSE 0 END), 0)::NUMERIC as adeudos,
+        0::NUMERIC as recargos,
+        0::NUMERIC as req_multa,
+        0::NUMERIC as req_gastos,
+        ''::VARCHAR as documentos,
+        ''::VARCHAR as licencias
     FROM ta_16_contratos c
-    INNER JOIN ta_16_empresas e ON c.num_empresa = e.num_empresa AND c.ctrol_emp = e.ctrol_emp
-    INNER JOIN ta_16_tipo_aseo ta ON c.ctrol_aseo = ta.ctrol_aseo
-    INNER JOIN ta_16_unidades u ON c.ctrol_recolec = u.ctrol_recolec
-    WHERE (parTipo = 'T' OR ta.tipo_aseo = parTipo)
-      AND (parVigencia = 'T' OR c.status_vigencia = parVigencia)
-      AND (
-        parReporte = 'V' OR (
-          to_char(c.aso_mes_oblig, 'YYYY-MM') <= pref
+    LEFT JOIN ta_16_empresas e ON e.num_empresa = c.num_empresa
+    LEFT JOIN ta_16_tipo_aseo ta ON ta.ctrol_aseo = c.ctrol_aseo
+    LEFT JOIN ta_16_pagos p ON p.control_contrato = c.control_contrato
+        AND (
+            (p_reporte = 'V' AND p.aso_mes_pago < CURRENT_DATE)
+            OR
+            (p_reporte = 'T' AND TO_CHAR(p.aso_mes_pago, 'YYYY-MM') = p_periodo)
         )
-      );
+    WHERE (ta.tipo_aseo LIKE v_tipo_filter OR p_tipo = 'T')
+      AND (c.status_contrato LIKE v_vigencia_filter OR p_vigencia = 'T')
+    GROUP BY c.control_contrato, c.num_contrato, c.calle, c.num_ext, c.num_int,
+             c.colonia, c.sector, c.status_contrato, c.num_empresa, e.nombre_empresa,
+             ta.descripcion, c.aso_mes_oblig
+    HAVING SUM(CASE WHEN p.status_vigencia = 'V' THEN p.importe ELSE 0 END) > 0
+    ORDER BY c.num_contrato;
 END;
 $$ LANGUAGE plpgsql;
 
+GRANT EXECUTE ON FUNCTION public.sp16_contratos_adeudo(VARCHAR, VARCHAR, VARCHAR, VARCHAR) TO PUBLIC;
 
 -- ============================================
-
+-- FIN DEL ARCHIVO
+-- ============================================

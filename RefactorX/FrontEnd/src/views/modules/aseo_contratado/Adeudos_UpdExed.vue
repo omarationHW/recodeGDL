@@ -1,464 +1,553 @@
-﻿<template>
+<template>
   <div class="module-view">
-        <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="shield-halved" />
+        <font-awesome-icon icon="boxes-stacked" />
       </div>
       <div class="module-view-info">
-        <h1>Actualización de Adeudos Exentos</h1>
-        <p>Aseo Contratado - Gestión de exenciones y descuentos especiales en adeudos</p>
+        <h1>Actualización de Exedencias</h1>
+        <p>Aseo Contratado - Actualizar cantidad y costo de exedencias vigentes</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="mostrarAyuda = true"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-    </div>
-<div class="municipal-card shadow-sm mb-4">
-      <div class="municipal-card-header">
-        <h5>Búsqueda de Contrato</h5>
-      </div>
-      <div class="municipal-card-body">
-        <div class="row">
-          <div class="col-md-4">
-            <input type="text" class="municipal-form-control" v-model="busqueda" @keyup.enter="buscarContrato"
-              placeholder="Número de contrato o cuenta predial" />
-          </div>
-          <div class="col-md-2">
-            <button class="btn-municipal-primary w-100" @click="buscarContrato" :disabled="cargando">
-              <font-awesome-icon icon="search" /> Buscar
-            </button>
-          </div>
-        </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentación Técnica">
+          <font-awesome-icon icon="file-code" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
 
-    <div v-if="contratoSeleccionado">
-      <div class="municipal-card shadow-sm mb-4">
+    <div class="module-view-content">
+      <!-- Panel de Búsqueda -->
+      <div class="municipal-card" :class="{ 'panel-disabled': panelActualizacionVisible }">
         <div class="municipal-card-header">
-        <h5>Información del Contrato</h5>
-      </div>
-        <div class="municipal-card-body">
-          <div class="row">
-            <div class="col-md-3">
-              <strong>Contrato:</strong> {{ contratoSeleccionado.num_contrato }}<br>
-              <strong>Status:</strong>
-              <span class="badge" :class="contratoSeleccionado.status === 'A' ? 'bg-success' : 'bg-danger'">
-                {{ contratoSeleccionado.status === 'A' ? 'Activo' : 'Inactivo' }}
-              </span>
-            </div>
-            <div class="col-md-3">
-              <strong>Contribuyente:</strong> {{ contratoSeleccionado.contribuyente }}<br>
-              <strong>RFC:</strong> {{ contratoSeleccionado.rfc || 'N/A' }}
-            </div>
-            <div class="col-md-3">
-              <strong>Tipo:</strong> {{ formatTipoAseo(contratoSeleccionado.tipo_aseo) }}<br>
-              <strong>Cuota:</strong> ${{ formatCurrency(contratoSeleccionado.cuota_mensual) }}
-            </div>
-            <div class="col-md-3">
-              <strong>Exención Actual:</strong>
-              <span class="badge" :class="contratoSeleccionado.exencion ? 'bg-success' : 'bg-secondary'">
-                {{ contratoSeleccionado.exencion ? 'Con Exención' : 'Sin Exención' }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="municipal-card shadow-sm mb-4">
-        <div class="municipal-card-header bg-light d-flex justify-content-between">
-          <h6 class="mb-0">Adeudos del Contrato ({{ adeudos.length }})</h6>
-          <div>
-            <button class="btn btn-sm btn-success me-2" @click="seleccionarTodos">
-              <font-awesome-icon icon="check-double" /> Seleccionar Todos
-            </button>
-            <button class="btn btn-sm btn-warning" @click="limpiarSeleccion">
-              <font-awesome-icon icon="eraser" /> Limpiar
-            </button>
-          </div>
+          <h5><font-awesome-icon icon="search" /> Búsqueda de Contrato y Exedencia</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="table-responsive">
-            <table class="municipal-table">
-              <thead>
-                <tr>
-                  <th style="width: 40px;">
-                    <input type="checkbox" class="form-check-input" @change="toggleSeleccionTodos" />
-                  </th>
-                  <th>Folio</th>
-                  <th>Periodo</th>
-                  <th>Vencimiento</th>
-                  <th class="text-end">Cuota Base</th>
-                  <th class="text-end">Recargos</th>
-                  <th class="text-end">Total</th>
-                  <th>Exención Actual</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="adeudo in adeudos" :key="adeudo.folio"
-                    :class="{ 'table-success': adeudosSeleccionados.includes(adeudo.folio) }">
-                  <td>
-                    <input type="checkbox" class="form-check-input"
-                      :value="adeudo.folio" v-model="adeudosSeleccionados"
-                      :disabled="adeudo.status !== 'P'" />
-                  </td>
-                  <td>{{ adeudo.folio }}</td>
-                  <td>{{ adeudo.periodo }}</td>
-                  <td>{{ formatFecha(adeudo.fecha_vencimiento) }}</td>
-                  <td class="text-end">${{ formatCurrency(adeudo.cuota_base) }}</td>
-                  <td class="text-end">${{ formatCurrency(adeudo.recargos) }}</td>
-                  <td class="text-end"><strong>${{ formatCurrency(adeudo.total_periodo) }}</strong></td>
-                  <td>
-                    <span v-if="adeudo.porcentaje_exencion > 0" class="badge badge-success">
-                      {{ adeudo.porcentaje_exencion }}%
-                    </span>
-                    <span v-else class="badge badge-secondary">Sin exención</span>
-                  </td>
-                  <td>
-                    <span class="badge" :class="adeudo.status === 'P' ? 'bg-warning' : 'bg-success'">
-                      {{ adeudo.status === 'P' ? 'Pendiente' : 'Pagado' }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="adeudosSeleccionados.length > 0" class="municipal-card">
-        <div class="municipal-card-header">
-        <h5>Configuración de Exención ({{ adeudosSeleccionados.length }} adeudos seleccionados)</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="alert alert-warning">
-            <font-awesome-icon icon="exclamation-triangle" class="me-2" />
-            <strong>Importante:</strong> Las exenciones deben contar con la autorización correspondiente.
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-md-3">
-              <label class="municipal-form-label">Tipo de Exención</label>
-              <select class="municipal-form-control" v-model="exencion.tipo">
-                <option value="">Seleccione...</option>
-                <option value="TOTAL">Exención Total (100%)</option>
-                <option value="PARCIAL">Exención Parcial</option>
-                <option value="TERCERA_EDAD">Adulto Mayor</option>
-                <option value="DISCAPACIDAD">Persona con Discapacidad</option>
-                <option value="JUBILADO">Jubilado/Pensionado</option>
-                <option value="VIUDA">Viuda(o)</option>
-                <option value="OTRO">Otro Motivo</option>
+          <!-- Fila 1: Contrato y Tipo Aseo -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Número de Contrato</label>
+              <input
+                type="number"
+                v-model.number="numContrato"
+                class="municipal-form-control"
+                placeholder="Ingrese número de contrato"
+                @keyup.enter="buscarExedencia"
+                min="1"
+                :disabled="panelActualizacionVisible"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Tipo de Aseo</label>
+              <select v-model="tipoAseoSeleccionado" class="municipal-form-control" :disabled="panelActualizacionVisible">
+                <option value="">Seleccione tipo de aseo...</option>
+                <option v-for="tipo in tiposAseo" :key="tipo.ctrol_aseo" :value="tipo.ctrol_aseo">
+                  {{ tipo.ctrol_aseo }} - {{ tipo.tipo_aseo }} - {{ tipo.descripcion }}
+                </option>
               </select>
             </div>
-            <div class="col-md-2" v-if="exencion.tipo === 'PARCIAL' || exencion.tipo === 'OTRO'">
-              <label class="municipal-form-label">Porcentaje (%)</label>
-              <input type="number" class="municipal-form-control" v-model.number="exencion.porcentaje"
-                min="1" max="100" />
+          </div>
+
+          <!-- Fila 2: Ejercicio y Mes -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Ejercicio (Año)</label>
+              <input
+                type="number"
+                v-model.number="ejercicio"
+                class="municipal-form-control"
+                placeholder="Ej: 2025"
+                min="2000"
+                max="2099"
+                :disabled="panelActualizacionVisible"
+              />
             </div>
-            <div class="col-md-2" v-else-if="exencion.tipo">
-              <label class="municipal-form-label">Porcentaje (%)</label>
-              <input type="number" class="municipal-form-control" :value="obtenerPorcentajePredefinido()"
-                disabled />
-            </div>
-            <div class="col-md-3">
-              <label class="municipal-form-label">Vigencia Desde</label>
-              <input type="date" class="municipal-form-control" v-model="exencion.vigenciaDesde" />
-            </div>
-            <div class="col-md-3">
-              <label class="municipal-form-label">Vigencia Hasta</label>
-              <input type="date" class="municipal-form-control" v-model="exencion.vigenciaHasta" />
+            <div class="form-group">
+              <label class="municipal-form-label required">Mes</label>
+              <select v-model="mesSeleccionado" class="municipal-form-control" :disabled="panelActualizacionVisible">
+                <option value="">Seleccione mes...</option>
+                <option v-for="mes in meses" :key="mes.value" :value="mes.value">
+                  {{ mes.label }}
+                </option>
+              </select>
             </div>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <label class="municipal-form-label">Documento de Autorización</label>
-              <input type="text" class="municipal-form-control" v-model="exencion.documentoAutorizacion"
-                placeholder="Número de oficio o documento" />
-            </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">Autorizado Por</label>
-              <input type="text" class="municipal-form-control" v-model="exencion.autorizadoPor"
-                placeholder="Nombre del funcionario" />
-            </div>
-            <div class="col-md-4">
-              <label class="municipal-form-label">Fecha de Autorización</label>
-              <input type="date" class="municipal-form-control" v-model="exencion.fechaAutorizacion" />
+          <!-- Fila 3: Tipo de Operación -->
+          <div class="form-row">
+            <div class="form-group" style="flex: 0 0 50%;">
+              <label class="municipal-form-label required">Tipo de Operación</label>
+              <select v-model="tipoOperacionSeleccionado" class="municipal-form-control" :disabled="panelActualizacionVisible">
+                <option value="">Seleccione operación...</option>
+                <option v-for="op in tiposOperacion" :key="op.ctrol_operacion" :value="op.ctrol_operacion">
+                  {{ op.ctrol_operacion }} - {{ op.cve_operacion }} - {{ op.descripcion }}
+                </option>
+              </select>
             </div>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-md-12">
-              <label class="municipal-form-label">Observaciones</label>
-              <textarea class="municipal-form-control" v-model="exencion.observaciones" rows="3"
-                placeholder="Fundamento legal o motivo de la exención..."></textarea>
-            </div>
-          </div>
-
-          <div v-if="calcularTotales()" class="alert alert-info">
-            <div class="row">
-              <div class="col-md-3">
-                <strong>Total Original:</strong> ${{ formatCurrency(calcularTotales().original) }}
-              </div>
-              <div class="col-md-3">
-                <strong>Descuento:</strong> ${{ formatCurrency(calcularTotales().descuento) }}
-              </div>
-              <div class="col-md-3">
-                <strong>Total con Exención:</strong> ${{ formatCurrency(calcularTotales().final) }}
-              </div>
-              <div class="col-md-3">
-                <strong>Ahorro:</strong>
-                <span class="badge bg-success fs-6">
-                  {{ calcularTotales().porcentaje }}%
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-end">
-            <button class="btn-municipal-secondary me-2" @click="cancelarExencion">
-              <font-awesome-icon icon="times" /> Cancelar
+          <!-- Botones de Búsqueda -->
+          <div class="button-group mt-3">
+            <button
+              class="btn-municipal-primary"
+              @click="buscarExedencia"
+              :disabled="!validarBusqueda() || panelActualizacionVisible"
+            >
+              <font-awesome-icon icon="search" />
+              Buscar Exedencia
             </button>
-            <button class="btn-municipal-primary" @click="aplicarExencion"
-              :disabled="!validarExencion()">
-              <font-awesome-icon icon="check" /> Aplicar Exención
+            <button class="btn-municipal-secondary" @click="limpiarFormulario" :disabled="panelActualizacionVisible">
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
       </div>
+
+      <!-- Panel de Actualización (visible cuando se encuentra exedencia) -->
+      <div v-if="panelActualizacionVisible" class="municipal-card mt-3">
+        <div class="municipal-card-header bg-warning-subtle">
+          <h5><font-awesome-icon icon="edit" /> Actualizar Exedencia</h5>
+        </div>
+        <div class="municipal-card-body">
+          <!-- Info de la exedencia encontrada -->
+          <div class="info-row mb-3">
+            <div class="info-item">
+              <label>Exedencias Actuales:</label>
+              <span class="badge bg-info fs-6">{{ exedenciaActual?.exedencias || 0 }}</span>
+            </div>
+            <div class="info-item">
+              <label>Importe Actual:</label>
+              <span class="badge bg-secondary fs-6">${{ formatCurrency(exedenciaActual?.importe || 0) }}</span>
+            </div>
+            <div class="info-item">
+              <label>Costo por Exedencia:</label>
+              <span class="badge bg-primary fs-6">${{ formatCurrency(costoExed) }}</span>
+            </div>
+          </div>
+
+          <!-- Campos de actualización -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Nueva Cantidad de Exedencias</label>
+              <input
+                type="number"
+                ref="inputCantidad"
+                v-model.number="nuevaCantidad"
+                class="municipal-form-control"
+                placeholder="Ingrese cantidad"
+                min="0"
+                max="9999"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Número de Oficio</label>
+              <input
+                type="text"
+                v-model="numOficio"
+                class="municipal-form-control"
+                placeholder="Ingrese número de oficio"
+                maxlength="50"
+              />
+            </div>
+          </div>
+
+          <!-- Cálculo del nuevo importe -->
+          <div v-if="nuevaCantidad > 0" class="calculo-preview mt-3">
+            <div class="calculo-item">
+              <span class="calculo-label">Cálculo:</span>
+              <span class="calculo-value">{{ nuevaCantidad }} × ${{ formatCurrency(costoExed) }} = <strong>${{ formatCurrency(nuevoImporte) }}</strong></span>
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="button-group mt-3">
+            <button
+              class="btn-municipal-success"
+              @click="ejecutarActualizacion"
+              :disabled="!validarActualizacion()"
+            >
+              <font-awesome-icon icon="check" />
+              Actualizar Exedencia
+            </button>
+            <button class="btn-municipal-secondary" @click="cancelarActualizacion">
+              <font-awesome-icon icon="times" />
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información/Ayuda -->
+      <div class="alert-info-box mt-4">
+        <font-awesome-icon icon="info-circle" class="alert-icon" />
+        <div class="alert-content">
+          <strong>Información:</strong>
+          <p>Este módulo permite actualizar la cantidad y el importe de exedencias vigentes.</p>
+          <ul>
+            <li>Ingrese el número de contrato y seleccione el tipo de aseo</li>
+            <li>Especifique el ejercicio (año) y mes del periodo</li>
+            <li>Seleccione el tipo de operación (EXCEDENTE, etc.)</li>
+            <li>Si existe una exedencia vigente, podrá actualizar la cantidad</li>
+            <li>El importe se calcula automáticamente: cantidad × costo por exedencia</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <DocumentationModal v-if="mostrarAyuda" :show="mostrarAyuda" @close="mostrarAyuda = false"
-      title="Actualización de Adeudos Exentos">
-      <h6>Descripción</h6>
-      <p>Permite aplicar, modificar o eliminar exenciones sobre adeudos pendientes de pago.</p>
-      <h6>Tipos de Exención</h6>
+    <!-- Modal de Documentación -->
+    <DocumentationModal :show="showDocumentation" @close="showDocumentation = false" title="Ayuda - Actualización de Exedencias">
+      <h3>Actualización de Exedencias</h3>
+      <p>Este módulo permite actualizar la cantidad de exedencias (excesos de recolección) para contratos de aseo contratado.</p>
+
+      <h4>Proceso de Actualización:</h4>
+      <ol>
+        <li>Ingrese el número de contrato</li>
+        <li>Seleccione el tipo de aseo correspondiente</li>
+        <li>Ingrese el ejercicio (año) del periodo</li>
+        <li>Seleccione el mes del periodo</li>
+        <li>Seleccione el tipo de operación</li>
+        <li>Haga clic en "Buscar Exedencia"</li>
+        <li>Si existe una exedencia vigente, ingrese la nueva cantidad</li>
+        <li>Ingrese el número de oficio de autorización</li>
+        <li>Haga clic en "Actualizar Exedencia"</li>
+      </ol>
+
+      <h4>Cálculo del Importe:</h4>
+      <p>El importe se calcula automáticamente multiplicando la cantidad de exedencias por el costo por exedencia definido en el contrato.</p>
+      <p><strong>Importe = Cantidad × Costo por Exedencia</strong></p>
+
+      <h4>Consideraciones:</h4>
       <ul>
-        <li><strong>Exención Total:</strong> 100% de descuento</li>
-        <li><strong>Adulto Mayor:</strong> Descuento según reglamento (típicamente 50%)</li>
-        <li><strong>Persona con Discapacidad:</strong> Descuento especial (típicamente 50%)</li>
-        <li><strong>Jubilado/Pensionado:</strong> Beneficio a pensionados (típicamente 25%)</li>
-        <li><strong>Viuda(o):</strong> Apoyo especial (típicamente 25%)</li>
-      </ul>
-      <h6>Requisitos</h6>
-      <ul>
-        <li>Documento de autorización oficial</li>
-        <li>Nombre del funcionario autorizante</li>
-        <li>Fundamento legal o justificación</li>
-        <li>Vigencia de la exención</li>
+        <li>Solo se pueden actualizar exedencias con status vigente ('V')</li>
+        <li>Se requiere un número de oficio de autorización</li>
+        <li>Se registra el usuario que realiza la actualización</li>
       </ul>
     </DocumentationModal>
+
+    <!-- Modal de Documentación Técnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Adeudos_UpdExed'"
+      :moduleName="'aseo_contratado'"
+      @close="showTechDocs = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-import { useApi } from '@/composables/useApi'
-import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useToast } from '@/composables/useToast'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import Swal from 'sweetalert2'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
+import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
+// Composables
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
-const { showToast } = useToast()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
-const cargando = ref(false)
-const mostrarAyuda = ref(false)
-const busqueda = ref('')
-const contratoSeleccionado = ref(null)
-const adeudos = ref([])
-const adeudosSeleccionados = ref([])
+// Configuración
+const BASE_DB = 'aseo_contratado'
+const SCHEMA = 'public'
 
-const exencion = ref({
-  tipo: '',
-  porcentaje: 0,
-  vigenciaDesde: '',
-  vigenciaHasta: '',
-  documentoAutorizacion: '',
-  autorizadoPor: '',
-  fechaAutorizacion: '',
-  observaciones: ''
+// Referencias
+const inputCantidad = ref(null)
+
+// Estado de búsqueda
+const numContrato = ref(null)
+const tipoAseoSeleccionado = ref('')
+const ejercicio = ref(new Date().getFullYear())
+const mesSeleccionado = ref('')
+const tipoOperacionSeleccionado = ref('')
+
+// Estado de actualización
+const panelActualizacionVisible = ref(false)
+const contratoEncontrado = ref(null)
+const exedenciaActual = ref(null)
+const costoExed = ref(0)
+const nuevaCantidad = ref(0)
+const numOficio = ref('')
+
+// Catálogos
+const tiposAseo = ref([])
+const tiposOperacion = ref([])
+
+// Modales
+const showDocumentation = ref(false)
+const showTechDocs = ref(false)
+
+// Lista de meses
+const meses = [
+  { value: '01', label: '01 - Enero' },
+  { value: '02', label: '02 - Febrero' },
+  { value: '03', label: '03 - Marzo' },
+  { value: '04', label: '04 - Abril' },
+  { value: '05', label: '05 - Mayo' },
+  { value: '06', label: '06 - Junio' },
+  { value: '07', label: '07 - Julio' },
+  { value: '08', label: '08 - Agosto' },
+  { value: '09', label: '09 - Septiembre' },
+  { value: '10', label: '10 - Octubre' },
+  { value: '11', label: '11 - Noviembre' },
+  { value: '12', label: '12 - Diciembre' }
+]
+
+// Computed: Nuevo importe calculado
+const nuevoImporte = computed(() => {
+  return (nuevaCantidad.value || 0) * costoExed.value
 })
 
-const buscarContrato = async () => {
-  if (!busqueda.value) {
-    return showToast('Ingrese un número de contrato', 'warning')
-  }
+// Cargar catálogos al montar
+onMounted(async () => {
+  await cargarCatalogos()
+})
 
-  cargando.value = true
+// Cargar catálogos de tipos de aseo y operaciones
+const cargarCatalogos = async () => {
+  showLoading()
   try {
-    const [respContrato] = await Promise.all([
-      execute('SP_ASEO_CONTRATO_CONSULTAR', 'aseo_contratado', {
-        p_num_contrato: busqueda.value
-      })
+    const [resTiposAseo, resTiposOper] = await Promise.all([
+      execute('sp_tipos_aseo_list', BASE_DB, [], '', null, SCHEMA),
+      execute('sp_cves_operacion_list', BASE_DB, [], '', null, SCHEMA)
     ])
-    if (respContrato?.length > 0) {
-      contratoSeleccionado.value = respContrato[0]
-      const respAdeudos = await execute('SP_ASEO_ADEUDOS_POR_CONTRATO', 'aseo_contratado', {
-        p_control_contrato: respContrato[0].control_contrato
-      })
-      adeudos.value = (respAdeudos || []).filter(a => a.status === 'P')
-      adeudosSeleccionados.value = []
-      showToast('Contrato encontrado', 'success')
-    } else {
-      showToast('Contrato no encontrado', 'error')
-    }
+
+    tiposAseo.value = resTiposAseo || []
+    tiposOperacion.value = resTiposOper || []
   } catch (error) {
-    handleError(error, 'Error al buscar contrato')
+    hideLoading()
+    console.error('Error cargando catálogos:', error)
+    handleApiError(error, 'Error al cargar catálogos')
   } finally {
-    cargando.value = false
+    hideLoading()
   }
 }
 
-const seleccionarTodos = () => {
-  adeudosSeleccionados.value = adeudos.value
-    .filter(a => a.status === 'P')
-    .map(a => a.folio)
+// Validar formulario de búsqueda
+const validarBusqueda = () => {
+  return numContrato.value &&
+         tipoAseoSeleccionado.value &&
+         ejercicio.value &&
+         mesSeleccionado.value &&
+         tipoOperacionSeleccionado.value
 }
 
-const limpiarSeleccion = () => {
-  adeudosSeleccionados.value = []
+// Validar formulario de actualización
+const validarActualizacion = () => {
+  return nuevaCantidad.value >= 0 && numOficio.value?.trim()
 }
 
-const toggleSeleccionTodos = (event) => {
-  if (event.target.checked) {
-    seleccionarTodos()
-  } else {
-    limpiarSeleccion()
+// Buscar exedencia
+const buscarExedencia = async () => {
+  if (!validarBusqueda()) {
+    showToast('Complete todos los campos de búsqueda', 'warning')
+    return
+  }
+
+  showLoading()
+  try {
+    // 1. Buscar contrato con costo_exed
+    const paramsContrato = [
+      { nombre: 'p_num_contrato', valor: numContrato.value, tipo: 'integer' },
+      { nombre: 'p_ctrol_aseo', valor: parseInt(tipoAseoSeleccionado.value), tipo: 'integer' },
+      { nombre: 'p_ejercicio', valor: ejercicio.value, tipo: 'integer' }
+    ]
+
+    const resContrato = await execute(
+      'sp_aseo_contrato_buscar_con_costo_exed',
+      BASE_DB,
+      paramsContrato,
+      '',
+      null,
+      SCHEMA
+    )
+
+    if (!resContrato || resContrato.length === 0) {
+      hideLoading()
+      await Swal.fire({
+        title: 'Contrato no encontrado',
+        text: 'No existe CONTRATO, intenta con otro',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#dc3545'
+      })
+      return
+    }
+
+    contratoEncontrado.value = resContrato[0]
+    costoExed.value = parseFloat(resContrato[0].costo_exed) || 0
+
+    // 2. Buscar exedencia vigente
+    const asoMesPago = `${ejercicio.value}-${mesSeleccionado.value}`
+    const paramsExed = [
+      { nombre: 'p_control_contrato', valor: contratoEncontrado.value.control_contrato, tipo: 'integer' },
+      { nombre: 'p_aso_mes_pago', valor: asoMesPago, tipo: 'string' },
+      { nombre: 'p_ctrol_operacion', valor: parseInt(tipoOperacionSeleccionado.value), tipo: 'integer' }
+    ]
+
+    const resExed = await execute(
+      'sp_aseo_buscar_exedencia_vigente',
+      BASE_DB,
+      paramsExed,
+      '',
+      null,
+      SCHEMA
+    )
+
+    hideLoading()
+
+    if (!resExed || resExed.length === 0) {
+      await Swal.fire({
+        title: 'Exedencia no encontrada',
+        text: 'No Existe exedencia en el PERIODO y/o MOVIMIENTO proporcionados ó no está VIGENTE, intenta con otro',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#dc3545'
+      })
+      return
+    }
+
+    // Mostrar panel de actualización
+    exedenciaActual.value = resExed[0]
+    nuevaCantidad.value = exedenciaActual.value.exedencias || 0
+    numOficio.value = ''
+    panelActualizacionVisible.value = true
+
+    // Enfocar campo de cantidad
+    await nextTick()
+    if (inputCantidad.value) {
+      inputCantidad.value.focus()
+    }
+
+  } catch (error) {
+    hideLoading()
+    hideLoading()
+    handleApiError(error, 'Error al buscar exedencia')
   }
 }
 
-const obtenerPorcentajePredefinido = () => {
-  const porcentajes = {
-    'TOTAL': 100,
-    'TERCERA_EDAD': 50,
-    'DISCAPACIDAD': 50,
-    'JUBILADO': 25,
-    'VIUDA': 25
+// Ejecutar actualización
+const ejecutarActualizacion = async () => {
+  if (!validarActualizacion()) {
+    showToast('Complete los campos requeridos', 'warning')
+    return
   }
-  return porcentajes[exencion.value.tipo] || 0
-}
 
-const calcularTotales = () => {
-  if (adeudosSeleccionados.value.length === 0) return null
-
-  const adeudosACalcular = adeudos.value.filter(a =>
-    adeudosSeleccionados.value.includes(a.folio)
-  )
-
-  const original = adeudosACalcular.reduce((sum, a) =>
-    sum + parseFloat(a.total_periodo || 0), 0
-  )
-
-  let porcentaje = exencion.value.tipo === 'PARCIAL' || exencion.value.tipo === 'OTRO'
-    ? exencion.value.porcentaje
-    : obtenerPorcentajePredefinido()
-
-  const descuento = original * (porcentaje / 100)
-  const final = original - descuento
-
-  return {
-    original,
-    descuento,
-    final,
-    porcentaje
-  }
-}
-
-const validarExencion = () => {
-  if (!exencion.value.tipo) return false
-  if (!exencion.value.documentoAutorizacion) return false
-  if (!exencion.value.autorizadoPor) return false
-  if (!exencion.value.fechaAutorizacion) return false
-  if ((exencion.value.tipo === 'PARCIAL' || exencion.value.tipo === 'OTRO')
-      && exencion.value.porcentaje <= 0) return false
-  return true
-}
-
-const aplicarExencion = async () => {
-  const totales = calcularTotales()
-  const porcentaje = exencion.value.tipo === 'PARCIAL' || exencion.value.tipo === 'OTRO'
-    ? exencion.value.porcentaje
-    : obtenerPorcentajePredefinido()
-
-  const result = await Swal.fire({
-    title: '¿Aplicar Exención?',
+  // Confirmar acción
+  const confirmResult = await Swal.fire({
+    title: '¿Confirmar Actualización?',
     html: `
-      <p>Tipo: <strong>${exencion.value.tipo}</strong></p>
-      <p>Porcentaje: <strong>${porcentaje}%</strong></p>
-      <p>Adeudos: <strong>${adeudosSeleccionados.value.length}</strong></p>
-      <p>Descuento Total: <strong>$${totales.descuento.toFixed(2)}</strong></p>
-      <p class="text-warning">Esta operación requiere autorización oficial.</p>
+      <p><strong>Contrato:</strong> ${numContrato.value}</p>
+      <p><strong>Periodo:</strong> ${ejercicio.value}-${mesSeleccionado.value}</p>
+      <p><strong>Nueva Cantidad:</strong> ${nuevaCantidad.value} exedencias</p>
+      <p><strong>Nuevo Importe:</strong> $${formatCurrency(nuevoImporte.value)}</p>
+      <p><strong>Oficio:</strong> ${numOficio.value}</p>
     `,
-    icon: 'warning',
+    icon: 'question',
     showCancelButton: true,
+    confirmButtonText: 'Sí, Actualizar',
+    cancelButtonText: 'Cancelar',
     confirmButtonColor: '#28a745',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, aplicar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonColor: '#6c757d'
   })
 
-  if (!result.isConfirmed) return
+  if (!confirmResult.isConfirmed) {
+    return
+  }
 
-  cargando.value = true
+  showLoading()
   try {
-    const params = {
-      p_control_contrato: contratoSeleccionado.value.control_contrato,
-      p_adeudos: adeudosSeleccionados.value.join(','),
-      p_tipo_exencion: exencion.value.tipo,
-      p_porcentaje: porcentaje,
-      p_vigencia_desde: exencion.value.vigenciaDesde,
-      p_vigencia_hasta: exencion.value.vigenciaHasta,
-      p_documento_autorizacion: exencion.value.documentoAutorizacion,
-      p_autorizado_por: exencion.value.autorizadoPor,
-      p_fecha_autorizacion: exencion.value.fechaAutorizacion,
-      p_observaciones: exencion.value.observaciones
+    const asoMesPago = `${ejercicio.value}-${mesSeleccionado.value}`
+    const params = [
+      { nombre: 'p_control_contrato', valor: contratoEncontrado.value.control_contrato, tipo: 'integer' },
+      { nombre: 'p_aso_mes_pago', valor: asoMesPago, tipo: 'string' },
+      { nombre: 'p_ctrol_operacion', valor: parseInt(tipoOperacionSeleccionado.value), tipo: 'integer' },
+      { nombre: 'p_unidades', valor: nuevaCantidad.value, tipo: 'integer' },
+      { nombre: 'p_oficio', valor: numOficio.value.trim() || '0', tipo: 'string' },
+      { nombre: 'p_usuario', valor: 1, tipo: 'integer' }, // TODO: Obtener usuario real del sistema
+      { nombre: 'p_costo_exed', valor: costoExed.value, tipo: 'numeric' }
+    ]
+
+    const response = await execute(
+      'sp_aseo_actualizar_exedencia',
+      BASE_DB,
+      params,
+      '',
+      null,
+      SCHEMA
+    )
+
+    hideLoading()
+
+    if (response && response.length > 0) {
+      const resultado = response[0]
+      if (resultado.success) {
+        await Swal.fire({
+          title: 'Actualización Exitosa',
+          text: resultado.message || 'La exedencia se actualizó correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#28a745'
+        })
+        limpiarFormulario()
+      } else {
+        await Swal.fire({
+          title: 'Error',
+          text: resultado.message || 'Error al actualizar EXEDENCIA..',
+          icon: 'error',
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#dc3545'
+        })
+      }
+    } else {
+      showToast('Respuesta inesperada del servidor', 'warning')
     }
-    await execute('SP_ASEO_APLICAR_EXENCION', 'aseo_contratado', params)
-
-    await Swal.fire('¡Exención Aplicada!', 'La exención ha sido aplicada correctamente', 'success')
-
-    // Recargar adeudos
-    await buscarContrato()
-    cancelarExencion()
   } catch (error) {
-    handleError(error, 'Error al aplicar exención')
-  } finally {
-    cargando.value = false
+    hideLoading()
+    hideLoading()
+    handleApiError(error, 'Error al actualizar EXEDENCIA..')
   }
 }
 
-const cancelarExencion = () => {
-  limpiarSeleccion()
-  exencion.value = {
-    tipo: '',
-    porcentaje: 0,
-    vigenciaDesde: '',
-    vigenciaHasta: '',
-    documentoAutorizacion: '',
-    autorizadoPor: '',
-    fechaAutorizacion: '',
-    observaciones: ''
-  }
+// Cancelar actualización
+const cancelarActualizacion = () => {
+  panelActualizacionVisible.value = false
+  contratoEncontrado.value = null
+  exedenciaActual.value = null
+  costoExed.value = 0
+  nuevaCantidad.value = 0
+  numOficio.value = ''
 }
 
+// Limpiar formulario completo
+const limpiarFormulario = () => {
+  numContrato.value = null
+  tipoAseoSeleccionado.value = ''
+  ejercicio.value = new Date().getFullYear()
+  mesSeleccionado.value = ''
+  tipoOperacionSeleccionado.value = ''
+  cancelarActualizacion()
+}
+
+// Formatear moneda
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value || 0)
+  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0)
 }
 
-const formatFecha = (fecha) => {
-  return fecha ? new Date(fecha).toLocaleDateString('es-MX') : 'N/A'
+// Abrir documentación
+const openDocumentation = () => {
+  showDocumentation.value = true
 }
 
-const formatTipoAseo = (tipo) => {
-  const tipos = { 'D': 'Doméstico', 'C': 'Comercial', 'I': 'Industrial', 'S': 'Servicios' }
-  return tipos[tipo] || tipo
+// Mostrar documentación técnica
+const mostrarDocumentacion = () => {
+  showTechDocs.value = true
 }
 </script>
+

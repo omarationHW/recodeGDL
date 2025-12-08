@@ -601,624 +601,198 @@ const router = createRouter({
       name: 'cementerio',
       component: () => import('@/views/modules/cementerios/index.vue')
     },
-    // {
-    //   path: '/estacionamiento-exclusivo',
-    //   name: 'estacionamiento-exclusivo',
-    //   component: () => import('@/views/modules/estacionamiento_exclusivo/index.vue')
-    // },
-    // {
-    //   path: '/estacionamiento-publico',
-    //   name: 'estacionamiento-publico',
-    //   component: () => import('@/views/modules/estacionamiento_publico/index.vue')
-    // },
+    // RUTAS ESTACIONAMIENTO EXCLUSIVO
+    { path: '/estacionamiento-exclusivo', name: 'estacionamiento-exclusivo', component: () => import('@/views/modules/estacionamiento_exclusivo/Menu.vue') },
+    { path: '/estacionamiento-exclusivo/acceso', name: 'estacionamiento-exclusivo-acceso', component: () => import('@/views/modules/estacionamiento_exclusivo/acceso.vue') },
+    { path: '/estacionamiento-exclusivo/individual', name: 'estacionamiento-exclusivo-individual', component: () => import('@/views/modules/estacionamiento_exclusivo/Individual.vue') },
+    { path: '/estacionamiento-exclusivo/individual-folio', name: 'estacionamiento-exclusivo-individual-folio', component: () => import('@/views/modules/estacionamiento_exclusivo/Individual_Folio.vue') },
+    { path: '/estacionamiento-exclusivo/consulta-reg', name: 'estacionamiento-exclusivo-consulta-reg', component: () => import('@/views/modules/estacionamiento_exclusivo/ConsultaReg.vue') },
+    { path: '/estacionamiento-exclusivo/cons-his', name: 'estacionamiento-exclusivo-cons-his', component: () => import('@/views/modules/estacionamiento_exclusivo/Cons_his.vue') },
+    { path: '/estacionamiento-exclusivo/listados', name: 'estacionamiento-exclusivo-listados', component: () => import('@/views/modules/estacionamiento_exclusivo/Listados.vue') },
+    { path: '/estacionamiento-exclusivo/listados-ade', name: 'estacionamiento-exclusivo-listados-ade', component: () => import('@/views/modules/estacionamiento_exclusivo/Listados_Ade.vue') },
+    { path: '/estacionamiento-exclusivo/listados-sin-adereq', name: 'estacionamiento-exclusivo-listados-sin-adereq', component: () => import('@/views/modules/estacionamiento_exclusivo/ListadosSinAdereq.vue') },
+    { path: '/estacionamiento-exclusivo/listx-reg', name: 'estacionamiento-exclusivo-listx-reg', component: () => import('@/views/modules/estacionamiento_exclusivo/ListxReg.vue') },
+    { path: '/estacionamiento-exclusivo/listx-fec', name: 'estacionamiento-exclusivo-listx-fec', component: () => import('@/views/modules/estacionamiento_exclusivo/ListxFec.vue') },
+    { path: '/estacionamiento-exclusivo/estdx-folio', name: 'estacionamiento-exclusivo-estdx-folio', component: () => import('@/views/modules/estacionamiento_exclusivo/EstadxFolio.vue') },
+    { path: '/estacionamiento-exclusivo/modificar', name: 'estacionamiento-exclusivo-modificar', component: () => import('@/views/modules/estacionamiento_exclusivo/Modifcar.vue') },
+    { path: '/estacionamiento-exclusivo/modificar-bien', name: 'estacionamiento-exclusivo-modificar-bien', component: () => import('@/views/modules/estacionamiento_exclusivo/Modificar_bien.vue') },
+    { path: '/estacionamiento-exclusivo/modif-masiva', name: 'estacionamiento-exclusivo-modif-masiva', component: () => import('@/views/modules/estacionamiento_exclusivo/Modif_Masiva.vue') },
+    { path: '/estacionamiento-exclusivo/facturacion', name: 'estacionamiento-exclusivo-facturacion', component: () => import('@/views/modules/estacionamiento_exclusivo/Facturacion.vue') },
+    { path: '/estacionamiento-exclusivo/requerimientos', name: 'estacionamiento-exclusivo-requerimientos', component: () => import('@/views/modules/estacionamiento_exclusivo/Requerimientos.vue') },
+    { path: '/estacionamiento-exclusivo/recuperacion', name: 'estacionamiento-exclusivo-recuperacion', component: () => import('@/views/modules/estacionamiento_exclusivo/Recuperacion.vue') },
+    { path: '/estacionamiento-exclusivo/notificaciones', name: 'estacionamiento-exclusivo-notificaciones', component: () => import('@/views/modules/estacionamiento_exclusivo/Notificaciones.vue') },
+    { path: '/estacionamiento-exclusivo/notificaciones-mes', name: 'estacionamiento-exclusivo-notificaciones-mes', component: () => import('@/views/modules/estacionamiento_exclusivo/NotificacionesMes.vue') },
+    { path: '/estacionamiento-exclusivo/prenomina', name: 'estacionamiento-exclusivo-prenomina', component: () => import('@/views/modules/estacionamiento_exclusivo/Prenomina.vue') },
+    { path: '/estacionamiento-exclusivo/reasignacion', name: 'estacionamiento-exclusivo-reasignacion', component: () => import('@/views/modules/estacionamiento_exclusivo/Reasignacion.vue') },
+    { path: '/estacionamiento-exclusivo/ejecutores', name: 'estacionamiento-exclusivo-ejecutores', component: () => import('@/views/modules/estacionamiento_exclusivo/Ejecutores.vue') },
+    { path: '/estacionamiento-exclusivo/abc-ejec', name: 'estacionamiento-exclusivo-abc-ejec', component: () => import('@/views/modules/estacionamiento_exclusivo/ABCEjec.vue') },
+    { path: '/estacionamiento-exclusivo/lista-ejec', name: 'estacionamiento-exclusivo-lista-ejec', component: () => import('@/views/modules/estacionamiento_exclusivo/Lista_Eje.vue') },
+    { path: '/estacionamiento-exclusivo/list-eje', name: 'estacionamiento-exclusivo-list-eje', component: () => import('@/views/modules/estacionamiento_exclusivo/List_Eje.vue') },
+    { path: '/estacionamiento-exclusivo/lista-gastos-cob', name: 'estacionamiento-exclusivo-lista-gastos-cob', component: () => import('@/views/modules/estacionamiento_exclusivo/Lista_GastosCob.vue') },
+    { path: '/estacionamiento-exclusivo/autoriza-des', name: 'estacionamiento-exclusivo-autoriza-des', component: () => import('@/views/modules/estacionamiento_exclusivo/AutorizaDes.vue') },
+    { path: '/estacionamiento-exclusivo/carta-invitacion', name: 'estacionamiento-exclusivo-carta-invitacion', component: () => import('@/views/modules/estacionamiento_exclusivo/CartaInvitacion.vue') },
+    { path: '/estacionamiento-exclusivo/cmult-emision', name: 'estacionamiento-exclusivo-cmult-emision', component: () => import('@/views/modules/estacionamiento_exclusivo/CMultEmision.vue') },
+    { path: '/estacionamiento-exclusivo/cmult-folio', name: 'estacionamiento-exclusivo-cmult-folio', component: () => import('@/views/modules/estacionamiento_exclusivo/CMultFolio.vue') },
+    { path: '/estacionamiento-exclusivo/exportar-excel', name: 'estacionamiento-exclusivo-exportar-excel', component: () => import('@/views/modules/estacionamiento_exclusivo/ExportarExcel.vue') },
+    { path: '/estacionamiento-exclusivo/firma-electronica', name: 'estacionamiento-exclusivo-firma-electronica', component: () => import('@/views/modules/estacionamiento_exclusivo/FirmaElectronica.vue') },
+    { path: '/estacionamiento-exclusivo/apremios-svn-expedientes', name: 'estacionamiento-exclusivo-apremios-svn-expedientes', component: () => import('@/views/modules/estacionamiento_exclusivo/ApremiosSvnExpedientes.vue') },
+    { path: '/estacionamiento-exclusivo/apremios-svn-fases', name: 'estacionamiento-exclusivo-apremios-svn-fases', component: () => import('@/views/modules/estacionamiento_exclusivo/ApremiosSvnFases.vue') },
+    { path: '/estacionamiento-exclusivo/apremios-svn-actuaciones', name: 'estacionamiento-exclusivo-apremios-svn-actuaciones', component: () => import('@/views/modules/estacionamiento_exclusivo/ApremiosSvnActuaciones.vue') },
+    { path: '/estacionamiento-exclusivo/apremios-svn-notificaciones', name: 'estacionamiento-exclusivo-apremios-svn-notificaciones', component: () => import('@/views/modules/estacionamiento_exclusivo/ApremiosSvnNotificaciones.vue') },
+    { path: '/estacionamiento-exclusivo/apremios-svn-pagos', name: 'estacionamiento-exclusivo-apremios-svn-pagos', component: () => import('@/views/modules/estacionamiento_exclusivo/ApremiosSvnPagos.vue') },
+    { path: '/estacionamiento-exclusivo/apremios-svn-reportes', name: 'estacionamiento-exclusivo-apremios-svn-reportes', component: () => import('@/views/modules/estacionamiento_exclusivo/ApremiosSvnReportes.vue') },
+    { path: '/estacionamiento-exclusivo/sfrm-chgpass', name: 'estacionamiento-exclusivo-sfrm-chgpass', component: () => import('@/views/modules/estacionamiento_exclusivo/sfrm_chgpass.vue') },
+    // Rutas de Reportes Estacionamiento Exclusivo
+    { path: '/estacionamiento-exclusivo/rprt-catal-eje', name: 'estacionamiento-exclusivo-rprt-catal-eje', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtCATAL_EJE.vue') },
+    { path: '/estacionamiento-exclusivo/rprt-estadx-folio', name: 'estacionamiento-exclusivo-rprt-estadx-folio', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtEstadxfolio.vue') },
+    { path: '/estacionamiento-exclusivo/rprt-list-eje', name: 'estacionamiento-exclusivo-rprt-list-eje', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtList_Eje.vue') },
+    { path: '/estacionamiento-exclusivo/rprt-listados', name: 'estacionamiento-exclusivo-rprt-listados', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtListados.vue') },
+    { path: '/estacionamiento-exclusivo/rprt-listax-fec', name: 'estacionamiento-exclusivo-rprt-listax-fec', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtListaxFec.vue') },
+    { path: '/estacionamiento-exclusivo/rprt-listax-reg-aseo', name: 'estacionamiento-exclusivo-rprt-listax-reg-aseo', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtListaxRegAseo.vue') },
+    { path: '/estacionamiento-exclusivo/rprt-listax-reg-estacionometro', name: 'estacionamiento-exclusivo-rprt-listax-reg-estacionometro', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtListaxRegEstacionometro.vue') },
+    { path: '/estacionamiento-exclusivo/rprt-listax-reg-mer', name: 'estacionamiento-exclusivo-rprt-listax-reg-mer', component: () => import('@/views/modules/estacionamiento_exclusivo/RprtListaxRegMer.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-fact-merc', name: 'estacionamiento-exclusivo-rpt-fact-merc', component: () => import('@/views/modules/estacionamiento_exclusivo/RptFact_Merc.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-lista-mercados', name: 'estacionamiento-exclusivo-rpt-lista-mercados', component: () => import('@/views/modules/estacionamiento_exclusivo/RptLista_mercados.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-listado-aseo', name: 'estacionamiento-exclusivo-rpt-listado-aseo', component: () => import('@/views/modules/estacionamiento_exclusivo/RptListado_Aseo.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-listax-reg-pub', name: 'estacionamiento-exclusivo-rpt-listax-reg-pub', component: () => import('@/views/modules/estacionamiento_exclusivo/RptListaxRegPub.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-prenomina', name: 'estacionamiento-exclusivo-rpt-prenomina', component: () => import('@/views/modules/estacionamiento_exclusivo/RptPrenomina.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-recup-aseo', name: 'estacionamiento-exclusivo-rpt-recup-aseo', component: () => import('@/views/modules/estacionamiento_exclusivo/RptRecup_Aseo.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-recup-merc', name: 'estacionamiento-exclusivo-rpt-recup-merc', component: () => import('@/views/modules/estacionamiento_exclusivo/RptRecup_Merc.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-req-aseo', name: 'estacionamiento-exclusivo-rpt-req-aseo', component: () => import('@/views/modules/estacionamiento_exclusivo/RptReq_Aseo.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-req-merc', name: 'estacionamiento-exclusivo-rpt-req-merc', component: () => import('@/views/modules/estacionamiento_exclusivo/RptReq_Merc.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-req-pba-aseo', name: 'estacionamiento-exclusivo-rpt-req-pba-aseo', component: () => import('@/views/modules/estacionamiento_exclusivo/RptReq_Pba_Aseo.vue') },
+    { path: '/estacionamiento-exclusivo/rpt-req-pba', name: 'estacionamiento-exclusivo-rpt-req-pba', component: () => import('@/views/modules/estacionamiento_exclusivo/RptReq_pba.vue') },
+    // Rutas de Listados Adeudos Forms
+    { path: '/estacionamiento-exclusivo/listados-ade-aseo', name: 'estacionamiento-exclusivo-listados-ade-aseo', component: () => import('@/views/modules/estacionamiento_exclusivo/ListadosAdeAseoForm.vue') },
+    { path: '/estacionamiento-exclusivo/listados-ade-exclusivos', name: 'estacionamiento-exclusivo-listados-ade-exclusivos', component: () => import('@/views/modules/estacionamiento_exclusivo/ListadosAdeExclusivosForm.vue') },
+    { path: '/estacionamiento-exclusivo/listados-ade-infracciones', name: 'estacionamiento-exclusivo-listados-ade-infracciones', component: () => import('@/views/modules/estacionamiento_exclusivo/ListadosAdeInfraccionesForm.vue') },
+    { path: '/estacionamiento-exclusivo/listados-ade-mercados', name: 'estacionamiento-exclusivo-listados-ade-mercados', component: () => import('@/views/modules/estacionamiento_exclusivo/ListadosAdeMercadosForm.vue') },
+    { path: '/estacionamiento-exclusivo/listados-ade-publicos', name: 'estacionamiento-exclusivo-listados-ade-publicos', component: () => import('@/views/modules/estacionamiento_exclusivo/ListadosAdePublicosForm.vue') },
+    // Rutas auxiliares
+    { path: '/estacionamiento-exclusivo/menu', name: 'estacionamiento-exclusivo-menu', component: () => import('@/views/modules/estacionamiento_exclusivo/Menu.vue') },
+    { path: '/estacionamiento-exclusivo/report-autor', name: 'estacionamiento-exclusivo-report-autor', component: () => import('@/views/modules/estacionamiento_exclusivo/ReportAutor.vue') },
+    { path: '/estacionamiento-exclusivo/modulo-db', name: 'estacionamiento-exclusivo-modulo-db', component: () => import('@/views/modules/estacionamiento_exclusivo/ModuloDb.vue') },
+    { path: '/estacionamiento-exclusivo/unit9', name: 'estacionamiento-exclusivo-unit9', component: () => import('@/views/modules/estacionamiento_exclusivo/UNIT9.vue') },
+    { path: '/estacionamiento-exclusivo/loader', name: 'estacionamiento-exclusivo-loader', component: () => import('@/views/modules/estacionamiento_exclusivo/Loader.vue') },
     {
       path: '/mercados',
       name: 'mercados',
       component: () => import('@/views/modules/mercados/index.vue')
     },
-    // RUTAS DE MERCADOS COMENTADAS - Archivos no existen
-    /*
-    {
-      path: '/mercados/padron-locales',
-      name: 'mercados-padron-locales',
-      component: () => import('@/views/modules/mercados/PadronLocales.vue')
-    },
-    {
-      path: '/mercados/locales-mtto',
-      name: 'mercados-locales-mtto',
-      component: () => import('@/views/modules/mercados/LocalesMtto.vue')
-    },
-    {
-      path: '/mercados/adeudos-locales',
-      name: 'mercados-adeudos-locales',
-      component: () => import('@/views/modules/mercados/AdeudosLocales.vue')
-    },
-    {
-      path: '/mercados/alta-pagos',
-      name: 'mercados-alta-pagos',
-      component: () => import('@/views/modules/mercados/AltaPagos.vue')
-    },
-    {
-      path: '/mercados/emision-locales',
-      name: 'mercados-emision-locales',
-      component: () => import('@/views/modules/mercados/EmisionLocales.vue')
-    },
-    {
-      path: '/mercados/estad-pagos-adeudos',
-      name: 'mercados-estad-pagos-adeudos',
-      component: () => import('@/views/modules/mercados/EstadPagosyAdeudos.vue')
-    },
-    {
-      path: '/mercados/carga-pag-locales',
-      name: 'mercados-carga-pag-locales',
-      component: () => import('@/views/modules/mercados/CargaPagLocales.vue')
-    },
-    {
-      path: '/mercados/listados-locales',
-      name: 'mercados-listados-locales',
-      component: () => import('@/views/modules/mercados/ListadosLocales.vue')
-    },
-    {
-      path: '/mercados/rpt-pagos-locales',
-      name: 'mercados-rpt-pagos-locales',
-      component: () => import('@/views/modules/mercados/RptPagosLocales.vue')
-    },
-    {
-      path: '/mercados/padron-energia',
-      name: 'mercados-padron-energia',
-      component: () => import('@/views/modules/mercados/PadronEnergia.vue')
-    },
-    {
-      path: '/mercados/energia-mtto',
-      name: 'mercados-energia-mtto',
-      component: () => import('@/views/modules/mercados/EnergiaMtto.vue')
-    },
-    {
-      path: '/mercados/adeudos-energia',
-      name: 'mercados-adeudos-energia',
-      component: () => import('@/views/modules/mercados/AdeudosEnergia.vue')
-    },
-    {
-      path: '/mercados/catalogo-mercados',
-      name: 'mercados-catalogo-mercados',
-      component: () => import('@/views/modules/mercados/CatalogoMercados.vue')
-    },
-    {
-      path: '/mercados/consulta-datos-locales',
-      name: 'mercados-consulta-datos-locales',
-      component: () => import('@/views/modules/mercados/ConsultaDatosLocales.vue')
-    },
-    {
-      path: '/mercados/consulta-datos-energia',
-      name: 'mercados-consulta-datos-energia',
-      component: () => import('@/views/modules/mercados/ConsultaDatosEnergia.vue')
-    },
-    {
-      path: '/mercados/cuotas-mdo',
-      name: 'mercados-cuotas-mdo',
-      component: () => import('@/views/modules/mercados/CuotasMdo.vue')
-    },
-    {
-      path: '/mercados/categoria',
-      name: 'mercados-categoria',
-      component: () => import('@/views/modules/mercados/Categoria.vue')
-    },
-    {
-      path: '/mercados/giros',
-      name: 'mercados-giros',
-      component: () => import('@/views/modules/mercados/Giros.vue')
-    },
-    {
-      path: '/mercados/secciones',
-      name: 'mercados-secciones',
-      component: () => import('@/views/modules/mercados/Secciones.vue')
-    },
-    {
-      path: '/mercados/recaudadoras-mercados',
-      name: 'mercados-recaudadoras-mercados',
-      component: () => import('@/views/modules/mercados/RecaudadorasMercados.vue')
-    },
-    {
-      path: '/mercados/zonas-mercados',
-      name: 'mercados-zonas-mercados',
-      component: () => import('@/views/modules/mercados/ZonasMercados.vue')
-    },
-    {
-      path: '/mercados/reporte-general-mercados',
-      name: 'mercados-reporte-general-mercados',
-      component: () => import('@/views/modules/mercados/ReporteGeneralMercados.vue')
-    },
-    {
-      path: '/mercados/padron-global',
-      name: 'mercados-padron-global',
-      component: () => import('@/views/modules/mercados/PadronGlobal.vue')
-    },
-    {
-      path: '/mercados/alta-pagos-energia',
-      name: 'mercados-alta-pagos-energia',
-      component: () => import('@/views/modules/mercados/AltaPagosEnergia.vue')
-    },
-    {
-      path: '/mercados/cons-pagos',
-      name: 'mercados-cons-pagos',
-      component: () => import('@/views/modules/mercados/ConsPagos.vue')
-    },
-    {
-      path: '/mercados/pagos-individual',
-      name: 'mercados-pagos-individual',
-      component: () => import('@/views/modules/mercados/PagosIndividual.vue')
-    },
-    {
-      path: '/mercados/cuotas-energia',
-      name: 'mercados-cuotas-energia',
-      component: () => import('@/views/modules/mercados/CuotasEnergia.vue')
-    },
-    {
-      path: '/mercados/emision-energia',
-      name: 'mercados-emision-energia',
-      component: () => import('@/views/modules/mercados/EmisionEnergia.vue')
-    },
-    {
-      path: '/mercados/cuotas-energia-mntto',
-      name: 'mercados-cuotas-energia-mntto',
-      component: () => import('@/views/modules/mercados/CuotasEnergiaMntto.vue')
-    },
-    {
-      path: '/mercados/datos-convenio/:id_conv?',
-      name: 'mercados-datos-convenio',
-      component: () => import('@/views/modules/mercados/DatosConvenio.vue')
-    },
-    {
-      path: '/mercados/datos-individuales',
-      name: 'mercados-datos-individuales',
-      component: () => import('@/views/modules/mercados/DatosIndividuales.vue')
-    },
-    {
-      path: '/mercados/estadisticas',
-      name: 'mercados-estadisticas',
-      component: () => import('@/views/modules/mercados/Estadisticas.vue')
-    },
-    // LOTE 11: Acceso y Gestión de Requerimientos
-    {
-      path: '/mercados/acceso',
-      name: 'mercados-acceso',
-      component: () => import('@/views/modules/mercados/Acceso.vue')
-    },
-    {
-      path: '/mercados/catalogo-mntto',
-      name: 'mercados-catalogo-mntto',
-      component: () => import('@/views/modules/mercados/CatalogoMntto.vue')
-    },
-    {
-      path: '/mercados/cons-requerimientos',
-      name: 'mercados-cons-requerimientos',
-      component: () => import('@/views/modules/mercados/ConsRequerimientos.vue')
-    },
-    {
-      path: '/mercados/condonacion',
-      name: 'mercados-condonacion',
-      component: () => import('@/views/modules/mercados/Condonacion.vue')
-    },
-    {
-      path: '/mercados/ade-global-locales',
-      name: 'mercados-ade-global-locales',
-      component: () => import('@/views/modules/mercados/AdeGlobalLocales.vue')
-    },
-    // LOTE 12: Reportes de Adeudos Generales y Autorización de Carga
-    {
-      path: '/mercados/ade-energia-grl',
-      name: 'mercados-ade-energia-grl',
-      component: () => import('@/views/modules/mercados/AdeEnergiaGrl.vue')
-    },
-    {
-      path: '/mercados/adeudos-loc-grl',
-      name: 'mercados-adeudos-loc-grl',
-      component: () => import('@/views/modules/mercados/AdeudosLocGrl.vue')
-    },
-    {
-      path: '/mercados/aut-carga-pagos',
-      name: 'mercados-aut-carga-pagos',
-      component: () => import('@/views/modules/mercados/AutCargaPagos.vue')
-    },
-    {
-      path: '/mercados/aut-carga-pagos-mtto',
-      name: 'mercados-aut-carga-pagos-mtto',
-      component: () => import('@/views/modules/mercados/AutCargaPagosMtto.vue')
-    },
-    {
-      path: '/mercados/carga-diversos-esp',
-      name: 'mercados-carga-diversos-esp',
-      component: () => import('@/views/modules/mercados/CargaDiversosEsp.vue')
-    },
-    // LOTE 13: Carga de Pagos y Importación
-    {
-      path: '/mercados/carga-pag-energia',
-      name: 'mercados-carga-pag-energia',
-      component: () => import('@/views/modules/mercados/CargaPagEnergia.vue')
-    },
-    {
-      path: '/mercados/carga-pag-energia-elec',
-      name: 'mercados-carga-pag-energia-elec',
-      component: () => import('@/views/modules/mercados/CargaPagEnergiaElec.vue')
-    },
-    {
-      path: '/mercados/carga-pag-especial',
-      name: 'mercados-carga-pag-especial',
-      component: () => import('@/views/modules/mercados/CargaPagEspecial.vue')
-    },
-    {
-      path: '/mercados/carga-pag-mercado',
-      name: 'mercados-carga-pag-mercado',
-      component: () => import('@/views/modules/mercados/CargaPagMercado.vue')
-    },
-    {
-      path: '/mercados/carga-pagos-texto',
-      name: 'mercados-carga-pagos-texto',
-      component: () => import('@/views/modules/mercados/CargaPagosTexto.vue')
-    },
-    // LOTE 14: Componentes de Consulta y Captura
-    {
-      path: '/mercados/categoria-mntto',
-      name: 'mercados-categoria-mntto',
-      component: () => import('@/views/modules/mercados/CategoriaMntto.vue')
-    },
-    {
-      path: '/mercados/cons-captura-energia',
-      name: 'mercados-cons-captura-energia',
-      component: () => import('@/views/modules/mercados/ConsCapturaEnergia.vue')
-    },
-    {
-      path: '/mercados/cons-captura-fecha',
-      name: 'mercados-cons-captura-fecha',
-      component: () => import('@/views/modules/mercados/ConsCapturaFecha.vue')
-    },
-    {
-      path: '/mercados/cons-captura-fecha-energia',
-      name: 'mercados-cons-captura-fecha-energia',
-      component: () => import('@/views/modules/mercados/ConsCapturaFechaEnergia.vue')
-    },
-    {
-      path: '/mercados/cons-captura-merc',
-      name: 'mercados-cons-captura-merc',
-      component: () => import('@/views/modules/mercados/ConsCapturaMerc.vue')
-    },
-
-    // LOTE 15: Consultas y Condonaciones
-    {
-      path: '/mercados/cons-pagos-energia',
-      name: 'mercados-cons-pagos-energia',
-      component: () => import('@/views/modules/mercados/ConsPagosEnergia.vue')
-    },
-    {
-      path: '/mercados/cons-pagos-locales',
-      name: 'mercados-cons-pagos-locales',
-      component: () => import('@/views/modules/mercados/ConsPagosLocales.vue')
-    },
-    {
-      path: '/mercados/consulta-general',
-      name: 'mercados-consulta-general',
-      component: () => import('@/views/modules/mercados/ConsultaGeneral.vue')
-    },
-    {
-      path: '/mercados/cons-condonacion',
-      name: 'mercados-cons-condonacion',
-      component: () => import('@/views/modules/mercados/ConsCondonacion.vue')
-    },
-    {
-      path: '/mercados/cons-condonacion-energia',
-      name: 'mercados-cons-condonacion-energia',
-      component: () => import('@/views/modules/mercados/ConsCondonacionEnergia.vue')
-    },
-
-    // LOTE 16: Configuración y Cuotas Adicionales
-    {
-      path: '/mercados/cuotas-mdo-mntto',
-      name: 'mercados-cuotas-mdo-mntto',
-      component: () => import('@/views/modules/mercados/CuotasMdoMntto.vue')
-    },
-    {
-      path: '/mercados/cve-cuota',
-      name: 'mercados-cve-cuota',
-      component: () => import('@/views/modules/mercados/CveCuota.vue')
-    },
-    {
-      path: '/mercados/cve-diferencias',
-      name: 'mercados-cve-diferencias',
-      component: () => import('@/views/modules/mercados/CveDiferencias.vue')
-    },
-    {
-      path: '/mercados/fecha-descuento',
-      name: 'mercados-fecha-descuento',
-      component: () => import('@/views/modules/mercados/FechaDescuento.vue')
-    },
-    {
-      path: '/mercados/fechas-descuento-mntto',
-      name: 'mercados-fechas-descuento-mntto',
-      component: () => import('@/views/modules/mercados/FechasDescuentoMntto.vue')
-    },
-    {
-      path: '/mercados/recargos',
-      name: 'mercados-recargos',
-      component: () => import('@/views/modules/mercados/Recargos.vue')
-    },
-
-    // LOTE 17: Datos de Locales y Energía
-    {
-      path: '/mercados/datos-movimientos',
-      name: 'mercados-datos-movimientos',
-      component: () => import('@/views/modules/mercados/DatosMovimientos.vue')
-    },
-    {
-      path: '/mercados/datos-requerimientos',
-      name: 'mercados-datos-requerimientos',
-      component: () => import('@/views/modules/mercados/DatosRequerimientos.vue')
-    },
-    {
-      path: '/mercados/locales-modif',
-      name: 'mercados-locales-modif',
-      component: () => import('@/views/modules/mercados/LocalesModif.vue')
-    },
-    {
-      path: '/mercados/energia-modif',
-      name: 'mercados-energia-modif',
-      component: () => import('@/views/modules/mercados/EnergiaModif.vue')
-    },
-
-    // LOTE 18: Emisión y Consultas de Pagos
-    {
-      path: '/mercados/emision-libertad',
-      name: 'mercados-emision-libertad',
-      component: () => import('@/views/modules/mercados/EmisionLibertad.vue')
-    },
-    {
-      path: '/mercados/pagos-ene-cons',
-      name: 'mercados-pagos-ene-cons',
-      component: () => import('@/views/modules/mercados/PagosEneCons.vue')
-    },
-    {
-      path: '/mercados/pagos-loc-grl',
-      name: 'mercados-pagos-loc-grl',
-      component: () => import('@/views/modules/mercados/PagosLocGrl.vue')
-    },
-
-    // LOTE 19: Condonaciones y Prescripción
-    {
-      path: '/mercados/prescripcion',
-      name: 'mercados-prescripcion',
-      component: () => import('@/views/modules/mercados/Prescripcion.vue')
-    },
-    {
-      path: '/mercados/rep-adeud-cond',
-      name: 'mercados-rep-adeud-cond',
-      component: () => import('@/views/modules/mercados/RepAdeudCond.vue')
-    },
-
-    // LOTE 20: Reportes de Adeudos
-    {
-      path: '/mercados/rpt-ade-energia-grl',
-      name: 'mercados-rpt-ade-energia-grl',
-      component: () => import('@/views/modules/mercados/RptAdeEnergiaGrl.vue')
-    },
-    {
-      path: '/mercados/rpt-adeudos-locales',
-      name: 'mercados-rpt-adeudos-locales',
-      component: () => import('@/views/modules/mercados/RptAdeudosLocales.vue')
-    },
-    {
-      path: '/mercados/rpt-adeudos-energia',
-      name: 'mercados-rpt-adeudos-energia',
-      component: () => import('@/views/modules/mercados/RptAdeudosEnergia.vue')
-    },
-    {
-      path: '/mercados/rpt-adeudos-anteriores',
-      name: 'mercados-rpt-adeudos-anteriores',
-      component: () => import('@/views/modules/mercados/RptAdeudosAnteriores.vue')
-    },
-    {
-      path: '/mercados/rpt-adeudos-abastos1998',
-      name: 'mercados-rpt-adeudos-abastos1998',
-      component: () => import('@/views/modules/mercados/RptAdeudosAbastos1998.vue')
-    },
-    {
-      path: '/mercados/rpt-desgloce-ade-porimporte',
-      name: 'mercados-rpt-desgloce-ade-porimporte',
-      component: () => import('@/views/modules/mercados/RptDesgloceAdePorimporte.vue')
-    },
-
-    // LOTE 21: Reportes de Emisión
-    {
-      path: '/mercados/rpt-emision-locales',
-      name: 'mercados-rpt-emision-locales',
-      component: () => import('@/views/modules/mercados/RptEmisionLocales.vue')
-    },
-    {
-      path: '/mercados/rpt-emision-rbos-abastos',
-      name: 'mercados-rpt-emision-rbos-abastos',
-      component: () => import('@/views/modules/mercados/RptEmisionRbosAbastos.vue')
-    },
-    {
-      path: '/mercados/rpt-emision-laser',
-      name: 'mercados-rpt-emision-laser',
-      component: () => import('@/views/modules/mercados/RptEmisionLaser.vue')
-    },
-    {
-      path: '/mercados/rpt-emision-energia',
-      name: 'mercados-rpt-emision-energia',
-      component: () => import('@/views/modules/mercados/RptEmisionEnergia.vue')
-    },
-
-    // LOTE 22: Reportes de Facturación
-    {
-      path: '/mercados/rpt-factura-emision',
-      name: 'mercados-rpt-factura-emision',
-      component: () => import('@/views/modules/mercados/RptFacturaEmision.vue')
-    },
-    {
-      path: '/mercados/rpt-factura-energia',
-      name: 'mercados-rpt-factura-energia',
-      component: () => import('@/views/modules/mercados/RptFacturaEnergia.vue')
-    },
-    {
-      path: '/mercados/rpt-factura-glunes',
-      name: 'mercados-rpt-factura-glunes',
-      component: () => import('@/views/modules/mercados/RptFacturaGLunes.vue')
-    },
-
-    // LOTE 23: Reportes de Padrones e Ingresos
-    {
-      path: '/mercados/rpt-padron-locales',
-      name: 'mercados-rpt-padron-locales',
-      component: () => import('@/views/modules/mercados/RptPadronLocales.vue')
-    },
-    {
-      path: '/mercados/rpt-padron-energia',
-      name: 'mercados-rpt-padron-energia',
-      component: () => import('@/views/modules/mercados/RptPadronEnergia.vue')
-    },
-    {
-      path: '/mercados/rpt-locales-giro',
-      name: 'mercados-rpt-locales-giro',
-      component: () => import('@/views/modules/mercados/RptLocalesGiro.vue')
-    },
-    {
-      path: '/mercados/rpt-mercados',
-      name: 'mercados-rpt-mercados',
-      component: () => import('@/views/modules/mercados/RptMercados.vue')
-    },
-    {
-      path: '/mercados/rpt-zonificacion',
-      name: 'mercados-rpt-zonificacion',
-      component: () => import('@/views/modules/mercados/RptZonificacion.vue')
-    },
-    {
-      path: '/mercados/rpt-movimientos',
-      name: 'mercados-rpt-movimientos',
-      component: () => import('@/views/modules/mercados/RptMovimientos.vue')
-    },
-    {
-      path: '/mercados/ingreso-captura',
-      name: 'mercados-ingreso-captura',
-      component: () => import('@/views/modules/mercados/IngresoCaptura.vue')
-    },
-    {
-      path: '/mercados/ingreso-lib',
-      name: 'mercados-ingreso-lib',
-      component: () => import('@/views/modules/mercados/IngresoLib.vue')
-    },
-    {
-      path: '/mercados/rpt-ingreso-zonificado',
-      name: 'mercados-rpt-ingreso-zonificado',
-      component: () => import('@/views/modules/mercados/RptIngresoZonificado.vue')
-    },
-
-    // LOTE 24: Reportes de Facturación y Padrones (continuación)
-    {
-      path: '/mercados/rpt-ingresos',
-      name: 'mercados-rpt-ingresos',
-      component: () => import('@/views/modules/mercados/RptIngresos.vue')
-    },
-    {
-      path: '/mercados/rpt-ingresos-energia',
-      name: 'mercados-rpt-ingresos-energia',
-      component: () => import('@/views/modules/mercados/RptIngresosEnergia.vue')
-    },
-
-    // LOTE 25: Reportes de Pagos
-    {
-      path: '/mercados/rpt-pagos-ano',
-      name: 'mercados-rpt-pagos-ano',
-      component: () => import('@/views/modules/mercados/RptPagosAno.vue')
-    },
-    {
-      path: '/mercados/rpt-pagos-caja',
-      name: 'mercados-rpt-pagos-caja',
-      component: () => import('@/views/modules/mercados/RptPagosCaja.vue')
-    },
-    {
-      path: '/mercados/rpt-pagos-detalle',
-      name: 'mercados-rpt-pagos-detalle',
-      component: () => import('@/views/modules/mercados/RptPagosDetalle.vue')
-    },
-    {
-      path: '/mercados/rpt-pagos-grl',
-      name: 'mercados-rpt-pagos-grl',
-      component: () => import('@/views/modules/mercados/RptPagosGrl.vue')
-    },
-
-    // LOTE 26: Estadísticas y Reportes Finales
-    {
-      path: '/mercados/rpt-estad-pagos-y-adeudos',
-      name: 'mercados-rpt-estad-pagos-y-adeudos',
-      component: () => import('@/views/modules/mercados/RptEstadPagosyAdeudos.vue')
-    },
-    {
-      path: '/mercados/rpt-estadistica-adeudos',
-      name: 'mercados-rpt-estadistica-adeudos',
-      component: () => import('@/views/modules/mercados/RptEstadisticaAdeudos.vue')
-    },
-    {
-      path: '/mercados/cuenta-publica',
-      name: 'mercados-cuenta-publica',
-      component: () => import('@/views/modules/mercados/CuentaPublica.vue')
-    },
-    {
-      path: '/mercados/rpt-cuenta-publica',
-      name: 'mercados-rpt-cuenta-publica',
-      component: () => import('@/views/modules/mercados/RptCuentaPublica.vue')
-    },
-    {
-      path: '/mercados/pagos-dif-ingresos',
-      name: 'mercados-pagos-dif-ingresos',
-      component: () => import('@/views/modules/mercados/PagosDifIngresos.vue')
-    },
-
-    // LOTE 27: Reportes Finales y Configuración
-    {
-      path: '/mercados/rpt-resumen-pagos',
-      name: 'mercados-rpt-resumen-pagos',
-      component: () => import('@/views/modules/mercados/RptResumenPagos.vue')
-    },
-    {
-      path: '/mercados/rpt-saldos-locales',
-      name: 'mercados-rpt-saldos-locales',
-      component: () => import('@/views/modules/mercados/RptSaldosLocales.vue')
-    },
-    {
-      path: '/mercados/rpt-fechas-vencimiento',
-      name: 'mercados-rpt-fechas-vencimiento',
-      component: () => import('@/views/modules/mercados/RptFechasVencimiento.vue')
-    },
-    {
-      path: '/mercados/rpt-catalogo-merc',
-      name: 'mercados-rpt-catalogo-merc',
-      component: () => import('@/views/modules/mercados/RptCatalogoMerc.vue')
-    },
-
-    // Paso de Datos
-    {
-      path: '/mercados/paso-adeudos',
-      name: 'mercados-paso-adeudos',
-      component: () => import('@/views/modules/mercados/PasoAdeudos.vue')
-    },
-    {
-      path: '/mercados/paso-ene',
-      name: 'mercados-paso-ene',
-      component: () => import('@/views/modules/mercados/PasoEne.vue')
-    },
-    {
-      path: '/mercados/paso-mdos',
-      name: 'mercados-paso-mdos',
-      component: () => import('@/views/modules/mercados/PasoMdos.vue')
-    },
-
-    // Menú Principal de Mercados
-    {
-      path: '/mercados/menu',
-      name: 'mercados-menu',
-      component: () => import('@/views/modules/mercados/Menu.vue')
-    },
-    */
-    // Fin de rutas de mercados comentadas
+    // RUTAS DE MERCADOS
+    { path: '/mercados/padron-locales', name: 'mercados-padron-locales', component: () => import('@/views/modules/mercados/PadronLocales.vue') },
+    { path: '/mercados/locales-mtto', name: 'mercados-locales-mtto', component: () => import('@/views/modules/mercados/LocalesMtto.vue') },
+    { path: '/mercados/adeudos-locales', name: 'mercados-adeudos-locales', component: () => import('@/views/modules/mercados/AdeudosLocales.vue') },
+    { path: '/mercados/alta-pagos', name: 'mercados-alta-pagos', component: () => import('@/views/modules/mercados/AltaPagos.vue') },
+    { path: '/mercados/emision-locales', name: 'mercados-emision-locales', component: () => import('@/views/modules/mercados/EmisionLocales.vue') },
+    { path: '/mercados/estad-pagos-adeudos', name: 'mercados-estad-pagos-adeudos', component: () => import('@/views/modules/mercados/EstadPagosyAdeudos.vue') },
+    { path: '/mercados/carga-pag-locales', name: 'mercados-carga-pag-locales', component: () => import('@/views/modules/mercados/CargaPagLocales.vue') },
+    { path: '/mercados/listados-locales', name: 'mercados-listados-locales', component: () => import('@/views/modules/mercados/ListadosLocales.vue') },
+    { path: '/mercados/rpt-pagos-locales', name: 'mercados-rpt-pagos-locales', component: () => import('@/views/modules/mercados/RptPagosLocales.vue') },
+    { path: '/mercados/padron-energia', name: 'mercados-padron-energia', component: () => import('@/views/modules/mercados/PadronEnergia.vue') },
+    { path: '/mercados/energia-mtto', name: 'mercados-energia-mtto', component: () => import('@/views/modules/mercados/EnergiaMtto.vue') },
+    { path: '/mercados/adeudos-energia', name: 'mercados-adeudos-energia', component: () => import('@/views/modules/mercados/AdeudosEnergia.vue') },
+    { path: '/mercados/catalogo-mercados', name: 'mercados-catalogo-mercados', component: () => import('@/views/modules/mercados/CatalogoMercados.vue') },
+    { path: '/mercados/consulta-datos-locales', name: 'mercados-consulta-datos-locales', component: () => import('@/views/modules/mercados/ConsultaDatosLocales.vue') },
+    { path: '/mercados/consulta-datos-energia', name: 'mercados-consulta-datos-energia', component: () => import('@/views/modules/mercados/ConsultaDatosEnergia.vue') },
+    { path: '/mercados/cuotas-mdo', name: 'mercados-cuotas-mdo', component: () => import('@/views/modules/mercados/CuotasMdo.vue') },
+    { path: '/mercados/categoria', name: 'mercados-categoria', component: () => import('@/views/modules/mercados/Categoria.vue') },
+    { path: '/mercados/giros', name: 'mercados-giros', component: () => import('@/views/modules/mercados/Giros.vue') },
+    { path: '/mercados/secciones', name: 'mercados-secciones', component: () => import('@/views/modules/mercados/Secciones.vue') },
+    { path: '/mercados/recaudadoras-mercados', name: 'mercados-recaudadoras-mercados', component: () => import('@/views/modules/mercados/RecaudadorasMercados.vue') },
+    { path: '/mercados/zonas-mercados', name: 'mercados-zonas-mercados', component: () => import('@/views/modules/mercados/ZonasMercados.vue') },
+    { path: '/mercados/reporte-general-mercados', name: 'mercados-reporte-general-mercados', component: () => import('@/views/modules/mercados/ReporteGeneralMercados.vue') },
+    { path: '/mercados/padron-global', name: 'mercados-padron-global', component: () => import('@/views/modules/mercados/PadronGlobal.vue') },
+    { path: '/mercados/alta-pagos-energia', name: 'mercados-alta-pagos-energia', component: () => import('@/views/modules/mercados/AltaPagosEnergia.vue') },
+    { path: '/mercados/cons-pagos', name: 'mercados-cons-pagos', component: () => import('@/views/modules/mercados/ConsPagos.vue') },
+    { path: '/mercados/pagos-individual', name: 'mercados-pagos-individual', component: () => import('@/views/modules/mercados/PagosIndividual.vue') },
+    { path: '/mercados/cuotas-energia', name: 'mercados-cuotas-energia', component: () => import('@/views/modules/mercados/CuotasEnergia.vue') },
+    { path: '/mercados/emision-energia', name: 'mercados-emision-energia', component: () => import('@/views/modules/mercados/EmisionEnergia.vue') },
+    { path: '/mercados/cuotas-energia-mntto', name: 'mercados-cuotas-energia-mntto', component: () => import('@/views/modules/mercados/CuotasEnergiaMntto.vue') },
+    { path: '/mercados/datos-convenio', name: 'mercados-datos-convenio', component: () => import('@/views/modules/mercados/DatosConvenio.vue') },
+    { path: '/mercados/datos-individuales', name: 'mercados-datos-individuales', component: () => import('@/views/modules/mercados/DatosIndividuales.vue') },
+    { path: '/mercados/estadisticas', name: 'mercados-estadisticas', component: () => import('@/views/modules/mercados/Estadisticas.vue') },
+    { path: '/mercados/acceso', name: 'mercados-acceso', component: () => import('@/views/modules/mercados/Acceso.vue') },
+    { path: '/mercados/catalogo-mntto', name: 'mercados-catalogo-mntto', component: () => import('@/views/modules/mercados/CatalogoMntto.vue') },
+    { path: '/mercados/cons-requerimientos', name: 'mercados-cons-requerimientos', component: () => import('@/views/modules/mercados/ConsRequerimientos.vue') },
+    { path: '/mercados/condonacion', name: 'mercados-condonacion', component: () => import('@/views/modules/mercados/Condonacion.vue') },
+    { path: '/mercados/ade-global-locales', name: 'mercados-ade-global-locales', component: () => import('@/views/modules/mercados/AdeGlobalLocales.vue') },
+    { path: '/mercados/ade-energia-grl', name: 'mercados-ade-energia-grl', component: () => import('@/views/modules/mercados/AdeEnergiaGrl.vue') },
+    { path: '/mercados/adeudos-loc-grl', name: 'mercados-adeudos-loc-grl', component: () => import('@/views/modules/mercados/AdeudosLocGrl.vue') },
+    { path: '/mercados/aut-carga-pagos', name: 'mercados-aut-carga-pagos', component: () => import('@/views/modules/mercados/AutCargaPagos.vue') },
+    { path: '/mercados/aut-carga-pagos-mtto', name: 'mercados-aut-carga-pagos-mtto', component: () => import('@/views/modules/mercados/AutCargaPagosMtto.vue') },
+    { path: '/mercados/carga-diversos-esp', name: 'mercados-carga-diversos-esp', component: () => import('@/views/modules/mercados/CargaDiversosEsp.vue') },
+    { path: '/mercados/carga-pag-energia', name: 'mercados-carga-pag-energia', component: () => import('@/views/modules/mercados/CargaPagEnergia.vue') },
+    { path: '/mercados/carga-pag-energia-elec', name: 'mercados-carga-pag-energia-elec', component: () => import('@/views/modules/mercados/CargaPagEnergiaElec.vue') },
+    { path: '/mercados/carga-pag-especial', name: 'mercados-carga-pag-especial', component: () => import('@/views/modules/mercados/CargaPagEspecial.vue') },
+    { path: '/mercados/carga-pag-mercado', name: 'mercados-carga-pag-mercado', component: () => import('@/views/modules/mercados/CargaPagMercado.vue') },
+    { path: '/mercados/carga-pagos-texto', name: 'mercados-carga-pagos-texto', component: () => import('@/views/modules/mercados/CargaPagosTexto.vue') },
+    { path: '/mercados/categoria-mntto', name: 'mercados-categoria-mntto', component: () => import('@/views/modules/mercados/CategoriaMntto.vue') },
+    { path: '/mercados/cons-captura-energia', name: 'mercados-cons-captura-energia', component: () => import('@/views/modules/mercados/ConsCapturaEnergia.vue') },
+    { path: '/mercados/cons-captura-fecha', name: 'mercados-cons-captura-fecha', component: () => import('@/views/modules/mercados/ConsCapturaFecha.vue') },
+    { path: '/mercados/cons-captura-fecha-energia', name: 'mercados-cons-captura-fecha-energia', component: () => import('@/views/modules/mercados/ConsCapturaFechaEnergia.vue') },
+    { path: '/mercados/cons-captura-merc', name: 'mercados-cons-captura-merc', component: () => import('@/views/modules/mercados/ConsCapturaMerc.vue') },
+    { path: '/mercados/cons-pagos-energia', name: 'mercados-cons-pagos-energia', component: () => import('@/views/modules/mercados/ConsPagosEnergia.vue') },
+    { path: '/mercados/cons-pagos-locales', name: 'mercados-cons-pagos-locales', component: () => import('@/views/modules/mercados/ConsPagosLocales.vue') },
+    { path: '/mercados/consulta-general', name: 'mercados-consulta-general', component: () => import('@/views/modules/mercados/ConsultaGeneral.vue') },
+    { path: '/mercados/cons-condonacion', name: 'mercados-cons-condonacion', component: () => import('@/views/modules/mercados/ConsCondonacion.vue') },
+    { path: '/mercados/cons-condonacion-energia', name: 'mercados-cons-condonacion-energia', component: () => import('@/views/modules/mercados/ConsCondonacionEnergia.vue') },
+    { path: '/mercados/cuotas-mdo-mntto', name: 'mercados-cuotas-mdo-mntto', component: () => import('@/views/modules/mercados/CuotasMdoMntto.vue') },
+    { path: '/mercados/cve-cuota', name: 'mercados-cve-cuota', component: () => import('@/views/modules/mercados/CveCuota.vue') },
+    { path: '/mercados/cve-diferencias', name: 'mercados-cve-diferencias', component: () => import('@/views/modules/mercados/CveDiferencias.vue') },
+    { path: '/mercados/fecha-descuento', name: 'mercados-fecha-descuento', component: () => import('@/views/modules/mercados/FechaDescuento.vue') },
+    { path: '/mercados/fechas-descuento-mntto', name: 'mercados-fechas-descuento-mntto', component: () => import('@/views/modules/mercados/FechasDescuentoMntto.vue') },
+    { path: '/mercados/recargos', name: 'mercados-recargos', component: () => import('@/views/modules/mercados/Recargos.vue') },
+    { path: '/mercados/datos-movimientos', name: 'mercados-datos-movimientos', component: () => import('@/views/modules/mercados/DatosMovimientos.vue') },
+    { path: '/mercados/datos-requerimientos', name: 'mercados-datos-requerimientos', component: () => import('@/views/modules/mercados/DatosRequerimientos.vue') },
+    { path: '/mercados/locales-modif', name: 'mercados-locales-modif', component: () => import('@/views/modules/mercados/LocalesModif.vue') },
+    { path: '/mercados/energia-modif', name: 'mercados-energia-modif', component: () => import('@/views/modules/mercados/EnergiaModif.vue') },
+    { path: '/mercados/emision-libertad', name: 'mercados-emision-libertad', component: () => import('@/views/modules/mercados/EmisionLibertad.vue') },
+    { path: '/mercados/pagos-ene-cons', name: 'mercados-pagos-ene-cons', component: () => import('@/views/modules/mercados/PagosEneCons.vue') },
+    { path: '/mercados/pagos-loc-grl', name: 'mercados-pagos-loc-grl', component: () => import('@/views/modules/mercados/PagosLocGrl.vue') },
+    { path: '/mercados/prescripcion', name: 'mercados-prescripcion', component: () => import('@/views/modules/mercados/Prescripcion.vue') },
+    { path: '/mercados/rep-adeud-cond', name: 'mercados-rep-adeud-cond', component: () => import('@/views/modules/mercados/RepAdeudCond.vue') },
+    { path: '/mercados/rpt-ade-energia-grl', name: 'mercados-rpt-ade-energia-grl', component: () => import('@/views/modules/mercados/RptAdeEnergiaGrl.vue') },
+    { path: '/mercados/rpt-adeudos-locales', name: 'mercados-rpt-adeudos-locales', component: () => import('@/views/modules/mercados/RptAdeudosLocales.vue') },
+    { path: '/mercados/rpt-adeudos-energia', name: 'mercados-rpt-adeudos-energia', component: () => import('@/views/modules/mercados/RptAdeudosEnergia.vue') },
+    { path: '/mercados/rpt-adeudos-anteriores', name: 'mercados-rpt-adeudos-anteriores', component: () => import('@/views/modules/mercados/RptAdeudosAnteriores.vue') },
+    { path: '/mercados/rpt-adeudos-abastos1998', name: 'mercados-rpt-adeudos-abastos1998', component: () => import('@/views/modules/mercados/RptAdeudosAbastos1998.vue') },
+    { path: '/mercados/rpt-desgloce-ade-porimporte', name: 'mercados-rpt-desgloce-ade-porimporte', component: () => import('@/views/modules/mercados/RptDesgloceAdeporImporte.vue') },
+    { path: '/mercados/rpt-emision-locales', name: 'mercados-rpt-emision-locales', component: () => import('@/views/modules/mercados/RptEmisionLocales.vue') },
+    { path: '/mercados/rpt-emision-rbos-abastos', name: 'mercados-rpt-emision-rbos-abastos', component: () => import('@/views/modules/mercados/RptEmisionRbosAbastos.vue') },
+    { path: '/mercados/rpt-emision-laser', name: 'mercados-rpt-emision-laser', component: () => import('@/views/modules/mercados/RptEmisionLaser.vue') },
+    { path: '/mercados/rpt-emision-energia', name: 'mercados-rpt-emision-energia', component: () => import('@/views/modules/mercados/RptEmisionEnergia.vue') },
+    { path: '/mercados/rpt-factura-emision', name: 'mercados-rpt-factura-emision', component: () => import('@/views/modules/mercados/RptFacturaEmision.vue') },
+    { path: '/mercados/rpt-factura-energia', name: 'mercados-rpt-factura-energia', component: () => import('@/views/modules/mercados/RptFacturaEnergia.vue') },
+    { path: '/mercados/rpt-factura-glunes', name: 'mercados-rpt-factura-glunes', component: () => import('@/views/modules/mercados/RptFacturaGLunes.vue') },
+    { path: '/mercados/rpt-padron-locales', name: 'mercados-rpt-padron-locales', component: () => import('@/views/modules/mercados/RptPadronLocales.vue') },
+    { path: '/mercados/rpt-padron-energia', name: 'mercados-rpt-padron-energia', component: () => import('@/views/modules/mercados/RptPadronEnergia.vue') },
+    { path: '/mercados/rpt-locales-giro', name: 'mercados-rpt-locales-giro', component: () => import('@/views/modules/mercados/RptLocalesGiro.vue') },
+    { path: '/mercados/rpt-mercados', name: 'mercados-rpt-mercados', component: () => import('@/views/modules/mercados/RptMercados.vue') },
+    { path: '/mercados/rpt-zonificacion', name: 'mercados-rpt-zonificacion', component: () => import('@/views/modules/mercados/RptZonificacion.vue') },
+    { path: '/mercados/rpt-movimientos', name: 'mercados-rpt-movimientos', component: () => import('@/views/modules/mercados/RptMovimientos.vue') },
+    { path: '/mercados/ingreso-captura', name: 'mercados-ingreso-captura', component: () => import('@/views/modules/mercados/IngresoCaptura.vue') },
+    { path: '/mercados/ingreso-lib', name: 'mercados-ingreso-lib', component: () => import('@/views/modules/mercados/IngresoLib.vue') },
+    { path: '/mercados/rpt-ingreso-zonificado', name: 'mercados-rpt-ingreso-zonificado', component: () => import('@/views/modules/mercados/RptIngresoZonificado.vue') },
+    { path: '/mercados/rpt-ingresos', name: 'mercados-rpt-ingresos', component: () => import('@/views/modules/mercados/RptIngresos.vue') },
+    { path: '/mercados/rpt-ingresos-energia', name: 'mercados-rpt-ingresos-energia', component: () => import('@/views/modules/mercados/RptIngresosEnergia.vue') },
+    { path: '/mercados/rpt-pagos-ano', name: 'mercados-rpt-pagos-ano', component: () => import('@/views/modules/mercados/RptPagosAno.vue') },
+    { path: '/mercados/rpt-pagos-caja', name: 'mercados-rpt-pagos-caja', component: () => import('@/views/modules/mercados/RptPagosCaja.vue') },
+    { path: '/mercados/rpt-pagos-detalle', name: 'mercados-rpt-pagos-detalle', component: () => import('@/views/modules/mercados/RptPagosDetalle.vue') },
+    { path: '/mercados/rpt-pagos-grl', name: 'mercados-rpt-pagos-grl', component: () => import('@/views/modules/mercados/RptPagosGrl.vue') },
+    { path: '/mercados/rpt-estad-pagos-y-adeudos', name: 'mercados-rpt-estad-pagos-y-adeudos', component: () => import('@/views/modules/mercados/RptEstadPagosyAdeudos.vue') },
+    { path: '/mercados/rpt-estadistica-adeudos', name: 'mercados-rpt-estadistica-adeudos', component: () => import('@/views/modules/mercados/RptEstadisticaAdeudos.vue') },
+    { path: '/mercados/cuenta-publica', name: 'mercados-cuenta-publica', component: () => import('@/views/modules/mercados/CuentaPublica.vue') },
+    { path: '/mercados/rpt-cuenta-publica', name: 'mercados-rpt-cuenta-publica', component: () => import('@/views/modules/mercados/RptCuentaPublica.vue') },
+    { path: '/mercados/pagos-dif-ingresos', name: 'mercados-pagos-dif-ingresos', component: () => import('@/views/modules/mercados/PagosDifIngresos.vue') },
+    { path: '/mercados/rpt-resumen-pagos', name: 'mercados-rpt-resumen-pagos', component: () => import('@/views/modules/mercados/RptResumenPagos.vue') },
+    { path: '/mercados/rpt-saldos-locales', name: 'mercados-rpt-saldos-locales', component: () => import('@/views/modules/mercados/RptSaldosLocales.vue') },
+    { path: '/mercados/rpt-fechas-vencimiento', name: 'mercados-rpt-fechas-vencimiento', component: () => import('@/views/modules/mercados/RptFechasVencimiento.vue') },
+    { path: '/mercados/rpt-catalogo-merc', name: 'mercados-rpt-catalogo-merc', component: () => import('@/views/modules/mercados/RptCatalogoMerc.vue') },
+    { path: '/mercados/paso-adeudos', name: 'mercados-paso-adeudos', component: () => import('@/views/modules/mercados/PasoAdeudos.vue') },
+    { path: '/mercados/paso-ene', name: 'mercados-paso-ene', component: () => import('@/views/modules/mercados/PasoEne.vue') },
+    { path: '/mercados/paso-mdos', name: 'mercados-paso-mdos', component: () => import('@/views/modules/mercados/PasoMdos.vue') },
+    { path: '/mercados/menu', name: 'mercados-menu', component: () => import('@/views/modules/mercados/Menu.vue') },
 
     {
       path: '/multas-reglamentos',
@@ -1504,7 +1078,7 @@ const router = createRouter({
     },
     // OTRAS OBLIGACIONES - Menú Principal
     {
-      path: '/otras_obligaciones',
+      path: '/otras_obligaciones/menu',
       name: 'otras-obligaciones-menu',
       component: () => import('@/views/modules/otras_obligaciones/Menu.vue')
     },
@@ -2108,7 +1682,36 @@ const router = createRouter({
       path: '/padron-licencias/imp-licencia-reglamentada',
       name: 'imp-licencia-reglamentada',
       component: () => import('@/views/modules/padron_licencias/ImpLicenciaReglamentada.vue')
-    }
+    },
+    // RUTAS DE OTRAS OBLIGACIONES
+    { path: '/otras-obligaciones', name: 'otras-obligaciones', component: () => import('@/views/modules/otras_obligaciones/index.vue') },
+    { path: '/otras-obligaciones/menu', name: 'otras-obligaciones-menu', component: () => import('@/views/modules/otras_obligaciones/Menu.vue') },
+    { path: '/otras-obligaciones/gnuevos', name: 'otras-obligaciones-gnuevos', component: () => import('@/views/modules/otras_obligaciones/GNuevos.vue') },
+    { path: '/otras-obligaciones/gconsulta', name: 'otras-obligaciones-gconsulta', component: () => import('@/views/modules/otras_obligaciones/GConsulta.vue') },
+    { path: '/otras-obligaciones/gconsulta2', name: 'otras-obligaciones-gconsulta2', component: () => import('@/views/modules/otras_obligaciones/GConsulta2.vue') },
+    { path: '/otras-obligaciones/gactualiza', name: 'otras-obligaciones-gactualiza', component: () => import('@/views/modules/otras_obligaciones/GActualiza.vue') },
+    { path: '/otras-obligaciones/gbaja', name: 'otras-obligaciones-gbaja', component: () => import('@/views/modules/otras_obligaciones/GBaja.vue') },
+    { path: '/otras-obligaciones/gadeudos', name: 'otras-obligaciones-gadeudos', component: () => import('@/views/modules/otras_obligaciones/GAdeudos.vue') },
+    { path: '/otras-obligaciones/gadeudos-gral', name: 'otras-obligaciones-gadeudos-gral', component: () => import('@/views/modules/otras_obligaciones/GAdeudosGral.vue') },
+    { path: '/otras-obligaciones/gadeudos-opc-mult', name: 'otras-obligaciones-gadeudos-opc-mult', component: () => import('@/views/modules/otras_obligaciones/GAdeudos_OpcMult.vue') },
+    { path: '/otras-obligaciones/gadeudos-opc-mult-ra', name: 'otras-obligaciones-gadeudos-opc-mult-ra', component: () => import('@/views/modules/otras_obligaciones/GAdeudos_OpcMult_RA.vue') },
+    { path: '/otras-obligaciones/gfacturacion', name: 'otras-obligaciones-gfacturacion', component: () => import('@/views/modules/otras_obligaciones/GFacturacion.vue') },
+    { path: '/otras-obligaciones/grep-padron', name: 'otras-obligaciones-grep-padron', component: () => import('@/views/modules/otras_obligaciones/GRep_Padron.vue') },
+    { path: '/otras-obligaciones/rnuevos', name: 'otras-obligaciones-rnuevos', component: () => import('@/views/modules/otras_obligaciones/RNuevos.vue') },
+    { path: '/otras-obligaciones/rconsulta', name: 'otras-obligaciones-rconsulta', component: () => import('@/views/modules/otras_obligaciones/RConsulta.vue') },
+    { path: '/otras-obligaciones/ractualiza', name: 'otras-obligaciones-ractualiza', component: () => import('@/views/modules/otras_obligaciones/RActualiza.vue') },
+    { path: '/otras-obligaciones/rbaja', name: 'otras-obligaciones-rbaja', component: () => import('@/views/modules/otras_obligaciones/RBaja.vue') },
+    { path: '/otras-obligaciones/radeudos', name: 'otras-obligaciones-radeudos', component: () => import('@/views/modules/otras_obligaciones/RAdeudos.vue') },
+    { path: '/otras-obligaciones/radeudos-opc-mult', name: 'otras-obligaciones-radeudos-opc-mult', component: () => import('@/views/modules/otras_obligaciones/RAdeudos_OpcMult.vue') },
+    { path: '/otras-obligaciones/rfacturacion', name: 'otras-obligaciones-rfacturacion', component: () => import('@/views/modules/otras_obligaciones/RFacturacion.vue') },
+    { path: '/otras-obligaciones/rpagados', name: 'otras-obligaciones-rpagados', component: () => import('@/views/modules/otras_obligaciones/RPagados.vue') },
+    { path: '/otras-obligaciones/rrep-padron', name: 'otras-obligaciones-rrep-padron', component: () => import('@/views/modules/otras_obligaciones/RRep_Padron.vue') },
+    { path: '/otras-obligaciones/rubros', name: 'otras-obligaciones-rubros', component: () => import('@/views/modules/otras_obligaciones/Rubros.vue') },
+    { path: '/otras-obligaciones/etiquetas', name: 'otras-obligaciones-etiquetas', component: () => import('@/views/modules/otras_obligaciones/Etiquetas.vue') },
+    { path: '/otras-obligaciones/aux-rep', name: 'otras-obligaciones-aux-rep', component: () => import('@/views/modules/otras_obligaciones/AuxRep.vue') },
+    { path: '/otras-obligaciones/carga-cartera', name: 'otras-obligaciones-carga-cartera', component: () => import('@/views/modules/otras_obligaciones/CargaCartera.vue') },
+    { path: '/otras-obligaciones/carga-valores', name: 'otras-obligaciones-carga-valores', component: () => import('@/views/modules/otras_obligaciones/CargaValores.vue') },
+    { path: '/otras-obligaciones/apremios', name: 'otras-obligaciones-apremios', component: () => import('@/views/modules/otras_obligaciones/Apremios.vue') }
   ]
 })
 

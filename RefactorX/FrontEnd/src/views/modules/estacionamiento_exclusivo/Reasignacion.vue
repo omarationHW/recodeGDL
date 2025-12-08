@@ -1,23 +1,116 @@
 <template>
   <div class="module-view module-layout">
-    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="retweet" /></div><div class="module-view-info"><h1>Reasignación de Ejecutores</h1><p>Reasignar expedientes a diferentes ejecutores</p></div></div>
-    <div class="module-view-content">
-      <div class="stats-grid" v-if="loadingEstadisticas"><div class="stat-card stat-card-loading" v-for="n in 6" :key="`loading-${n}`"><div class="stat-content"><div class="skeleton-icon"></div><div class="skeleton-number"></div><div class="skeleton-label"></div><div class="skeleton-percentage"></div></div></div></div>
-      <div class="stats-grid" v-else-if="estadisticas.length > 0"><div class="stat-card" v-for="stat in estadisticas" :key="stat.categoria" :class="`stat-${stat.clase}`"><div class="stat-content"><div class="stat-icon"><font-awesome-icon :icon="getStatIcon(stat.categoria)" /></div><h3 class="stat-number">{{ getStatValue(stat) }}</h3><p class="stat-label">{{ stat.descripcion }}</p><small class="stat-percentage" v-if="stat.porcentaje > 0">{{ stat.porcentaje.toFixed(1) }}%</small></div></div></div>
-      <div class="municipal-card"><div class="municipal-card-header"><h5><font-awesome-icon icon="edit" /> Formulario de Reasignación</h5></div><div class="municipal-card-body"><div class="form-row"><div class="form-group"><label class="municipal-form-label">Expediente</label><input class="municipal-form-control" v-model="form.expediente" placeholder="Número de expediente"/></div><div class="form-group"><label class="municipal-form-label">Ejecutor</label><input class="municipal-form-control" v-model="form.ejecutor" placeholder="Clave de ejecutor"/></div></div><div class="button-group"><button class="btn-municipal-primary" :disabled="loading || !form.expediente || !form.ejecutor" @click="reasignar"><font-awesome-icon icon="save" /> Reasignar</button><button class="btn-municipal-secondary" @click="limpiar"><font-awesome-icon icon="eraser" /> Limpiar</button></div></div></div>
+    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="retweet" /></div><div class="module-view-info"><h1>Reasignación de Ejecutores</h1><p>Reasignar expedientes a diferentes ejecutores</p></div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
+    <div class="module-view-content">
+      <div class="municipal-card"><div class="municipal-card-header"><h5><font-awesome-icon icon="edit" /> Formulario de Reasignación</h5></div><div class="municipal-card-body"><div class="form-row"><div class="form-group"><label class="municipal-form-label">Folio Desde</label><input class="municipal-form-control" type="number" v-model.number="form.folio_desde" placeholder="Folio inicial"/></div><div class="form-group"><label class="municipal-form-label">Folio Hasta</label><input class="municipal-form-control" type="number" v-model.number="form.folio_hasta" placeholder="Folio final"/></div><div class="form-group"><label class="municipal-form-label">Ejecutor</label><input class="municipal-form-control" type="number" v-model.number="form.ejecutor" placeholder="Clave de ejecutor"/></div><div class="form-group"><label class="municipal-form-label">Recaudadora</label><input class="municipal-form-control" type="number" v-model.number="form.recaudadora" placeholder="ID Recaudadora (default: 1)"/></div></div><div class="button-group"><button class="btn-municipal-primary" :disabled="loading || !folioDesdeComputed || !folioHastaComputed || !ejecutorComputed" @click="reasignar"><font-awesome-icon icon="save" /> Reasignar</button><button class="btn-municipal-secondary" @click="limpiar"><font-awesome-icon icon="eraser" /> Limpiar</button></div></div></div>
+    </div>
+    
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="closeDocumentation"
+      title="Ayuda - Reasignacion"
+    >
+      <h3>Reasignacion</h3>
+      <p>Documentacion del modulo Estacionamiento Exclusivo.</p>
+    </DocumentationModal>
+
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Reasignacion'"
+      :moduleName="'estacionamiento_exclusivo'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'; import { useApi } from '@/composables/useApi'; import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-const BASE_DB='estacionamiento_exclusivo', OP_BUSCAR='sp_buscar_folios', OP_STATS='apremiossvn_apremios_estadisticas'
-const { loading, execute } = useApi(); const { showToast, handleApiError } = useLicenciasErrorHandler()
-const form=ref({expediente:'',ejecutor:''}), loadingEstadisticas=ref(true), estadisticas=ref([])
-const cargarEstadisticas = async () => { loadingEstadisticas.value=true; try{ const result=await execute(OP_STATS, BASE_DB, []); estadisticas.value=Array.isArray(result?.rows)?result.rows:Array.isArray(result)?result:[] }catch(e){ estadisticas.value=[] }finally{ loadingEstadisticas.value=false } }
-const reasignar = async () => { if(!form.value.expediente || !form.value.ejecutor){ showToast('error','Debe completar todos los campos'); return }; const t0=performance.now(); try{ await execute(OP_BUSCAR, BASE_DB, [{name:'expediente',type:'C',value:String(form.value.expediente||'')},{name:'ejecutor',type:'C',value:String(form.value.ejecutor||'')}]); const dur=performance.now()-t0, txt=dur<1000?`${Math.round(dur)}ms`:`${(dur/1000).toFixed(2)}s`; showToast('success',`Reasignación exitosa en ${txt}`); limpiar() }catch(e){ handleApiError(e) } }
-const limpiar = () => { form.value={expediente:'',ejecutor:''} }
-const formatNumber = (n) => new Intl.NumberFormat('es-MX').format(n); const formatMoney = (v) => Number(v||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'})
-const getStatIcon = (c) => ({'TOTAL':'chart-bar','VIGENTES':'check-circle','VENCIDOS':'times-circle','CON_EJECUTOR':'user-check','SIN_EJECUTOR':'user-times','IMPORTE_TOTAL':'coins'}[c]||'info-circle')
-const getStatValue = (s) => s.categoria==='IMPORTE_TOTAL'?formatMoney(s.total):formatNumber(s.total)
-onMounted(()=>{ cargarEstadisticas() })
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { ref, onMounted, computed } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import Swal from 'sweetalert2'
+
+const BASE_DB = 'estacionamiento_exclusivo'
+const OP_REASIGNAR = 'sp_reasignar_folio'
+
+const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+
+const form = ref({ folio_desde: null, folio_hasta: null, ejecutor: null, recaudadora: null })
+
+const folioDesdeComputed = computed(() => form.value.folio_desde ?? null)
+const folioHastaComputed = computed(() => form.value.folio_hasta ?? null)
+const ejecutorComputed = computed(() => form.value.ejecutor ?? null)
+
+const reasignar = async () => {
+  if (!folioDesdeComputed.value || !ejecutorComputed.value) {
+    showToast('error', 'Debe completar folio y ejecutor')
+    return
+  }
+  const confirmResult = await Swal.fire({
+    title: '¿Confirmar reasignación?',
+    text: `Reasignar folio ${folioDesdeComputed.value} al ejecutor ${ejecutorComputed.value}`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, reasignar',
+    cancelButtonText: 'Cancelar'
+  })
+  if (!confirmResult.isConfirmed) return
+
+  showLoading('Reasignando folio...', 'Procesando cambio')
+  const t0 = performance.now()
+  try {
+    const fechaActual = new Date().toISOString().split('T')[0]
+    const response = await execute(OP_REASIGNAR, BASE_DB, [
+      { name: 'p_id_control', type: 'I', value: Number(folioDesdeComputed.value) },
+      { name: 'p_nuevo_ejecutor', type: 'I', value: Number(ejecutorComputed.value) },
+      { name: 'p_fecha_entrega2', type: 'D', value: fechaActual },
+      { name: 'p_usuario', type: 'I', value: 1 },
+      { name: 'p_fecha_actualiz', type: 'D', value: fechaActual }
+    ])
+    const mensaje = typeof response === 'string' ? response : (response?.result || response?.data || 'Reasignación exitosa')
+    const dur = performance.now() - t0
+    const txt = dur < 1000 ? `${Math.round(dur)}ms` : `${(dur / 1000).toFixed(2)}s`
+    await Swal.fire({ title: '¡Éxito!', text: `${mensaje} (${txt})`, icon: 'success', confirmButtonText: 'OK' })
+    limpiar()
+  } catch (e) {
+    handleApiError(e)
+  } finally {
+    hideLoading()
+  }
+}
+const limpiar = () => { form.value = { folio_desde: null, folio_hasta: null, ejecutor: null, recaudadora: null } }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

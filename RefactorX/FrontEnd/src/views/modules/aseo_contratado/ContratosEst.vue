@@ -9,6 +9,25 @@
         <h1>Estadísticas de Contratos</h1>
         <p>Aseo Contratado - Análisis detallado del estado de los contratos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -211,7 +230,7 @@
         <div class="municipal-card-body">
           <div class="table-responsive">
             <table class="municipal-table-bordered">
-              <thead>
+              <thead class="municipal-table-header">
                 <tr>
                   <th>Concepto</th>
                   <th class="text-end">Valor</th>
@@ -264,10 +283,20 @@
       <h6>Uso de Filtros</h6>
       <p>Puede filtrar por empresa, zona o tipo de aseo para análisis específicos.</p>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ContratosEst'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -275,8 +304,10 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 const cargando = ref(false)
@@ -309,7 +340,8 @@ const generarEstadisticas = async () => {
 
     showToast('Estadísticas generadas correctamente', 'success')
   } catch (error) {
-    handleError(error, 'Error al generar estadísticas')
+    hideLoading()
+    handleApiError(error, 'Error al generar estadísticas')
   } finally {
     cargando.value = false
   }
@@ -351,8 +383,18 @@ onMounted(async () => {
     empresas.value = respEmpresas || []
     zonas.value = respZonas || []
   } catch (error) {
-    console.error('Error al cargar catálogos:', error)
+    hideLoading()
+    handleApiError(error)
   }
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 

@@ -1,263 +1,563 @@
 <template>
-  <div class="consulta-datos-energia">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Consulta Datos de Energía</li>
-      </ol>
-    </nav>
-    <h2>Consulta Datos de Energía</h2>
-    <form @submit.prevent="buscar">
-      <div class="form-group row">
-        <label class="col-sm-2 col-form-label">ID Local</label>
-        <div class="col-sm-4">
-          <input v-model="id_local" type="number" class="form-control" required />
-        </div>
-        <div class="col-sm-2">
-          <button class="btn btn-primary" type="submit">Buscar</button>
-        </div>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
       </div>
-    </form>
-    <div v-if="energia">
-      <h4>Datos de Energía</h4>
-      <table class="table table-bordered table-sm">
-        <tr><th>Control Loc.</th><td>{{ energia.id_local }}</td></tr>
-        <tr><th>Clave Consumo</th><td>{{ energia.cve_consumo }} <span class="text-muted">{{ consumoDescripcion }}</span></td></tr>
-        <tr><th>Adicionales</th><td>{{ energia.local_adicional }}</td></tr>
-        <tr><th>Cantidad</th><td>{{ energia.cantidad }}</td></tr>
-        <tr><th>Vigencia</th><td>{{ energia.vigencia }} <span class="text-muted">{{ vigenciaDescripcion }}</span></td></tr>
-        <tr><th>Fecha Alta</th><td>{{ energia.fecha_alta }}</td></tr>
-        <tr><th>Fecha Baja</th><td>{{ energia.fecha_baja }}</td></tr>
-        <tr><th>Actualización</th><td>{{ energia.fecha_modificacion }}</td></tr>
-        <tr><th>Usuario</th><td>{{ energia.usuario }}</td></tr>
-      </table>
-      <div class="row">
-        <div class="col-md-6">
-          <h5>Requerimientos</h5>
-          <table class="table table-sm table-striped">
-            <thead>
-              <tr>
-                <th>Folio</th><th>Emisión</th><th>Vigencia</th><th>Diligencia</th><th>Practicado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="req in requerimientos" :key="req.folio">
-                <td>{{ req.folio }}</td>
-                <td>{{ req.fecha_emision }}</td>
-                <td>{{ req.vigencia }}</td>
-                <td>{{ req.diligencia }}</td>
-                <td>{{ req.clave_practicado }}</td>
-              </tr>
-              <tr v-if="!requerimientos.length"><td colspan="5" class="text-center">Sin requerimientos</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="col-md-6">
-          <h5>Adeudos por Mes</h5>
-          <table class="table table-sm table-striped">
-            <thead>
-              <tr>
-                <th>Año</th><th>Mes</th><th>Adeudo</th><th>Recargos</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="ad in adeudos" :key="ad.axo + '-' + ad.periodo">
-                <td>{{ ad.axo }}</td>
-                <td>{{ ad.periodo }}</td>
-                <td>{{ ad.importe | currency }}</td>
-                <td>{{ ad.recargos | currency }}</td>
-              </tr>
-              <tr v-if="!adeudos.length"><td colspan="4" class="text-center">Sin adeudos</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="module-view-info">
+        <h1>Consulta Datos de Energía</h1>
+        <p>Inicio > Mercados > Consulta Datos de Energía</p>
       </div>
-      <div class="row mt-3">
-        <div class="col-md-3">
-          <strong>Adeudo:</strong> {{ resumen.adeudos | currency }}
-        </div>
-        <div class="col-md-3">
-          <strong>Recargos:</strong> {{ resumen.recargos | currency }}
-        </div>
-        <div class="col-md-3">
-          <strong>Multas:</strong> {{ resumen.multas | currency }}
-        </div>
-        <div class="col-md-3">
-          <strong>Gastos:</strong> {{ resumen.gastos | currency }}
-        </div>
-      </div>
-      <div class="row mt-2">
-        <div class="col-md-12">
-          <strong>Total Global:</strong> {{ resumen.total | currency }}
-        </div>
-      </div>
-      <div class="row mt-3">
-        <div class="col-md-12">
-          <button class="btn btn-outline-secondary mr-2" @click="verPagos">Ver Pagos</button>
-          <button class="btn btn-outline-info mr-2" @click="verCondonaciones">Ver Condonaciones</button>
-          <button class="btn btn-outline-success" @click="imprimirCaratula">Imprimir Carátula</button>
-        </div>
-      </div>
-      <div v-if="pagos.length" class="mt-4">
-        <h5>Pagos de Energía</h5>
-        <table class="table table-sm table-bordered">
-          <thead>
-            <tr>
-              <th>Año</th><th>Mes</th><th>Fecha Pago</th><th>Importe</th><th>Usuario</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in pagos" :key="p.id_pago_energia">
-              <td>{{ p.axo }}</td>
-              <td>{{ p.periodo }}</td>
-              <td>{{ p.fecha_pago }}</td>
-              <td>{{ p.importe_pago | currency }}</td>
-              <td>{{ p.usuario }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div v-if="condonaciones.length" class="mt-4">
-        <h5>Condonaciones de Energía</h5>
-        <table class="table table-sm table-bordered">
-          <thead>
-            <tr>
-              <th>Año</th><th>Mes</th><th>Importe</th><th>Observación</th><th>Usuario</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in condonaciones" :key="c.id_cancelacion">
-              <td>{{ c.axo }}</td>
-              <td>{{ c.periodo }}</td>
-              <td>{{ c.importe | currency }}</td>
-              <td>{{ c.observacion }}</td>
-              <td>{{ c.usuario }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="exportar" :disabled="!energia">
+          <font-awesome-icon icon="file-excel" />
+          Exportar
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
-    <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Búsqueda de Local
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">ID Local <span class="required">*</span></label>
+              <input
+                v-model.number="id_local"
+                type="number"
+                class="municipal-form-control"
+                @keyup.enter="buscar"
+                placeholder="Ingrese el ID del local"
+              />
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-12 text-end">
+              <button class="btn-municipal-primary me-2" @click="buscar" :disabled="!id_local">
+                <font-awesome-icon icon="search" />
+                Buscar
+              </button>
+              <button class="btn-municipal-secondary" @click="limpiar">
+                <font-awesome-icon icon="eraser" />
+                Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos de energía -->
+      <div v-if="energia">
+        <!-- Información general -->
+        <div class="municipal-card">
+          <div class="municipal-card-header">
+            <h5>
+              <font-awesome-icon icon="info-circle" />
+              Información de Energía
+            </h5>
+          </div>
+          <div class="municipal-card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <table class="table table-sm table-bordered">
+                  <tbody>
+                    <tr><th width="40%">Control Local</th><td><strong class="text-primary">{{ energia.id_local }}</strong></td></tr>
+                    <tr>
+                      <th>Clave Consumo</th>
+                      <td>
+                        {{ energia.cve_consumo }}
+                        <small class="text-muted">({{ consumoDescripcion }})</small>
+                      </td>
+                    </tr>
+                    <tr><th>Adicionales</th><td>{{ energia.local_adicional || '-' }}</td></tr>
+                    <tr><th>Cantidad</th><td>{{ energia.cantidad }}</td></tr>
+                    <tr>
+                      <th>Vigencia</th>
+                      <td>
+                        <span :class="energia.vigencia === 'A' ? 'badge bg-success' : 'badge bg-secondary'">
+                          {{ vigenciaDescripcion }}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr><th>Fecha Alta</th><td>{{ formatDate(energia.fecha_alta) }}</td></tr>
+                    <tr><th>Fecha Baja</th><td>{{ formatDate(energia.fecha_baja) || '-' }}</td></tr>
+                    <tr><th>Actualización</th><td>{{ formatDate(energia.fecha_modificacion) }}</td></tr>
+                    <tr><th>Usuario</th><td>{{ energia.usuario || '-' }}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="col-md-6">
+                <h6 class="mb-3">
+                  <font-awesome-icon icon="exclamation-triangle" class="text-warning" />
+                  Adeudos por Mes
+                </h6>
+                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                  <table class="municipal-table">
+                    <thead class="municipal-table-header sticky-top">
+                      <tr>
+                        <th>Año</th>
+                        <th>Mes</th>
+                        <th class="text-end">Adeudo</th>
+                        <th class="text-end">Recargos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-if="!adeudos.length">
+                        <td colspan="4" class="text-center text-muted">
+                          <font-awesome-icon icon="check-circle" class="text-success" />
+                          Sin adeudos
+                        </td>
+                      </tr>
+                      <tr v-for="ad in adeudos" :key="`${ad.axo}-${ad.periodo}`" class="row-hover">
+                        <td>{{ ad.axo }}</td>
+                        <td>{{ ad.periodo }}</td>
+                        <td class="text-end"><strong class="text-danger">{{ formatCurrency(ad.importe) }}</strong></td>
+                        <td class="text-end">{{ formatCurrency(ad.recargos) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="row mt-4 mb-3">
+              <div class="col-md-4">
+                <div class="alert alert-warning mb-0">
+                  <strong>Adeudo:</strong> {{ formatCurrency(resumen.adeudos) }}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="alert alert-info mb-0">
+                  <strong>Recargos:</strong> {{ formatCurrency(resumen.recargos) }}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="alert alert-danger mb-0">
+                  <strong>Total:</strong> {{ formatCurrency(resumen.total) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="text-center">
+              <button class="btn-municipal-primary me-2" @click="verPagos">
+                <font-awesome-icon icon="dollar-sign" />
+                Ver Pagos
+              </button>
+              <button class="btn-municipal-secondary" @click="verCondonaciones">
+                <font-awesome-icon icon="eraser" />
+                Ver Condonaciones
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagos -->
+        <div v-if="pagos.length" class="municipal-card">
+          <div class="municipal-card-header header-with-badge">
+            <h5>
+              <font-awesome-icon icon="dollar-sign" />
+              Pagos de Energía
+            </h5>
+            <div class="header-right">
+              <span class="badge-purple">{{ pagos.length }} registros</span>
+            </div>
+          </div>
+          <div class="municipal-card-body table-container">
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th>Año</th>
+                    <th>Mes</th>
+                    <th>Fecha Pago</th>
+                    <th class="text-end">Importe</th>
+                    <th>Usuario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="p in paginatedPagos" :key="p.id_pago_energia" class="row-hover">
+                    <td>{{ p.axo }}</td>
+                    <td>{{ p.periodo }}</td>
+                    <td>{{ formatDate(p.fecha_pago) }}</td>
+                    <td class="text-end"><strong class="text-success">{{ formatCurrency(p.importe_pago) }}</strong></td>
+                    <td>{{ p.usuario }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación Pagos -->
+            <div v-if="pagos.length > 10" class="pagination-container">
+              <div class="pagination-info">
+                Mostrando {{ paginationPagosStart }} a {{ paginationPagosEnd }} de {{ pagos.length }} registros
+              </div>
+              <div class="pagination-controls">
+                <label class="me-2">Registros por página:</label>
+                <select v-model.number="itemsPerPagePagos" class="form-select form-select-sm">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                </select>
+              </div>
+              <div class="pagination-buttons">
+                <button @click="prevPagePagos" :disabled="currentPagePagos === 1">
+                  <font-awesome-icon icon="chevron-left" />
+                </button>
+                <span>Página {{ currentPagePagos }} de {{ totalPagesPagos }}</span>
+                <button @click="nextPagePagos" :disabled="currentPagePagos === totalPagesPagos">
+                  <font-awesome-icon icon="chevron-right" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Condonaciones -->
+        <div v-if="condonaciones.length" class="municipal-card">
+          <div class="municipal-card-header header-with-badge">
+            <h5>
+              <font-awesome-icon icon="eraser" />
+              Condonaciones de Energía
+            </h5>
+            <div class="header-right">
+              <span class="badge-purple">{{ condonaciones.length }} registros</span>
+            </div>
+          </div>
+          <div class="municipal-card-body table-container">
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th>Año</th>
+                    <th>Mes</th>
+                    <th class="text-end">Importe</th>
+                    <th>Observación</th>
+                    <th>Usuario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="c in paginatedCondonaciones" :key="c.id_cancelacion" class="row-hover">
+                    <td>{{ c.axo }}</td>
+                    <td>{{ c.periodo }}</td>
+                    <td class="text-end"><strong class="text-info">{{ formatCurrency(c.importe) }}</strong></td>
+                    <td>{{ c.observacion }}</td>
+                    <td>{{ c.usuario }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación Condonaciones -->
+            <div v-if="condonaciones.length > 10" class="pagination-container">
+              <div class="pagination-info">
+                Mostrando {{ paginationCondonacionesStart }} a {{ paginationCondonacionesEnd }} de {{ condonaciones.length }} registros
+              </div>
+              <div class="pagination-controls">
+                <label class="me-2">Registros por página:</label>
+                <select v-model.number="itemsPerPageCondonaciones" class="form-select form-select-sm">
+                  <option :value="10">10</option>
+                  <option :value="25">25</option>
+                  <option :value="50">50</option>
+                </select>
+              </div>
+              <div class="pagination-buttons">
+                <button @click="prevPageCondonaciones" :disabled="currentPageCondonaciones === 1">
+                  <font-awesome-icon icon="chevron-left" />
+                </button>
+                <span>Página {{ currentPageCondonaciones }} de {{ totalPagesCondonaciones }}</span>
+                <button @click="nextPageCondonaciones" :disabled="currentPageCondonaciones === totalPagesCondonaciones">
+                  <font-awesome-icon icon="chevron-right" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin resultados -->
+      <div v-else-if="searchPerformed" class="text-center text-muted py-5">
+        <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+        <p>No se encontró información de energía para este local</p>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ConsultaDatosEnergia',
-  data() {
-    return {
-      id_local: '',
-      energia: null,
-      requerimientos: [],
-      adeudos: [],
-      resumen: { adeudos: 0, recargos: 0, multas: 0, gastos: 0, total: 0 },
-      pagos: [],
-      condonaciones: [],
-      error: ''
-    };
-  },
-  computed: {
-    consumoDescripcion() {
-      if (!this.energia) return '';
-      return this.energia.cve_consumo === 'F' ? 'Precio Fijo / Servicio Normal' :
-             this.energia.cve_consumo === 'K' ? 'Precio Kilowhatts / Servicio Medido' : '';
-    },
-    vigenciaDescripcion() {
-      if (!this.energia) return '';
-      if (this.energia.vigencia === 'A' || !this.energia.vigencia) return 'VIGENTE';
-      if (this.energia.vigencia === 'E') return 'VIGENTE / PARA EMISION';
-      if (this.energia.vigencia === 'B') return 'BAJA';
-      return '';
-    }
-  },
-  methods: {
-    async buscar() {
-      this.error = '';
-      this.energia = null;
-      this.requerimientos = [];
-      this.adeudos = [];
-      this.resumen = { adeudos: 0, recargos: 0, multas: 0, gastos: 0, total: 0 };
-      this.pagos = [];
-      this.condonaciones = [];
-      try {
-        // 1. Obtener datos de energía
-        let res = await this.api('getEnergiaByLocal', { id_local: this.id_local });
-        if (!res.success || !res.data.length) {
-          this.error = 'No se encontró información de energía para el local.';
-          return;
-        }
-        this.energia = res.data[0];
-        // 2. Requerimientos
-        res = await this.api('getRequerimientosEnergia', { id_local: this.id_local });
-        this.requerimientos = res.data || [];
-        // 3. Adeudos
-        res = await this.api('getAdeudosEnergia', { id_local: this.id_local });
-        this.adeudos = res.data || [];
-        // 4. Calcular resumen
-        let adeudos = 0, recargos = 0, multas = 0, gastos = 0;
-        for (let ad of this.adeudos) {
-          adeudos += Number(ad.importe);
-          recargos += Number(ad.recargos);
-        }
-        for (let req of this.requerimientos) {
-          multas += Number(req.importe_multa);
-          gastos += Number(req.importe_gastos);
-        }
-        this.resumen = {
-          adeudos,
-          recargos,
-          multas,
-          gastos,
-          total: adeudos + recargos + multas + gastos
-        };
-      } catch (e) {
-        this.error = e.message || 'Error de comunicación con el servidor';
-      }
-    },
-    async verPagos() {
-      if (!this.energia) return;
-      let res = await this.api('getPagosEnergia', { id_energia: this.energia.id_energia });
-      this.pagos = res.data || [];
-    },
-    async verCondonaciones() {
-      if (!this.energia) return;
-      let res = await this.api('getCondonacionesEnergia', { id_energia: this.energia.id_energia });
-      this.condonaciones = res.data || [];
-    },
-    imprimirCaratula() {
-      window.open(`/reportes/caratula-energia/${this.id_local}`, '_blank');
-    },
-    async api(action, params) {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eRequest: { action, params } })
-      });
-      const json = await res.json();
-      return json.eResponse;
-    }
-  },
-  filters: {
-    currency(val) {
-      if (typeof val !== 'number') return val;
-      return '$' + val.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-    }
+<script setup>
+import { ref, computed, watch } from 'vue';
+import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+
+const globalLoading = useGlobalLoading();
+const { showToast: toast } = useToast();
+const id_local = ref('');
+const energia = ref(null);
+const adeudos = ref([]);
+const pagos = ref([]);
+const condonaciones = ref([]);
+const searchPerformed = ref(false);
+
+// Paginación Pagos
+const currentPagePagos = ref(1);
+const itemsPerPagePagos = ref(10);
+
+// Paginación Condonaciones
+const currentPageCondonaciones = ref(1);
+const itemsPerPageCondonaciones = ref(10);
+
+const resumen = computed(() => {
+  let total_adeudos = 0, total_recargos = 0;
+  adeudos.value.forEach(ad => {
+    total_adeudos += Number(ad.importe) || 0;
+    total_recargos += Number(ad.recargos) || 0;
+  });
+  return {
+    adeudos: total_adeudos,
+    recargos: total_recargos,
+    total: total_adeudos + total_recargos
+  };
+});
+
+const consumoDescripcion = computed(() => {
+  if (!energia.value) return '';
+  return energia.value.cve_consumo === 'F' ? 'Precio Fijo' :
+         energia.value.cve_consumo === 'K' ? 'Kilowatts' : '';
+});
+
+const vigenciaDescripcion = computed(() => {
+  if (!energia.value) return '';
+  if (energia.value.vigencia === 'A') return 'VIGENTE';
+  if (energia.value.vigencia === 'E') return 'PARA EMISIÓN';
+  if (energia.value.vigencia === 'B') return 'BAJA';
+  return energia.value.vigencia;
+});
+
+// Paginación Pagos - Computed
+const paginatedPagos = computed(() => {
+  const start = (currentPagePagos.value - 1) * itemsPerPagePagos.value;
+  const end = start + itemsPerPagePagos.value;
+  return pagos.value.slice(start, end);
+});
+
+const totalPagesPagos = computed(() => {
+  return Math.ceil(pagos.value.length / itemsPerPagePagos.value);
+});
+
+const paginationPagosStart = computed(() => {
+  return pagos.value.length === 0 ? 0 : (currentPagePagos.value - 1) * itemsPerPagePagos.value + 1;
+});
+
+const paginationPagosEnd = computed(() => {
+  const end = currentPagePagos.value * itemsPerPagePagos.value;
+  return end > pagos.value.length ? pagos.value.length : end;
+});
+
+// Paginación Condonaciones - Computed
+const paginatedCondonaciones = computed(() => {
+  const start = (currentPageCondonaciones.value - 1) * itemsPerPageCondonaciones.value;
+  const end = start + itemsPerPageCondonaciones.value;
+  return condonaciones.value.slice(start, end);
+});
+
+const totalPagesCondonaciones = computed(() => {
+  return Math.ceil(condonaciones.value.length / itemsPerPageCondonaciones.value);
+});
+
+const paginationCondonacionesStart = computed(() => {
+  return condonaciones.value.length === 0 ? 0 : (currentPageCondonaciones.value - 1) * itemsPerPageCondonaciones.value + 1;
+});
+
+const paginationCondonacionesEnd = computed(() => {
+  const end = currentPageCondonaciones.value * itemsPerPageCondonaciones.value;
+  return end > condonaciones.value.length ? condonaciones.value.length : end;
+});
+
+// Métodos de paginación
+const nextPagePagos = () => {
+  if (currentPagePagos.value < totalPagesPagos.value) currentPagePagos.value++;
+};
+
+const prevPagePagos = () => {
+  if (currentPagePagos.value > 1) currentPagePagos.value--;
+};
+
+const nextPageCondonaciones = () => {
+  if (currentPageCondonaciones.value < totalPagesCondonaciones.value) currentPageCondonaciones.value++;
+};
+
+const prevPageCondonaciones = () => {
+  if (currentPageCondonaciones.value > 1) currentPageCondonaciones.value--;
+};
+
+watch(pagos, () => { currentPagePagos.value = 1; });
+watch(condonaciones, () => { currentPageCondonaciones.value = 1; });
+
+const mostrarAyuda = () => {
+  toast('Ingrese el ID del local para consultar sus datos de energía, adeudos, pagos y condonaciones', 'info');
+};
+
+const formatCurrency = (value) => {
+  if (!value) return '$0.00';
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value);
+};
+
+const formatDate = (value) => {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString('es-MX');
+};
+
+const buscar = async () => {
+  if (!id_local.value) {
+    toast('Ingrese el ID del local', 'warning');
+    return;
   }
+
+  searchPerformed.value = true;
+  energia.value = null;
+  adeudos.value = [];
+  pagos.value = [];
+  condonaciones.value = [];
+
+  await globalLoading.withLoading(async () => {
+    try {
+      // Obtener datos de energía
+      const resEnergia = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_consulta_energia_get_by_local',
+          Base: 'padron_licencias',
+          Parametros: [
+            { Nombre: 'p_id_local', Valor: parseInt(id_local.value) }
+          ]
+        }
+      });
+
+      if (resEnergia.data.eResponse?.success) {
+        const result = resEnergia.data.eResponse.data.result || [];
+        if (result.length > 0) {
+          energia.value = result[0];
+
+          // Obtener adeudos
+          const resAdeudos = await axios.post('/api/generic', {
+            eRequest: {
+              Operacion: 'sp_consulta_energia_get_adeudos',
+              Base: 'padron_licencias',
+              Parametros: [
+                { Nombre: 'p_id_local', Valor: parseInt(id_local.value) }
+              ]
+            }
+          });
+          if (resAdeudos.data.eResponse?.success) {
+            adeudos.value = resAdeudos.data.eResponse.data.result || [];
+          }
+
+          toast('Datos de energía cargados correctamente', 'success');
+        } else {
+          toast('No se encontró información de energía para este local', 'info');
+        }
+      } else {
+        toast('Error al cargar datos de energía', 'error');
+      }
+    } catch (e) {
+      toast('Error de comunicación con el servidor', 'error');
+      console.error(e);
+    }
+  }, 'Cargando datos de energía...', 'Por favor espere');
+};
+
+const verPagos = async () => {
+  if (!energia.value) return;
+
+  await globalLoading.withLoading(async () => {
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_consulta_energia_get_pagos',
+          Base: 'padron_licencias',
+          Parametros: [
+            { Nombre: 'p_id_energia', Valor: energia.value.id_energia }
+          ]
+        }
+      });
+      if (response.data.eResponse?.success) {
+        pagos.value = response.data.eResponse.data.result || [];
+        if (pagos.value.length > 0) {
+          toast(`Se encontraron ${pagos.value.length} pagos`, 'success');
+        } else {
+          toast('No hay pagos registrados', 'info');
+        }
+      }
+    } catch (e) {
+      toast('Error al cargar pagos', 'error');
+      console.error('Error al cargar pagos:', e);
+    }
+  }, 'Cargando pagos...', 'Consultando información');
+};
+
+const verCondonaciones = async () => {
+  if (!energia.value) return;
+
+  await globalLoading.withLoading(async () => {
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_consulta_energia_get_condonaciones',
+          Base: 'padron_licencias',
+          Parametros: [
+            { Nombre: 'p_id_energia', Valor: energia.value.id_energia }
+          ]
+        }
+      });
+      if (response.data.eResponse?.success) {
+        condonaciones.value = response.data.eResponse.data.result || [];
+        if (condonaciones.value.length > 0) {
+          toast(`Se encontraron ${condonaciones.value.length} condonaciones`, 'success');
+        } else {
+          toast('No hay condonaciones registradas', 'info');
+        }
+      }
+    } catch (e) {
+      toast('Error al cargar condonaciones', 'error');
+      console.error('Error al cargar condonaciones:', e);
+    }
+  }, 'Cargando condonaciones...', 'Consultando información');
+};
+
+const limpiar = () => {
+  id_local.value = '';
+  energia.value = null;
+  adeudos.value = [];
+  pagos.value = [];
+  condonaciones.value = [];
+  searchPerformed.value = false;
+  toast('Búsqueda limpiada', 'info');
+};
+
+const exportar = () => {
+  if (!energia.value) {
+    toast('No hay datos para exportar', 'warning');
+    return;
+  }
+  toast('Funcionalidad de exportación en desarrollo', 'info');
 };
 </script>
 
-<style scoped>
-.consulta-datos-energia {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #0001;
-}
-.breadcrumb {
-  background: none;
-  padding: 0;
-  margin-bottom: 1rem;
-}
-</style>
+<!--
+  Estilos removidos - Se utilizan clases municipales globales:
+  - .empty-icon, .row-hover, .required, .sticky-top están en municipal-global.css
+  - Bootstrap utilities: .text-end, .spinner-border
+-->

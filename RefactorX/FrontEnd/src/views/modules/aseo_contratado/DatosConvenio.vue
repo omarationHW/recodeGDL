@@ -9,6 +9,25 @@
         <h1>Gestión de Convenios de Pago</h1>
         <p>Aseo Contratado - Registro y seguimiento de convenios de pago para adeudos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -76,7 +95,7 @@
           </div>
 
           <!-- Datos del Contrato -->
-          <div v-if="contratoSeleccionado" class="alert alert-info">
+          <div v-if="contratoSeleccionado" class="municipal-alert municipal-alert-info">
             <h6 class="alert-heading">
               <font-awesome-icon icon="check-circle" class="me-2" />
               Contrato Encontrado
@@ -105,7 +124,7 @@
             </h6>
             <div class="table-responsive">
               <table class="municipal-table">
-                <thead>
+                <thead class="municipal-table-header">
                   <tr>
                     <th>
                       <input
@@ -284,7 +303,7 @@
                 </div>
               </div>
 
-              <div class="alert alert-success">
+              <div class="municipal-alert municipal-alert-success">
                 <div class="row">
                   <div class="col-md-4">
                     <strong>Recargos a Condonar:</strong><br>
@@ -348,7 +367,7 @@
                 </div>
               </div>
 
-              <div v-if="parametrosConvenio.num_parcialidades > 0" class="alert alert-info">
+              <div v-if="parametrosConvenio.num_parcialidades > 0" class="municipal-alert municipal-alert-info">
                 <div class="row">
                   <div class="col-md-4">
                     <strong>Monto a Pagar:</strong><br>
@@ -512,7 +531,7 @@
             <div class="municipal-card-body">
               <div class="table-responsive">
                 <table class="municipal-table">
-                  <thead>
+                  <thead class="municipal-table-header">
                     <tr>
                       <th>No.</th>
                       <th>Fecha Vencimiento</th>
@@ -543,7 +562,7 @@
             <div class="municipal-card-body">
               <div class="table-responsive">
                 <table class="municipal-table">
-                  <thead>
+                  <thead class="municipal-table-header">
                     <tr>
                       <th>Folio</th>
                       <th>Periodo</th>
@@ -657,7 +676,7 @@
           <div v-if="conveniosEncontrados.length > 0">
             <div class="table-responsive">
               <table class="municipal-table">
-                <thead>
+                <thead class="municipal-table-header">
                   <tr>
                     <th>Convenio</th>
                     <th>Fecha</th>
@@ -730,7 +749,7 @@
             </div>
           </div>
 
-          <div v-else-if="!cargando" class="alert alert-warning">
+          <div v-else-if="!cargando" class="municipal-alert municipal-alert-warning">
             <font-awesome-icon icon="info-circle" class="me-2" />
             No se encontraron convenios con los criterios especificados.
           </div>
@@ -788,10 +807,20 @@
         <li>El incumplimiento puede generar cancelación automática</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'DatosConvenio'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, watch } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import Swal from 'sweetalert2'
@@ -800,8 +829,10 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 // Estado
@@ -1027,7 +1058,8 @@ const buscarContrato = async () => {
       adeudosDisponibles.value = []
     }
   } catch (error) {
-    handleError(error, 'Error al buscar contrato')
+    hideLoading()
+    handleApiError(error, 'Error al buscar contrato')
     contratoSeleccionado.value = null
     adeudosDisponibles.value = []
   } finally {
@@ -1109,7 +1141,8 @@ const crearConvenio = async () => {
     paso.value = 1
 
   } catch (error) {
-    handleError(error, 'Error al crear convenio')
+    hideLoading()
+    handleApiError(error, 'Error al crear convenio')
   } finally {
     creando.value = false
   }
@@ -1128,7 +1161,8 @@ const consultarConvenios = async () => {
     conveniosEncontrados.value = response || []
     showToast(`${conveniosEncontrados.value.length} convenio(s) encontrado(s)`, 'success')
   } catch (error) {
-    handleError(error, 'Error al consultar convenios')
+    hideLoading()
+    handleApiError(error, 'Error al consultar convenios')
     conveniosEncontrados.value = []
   } finally {
     cargando.value = false
@@ -1194,5 +1228,14 @@ const formatFecha = (fecha) => {
   if (!fecha) return 'N/A'
   return new Date(fecha).toLocaleDateString('es-MX')
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 

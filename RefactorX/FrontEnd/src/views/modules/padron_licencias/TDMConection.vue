@@ -693,18 +693,23 @@ const formatDateTime = (dateString) => {
   }
 }
 
+// Referencia para el interval
+let statusInterval = null
+
 // Lifecycle
 onMounted(() => {
   loadConnectionStatus()
   loadLogs()
 
   // Actualizar estado de conexión cada 30 segundos
-  const statusInterval = setInterval(loadConnectionStatus, 30000)
+  statusInterval = setInterval(loadConnectionStatus, 30000)
+})
 
-  onBeforeUnmount(() => {
+onBeforeUnmount(() => {
+  if (statusInterval) {
     clearInterval(statusInterval)
-    showViewModal.value = false
-  })
+  }
+  showViewModal.value = false
 })
 </script>
 

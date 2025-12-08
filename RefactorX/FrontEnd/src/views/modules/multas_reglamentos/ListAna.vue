@@ -56,6 +56,13 @@
         </div>
       </div>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -76,17 +83,35 @@ const rows = ref([])
 const columns = ref([])
 
 async function reload() {
+  page.value = 1
+  await loadData()
+}
+
+async function loadData() {
   const params = [
-    { name: 'q', type: 'C', value: String(filters.value.q || '') },
-    { name: 'offset', type: 'I', value: (page.value - 1) * pageSize.value },
-    { name: 'limit', type: 'I', value: pageSize.value }
+    { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') },
+    { nombre: 'p_offset', tipo: 'integer', valor: (page.value - 1) * pageSize.value },
+    { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
   ]
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
-    const arr = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const response = await execute(OP_LIST, BASE_DB, params)
+    // Manejar diferentes formatos de respuesta
+    let data = null
+    if (response?.result) {
+      data = response.result
+    } else if (response?.rows) {
+      data = response.rows
+    } else if (Array.isArray(response)) {
+      data = response
+    } else {
+      data = response
+    }
+    const arr = Array.isArray(data) ? data : []
     rows.value = arr
     columns.value = arr.length ? Object.keys(arr[0]) : []
-    total.value = Number(data?.total ?? rows.value.length)
+
+    // El total debe venir en el primer registro si existe
+    total.value = arr.length > 0 && arr[0].total_count ? Number(arr[0].total_count) : arr.length
   } catch (e) {
     rows.value = []
     columns.value = []
@@ -94,7 +119,7 @@ async function reload() {
   }
 }
 
-function go(p) { page.value = p; reload() }
+function go(p) { page.value = p; loadData() }
 
 reload()
 </script>

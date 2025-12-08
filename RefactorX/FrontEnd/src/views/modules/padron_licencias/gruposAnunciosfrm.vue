@@ -600,8 +600,6 @@ const createGrupo = async () => {
       'public'
     )
 
-    console.log('INSERT Response:', response)
-
     // Verificar si tiene success=true O si tiene id/descripcion (formato antiguo)
     const hasSuccess = response?.result?.[0]?.success === true
     const hasIdDescripcion = response?.result?.[0]?.id && response?.result?.[0]?.descripcion
@@ -695,8 +693,6 @@ const updateGrupo = async () => {
       'public'
     )
 
-    console.log('UPDATE Response:', response)
-
     // Verificar si tiene success=true O si tiene id/descripcion (formato antiguo)
     const hasSuccess = response?.result?.[0]?.success === true
     const hasIdDescripcion = response?.result?.[0]?.id && response?.result?.[0]?.descripcion
@@ -759,8 +755,6 @@ const deleteGrupo = async (grupo) => {
       ],
       'public'
     )
-
-    console.log('DELETE Response:', response)
 
     hideLoading()
 

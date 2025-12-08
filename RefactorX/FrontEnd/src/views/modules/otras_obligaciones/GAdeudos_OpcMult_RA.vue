@@ -155,134 +155,155 @@
             <font-awesome-icon icon="info-circle" />
             Información del Registro
           </h5>
-          <span class="badge badge-purple ms-auto">
-            <font-awesome-icon icon="check-circle" />
-            Registro Activo
+          <span class="badge" :class="getStatusBadgeClass(datosRegistro.statusregistro)">
+            <font-awesome-icon :icon="getStatusIcon(datosRegistro.statusregistro)" />
+            {{ datosRegistro.statusregistro || 'N/A' }}
           </span>
         </div>
 
         <div class="municipal-card-body">
-          <!-- Status del registro -->
-          <div class="alert" :class="getStatusClass(datosRegistro.statusregistro)">
-            <font-awesome-icon :icon="getStatusIcon(datosRegistro.statusregistro)" class="me-2" />
-            <strong>STATUS:</strong> {{ datosRegistro.statusregistro || 'N/A' }}
-          </div>
-
-          <!-- Datos generales -->
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="user" class="me-1" />
-                {{ etiquetas.concesionario || 'Concesionario' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.concesionario || 'N/A' }}</div>
+          <!-- Header con Control y Concesionario destacado -->
+          <div class="registro-header">
+            <div class="registro-control">
+              <span class="control-label">Control</span>
+              <span class="control-value">{{ datosRegistro.control || 'N/A' }}</span>
+            </div>
+            <div class="registro-concesionario">
+              <font-awesome-icon icon="user" class="concesionario-icon" />
+              <div class="concesionario-info">
+                <span class="concesionario-label">{{ etiquetas.concesionario || 'Concesionario' }}</span>
+                <span class="concesionario-value">{{ datosRegistro.concesionario || 'N/A' }}</span>
+              </div>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="map-marker-alt" class="me-1" />
-                {{ etiquetas.ubicacion || 'Ubicación' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.ubicacion || 'N/A' }}</div>
+          <!-- Grid de información principal -->
+          <div class="registro-grid">
+            <!-- Ubicación -->
+            <div class="registro-item registro-item-full">
+              <div class="item-icon">
+                <font-awesome-icon icon="map-marker-alt" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.ubicacion || 'Ubicación' }}</span>
+                <span class="item-value">{{ datosRegistro.ubicacion || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Nombre Comercial -->
+            <div class="registro-item registro-item-full" v-if="datosRegistro.nomcomercial">
+              <div class="item-icon">
+                <font-awesome-icon icon="store" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.nombre_comercial || 'Nombre Comercial' }}</span>
+                <span class="item-value">{{ datosRegistro.nomcomercial }}</span>
+              </div>
+            </div>
+
+            <!-- Lugar -->
+            <div class="registro-item registro-item-full" v-if="datosRegistro.lugar">
+              <div class="item-icon">
+                <font-awesome-icon icon="building" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.lugar || 'Lugar' }}</span>
+                <span class="item-value">{{ datosRegistro.lugar }}</span>
+              </div>
+            </div>
+
+            <!-- Fechas -->
+            <div class="registro-item">
+              <div class="item-icon item-icon-success">
+                <font-awesome-icon icon="calendar-check" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.fecha_inicio || 'Inicio Obligación' }}</span>
+                <span class="item-value">{{ formatDate(datosRegistro.fechainicio) }}</span>
+              </div>
+            </div>
+
+            <div class="registro-item">
+              <div class="item-icon item-icon-danger">
+                <font-awesome-icon icon="calendar-times" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.fecha_fin || 'Fin Obligación' }}</span>
+                <span class="item-value">{{ formatDate(datosRegistro.fechafin) || 'Vigente' }}</span>
+              </div>
+            </div>
+
+            <!-- Tipo/Unidad y Licencia -->
+            <div class="registro-item">
+              <div class="item-icon item-icon-info">
+                <font-awesome-icon icon="tag" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.unidad || 'Tipo' }}</span>
+                <span class="item-value">{{ datosRegistro.unidades || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <div class="registro-item">
+              <div class="item-icon item-icon-warning">
+                <font-awesome-icon icon="id-card" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.licencia || 'No. Licencia' }}</span>
+                <span class="item-value">{{ datosRegistro.licencia || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Superficie y Sector -->
+            <div class="registro-item">
+              <div class="item-icon">
+                <font-awesome-icon icon="ruler-combined" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.superficie || 'Superficie' }}</span>
+                <span class="item-value">{{ formatNumber(datosRegistro.superficie) }} m²</span>
+              </div>
+            </div>
+
+            <div class="registro-item">
+              <div class="item-icon">
+                <font-awesome-icon icon="city" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.sector || 'Sector' }}</span>
+                <span class="item-value">{{ datosRegistro.sector || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Recaudadora y Zona -->
+            <div class="registro-item">
+              <div class="item-icon item-icon-purple">
+                <font-awesome-icon icon="cash-register" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.recaudadora || 'Recaudadora' }}</span>
+                <span class="item-value">{{ datosRegistro.recaudadora || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <div class="registro-item">
+              <div class="item-icon item-icon-purple">
+                <font-awesome-icon icon="map" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ etiquetas.zona || 'Zona' }}</span>
+                <span class="item-value">{{ datosRegistro.zona || 'N/A' }}</span>
+              </div>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="store" class="me-1" />
-                {{ etiquetas.nombre_comercial || 'Nombre Comercial' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.nomcomercial || 'N/A' }}</div>
+          <!-- Observaciones -->
+          <div class="registro-observaciones" v-if="datosRegistro.obs">
+            <div class="obs-header">
+              <font-awesome-icon icon="comment-alt" />
+              <span>{{ etiquetas.obs || 'Observaciones' }}</span>
             </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="building" class="me-1" />
-                {{ etiquetas.lugar || 'Lugar' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.lugar || 'N/A' }}</div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="comment-alt" class="me-1" />
-                {{ etiquetas.obs || 'Observaciones' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.obs || 'N/A' }}</div>
-            </div>
-          </div>
-
-          <!-- Datos adicionales en dos columnas -->
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="tag" class="me-1" />
-                {{ etiquetas.unidad || 'Tipo' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.unidades || 'N/A' }}</div>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="calendar-check" class="me-1" />
-                {{ etiquetas.fecha_inicio || 'Inicio Oblig.' }}
-              </label>
-              <div class="form-control-static">{{ formatDate(datosRegistro.fechainicio) }}</div>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="calendar-times" class="me-1" />
-                {{ etiquetas.fecha_fin || 'Fin Oblig.' }}
-              </label>
-              <div class="form-control-static">{{ formatDate(datosRegistro.fechafin) }}</div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="id-card" class="me-1" />
-                {{ etiquetas.licencia || 'No. Licencia' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.licencia || 'N/A' }}</div>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="ruler-combined" class="me-1" />
-                {{ etiquetas.superficie || 'Superficie Mts.2' }}
-              </label>
-              <div class="form-control-static">{{ formatNumber(datosRegistro.superficie) }}</div>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="city" class="me-1" />
-                {{ etiquetas.sector || 'Sector' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.sector || 'N/A' }}</div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="cash-register" class="me-1" />
-                {{ etiquetas.recaudadora || 'Recaudadora' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.recaudadora || 'N/A' }}</div>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="map" class="me-1" />
-                {{ etiquetas.zona || 'Zona' }}
-              </label>
-              <div class="form-control-static">{{ datosRegistro.zona || 'N/A' }}</div>
-            </div>
+            <div class="obs-content">{{ datosRegistro.obs }}</div>
           </div>
         </div>
       </div>
@@ -341,20 +362,6 @@
     </div>
     <!-- /module-view-content -->
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <small v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" />
-          {{ formatDuration(toast.duration) }}
-        </small>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -368,7 +375,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -386,16 +393,10 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const { isLoading: globalLoading, setLoading: setGlobalLoading } = useGlobalLoading()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const BASE_DB = 'otras_obligaciones'
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+const loading = ref(false)
 
 // Estado
 const tablaActual = ref('')
@@ -433,37 +434,29 @@ const procesando = ref(false)
 
 // Métodos
 const goBack = () => {
-  router.push('/otras_obligaciones')
+  router.push('/otras-obligaciones/menu')
 }
 
 const toggleBusqueda = () => {
   showBusqueda.value = !showBusqueda.value
 }
 
-// Obtener número de tabla del query param
+// Obtener número de tabla del query param (default: 3 = Rastro)
 const obtenerTabla = () => {
-  const tabla = route.query.tabla || route.params.tabla
-  if (tabla) {
-    tablaActual.value = tabla
-    cargarDatosIniciales()
-  } else {
-    showToast('error', 'No se especificó la tabla')
-    setTimeout(() => goBack(), 2000)
-  }
+  tablaActual.value = route.query.tabla || route.params.tabla || '3'
+  cargarDatosIniciales()
 }
 
 // Cargar información de la tabla y etiquetas
 const cargarDatosIniciales = async () => {
-  const startTime = performance.now()
-  setLoading(true, 'Cargando configuración...')
-  setGlobalLoading(true)
+  loading.value = true
   loadingEstadisticas.value = true
 
   try {
     // Cargar información de la tabla
     const responseTabla = await execute(
-      'SP_GADEUDOS_OPCMULT_RA_TABLAS_GET',
-      'otras_obligaciones',
+      'sp_gadeudos_opcmult_ra_tablas_get',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: tablaActual.value, tipo: 'string' }
       ],
@@ -477,8 +470,8 @@ const cargarDatosIniciales = async () => {
 
     // Cargar etiquetas
     const responseEtiq = await execute(
-      'SP_GADEUDOS_OPCMULT_RA_ETIQUETAS_GET',
-      'otras_obligaciones',
+      'sp_gadeudos_opcmult_ra_etiquetas_get',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: tablaActual.value, tipo: 'string' }
       ],
@@ -503,15 +496,10 @@ const cargarDatosIniciales = async () => {
         zona: etiq.zona || 'Zona'
       }
     }
-
-    const endTime = performance.now()
-    const duration = endTime - startTime
-    showToast('success', 'Configuración cargada correctamente', duration)
   } catch (error) {
-    handleApiError(error)
+    console.error('Error cargando datos iniciales:', error)
   } finally {
-    setLoading(false)
-    setGlobalLoading(false)
+    loading.value = false
     loadingEstadisticas.value = false
   }
 }
@@ -547,20 +535,21 @@ const buscarRegistro = async () => {
     return
   }
 
-  const startTime = performance.now()
-  setLoading(true, 'Buscando registro...')
-  setGlobalLoading(true)
+  loading.value = true
+  showLoading('Buscando registro...')
 
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPCMULT_RA_DATOS_GET',
-      'otras_obligaciones',
+      'sp_gadeudos_opcmult_ra_datos_get',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: tablaActual.value, tipo: 'string' },
         { nombre: 'par_control', valor: numeroControl, tipo: 'string' }
       ],
       'guadalajara'
     )
+
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const data = response.result[0]
@@ -572,9 +561,7 @@ const buscarRegistro = async () => {
       } else {
         datosRegistro.value = data
         registroEncontrado.value = true
-        const endTime = performance.now()
-        const duration = endTime - startTime
-        showToast('success', 'Registro encontrado', duration)
+        showToast('success', 'Registro encontrado')
       }
     } else {
       showToast('error', 'No se encontró el registro')
@@ -582,12 +569,12 @@ const buscarRegistro = async () => {
       datosRegistro.value = {}
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
     registroEncontrado.value = false
     datosRegistro.value = {}
   } finally {
-    setLoading(false)
-    setGlobalLoading(false)
+    loading.value = false
   }
 }
 
@@ -625,14 +612,13 @@ const ejecutarOperacion = async () => {
     return
   }
 
-  const startTime = performance.now()
   procesando.value = true
-  setGlobalLoading(true)
+  showLoading('Reactivando registro...')
 
   try {
     const response = await execute(
-      'SP_GADEUDOS_OPCMULT_RA_REACTIVAR',
-      'otras_obligaciones',
+      'sp_gadeudos_opcmult_ra_reactivar',
+      BASE_DB,
       [
         { nombre: 'p_id_datos', valor: datosRegistro.value.id_datos, tipo: 'integer' },
         { nombre: 'p_cve_tab', valor: tablaActual.value, tipo: 'string' },
@@ -641,13 +627,12 @@ const ejecutarOperacion = async () => {
       'guadalajara'
     )
 
+    hideLoading()
+
     if (response && response.result && response.result.length > 0) {
       const result = response.result[0]
 
       if (result.success === 1) {
-        const endTime = performance.now()
-        const duration = endTime - startTime
-
         await Swal.fire({
           icon: 'success',
           title: 'Reactivación Exitosa',
@@ -656,7 +641,7 @@ const ejecutarOperacion = async () => {
           timer: 3000
         })
 
-        showToast('success', 'Registro reactivado correctamente', duration)
+        showToast('success', 'Registro reactivado correctamente')
         // Recargar datos del registro
         buscarRegistro()
       } else {
@@ -676,16 +661,10 @@ const ejecutarOperacion = async () => {
       })
     }
   } catch (error) {
+    hideLoading()
     handleApiError(error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error de Conexión',
-      text: 'No se pudo reactivar el registro',
-      confirmButtonColor: '#7c3aed'
-    })
   } finally {
     procesando.value = false
-    setGlobalLoading(false)
   }
 }
 
@@ -745,6 +724,21 @@ const getBadgeClass = (status) => {
   return 'badge badge-purple'
 }
 
+// Obtener clase de badge para el header
+const getStatusBadgeClass = (status) => {
+  if (!status) return 'badge-secondary'
+
+  const statusUpper = status.toUpperCase()
+  if (statusUpper.includes('BAJA') || statusUpper.includes('CANCELADO')) {
+    return 'badge-danger'
+  } else if (statusUpper.includes('ADEUDO')) {
+    return 'badge-warning'
+  } else if (statusUpper.includes('PAGADO') || statusUpper.includes('CORRIENTE') || statusUpper.includes('VIGENTE')) {
+    return 'badge-success'
+  }
+  return 'badge-purple'
+}
+
 // Formatear fecha
 const formatDate = (date) => {
   if (!date) return 'N/A'
@@ -766,56 +760,9 @@ const formatNumber = (num) => {
   }
 }
 
-// Formatear duración (ms -> s o ms)
-const formatDuration = (ms) => {
-  if (!ms) return ''
-  return ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${ms.toFixed(0)}ms`
-}
-
 // Lifecycle
 onMounted(() => {
   obtenerTabla()
 })
 </script>
 
-<style scoped>
-.align-self-end {
-  align-self: flex-end;
-}
-
-.clickable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.accordion-icon {
-  transition: transform 0.3s ease;
-  color: #7c3aed;
-}
-
-.toast-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.toast-duration {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  opacity: 0.8;
-  font-size: 0.85em;
-}
-
-.me-1 {
-  margin-right: 0.25rem;
-}
-
-.me-2 {
-  margin-right: 0.5rem;
-}
-
-.ms-auto {
-  margin-left: auto;
-}
-</style>

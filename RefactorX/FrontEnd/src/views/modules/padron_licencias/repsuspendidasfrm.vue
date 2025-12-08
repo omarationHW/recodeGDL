@@ -409,6 +409,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
@@ -426,6 +427,7 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
 
 // Estado
 const licencias = ref([])
@@ -546,7 +548,32 @@ const exportarExcel = async () => {
     return
   }
 
-  showToast('info', 'Función de exportación a Excel en desarrollo')
+  try {
+    const columns = [
+      { header: 'Licencia', key: 'licencia', width: 15 },
+      { header: 'Propietario', key: 'propietarionvo', width: 35 },
+      { header: 'RFC', key: 'rfc', width: 15 },
+      { header: 'ID Giro', key: 'id_giro', width: 10 },
+      { header: 'Ubicación', key: 'ubicacion', width: 30 },
+      { header: 'Núm. Ext.', key: 'numext_ubic', width: 10 },
+      { header: 'Colonia', key: 'colonia_ubic', width: 25 },
+      { header: 'Zona', key: 'zona', width: 8 },
+      { header: 'Fecha Otorgamiento', key: 'fecha_otorgamiento', type: 'date', width: 18 },
+      { header: 'Fecha Baja', key: 'fecha_baja', type: 'date', width: 15 },
+      { header: 'Tipo Bloqueo', key: 'bloqueado', width: 12 }
+    ]
+
+    const filename = `Licencias_Suspendidas_${getPeriodoText().replace(/[/\s:]/g, '_')}`
+    const success = exportToExcel(licencias.value, columns, filename, 'Licencias_Suspendidas')
+
+    if (success) {
+      showToast('success', `Excel exportado: ${licencias.value.length} licencias`)
+    } else {
+      showToast('error', 'Error al exportar Excel')
+    }
+  } catch (error) {
+    showToast('error', 'Error al generar el archivo Excel')
+  }
 }
 
 const viewDetalle = (licencia) => {

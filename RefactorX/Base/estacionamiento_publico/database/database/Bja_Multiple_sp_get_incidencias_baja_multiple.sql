@@ -1,21 +1,37 @@
--- Stored Procedure: sp_get_incidencias_baja_multiple
--- Tipo: Report
--- Descripción: Devuelve los registros con error de validación (estatus = 9) para un archivo dado.
--- Generado para formulario: Bja_Multiple
--- Fecha: 2025-08-27 13:24:39
+-- =============================================================================
+-- STORED PROCEDURE: sp_get_incidencias_baja_multiple
+-- Base: estacionamiento_publico
+-- Esquema: public
+-- Formulario: Bja_Multiple / BajaMultiplePublicos.vue
+-- Descripcion: Consulta incidencias de baja multiple por nombre de archivo
+-- =============================================================================
 
-CREATE OR REPLACE FUNCTION sp_get_incidencias_baja_multiple(p_archivo VARCHAR)
-RETURNS TABLE (
-    placa VARCHAR,
-    folio_archivo INTEGER,
-    fecha_archivo VARCHAR,
-    anomalia VARCHAR,
-    referencia INTEGER
-) AS $$
+DROP FUNCTION IF EXISTS public.sp_get_incidencias_baja_multiple(varchar);
+
+CREATE OR REPLACE FUNCTION public.sp_get_incidencias_baja_multiple(
+    p_archivo VARCHAR
+) RETURNS TABLE (
+    placa varchar,
+    folio_archivo integer,
+    fecha_archivo varchar,
+    anomalia varchar,
+    referencia integer
+) AS $func$
 BEGIN
     RETURN QUERY
-    SELECT placa, folio_archivo, fecha_archivo, anomalia, referencia
-    FROM ta14_folios_baja_esta
-    WHERE archivo = p_archivo AND estatus = 9;
+    SELECT
+        TRIM(b.placa)::varchar as placa,
+        b.folio_archivo,
+        TRIM(b.fecha_archivo)::varchar as fecha_archivo,
+        TRIM(b.anomalia)::varchar as anomalia,
+        b.referencia
+    FROM public.ta14_folios_baja_esta b
+    WHERE b.archivo = p_archivo
+      AND b.estatus = '9'
+    ORDER BY b.referencia;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- FIN STORED PROCEDURE
+-- =============================================================================

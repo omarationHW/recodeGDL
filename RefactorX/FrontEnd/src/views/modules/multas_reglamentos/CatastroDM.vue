@@ -95,6 +95,13 @@
         </div>
       </div>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando operación...</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -116,15 +123,16 @@ const rows = ref([])
 async function reload() {
   page.value = Math.max(1, page.value)
   const params = [
-    { name: 'q', type: 'C', value: String(filters.value.q || '') },
-    { name: 'year', type: 'I', value: Number(filters.value.year || 0) },
-    { name: 'offset', type: 'I', value: (page.value - 1) * pageSize.value },
-    { name: 'limit', type: 'I', value: pageSize.value }
+    { nombre: 'p_query', valor: String(filters.value.q || ''), tipo: 'string' },
+    { nombre: 'p_year', valor: Number(filters.value.year || 0), tipo: 'integer' },
+    { nombre: 'p_offset', valor: (page.value - 1) * pageSize.value, tipo: 'integer' },
+    { nombre: 'p_limit', valor: pageSize.value, tipo: 'integer' }
   ]
   try {
     const data = await execute(OP_CATASTRO_DM, BASE_DB, params)
-    rows.value = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
-    total.value = Number(data?.total ?? rows.value.length)
+    const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
+    rows.value = arr
+    total.value = arr.length > 0 ? Number(arr[0].total_count || 0) : 0
   } catch (e) {
     rows.value = []
     total.value = 0

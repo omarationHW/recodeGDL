@@ -11,6 +11,14 @@
       </div>
       <div class="button-group ms-auto">
         <button
+          class="btn-municipal-secondary"
+          @click="cargarDatosIniciales"
+          title="Actualizar datos"
+        >
+          <font-awesome-icon icon="sync-alt" />
+          Actualizar
+        </button>
+        <button
           class="btn-municipal-purple"
           @click="openDocumentation"
           title="Ayuda y documentación del módulo"
@@ -568,14 +576,9 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
 const { isLoading, showLoading, hideLoading } = useGlobalLoading()
-const {
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 // Estado
 const tablas = ref([])
@@ -671,7 +674,7 @@ const canEjecutar = computed(() => {
 
 // Métodos
 const goBack = () => {
-  router.push('/otras_obligaciones')
+  router.push('/otras-obligaciones/menu')
 }
 
 const focusLetra = () => {
@@ -731,7 +734,7 @@ const loadTablas = async () => {
   try {
     const response = await execute(
       'get_tablas',
-      'otras_obligaciones',
+      BASE_DB,
       [],
       'guadalajara'
     )
@@ -759,7 +762,7 @@ const loadRecaudadoras = async () => {
   try {
     const response = await execute(
       'SP_GADEUDOS_OPC_MULT_RECAUDADORAS_GET',
-      'otras_obligaciones',
+      BASE_DB,
       [],
       'guadalajara'
     )
@@ -792,7 +795,7 @@ const onTablaChange = async () => {
   try {
     const response = await execute(
       'get_etiquetas',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: selectedTabla.value, tipo: 'string' }
       ],
@@ -859,7 +862,7 @@ const buscarConcesion = async () => {
     // Buscar datos generales
     const response = await execute(
       'cob34_gdatosg_02',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'par_tab', valor: selectedTabla.value, tipo: 'string' },
         { nombre: 'par_control', valor: control, tipo: 'string' }
@@ -916,7 +919,7 @@ const buscarAdeudos = async (idDatos) => {
   try {
     const response = await execute(
       'cob34_gdetade_01',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'par_tabla', valor: selectedTabla.value, tipo: 'string' },
         { nombre: 'par_id_datos', valor: idDatos, tipo: 'integer' },
@@ -930,11 +933,32 @@ const buscarAdeudos = async (idDatos) => {
     const duration = ((endTime - startTime) / 1000).toFixed(2)
 
     if (response && response.result && response.result.length > 0) {
-      adeudos.value = response.result.map(a => ({
+      // CRÍTICO: Filtrar adeudos según lógica Delphi
+      // Excluir conceptos que contengan "Multa" o "Descto. a Multa"
+      const adeudosFiltrados = response.result.filter(a => {
+        const concepto = (a.concepto || '').toUpperCase()
+        const esMulta = concepto.includes('MULTA')
+        const esDesctoMulta = concepto.includes('DESCTO') && concepto.includes('MULTA')
+
+        // Si es multa o descuento a multa, NO incluir en la lista
+        return !esMulta && !esDesctoMulta
+      })
+
+      adeudos.value = adeudosFiltrados.map(a => ({
         ...a,
-        seleccionado: false
+        seleccionado: false,
+        // Marcar si es un concepto excluible (para información)
+        esMultaExcluida: false
       }))
-      showToast('success', `${adeudos.value.length} adeudo(s) encontrado(s) (${duration}s)`)
+
+      const totalAdeudos = response.result.length
+      const adeudosExcluidos = totalAdeudos - adeudosFiltrados.length
+
+      if (adeudosExcluidos > 0) {
+        showToast('info', `${adeudos.value.length} adeudo(s) disponibles (${adeudosExcluidos} multa(s) excluida(s)) (${duration}s)`)
+      } else {
+        showToast('success', `${adeudos.value.length} adeudo(s) encontrado(s) (${duration}s)`)
+      }
     } else {
       adeudos.value = []
       showToast('info', 'No se encontraron adeudos')
@@ -950,7 +974,7 @@ const verificarPagados = async (idDatos) => {
   try {
     const response = await execute(
       'sp_get_pagados',
-      'otras_obligaciones',
+      BASE_DB,
       [
         { nombre: 'p_control', valor: idDatos, tipo: 'integer' }
       ],
@@ -1054,7 +1078,7 @@ const ejecutarAccion = async () => {
 
         const response = await execute(
           'upd34_gen_adeudos_ind',
-          'otras_obligaciones',
+          BASE_DB,
           params,
           'guadalajara'
         )
@@ -1158,9 +1182,351 @@ const limpiarBusqueda = () => {
   tienePagados.value = false
 }
 
+// Cargar datos iniciales
+const cargarDatosIniciales = async () => {
+  await loadTablas()
+  await loadRecaudadoras()
+  showToast('success', 'Datos actualizados')
+}
+
 // Lifecycle
 onMounted(() => {
   loadTablas()
   loadRecaudadoras()
 })
 </script>
+
+<style scoped>
+/* ====== FORMULARIOS ====== */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -0.5rem;
+}
+
+.row.g-3 {
+  margin: -0.75rem;
+}
+
+.row.g-3 > * {
+  padding: 0.75rem;
+}
+
+.col-md-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+.col-md-3 { flex: 0 0 25%; max-width: 25%; }
+.col-md-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+.col-md-6 { flex: 0 0 50%; max-width: 50%; }
+
+.align-items-end {
+  align-items: flex-end;
+}
+
+/* ====== INPUTS Y SELECTS ====== */
+.municipal-form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0.5rem;
+}
+
+.municipal-form-control {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  color: #1a1a2e;
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.municipal-form-control:hover {
+  border-color: #c0c0c0;
+}
+
+.municipal-form-control:focus {
+  outline: none;
+  border-color: #ea8215;
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.15);
+}
+
+.municipal-form-control:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+select.municipal-form-control {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+}
+
+input[type="date"].municipal-form-control,
+input[type="number"].municipal-form-control {
+  cursor: pointer;
+}
+
+/* ====== INPUT GROUP ====== */
+.input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.input-group-text {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  border-right: none;
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.input-group .municipal-form-control {
+  border-radius: 0 0.375rem 0.375rem 0;
+  flex: 1;
+}
+
+/* ====== INFORMACIÓN GRID ====== */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  border-left: 3px solid #ea8215;
+}
+
+.info-item label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.info-item span {
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  font-weight: 500;
+}
+
+/* ====== BADGES ====== */
+.badge-purple {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #6f42c1, #5a32a3);
+  border-radius: 20px;
+}
+
+/* ====== ALERTAS ====== */
+.alert-purple {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(111, 66, 193, 0.1), rgba(90, 50, 163, 0.1));
+  border: 1px solid rgba(111, 66, 193, 0.3);
+  border-radius: 0.5rem;
+  color: #5a32a3;
+}
+
+/* ====== TABLA ====== */
+.table-responsive {
+  overflow-x: auto;
+  margin: 0 -1rem;
+  padding: 0 1rem;
+}
+
+.municipal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.municipal-table-header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+
+.municipal-table-header th {
+  padding: 0.875rem 1rem;
+  color: white;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.municipal-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.municipal-table tbody tr:hover {
+  background-color: rgba(234, 130, 21, 0.05);
+}
+
+.municipal-table td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+.municipal-table-footer {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.municipal-table-footer td {
+  padding: 1rem;
+  font-weight: 600;
+}
+
+/* ====== CHECKBOX ====== */
+.form-check-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: #ea8215;
+}
+
+/* ====== TEXTOS ====== */
+.text-center { text-align: center; }
+.text-end, .text-right { text-align: right; }
+.text-muted { color: #6c757d; }
+.text-purple { color: #6f42c1; }
+.fw-bold { font-weight: 700; }
+.me-1 { margin-right: 0.25rem; }
+.me-2 { margin-right: 0.5rem; }
+.ms-2 { margin-left: 0.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.py-5 { padding-top: 3rem; padding-bottom: 3rem; }
+.w-100 { width: 100%; }
+
+/* ====== REQUIRED ====== */
+.required {
+  color: #dc3545;
+  margin-left: 0.25rem;
+}
+
+/* ====== BUTTON GROUP ====== */
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ====== MODAL ====== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 0.75rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  color: white;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  .col-md-2, .col-md-3, .col-md-4, .col-md-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group button {
+    width: 100%;
+  }
+}
+</style>

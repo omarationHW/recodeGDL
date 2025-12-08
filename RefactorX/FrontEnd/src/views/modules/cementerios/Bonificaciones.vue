@@ -295,10 +295,19 @@
         </p>
       </div>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Bonificaciones'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -427,7 +436,6 @@ const buscarOficio = async () => {
       showSuccess('Oficio no encontrado - Ingrese el folio a bonificar')
     }
   } catch (error) {
-    console.error('Error al buscar oficio:', error)
     // Si no existe, pasar a paso 2 para crear nuevo
     modoModificacion.value = false
     pasoActual.value = 2
@@ -480,7 +488,6 @@ const buscarFolio = async () => {
       showError('Folio no encontrado')
     }
   } catch (error) {
-    console.error('Error al buscar folio:', error)
     showError('Error al buscar el folio')
   }
 }
@@ -527,7 +534,6 @@ const guardarBonificacion = async () => {
       showError(response?.mensaje || 'Error al guardar la bonificación')
     }
   } catch (error) {
-    console.error('Error al guardar bonificación:', error)
     showError('Error al guardar la bonificación')
   }
 }
@@ -578,7 +584,6 @@ const eliminarBonificacion = async () => {
       showError(response?.mensaje || 'Error al eliminar la bonificación')
     }
   } catch (error) {
-    console.error('Error al eliminar bonificación:', error)
     showError('Error al eliminar la bonificación')
   }
 }
@@ -643,4 +648,13 @@ const formatCurrency = (value) => {
     maximumFractionDigits: 2
   }).format(value)
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

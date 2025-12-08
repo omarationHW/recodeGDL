@@ -9,10 +9,10 @@ RETURNS TABLE(remesa TEXT, fecharemesa DATE, aplicadoteso DATE)
 LANGUAGE plpgsql AS $$
 BEGIN
   RETURN QUERY
-    SELECT DISTINCT ON (remesa)
-      remesa, fecharemesa, fecha_aplica_teso AS aplicadoteso
-    FROM ta14_datos_edo
-    ORDER BY remesa DESC, fecharemesa
+    SELECT DISTINCT ON (t.remesa)
+      TRIM(t.remesa)::TEXT, t.fecharemesa, t.fecha_aplica_teso AS aplicadoteso
+    FROM ta14_datos_edo t
+    ORDER BY t.remesa DESC, t.fecharemesa
     LIMIT 5;
 END;
 $$;

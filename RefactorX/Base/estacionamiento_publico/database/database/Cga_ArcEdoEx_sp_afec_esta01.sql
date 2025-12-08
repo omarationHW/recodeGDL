@@ -1,19 +1,44 @@
--- Stored Procedure: sp_afec_esta01
--- Tipo: CRUD
--- Descripción: Procedimiento para aplicar la remesa (simula spd_afec_esta01).
--- Generado para formulario: Cga_ArcEdoEx
--- Fecha: 2025-08-27 13:27:09
+-- =============================================================================
+-- STORED PROCEDURE: sp_afec_esta01
+-- Base: estacionamiento_publico
+-- Esquema: public
+-- Formulario: Cga_ArcEdoEx / CargaEdoExPublicos.vue
+-- Descripcion: Aplica/afecta la remesa por fecha
+-- =============================================================================
 
-CREATE OR REPLACE FUNCTION sp_afec_esta01(
-    p_fecha date
-) RETURNS TABLE(success boolean, msg text) AS $$
+DROP FUNCTION IF EXISTS public.sp_afec_esta01(date);
+
+CREATE OR REPLACE FUNCTION public.sp_afec_esta01(
+    p_fecha DATE
+) RETURNS TABLE(success boolean, message text) AS $func$
+DECLARE
+    v_affected INTEGER;
 BEGIN
-    -- Aquí va la lógica de afectación de la remesa
-    -- Por ejemplo, actualizar estados, marcar registros, etc.
-    -- Simulación:
-    UPDATE ta14_datos_edo SET teso_cve = 'AFECTADO' WHERE fecharemesa = p_fecha AND teso_cve IS NULL;
-    RETURN QUERY SELECT true, 'Aplicación exitosa';
+    -- Validar fecha requerida
+    IF p_fecha IS NULL THEN
+        RETURN QUERY SELECT false::boolean, 'La fecha es requerida'::text;
+        RETURN;
+    END IF;
+
+    -- Afectar registros de la remesa
+    UPDATE public.ta14_datos_edo
+    SET teso_cve = 'AFECTADO'
+    WHERE fecharemesa = p_fecha
+      AND (teso_cve IS NULL OR teso_cve = '');
+
+    GET DIAGNOSTICS v_affected = ROW_COUNT;
+
+    IF v_affected > 0 THEN
+        RETURN QUERY SELECT true::boolean, ('Remesa afectada correctamente. Registros actualizados: ' || v_affected)::text;
+    ELSE
+        RETURN QUERY SELECT true::boolean, 'No se encontraron registros pendientes para afectar en la fecha indicada'::text;
+    END IF;
+
 EXCEPTION WHEN OTHERS THEN
-    RETURN QUERY SELECT false, 'Error en la aplicación de folios: ' || SQLERRM;
+    RETURN QUERY SELECT false::boolean, ('Error al afectar remesa: ' || SQLERRM)::text;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- FIN STORED PROCEDURE
+-- =============================================================================

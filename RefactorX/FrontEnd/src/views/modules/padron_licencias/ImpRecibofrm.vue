@@ -361,7 +361,6 @@ const getReciboInfo = async () => {
       }
     }
   } catch (error) {
-    console.error('Error obteniendo recibo:', error)
   }
 }
 
@@ -379,7 +378,6 @@ const getParametrosRecibo = async () => {
       parametrosRecibo.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error obteniendo parámetros:', error)
   }
 }
 
@@ -399,7 +397,6 @@ const convertirMontoALetras = async (monto) => {
       montoEnLetras.value = response.result[0].letras || ''
     }
   } catch (error) {
-    console.error('Error convirtiendo a letras:', error)
     montoEnLetras.value = ''
   }
 }

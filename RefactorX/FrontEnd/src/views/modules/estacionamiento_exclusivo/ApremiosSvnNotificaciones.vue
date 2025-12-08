@@ -38,7 +38,7 @@
             </div>
             <h3 class="stat-number">{{ formatNumber(stat.total) }}</h3>
             <p class="stat-label">{{ stat.descripcion }}</p>
-            <small class="stat-percentage">{{ stat.porcentaje.toFixed(1) }}%</small>
+            <small class="stat-percentage">{{ Number(stat.porcentaje).toFixed(1) }}%</small>
           </div>
         </div>
       </div>
@@ -291,29 +291,46 @@
         </div>
       </Modal>
     </div>
+    
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="closeDocumentation"
+      title="Ayuda - ApremiosSvnNotificaciones"
+    >
+      <h3>Apremios Svn Notificaciones</h3>
+      <p>Documentacion del modulo Estacionamiento Exclusivo.</p>
+    </DocumentationModal>
+
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'ApremiosSvnNotificaciones'"
+      :moduleName="'estacionamiento_exclusivo'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Modal from '@/components/common/Modal.vue'
 
 // ========== CONSTANTES ==========
 const BASE_DB = 'estacionamiento_exclusivo'
-const OP_LIST = 'APREMIOSSVN_NOTIFICACIONES_LIST'
-const OP_STATS = 'APREMIOSSVN_NOTIFICACIONES_ESTADISTICAS'
+const OP_LIST = 'apremiossvn_notificaciones_list'
+const OP_STATS = 'apremiossvn_notificaciones_estadisticas'
 
 // ========== COMPOSABLES ==========
 const { loading, execute } = useApi()
-const {
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 // ========== ESTADO - FILTROS ==========
 const showFilters = ref(false)
@@ -361,11 +378,15 @@ const visiblePages = computed(() => {
 const cargarEstadisticas = async () => {
   loadingEstadisticas.value = true
   try {
-    const data = await execute(OP_STATS, BASE_DB, [])
-    const arr = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
-    estadisticas.value = arr
+    const response = await execute(OP_STATS, BASE_DB, [])
+    if (response && response.data) {
+      estadisticas.value = Array.isArray(response.data) ? response.data : []
+    } else if (response && response.result) {
+      estadisticas.value = Array.isArray(response.result) ? response.result : []
+    } else {
+      estadisticas.value = []
+    }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
     estadisticas.value = []
   } finally {
     loadingEstadisticas.value = false
@@ -374,21 +395,25 @@ const cargarEstadisticas = async () => {
 
 // ========== FUNCIONES - BÚSQUEDA ==========
 const reload = async () => {
+  showLoading('Buscando notificaciones...', 'Consultando base de datos')
   const startTime = performance.now()
   const params = [
     { name: 'q', type: 'C', value: String(filters.value.q || '') },
     { name: 'desde', type: 'D', value: String(filters.value.desde || '') },
     { name: 'hasta', type: 'D', value: String(filters.value.hasta || '') },
-    { name: 'estado', type: 'C', value: String(filters.value.estado || '') },
-    { name: 'offset', type: 'I', value: (currentPage.value - 1) * itemsPerPage.value },
-    { name: 'limit', type: 'I', value: itemsPerPage.value }
+    { name: 'estado', type: 'C', value: String(filters.value.estado || '') }
   ]
 
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
-    const arr = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const response = await execute(OP_LIST, BASE_DB, params)
+    let arr = []
+    if (response && response.data) {
+      arr = Array.isArray(response.data) ? response.data : []
+    } else if (response && response.result) {
+      arr = Array.isArray(response.result) ? response.result : []
+    }
     rows.value = arr
-    totalResultados.value = Number(data?.total ?? arr.length)
+    totalResultados.value = arr.length
 
     // Toast con timing
     const endTime = performance.now()
@@ -402,6 +427,8 @@ const reload = async () => {
     rows.value = []
     totalResultados.value = 0
     handleApiError(error)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -480,9 +507,18 @@ const getEstadoBadgeClass = (estado) => {
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
-  cargarEstadisticas() // SOLO stats, NO datos
-  // El usuario debe hacer clic en "Buscar" para cargar datos
+  cargarEstadisticas()
+  reload() // Cargar datos automaticamente
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 
 <!-- Sin estilos scoped - Todo desde municipal-theme.css -->

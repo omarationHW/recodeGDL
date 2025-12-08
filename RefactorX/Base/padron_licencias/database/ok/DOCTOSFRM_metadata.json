@@ -1,0 +1,302 @@
+{
+  "componente": "doctosfrm",
+  "modulo": "padron_licencias",
+  "descripcion": "Gestión de Documentos de Trámites de Licencias",
+  "schema": "public",
+  "database": "padron_licencias",
+  "fecha_implementacion": "2025-11-20",
+  "version": "1.0.0",
+  "estado": "COMPLETADO",
+
+  "stored_procedures": {
+    "total": 5,
+    "lista": [
+      {
+        "nombre": "sp_doctosfrm_catalog",
+        "tipo": "Catálogo",
+        "estabilidad": "STABLE",
+        "parametros": [],
+        "retorna": {
+          "tipo": "TABLE",
+          "columnas": [
+            {"nombre": "codigo", "tipo": "TEXT"},
+            {"nombre": "descripcion", "tipo": "TEXT"}
+          ]
+        },
+        "descripcion": "Retorna el catálogo completo de 19 tipos de documentos disponibles",
+        "ejemplo": "SELECT * FROM sp_doctosfrm_catalog();"
+      },
+      {
+        "nombre": "sp_doctosfrm_get",
+        "tipo": "Consulta",
+        "estabilidad": "STABLE",
+        "parametros": [
+          {"nombre": "p_tramite_id", "tipo": "INTEGER", "obligatorio": true}
+        ],
+        "retorna": {
+          "tipo": "TABLE",
+          "columnas": [
+            {"nombre": "documentos", "tipo": "TEXT[]"},
+            {"nombre": "otro", "tipo": "TEXT"}
+          ]
+        },
+        "validaciones": [
+          "p_tramite_id no puede ser NULL",
+          "p_tramite_id debe ser mayor a 0",
+          "Retorna array vacío si no existe el trámite"
+        ],
+        "descripcion": "Obtiene los documentos registrados para un trámite específico",
+        "ejemplo": "SELECT * FROM sp_doctosfrm_get(123);"
+      },
+      {
+        "nombre": "sp_doctosfrm_save",
+        "tipo": "CRUD (Create/Update - UPSERT)",
+        "estabilidad": "VOLATILE",
+        "parametros": [
+          {"nombre": "p_tramite_id", "tipo": "INTEGER", "obligatorio": true},
+          {"nombre": "p_documentos", "tipo": "JSON", "obligatorio": false, "default": null},
+          {"nombre": "p_otro", "tipo": "TEXT", "obligatorio": false, "default": null}
+        ],
+        "retorna": {
+          "tipo": "TABLE",
+          "columnas": [
+            {"nombre": "success", "tipo": "BOOLEAN"},
+            {"nombre": "message", "tipo": "TEXT"}
+          ]
+        },
+        "validaciones": [
+          "p_tramite_id no puede ser NULL",
+          "p_tramite_id debe ser mayor a 0",
+          "p_documentos debe ser JSON válido",
+          "Realiza INSERT si no existe, UPDATE si existe",
+          "Actualiza fecmod automáticamente"
+        ],
+        "descripcion": "Guarda o actualiza los documentos de un trámite (UPSERT automático)",
+        "ejemplo": "SELECT * FROM sp_doctosfrm_save(123, '[\"fotofachada\",\"recibopredial\"]'::json, 'Observaciones');"
+      },
+      {
+        "nombre": "sp_doctosfrm_clear",
+        "tipo": "CRUD (Update)",
+        "estabilidad": "VOLATILE",
+        "parametros": [
+          {"nombre": "p_tramite_id", "tipo": "INTEGER", "obligatorio": true}
+        ],
+        "retorna": {
+          "tipo": "TABLE",
+          "columnas": [
+            {"nombre": "success", "tipo": "BOOLEAN"},
+            {"nombre": "message", "tipo": "TEXT"}
+          ]
+        },
+        "validaciones": [
+          "p_tramite_id no puede ser NULL",
+          "p_tramite_id debe ser mayor a 0",
+          "El trámite debe existir en la tabla"
+        ],
+        "descripcion": "Limpia la selección de documentos de un trámite (soft delete)",
+        "ejemplo": "SELECT * FROM sp_doctosfrm_clear(123);"
+      },
+      {
+        "nombre": "sp_doctosfrm_delete",
+        "tipo": "CRUD (Update)",
+        "estabilidad": "VOLATILE",
+        "parametros": [
+          {"nombre": "p_tramite_id", "tipo": "INTEGER", "obligatorio": true},
+          {"nombre": "p_documento", "tipo": "TEXT", "obligatorio": true}
+        ],
+        "retorna": {
+          "tipo": "TABLE",
+          "columnas": [
+            {"nombre": "success", "tipo": "BOOLEAN"},
+            {"nombre": "message", "tipo": "TEXT"}
+          ]
+        },
+        "validaciones": [
+          "p_tramite_id no puede ser NULL",
+          "p_tramite_id debe ser mayor a 0",
+          "p_documento no puede ser NULL o vacío",
+          "El trámite debe existir",
+          "El documento debe estar en la lista"
+        ],
+        "descripcion": "Elimina un documento específico de la selección de un trámite",
+        "ejemplo": "SELECT * FROM sp_doctosfrm_delete(123, 'fotofachada');"
+      }
+    ]
+  },
+
+  "tablas": {
+    "total": 1,
+    "lista": [
+      {
+        "nombre": "doctosfrm_tramite",
+        "schema": "public",
+        "descripcion": "Almacena los documentos asociados a cada trámite de licencias",
+        "columnas": [
+          {"nombre": "id", "tipo": "SERIAL", "constraint": "PRIMARY KEY"},
+          {"nombre": "tramite_id", "tipo": "INTEGER", "constraint": "NOT NULL UNIQUE"},
+          {"nombre": "documentos", "tipo": "TEXT[]", "default": "ARRAY[]::TEXT[]"},
+          {"nombre": "otro", "tipo": "TEXT", "nullable": true},
+          {"nombre": "fecalt", "tipo": "TIMESTAMP", "default": "CURRENT_TIMESTAMP"},
+          {"nombre": "fecmod", "tipo": "TIMESTAMP", "nullable": true},
+          {"nombre": "capturo", "tipo": "INTEGER", "nullable": true},
+          {"nombre": "modifico", "tipo": "INTEGER", "nullable": true}
+        ],
+        "indices": [
+          {"nombre": "idx_doctosfrm_tramite_tramite_id", "tipo": "BTREE", "columnas": ["tramite_id"]},
+          {"nombre": "idx_doctosfrm_tramite_documentos", "tipo": "GIN", "columnas": ["documentos"]},
+          {"nombre": "idx_doctosfrm_tramite_fecalt", "tipo": "BTREE", "columnas": ["fecalt"]}
+        ],
+        "triggers": [
+          {
+            "nombre": "trg_update_fecmod",
+            "evento": "BEFORE UPDATE",
+            "funcion": "trg_doctosfrm_tramite_update_fecmod()",
+            "descripcion": "Actualiza fecmod automáticamente en cada UPDATE"
+          }
+        ]
+      }
+    ]
+  },
+
+  "catalogo_documentos": {
+    "total": 19,
+    "documentos": [
+      {"codigo": "fotofachada", "descripcion": "Fotografías de la fachada"},
+      {"codigo": "recibopredial", "descripcion": "Recibo de predial"},
+      {"codigo": "ident_titular", "descripcion": "Identificación del titular"},
+      {"codigo": "ident_dueno_finca", "descripcion": "Identificación del dueño de la finca"},
+      {"codigo": "ident_r1", "descripcion": "Identificación R1 (alta de Hacienda)"},
+      {"codigo": "contrato_arrend", "descripcion": "Contrato de arrendamiento"},
+      {"codigo": "solic_lic_usosuelo", "descripcion": "Solicitud de licencia y uso de suelo"},
+      {"codigo": "solic_mod_padron", "descripcion": "Solicitud de modificación al padrón y uso de suelo"},
+      {"codigo": "licencia_vigente", "descripcion": "Licencia original vigente"},
+      {"codigo": "carta_policia", "descripcion": "Carta de policía"},
+      {"codigo": "carta_poder", "descripcion": "Carta de poder simple"},
+      {"codigo": "memoria_calculo", "descripcion": "Memoria de cálculo"},
+      {"codigo": "poliza_responsabilidad", "descripcion": "Póliza vigente de responsabilidad civil del anuncio"},
+      {"codigo": "acta_constitutiva", "descripcion": "Acta constitutiva"},
+      {"codigo": "poder_notarial", "descripcion": "Poder notarial"},
+      {"codigo": "asignacion_numeros", "descripcion": "Asignación de números oficiales"},
+      {"codigo": "copia_licencia", "descripcion": "Copia de licencia"},
+      {"codigo": "solic_lic_anuncio", "descripcion": "Solicitud de licencia de anuncio"},
+      {"codigo": "solic_dictamen_anuncio", "descripcion": "Solicitud de dictamen de anuncio"}
+    ]
+  },
+
+  "archivos_generados": [
+    {
+      "nombre": "DOCTOSFRM_all_procedures_IMPLEMENTED.sql",
+      "tamaño": "13 KB",
+      "lineas": 360,
+      "descripcion": "Todos los stored procedures implementados con validaciones completas",
+      "ruta": "database/ok/DOCTOSFRM_all_procedures_IMPLEMENTED.sql"
+    },
+    {
+      "nombre": "DOCTOSFRM_table_definition.sql",
+      "tamaño": "5.2 KB",
+      "descripcion": "Definición completa de tabla, índices y triggers",
+      "ruta": "database/ok/DOCTOSFRM_table_definition.sql"
+    },
+    {
+      "nombre": "DOCTOSFRM_test_procedures.sql",
+      "tamaño": "8.7 KB",
+      "descripcion": "Suite completa de pruebas con 10 casos de prueba",
+      "ruta": "database/ok/DOCTOSFRM_test_procedures.sql"
+    },
+    {
+      "nombre": "DOCTOSFRM_deploy_complete.sql",
+      "tamaño": "15 KB",
+      "descripcion": "Script de despliegue todo-en-uno con verificación",
+      "ruta": "database/ok/DOCTOSFRM_deploy_complete.sql"
+    },
+    {
+      "nombre": "DOCTOSFRM_README.md",
+      "tamaño": "13 KB",
+      "descripcion": "Documentación completa con ejemplos de integración",
+      "ruta": "database/ok/DOCTOSFRM_README.md"
+    },
+    {
+      "nombre": "DOCTOSFRM_RESUMEN_IMPLEMENTACION.txt",
+      "tamaño": "24 KB",
+      "descripcion": "Resumen ejecutivo con toda la información",
+      "ruta": "database/ok/DOCTOSFRM_RESUMEN_IMPLEMENTACION.txt"
+    },
+    {
+      "nombre": "DOCTOSFRM_CHECKLIST_VALIDACION.md",
+      "tamaño": "8.9 KB",
+      "descripcion": "Checklist completo de validación",
+      "ruta": "database/ok/DOCTOSFRM_CHECKLIST_VALIDACION.md"
+    },
+    {
+      "nombre": "DOCTOSFRM_metadata.json",
+      "tamaño": "TBD",
+      "descripcion": "Metadata completa en formato JSON (este archivo)",
+      "ruta": "database/ok/DOCTOSFRM_metadata.json"
+    }
+  ],
+
+  "caracteristicas_implementadas": [
+    "Uso de FUNCTIONS (no PROCEDURES)",
+    "Schema público especificado explícitamente",
+    "Nomenclatura con prefijos (p_ para parámetros, v_ para variables)",
+    "Validaciones de parámetros obligatorios",
+    "Manejo de excepciones con RAISE EXCEPTION",
+    "RETURNS TABLE en todos los SPs",
+    "Comentarios COMMENT ON para documentación",
+    "DEFAULT para parámetros opcionales",
+    "Soft delete (limpia pero no elimina registros)",
+    "Auditoría con fecalt/fecmod",
+    "Trigger para actualizar fecmod automáticamente",
+    "Índice GIN para búsquedas en arrays",
+    "UPSERT automático en sp_save",
+    "Conversión JSON a array PostgreSQL",
+    "Manejo de arrays con array_remove()"
+  ],
+
+  "tecnologias": {
+    "lenguaje": "PL/pgSQL",
+    "base_datos": "PostgreSQL",
+    "version_minima": "9.5+",
+    "caracteristicas_usadas": [
+      "RETURNS TABLE",
+      "JSON functions (json_array_elements_text)",
+      "Array operations (array_remove, ANY)",
+      "GIN indexes",
+      "Triggers",
+      "UPSERT logic"
+    ]
+  },
+
+  "instalacion": {
+    "opcion_rapida": "psql -U usuario -d padron_licencias -f DOCTOSFRM_deploy_complete.sql",
+    "pasos_detallados": [
+      "psql -U usuario -d padron_licencias -f DOCTOSFRM_table_definition.sql",
+      "psql -U usuario -d padron_licencias -f DOCTOSFRM_all_procedures_IMPLEMENTED.sql",
+      "psql -U usuario -d padron_licencias -f DOCTOSFRM_test_procedures.sql"
+    ]
+  },
+
+  "validacion": {
+    "verificar_tabla": "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'doctosfrm_tramite';",
+    "verificar_sps": "SELECT routine_name FROM information_schema.routines WHERE routine_schema = 'public' AND routine_name LIKE 'sp_doctosfrm_%' ORDER BY routine_name;",
+    "prueba_rapida": "SELECT COUNT(*) FROM sp_doctosfrm_catalog();",
+    "resultado_esperado": "19 documentos"
+  },
+
+  "integracion": {
+    "frontend": ["JavaScript/Vue.js", "PHP"],
+    "ejemplos_incluidos": true,
+    "documentacion_api": "Ver DOCTOSFRM_README.md sección 'Integración con Frontend'"
+  },
+
+  "mantenimiento": {
+    "agregar_documento": "Editar sp_doctosfrm_catalog() y agregar nueva fila en RETURN QUERY VALUES",
+    "modificar_validaciones": "Editar la sección de validaciones en cada SP",
+    "optimizacion": "Los índices GIN ya están optimizados para búsquedas en arrays"
+  },
+
+  "contacto": {
+    "equipo": "RefactorX Team",
+    "proyecto": "Modernización Padrón de Licencias - Guadalajara"
+  }
+}

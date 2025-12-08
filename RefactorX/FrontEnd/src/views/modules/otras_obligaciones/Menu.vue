@@ -1,338 +1,231 @@
 <template>
-  <div class="module-view">
-    <!-- Header del módulo -->
-    <div class="module-view-header">
-      <div class="module-view-icon">
+  <div class="module-view otras-obligaciones-menu">
+    <!-- Header del módulo con gradiente -->
+    <div class="module-view-header header-gradient">
+      <div class="module-view-icon icon-animated">
         <font-awesome-icon icon="folder-open" />
       </div>
       <div class="module-view-info">
         <h1>Otras Obligaciones</h1>
         <p>Sistema de Gestión de Obligaciones Diversas</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
-      <!-- Información del Usuario y Ejercicio -->
-      <div class="municipal-card mb-4">
-        <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="user" />
-                Usuario
-              </label>
-              <input
-                type="text"
-                class="municipal-form-control"
-                :value="userName"
-                disabled
-              >
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="calendar" />
-                Ejercicio
-              </label>
-              <select v-model="selectedEjercicio" class="municipal-form-control" style="width: auto; display: inline-block;">
-                <option v-for="ej in ejercicios" :key="ej" :value="ej">{{ ej }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="clock" />
-                Fecha
-              </label>
-              <input
-                type="text"
-                class="municipal-form-control"
-                :value="currentDate"
-                disabled
-              >
-            </div>
+      <!-- Panel de información del usuario - Estilo Dashboard -->
+      <div class="user-dashboard-panel">
+        <div class="user-info-card">
+          <div class="user-avatar">
+            <font-awesome-icon icon="user-circle" />
+          </div>
+          <div class="user-details">
+            <span class="user-label">Usuario</span>
+            <span class="user-value">{{ userName }}</span>
+          </div>
+        </div>
+        <div class="user-info-card">
+          <div class="user-avatar ejercicio">
+            <font-awesome-icon icon="calendar-alt" />
+          </div>
+          <div class="user-details">
+            <span class="user-label">Ejercicio Fiscal</span>
+            <select v-model="selectedEjercicio" class="ejercicio-select">
+              <option v-for="ej in ejercicios" :key="ej" :value="ej">{{ ej }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="user-info-card">
+          <div class="user-avatar fecha">
+            <font-awesome-icon icon="clock" />
+          </div>
+          <div class="user-details">
+            <span class="user-label">Fecha Actual</span>
+            <span class="user-value">{{ currentDate }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Menú de Opciones Implementadas -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="list" />
-            Módulos Disponibles
-          </h5>
+      <!-- Sección de Accesos Rápidos -->
+      <div class="quick-access-section">
+        <div class="section-header">
+          <h2>
+            <font-awesome-icon icon="bolt" />
+            Acceso Rápido
+          </h2>
+          <span class="badge-count">{{ quickAccessItems.length }} módulos frecuentes</span>
         </div>
-        <div class="municipal-card-body">
-
-          <!-- Solo componentes implementados -->
-          <div class="menu-section">
-            <h6 class="menu-section-title">
-              <font-awesome-icon icon="check-circle" />
-              Componentes Implementados
-            </h6>
-            <div class="menu-grid">
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/apremios')">
-                <font-awesome-icon icon="gavel" />
-                <span>Apremios</span>
-                <small class="menu-item-description">Gestión de apremios y periodos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/aux-rep')">
-                <font-awesome-icon icon="users" />
-                <span>Padrón de Concesionarios</span>
-                <small class="menu-item-description">Consulta y reporte de padrón</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/carga-cartera')">
-                <font-awesome-icon icon="upload" />
-                <span>Carga de Cartera</span>
-                <small class="menu-item-description">Generación de carteras de pago</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/carga-valores')">
-                <font-awesome-icon icon="dollar-sign" />
-                <span>Carga de Valores</span>
-                <small class="menu-item-description">Captura de unidades y costos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/etiquetas')">
-                <font-awesome-icon icon="tags" />
-                <span>Catálogo de Etiquetas</span>
-                <small class="menu-item-description">Configuración de etiquetas</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gactualiza')">
-                <font-awesome-icon icon="edit" />
-                <span>Actualización de Datos</span>
-                <small class="menu-item-description">Actualización de registros</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gadeudos')">
-                <font-awesome-icon icon="file-invoice-dollar" />
-                <span>Adeudos</span>
-                <small class="menu-item-description">Consulta de adeudos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gadeudos-gral')">
-                <font-awesome-icon icon="list-alt" />
-                <span>Adeudos Generales</span>
-                <small class="menu-item-description">Reporte de adeudos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gadeudos-opc-mult')">
-                <font-awesome-icon icon="tasks" />
-                <span>Opciones Múltiples</span>
-                <small class="menu-item-description">Operaciones masivas</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gadeudos-opc-mult-ra')">
-                <font-awesome-icon icon="redo" />
-                <span>Reactivación</span>
-                <small class="menu-item-description">Reactivación de registros</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gbaja')">
-                <font-awesome-icon icon="trash-alt" />
-                <span>Baja de Registros</span>
-                <small class="menu-item-description">Cancelación de contratos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gconsulta')">
-                <font-awesome-icon icon="search" />
-                <span>Consulta</span>
-                <small class="menu-item-description">Búsqueda de registros</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gconsulta2')">
-                <font-awesome-icon icon="search-plus" />
-                <span>Consulta Avanzada</span>
-                <small class="menu-item-description">Búsqueda multicritero</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gfacturacion')">
-                <font-awesome-icon icon="file-invoice" />
-                <span>Facturación</span>
-                <small class="menu-item-description">Gestión de facturación</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/gnuevos')">
-                <font-awesome-icon icon="plus-circle" />
-                <span>Nuevos Registros</span>
-                <small class="menu-item-description">Altas de contratos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/grep-padron')">
-                <font-awesome-icon icon="file-alt" />
-                <span>Reporte Padrón</span>
-                <small class="menu-item-description">Padrón con adeudos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/ractualiza')">
-                <font-awesome-icon icon="chart-line" />
-                <span>R. Actualizaciones</span>
-                <small class="menu-item-description">Reporte de cambios</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/radeudos')">
-                <font-awesome-icon icon="file-invoice" />
-                <span>R. Adeudos</span>
-                <small class="menu-item-description">Reporte de adeudos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/radeudos-opc-mult')">
-                <font-awesome-icon icon="clipboard-list" />
-                <span>R. Opciones Múltiples</span>
-                <small class="menu-item-description">Reporte masivo</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/rbaja')">
-                <font-awesome-icon icon="ban" />
-                <span>R. Bajas</span>
-                <small class="menu-item-description">Reporte de cancelaciones</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/rconsulta')">
-                <font-awesome-icon icon="file-search" />
-                <span>R. Consulta</span>
-                <small class="menu-item-description">Reporte de consulta</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/rfacturacion')">
-                <font-awesome-icon icon="file-invoice-dollar" />
-                <span>R. Facturación</span>
-                <small class="menu-item-description">Reporte facturación</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/rnuevos')">
-                <font-awesome-icon icon="file-plus" />
-                <span>R. Nuevos</span>
-                <small class="menu-item-description">Reporte de altas</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/rpagados')">
-                <font-awesome-icon icon="file-check" />
-                <span>R. Pagados</span>
-                <small class="menu-item-description">Reporte de pagos</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/rrep-padron')">
-                <font-awesome-icon icon="file-export" />
-                <span>R. Rep. Padrón</span>
-                <small class="menu-item-description">Repositorio padrón</small>
-              </button>
-
-              <button class="menu-item menu-item-completed" @click="goTo('/otras_obligaciones/rubros')">
-                <font-awesome-icon icon="list" />
-                <span>Rubros</span>
-                <small class="menu-item-description">Catálogo de rubros</small>
-              </button>
-
+        <div class="quick-access-grid">
+          <button
+            v-for="item in quickAccessItems"
+            :key="item.path"
+            class="quick-access-btn"
+            @click="goTo(item.path)"
+          >
+            <div class="quick-icon" :class="item.color">
+              <font-awesome-icon :icon="item.icon" />
             </div>
-          </div>
-
-          <!-- Nota informativa -->
-          <div class="alert alert-success mt-4">
-            <font-awesome-icon icon="check-circle" />
-            <strong>¡Módulo 100% Completado!</strong> Los 27 componentes están optimizados y funcionales.
-          </div>
-
+            <span>{{ item.name }}</span>
+          </button>
         </div>
       </div>
 
-      <!-- Estadísticas del Módulo -->
-      <div class="municipal-card mt-4">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="chart-pie" />
-            Progreso de Implementación
-          </h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-icon success">
-                <font-awesome-icon icon="check-circle" />
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">27</div>
-                <div class="stat-label">Componentes Completados</div>
-              </div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon warning">
-                <font-awesome-icon icon="clock" />
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Componentes Pendientes</div>
-              </div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon info">
-                <font-awesome-icon icon="percent" />
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">100%</div>
-                <div class="stat-label">Progreso del Módulo</div>
-              </div>
-            </div>
+      <!-- Menú Principal Categorizado -->
+      <div class="main-menu-section">
+        <div class="section-header">
+          <h2>
+            <font-awesome-icon icon="th-large" />
+            Módulos del Sistema
+          </h2>
+          <div class="view-toggle">
+            <button
+              :class="{ active: viewMode === 'grid' }"
+              @click="viewMode = 'grid'"
+              title="Vista de cuadrícula"
+            >
+              <font-awesome-icon icon="th" />
+            </button>
+            <button
+              :class="{ active: viewMode === 'list' }"
+              @click="viewMode = 'list'"
+              title="Vista de lista"
+            >
+              <font-awesome-icon icon="list" />
+            </button>
           </div>
+        </div>
 
-          <!-- Barra de progreso -->
-          <div class="progress-bar-container mt-3">
-            <div class="progress-bar-label">
-              <span>Avance General</span>
-              <span class="progress-percentage">100%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-bar-fill" :style="{ width: '100%' }"></div>
-            </div>
+        <!-- Categoría: Gestión -->
+        <div class="menu-category">
+          <div class="category-header gestion">
+            <font-awesome-icon icon="cogs" />
+            <h3>Gestión de Registros</h3>
+            <span class="category-count">11 módulos</span>
+          </div>
+          <div class="menu-grid" :class="viewMode">
+            <button
+              v-for="item in gestionItems"
+              :key="item.path"
+              class="menu-card"
+              @click="goTo(item.path)"
+            >
+              <div class="card-icon" :class="item.color">
+                <font-awesome-icon :icon="item.icon" />
+              </div>
+              <div class="card-content">
+                <h4>{{ item.name }}</h4>
+                <p>{{ item.description }}</p>
+              </div>
+              <div class="card-arrow">
+                <font-awesome-icon icon="chevron-right" />
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Categoría: Reportes -->
+        <div class="menu-category">
+          <div class="category-header reportes">
+            <font-awesome-icon icon="chart-bar" />
+            <h3>Reportes y Consultas</h3>
+            <span class="category-count">14 módulos</span>
+          </div>
+          <div class="menu-grid" :class="viewMode">
+            <button
+              v-for="item in reportesItems"
+              :key="item.path"
+              class="menu-card"
+              @click="goTo(item.path)"
+            >
+              <div class="card-icon" :class="item.color">
+                <font-awesome-icon :icon="item.icon" />
+              </div>
+              <div class="card-content">
+                <h4>{{ item.name }}</h4>
+                <p>{{ item.description }}</p>
+              </div>
+              <div class="card-arrow">
+                <font-awesome-icon icon="chevron-right" />
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Categoría: Configuración -->
+        <div class="menu-category">
+          <div class="category-header config">
+            <font-awesome-icon icon="sliders-h" />
+            <h3>Configuración</h3>
+            <span class="category-count">2 módulos</span>
+          </div>
+          <div class="menu-grid" :class="viewMode">
+            <button
+              v-for="item in configItems"
+              :key="item.path"
+              class="menu-card"
+              @click="goTo(item.path)"
+            >
+              <div class="card-icon" :class="item.color">
+                <font-awesome-icon :icon="item.icon" />
+              </div>
+              <div class="card-content">
+                <h4>{{ item.name }}</h4>
+                <p>{{ item.description }}</p>
+              </div>
+              <div class="card-arrow">
+                <font-awesome-icon icon="chevron-right" />
+              </div>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Información de Componentes Pendientes -->
-      <div class="municipal-card mt-4">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="tasks" />
-            Próximos Componentes (En Desarrollo)
-          </h5>
+      <!-- Panel de Estadísticas -->
+      <div class="stats-dashboard">
+        <div class="stats-card completados">
+          <div class="stats-icon">
+            <font-awesome-icon icon="check-double" />
+          </div>
+          <div class="stats-info">
+            <span class="stats-number">27</span>
+            <span class="stats-label">Módulos Activos</span>
+          </div>
+          <div class="stats-badge">100%</div>
         </div>
-        <div class="municipal-card-body">
-          <div class="pending-modules-grid">
-            <div class="pending-module-group">
-              <h6>
-                <font-awesome-icon icon="cogs" />
-                Gestión (G)
-              </h6>
-              <ul class="status-list">
-                <li class="status-success"><font-awesome-icon icon="check-circle" /> Gestión de Registros (11)</li>
-                <li class="status-success"><font-awesome-icon icon="check-circle" /> Reportes y Consultas (14)</li>
-                <li class="status-success"><font-awesome-icon icon="check-circle" /> Catálogos y Configuración (2)</li>
-              </ul>
-            </div>
-            <div class="pending-module-group completed-module">
-              <h6>
-                <font-awesome-icon icon="trophy" />
-                Módulo Completado
-              </h6>
-              <ul class="status-list">
-                <li class="status-success"><strong>27/27 componentes optimizados</strong></li>
-                <li class="status-muted">80+ Stored Procedures funcionales</li>
-                <li class="status-muted">~22,000+ líneas de código optimizado</li>
-                <li class="status-muted">Performance < 2s en todas las operaciones</li>
-                <li class="status-muted">100% Bootstrap 5 + Vue 3 Composition API</li>
-              </ul>
-            </div>
+        <div class="stats-card procedures">
+          <div class="stats-icon">
+            <font-awesome-icon icon="database" />
+          </div>
+          <div class="stats-info">
+            <span class="stats-number">80+</span>
+            <span class="stats-label">Stored Procedures</span>
+          </div>
+        </div>
+        <div class="stats-card performance">
+          <div class="stats-icon">
+            <font-awesome-icon icon="tachometer-alt" />
+          </div>
+          <div class="stats-info">
+            <span class="stats-number">&lt;2s</span>
+            <span class="stats-label">Tiempo Respuesta</span>
+          </div>
+        </div>
+        <div class="stats-card tecnologia">
+          <div class="stats-icon">
+            <font-awesome-icon icon="code" />
+          </div>
+          <div class="stats-info">
+            <span class="stats-number">Vue 3</span>
+            <span class="stats-label">Composition API</span>
           </div>
         </div>
       </div>
@@ -364,6 +257,54 @@ const showDocumentation = ref(false)
 const userName = ref('Usuario Sistema')
 const selectedEjercicio = ref(new Date().getFullYear())
 const ejercicios = ref([])
+const viewMode = ref('grid')
+
+// Datos de menú - Acceso Rápido
+const quickAccessItems = ref([
+  { name: 'Consulta', path: '/otras-obligaciones/gconsulta', icon: 'search', color: 'primary' },
+  { name: 'Adeudos', path: '/otras-obligaciones/gadeudos', icon: 'file-invoice-dollar', color: 'warning' },
+  { name: 'Facturación', path: '/otras-obligaciones/gfacturacion', icon: 'file-invoice', color: 'success' },
+  { name: 'Nuevos', path: '/otras-obligaciones/gnuevos', icon: 'plus-circle', color: 'info' },
+  { name: 'Padrón', path: '/otras-obligaciones/aux-rep', icon: 'users', color: 'purple' }
+])
+
+// Datos de menú - Gestión
+const gestionItems = ref([
+  { name: 'Consulta', path: '/otras-obligaciones/gconsulta', icon: 'search', color: 'primary', description: 'Búsqueda de registros' },
+  { name: 'Consulta Avanzada', path: '/otras-obligaciones/gconsulta2', icon: 'search-plus', color: 'primary', description: 'Búsqueda multicriterio' },
+  { name: 'Nuevos Registros', path: '/otras-obligaciones/gnuevos', icon: 'plus-circle', color: 'success', description: 'Alta de contratos' },
+  { name: 'Actualización', path: '/otras-obligaciones/gactualiza', icon: 'edit', color: 'info', description: 'Modificar registros' },
+  { name: 'Baja de Registros', path: '/otras-obligaciones/gbaja', icon: 'trash-alt', color: 'danger', description: 'Cancelación de contratos' },
+  { name: 'Adeudos', path: '/otras-obligaciones/gadeudos', icon: 'file-invoice-dollar', color: 'warning', description: 'Consulta de adeudos' },
+  { name: 'Adeudos Generales', path: '/otras-obligaciones/gadeudos-gral', icon: 'list-alt', color: 'warning', description: 'Reporte general' },
+  { name: 'Opciones Múltiples', path: '/otras-obligaciones/gadeudos-opc-mult', icon: 'tasks', color: 'purple', description: 'Operaciones masivas' },
+  { name: 'Reactivación', path: '/otras-obligaciones/gadeudos-opc-mult-ra', icon: 'redo', color: 'success', description: 'Reactivar registros' },
+  { name: 'Facturación', path: '/otras-obligaciones/gfacturacion', icon: 'file-invoice', color: 'info', description: 'Gestión de facturación' },
+  { name: 'Apremios', path: '/otras-obligaciones/apremios', icon: 'gavel', color: 'danger', description: 'Gestión de apremios' }
+])
+
+// Datos de menú - Reportes
+const reportesItems = ref([
+  { name: 'Padrón Concesionarios', path: '/otras-obligaciones/aux-rep', icon: 'users', color: 'primary', description: 'Consulta de padrón' },
+  { name: 'Reporte Padrón', path: '/otras-obligaciones/grep-padron', icon: 'file-alt', color: 'primary', description: 'Padrón con adeudos' },
+  { name: 'R. Consulta', path: '/otras-obligaciones/rconsulta', icon: 'file-search', color: 'info', description: 'Reporte de búsqueda' },
+  { name: 'R. Adeudos', path: '/otras-obligaciones/radeudos', icon: 'file-invoice', color: 'warning', description: 'Reporte de deudas' },
+  { name: 'R. Opciones Múltiples', path: '/otras-obligaciones/radeudos-opc-mult', icon: 'clipboard-list', color: 'purple', description: 'Reporte masivo' },
+  { name: 'R. Facturación', path: '/otras-obligaciones/rfacturacion', icon: 'file-invoice-dollar', color: 'success', description: 'Reporte facturación' },
+  { name: 'R. Nuevos', path: '/otras-obligaciones/rnuevos', icon: 'file-medical', color: 'success', description: 'Reporte de altas' },
+  { name: 'R. Actualizaciones', path: '/otras-obligaciones/ractualiza', icon: 'chart-line', color: 'info', description: 'Reporte de cambios' },
+  { name: 'R. Bajas', path: '/otras-obligaciones/rbaja', icon: 'ban', color: 'danger', description: 'Reporte cancelaciones' },
+  { name: 'R. Pagados', path: '/otras-obligaciones/rpagados', icon: 'check-circle', color: 'success', description: 'Reporte de pagos' },
+  { name: 'R. Rep. Padrón', path: '/otras-obligaciones/rrep-padron', icon: 'file-export', color: 'primary', description: 'Exportar padrón' },
+  { name: 'Carga Cartera', path: '/otras-obligaciones/carga-cartera', icon: 'upload', color: 'purple', description: 'Generar carteras' },
+  { name: 'Carga Valores', path: '/otras-obligaciones/carga-valores', icon: 'dollar-sign', color: 'warning', description: 'Captura de costos' }
+])
+
+// Datos de menú - Configuración
+const configItems = ref([
+  { name: 'Etiquetas', path: '/otras-obligaciones/etiquetas', icon: 'tags', color: 'purple', description: 'Configurar etiquetas' },
+  { name: 'Rubros', path: '/otras-obligaciones/rubros', icon: 'layer-group', color: 'info', description: 'Catálogo de rubros' }
+])
 
 // Computed
 const currentDate = computed(() => {
@@ -409,20 +350,442 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.status-list {
-  list-style: none;
-  padding-left: 0;
+/* ====== HEADER STYLES ====== */
+.header-gradient {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border-bottom: 3px solid #ea8215;
 }
 
-.status-success {
-  color: #28a745;
+.icon-animated {
+  animation: pulse 2s infinite;
 }
 
-.status-muted {
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* ====== USER DASHBOARD PANEL ====== */
+.user-dashboard-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.user-info-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.user-info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ea8215 0%, #d4740f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.user-avatar.ejercicio {
+  background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+}
+
+.user-avatar.fecha {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-label {
+  font-size: 0.75rem;
   color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
-.completed-module {
-  border-left-color: #28a745;
+.user-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.ejercicio-select {
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ejercicio-select:focus {
+  outline: none;
+}
+
+/* ====== QUICK ACCESS SECTION ====== */
+.quick-access-section {
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.section-header h2 svg {
+  color: #ea8215;
+}
+
+.badge-count {
+  background: #e9ecef;
+  color: #495057;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.quick-access-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.quick-access-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.quick-access-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(234, 130, 21, 0.25);
+}
+
+.quick-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+}
+
+.quick-icon.primary { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+.quick-icon.success { background: linear-gradient(135deg, #198754, #146c43); }
+.quick-icon.warning { background: linear-gradient(135deg, #ffc107, #e0a800); color: #1a1a2e; }
+.quick-icon.info { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
+.quick-icon.purple { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
+.quick-icon.danger { background: linear-gradient(135deg, #dc3545, #bb2d3b); }
+
+/* ====== VIEW TOGGLE ====== */
+.view-toggle {
+  display: flex;
+  gap: 0.25rem;
+  background: #e9ecef;
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+
+.view-toggle button {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.view-toggle button.active {
+  background: white;
+  color: #ea8215;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ====== MENU CATEGORIES ====== */
+.menu-category {
+  margin-bottom: 2rem;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.category-header.gestion {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.category-header.reportes {
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+}
+
+.category-header.config {
+  background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+}
+
+.category-header svg {
+  font-size: 1.25rem;
+}
+
+.category-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.category-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+}
+
+/* ====== MENU GRID ====== */
+.menu-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.menu-grid.grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.menu-grid.list {
+  grid-template-columns: 1fr;
+}
+
+.menu-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.menu-card:hover {
+  border-color: #ea8215;
+  box-shadow: 0 8px 25px rgba(234, 130, 21, 0.15);
+  transform: translateX(5px);
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.card-icon.primary { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+.card-icon.success { background: linear-gradient(135deg, #198754, #146c43); }
+.card-icon.warning { background: linear-gradient(135deg, #ffc107, #e0a800); color: #1a1a2e; }
+.card-icon.info { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
+.card-icon.purple { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
+.card-icon.danger { background: linear-gradient(135deg, #dc3545, #bb2d3b); }
+
+.card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-content h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.card-content p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-arrow {
+  color: #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.menu-card:hover .card-arrow {
+  color: #ea8215;
+  transform: translateX(5px);
+}
+
+/* ====== STATS DASHBOARD ====== */
+.stats-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.stats-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.stats-card.completados {
+  background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+}
+
+.stats-card.procedures {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.stats-card.performance {
+  background: linear-gradient(135deg, #ea8215 0%, #d4740f 100%);
+}
+
+.stats-card.tecnologia {
+  background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+}
+
+.stats-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stats-info {
+  flex: 1;
+}
+
+.stats-number {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stats-label {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.stats-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  .user-dashboard-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-access-grid {
+    flex-direction: column;
+  }
+
+  .quick-access-btn {
+    justify-content: center;
+  }
+
+  .menu-grid.grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-dashboard {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-dashboard {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

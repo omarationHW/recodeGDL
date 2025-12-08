@@ -10,7 +10,8 @@ SET search_path TO public;
 -- Formulario: RBaja (EXACTO del archivo original)
 -- Archivo: 20_SP_OTRASOBLIG_RBAJA_EXACTO_all_procedures.sql
 -- Generado: 2025-09-10
--- Total SPs: 4 (EXACTO)
+-- Actualizado: 2025-12-02
+-- Total SPs: 5 (ACTUALIZADO)
 -- ============================================
 
 -- SP 1/4: sp_rbaja_buscar_local
@@ -111,6 +112,30 @@ BEGIN
     ELSE
         RETURN QUERY SELECT 1 AS codigo, 'No se encontró el registro para cancelar' AS mensaje;
     END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+
+-- SP 5/5: sp_rbaja_listar_adeudos
+-- Tipo: Report
+-- Descripción: Lista todos los adeudos pendientes de un local/concesión
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_rbaja_listar_adeudos(p_id_34_datos INTEGER)
+RETURNS TABLE (
+    periodo DATE,
+    importe NUMERIC,
+    recargo NUMERIC
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT a.periodo, a.importe, a.recargo
+    FROM otrasoblig.t34_pagos a
+    JOIN otrasoblig.t34_status b ON b.id_34_stat = a.id_stat
+    WHERE a.id_datos = p_id_34_datos
+      AND b.cve_stat = 'V'  -- Solo adeudos vigentes
+    ORDER BY a.periodo;
 END;
 $$ LANGUAGE plpgsql;
 

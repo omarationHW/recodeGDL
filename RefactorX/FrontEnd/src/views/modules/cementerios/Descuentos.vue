@@ -352,10 +352,19 @@
         </section>
       </div>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Descuentos'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -400,7 +409,6 @@ const buscarFolio = async () => {
       limpiarDatos()
     }
   } catch (error) {
-    console.error('Error al buscar folio:', error)
     showError('Error al buscar el folio')
     limpiarDatos()
   }
@@ -415,7 +423,6 @@ const cargarAdeudos = async () => {
 
     adeudos.value = result.data || []
   } catch (error) {
-    console.error('Error al cargar adeudos:', error)
     adeudos.value = []
   }
 }
@@ -429,7 +436,6 @@ const cargarDescuentos = async () => {
 
     descuentosAplicados.value = result.data || []
   } catch (error) {
-    console.error('Error al cargar descuentos:', error)
     descuentosAplicados.value = []
   }
 }
@@ -444,7 +450,6 @@ const cargarTiposDescuento = async () => {
 
     tiposDescuento.value = result.data || []
   } catch (error) {
-    console.error('Error al cargar tipos de descuento:', error)
     tiposDescuento.value = []
   }
 }
@@ -506,7 +511,6 @@ const aplicarDescuento = async () => {
       showError(result.mensaje || 'Error al aplicar descuento')
     }
   } catch (error) {
-    console.error('Error al aplicar descuento:', error)
     showError('Error al aplicar el descuento')
   }
 }
@@ -551,7 +555,6 @@ const eliminarDescuento = async (descuento) => {
       showError(response.mensaje || 'Error al cancelar descuento')
     }
   } catch (error) {
-    console.error('Error al cancelar descuento:', error)
     showError('Error al cancelar el descuento')
   }
 }
@@ -580,7 +583,6 @@ const reactivarFolio = async () => {
       showError(result.mensaje || 'Error al reactivar folio')
     }
   } catch (error) {
-    console.error('Error al reactivar folio:', error)
     showError('Error al reactivar el folio')
   }
 }
@@ -609,4 +611,13 @@ const formatDate = (date) => {
   if (!date) return ''
   return new Date(date).toLocaleDateString('es-MX')
 }
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>

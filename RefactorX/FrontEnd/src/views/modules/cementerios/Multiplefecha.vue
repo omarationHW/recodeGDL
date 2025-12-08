@@ -170,10 +170,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Multiplefecha'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -288,7 +297,6 @@ const buscarPagos = async () => {
       toast.success(`Se encontraron ${pagos.value.length} pago(s)`)
     }
   } catch (error) {
-    console.error('Error al buscar pagos:', error)
     toast.error('Error al buscar pagos')
   }
 }

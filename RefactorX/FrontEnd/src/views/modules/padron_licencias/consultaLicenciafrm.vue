@@ -635,6 +635,8 @@ import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
+import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 
 // Composables
@@ -652,6 +654,8 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
+const { exportToPdf } = usePdfExport()
 
 // Estado
 const showFilters = ref(false)
@@ -767,7 +771,6 @@ const cargarEstadisticas = async () => {
       estadisticas.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
   } finally {
     loadingEstadisticas.value = false
   }
@@ -970,21 +973,47 @@ const establecerFechasPorDefecto = () => {
   filtros.value.fecha_desde = seisMesesAtras.toISOString().split('T')[0]
 }
 
+// Definición de columnas para exportación
+const columnasExport = [
+  { header: 'ID', key: 'id_licencia', width: 10 },
+  { header: 'Licencia', key: 'licencia', width: 12 },
+  { header: 'Vigente', key: 'vigente', width: 10 },
+  { header: 'Propietario', key: 'propietario', width: 35 },
+  { header: 'RFC', key: 'rfc', width: 15 },
+  { header: 'Giro', key: 'descripcion_giro', width: 30 },
+  { header: 'Actividad', key: 'actividad', width: 35 },
+  { header: 'Ubicación', key: 'ubicacion', width: 30 },
+  { header: 'Num. Ext.', key: 'numext_ubic', width: 10 },
+  { header: 'Colonia', key: 'colonia_ubic', width: 25 },
+  { header: 'Empleados', key: 'num_empleados', width: 12, type: 'number' },
+  { header: 'Fecha Otorg.', key: 'fecha_otorgamiento', width: 15, type: 'date' }
+]
+
 const exportarExcel = async () => {
+  if (licencias.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
   showLoading('Exportando a Excel...', 'Generando archivo')
 
   try {
-    // TODO: Implementar exportación real
-    await new Promise(resolve => setTimeout(resolve, 800))
+    // Pequeño delay para mostrar el loading
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const success = exportToExcel(
+      licencias.value,
+      columnasExport,
+      'Licencias_Consulta'
+    )
 
     hideLoading()
 
-    await Swal.fire({
-      title: 'Exportar a Excel',
-      text: 'Funcionalidad en desarrollo. Utilizará SP_CONSULTALICENCIAS_EXPORTAR',
-      icon: 'info',
-      confirmButtonColor: '#ea8215'
-    })
+    if (success) {
+      showToast('success', `Excel generado con ${licencias.value.length} registros`)
+    } else {
+      showToast('error', 'Error al generar el archivo Excel')
+    }
   } catch (error) {
     hideLoading()
     handleApiError(error)
@@ -992,20 +1021,34 @@ const exportarExcel = async () => {
 }
 
 const exportarPDF = async () => {
+  if (licencias.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
   showLoading('Exportando a PDF...', 'Generando documento')
 
   try {
-    // TODO: Implementar exportación real
-    await new Promise(resolve => setTimeout(resolve, 800))
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const success = exportToPdf(
+      licencias.value,
+      columnasExport,
+      {
+        title: 'Consulta de Licencias',
+        subtitle: `Filtros aplicados - Total: ${totalResultados.value} registros`,
+        orientation: 'landscape',
+        showTotal: false
+      }
+    )
 
     hideLoading()
 
-    await Swal.fire({
-      title: 'Exportar a PDF',
-      text: 'Funcionalidad en desarrollo',
-      icon: 'info',
-      confirmButtonColor: '#ea8215'
-    })
+    if (success) {
+      showToast('success', 'PDF generado correctamente')
+    } else {
+      showToast('error', 'Error al generar PDF. Verifique que no tenga bloqueador de popups.')
+    }
   } catch (error) {
     hideLoading()
     handleApiError(error)
@@ -1027,7 +1070,6 @@ onMounted(async () => {
         primeraBusqueda.value = true
       }
     } catch (error) {
-      console.error('Error al cargar licencias desde localStorage:', error)
       localStorage.removeItem('licencias_consulta')
     }
   }

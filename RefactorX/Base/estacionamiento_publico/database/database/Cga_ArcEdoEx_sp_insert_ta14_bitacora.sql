@@ -1,24 +1,58 @@
--- Stored Procedure: sp_insert_ta14_bitacora
--- Tipo: CRUD
--- Descripción: Inserta un registro en ta14_bitacora para registrar la carga de una remesa.
--- Generado para formulario: Cga_ArcEdoEx
--- Fecha: 2025-08-27 13:27:09
+-- =============================================================================
+-- STORED PROCEDURE: sp_insert_ta14_bitacora
+-- Base: estacionamiento_publico
+-- Esquema: public
+-- Formulario: Cga_ArcEdoEx / CargaEdoExPublicos.vue
+-- Descripcion: Registra en bitacora la carga de una remesa
+-- =============================================================================
 
-CREATE OR REPLACE FUNCTION sp_insert_ta14_bitacora(
-    p_fecha_inicio date,
-    p_fecha_fin date,
-    p_fecha date,
-    p_num_rem integer,
-    p_cant_reg integer
-) RETURNS TABLE(success boolean, msg text) AS $$
+DROP FUNCTION IF EXISTS public.sp_insert_ta14_bitacora(date, date, date, integer, integer);
+
+CREATE OR REPLACE FUNCTION public.sp_insert_ta14_bitacora(
+    p_fecha_inicio DATE,
+    p_fecha_fin DATE,
+    p_fecha DATE,
+    p_num_rem INTEGER,
+    p_cant_reg INTEGER
+) RETURNS TABLE(success boolean, message text) AS $func$
+DECLARE
+    v_new_control INTEGER;
 BEGIN
-    INSERT INTO ta14_bitacora (
-        id, tipo, fecha_inicio, fecha_fin, fecha, num_remesa, cant_reg
+    -- Validar fechas requeridas
+    IF p_fecha_inicio IS NULL OR p_fecha_fin IS NULL OR p_fecha IS NULL THEN
+        RETURN QUERY SELECT false::boolean, 'Las fechas de inicio, fin y bitácora son requeridas'::text;
+        RETURN;
+    END IF;
+
+    -- Validar rango de fechas
+    IF p_fecha_inicio > p_fecha_fin THEN
+        RETURN QUERY SELECT false::boolean, 'La fecha de inicio no puede ser mayor a la fecha fin'::text;
+        RETURN;
+    END IF;
+
+    -- Obtener siguiente control
+    SELECT COALESCE(MAX(control), 0) + 1 INTO v_new_control FROM public.ta14_bitacora;
+
+    -- Insertar registro en bitácora (columnas reales: control, tipo, fecha_inicio, fecha_fin, fecha_hoy, num_remesa, cant_reg)
+    INSERT INTO public.ta14_bitacora (
+        control, tipo, fecha_inicio, fecha_fin, fecha_hoy, num_remesa, cant_reg
     ) VALUES (
-        0, 'A', p_fecha_inicio, p_fecha_fin, p_fecha, p_num_rem, p_cant_reg
+        v_new_control,
+        'A',
+        p_fecha_inicio,
+        p_fecha_fin,
+        p_fecha,
+        COALESCE(p_num_rem, 0),
+        COALESCE(p_cant_reg, 0)
     );
-    RETURN QUERY SELECT true, 'OK';
+
+    RETURN QUERY SELECT true::boolean, ('Bitácora registrada correctamente. Control: ' || v_new_control || ', Remesa: ' || COALESCE(p_num_rem, 0))::text;
+
 EXCEPTION WHEN OTHERS THEN
-    RETURN QUERY SELECT false, 'Error al registrar en bitácora: ' || SQLERRM;
+    RETURN QUERY SELECT false::boolean, ('Error al registrar en bitácora: ' || SQLERRM)::text;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- FIN STORED PROCEDURE
+-- =============================================================================

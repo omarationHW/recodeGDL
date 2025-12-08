@@ -345,7 +345,6 @@ const checkLicenciaBloqueada = async () => {
       }
     }
   } catch (error) {
-    console.error('Error verificando bloqueo:', error)
   }
 }
 
@@ -365,7 +364,6 @@ const calcularAdeudo = async () => {
       adeudoInfo.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error calculando adeudo:', error)
   }
 }
 
@@ -385,7 +383,6 @@ const obtenerSaldo = async () => {
       saldoInfo.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error obteniendo saldo:', error)
   }
 }
 

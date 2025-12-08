@@ -882,7 +882,7 @@
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -1033,7 +1033,6 @@ const loadGirosScian = async () => {
       girosScian.value = response.result
     }
   } catch (error) {
-    console.error('Error cargando giros SCIAN:', error)
   }
 }
 
@@ -1055,7 +1054,6 @@ const loadActividades = async (codGiro) => {
       actividades.value = response.result
     }
   } catch (error) {
-    console.error('Error cargando actividades:', error)
   }
 }
 
@@ -1074,7 +1072,6 @@ const loadTiposAnuncio = async () => {
       tiposAnuncio.value = response.result
     }
   } catch (error) {
-    console.error('Error cargando tipos de anuncio:', error)
   }
 }
 
@@ -1093,7 +1090,6 @@ const loadSaldoLicencia = async (idLicencia) => {
       saldoLicencia.value = response.result[0]
     }
   } catch (error) {
-    console.error('Error cargando saldo:', error)
   }
 }
 
@@ -1298,7 +1294,6 @@ const recalcularSaldos = async (idLicencia) => {
       'comun' // esquema
     )
   } catch (error) {
-    console.error('Error recalculando saldos:', error)
   }
 }
 
@@ -1319,7 +1314,6 @@ const recalcularAdeudoAnuncio = async (idAnuncio, idLicencia) => {
     // Recalcular saldos totales de la licencia
     await recalcularSaldos(idLicencia)
   } catch (error) {
-    console.error('Error recalculando adeudo anuncio:', error)
   }
 }
 
@@ -1372,8 +1366,16 @@ const abrirMapa = async () => {
   }
 }
 
+// Referencia para el intervalo de polling
+let pollingIntervalo = null
+let pollingTimeout = null
+
 const iniciarPollingUbicacion = () => {
-  const intervalo = setInterval(async () => {
+  // Limpiar intervalos previos
+  if (pollingIntervalo) clearInterval(pollingIntervalo)
+  if (pollingTimeout) clearTimeout(pollingTimeout)
+
+  pollingIntervalo = setInterval(async () => {
     try {
       const response = await execute(
         'SP_GET_UBICACION_SESION',
@@ -1392,15 +1394,18 @@ const iniciarPollingUbicacion = () => {
         }
 
         showToast('success', 'Ubicación registrada')
-        clearInterval(intervalo)
+        if (pollingIntervalo) clearInterval(pollingIntervalo)
+        pollingIntervalo = null
       }
     } catch (error) {
-      console.error('Error verificando ubicación:', error)
     }
   }, 3000) // Verificar cada 3 segundos
 
   // Detener después de 5 minutos
-  setTimeout(() => clearInterval(intervalo), 300000)
+  pollingTimeout = setTimeout(() => {
+    if (pollingIntervalo) clearInterval(pollingIntervalo)
+    pollingIntervalo = null
+  }, 300000)
 }
 
 const actualizarCoordenadas = async () => {
@@ -1417,7 +1422,6 @@ const actualizarCoordenadas = async () => {
       'comun' // esquema
     )
   } catch (error) {
-    console.error('Error actualizando coordenadas:', error)
   }
 }
 
@@ -1696,7 +1700,6 @@ onMounted(async () => {
       }
       return
     } catch (error) {
-      console.error('Error restaurando estado:', error)
       sessionStorage.removeItem('modlicfrm_state')
     }
   }
@@ -1728,6 +1731,20 @@ onMounted(async () => {
   }
 
   await loadGirosScian()
+})
+
+// Cleanup
+onBeforeUnmount(() => {
+  if (pollingIntervalo) {
+    clearInterval(pollingIntervalo)
+    pollingIntervalo = null
+  }
+  if (pollingTimeout) {
+    clearTimeout(pollingTimeout)
+    pollingTimeout = null
+  }
+  localStorage.removeItem('licenciaActual')
+  localStorage.removeItem('anuncioActual')
 })
 </script>
 

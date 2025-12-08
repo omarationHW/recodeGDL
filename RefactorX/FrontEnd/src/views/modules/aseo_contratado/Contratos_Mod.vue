@@ -8,6 +8,25 @@
         <h1>Modificación de Contratos</h1>
         <p>Aseo Contratado - Edición de contratos existentes</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -43,7 +62,7 @@
             <h5><font-awesome-icon icon="building" /> Información de la Empresa</h5>
           </div>
           <div class="municipal-card-body">
-            <div class="alert alert-info">
+            <div class="municipal-alert municipal-alert-info">
               <font-awesome-icon icon="info-circle" />
               La empresa asociada al contrato no se puede modificar desde este formulario
             </div>
@@ -251,20 +270,31 @@
         <li>Los cambios quedan registrados en el historial</li>
       </ul>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Contratos_Mod'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
-const loading = ref(false)
 const showDocumentation = ref(false)
 const numContratoBuscar = ref(null)
 const contratoEncontrado = ref(false)
@@ -314,7 +344,7 @@ const buscarContrato = async () => {
     return
   }
 
-  loading.value = true
+  showLoading()
   busquedaRealizada.value = true
   contratoEncontrado.value = false
 
@@ -325,8 +355,8 @@ const buscarContrato = async () => {
       parVigencia: 'T'
     })
 
-    if (response && response.data && response.data.length > 0) {
-      const contrato = response.data[0]
+    if (response && response.length > 0) {
+      const contrato = response[0]
       contratoEncontrado.value = true
 
       // Convertir fechas de YYYY-MM a formato month input
@@ -357,10 +387,11 @@ const buscarContrato = async () => {
       showToast('Contrato no encontrado', 'warning')
     }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al buscar el contrato', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -382,7 +413,7 @@ const actualizarContrato = async () => {
 
   if (!result.isConfirmed) return
 
-  loading.value = true
+  showLoading()
 
   try {
     // Convertir fechas a formato DATE
@@ -410,8 +441,8 @@ const actualizarContrato = async () => {
       p_status_contrato: formData.value.status_contrato
     })
 
-    if (response && response.data && response.data[0]) {
-      const result = response.data[0]
+    if (response && response[0]) {
+      const result = response[0]
 
       if (result.success) {
         showToast('Contrato actualizado exitosamente', 'success')
@@ -421,10 +452,11 @@ const actualizarContrato = async () => {
       }
     }
   } catch (error) {
-    console.error('Error:', error)
+    hideLoading()
+    handleApiError(error)
     showToast('Error al actualizar el contrato', 'error')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -465,11 +497,12 @@ const cargarTiposAseo = async () => {
       p_search: null
     })
 
-    if (response && response.data) {
-      tiposAseo.value = response.data
+    if (response) {
+      tiposAseo.value = response
     }
   } catch (error) {
-    console.error('Error al cargar tipos de aseo:', error)
+    hideLoading()
+    handleApiError(error)
   }
 }
 
@@ -481,11 +514,12 @@ const cargarUnidadesRecoleccion = async () => {
       p_search: null
     })
 
-    if (response && response.data) {
-      unidadesRecoleccion.value = response.data
+    if (response) {
+      unidadesRecoleccion.value = response
     }
   } catch (error) {
-    console.error('Error al cargar unidades de recolección:', error)
+    hideLoading()
+    handleApiError(error)
   }
 }
 

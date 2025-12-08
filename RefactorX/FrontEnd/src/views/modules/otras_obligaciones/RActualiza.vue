@@ -1,19 +1,19 @@
 <template>
   <div class="module-view">
-    <!-- Header del módulo -->
+    <!-- Header -->
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="chart-line" />
+        <font-awesome-icon icon="edit" />
       </div>
       <div class="module-view-info">
-        <h1>Reporte de Actualizaciones</h1>
-        <p>Otras Obligaciones - Actualización de datos de contratos</p>
+        <h1>Actualización de Datos de Locales</h1>
+        <p>Otras Obligaciones - Rastro</p>
       </div>
       <div class="button-group ms-auto">
         <button
           class="btn-municipal-purple"
           @click="openDocumentation"
-          title="Ayuda y documentación del módulo"
+          title="Ayuda"
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
@@ -21,7 +21,6 @@
         <button
           class="btn-municipal-secondary"
           @click="goBack"
-          :disabled="isLoading"
         >
           <font-awesome-icon icon="arrow-left" />
           Salir
@@ -35,42 +34,39 @@
         <div class="municipal-card-header">
           <h5>
             <font-awesome-icon icon="search" />
-            Búsqueda de Local
+            Buscar Local
           </h5>
         </div>
         <div class="municipal-card-body">
           <div class="row g-3 align-items-end">
             <div class="col-md-3">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="hashtag" class="me-1" />
-                Número de Control:
-              </label>
+              <label class="municipal-form-label">Número de Local</label>
               <input
                 type="text"
-                v-model="formData.numero"
+                v-model="busqueda.numero"
                 class="municipal-form-control"
-                placeholder="Número"
                 maxlength="3"
+                @keyup.enter="focusLetra"
+                placeholder="Número"
               />
             </div>
             <div class="col-md-2">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="font" class="me-1" />
-                Letra:
-              </label>
+              <label class="municipal-form-label">Letra</label>
               <input
                 type="text"
-                v-model="formData.letra"
+                v-model="busqueda.letra"
+                ref="letraInput"
                 class="municipal-form-control"
+                maxlength="1"
+                @keyup.enter="buscarLocal"
                 placeholder="Letra"
-                maxlength="2"
               />
             </div>
             <div class="col-md-3">
               <button
-                class="btn-municipal-primary w-100"
-                @click="handleBuscar"
-                :disabled="isLoading"
+                class="btn-municipal-primary"
+                @click="buscarLocal"
+                :disabled="loading"
               >
                 <font-awesome-icon icon="search" />
                 Buscar
@@ -80,270 +76,222 @@
         </div>
       </div>
 
-      <!-- Datos del local encontrado -->
-      <div class="municipal-card" v-if="datosLocal.control">
+      <!-- Datos del Local -->
+      <div class="municipal-card" v-if="concesion">
         <div class="municipal-card-header">
           <h5>
             <font-awesome-icon icon="info-circle" />
             Datos del Local
           </h5>
-          <span class="badge badge-purple">{{ datosLocal.control }}</span>
+          <button
+            class="btn-municipal-success"
+            @click="imprimirDatos"
+          >
+            <font-awesome-icon icon="print" />
+            Imprimir
+          </button>
         </div>
         <div class="municipal-card-body">
-          <div class="info-grid">
-            <div class="info-item">
-              <label>
-                <font-awesome-icon icon="hashtag" class="me-1" />
-                Control:
-              </label>
-              <span>{{ datosLocal.control }}</span>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="info-item">
+                <strong>Concesionario:</strong>
+                <span>{{ concesion.concesionario }}</span>
+              </div>
             </div>
-            <div class="info-item">
-              <label>
-                <font-awesome-icon icon="flag" class="me-1" />
-                Status:
-              </label>
-              <span>{{ datosLocal.status }}</span>
+            <div class="col-md-6">
+              <div class="info-item">
+                <strong>Ubicación:</strong>
+                <span>{{ concesion.ubicacion }}</span>
+              </div>
             </div>
-            <div class="info-item">
-              <label>
-                <font-awesome-icon icon="user" class="me-1" />
-                Concesionario:
-              </label>
-              <span>{{ datosLocal.concesionario }}</span>
+            <div class="col-md-4">
+              <div class="info-item">
+                <strong>Superficie:</strong>
+                <span>{{ concesion.superficie }} m²</span>
+              </div>
             </div>
-            <div class="info-item">
-              <label>
-                <font-awesome-icon icon="map-marker-alt" class="me-1" />
-                Ubicación:
-              </label>
-              <span>{{ datosLocal.ubicacion }}</span>
+            <div class="col-md-4">
+              <div class="info-item">
+                <strong>Licencia:</strong>
+                <span>{{ concesion.licencia }}</span>
+              </div>
             </div>
-            <div class="info-item">
-              <label>
-                <font-awesome-icon icon="ruler-combined" class="me-1" />
-                Superficie:
-              </label>
-              <span>{{ datosLocal.superficie }}</span>
+            <div class="col-md-4">
+              <div class="info-item">
+                <strong>Tipo de Local:</strong>
+                <span>{{ concesion.unidades }}</span>
+              </div>
             </div>
-            <div class="info-item">
-              <label>
-                <font-awesome-icon icon="file-alt" class="me-1" />
-                Licencia:
-              </label>
-              <span>{{ datosLocal.licencia }}</span>
-            </div>
-            <div class="info-item">
-              <label>
-                <font-awesome-icon icon="tag" class="me-1" />
-                Unidades:
-              </label>
-              <span>{{ datosLocal.unidades }}</span>
+            <div class="col-md-4">
+              <div class="info-item">
+                <strong>Inicio Obligación:</strong>
+                <span>{{ formatDate(concesion.fecha_inicio) }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Formulario de actualización -->
-      <div class="municipal-card" v-if="datosLocal.control">
+      <!-- Opciones de Actualización -->
+      <div class="municipal-card" v-if="concesion">
         <div class="municipal-card-header">
           <h5>
-            <font-awesome-icon icon="edit" />
-            Tipo de Actualización
+            <font-awesome-icon icon="cogs" />
+            Opciones de Actualización
           </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="mb-3">
-            <label class="municipal-form-label">
-              <font-awesome-icon icon="tasks" class="me-1" />
-              Seleccione qué desea actualizar:
-            </label>
-            <div class="d-flex flex-column gap-2">
-              <label class="form-check-label">
-                <input
-                  type="radio"
-                  name="tipoAct"
-                  value="0"
-                  v-model="formData.tipoActualizacion"
-                  @change="handleTipoChange"
-                  class="form-check-input me-2"
-                />
-                <font-awesome-icon icon="user" class="me-1" />
-                <span>Concesionario</span>
-              </label>
-              <label class="form-check-label">
-                <input
-                  type="radio"
-                  name="tipoAct"
-                  value="1"
-                  v-model="formData.tipoActualizacion"
-                  @change="handleTipoChange"
-                  class="form-check-input me-2"
-                />
-                <font-awesome-icon icon="map-marker-alt" class="me-1" />
-                <span>Ubicación</span>
-              </label>
-              <label class="form-check-label">
-                <input
-                  type="radio"
-                  name="tipoAct"
-                  value="2"
-                  v-model="formData.tipoActualizacion"
-                  @change="handleTipoChange"
-                  class="form-check-input me-2"
-                />
-                <font-awesome-icon icon="file-alt" class="me-1" />
-                <span>Licencia</span>
-              </label>
-              <label class="form-check-label">
-                <input
-                  type="radio"
-                  name="tipoAct"
-                  value="3"
-                  v-model="formData.tipoActualizacion"
-                  @change="handleTipoChange"
-                  class="form-check-input me-2"
-                />
-                <font-awesome-icon icon="ruler-combined" class="me-1" />
-                <span>Superficie</span>
-              </label>
-              <label class="form-check-label">
-                <input
-                  type="radio"
-                  name="tipoAct"
-                  value="4"
-                  v-model="formData.tipoActualizacion"
-                  @change="handleTipoChange"
-                  class="form-check-input me-2"
-                />
-                <font-awesome-icon icon="tag" class="me-1" />
-                <span>Tipo de Local</span>
-              </label>
-              <label class="form-check-label">
-                <input
-                  type="radio"
-                  name="tipoAct"
-                  value="5"
-                  v-model="formData.tipoActualizacion"
-                  @change="handleTipoChange"
-                  class="form-check-input me-2"
-                />
-                <font-awesome-icon icon="calendar-alt" class="me-1" />
-                <span>Inicio de Obligación</span>
-              </label>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="municipal-form-label">Seleccione qué desea actualizar:</label>
+              <select v-model="opcionSeleccionada" class="municipal-form-control" @change="cambiarOpcion">
+                <option :value="0">Concesionario</option>
+                <option :value="1">Ubicación</option>
+                <option :value="2">Licencia</option>
+                <option :value="3">Superficie</option>
+                <option :value="4">Tipo de Local</option>
+                <option :value="5">Inicio de Obligación</option>
+              </select>
             </div>
           </div>
 
-          <!-- Campos de edición según tipo -->
-          <div v-if="mostrarCampoEdicion" class="mt-4">
-            <!-- Concesionario -->
-            <div v-if="formData.tipoActualizacion === '0'" class="mb-3">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="user" class="me-1" />
-                Nuevo Concesionario:
-              </label>
-              <input
-                type="text"
-                v-model="formData.nuevoConcesionario"
-                class="municipal-form-control"
-              />
-            </div>
-
-            <!-- Ubicación -->
-            <div v-if="formData.tipoActualizacion === '1'" class="mb-3">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="map-marker-alt" class="me-1" />
-                Nueva Ubicación:
-              </label>
-              <input
-                type="text"
-                v-model="formData.nuevaUbicacion"
-                class="municipal-form-control"
-              />
-            </div>
-
-            <!-- Licencia -->
-            <div v-if="formData.tipoActualizacion === '2'" class="mb-3">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="file-alt" class="me-1" />
-                Nueva Licencia:
-              </label>
-              <input
-                type="number"
-                v-model.number="formData.nuevaLicencia"
-                class="municipal-form-control"
-                :min="0"
-              />
-            </div>
-
-            <!-- Superficie -->
-            <div v-if="formData.tipoActualizacion === '3'" class="mb-3">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="ruler-combined" class="me-1" />
-                Nueva Superficie:
-              </label>
-              <input
-                type="number"
-                v-model.number="formData.nuevaSuperficie"
-                class="municipal-form-control"
-                :min="0"
-                step="0.01"
-              />
-            </div>
-
-            <!-- Tipo Local -->
-            <div v-if="formData.tipoActualizacion === '4'" class="mb-3">
-              <label class="municipal-form-label">
-                <font-awesome-icon icon="tag" class="me-1" />
-                Tipo de Local:
-              </label>
-              <select v-model="formData.nuevoTipoLocal" class="municipal-form-control">
-                <option value="INTERNO">INTERNO</option>
-                <option value="EXTERNO">EXTERNO</option>
-              </select>
-            </div>
-
-            <!-- Año y Mes para opciones 3, 4, 5 -->
-            <div v-if="['3', '4', '5'].includes(formData.tipoActualizacion)" class="row g-3">
-              <div class="col-md-6">
-                <label class="municipal-form-label">
-                  <font-awesome-icon icon="calendar-alt" class="me-1" />
-                  Año de Inicio:
-                </label>
+          <!-- Opción 0: Concesionario -->
+          <div v-if="opcionSeleccionada === 0" class="update-form">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="municipal-form-label">Nuevo Concesionario</label>
                 <input
-                  type="number"
-                  v-model.number="formData.anioInicio"
+                  type="text"
+                  v-model="formData.concesionario"
                   class="municipal-form-control"
-                  :min="2000"
-                  :max="2099"
+                  maxlength="100"
                 />
               </div>
-              <div class="col-md-6">
-                <label class="municipal-form-label">
-                  <font-awesome-icon icon="calendar" class="me-1" />
-                  Mes de Inicio:
-                </label>
-                <select v-model.number="formData.mesInicio" class="municipal-form-control">
-                  <option v-for="mes in meses" :key="mes.value" :value="mes.value">
-                    {{ mes.label }}
-                  </option>
+            </div>
+          </div>
+
+          <!-- Opción 1: Ubicación -->
+          <div v-if="opcionSeleccionada === 1" class="update-form">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="municipal-form-label">Nueva Ubicación</label>
+                <input
+                  type="text"
+                  v-model="formData.ubicacion"
+                  class="municipal-form-control"
+                  maxlength="255"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Opción 2: Licencia -->
+          <div v-if="opcionSeleccionada === 2" class="update-form">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="municipal-form-label">Nueva Licencia</label>
+                <input
+                  type="number"
+                  v-model.number="formData.licencia"
+                  class="municipal-form-control"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Opción 3: Superficie -->
+          <div v-if="opcionSeleccionada === 3" class="update-form">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="municipal-form-label">Nueva Superficie (m²)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  v-model.number="formData.superficie"
+                  class="municipal-form-control"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="municipal-form-label">Año de Inicio</label>
+                <input
+                  type="number"
+                  v-model.number="formData.aso_ini"
+                  class="municipal-form-control"
+                  maxlength="4"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="municipal-form-label">Mes de Inicio</label>
+                <select v-model.number="formData.mes_ini" class="municipal-form-control">
+                  <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
                 </select>
               </div>
             </div>
+          </div>
 
-            <!-- Botones -->
-            <div class="d-flex gap-2 mt-4">
+          <!-- Opción 4: Tipo de Local -->
+          <div v-if="opcionSeleccionada === 4" class="update-form">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="municipal-form-label">Nuevo Tipo de Local</label>
+                <select v-model="formData.descrip" class="municipal-form-control">
+                  <option value="INTERNO">INTERNO</option>
+                  <option value="EXTERNO">EXTERNO</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="municipal-form-label">Año de Inicio</label>
+                <input
+                  type="number"
+                  v-model.number="formData.aso_ini"
+                  class="municipal-form-control"
+                  maxlength="4"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="municipal-form-label">Mes de Inicio</label>
+                <select v-model.number="formData.mes_ini" class="municipal-form-control">
+                  <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opción 5: Inicio de Obligación -->
+          <div v-if="opcionSeleccionada === 5" class="update-form">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="municipal-form-label">Año de Inicio</label>
+                <input
+                  type="number"
+                  v-model.number="formData.aso_ini"
+                  class="municipal-form-control"
+                  maxlength="4"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="municipal-form-label">Mes de Inicio</label>
+                <select v-model.number="formData.mes_ini" class="municipal-form-control">
+                  <option v-for="m in meses" :key="m.value" :value="m.value">{{ m.label }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-3">
+            <div class="col-md-12">
               <button
-                class="btn-municipal-primary"
-                @click="handleAplicar"
-                :disabled="isLoading"
+                class="btn-municipal-success"
+                @click="aplicarCambio"
+                :disabled="saving"
               >
                 <font-awesome-icon icon="check" />
-                Aplicar Cambios
+                {{ saving ? 'Guardando...' : 'Aplicar Cambio' }}
               </button>
               <button
-                class="btn-municipal-secondary"
-                @click="handleCancelar"
+                class="btn-municipal-secondary ms-2"
+                @click="reset"
               >
                 <font-awesome-icon icon="times" />
                 Cancelar
@@ -365,220 +313,292 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { usePdfExport } from '@/composables/usePdfExport'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Swal from 'sweetalert2'
 
+const BASE_DB = 'otras_obligaciones'
 const router = useRouter()
 const { execute } = useApi()
-const { isLoading, startLoading, stopLoading } = useGlobalLoading()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { exportToPdf } = usePdfExport()
 
 const showDocumentation = ref(false)
-const datosLocal = ref({})
-const mostrarCampoEdicion = ref(false)
+const loading = ref(false)
+const saving = ref(false)
+const concesion = ref(null)
+const letraInput = ref(null)
+const opcionSeleccionada = ref(0)
 
-const formData = reactive({
+const busqueda = ref({
   numero: '',
-  letra: '',
-  tipoActualizacion: '',
-  nuevoConcesionario: '',
-  nuevaUbicacion: '',
-  nuevaLicencia: 0,
-  nuevaSuperficie: 0,
-  nuevoTipoLocal: '',
-  anioInicio: new Date().getFullYear(),
-  mesInicio: new Date().getMonth() + 1
+  letra: ''
+})
+
+const formData = ref({
+  concesionario: '',
+  ubicacion: '',
+  licencia: 0,
+  superficie: 0,
+  descrip: 'INTERNO',
+  aso_ini: new Date().getFullYear(),
+  mes_ini: 1
 })
 
 const meses = [
-  { value: 1, label: '01-Enero' },
-  { value: 2, label: '02-Febrero' },
-  { value: 3, label: '03-Marzo' },
-  { value: 4, label: '04-Abril' },
-  { value: 5, label: '05-Mayo' },
-  { value: 6, label: '06-Junio' },
-  { value: 7, label: '07-Julio' },
-  { value: 8, label: '08-Agosto' },
-  { value: 9, label: '09-Septiembre' },
-  { value: 10, label: '10-Octubre' },
-  { value: 11, label: '11-Noviembre' },
-  { value: 12, label: '12-Diciembre' }
+  { value: 1, label: '01 - Enero' },
+  { value: 2, label: '02 - Febrero' },
+  { value: 3, label: '03 - Marzo' },
+  { value: 4, label: '04 - Abril' },
+  { value: 5, label: '05 - Mayo' },
+  { value: 6, label: '06 - Junio' },
+  { value: 7, label: '07 - Julio' },
+  { value: 8, label: '08 - Agosto' },
+  { value: 9, label: '09 - Septiembre' },
+  { value: 10, label: '10 - Octubre' },
+  { value: 11, label: '11 - Noviembre' },
+  { value: 12, label: '12 - Diciembre' }
 ]
 
-const handleBuscar = async () => {
-  if (!formData.numero) {
-    showToast('warning', 'Debe ingresar el número de control')
+const formatDate = (dateString) => {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('es-MX')
+}
+
+const focusLetra = () => {
+  if (letraInput.value) {
+    letraInput.value.focus()
+  }
+}
+
+const cambiarOpcion = () => {
+  if (concesion.value) {
+    formData.value.concesionario = concesion.value.concesionario || ''
+    formData.value.ubicacion = concesion.value.ubicacion || ''
+    formData.value.licencia = concesion.value.licencia || 0
+    formData.value.superficie = concesion.value.superficie || 0
+    formData.value.descrip = concesion.value.unidades || 'INTERNO'
+
+    if (concesion.value.fecha_inicio) {
+      const fecha = new Date(concesion.value.fecha_inicio)
+      formData.value.aso_ini = fecha.getFullYear()
+      formData.value.mes_ini = fecha.getMonth() + 1
+    }
+  }
+}
+
+const buscarLocal = async () => {
+  if (!busqueda.value.numero) {
+    showToast('warning', 'Ingrese el número de local')
     return
   }
 
-  startLoading('Buscando local...')
+  const control = busqueda.value.numero + (busqueda.value.letra ? '-' + busqueda.value.letra : '')
+
+  loading.value = true
+  showLoading('Buscando local...')
+
   try {
-    const control = `${formData.numero}-${formData.letra || ''}`
     const response = await execute(
       'buscar_concesion',
-      'otras_obligaciones',
+      BASE_DB,
       [
-        { nombre: 'control', valor: control, tipo: 'string' }
+        { nombre: 'par_tab', valor: 3, tipo: 'integer' },
+        { nombre: 'par_control', valor: control, tipo: 'string' }
       ],
       'guadalajara'
     )
 
     if (response && response.result && response.result.length > 0) {
-      datosLocal.value = response.result[0]
-      formData.tipoActualizacion = ''
-      mostrarCampoEdicion.value = false
-      showToast('success', 'Local encontrado')
+      const data = response.result[0]
+      if (data.id_34_datos) {
+        concesion.value = data
+        cambiarOpcion()
+        showToast('success', 'Local encontrado')
+      } else {
+        concesion.value = null
+        showToast('warning', 'No existe LOCAL con este dato, intentalo de nuevo')
+      }
     } else {
-      showToast('warning', 'No se encontró el local con ese control')
-      datosLocal.value = {}
+      concesion.value = null
+      showToast('warning', 'No existe LOCAL con este dato, intentalo de nuevo')
     }
   } catch (error) {
     handleApiError(error)
+    concesion.value = null
   } finally {
-    stopLoading()
+    loading.value = false
+    hideLoading()
   }
 }
 
-const handleTipoChange = () => {
-  mostrarCampoEdicion.value = true
-
-  // Pre-cargar valores actuales
-  if (formData.tipoActualizacion === '0') {
-    formData.nuevoConcesionario = datosLocal.value.concesionario || ''
-  } else if (formData.tipoActualizacion === '1') {
-    formData.nuevaUbicacion = datosLocal.value.ubicacion || ''
-  } else if (formData.tipoActualizacion === '2') {
-    formData.nuevaLicencia = datosLocal.value.licencia || 0
-  } else if (formData.tipoActualizacion === '3') {
-    formData.nuevaSuperficie = datosLocal.value.superficie || 0
-  } else if (formData.tipoActualizacion === '4') {
-    formData.nuevoTipoLocal = datosLocal.value.unidades || 'INTERNO'
-  }
-}
-
-const handleAplicar = async () => {
-  // Validar que el nuevo valor sea diferente
-  let valorNuevo, valorActual
-
-  switch (formData.tipoActualizacion) {
-    case '0':
-      valorNuevo = formData.nuevoConcesionario
-      valorActual = datosLocal.value.concesionario
-      break
-    case '1':
-      valorNuevo = formData.nuevaUbicacion
-      valorActual = datosLocal.value.ubicacion
-      break
-    case '2':
-      valorNuevo = formData.nuevaLicencia
-      valorActual = datosLocal.value.licencia
-      break
-    case '3':
-      valorNuevo = formData.nuevaSuperficie
-      valorActual = datosLocal.value.superficie
-      break
-    case '4':
-      valorNuevo = formData.nuevoTipoLocal
-      valorActual = datosLocal.value.unidades
-      break
+const aplicarCambio = async () => {
+  if (!concesion.value) {
+    showToast('error', 'Debe buscar un local primero')
+    return
   }
 
-  if (valorNuevo === valorActual) {
-    showToast('warning', 'El nuevo valor debe ser diferente al actual')
+  // Validaciones
+  if (opcionSeleccionada.value === 0 && !formData.value.concesionario) {
+    showToast('warning', 'Debe ingresar el nuevo concesionario')
+    return
+  }
+  if (opcionSeleccionada.value === 1 && !formData.value.ubicacion) {
+    showToast('warning', 'Debe ingresar la nueva ubicación')
+    return
+  }
+  if (opcionSeleccionada.value === 2 && !formData.value.licencia) {
+    showToast('warning', 'Debe ingresar la nueva licencia')
+    return
+  }
+  if ([3, 4, 5].includes(opcionSeleccionada.value) && (!formData.value.aso_ini || !formData.value.mes_ini)) {
+    showToast('warning', 'Debe indicar año y mes de inicio')
+    return
+  }
+
+  // Confirmación
+  const opciones = ['Concesionario', 'Ubicación', 'Licencia', 'Superficie', 'Tipo de Local', 'Inicio de Obligación']
+  const confirmResult = await Swal.fire({
+    icon: 'question',
+    title: '¿Confirmar actualización?',
+    text: `Se actualizará: ${opciones[opcionSeleccionada.value]}`,
+    showCancelButton: true,
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, actualizar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirmResult.isConfirmed) {
     return
   }
 
   // Verificar pagos si es necesario (opciones 3, 4, 5)
-  if (['3', '4', '5'].includes(formData.tipoActualizacion)) {
+  if ([3, 4, 5].includes(opcionSeleccionada.value)) {
     try {
-      const periodo = `${formData.anioInicio}-${String(formData.mesInicio).padStart(2, '0')}`
       const pagosResponse = await execute(
         'verificar_pagos',
-        'otras_obligaciones',
-        [
-          { nombre: 'id_datos', valor: datosLocal.value.id_34_datos, tipo: 'integer' },
-          { nombre: 'periodo', valor: periodo, tipo: 'string' }
-        ],
+        BASE_DB,
+        [{ nombre: 'p_id_34_datos', valor: concesion.value.id_34_datos, tipo: 'integer' }],
         'guadalajara'
       )
 
-      if (pagosResponse && pagosResponse.result && pagosResponse.result.length > 0) {
-        showToast('warning', 'Existe(n) pago(s) realizado(s) a partir de este periodo')
+      if (pagosResponse && pagosResponse.result && pagosResponse.result[0] === true) {
+        showToast('error', 'Existe pago(s) realizado(s) a partir de este periodo, intenta con otro')
         return
       }
     } catch (error) {
-      console.warn('Error al verificar pagos:', error)
+      // Si falla verificar_pagos, continuamos
+      console.warn('Error verificando pagos:', error)
     }
   }
 
-  const result = await Swal.fire({
-    title: 'Confirmación',
-    text: '¿Está seguro de aplicar estos cambios?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí',
-    cancelButtonText: 'No',
-    confirmButtonColor: '#ea8215',
-    cancelButtonColor: '#6c757d'
-  })
+  saving.value = true
+  showLoading('Aplicando cambio...')
 
-  if (result.isConfirmed) {
-    startLoading('Aplicando cambios...')
-    try {
-      const response = await execute(
-        'actualizar_concesion',
-        'otras_obligaciones',
-        [
-          { nombre: 'opc', valor: parseInt(formData.tipoActualizacion), tipo: 'integer' },
-          { nombre: 'id_34_datos', valor: datosLocal.value.id_34_datos, tipo: 'integer' },
-          { nombre: 'concesionario', valor: formData.nuevoConcesionario || '', tipo: 'string' },
-          { nombre: 'ubicacion', valor: formData.nuevaUbicacion || '', tipo: 'string' },
-          { nombre: 'licencia', valor: formData.nuevaLicencia || 0, tipo: 'integer' },
-          { nombre: 'superficie', valor: formData.nuevaSuperficie || 0, tipo: 'numeric' },
-          { nombre: 'descrip', valor: formData.nuevoTipoLocal || '', tipo: 'string' },
-          { nombre: 'aso_ini', valor: formData.anioInicio, tipo: 'integer' },
-          { nombre: 'mes_ini', valor: formData.mesInicio, tipo: 'integer' }
-        ],
-        'guadalajara'
-      )
+  try {
+    const response = await execute(
+      'actualizar_concesion',
+      BASE_DB,
+      [
+        { nombre: 'opc', valor: opcionSeleccionada.value, tipo: 'integer' },
+        { nombre: 'id_34_datos', valor: concesion.value.id_34_datos, tipo: 'integer' },
+        { nombre: 'concesionario', valor: formData.value.concesionario || '', tipo: 'string' },
+        { nombre: 'ubicacion', valor: formData.value.ubicacion || '', tipo: 'string' },
+        { nombre: 'licencia', valor: formData.value.licencia || 0, tipo: 'integer' },
+        { nombre: 'superficie', valor: formData.value.superficie || 0, tipo: 'decimal' },
+        { nombre: 'descrip', valor: formData.value.descrip || '', tipo: 'string' },
+        { nombre: 'aso_ini', valor: formData.value.aso_ini || 0, tipo: 'integer' },
+        { nombre: 'mes_ini', valor: formData.value.mes_ini || 0, tipo: 'integer' }
+      ],
+      'guadalajara'
+    )
 
-      if (response && response.result && response.result[0]?.resultado === 0) {
-        showToast('success', 'Actualización realizada correctamente')
-        handleCancelar()
+    if (response && response.result && response.result.length > 0) {
+      const data = response.result[0]
+      saving.value = false
+      hideLoading()
+
+      if (data.resultado === 0) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Actualizado',
+          text: data.mensaje || 'Se ejecuto correctamente la actualizacion',
+          confirmButtonColor: '#ea8215'
+        })
+        reset()
       } else {
-        const mensaje = response?.result?.[0]?.mensaje || 'Error al actualizar'
-        showToast('error', mensaje)
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.mensaje || 'Error en la actualizacion',
+          confirmButtonColor: '#ea8215'
+        })
       }
-    } catch (error) {
-      handleApiError(error)
-    } finally {
-      stopLoading()
+    } else {
+      saving.value = false
+      hideLoading()
+      showToast('warning', 'Sin respuesta del servidor')
     }
+  } catch (error) {
+    saving.value = false
+    hideLoading()
+    handleApiError(error)
   }
 }
 
-const handleCancelar = () => {
-  datosLocal.value = {}
-  formData.numero = ''
-  formData.letra = ''
-  formData.tipoActualizacion = ''
-  mostrarCampoEdicion.value = false
+const reset = () => {
+  busqueda.value = { numero: '', letra: '' }
+  concesion.value = null
+  opcionSeleccionada.value = 0
+  formData.value = {
+    concesionario: '',
+    ubicacion: '',
+    licencia: 0,
+    superficie: 0,
+    descrip: 'INTERNO',
+    aso_ini: new Date().getFullYear(),
+    mes_ini: 1
+  }
 }
 
-const openDocumentation = () => {
-  showDocumentation.value = true
+const imprimirDatos = () => {
+  if (!concesion.value) {
+    showToast('warning', 'No hay datos para imprimir')
+    return
+  }
+
+  const columns = [
+    { header: 'Control', key: 'control', type: 'string' },
+    { header: 'Concesionario', key: 'concesionario', type: 'string' },
+    { header: 'Ubicacion', key: 'ubicacion', type: 'string' },
+    { header: 'Superficie', key: 'superficie', type: 'number' },
+    { header: 'Licencia', key: 'licencia', type: 'number' },
+    { header: 'Tipo Local', key: 'unidades', type: 'string' },
+    { header: 'Fecha Inicio', key: 'fecha_inicio', type: 'date' }
+  ]
+
+  const options = {
+    title: 'Datos del Local',
+    subtitle: `Control: ${concesion.value.control || ''}`,
+    orientation: 'landscape'
+  }
+
+  exportToPdf([concesion.value], columns, options)
 }
 
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
-
-const goBack = () => {
-  router.push('/otras_obligaciones')
-}
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const goBack = () => router.push('/otras-obligaciones/menu')
 </script>
+
+<style scoped>
+/* Estilos en municipal-theme.css */
+</style>

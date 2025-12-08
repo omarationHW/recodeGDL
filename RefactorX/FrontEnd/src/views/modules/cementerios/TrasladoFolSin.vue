@@ -193,10 +193,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'TrasladoFolSin'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -287,7 +296,6 @@ const buscarFolioOrigen = async () => {
       toast.warning('No se encontró el folio origen')
     }
   } catch (error) {
-    console.error('Error al buscar folio origen:', error)
     toast.error('Error al buscar folio origen')
     datosOrigen.value = null
   }
@@ -335,7 +343,6 @@ const buscarFolioDestino = async () => {
       toast.warning('No se encontró el folio destino')
     }
   } catch (error) {
-    console.error('Error al buscar folio destino:', error)
     toast.error('Error al buscar folio destino')
     datosDestino.value = null
   }
@@ -359,7 +366,6 @@ const cargarPagosOrigen = async () => {
 
     pagosOrigen.value = response.result || []
   } catch (error) {
-    console.error('Error al cargar pagos origen:', error)
     pagosOrigen.value = []
   }
 }
@@ -436,7 +442,6 @@ const ejecutarTraslado = async () => {
         toast.error(response.result[0]?.mensaje || 'Error al ejecutar traslado')
       }
     } catch (error) {
-      console.error('Error al ejecutar traslado:', error)
       toast.error('Error al ejecutar traslado')
     }
   }

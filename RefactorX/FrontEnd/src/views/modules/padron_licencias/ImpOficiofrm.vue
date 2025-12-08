@@ -369,7 +369,6 @@ const loadImpresiones = async () => {
       impresiones.value = response.result
     }
   } catch (error) {
-    console.error('Error cargando historial:', error)
   }
 }
 

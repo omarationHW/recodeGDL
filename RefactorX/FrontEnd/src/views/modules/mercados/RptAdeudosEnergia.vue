@@ -1,165 +1,301 @@
 <template>
-  <div class="rpt-adeudos-energia-page">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Reporte de Adeudos de Energía</li>
-      </ol>
-    </nav>
-    <h1 class="mb-4">Listado de Adeudos de Energía Eléctrica</h1>
-    <form @submit.prevent="fetchReport" class="mb-4">
-      <div class="row">
-        <div class="col-md-3">
-          <label for="axo" class="form-label">Año</label>
-          <input type="number" v-model="form.axo" id="axo" class="form-control" required min="2000" max="2100">
+  <div class="module-view">
+    <!-- Header -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Adeudos de Energía</h1>
+        <p>Inicio > Reportes > Adeudos de Energía Eléctrica</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="datos.length === 0">
+          <font-awesome-icon icon="file-excel" />
+          Exportar Excel
+        </button>
+        <button class="btn-municipal-primary" @click="imprimir" :disabled="datos.length === 0">
+          <font-awesome-icon icon="print" />
+          Imprimir
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="module-view-content">
+      <!-- Filtros -->
+      <div class="municipal-card">
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Consulta
+            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
         </div>
-        <div class="col-md-3">
-          <label for="oficina" class="form-label">Oficina</label>
-          <select v-model="form.oficina" id="oficina" class="form-control" required>
-            <option value="">Seleccione...</option>
-            <option v-for="of in oficinas" :key="of.id" :value="of.id">{{ of.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-md-3 align-self-end">
-          <button type="submit" class="btn btn-primary">Consultar</button>
+        <div v-show="showFilters" class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Año <span class="required">*</span></label>
+              <input v-model.number="filters.axo" type="number" class="municipal-form-control" min="2000" max="2100" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Oficina <span class="required">*</span></label>
+              <input v-model.number="filters.oficina" type="number" class="municipal-form-control" min="1" />
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-12 text-end">
+              <button class="btn-municipal-primary me-2" @click="consultar">
+                <font-awesome-icon icon="search" />
+                Consultar
+              </button>
+              <button class="btn-municipal-secondary" @click="limpiarFiltros">
+                <font-awesome-icon icon="eraser" />
+                Limpiar
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </form>
-    <div v-if="loading" class="alert alert-info">Cargando...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="report.length">
-      <div class="mb-3">
-        <strong>Oficina Recaudadora:</strong>
-        <span>{{ oficinaRecaudadora }}</span>
+
+      <!-- Tabla de Resultados -->
+      <div class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            {{ tituloReporte }}
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="datos.length > 0">
+              {{ formatNumber(datos.length) }} registros
+            </span>
+          </div>
+        </div>
+
+        <div class="municipal-card-body table-container">
+          <!-- Tabla -->
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header sticky-header">
+                <tr>
+                  <th>Datos Local</th>
+                  <th>Nombre</th>
+                  <th>Locales Adicionales</th>
+                  <th>Cuota</th>
+                  <th>Meses</th>
+                  <th class="text-end">Adeudo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Estado vacío inicial -->
+                <tr v-if="datos.length === 0 && !consultaRealizada">
+                  <td colspan="6" class="text-center text-muted">
+                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <p>Utiliza los filtros de búsqueda</p>
+                  </td>
+                </tr>
+
+                <!-- Sin resultados -->
+                <tr v-else-if="datos.length === 0">
+                  <td colspan="6" class="text-center text-muted">
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No se encontraron resultados</p>
+                  </td>
+                </tr>
+
+                <!-- Datos -->
+                <tr v-else v-for="(row, index) in paginatedDatos" :key="index" class="row-hover">
+                  <td>{{ row.datoslocal }}</td>
+                  <td>{{ row.nombre }}</td>
+                  <td>{{ row.local_adicional }}</td>
+                  <td>{{ formatCurrency(row.cuota) }}</td>
+                  <td>{{ row.meses }}</td>
+                  <td class="text-end">{{ formatCurrency(row.adeudo) }}</td>
+                </tr>
+              </tbody>
+
+              <!-- Footer con total -->
+              <tfoot v-if="datos.length > 0">
+                <tr class="table-secondary">
+                  <td colspan="5" class="text-end">
+                    <strong>Total Adeudo:</strong>
+                  </td>
+                  <td class="text-end">
+                    <strong>{{ formatCurrency(totalAdeudo) }}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div v-if="datos.length > 0" class="pagination-container">
+            <div class="pagination-info">
+              Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ datos.length }} registros
+            </div>
+
+            <div class="pagination-controls">
+              <label>Registros por página:</label>
+              <select v-model.number="pageSize" class="form-select form-select-sm">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+                <option :value="250">250</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button @click="previousPage" :disabled="currentPage === 1">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <table class="table table-bordered table-sm table-hover">
-        <thead class="table-light">
-          <tr>
-            <th>Datos del Local</th>
-            <th>Nombre Locatario</th>
-            <th>Locales Adicionales</th>
-            <th v-if="showCuota">{{ labelCuota }}</th>
-            <th>{{ labelMeses }}</th>
-            <th class="text-end">Adeudo</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in report" :key="row.id_energia">
-            <td>{{ row.datoslocal }}</td>
-            <td>{{ row.nombre }}</td>
-            <td>{{ row.local_adicional }}</td>
-            <td v-if="showCuota">{{ formatCurrency(row.cuota) }}</td>
-            <td>{{ row.meses }}</td>
-            <td class="text-end">{{ formatCurrency(row.adeudo) }}</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr class="table-secondary">
-            <td colspan="5" class="text-end"><strong>Total Adeudo:</strong></td>
-            <td class="text-end"><strong>{{ formatCurrency(totalAdeudo) }}</strong></td>
-          </tr>
-          <tr class="table-secondary">
-            <td colspan="5" class="text-end"><strong>Locales con Adeudo:</strong></td>
-            <td class="text-end"><strong>{{ report.length }}</strong></td>
-          </tr>
-        </tfoot>
-      </table>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'RptAdeudosEnergiaPage',
-  data() {
-    return {
-      form: {
-        axo: new Date().getFullYear(),
-        oficina: ''
-      },
-      oficinas: [
-        { id: 1, nombre: 'Zona Centro' },
-        { id: 2, nombre: 'Zona Olímpica' },
-        { id: 3, nombre: 'Zona Oblatos' },
-        { id: 4, nombre: 'Zona Minerva' },
-        { id: 5, nombre: 'Cruz del Sur' }
-      ],
-      report: [],
-      loading: false,
-      error: '',
-      oficinaRecaudadora: '',
-      labelCuota: 'Cuota Mes.',
-      labelMeses: 'Mes de Adeudo',
-      showCuota: true
-    };
-  },
-  computed: {
-    totalAdeudo() {
-      return this.report.reduce((sum, r) => sum + Number(r.adeudo || 0), 0);
-    }
-  },
-  methods: {
-    async fetchReport() {
-      this.loading = true;
-      this.error = '';
-      this.report = [];
-      this.oficinaRecaudadora = '';
-      try {
-        const response = await fetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eRequest: 'RptAdeudosEnergia.getReport',
-            params: {
-              axo: this.form.axo,
-              oficina: this.form.oficina
-            }
-          })
-        });
-        const data = await response.json();
-        if (data.eResponse && data.eResponse.success) {
-          this.report = data.eResponse.data;
-          if (this.report.length > 0) {
-            // Set recaudadora label
-            this.oficinaRecaudadora = this.report[0].recaudadora || '';
-            // Cuota/Meses label logic
-            if (parseInt(this.form.oficina) === 5) {
-              this.showCuota = false;
-            } else {
-              this.showCuota = true;
-              if (parseInt(this.form.axo) <= 2002) {
-                this.labelCuota = 'Cuota Bim.';
-                this.labelMeses = 'Bimestre de Adeudo';
-              } else {
-                this.labelCuota = 'Cuota Mes.';
-                this.labelMeses = 'Mes de Adeudo';
-              }
-            }
-          }
-        } else {
-          this.error = data.eResponse ? data.eResponse.message : 'Error desconocido';
-        }
-      } catch (err) {
-        this.error = err.message || 'Error de red';
-      } finally {
-        this.loading = false;
+<script setup>
+import { ref, computed } from 'vue';
+import axios from 'axios';
+import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+
+// Composables
+const { showLoading, hideLoading } = useGlobalLoading();
+const { showToast } = useToast();
+
+// Estado reactivo
+const showFilters = ref(true);
+const consultaRealizada = ref(false);
+const datos = ref([]);
+const filters = ref({
+  axo: new Date().getFullYear(),
+  oficina: 1
+});
+const currentPage = ref(1);
+const pageSize = ref(25);
+
+// Computed properties
+const tituloReporte = computed(() => 'Listado de Adeudos de Energía Eléctrica');
+
+const totalPages = computed(() => Math.ceil(datos.value.length / pageSize.value));
+
+const startIndex = computed(() => (currentPage.value - 1) * pageSize.value);
+
+const endIndex = computed(() =>
+  Math.min(startIndex.value + pageSize.value, datos.value.length)
+);
+
+const paginatedDatos = computed(() =>
+  datos.value.slice(startIndex.value, endIndex.value)
+);
+
+const totalAdeudo = computed(() =>
+  datos.value.reduce((sum, r) => sum + (parseFloat(r.adeudo) || 0), 0)
+);
+
+// Métodos
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value;
+};
+
+const consultar = async () => {
+  showLoading('Generando reporte...');
+  consultaRealizada.value = true;
+  datos.value = [];
+  currentPage.value = 1;
+
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'rpt_adeudos_energia',
+        Base: 'mercados',
+        Parametros: [{ Nombre: 'Axo', Valor: filters.value.axo },
+        { Nombre: 'Oficina', Valor: filters.value.oficina }]
+        // Parametros: [filters.value.axo, filters.value.oficina]
       }
-    },
-    formatCurrency(val) {
-      if (val == null) return '';
-      return Number(val).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+    });
+
+    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
+      datos.value = response.data.eResponse.data.result;
+      showToast(
+        datos.value.length === 0
+          ? 'No se encontraron resultados'
+          : `Se encontraron ${datos.value.length} registros`,
+        datos.value.length === 0 ? 'info' : 'success'
+      );
+    } else {
+      showToast('No se encontraron resultados', 'warning');
     }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error al consultar', 'error');
+  } finally {
+    hideLoading();
   }
 };
-</script>
 
-<style scoped>
-.rpt-adeudos-energia-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-.table th, .table td {
-  vertical-align: middle;
-}
-</style>
+const limpiarFiltros = () => {
+  filters.value = {
+    axo: new Date().getFullYear(),
+    oficina: 1
+  };
+  datos.value = [];
+  consultaRealizada.value = false;
+  currentPage.value = 1;
+};
+
+const exportarExcel = async () => {
+  showLoading('Exportando a Excel...');
+  try {
+    // Funcionalidad pendiente de implementar
+    await new Promise(resolve => setTimeout(resolve, 500));
+    showToast('Funcionalidad en desarrollo', 'info');
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error al exportar', 'error');
+  } finally {
+    hideLoading();
+  }
+};
+
+const imprimir = () => {
+  window.print();
+};
+
+const mostrarAyuda = () => {
+  showToast('Reporte de adeudos de energía eléctrica. Filtre por año y oficina.', 'info');
+};
+
+const previousPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return '$0.00';
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value);
+};
+
+const formatNumber = (value) => {
+  if (value === null || value === undefined) return '0';
+  return new Intl.NumberFormat('es-MX').format(value);
+};
+</script>

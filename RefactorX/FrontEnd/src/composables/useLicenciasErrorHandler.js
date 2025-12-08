@@ -89,10 +89,10 @@ export function useLicenciasErrorHandler() {
    * @param {string} type - Tipo de toast: 'success', 'error', 'warning', 'info'
    * @param {string} message - Mensaje a mostrar
    * @param {string} operationDuration - Duración de la operación (ej: "2.5s", "350ms") - opcional
-   * @param {number} autoHideDuration - Tiempo en ms para auto-ocultar (default: 5000)
+   * @param {number} autoHideDuration - Tiempo en ms para auto-ocultar (default: 3000)
    */
-  const showToast = (type, message, operationDuration = '', autoHideDuration = 5000) => {
-    // Limpiar timeout previo si existe
+  const showToast = (type, message, operationDuration = '', autoHideDuration = 3000) => {
+    // Limpiar timeout anterior si existe
     if (toast.timeout) {
       clearTimeout(toast.timeout)
     }
@@ -102,9 +102,10 @@ export function useLicenciasErrorHandler() {
     toast.message = message
     toast.duration = operationDuration
 
-    // Auto-ocultar el toast
+    // Auto-ocultar después de autoHideDuration
     toast.timeout = setTimeout(() => {
-      hideToast()
+      toast.show = false
+      toast.timeout = null
     }, autoHideDuration)
   }
 

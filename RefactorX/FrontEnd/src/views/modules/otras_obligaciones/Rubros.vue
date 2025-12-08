@@ -69,160 +69,40 @@
         </div>
       </div>
 
-      <!-- Formulario de Creación (colapsable) -->
-      <div class="municipal-card" v-show="showFormulario">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="plus-circle" />
-            Crear Nuevo Rubro
-          </h5>
-        </div>
-        <div class="municipal-card-body">
-          <form @submit.prevent="handleCrear">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">
-                  Nombre del Rubro:
-                  <span class="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  v-model="formData.nombre"
-                  class="municipal-form-control"
-                  placeholder="Ingrese el nombre del rubro"
-                  maxlength="200"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="button-group">
-              <button
-                type="submit"
-                class="btn-municipal-success"
-                :disabled="loading"
-              >
-                <font-awesome-icon icon="check" />
-                Guardar Rubro
-              </button>
-              <button
-                type="button"
-                class="btn-municipal-secondary"
-                @click="cancelarCreacion"
-              >
-                <font-awesome-icon icon="times" />
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Filtros de búsqueda -->
-      <div class="municipal-card">
-        <div
-          class="municipal-card-header"
-          @click="toggleFilters"
-          style="cursor: pointer;"
-        >
-          <h5>
-            <font-awesome-icon icon="filter" />
-            Filtros de Búsqueda
-            <font-awesome-icon
-              :icon="showFilters ? 'chevron-up' : 'chevron-down'"
-              class="ms-2"
-            />
-          </h5>
-        </div>
-
-        <div v-show="showFilters" class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Nombre del Rubro</label>
-              <input
-                type="text"
-                class="municipal-form-control"
-                v-model="filtros.nombre"
-                placeholder="Buscar por nombre"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Tipo</label>
-              <select class="municipal-form-control" v-model="filtros.auto_tab">
-                <option value="">Todos</option>
-                <option value="true">Automáticos</option>
-                <option value="false">Manuales</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="button-group">
-            <button
-              class="btn-municipal-primary"
-              @click="buscarRubros"
-            >
-              <font-awesome-icon icon="search" />
-              Buscar
-            </button>
-            <button
-              class="btn-municipal-secondary"
-              @click="limpiarFiltros"
-            >
-              <font-awesome-icon icon="eraser" />
-              Limpiar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabla de resultados -->
+      <!-- Grid de Tablas Existentes -->
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="list" />
-              Listado de Rubros
-            </h5>
-            <span class="badge-purple" v-if="totalResultados > 0">
-              {{ formatNumber(totalResultados) }} registro(s) total(es)
-            </span>
-          </div>
+          <h5>
+            <font-awesome-icon icon="table" />
+            Tablas de Rubros Existentes
+          </h5>
+          <span class="badge-purple" v-if="rubros.length > 0">
+            {{ formatNumber(rubros.length) }} tabla(s)
+          </span>
         </div>
-
         <div class="municipal-card-body table-container">
-          <div class="table-responsive">
+          <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
                   <th class="text-center">Clave</th>
-                  <th>Nombre del Rubro</th>
+                  <th>Nombre</th>
                   <th class="text-center">Tipo</th>
-                  <th class="text-center">Acciones</th>
+                  <th class="text-center">Cajero</th>
                 </tr>
               </thead>
               <tbody>
-                <!-- Sin búsqueda -->
-                <tr v-if="rubros.length === 0 && !primeraBusqueda">
-                  <td colspan="4" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>Utiliza los filtros de búsqueda para encontrar rubros</p>
-                  </td>
-                </tr>
-
-                <!-- Sin resultados -->
-                <tr v-else-if="rubros.length === 0">
+                <tr v-if="rubros.length === 0">
                   <td colspan="4" class="text-center text-muted">
                     <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron rubros con los filtros especificados</p>
+                    <p>No hay tablas disponibles</p>
                   </td>
                 </tr>
-
-                <!-- Resultados -->
                 <tr
                   v-else
-                  v-for="rubro in rubrosPaginados"
+                  v-for="rubro in rubros"
                   :key="rubro.cve_tab"
-                  @click="rubroSeleccionado = rubro"
+                  @click="seleccionarRubro(rubro)"
                   :class="{ 'row-hover': true, 'selected-row': rubroSeleccionado?.cve_tab === rubro.cve_tab }"
                   style="cursor: pointer;"
                 >
@@ -235,170 +115,189 @@
                       class="badge"
                       :class="rubro.auto_tab ? 'badge-success' : 'badge-purple'"
                     >
-                      <font-awesome-icon
-                        :icon="rubro.auto_tab ? 'magic' : 'hand-paper'"
-                      />
                       {{ rubro.auto_tab ? 'Automático' : 'Manual' }}
                     </span>
                   </td>
-                  <td class="text-center">
-                    <div class="button-group button-group-sm">
-                      <button
-                        class="btn-municipal-info btn-sm"
-                        @click.stop="verDetalle(rubro)"
-                        title="Ver detalles"
-                      >
-                        <font-awesome-icon icon="eye" />
-                      </button>
-                      <button
-                        class="btn-municipal-primary btn-sm"
-                        @click.stop="editarRubro(rubro)"
-                        title="Editar rubro"
-                      >
-                        <font-awesome-icon icon="edit" />
-                      </button>
-                      <button
-                        class="btn-municipal-danger btn-sm"
-                        @click.stop="eliminarRubro(rubro)"
-                        title="Eliminar rubro"
-                      >
-                        <font-awesome-icon icon="trash" />
-                      </button>
-                    </div>
-                  </td>
+                  <td class="text-center">{{ rubro.cajero || 'N' }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+      </div>
 
-        <!-- Controles de Paginación -->
-        <div v-if="rubros.length > 0" class="pagination-controls">
-          <div class="pagination-info">
-            <span class="text-muted">
-              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-              a {{ Math.min(currentPage * itemsPerPage, totalResultados) }}
-              de {{ totalResultados }} registros
-            </span>
+      <!-- Grid de Status Seleccionables -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="check-square" />
+            Status Disponibles (Selección Múltiple)
+          </h5>
+          <span class="badge-info" v-if="statusSeleccionados.length > 0">
+            {{ statusSeleccionados.length }} seleccionado(s)
+          </span>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th class="text-center" style="width: 50px;">
+                    <input
+                      type="checkbox"
+                      @change="toggleTodosStatus"
+                      :checked="todosStatusSeleccionados"
+                    />
+                  </th>
+                  <th class="text-center">Cve</th>
+                  <th>Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="statusDisponibles.length === 0">
+                  <td colspan="3" class="text-center text-muted">
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No hay status disponibles</p>
+                  </td>
+                </tr>
+                <tr
+                  v-else
+                  v-for="status in statusDisponibles"
+                  :key="status.cve_stat"
+                  @click="toggleStatus(status)"
+                  :class="{ 'row-hover': true, 'selected-row': isStatusSeleccionado(status) }"
+                  style="cursor: pointer;"
+                >
+                  <td class="text-center">
+                    <input
+                      type="checkbox"
+                      :checked="isStatusSeleccionado(status)"
+                      @click.stop="toggleStatus(status)"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <strong>{{ status.cve_stat }}</strong>
+                  </td>
+                  <td>{{ status.descripcion }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </div>
+      </div>
 
-          <div class="pagination-size">
-            <label class="municipal-form-label me-2">Registros por página:</label>
-            <select
-              class="municipal-form-control form-control-sm"
-              v-model="itemsPerPage"
-              @change="changePageSize"
-              style="width: auto; display: inline-block;"
-            >
-              <option :value="10">10</option>
-              <option :value="20">20</option>
-              <option :value="50">50</option>
-            </select>
+    </div>
+
+    <!-- Modal de Detalle -->
+    <div class="modal-overlay" v-if="showDetalleModal" @click.self="closeDetalleModal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h5>Detalle del Rubro</h5>
+          <button class="modal-close" @click="closeDetalleModal">
+            <font-awesome-icon icon="times" />
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="registro-header" v-if="rubroSeleccionado.cve_tab">
+            <div class="registro-control">
+              <span class="control-label">Clave</span>
+              <span class="control-value">{{ rubroSeleccionado.cve_tab }}</span>
+            </div>
+            <div class="registro-concesionario">
+              <font-awesome-icon icon="list-ul" class="concesionario-icon" />
+              <div class="concesionario-info">
+                <span class="concesionario-label">Nombre del Rubro</span>
+                <span class="concesionario-value">{{ rubroSeleccionado.nombre }}</span>
+              </div>
+            </div>
           </div>
-
-          <div class="pagination-buttons">
-            <button
-              class="btn-municipal-secondary btn-sm"
-              @click="goToPage(1)"
-              :disabled="currentPage === 1"
-              title="Primera página"
-            >
-              <font-awesome-icon icon="angle-double-left" />
-            </button>
-
-            <button
-              class="btn-municipal-secondary btn-sm"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-              title="Página anterior"
-            >
-              <font-awesome-icon icon="angle-left" />
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="btn-sm"
-              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="btn-municipal-secondary btn-sm"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-              title="Página siguiente"
-            >
-              <font-awesome-icon icon="angle-right" />
-            </button>
-
-            <button
-              class="btn-municipal-secondary btn-sm"
-              @click="goToPage(totalPages)"
-              :disabled="currentPage === totalPages"
-              title="Última página"
-            >
-              <font-awesome-icon icon="angle-double-right" />
-            </button>
+          <div class="registro-grid" v-if="rubroSeleccionado.cve_tab">
+            <div class="registro-item">
+              <div class="item-icon">
+                <font-awesome-icon :icon="rubroSeleccionado.auto_tab ? 'magic' : 'hand-paper'" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">Tipo de Rubro</span>
+                <span class="item-value">{{ rubroSeleccionado.auto_tab ? 'Automático' : 'Manual' }}</span>
+              </div>
+            </div>
+            <div class="registro-item">
+              <div class="item-icon">
+                <font-awesome-icon icon="cash-register" />
+              </div>
+              <div class="item-content">
+                <span class="item-label">Cajero</span>
+                <span class="item-value">{{ rubroSeleccionado.cajero || 'No aplica' }}</span>
+              </div>
+            </div>
           </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-municipal-secondary" @click="closeDetalleModal">Cerrar</button>
+          <button class="btn-municipal-primary" @click="abrirEdicion">
+            <font-awesome-icon icon="edit" /> Editar
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Detalle -->
-    <Modal
-      :show="showDetalleModal"
-      :title="`Detalle del Rubro - ${rubroSeleccionado.nombre || ''}`"
-      size="md"
-      @close="closeDetalleModal"
-      :showDefaultFooter="false"
-    >
-      <div v-if="rubroSeleccionado.cve_tab" class="rubro-details">
-        <div class="detail-section">
-          <h6 class="section-title">
-            <font-awesome-icon icon="info-circle" />
-            Información General
-          </h6>
-          <table class="detail-table">
-            <tr>
-              <td class="label">Clave:</td>
-              <td><strong class="text-primary">{{ rubroSeleccionado.cve_tab }}</strong></td>
-            </tr>
-            <tr>
-              <td class="label">Nombre:</td>
-              <td>{{ rubroSeleccionado.nombre }}</td>
-            </tr>
-            <tr>
-              <td class="label">Tipo:</td>
-              <td>
-                <span
-                  class="badge"
-                  :class="rubroSeleccionado.auto_tab ? 'badge-success' : 'badge-purple'"
-                >
-                  <font-awesome-icon
-                    :icon="rubroSeleccionado.auto_tab ? 'magic' : 'hand-paper'"
-                  />
-                  {{ rubroSeleccionado.auto_tab ? 'Automático' : 'Manual' }}
-                </span>
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn-municipal-secondary" @click="closeDetalleModal">
+    <!-- Modal de Nuevo -->
+    <div class="modal-overlay" v-if="showFormulario" @click.self="cancelarCreacionSilent">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h5>Nuevo Rubro</h5>
+          <button class="modal-close" @click="cancelarCreacionSilent">
             <font-awesome-icon icon="times" />
-            Cerrar
           </button>
-          <button class="btn-municipal-primary" @click="editarRubro(rubroSeleccionado); closeDetalleModal()">
-            <font-awesome-icon icon="edit" />
-            Editar Rubro
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="municipal-form-label">Nombre del Rubro: <span class="required">*</span></label>
+            <input
+              type="text"
+              class="municipal-form-control"
+              v-model="formData.nombre"
+              maxlength="200"
+              placeholder="Ingrese el nombre del rubro"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-municipal-secondary" @click="cancelarCreacionSilent">Cancelar</button>
+          <button class="btn-municipal-success" @click="handleCrear" :disabled="loading || !formData.nombre">
+            <font-awesome-icon icon="save" /> Guardar
           </button>
         </div>
       </div>
-    </Modal>
+    </div>
+
+    <!-- Modal de Edición -->
+    <div class="modal-overlay" v-if="showEditModal" @click.self="closeEditModal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h5>Editar Rubro</h5>
+          <button class="modal-close" @click="closeEditModal">
+            <font-awesome-icon icon="times" />
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="municipal-form-label">Clave:</label>
+            <input type="text" class="municipal-form-control" :value="editData.cve_tab" disabled />
+          </div>
+          <div class="form-group mt-3">
+            <label class="municipal-form-label">Nombre del Rubro: <span class="required">*</span></label>
+            <input type="text" class="municipal-form-control" v-model="editData.nombre" maxlength="200" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-municipal-secondary" @click="closeEditModal">Cancelar</button>
+          <button class="btn-municipal-success" @click="handleEditar" :disabled="loading || !editData.nombre">
+            <font-awesome-icon icon="save" /> Guardar
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
@@ -422,22 +321,31 @@
       :moduleName="'otras_obligaciones'"
       @close="closeDocumentation"
     />
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Rubros'"
+      :moduleName="'otras_obligaciones'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
 const router = useRouter()
 const { execute } = useApi()
+const BASE_DB = 'otras_obligaciones'
 const { showLoading, hideLoading } = useGlobalLoading()
 const {
   toast,
@@ -450,15 +358,17 @@ const {
 // Estado
 const loading = ref(false)
 const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 const showFormulario = ref(false)
-const showFilters = ref(false)
 const showDetalleModal = ref(false)
+const showEditModal = ref(false)
 const rubros = ref([])
 const rubroSeleccionado = ref({})
-const primeraBusqueda = ref(false)
 const loadingEstadisticas = ref(true)
-const currentPage = ref(1)
-const itemsPerPage = ref(20)
+
+// Status
+const statusDisponibles = ref([])
+const statusSeleccionados = ref([])
 
 // Estadísticas
 const stats = ref({
@@ -466,39 +376,21 @@ const stats = ref({
   automaticos: 0
 })
 
-// Filtros
-const filtros = ref({
-  nombre: '',
-  auto_tab: ''
-})
-
 // Formulario
 const formData = reactive({
   nombre: ''
 })
 
+// Edición
+const editData = reactive({
+  cve_tab: '',
+  nombre: ''
+})
+
 // Computed
-const totalResultados = computed(() => rubros.value.length)
-
-const totalPages = computed(() => {
-  return Math.ceil(totalResultados.value / itemsPerPage.value)
-})
-
-const visiblePages = computed(() => {
-  const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  return pages
-})
-
-const rubrosPaginados = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return rubros.value.slice(start, end)
+const todosStatusSeleccionados = computed(() => {
+  return statusDisponibles.value.length > 0 &&
+         statusSeleccionados.value.length === statusDisponibles.value.length
 })
 
 // Métodos de navegación
@@ -509,25 +401,44 @@ const toggleFormulario = () => {
   }
 }
 
-const toggleFilters = () => {
-  showFilters.value = !showFilters.value
+// Métodos de Status
+const toggleStatus = (status) => {
+  const index = statusSeleccionados.value.findIndex(s => s.cve_stat === status.cve_stat)
+  if (index >= 0) {
+    statusSeleccionados.value.splice(index, 1)
+  } else {
+    statusSeleccionados.value.push(status)
+  }
+}
+
+const toggleTodosStatus = () => {
+  if (todosStatusSeleccionados.value) {
+    statusSeleccionados.value = []
+  } else {
+    statusSeleccionados.value = [...statusDisponibles.value]
+  }
+}
+
+const isStatusSeleccionado = (status) => {
+  return statusSeleccionados.value.some(s => s.cve_stat === status.cve_stat)
+}
+
+const seleccionarRubro = (rubro) => {
+  rubroSeleccionado.value = rubro
+  showDetalleModal.value = true
 }
 
 // Métodos de datos
 const cargarRubros = async () => {
   const startTime = performance.now()
   showLoading('Cargando rubros...', 'Consultando base de datos')
-  primeraBusqueda.value = true
-  showFilters.value = false
 
   try {
     const response = await execute(
-      'sp_rubros_listar',       // Nombre del SP (a crear en BD)
-      'otras_obligaciones',     // Módulo
-      [],                       // Sin parámetros - lista todos
-      '',                       // Tenant vacío
-      null,                     // Sin paginación
-      'public'                  // Esquema
+      'sp_rubros_listar',
+      BASE_DB,
+      [],
+      'guadalajara'
     )
 
     if (response && response.result) {
@@ -554,68 +465,18 @@ const cargarRubros = async () => {
   }
 }
 
-const buscarRubros = async () => {
-  const startTime = performance.now()
-  showLoading('Buscando rubros...', 'Aplicando filtros')
-  primeraBusqueda.value = true
-  showFilters.value = false
-
-  try {
-    const response = await execute(
-      'sp_rubros_listar',
-      'otras_obligaciones',
-      [],
-      '',
-      null,
-      'public'
-    )
-
-    let datos = []
-    if (response && response.result) {
-      datos = response.result
-    }
-
-    // Aplicar filtros locales
-    if (filtros.value.nombre) {
-      const nombreBuscar = filtros.value.nombre.toLowerCase()
-      datos = datos.filter(r => r.nombre.toLowerCase().includes(nombreBuscar))
-    }
-
-    if (filtros.value.auto_tab !== '') {
-      const autoValue = filtros.value.auto_tab === 'true'
-      datos = datos.filter(r => r.auto_tab === autoValue)
-    }
-
-    rubros.value = datos
-    currentPage.value = 1
-
-    const endTime = performance.now()
-    const duration = ((endTime - startTime) / 1000).toFixed(2)
-    const timeMessage = duration < 1
-      ? `${(duration * 1000).toFixed(0)}ms`
-      : `${duration}s`
-
-    showToast('success', `${rubros.value.length} rubro(s) encontrado(s)`, timeMessage)
-
-    // Actualizar estadísticas con datos filtrados
-    calcularEstadisticas()
-  } catch (error) {
-    handleApiError(error)
-  } finally {
-    hideLoading()
-  }
+// Cargar status disponibles
+const cargarStatus = async () => {
+  // Status predefinidos para otras obligaciones
+  statusDisponibles.value = [
+    { cve_stat: 'V', descripcion: 'Vigente' },
+    { cve_stat: 'B', descripcion: 'Baja' },
+    { cve_stat: 'S', descripcion: 'Suspendido' },
+    { cve_stat: 'C', descripcion: 'Cancelado' }
+  ]
 }
 
 const actualizarListado = () => {
-  cargarRubros()
-}
-
-const limpiarFiltros = () => {
-  filtros.value = {
-    nombre: '',
-    auto_tab: ''
-  }
-  currentPage.value = 1
   cargarRubros()
 }
 
@@ -633,76 +494,38 @@ const handleCrear = async () => {
 
   const confirmResult = await Swal.fire({
     icon: 'question',
-    title: '¿Confirmar creación?',
-    html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p style="margin-bottom: 10px;">Se creará un nuevo rubro con los siguientes datos:</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Nombre:</strong> ${formData.nombre}</li>
-        </ul>
-      </div>
-    `,
+    title: '¿Crear nuevo rubro?',
+    text: `Se creará el rubro: ${formData.nombre}`,
     showCancelButton: true,
-    confirmButtonColor: '#ea8215',
+    confirmButtonColor: '#7c3aed',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, crear rubro',
+    confirmButtonText: 'Sí, crear',
     cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmResult.isConfirmed) {
-    return
-  }
+  if (!confirmResult.isConfirmed) return
 
-  const startTime = performance.now()
-  showLoading('Creando rubro...', 'Guardando información')
+  showLoading('Creando rubro...')
 
   try {
-    const params = [
-      { nombre: 'par_nombre', valor: formData.nombre.trim(), tipo: 'varchar' }
-    ]
-
     const response = await execute(
-      'ins34_rubro_01',         // SP existente para insertar
-      'otras_obligaciones',     // Módulo
-      params,                   // Parámetros
-      '',                       // Tenant vacío
-      null,                     // Sin paginación
-      'public'                  // Esquema
+      'ins34_rubro_01',
+      BASE_DB,
+      [{ nombre: 'par_nombre', valor: formData.nombre.trim(), tipo: 'varchar' }],
+      'guadalajara'
     )
-
-    const endTime = performance.now()
-    const duration = ((endTime - startTime) / 1000).toFixed(2)
-    const timeMessage = duration < 1
-      ? `${(duration * 1000).toFixed(0)}ms`
-      : `${duration}s`
 
     hideLoading()
 
-    // Verificar respuesta del SP
     if (response && response.result && response.result.length > 0) {
       const resultado = response.result[0]
 
       if (resultado.status > 0) {
-        // Éxito - status > 0 es el ID del nuevo rubro
-        await Swal.fire({
-          icon: 'success',
-          title: 'Rubro creado!',
-          text: resultado.concepto_status || 'El rubro ha sido creado exitosamente',
-          confirmButtonColor: '#ea8215'
-        })
-
-        showToast('success', resultado.concepto_status || 'Rubro creado exitosamente', timeMessage)
+        showToast('success', resultado.concepto_status || 'Rubro creado exitosamente')
         formData.nombre = ''
         showFormulario.value = false
         await cargarRubros()
       } else {
-        // Error de negocio (duplicado, validación, etc.)
-        await Swal.fire({
-          icon: 'error',
-          title: 'Error al crear rubro',
-          text: resultado.concepto_status || 'No se pudo crear el rubro',
-          confirmButtonColor: '#ea8215'
-        })
         showToast('error', resultado.concepto_status || 'Error al crear el rubro')
       }
     } else {
@@ -716,8 +539,13 @@ const handleCrear = async () => {
 
 const cancelarCreacion = () => {
   formData.nombre = ''
+  statusSeleccionados.value = []
   showFormulario.value = false
-  showToast('info', 'Creación cancelada')
+}
+
+const cancelarCreacionSilent = () => {
+  formData.nombre = ''
+  showFormulario.value = false
 }
 
 const verDetalle = (rubro) => {
@@ -730,55 +558,68 @@ const closeDetalleModal = () => {
   rubroSeleccionado.value = {}
 }
 
-const editarRubro = async (rubro) => {
-  await Swal.fire({
-    icon: 'info',
-    title: 'Editar Rubro',
-    text: `Funcionalidad para editar el rubro "${rubro.nombre}" (Clave: ${rubro.cve_tab})`,
-    confirmButtonColor: '#ea8215'
-  })
+// Funciones de edición
+const abrirEdicion = () => {
+  editData.cve_tab = rubroSeleccionado.value.cve_tab
+  editData.nombre = rubroSeleccionado.value.nombre
+  showDetalleModal.value = false
+  showEditModal.value = true
 }
 
-const eliminarRubro = async (rubro) => {
-  const result = await Swal.fire({
-    icon: 'warning',
-    title: '¿Eliminar rubro?',
-    html: `
-      <div style="text-align: left; padding: 0 20px;">
-        <p>¿Está seguro que desea eliminar el siguiente rubro?</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin: 5px 0;"><strong>Clave:</strong> ${rubro.cve_tab}</li>
-          <li style="margin: 5px 0;"><strong>Nombre:</strong> ${rubro.nombre}</li>
-        </ul>
-        <p style="color: #dc3545; margin-top: 10px;"><strong>Esta acción no se puede deshacer</strong></p>
-      </div>
-    `,
+const closeEditModal = () => {
+  showEditModal.value = false
+  editData.cve_tab = ''
+  editData.nombre = ''
+}
+
+const handleEditar = async () => {
+  if (!editData.nombre || editData.nombre.trim() === '') {
+    showToast('warning', 'El nombre del rubro es obligatorio')
+    return
+  }
+
+  const confirmResult = await Swal.fire({
+    icon: 'question',
+    title: '¿Actualizar rubro?',
+    text: `Se actualizará el rubro ${editData.cve_tab} a: ${editData.nombre}`,
     showCancelButton: true,
-    confirmButtonColor: '#dc3545',
+    confirmButtonColor: '#7c3aed',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, eliminar',
+    confirmButtonText: 'Sí, actualizar',
     cancelButtonText: 'Cancelar'
   })
 
-  if (result.isConfirmed) {
-    await Swal.fire({
-      icon: 'info',
-      title: 'Funcionalidad en desarrollo',
-      text: 'El procedimiento de eliminación aún no está implementado',
-      confirmButtonColor: '#ea8215'
-    })
-  }
-}
+  if (!confirmResult.isConfirmed) return
 
-// Paginación
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-  }
-}
+  showLoading('Actualizando rubro...')
 
-const changePageSize = () => {
-  currentPage.value = 1
+  try {
+    const response = await execute(
+      'upd34_rubro_01',
+      BASE_DB,
+      [
+        { nombre: 'par_cve_tab', valor: editData.cve_tab, tipo: 'varchar' },
+        { nombre: 'par_nombre', valor: editData.nombre.trim(), tipo: 'varchar' }
+      ],
+      'guadalajara'
+    )
+
+    hideLoading()
+
+    if (response && response.result && response.result.length > 0) {
+      const resultado = response.result[0]
+      if (resultado.status > 0) {
+        showToast('success', resultado.concepto_status || 'Rubro actualizado')
+        closeEditModal()
+        await cargarRubros()
+      } else {
+        showToast('error', resultado.concepto_status || 'Error al actualizar')
+      }
+    }
+  } catch (error) {
+    hideLoading()
+    handleApiError(error)
+  }
 }
 
 // Utilidades
@@ -795,8 +636,17 @@ const closeDocumentation = () => {
   showDocumentation.value = false
 }
 
+const openTechDocs = () => {
+  showTechDocs.value = true
+}
+
+const closeTechDocs = () => {
+  showTechDocs.value = false
+}
+
 // Lifecycle
-onMounted(() => {
-  cargarRubros()
+onMounted(async () => {
+  await cargarStatus()
+  await cargarRubros()
 })
 </script>

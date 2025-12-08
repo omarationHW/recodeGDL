@@ -9,6 +9,25 @@
         <h1>Estadísticas Generales</h1>
         <p>Aseo Contratado - Dashboard ejecutivo del sistema</p>
       </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-secondary"
+          @click="mostrarDocumentacion"
+          title="Documentacion Tecnica"
+        >
+          <font-awesome-icon icon="file-code" />
+          Documentacion
+        </button>
+        <button
+          class="btn-municipal-purple"
+          @click="openDocumentation"
+          title="Ayuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    
       <button
         type="button"
         class="btn-help-icon"
@@ -150,7 +169,7 @@
             </div>
 <div class="municipal-card-body">
               <table class="municipal-table">
-                <thead>
+                <thead class="municipal-table-header">
                   <tr>
                     <th>Tipo</th>
                     <th class="text-end">Contratos</th>
@@ -193,7 +212,7 @@
             </div>
             <div class="municipal-card-body">
               <table class="municipal-table">
-                <thead>
+                <thead class="municipal-table-header">
                   <tr>
                     <th>Zona</th>
                     <th class="text-end">Contratos</th>
@@ -229,7 +248,7 @@
             <div class="municipal-card-body">
               <div class="table-responsive">
                 <table class="municipal-table-bordered">
-                  <thead>
+                  <thead class="municipal-table-header">
                     <tr>
                       <th>#</th>
                       <th>Empresa</th>
@@ -300,10 +319,20 @@
       <h6>Actualización</h6>
       <p>Los datos se actualizan automáticamente al cargar la pantalla. Use el botón "Actualizar" para refrescar manualmente.</p>
     </DocumentationModal>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Contratos_EstGral'"
+      :moduleName="'aseo_contratado'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -311,8 +340,10 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
+const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 const cargando = ref(false)
@@ -339,7 +370,8 @@ const actualizarDatos = async () => {
 
     showToast('Estadísticas actualizadas correctamente', 'success')
   } catch (error) {
-    handleError(error, 'Error al cargar estadísticas generales')
+    hideLoading()
+    handleApiError(error, 'Error al cargar estadísticas generales')
   } finally {
     cargando.value = false
   }
@@ -382,5 +414,14 @@ const getProgressColor = (tipo) => {
 onMounted(() => {
   actualizarDatos()
 })
+
+// Documentacion y Ayuda
+const showDocumentation = ref(false)
+const openDocumentation = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+const showTechDocs = ref(false)
+const mostrarDocumentacion = () => showTechDocs.value = true
+const closeTechDocs = () => showTechDocs.value = false
+
 </script>
 

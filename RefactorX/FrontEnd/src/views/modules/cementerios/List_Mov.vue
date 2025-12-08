@@ -88,10 +88,19 @@
       <font-awesome-icon icon="info-circle" />
       No se encontraron movimientos en el rango de fechas especificado
     </div>
+    <!-- Modal de Documentacion Tecnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'List_Mov'"
+      :moduleName="'cementerios'"
+      @close="closeTechDocs"
+    />
+
   </div>
 </template>
 
 <script setup>
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -183,7 +192,6 @@ const buscarMovimientos = async () => {
       toast.info('No se encontraron movimientos en el período especificado')
     }
   } catch (error) {
-    console.error('Error al buscar movimientos:', error)
     toast.error('Error al buscar movimientos')
   }
 }
@@ -201,7 +209,6 @@ const cargarCementerios = async () => {
     const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
     cementerios.value = response.result || []
   } catch (error) {
-    console.error('Error al cargar cementerios:', error)
   }
 }
 

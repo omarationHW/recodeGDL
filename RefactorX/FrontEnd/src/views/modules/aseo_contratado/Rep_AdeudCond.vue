@@ -1,157 +1,167 @@
-﻿<template>
+<template>
   <div class="module-view">
-        <!-- Header del módulo -->
+    <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
-        <font-awesome-icon icon="hand-holding-dollar" />
+        <font-awesome-icon icon="file-invoice-dollar" />
       </div>
       <div class="module-view-info">
         <h1>Reporte de Adeudos Condonados</h1>
-        <p>Aseo Contratado - Historial de condonaciones aplicadas a contratos</p>
+        <p>Aseo Contratado - Consulta de adeudos condonados por contrato</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="mostrarAyuda = true"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentación Técnica">
+          <font-awesome-icon icon="file-code" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
-<div class="municipal-card shadow-sm mb-4">
-      <div class="municipal-card-header">
-        <h5>Parámetros del Reporte</h5>
-      </div>
-      <div class="municipal-card-body">
-        <div class="row">
-          <div class="col-md-3">
-            <label class="municipal-form-label">Fecha Desde</label>
-            <input type="date" class="municipal-form-control" v-model="parametros.fechaDesde" />
+
+    <div class="module-view-content">
+      <!-- Filtros de búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="filter" /> Parámetros de Búsqueda</h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Número de Contrato</label>
+              <input
+                type="number"
+                v-model.number="numContrato"
+                class="municipal-form-control"
+                placeholder="Ingrese número de contrato"
+                @keyup.enter="generarReporte"
+                min="1"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Tipo de Aseo</label>
+              <select v-model="tipoAseoSeleccionado" class="municipal-form-control">
+                <option value="">Seleccione tipo de aseo...</option>
+                <option v-for="tipo in tiposAseo" :key="tipo.ctrol_aseo" :value="tipo.ctrol_aseo">
+                  {{ tipo.tipo_aseo }} - {{ tipo.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Tipo de Reporte</label>
+              <select v-model="tipoReporte" class="municipal-form-control">
+                <option value="1">Detallado</option>
+                <option value="2">Resumido</option>
+              </select>
+            </div>
           </div>
-          <div class="col-md-3">
-            <label class="municipal-form-label">Fecha Hasta</label>
-            <input type="date" class="municipal-form-control" v-model="parametros.fechaHasta" />
-          </div>
-          <div class="col-md-2">
-            <label class="municipal-form-label">Zona</label>
-            <select class="municipal-form-control" v-model="parametros.zona">
-              <option value="">Todas</option>
-              <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
-                Zona {{ z.zona }}
-              </option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="municipal-form-label">Tipo de Aseo</label>
-            <select class="municipal-form-control" v-model="parametros.tipoAseo">
-              <option value="">Todos</option>
-              <option value="D">Doméstico</option>
-              <option value="C">Comercial</option>
-              <option value="I">Industrial</option>
-              <option value="S">Servicios</option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="municipal-form-label">&nbsp;</label>
-            <button class="btn-municipal-info w-100" @click="generarReporte" :disabled="cargando">
-              <font-awesome-icon icon="file-invoice-dollar" /> Generar
+          <div class="button-group mt-3">
+            <button
+              class="btn-municipal-primary"
+              @click="generarReporte"
+              :disabled="!validarFormulario()"
+            >
+              <font-awesome-icon icon="file-invoice-dollar" />
+              Generar Reporte
+            </button>
+            <button class="btn-municipal-secondary" @click="limpiarFiltros">
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <div v-if="datosReporte.length > 0">
-      <div class="stats-dashboard mb-4">
-        <div class="stat-item stat-warning">
-          <div class="stat-icon-mini">
-            <font-awesome-icon icon="file-lines" />
-          </div>
-          <div class="stat-details">
-            <div class="stat-value-mini">{{ datosReporte.length }}</div>
-            <div class="stat-label-mini">Total Condonaciones</div>
-          </div>
+      <!-- Información del Contrato -->
+      <div v-if="contratoInfo" class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="file-contract" /> Información del Contrato</h5>
         </div>
-        <div class="stat-item stat-danger">
-          <div class="stat-icon-mini">
-            <font-awesome-icon icon="dollar-sign" />
-          </div>
-          <div class="stat-details">
-            <div class="stat-value-mini">${{ formatCurrency(montoTotalCondonado) }}</div>
-            <div class="stat-label-mini">Monto Total Condonado</div>
-          </div>
-        </div>
-        <div class="stat-item stat-info">
-          <div class="stat-icon-mini">
-            <font-awesome-icon icon="calculator" />
-          </div>
-          <div class="stat-details">
-            <div class="stat-value-mini">${{ formatCurrency(promedioCondonacion) }}</div>
-            <div class="stat-label-mini">Promedio por Condonación</div>
-          </div>
-        </div>
-        <div class="stat-item stat-success">
-          <div class="stat-icon-mini">
-            <font-awesome-icon icon="users" />
-          </div>
-          <div class="stat-details">
-            <div class="stat-value-mini">{{ contratosBeneficiados }}</div>
-            <div class="stat-label-mini">Contratos Beneficiados</div>
+        <div class="municipal-card-body">
+          <div class="info-cards-grid">
+            <div class="info-card">
+              <span class="info-label">Contrato</span>
+              <span class="info-value">{{ contratoInfo.num_contrato }}</span>
+            </div>
+            <div class="info-card">
+              <span class="info-label">Tipo Aseo</span>
+              <span class="info-value">{{ contratoInfo.tipo_aseo_desc || contratoInfo.ctrol_aseo }}</span>
+            </div>
+            <div class="info-card">
+              <span class="info-label">Unidad Recolección</span>
+              <span class="info-value">{{ contratoInfo.ctrol_recolec }}</span>
+            </div>
+            <div class="info-card">
+              <span class="info-label">Costo Unidad</span>
+              <span class="info-value">{{ formatCurrency(contratoInfo.costo_unidad) }}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="municipal-card shadow-sm mb-4">
-        <div class="municipal-card-header bg-light d-flex justify-content-between">
-          <h6 class="mb-0">Detalle de Condonaciones</h6>
-          <div>
-            <button class="btn btn-sm btn-success me-2" @click="exportar">
+      <!-- Resultados del Reporte -->
+      <div v-if="datosReporte.length > 0" class="municipal-card mt-3">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="table" />
+            Adeudos Condonados ({{ datosReporte.length }})
+          </h5>
+          <div class="button-group">
+            <button class="btn-municipal-success btn-sm" @click="exportarExcel">
               <font-awesome-icon icon="file-excel" /> Excel
             </button>
-            <button class="btn btn-sm btn-danger" @click="imprimir">
+            <button class="btn-municipal-danger btn-sm" @click="imprimir">
               <font-awesome-icon icon="print" /> Imprimir
             </button>
           </div>
         </div>
         <div class="municipal-card-body">
+          <!-- Resumen estadístico -->
+          <div class="stats-row mb-3">
+            <div class="stat-box stat-info">
+              <div class="stat-number">{{ datosReporte.length }}</div>
+              <div class="stat-label">Total Registros</div>
+            </div>
+            <div class="stat-box stat-success">
+              <div class="stat-number">{{ formatCurrency(montoTotalCondonado) }}</div>
+              <div class="stat-label">Monto Total Condonado</div>
+            </div>
+          </div>
+
+          <!-- Tabla de resultados -->
           <div class="table-responsive">
-            <table class="municipal-table-sm table-bordered table-hover">
-              <thead>
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
                 <tr>
                   <th>#</th>
-                  <th>Fecha</th>
-                  <th>Contrato</th>
-                  <th>Contribuyente</th>
-                  <th>Zona</th>
-                  <th>Tipo</th>
-                  <th class="text-end">Monto Condonado</th>
-                  <th class="text-end">Periodos</th>
-                  <th>Motivo</th>
-                  <th>Autorizado Por</th>
+                  <th>Periodo</th>
+                  <th>Operación</th>
+                  <th>Fecha Condonación</th>
+                  <th class="text-right">Importe</th>
+                  <th>Folio Oficio</th>
+                  <th>Usuario</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(item, index) in datosReporte" :key="index">
                   <td>{{ index + 1 }}</td>
-                  <td>{{ formatFecha(item.fecha_condonacion) }}</td>
-                  <td>{{ item.num_contrato }}</td>
-                  <td>{{ item.contribuyente }}</td>
-                  <td class="text-center">{{ item.zona }}</td>
-                  <td class="text-center">{{ formatTipoAseo(item.tipo_aseo) }}</td>
-                  <td class="text-end">
-                    <strong class="text-danger">${{ formatCurrency(item.monto_condonado) }}</strong>
+                  <td>{{ formatPeriodo(item.aso_mes_pago) }}</td>
+                  <td>{{ item.descripcion_operacion || item.ctrol_operacion }}</td>
+                  <td>{{ formatFecha(item.fecha_hora_pago) }}</td>
+                  <td class="text-right">
+                    <strong class="text-success">{{ formatCurrency(item.importe || item.monto) }}</strong>
                   </td>
-                  <td class="text-end">{{ item.periodos_condonados }}</td>
-                  <td>{{ item.motivo_condonacion }}</td>
-                  <td>{{ item.autorizado_por }}</td>
+                  <td>{{ item.folio_rcbo || 'N/A' }}</td>
+                  <td>{{ item.usuario }}</td>
                 </tr>
               </tbody>
               <tfoot>
-                <tr>
-                  <th colspan="6" class="text-end">TOTALES:</th>
-                  <th class="text-end">${{ formatCurrency(montoTotalCondonado) }}</th>
-                  <th class="text-end">{{ totalPeriodos }}</th>
-                  <th colspan="2"></th>
+                <tr class="table-total">
+                  <td colspan="4" class="text-right"><strong>TOTAL:</strong></td>
+                  <td class="text-right"><strong>{{ formatCurrency(montoTotalCondonado) }}</strong></td>
+                  <td colspan="2"></td>
                 </tr>
               </tfoot>
             </table>
@@ -159,205 +169,236 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6">
-          <div class="municipal-card">
-            <div class="municipal-card-header">
-        <h5>Distribución por Tipo de Aseo</h5>
-            </div>
-            <div class="municipal-card-body">
-              <div v-for="tipo in resumenPorTipo" :key="tipo.tipo_aseo" class="mb-3">
-                <div class="d-flex justify-content-between mb-1">
-                  <span><strong>{{ formatTipoAseo(tipo.tipo_aseo) }}</strong></span>
-                  <span>{{ tipo.cantidad }} condonaciones - ${{ formatCurrency(tipo.monto) }}</span>
-                </div>
-                <div class="progress" style="height: 25px;">
-                  <div class="progress-bar" :class="getColorTipo(tipo.tipo_aseo)"
-                    :style="{ width: calcularPorcentaje(tipo.monto, montoTotalCondonado) + '%' }">
-                    {{ calcularPorcentaje(tipo.monto, montoTotalCondonado) }}%
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- Estado vacío -->
+      <div v-if="!contratoInfo && !datosReporte.length" class="empty-state mt-4">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="file-invoice-dollar" />
         </div>
-
-        <div class="col-md-6">
-          <div class="municipal-card">
-            <div class="municipal-card-header">
-        <h5>Distribución por Zona</h5>
-            </div>
-            <div class="municipal-card-body">
-              <div v-for="zona in resumenPorZona" :key="zona.zona" class="mb-3">
-                <div class="d-flex justify-content-between mb-1">
-                  <span><strong>Zona {{ zona.zona }}</strong></span>
-                  <span>{{ zona.cantidad }} condonaciones - ${{ formatCurrency(zona.monto) }}</span>
-                </div>
-                <div class="progress" style="height: 25px;">
-                  <div class="progress-bar bg-warning"
-                    :style="{ width: calcularPorcentaje(zona.monto, montoTotalCondonado) + '%' }">
-                    {{ calcularPorcentaje(zona.monto, montoTotalCondonado) }}%
-                  </div>
-                </div>
-              </div>
-            </div>
+        <h4>Reporte de Adeudos Condonados</h4>
+        <p>Ingrese el número de contrato y tipo de aseo para consultar los adeudos condonados.</p>
+        <div class="steps-guide">
+          <div class="step">
+            <span class="step-number">1</span>
+            <span class="step-text">Ingrese el número de contrato</span>
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <span class="step-text">Seleccione el tipo de aseo</span>
+          </div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <span class="step-text">Elija el tipo de reporte</span>
+          </div>
+          <div class="step">
+            <span class="step-number">4</span>
+            <span class="step-text">Haga clic en "Generar Reporte"</span>
           </div>
         </div>
       </div>
     </div>
 
-    <DocumentationModal v-if="mostrarAyuda" :show="mostrarAyuda" @close="mostrarAyuda = false"
-      title="Reporte de Adeudos Condonados">
-      <h6>Descripción</h6>
-      <p>Genera reporte detallado de todas las condonaciones de adeudos aplicadas a contratos de aseo.</p>
-      <h6>Información Incluida</h6>
+    <!-- Modal de Documentación -->
+    <DocumentationModal :show="showDocumentation" @close="showDocumentation = false" title="Ayuda - Reporte Adeudos Condonados">
+      <h3>Reporte de Adeudos Condonados</h3>
+      <p>Consulta los adeudos que han sido condonados para un contrato específico.</p>
+
+      <h4>Información del Reporte:</h4>
       <ul>
-        <li>Fecha y monto de cada condonación</li>
-        <li>Contrato y contribuyente beneficiado</li>
-        <li>Número de periodos condonados</li>
-        <li>Motivo de la condonación</li>
-        <li>Funcionario que autorizó</li>
-        <li>Estadísticas por tipo y zona</li>
+        <li><strong>Periodo:</strong> Año y mes del adeudo condonado</li>
+        <li><strong>Operación:</strong> Tipo de operación (Cuota Normal, Excedente, etc.)</li>
+        <li><strong>Fecha Condonación:</strong> Cuándo se aplicó la condonación</li>
+        <li><strong>Importe:</strong> Monto que fue condonado</li>
+        <li><strong>Folio Oficio:</strong> Número del documento de autorización</li>
+        <li><strong>Usuario:</strong> Quién realizó la condonación</li>
       </ul>
-      <h6>Filtros Disponibles</h6>
+
+      <h4>Tipos de Reporte:</h4>
       <ul>
-        <li>Rango de fechas de condonación</li>
-        <li>Zona específica</li>
-        <li>Tipo de aseo</li>
+        <li><strong>Detallado:</strong> Muestra cada registro de condonación individual</li>
+        <li><strong>Resumido:</strong> Agrupa las condonaciones por periodo</li>
       </ul>
-      <h6>Uso</h6>
-      <p>Este reporte es útil para auditorías y control de las condonaciones autorizadas.</p>
+
+      <h4>Nota:</h4>
+      <p>Los adeudos condonados tienen status_vigencia = 'S' (Saldado por condonación).</p>
     </DocumentationModal>
+
+    <!-- Modal de Documentación Técnica -->
+    <TechnicalDocsModal
+      :show="showTechDocs"
+      :componentName="'Rep_AdeudCond'"
+      :moduleName="'aseo_contratado'"
+      @close="showTechDocs = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import Swal from 'sweetalert2'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useToast } from '@/composables/useToast'
 
+// Composables
 const { execute } = useApi()
-const { handleError } = useLicenciasErrorHandler()
-const { showToast } = useToast()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
 
-const cargando = ref(false)
-const mostrarAyuda = ref(false)
+// Configuración
+const BASE_DB = 'aseo_contratado'
+const SCHEMA = 'public'
+
+// Estado del formulario
+const numContrato = ref(null)
+const tipoAseoSeleccionado = ref('')
+const tipoReporte = ref('1')
+
+// Datos
+const tiposAseo = ref([])
+const contratoInfo = ref(null)
 const datosReporte = ref([])
-const zonas = ref([])
 
-const parametros = ref({
-  fechaDesde: '',
-  fechaHasta: new Date().toISOString().split('T')[0],
-  zona: '',
-  tipoAseo: ''
-})
+// Modales
+const showDocumentation = ref(false)
+const showTechDocs = ref(false)
 
+// Computed
 const montoTotalCondonado = computed(() => {
-  return datosReporte.value.reduce((sum, item) => sum + parseFloat(item.monto_condonado || 0), 0)
+  return datosReporte.value.reduce((sum, item) => {
+    return sum + parseFloat(item.importe || item.monto || 0)
+  }, 0)
 })
 
-const promedioCondonacion = computed(() => {
-  return datosReporte.value.length > 0 ? montoTotalCondonado.value / datosReporte.value.length : 0
+// Cargar catálogos al montar
+onMounted(async () => {
+  await cargarCatalogos()
 })
 
-const contratosBeneficiados = computed(() => {
-  const contratos = new Set(datosReporte.value.map(item => item.control_contrato))
-  return contratos.size
-})
-
-const totalPeriodos = computed(() => {
-  return datosReporte.value.reduce((sum, item) => sum + parseInt(item.periodos_condonados || 0), 0)
-})
-
-const resumenPorTipo = computed(() => {
-  const agrupado = {}
-  datosReporte.value.forEach(item => {
-    if (!agrupado[item.tipo_aseo]) {
-      agrupado[item.tipo_aseo] = { tipo_aseo: item.tipo_aseo, cantidad: 0, monto: 0 }
-    }
-    agrupado[item.tipo_aseo].cantidad++
-    agrupado[item.tipo_aseo].monto += parseFloat(item.monto_condonado || 0)
-  })
-  return Object.values(agrupado).sort((a, b) => b.monto - a.monto)
-})
-
-const resumenPorZona = computed(() => {
-  const agrupado = {}
-  datosReporte.value.forEach(item => {
-    if (!agrupado[item.zona]) {
-      agrupado[item.zona] = { zona: item.zona, cantidad: 0, monto: 0 }
-    }
-    agrupado[item.zona].cantidad++
-    agrupado[item.zona].monto += parseFloat(item.monto_condonado || 0)
-  })
-  return Object.values(agrupado).sort((a, b) => b.monto - a.monto)
-})
-
-const generarReporte = async () => {
-  if (!parametros.value.fechaHasta) {
-    return showToast('Debe especificar al menos la fecha hasta', 'warning')
-  }
-
-  cargando.value = true
+// Cargar catálogos
+const cargarCatalogos = async () => {
+  showLoading()
   try {
-    const params = {
-      p_fecha_desde: parametros.value.fechaDesde || null,
-      p_fecha_hasta: parametros.value.fechaHasta,
-      p_zona: parametros.value.zona || null,
-      p_tipo_aseo: parametros.value.tipoAseo || null
-    }
-    const response = await execute('SP_ASEO_REPORTE_ADEUDOS_CONDONADOS', 'aseo_contratado', params)
-    datosReporte.value = response || []
-    showToast(`Reporte generado: ${datosReporte.value.length} condonaciones`, 'success')
+    const resTiposAseo = await execute('sp_aseo_tipos_aseo_list', BASE_DB, [], '', null, SCHEMA)
+    tiposAseo.value = resTiposAseo || []
+    console.log('Tipos Aseo cargados:', tiposAseo.value)
   } catch (error) {
-    handleError(error, 'Error al generar reporte')
+    hideLoading()
+    handleApiError(error, 'Error al cargar catálogos')
   } finally {
-    cargando.value = false
+    hideLoading()
   }
 }
 
-const calcularPorcentaje = (parte, total) => {
-  if (!total || total === 0) return '0.00'
-  return ((parte / total) * 100).toFixed(2)
+// Validar formulario
+const validarFormulario = () => {
+  return numContrato.value && tipoAseoSeleccionado.value
 }
 
+// Generar reporte
+const generarReporte = async () => {
+  if (!validarFormulario()) {
+    showToast('Ingrese el número de contrato y seleccione el tipo de aseo', 'warning')
+    return
+  }
+
+  showLoading()
+  try {
+    // Primero buscar el contrato
+    const paramsContrato = [
+      { nombre: 'p_num_contrato', valor: numContrato.value, tipo: 'integer' },
+      { nombre: 'p_ctrol_aseo', valor: parseInt(tipoAseoSeleccionado.value), tipo: 'integer' }
+    ]
+
+    const resContrato = await execute('sp_aseo_contrato_buscar_por_numero', BASE_DB, paramsContrato, '', null, SCHEMA)
+
+    if (!resContrato || resContrato.length === 0) {
+      hideLoading()
+      await Swal.fire({
+        title: 'Contrato no encontrado',
+        text: 'No existe un contrato con ese número y tipo de aseo.',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#dc3545'
+      })
+      return
+    }
+
+    contratoInfo.value = resContrato[0]
+
+    // Buscar adeudos condonados del contrato
+    const paramsAdeudos = [
+      { nombre: 'p_control_contrato', valor: contratoInfo.value.control_contrato, tipo: 'integer' }
+    ]
+
+    const resAdeudos = await execute('sp_aseo_adeudos_condonados_por_contrato', BASE_DB, paramsAdeudos, '', null, SCHEMA)
+
+    datosReporte.value = resAdeudos || []
+
+    hideLoading()
+
+    if (datosReporte.value.length === 0) {
+      await Swal.fire({
+        title: 'Sin adeudos condonados',
+        text: 'El contrato no tiene adeudos condonados registrados.',
+        icon: 'info',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#007bff'
+      })
+    } else {
+      showToast(`Se encontraron ${datosReporte.value.length} adeudos condonados`, 'success')
+    }
+  } catch (error) {
+    hideLoading()
+    hideLoading()
+    handleApiError(error, 'Error al generar reporte')
+  }
+}
+
+// Limpiar filtros
+const limpiarFiltros = () => {
+  numContrato.value = null
+  tipoAseoSeleccionado.value = ''
+  tipoReporte.value = '1'
+  contratoInfo.value = null
+  datosReporte.value = []
+}
+
+// Exportar a Excel
+const exportarExcel = () => {
+  showToast('Exportación a Excel en desarrollo', 'info')
+}
+
+// Imprimir
+const imprimir = () => {
+  showToast('Impresión en desarrollo', 'info')
+}
+
+// Formateo de datos
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value || 0)
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
 }
 
 const formatFecha = (fecha) => {
-  if (!fecha) return ''
+  if (!fecha) return 'N/A'
   return new Date(fecha).toLocaleDateString('es-MX')
 }
 
-const formatTipoAseo = (tipo) => {
-  const tipos = { 'D': 'Dom', 'C': 'Com', 'I': 'Ind', 'S': 'Ser' }
-  return tipos[tipo] || tipo
+const formatPeriodo = (periodo) => {
+  if (!periodo) return 'N/A'
+  const fecha = new Date(periodo)
+  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+  return `${meses[fecha.getMonth()]} ${fecha.getFullYear()}`
 }
 
-const getColorTipo = (tipo) => {
-  const colores = {
-    'D': 'bg-success',
-    'C': 'bg-primary',
-    'I': 'bg-warning',
-    'S': 'bg-info'
-  }
-  return colores[tipo] || 'bg-secondary'
+// Documentación
+const openDocumentation = () => {
+  showDocumentation.value = true
 }
 
-const exportar = () => showToast('Exportando a Excel...', 'info')
-const imprimir = () => showToast('Preparando impresión...', 'info')
-
-onMounted(async () => {
-  try {
-    const response = await execute('SP_ASEO_ZONAS_LIST', 'aseo_contratado', {})
-    zonas.value = response || []
-  } catch (error) {
-    console.error('Error al cargar zonas:', error)
-  }
-})
+const mostrarDocumentacion = () => {
+  showTechDocs.value = true
+}
 </script>
 

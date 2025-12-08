@@ -667,6 +667,8 @@ import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useExcelExport } from '@/composables/useExcelExport'
+import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 
 // Composables
@@ -688,6 +690,21 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { exportToExcel } = useExcelExport()
+const { exportToPdf } = usePdfExport()
+
+// Definición de columnas para exportación
+const columnasExport = [
+  { header: 'No. Trámite', key: 'id_tramite', width: 12 },
+  { header: 'Tipo', key: 'tipo_tramite', width: 20 },
+  { header: 'Licencia', key: 'id_licencia', width: 12 },
+  { header: 'Solicitante', key: 'solicitante', width: 35 },
+  { header: 'Giro', key: 'giro', width: 30 },
+  { header: 'Fecha Solicitud', key: 'fecha_solicitud', type: 'date', width: 15 },
+  { header: 'Fecha Resolución', key: 'fecha_resolucion', type: 'date', width: 15 },
+  { header: 'Estatus', key: 'estatus_texto', width: 15 },
+  { header: 'Usuario', key: 'usuario', width: 20 }
+]
 
 // Constante para caché
 const CACHE_KEY = 'consulta_tramites_cache'
@@ -752,7 +769,6 @@ const guardarCacheConsulta = () => {
     }
     sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache))
   } catch (error) {
-    console.error('Error al guardar caché:', error)
   }
 }
 
@@ -775,16 +791,13 @@ const cargarCacheConsulta = () => {
         currentPage.value = cache.currentPage
         primeraBusqueda.value = cache.primeraBusqueda
 
-        console.log('✅ Caché cargado exitosamente')
         return true
       } else {
         // Cache expirado, limpiar
         sessionStorage.removeItem(CACHE_KEY)
-        console.log('⏰ Caché expirado, se limpió')
       }
     }
   } catch (error) {
-    console.error('Error al cargar caché:', error)
   }
   return false
 }
@@ -792,9 +805,7 @@ const cargarCacheConsulta = () => {
 const limpiarCacheConsulta = () => {
   try {
     sessionStorage.removeItem(CACHE_KEY)
-    console.log('🗑️ Caché limpiado')
   } catch (error) {
-    console.error('Error al limpiar caché:', error)
   }
 }
 
@@ -986,7 +997,6 @@ const cargarEstadisticas = async () => {
       estadisticas.value = response.result
     }
   } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
   } finally {
     loadingEstadisticas.value = false
   }
@@ -1056,45 +1066,81 @@ const verLicencia = (idLicencia) => {
   })
 }
 
+const getEstatusTexto = (estatus) => {
+  const textos = {
+    'P': 'Pendiente',
+    'E': 'En Proceso',
+    'V': 'Verificación',
+    'A': 'Aprobado',
+    'R': 'Rechazado',
+    'C': 'Cancelado'
+  }
+  return textos[estatus] || estatus || 'Desconocido'
+}
+
 const exportarExcel = async () => {
+  if (tramites.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
   showLoading('Exportando a Excel...', 'Generando archivo')
 
   try {
-    // TODO: Implementar exportación real
-    await new Promise(resolve => setTimeout(resolve, 800))
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-    hideLoading()
+    // Preparar datos con texto de estatus
+    const datosExport = tramites.value.map(tramite => ({
+      ...tramite,
+      estatus_texto: getEstatusTexto(tramite.estatus)
+    }))
 
-    await Swal.fire({
-      title: 'Exportar a Excel',
-      text: 'Funcionalidad en desarrollo. Utilizará SP_CONSULTATRAMITE_EXPORTAR',
-      icon: 'info',
-      confirmButtonColor: '#ea8215'
-    })
+    const success = exportToExcel(datosExport, columnasExport, 'Consulta_Tramites')
+
+    if (success) {
+      showToast('success', `Excel generado con ${tramites.value.length} trámites`)
+    } else {
+      showToast('error', 'Error al generar Excel')
+    }
   } catch (error) {
+    showToast('error', 'Error al generar Excel')
+  } finally {
     hideLoading()
-    handleApiError(error)
   }
 }
 
 const exportarPDF = async () => {
+  if (tramites.value.length === 0) {
+    showToast('warning', 'No hay datos para exportar')
+    return
+  }
+
   showLoading('Exportando a PDF...', 'Generando documento')
 
   try {
-    // TODO: Implementar exportación real
-    await new Promise(resolve => setTimeout(resolve, 800))
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-    hideLoading()
+    // Preparar datos con texto de estatus
+    const datosExport = tramites.value.map(tramite => ({
+      ...tramite,
+      estatus_texto: getEstatusTexto(tramite.estatus)
+    }))
 
-    await Swal.fire({
-      title: 'Exportar a PDF',
-      text: 'Funcionalidad en desarrollo',
-      icon: 'info',
-      confirmButtonColor: '#ea8215'
+    const success = exportToPdf(datosExport, columnasExport, {
+      title: 'Consulta de Trámites',
+      subtitle: `Generado el ${new Date().toLocaleDateString('es-MX')}`,
+      orientation: 'landscape'
     })
+
+    if (success) {
+      showToast('success', 'PDF generado correctamente')
+    } else {
+      showToast('error', 'Error al generar PDF')
+    }
   } catch (error) {
+    showToast('error', 'Error al generar PDF')
+  } finally {
     hideLoading()
-    handleApiError(error)
   }
 }
 

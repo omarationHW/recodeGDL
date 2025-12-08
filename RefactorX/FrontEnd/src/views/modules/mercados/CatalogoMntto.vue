@@ -48,24 +48,24 @@
             <table class="municipal-table">
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Oficina</th>
                   <th>Núm. Mercado</th>
                   <th>Descripción</th>
                   <th>Zona</th>
+                  <th>Categoría</th>
                   <th>Vigencia</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in rows" :key="row.id_mercado"
-                    :class="{ 'table-active': selectedRow?.id_mercado === row.id_mercado }"
+                <tr v-for="row in paginatedRows" :key="`${row.oficina}-${row.num_mercado_nvo}`"
+                    :class="{ 'table-active': selectedRow?.oficina === row.oficina && selectedRow?.num_mercado_nvo === row.num_mercado_nvo }"
                     @click="selectedRow = row">
-                  <td>{{ row.id_mercado }}</td>
                   <td>{{ row.oficina }}</td>
                   <td>{{ row.num_mercado_nvo }}</td>
                   <td>{{ row.descripcion }}</td>
-                  <td>{{ row.zona || '-' }}</td>
+                  <td>{{ row.id_zona || '-' }}</td>
+                  <td>{{ row.categoria || '-' }}</td>
                   <td>
                     <span :class="row.vigencia === 'A' ? 'badge bg-success' : 'badge bg-danger'">
                       {{ row.vigencia === 'A' ? 'Activo' : 'Baja' }}
@@ -81,6 +81,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="rows.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, rows.length) }}
+                de {{ rows.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
 
           <!-- Sin datos -->
@@ -161,7 +235,7 @@
               </select>
             </div>
             <div class="col-md-6 mb-3">
-              <label class="municipal-form-label">Zona</label>
+              <label class="municipal-form-label">ID Zona</label>
               <input type="number" class="municipal-form-control" v-model.number="form.zona" min="0" />
             </div>
           </div>
@@ -183,7 +257,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
@@ -202,13 +276,53 @@ const loading = ref(false);
 const showFormModal = ref(false);
 const formMode = ref('create');
 const form = ref({
-  id_mercado: null,
-  oficina: '',
-  num_mercado_nvo: '',
+  oficina: null,
+  num_mercado_nvo: null,
   descripcion: '',
-  categoria: '',
-  zona: ''
+  categoria: null,
+  id_zona: null
 });
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+
+// Computed de paginación
+const totalPages = computed(() => Math.ceil(rows.value.length / itemsPerPage.value));
+
+const paginatedRows = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return rows.value.slice(start, end);
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+});
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+};
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size);
+  currentPage.value = 1;
+};
 
 // Cerrar
 const cerrar = () => {
@@ -231,11 +345,11 @@ async function fetchData() {
     if (response.data?.eResponse?.success) {
       rows.value = response.data.eResponse.data.result || [];
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -269,21 +383,19 @@ function showModal(mode, row = null) {
   formMode.value = mode;
   if (mode === 'create') {
     form.value = {
-      id_mercado: null,
-      oficina: '',
-      num_mercado_nvo: '',
+      oficina: null,
+      num_mercado_nvo: null,
       descripcion: '',
-      categoria: '',
-      zona: ''
+      categoria: null,
+      id_zona: null
     };
   } else if (row) {
     form.value = {
-      id_mercado: row.id_mercado,
       oficina: row.oficina,
       num_mercado_nvo: row.num_mercado_nvo,
       descripcion: row.descripcion,
-      categoria: row.categoria || '',
-      zona: row.zona || ''
+      categoria: row.categoria || null,
+      id_zona: row.id_zona || null
     };
   }
   showFormModal.value = true;
@@ -295,8 +407,14 @@ function closeModal() {
 
 // Guardar
 async function submitForm() {
-  if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+  if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion?.trim()) {
+    showToast('Complete los campos requeridos', 'warning');
+    return;
+  }
+
+  // Validar que sean números válidos
+  if (isNaN(form.value.oficina) || isNaN(form.value.num_mercado_nvo)) {
+    showToast('Oficina y Número de Mercado deben ser valores numéricos válidos', 'warning');
     return;
   }
 
@@ -304,19 +422,22 @@ async function submitForm() {
   showLoading();
   try {
     const sp = formMode.value === 'create' ? 'sp_catalogo_mntto_create' : 'sp_catalogo_mntto_update';
+
+    console.log('Saving market with data:', form.value);
     const params = formMode.value === 'create'
       ? [
-          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
-          { Nombre: 'p_num_mercado_nvo', Valor: form.value.num_mercado_nvo, tipo: 'integer' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
-          { Nombre: 'p_categoria', Valor: form.value.categoria || null, tipo: 'integer' },
-          { Nombre: 'p_zona', Valor: form.value.zona || null, tipo: 'integer' }
+          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina), tipo: 'smallint' },
+          { Nombre: 'p_num_mercado_nvo', Valor: parseInt(form.value.num_mercado_nvo), tipo: 'smallint' },
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion.trim() },
+          { Nombre: 'p_categoria', Valor: form.value.categoria ? parseInt(form.value.categoria) : null, tipo: 'smallint' },
+          { Nombre: 'p_zona', Valor: form.value.zona ? parseInt(form.value.zona) : null, tipo: 'smallint' }
         ]
       : [
-          { Nombre: 'p_id_mercado', Valor: form.value.id_mercado, tipo: 'integer' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
-          { Nombre: 'p_categoria', Valor: form.value.categoria || null, tipo: 'integer' },
-          { Nombre: 'p_zona', Valor: form.value.zona || null, tipo: 'integer' }
+          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina), tipo: 'smallint' },
+          { Nombre: 'p_num_mercado_nvo', Valor: parseInt(form.value.num_mercado_nvo), tipo: 'smallint' },
+          { Nombre: 'p_descripcion', Valor: form.value.descripcion.trim() },
+          { Nombre: 'p_categoria', Valor: form.value.categoria ? parseInt(form.value.categoria) : null, tipo: 'smallint' },
+          { Nombre: 'p_zona', Valor: form.value.zona ? parseInt(form.value.zona) : null, tipo: 'smallint' }
         ];
 
     const response = await axios.post('/api/generic', {
@@ -328,15 +449,15 @@ async function submitForm() {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado');
+      showToast(formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado', 'success');
       closeModal();
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast(response.data?.eResponse?.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar mercado');
+    showToast('Error al guardar mercado', 'error');
   } finally {
     loading.value = false;
     hideLoading();

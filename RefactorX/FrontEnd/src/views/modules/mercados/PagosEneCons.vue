@@ -156,47 +156,74 @@
           </div>
 
           <!-- Controles de paginación -->
-          <div v-if="pagos.length > 0" class="pagination-container">
+          <div v-if="pagos.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              <span>Mostrando {{ paginationInfo }}</span>
-              <div class="items-per-page">
-                <label>Registros por página:</label>
-                <select v-model.number="itemsPerPage" @change="changeItemsPerPage(itemsPerPage)" class="form-select form-select-sm">
-                  <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
-                    {{ option }}
-                  </option>
-                </select>
-              </div>
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, pagos.length) }}
+                de {{ pagos.length }} registros
+              </span>
             </div>
 
-            <div class="pagination-controls">
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changeItemsPerPage($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
               <button
-                class="btn-pagination"
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
                 :disabled="currentPage === 1"
-                @click="goToPage(1)">
+                title="Primera página"
+              >
                 <font-awesome-icon icon="angle-double-left" />
               </button>
+
               <button
-                class="btn-pagination"
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
                 :disabled="currentPage === 1"
-                @click="goToPage(currentPage - 1)">
+                title="Página anterior"
+              >
                 <font-awesome-icon icon="angle-left" />
               </button>
 
-              <span class="pagination-text">
-                Página {{ currentPage }} de {{ totalPages }}
-              </span>
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
 
               <button
-                class="btn-pagination"
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
                 :disabled="currentPage === totalPages"
-                @click="goToPage(currentPage + 1)">
+                title="Página siguiente"
+              >
                 <font-awesome-icon icon="angle-right" />
               </button>
+
               <button
-                class="btn-pagination"
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
                 :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)">
+                title="Última página"
+              >
                 <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
@@ -234,7 +261,7 @@ const pagos = ref([])
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const itemsPerPageOptions = [10, 25, 50, 100]
 
 // Computed para paginación
@@ -252,6 +279,23 @@ const paginationInfo = computed(() => {
   const start = pagos.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
   const end = Math.min(currentPage.value * itemsPerPage.value, pagos.value.length)
   return `${start} - ${end} de ${formatNumber(pagos.value.length)}`
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
 })
 
 // Métodos de UI
@@ -277,7 +321,7 @@ const changeItemsPerPage = (newSize) => {
 
 const resetPagination = () => {
   currentPage.value = 1
-  itemsPerPage.value = 25
+  itemsPerPage.value = 10
 }
 
 // Utilidades

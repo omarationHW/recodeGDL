@@ -9,7 +9,7 @@
         <p>Inicio > Catálogos > Cuotas Mercado Mntto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -722,5 +722,21 @@ onMounted(async () => {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
 }
 </style>

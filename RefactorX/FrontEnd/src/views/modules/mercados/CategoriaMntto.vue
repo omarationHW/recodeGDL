@@ -10,7 +10,7 @@
         <p>Mercados - Administración y Mantenimiento de Categorías</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -278,3 +278,12 @@ onMounted(() => {
   fetchData();
 });
 </script>
+
+<style scoped>
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+</style>

@@ -28,7 +28,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
 
@@ -157,7 +157,7 @@
             </div>
             <div class="pagination-controls">
               <label class="me-2">Registros por página:</label>
-              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+              <select v-model.number="itemsPerPage" class="municipal-form-control" style="width: auto;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -166,11 +166,11 @@
             </div>
             <div class="pagination-buttons">
               <button @click="prevPage" :disabled="currentPage === 1" class="btn-municipal-secondary btn-sm">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary btn-sm">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>

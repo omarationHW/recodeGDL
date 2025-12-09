@@ -11,7 +11,7 @@
     </div>
     <div class="module-view-content">
       <div class="municipal-card">
-        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;"><h5><font-awesome-icon icon="filter" />Filtros de Consulta<font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" /></h5></div>
+        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;"><h5><font-awesome-icon icon="filter" />Filtros de Consulta<font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" /></h5></div>
         <div v-show="showFilters" class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
@@ -59,7 +59,7 @@
           <div v-if="datos.length > 0" class="pagination-container">
             <div class="pagination-info">Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ datos.length }} registros</div>
             <div class="pagination-controls"><label>Registros por página:</label><select v-model.number="pageSize" class="municipal-form-control" style="width: auto; display: inline-block;"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option><option :value="250">250</option></select></div>
-            <div class="pagination-buttons"><button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-left" /></button><span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span><button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary"><font-awesome-icon icon="chevron-right" /></button></div>
+            <div class="pagination-buttons"><button @click="previousPage" :disabled="currentPage === 1" class="btn-municipal-secondary"><font-awesome-icon icon="angle-left" /></button><span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span><button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary"><font-awesome-icon icon="angle-right" /></button></div>
           </div>
         </div>
       </div>
@@ -86,6 +86,152 @@ const limpiarFiltros = () => { filters.value = { axo: new Date().getFullYear(), 
 </script>
 
 <style scoped>
-@media print { .module-view-header, .municipal-card-header, .pagination-container, .button-group { display: none !important; } .municipal-table { font-size: 10px; } .sticky-header { position: static !important; } }
-.sticky-header { position: sticky; top: 0; background-color: #fff; z-index: 10; } .table-container { max-height: 600px; overflow-y: auto; } .empty-icon { color: #ccc; margin-bottom: 1rem; } .row-hover:hover { background-color: #f0f8ff; cursor: pointer; } .header-with-badge { display: flex; justify-content: space-between; align-items: center; } .header-right { display: flex; gap: 0.5rem; } .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding: 1rem; border-top: 1px solid #dee2e6; } .pagination-info { font-size: 0.9rem; color: #666; } .pagination-controls { display: flex; align-items: center; gap: 0.5rem; } .pagination-controls label { margin: 0; font-size: 0.9rem; } .pagination-controls select { width: auto; } .pagination-buttons { display: flex; align-items: center; } .toast-notification { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.5rem; background-color: #fff; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 0.75rem; z-index: 9999; animation: slideIn 0.3s ease-out; } .toast-success { border-left: 4px solid #28a745; } .toast-error { border-left: 4px solid #dc3545; } .toast-warning { border-left: 4px solid #ffc107; } .toast-info { border-left: 4px solid #17a2b8; } @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@media print {
+  .module-view-header,
+  .municipal-card-header,
+  .pagination-container,
+  .button-group {
+    display: none !important;
+  }
+
+  .municipal-table {
+    font-size: 10px;
+  }
+
+  .sticky-header {
+    position: static !important;
+  }
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+}
+
+.table-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.empty-icon {
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.row-hover:hover {
+  background-color: #f0f8ff;
+  cursor: pointer;
+}
+
+.header-with-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.pagination-info {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-controls label {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.pagination-controls select {
+  width: auto;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-buttons .btn,
+.pagination-buttons .btn-municipal-secondary {
+  min-width: 2rem;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.module-view-header .btn-municipal-primary,
+.module-view-header .btn-municipal-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast-success {
+  border-left: 4px solid #28a745;
+}
+
+.toast-error {
+  border-left: 4px solid #dc3545;
+}
+
+.toast-warning {
+  border-left: 4px solid #ffc107;
+}
+
+.toast-info {
+  border-left: 4px solid #17a2b8;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 </style>

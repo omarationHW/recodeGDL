@@ -32,7 +32,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
 
@@ -178,7 +178,7 @@
             </div>
             <div class="pagination-controls">
               <label>Registros por página:</label>
-              <select v-model.number="pageSize" class="form-select form-select-sm">
+              <select v-model.number="pageSize" class="municipal-form-control" style="width: auto;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -187,12 +187,12 @@
               </select>
             </div>
             <div class="pagination-buttons">
-              <button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary">
-                <font-awesome-icon icon="chevron-left" />
+              <button @click="previousPage" :disabled="currentPage === 1" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary">
-                <font-awesome-icon icon="chevron-right" />
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -662,5 +662,42 @@ onMounted(async () => {
 
 .required {
   color: #dc3545;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.module-view-header .btn-municipal-primary,
+.module-view-header .btn-municipal-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pagination-buttons .btn,
+.pagination-buttons .btn-municipal-secondary {
+  min-width: 2rem;
 }
 </style>

@@ -1,63 +1,121 @@
 <template>
-  <div class="container-fluid py-4">
-    <div class="municipal-card" style="min-height: 100px;">
-      <div class="municipal-card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Catálogo de Claves de Cuota</h5>
-        <button class="btn btn-municipal-primary btn-sm" @click="abrirModal(null)">
-          <i class="bi bi-plus-circle me-1"></i> Agregar
-        </button>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="money-bill" />
       </div>
-      <div class="municipal-card-body">
-
-      </div>
-
-
-    </div>
-
-    <div class="mt-4" style="margin: 3cap; min-height: 500px; overflow-y: auto;">
-      <!-- Loading -->
-      <div v-if="loading" class="text-center py-4">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-      </div>
-
-      <!-- Tabla -->
-      <div v-else class="table-responsive">
-        <table class="table table-sm table-striped table-hover municipal-table">
-          <thead>
-            <tr>
-              <th>Clave</th>
-              <th>Descripción</th>
-              <th width="120">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in cveCuotas" :key="item.clave_cuota">
-              <td>{{ item.clave_cuota }}</td>
-              <td>{{ item.descripcion }}</td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary me-1" @click="abrirModal(item)" title="Editar">
-                  <i class="bi bi-pencil">Editar</i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" @click="eliminar(item)" title="Eliminar">
-                  <i class="bi bi-trash">Eliminar</i>
-                </button>
-              </td>
-            </tr>
-            <tr v-if="!cveCuotas.length">
-              <td colspan="3" class="text-center text-muted py-3">No hay claves de cuota registradas</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Paginación -->
-        <div v-if="cveCuotas.length" class="d-flex justify-content-between align-items-center mt-3">
-          <small class="text-muted">Total: {{ cveCuotas.length }} registros</small>
-        </div>
+      <div class="module-view-info">
+        <h1>Clave de Cuota</h1>
+        <p>Inicio > Mercados > Clave de Cuota</p>
       </div>
     </div>
 
+    <div class="module-view-content">
+      <div class="municipal-card mb-3">
+        <div class="municipal-card-header">
+          <h5>Clave de Cuota</h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="mb-3 d-flex gap-2">
+            <button class="btn-municipal-primary" @click="abrirModal(null)" :disabled="loading">
+              <font-awesome-icon icon="plus-circle" class="me-1" /> Agregar
+            </button>
+            <button class="btn-municipal-info" @click="cargarCveCuotas" :disabled="loading">
+              <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+              <font-awesome-icon icon="sync" v-if="!loading" />
+              Refrescar
+            </button>
+          </div>
+
+          <div v-if="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+
+          <div v-else class="table-responsive">
+            <table class="table table-sm table-striped table-hover municipal-table">
+              <thead>
+                <tr>
+                  <th>Clave</th>
+                  <th>Descripción</th>
+                  <th width="120">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in paginatedCveCuotas" :key="item.clave_cuota">
+                  <td>{{ item.clave_cuota }}</td>
+                  <td>{{ item.descripcion }}</td>        
+                  <td>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click.stop="abrirModalEditar(item)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                      <button class="btn-municipal-danger btn-sm" @click.stop="eliminar(item)" title="Eliminar">
+                        <font-awesome-icon icon="trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="!cveCuotas.length">
+                  <td colspan="3" class="text-center text-muted py-3">No hay claves de cuota registradas</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Controles de Paginación -->
+            <div v-if="cveCuotas.length > 0" class="pagination-controls">
+              <div class="pagination-info">
+                <span class="text-muted">
+                  Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                  a {{ Math.min(currentPage * itemsPerPage, cveCuotas.length) }}
+                  de {{ cveCuotas.length }} registros
+                </span>
+              </div>
+
+              <div class="pagination-size">
+                <label class="form-label me-2 mb-0">Registros por página:</label>
+                <select class="form-select form-select-sm" :value="itemsPerPage"
+                  @change="changePageSize($event.target.value)" style="width: auto; display: inline-block;">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+
+              <div class="pagination-buttons">
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"
+                  title="Primera página">
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)"
+                  :disabled="currentPage === 1" title="Página anterior">
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+
+                <button v-for="page in visiblePages" :key="page" class="btn-sm"
+                  :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'" @click="goToPage(page)">
+                  {{ page }}
+                </button>
+
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)"
+                  :disabled="currentPage === totalPages" title="Página siguiente">
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)"
+                  :disabled="currentPage === totalPages" title="Última página">
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Modal Formulario -->
     <div v-if="showModal" class="modal fade show d-block" tabindex="-1">
@@ -69,12 +127,13 @@
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Clave de Cuota <span class="text-danger">*</span></label>
-              <input v-model="form.clave_cuota" type="number" class="form-control" :disabled="isEditing" required />
+              <label class="municipal-form-label">Clave de Cuota <span class="text-danger">*</span></label>
+              <input v-model="form.clave_cuota" type="number" class="municipal-form-control" :disabled="isEditing"
+                required />
             </div>
             <div class="mb-3">
-              <label class="form-label">Descripción <span class="text-danger">*</span></label>
-              <input v-model="form.descripcion" type="text" class="form-control" maxlength="50" required />
+              <label class="municipal-form-label">Descripción <span class="text-danger">*</span></label>
+              <input v-model="form.descripcion" type="text" class="municipal-form-control" maxlength="50" required />
             </div>
           </div>
           <div class="modal-footer">
@@ -131,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 
@@ -142,6 +201,10 @@ const saving = ref(false);
 const cveCuotas = ref([]);
 const isEditing = ref(false);
 const showModal = ref(false);
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 
 // Modal de mensajes
 const showMessageModal = ref(false);
@@ -160,6 +223,43 @@ const form = ref({
   clave_cuota: '',
   descripcion: ''
 });
+
+// Computed de paginación
+const totalPages = computed(() => Math.ceil(cveCuotas.value.length / itemsPerPage.value));
+
+const paginatedCveCuotas = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return cveCuotas.value.slice(start, end);
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+});
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+};
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size);
+  currentPage.value = 1;
+};
 
 const mostrarMensaje = (mensaje, tipo = 'info') => {
   const config = {
@@ -295,3 +395,48 @@ onMounted(() => {
   cargarCveCuotas();
 });
 </script>
+
+<style scoped>
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+}
+
+.pagination-size {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pagination-buttons .btn {
+  min-width: 2rem;
+}
+</style>

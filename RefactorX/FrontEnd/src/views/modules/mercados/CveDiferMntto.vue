@@ -9,7 +9,7 @@
         <p>Inicio > Catálogos > Claves de Diferencias por Cobrar</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo">
+        <button class="btn-municipal-primary" @click="abrirModalNuevo">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -439,3 +439,12 @@ onMounted(() => {
   cargarCuentas()
 })
 </script>
+
+<style scoped>
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+</style>

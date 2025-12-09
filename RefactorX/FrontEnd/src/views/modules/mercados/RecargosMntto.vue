@@ -1,26 +1,31 @@
 <template>
   <div class="module-view">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Recargos Mantenimiento</li>
-      </ol>
-    </nav>
-
-    <!-- Título -->
-    <div class="module-view-header mb-4">
-      <h1>Recargos de Mantenimiento</h1>
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="percentage" />
+      </div>
+      <div class="module-view-info">
+        <h1>Mantenimiento de Recargos</h1>
+        <p>Inicio > Catálogos > Recargos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" /> Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
       <!-- Formulario -->
       <div class="municipal-card mb-4">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="edit" /> Formulario de Recargos</h5>
+        </div>
         <div class="municipal-card-body">
           <form @submit.prevent="onSubmit">
-            <div class="form-row">
-              <div class="form-group col-md-2">
-                <label for="axo" class="municipal-form-label">Año</label>
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label for="axo" class="municipal-form-label">Año <span class="required">*</span></label>
                 <input
                   type="number"
                   v-model.number="form.axo"
@@ -31,8 +36,8 @@
                   required
                 />
               </div>
-              <div class="form-group col-md-2">
-                <label for="periodo" class="municipal-form-label">Periodo</label>
+              <div class="col-md-3 mb-3">
+                <label for="periodo" class="municipal-form-label">Periodo <span class="required">*</span></label>
                 <input
                   type="number"
                   v-model.number="form.periodo"
@@ -43,8 +48,8 @@
                   required
                 />
               </div>
-              <div class="form-group col-md-3">
-                <label for="porcentaje" class="municipal-form-label">Porcentaje</label>
+              <div class="col-md-3 mb-3">
+                <label for="porcentaje" class="municipal-form-label">Porcentaje <span class="required">*</span></label>
                 <input
                   type="number"
                   v-model.number="form.porcentaje"
@@ -57,13 +62,17 @@
                 />
               </div>
             </div>
-            <div class="form-row mt-3">
-              <button type="submit" class="btn-municipal-primary mr-2">
-                {{ editMode ? 'Actualizar' : 'Agregar' }}
-              </button>
-              <button type="button" class="btn-municipal-secondary" @click="resetForm">
-                Cancelar
-              </button>
+            <div class="row mt-3">
+              <div class="col-12">
+                <button type="submit" class="btn-municipal-primary me-2">
+                  <font-awesome-icon :icon="editMode ? 'save' : 'plus'" />
+                  {{ editMode ? 'Actualizar' : 'Agregar' }}
+                </button>
+                <button type="button" class="btn-municipal-secondary" @click="resetForm">
+                  <font-awesome-icon icon="times" />
+                  Cancelar
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -71,37 +80,47 @@
 
       <!-- Listado de Recargos -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5 class="mb-0">Listado de Recargos</h5>
+        <div class="municipal-card-header header-with-badge">
+          <h5><font-awesome-icon icon="list" /> Listado de Recargos</h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="recargos.length > 0">{{ recargos.length }} registros</span>
+          </div>
         </div>
-        <div class="municipal-card-body">
+        <div class="municipal-card-body table-container">
           <div class="table-responsive">
             <table class="municipal-table">
-              <thead>
+              <thead class="municipal-table-header">
                 <tr>
+                  <th>#</th>
                   <th>Año</th>
                   <th>Periodo</th>
                   <th>Porcentaje</th>
                   <th>Fecha Alta</th>
                   <th>Usuario</th>
-                  <th>Acciones</th>
+                  <th class="text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="rec in recargos" :key="rec.axo + '-' + rec.periodo">
-                  <td>{{ rec.axo }}</td>
-                  <td>{{ rec.periodo }}</td>
-                  <td>{{ rec.porcentaje }}</td>
-                  <td>{{ formatDate(rec.fecha_alta) }}</td>
-                  <td>{{ rec.usuario }}</td>
-                  <td>
-                    <button class="btn-municipal-info btn-sm" @click="editRecargo(rec)">
-                      Editar
-                    </button>
+                <tr v-if="recargos.length === 0">
+                  <td colspan="7" class="text-center text-muted">
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No hay recargos registrados.</p>
                   </td>
                 </tr>
-                <tr v-if="recargos.length === 0">
-                  <td colspan="6" class="text-center">No hay recargos registrados.</td>
+                <tr v-else v-for="(rec, idx) in recargos" :key="rec.axo + '-' + rec.periodo" class="row-hover">
+                  <td class="text-center">{{ idx + 1 }}</td>
+                  <td>{{ rec.axo }}</td>
+                  <td class="text-center"><span class="badge-primary">{{ rec.periodo }}</span></td>
+                  <td>{{ rec.porcentaje }}%</td>
+                  <td>{{ formatDate(rec.fecha_alta) }}</td>
+                  <td>{{ rec.usuario }}</td>
+                  <td class="text-center">
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click="editRecargo(rec)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -134,6 +153,10 @@ const recargos = ref([])
 const editingKey = ref(null)
 
 // Funciones
+const mostrarAyuda = () => {
+  showToast('Administre los porcentajes de recargos por año y periodo. Puede crear o editar recargos.', 'info')
+}
+
 const formatDate = (val) => {
   if (!val) return ''
   return new Date(val).toLocaleDateString('es-MX')
@@ -203,3 +226,32 @@ onMounted(() => {
   fetchRecargos()
 })
 </script>
+
+<style scoped>
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.empty-icon {
+  color: #6c757d;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+.badge-primary {
+  background: var(--municipal-blue);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.required {
+  color: #dc3545;
+}
+</style>

@@ -138,17 +138,17 @@
             </div>
             <div class="pagination-controls">
               <button class="btn-pagination" @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
               <button class="btn-pagination" @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
             <div class="items-per-page">
               <label>
                 Registros por página:
-                <select v-model.number="pageSize" class="form-select form-select-sm">
+                <select v-model.number="pageSize" class="municipal-form-control" style="width: auto;">
                   <option :value="10">10</option>
                   <option :value="25">25</option>
                   <option :value="50">50</option>

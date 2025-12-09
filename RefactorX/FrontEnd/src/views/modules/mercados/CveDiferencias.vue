@@ -18,10 +18,12 @@
       </div>
       <div class="municipal-card-body">
         <div class="mb-3 d-flex gap-2">
-          <button class="btn-municipal-primary" @click="openAddModal" :disabled="loading">Agregar</button>
-          <button class="btn-municipal-secondary" :disabled="!selectedRow || loading" @click="openEditModal">Modificar</button>
+          <button class="btn-municipal-primary" @click="openAddModal" :disabled="loading">
+            <font-awesome-icon icon="plus-circle" class="me-1" /> Agregar
+          </button>
           <button class="btn-municipal-info" @click="fetchData" :disabled="loading">
             <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
+            <font-awesome-icon icon="sync" v-if="!loading" />
             Refrescar
           </button>
         </div>
@@ -41,24 +43,103 @@
                 <th>Cuenta Ingreso</th>
                 <th>Usuario</th>
                 <th>Fecha Actual</th>
+                <th width="120">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in rows" :key="row.clave_diferencia"
-                  :class="{ 'table-active': selectedRow && selectedRow.clave_diferencia === row.clave_diferencia }"
-                  @click="selectRow(row)"
-                  style="cursor: pointer;">
+              <tr v-for="row in paginatedRows" :key="row.clave_diferencia">
                 <td>{{ row.clave_diferencia }}</td>
                 <td>{{ row.descripcion }}</td>
                 <td>{{ row.cuenta_ingreso }}</td>
                 <td>{{ row.usuario }}</td>
                 <td>{{ formatDate(row.fecha_actual) }}</td>
+                <td>
+                  <div class="button-group button-group-sm">
+                    <button class="btn-municipal-primary btn-sm" @click.stop="openEditModal(row)" title="Editar">
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                  </div>
+                </td>
               </tr>
               <tr v-if="rows.length === 0">
-                <td colspan="5" class="text-center">No hay datos disponibles</td>
+                <td colspan="6" class="text-center">No hay datos disponibles</td>
               </tr>
             </tbody>
           </table>
+
+          <!-- Controles de Paginación -->
+          <div v-if="rows.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, rows.length) }}
+                de {{ rows.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="form-label me-2 mb-0">Registros por página:</label>
+              <select
+                class="form-select form-select-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -141,7 +222,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -156,10 +237,51 @@ const selectedRow = ref(null)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
 const form = ref({
   descripcion: '',
   cuenta_ingreso: ''
 })
+
+// Computed de paginación
+const totalPages = computed(() => Math.ceil(rows.value.length / itemsPerPage.value))
+
+const paginatedRows = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return rows.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+}
 
 const fetchData = async () => {
   showLoading('Cargando Clave de Diferencias', 'Preparando catálogo...')
@@ -207,13 +329,8 @@ const fetchCuentasIngreso = async () => {
   }
 }
 
-const selectRow = (row) => {
-  selectedRow.value = row
-  form.value.descripcion = row.descripcion
-  form.value.cuenta_ingreso = row.cuenta_ingreso
-}
-
 const openAddModal = () => {
+  selectedRow.value = null
   form.value = {
     descripcion: '',
     cuenta_ingreso: ''
@@ -223,16 +340,18 @@ const openAddModal = () => {
 
 const closeAddModal = () => {
   showAddModal.value = false
+  selectedRow.value = null
   form.value = {
     descripcion: '',
     cuenta_ingreso: ''
   }
 }
 
-const openEditModal = () => {
-  if (!selectedRow.value) return
-  form.value.descripcion = selectedRow.value.descripcion
-  form.value.cuenta_ingreso = selectedRow.value.cuenta_ingreso
+const openEditModal = (row) => {
+  if (!row) return
+  selectedRow.value = row
+  form.value.descripcion = row.descripcion
+  form.value.cuenta_ingreso = row.cuenta_ingreso
   showEditModal.value = true
 }
 
@@ -320,6 +439,15 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -333,5 +461,35 @@ onMounted(() => {
 
 .modal.show {
   display: block;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+}
+
+.pagination-size {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pagination-buttons .btn {
+  min-width: 2rem;
 }
 </style>

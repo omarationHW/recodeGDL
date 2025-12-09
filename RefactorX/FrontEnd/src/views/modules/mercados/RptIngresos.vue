@@ -59,7 +59,7 @@
           </div>
           <div class="pagination-container">
             <div class="pagination-info"><label>Mostrar:</label><select v-model.number="pageSize" class="municipal-form-control pagination-select"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option><option :value="100">100</option><option :value="250">250</option></select><span>registros por página</span></div>
-            <div class="pagination-controls"><button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1"><font-awesome-icon icon="chevron-left" /></button><span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span><button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages"><font-awesome-icon icon="chevron-right" /></button></div>
+            <div class="pagination-controls"><button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1"><font-awesome-icon icon="angle-left" /></button><span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span><button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages"><font-awesome-icon icon="angle-right" /></button></div>
           </div>
         </div>
       </div>

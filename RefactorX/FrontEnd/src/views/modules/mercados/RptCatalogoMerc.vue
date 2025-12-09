@@ -10,7 +10,7 @@
         <p>Mercados - Reporte y Administración del Catálogo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -19,7 +19,7 @@
           Refrescar
         </button>
         <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
+          <font-awesome-icon icon="times-circle" />
           Cerrar
         </button>
       </div>
@@ -75,10 +75,10 @@
                   </td>
                   <td>
                     <div class="button-group button-group-sm">
-                      <button class="btn-municipal-primary btn-sm" @click.stop="showModal('update', row)" title="Editar">
+                      <button class="btn-municipal-primary" @click.stop="showModal('update', row)" title="Editar">
                         <font-awesome-icon icon="edit" />
                       </button>
-                      <button class="btn-municipal-danger btn-sm" @click.stop="deleteRow(row)" title="Eliminar">
+                      <button class="btn-municipal-danger" @click.stop="deleteRow(row)" title="Eliminar">
                         <font-awesome-icon icon="trash" />
                       </button>
                     </div>
@@ -351,3 +351,34 @@ onMounted(() => {
   fetchData();
 });
 </script>
+
+<style scoped>
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.module-view-header .btn-municipal-primary,
+.module-view-header .btn-municipal-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+@media print {
+  .module-view-header,
+  .municipal-card-header,
+  .button-group {
+    display: none !important;
+  }
+
+  .municipal-table {
+    font-size: 10px;
+  }
+}
+</style>

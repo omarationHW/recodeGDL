@@ -28,7 +28,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="mostrarFiltros ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="mostrarFiltros ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
         <div v-show="mostrarFiltros" class="municipal-card-body">
@@ -172,11 +172,11 @@
             </div>
             <div class="pagination-buttons">
               <button @click="previousPage" :disabled="currentPage === 1" class="btn-pagination">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-pagination">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>

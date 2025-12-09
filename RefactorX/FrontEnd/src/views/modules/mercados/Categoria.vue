@@ -10,17 +10,13 @@
         <p>Mercados - Administración de Categorías</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalCrear" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalCrear" :disabled="loading">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon :icon="loading ? 'spinner' : 'sync'" :spin="loading" />
           Refrescar
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
         </button>
       </div>
     </div>
@@ -55,8 +51,7 @@
               </thead>
               <tbody>
                 <tr v-for="row in rows" :key="row.categoria"
-                    :class="{ 'table-active': selectedRow?.categoria === row.categoria }"
-                    @click="selectedRow = row">
+                  :class="{ 'table-active': selectedRow?.categoria === row.categoria }" @click="selectedRow = row">
                   <td>{{ row.categoria }}</td>
                   <td>{{ row.descripcion }}</td>
                   <td>
@@ -84,36 +79,27 @@
     </div>
 
     <!-- Modal Crear/Editar -->
-    <Modal
-      v-if="showFormModal"
-      :show="showFormModal"
+    <Modal v-if="showFormModal" :show="showFormModal"
       :title="formMode === 'create' ? 'Agregar Categoría' : 'Modificar Categoría'"
-      :icon="formMode === 'create' ? 'plus' : 'edit'"
-      size="md"
-      @close="closeModal">
-        <form @submit.prevent="submitForm">
-          <div class="mb-3">
-            <label class="municipal-form-label">Código *</label>
-            <input type="number" class="municipal-form-control" v-model.number="form.categoria"
-                   required :disabled="formMode === 'update'" min="1" />
-          </div>
-          <div class="mb-3">
-            <label class="municipal-form-label">Descripción *</label>
-            <input type="text" class="municipal-form-control" v-model="form.descripcion"
-                   required maxlength="30" />
-          </div>
-        </form>
+      :icon="formMode === 'create' ? 'plus' : 'edit'" size="md" @close="closeModal">
+      <form @submit.prevent="submitForm">
+        <div class="mb-3">
+          <label class="municipal-form-label">Código *</label>
+          <input type="number" class="municipal-form-control" v-model.number="form.categoria" required
+            :disabled="formMode === 'update'" min="1" />
+        </div>
+        <div class="mb-3">
+          <label class="municipal-form-label">Descripción *</label>
+          <input type="text" class="municipal-form-control" v-model="form.descripcion" required maxlength="30" />
+        </div>
+      </form>
 
       <template #footer>
         <button type="button" class="btn-municipal-secondary" @click="closeModal">
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button
-          type="button"
-          class="btn-municipal-success"
-          @click="submitForm"
-          :disabled="guardando">
+        <button type="button" class="btn-municipal-primary" @click="submitForm" :disabled="guardando">
           <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
           {{ guardando ? 'Guardando...' : 'Guardar' }}
         </button>
@@ -124,18 +110,19 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
 import Modal from '@/components/common/Modal.vue';
+import { useApi } from '@/composables/useApi'
 
 const router = useRouter();
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading();
 const { showToast } = useToast();
+const { execute } = useApi();
 
 // State
 const rows = ref([]);
@@ -159,23 +146,13 @@ async function fetchData() {
   loading.value = true;
   showLoading('Cargando categorías...');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await execute('sp_categoria_list', 'mercados', [], '', null, 'publico');
 
-    if (response.data?.eResponse?.success) {
-      rows.value = response.data.eResponse.data.result || [];
-      showToast('success', `Se cargaron ${rows.value.length} categorías`);
-    } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
-    }
+    rows.value = response?.result || [];
+    showToast('success', `Se cargaron ${rows.value.length} categorías`);
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar categorías');
+    showToast('error', error.message || 'Error al cargar categorías');
   } finally {
     loading.value = false;
     hideLoading();
@@ -221,29 +198,18 @@ async function submitForm() {
       { Nombre: 'p_descripcion', Valor: form.value.descripcion }
     ];
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: sp,
-        Base: 'mercados',
-        Parametros: params
-      }
-    });
+    const response = await execute(sp, 'mercados', params, '', null, 'publico');
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result?.[0];
-      if (result?.success) {
-        showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
-        closeModal();
-        await fetchData();
-      } else {
-        showToast('error', result?.message || 'Error al guardar');
-      }
+    if (response?.result?.[0]?.success) {
+      showToast('success', response.result[0].message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
+      closeModal();
+      await fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast('error', response?.result?.[0]?.message || 'Error al guardar');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar categoría');
+    showToast('error', error.message || 'Error al guardar categoría');
   } finally {
     guardando.value = false;
     hideLoading();
@@ -267,30 +233,21 @@ async function deleteRow(row) {
 
   showLoading('Eliminando categoría...');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
-        ]
-      }
-    });
+    const params = [
+      { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
+    ];
 
-    if (response.data?.eResponse?.success) {
-      const deleteResult = response.data.eResponse.data.result?.[0];
-      if (deleteResult?.success) {
-        showToast('success', 'Categoría eliminada');
-        await fetchData();
-      } else {
-        showToast('error', deleteResult?.message || 'Error al eliminar');
-      }
+    const response = await execute('sp_categoria_delete', 'mercados', params, '', null, 'publico');
+
+    if (response?.result?.[0]?.success) {
+      showToast('success', 'Categoría eliminada');
+      await fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+      showToast('error', response?.result?.[0]?.message || 'Error al eliminar');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar categoría');
+    showToast('error', error.message || 'Error al eliminar categoría');
   } finally {
     hideLoading();
   }

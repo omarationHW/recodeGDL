@@ -9,7 +9,7 @@
         <p>Inicio > Catálogos > Cuotas Energía Mntto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -122,12 +122,12 @@
               {{ Math.min(currentPage * itemsPerPage, cuotas.length) }} de {{ cuotas.length }} registros
             </div>
             <div class="pagination-controls">
-              <button class="btn-pagination" @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button class="btn-municipal-secondary btn-sm" @click="previousPage" :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn-pagination" @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+              <button class="btn-municipal-secondary btn-sm" @click="nextPage" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
             <div class="items-per-page">
@@ -533,5 +533,21 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
 }
 </style>

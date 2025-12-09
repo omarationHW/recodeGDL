@@ -223,7 +223,7 @@ const form = ref({
 })
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Busque si existe el local y si no existe podrá darlo de alta')
+  showToast('Ayuda: Busque si existe el local y si no existe podrá darlo de alta', 'info')
 }
 
 const fetchRecaudadoras = async () => {
@@ -241,11 +241,11 @@ const fetchRecaudadoras = async () => {
       if (res.data.eResponse.success === true) {
         recaudadoras.value = res.data.eResponse.data.result || []
       } else {
-        showToast('error', res.data.eResponse?.message || 'Error al cargar recaudadoras')
+        showToast(res.data.eResponse?.message || 'Error al cargar recaudadoras', 'error')
       }
     } catch (err) {
       console.error('Error al cargar recaudadoras:', err)
-      showToast('error', 'Error de conexión al cargar recaudadoras')
+      showToast('Error de conexión al cargar recaudadoras', 'error')
     } finally {
       loading.value = false
     }
@@ -281,17 +281,17 @@ const onRecChange = async () => {
       if (res.data.eResponse && res.data.eResponse.success === true) {
         mercados.value = res.data.eResponse.data.result || []
         if (mercados.value.length > 0) {
-          showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+          showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
         } else {
-          showToast('info', 'No se encontraron mercados para esta oficina')
+          showToast('No se encontraron mercados para esta oficina', 'info')
         }
       } else {
-        showToast('error', res.data.eResponse?.message || 'Error al cargar mercados')
+        showToast(res.data.eResponse?.message || 'Error al cargar mercados', 'error')
         mercados.value = []
       }
     } catch (err) {
       console.error('Error al cargar mercados:', err)
-      showToast('error', 'Error de conexión al cargar mercados')
+      showToast('Error de conexión al cargar mercados', 'error')
       mercados.value = []
     } finally {
       loading.value = false
@@ -329,7 +329,7 @@ const fetchSecciones = async () => {
       }
     } catch (err) {
       console.error('Error al cargar secciones:', err)
-      showToast('error', 'Error al cargar secciones')
+      showToast('Error al cargar secciones', 'error')
     } finally {
       loading.value = false
     }
@@ -353,7 +353,7 @@ const fetchGiros = async () => {
       }
     } catch (err) {
       console.error('Error al cargar giros:', err)
-      showToast('error', 'Error al cargar giros')
+      showToast('Error al cargar giros', 'error')
     } finally {
       loading.value = false
     }
@@ -402,7 +402,7 @@ const cargarCatalogos = async () => {
       }
     } catch (err) {
       console.error('Error al cargar catálogos:', err)
-      showToast('error', 'Error de conexión al cargar catálogos')
+      showToast('Error de conexión al cargar catálogos', 'error')
     } finally {
       loading.value = false
     }
@@ -411,7 +411,7 @@ const cargarCatalogos = async () => {
 
 const buscarLocal = async () => {
   if (!selectedRec.value || !form.value.num_mercado || !form.value.categoria || !form.value.seccion || !form.value.local) {
-    showToast('warning', 'Complete los campos de búsqueda requeridos')
+    showToast('Complete los campos de búsqueda requeridos', 'warning')
     return
   }
 
@@ -437,15 +437,15 @@ const buscarLocal = async () => {
       if (res.data.eResponse?.success) {
         const result = res.data.eResponse.data.result?.[0]
         if (result?.existe) {
-          showToast('error', 'El local ya existe. Verifique los datos.')
+          showToast('El local ya existe. Verifique los datos.', 'error')
           mostrarFormulario.value = false
         } else {
           mostrarFormulario.value = true
-          showToast('info', 'Local no encontrado. Puede proceder con el alta.')
+          showToast('Local no encontrado. Puede proceder con el alta.', 'info')
         }
       }
     } catch (err) {
-      showToast('error', 'Error al buscar local')
+      showToast('Error al buscar local', 'error')
     } finally {
       loading.value = false
     }
@@ -454,7 +454,7 @@ const buscarLocal = async () => {
 
 const altaLocal = async () => {
   if (!form.value.nombre || !form.value.giro || !form.value.sector || !form.value.superficie || !form.value.clave_cuota || !form.value.numero_memo) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -491,15 +491,15 @@ const altaLocal = async () => {
       if (res.data.eResponse?.success) {
         const result = res.data.eResponse.data.result?.[0]
         if (result?.success) {
-          showToast('success', 'Local dado de alta correctamente')
+          showToast('Local dado de alta correctamente', 'success')
           limpiarFormulario()
           mostrarFormulario.value = false
         } else {
-          showToast('error', result?.message || 'Error al dar de alta')
+          showToast(result?.message || 'Error al dar de alta', 'error')
         }
       }
     } catch (err) {
-      showToast('error', 'Error al dar de alta el local')
+      showToast('Error al dar de alta el local', 'error')
     } finally {
       saving.value = false
     }
@@ -531,7 +531,7 @@ onMounted(async () => {
         fetchGiros(),
         cargarCatalogos()
       ])
-      showToast('success', 'Catálogos cargados correctamente')
+      showToast('Catálogos cargados correctamente', 'success')
     } catch (err) {
       console.error('Error al inicializar:', err)
     }

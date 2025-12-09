@@ -260,7 +260,7 @@ async function cargarUsuarios() {
     }
   } catch (error) {
     console.error('Error al cargar usuarios:', error);
-    showToast('error', 'Error al cargar usuarios con permiso');
+    showToast('Error al cargar usuarios con permiso', 'error');
   } finally {
     hideLoading();
   }
@@ -291,7 +291,7 @@ async function cargarDatos() {
     }
   } catch (error) {
     console.error('Error al cargar fechas:', error);
-    showToast('error', 'Error al cargar fechas autorizadas');
+    showToast('Error al cargar fechas autorizadas', 'error');
     fechas.value = [];
   } finally {
     loading.value = false;
@@ -326,13 +326,13 @@ async function guardarAutorizacion() {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', editing.value ? 'Autorización actualizada' : 'Autorización creada');
+      showToast(editing.value ? 'Autorización actualizada' : 'Autorización creada', 'success');
       cancelar();
       await cargarDatos();
     }
   } catch (error) {
     console.error('Error al guardar autorización:', error);
-    showToast('error', 'Error al guardar autorización');
+    showToast('Error al guardar autorización', 'error');
   } finally {
     loading.value = false;
     hideLoading();

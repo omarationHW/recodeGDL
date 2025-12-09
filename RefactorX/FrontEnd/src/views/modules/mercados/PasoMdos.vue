@@ -201,7 +201,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione un archivo .txt con datos de Tianguis. El formato debe ser: FOLIO|NOMBRE|DOMICILIO|SUPERFICIE|DESCUENTO|MOTIVO_DESCUENTO|VIGENCIA (Vigencia: A=Activo, B=Baja)')
+  showToast('Seleccione un archivo .txt con datos de Tianguis. El formato debe ser: FOLIO|NOMBRE|DOMICILIO|SUPERFICIE|DESCUENTO|MOTIVO_DESCUENTO|VIGENCIA (Vigencia: A=Activo, B=Baja)', 'info')
 }
 
 const triggerFileInput = () => {
@@ -216,7 +216,7 @@ const handleDrop = (e) => {
   if (file && file.name.endsWith('.txt')) {
     processFile(file)
   } else {
-    showToast('error', 'Por favor seleccione un archivo .txt')
+    showToast('Por favor seleccione un archivo .txt', 'error')
   }
 }
 
@@ -302,16 +302,16 @@ const parseFileContent = (content) => {
   parseErrors.value = errors
 
   if (parsed.length > 0) {
-    showToast('success', `${parsed.length} registros cargados correctamente`)
+    showToast(`${parsed.length} registros cargados correctamente`, 'success')
   }
   if (errors.length > 0) {
-    showToast('warning', `${errors.length} líneas con errores fueron omitidas`)
+    showToast(`${errors.length} líneas con errores fueron omitidas`, 'warning')
   }
 }
 
 const ejecutarCarga = async () => {
   if (rows.value.length === 0) {
-    showToast('warning', 'No hay registros para procesar')
+    showToast('No hay registros para procesar', 'warning')
     return
   }
 
@@ -369,7 +369,7 @@ const ejecutarCarga = async () => {
   }
 
   if (insertedIds.length === rows.value.length) {
-    showToast('success', `¡Proceso completado! ${insertedIds.length} locales insertados`)
+    showToast(`¡Proceso completado! ${insertedIds.length} locales insertados`, 'success')
     // Limpiar después de inserción exitosa completa
     setTimeout(() => {
       rows.value = []
@@ -378,9 +378,9 @@ const ejecutarCarga = async () => {
       fileInput.value.value = ''
     }, 3000)
   } else if (insertedIds.length > 0) {
-    showToast('warning', `Proceso completado con errores: ${insertedIds.length} insertados, ${errors.length} fallidos`)
+    showToast(`Proceso completado con errores: ${insertedIds.length} insertados, ${errors.length} fallidos`, 'warning')
   } else {
-    showToast('error', 'No se pudieron insertar registros')
+    showToast('No se pudieron insertar registros', 'error')
   }
 }
 

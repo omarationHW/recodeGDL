@@ -214,11 +214,11 @@ async function fetchData() {
     if (response.data?.eResponse?.success) {
       rows.value = response.data.eResponse.data.result || [];
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -257,7 +257,7 @@ function closeModal() {
 // Guardar
 async function submitForm() {
   if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+    showToast('Complete los campos requeridos', 'warning');
     return;
   }
 
@@ -288,15 +288,15 @@ async function submitForm() {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado');
+      showToast(formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado', 'success');
       closeModal();
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast(response.data?.eResponse?.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar mercado');
+    showToast('Error al guardar mercado', 'error');
   } finally {
     loading.value = false;
   }
@@ -330,14 +330,14 @@ async function deleteRow(row) {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', 'Mercado eliminado');
+      showToast('Mercado eliminado', 'success');
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+      showToast(response.data?.eResponse?.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar mercado');
+    showToast('Error al eliminar mercado', 'error');
   } finally {
     loading.value = false;
   }

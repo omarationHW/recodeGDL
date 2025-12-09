@@ -286,7 +286,7 @@ async function cargarRecaudadoras() {
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
-    showToast('error', 'Error al cargar recaudadoras');
+    showToast('Error al cargar recaudadoras', 'error');
   } finally {
     hideLoading();
   }
@@ -309,7 +309,7 @@ async function cargarSecciones() {
     }
   } catch (error) {
     console.error('Error al cargar secciones:', error);
-    showToast('error', 'Error al cargar secciones');
+    showToast('Error al cargar secciones', 'error');
   } finally {
     hideLoading();
   }
@@ -346,7 +346,7 @@ async function onOficinaChange() {
     }
   } catch (error) {
     console.error('Error al cargar mercados:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     hideLoading();
   }
@@ -384,7 +384,7 @@ async function onOficinaPagoChange() {
     }
   } catch (error) {
     console.error('Error al cargar cajas:', error);
-    showToast('error', 'Error al cargar cajas');
+    showToast('Error al cargar cajas', 'error');
   } finally {
     hideLoading();
   }
@@ -393,7 +393,7 @@ async function onOficinaPagoChange() {
 // Buscar adeudos
 async function buscarAdeudos() {
   if (!puedesBuscar.value) {
-    showToast('warning', 'Complete todos los campos requeridos');
+    showToast('Complete todos los campos requeridos', 'warning');
     return;
   }
 
@@ -423,16 +423,16 @@ async function buscarAdeudos() {
       }));
 
       if (adeudos.value.length === 0) {
-        showToast('info', 'No se encontraron adeudos para este local');
+        showToast('No se encontraron adeudos para este local', 'info');
       } else {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`);
+        showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success');
       }
     } else {
-      showToast('info', 'No se encontraron adeudos');
+      showToast('No se encontraron adeudos', 'info');
     }
   } catch (error) {
     console.error('Error al buscar adeudos:', error);
-    showToast('error', 'Error al buscar adeudos');
+    showToast('Error al buscar adeudos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -446,13 +446,13 @@ async function grabarPagos() {
   );
 
   if (pagosValidos.length === 0) {
-    showToast('warning', 'Debe capturar al menos una partida');
+    showToast('Debe capturar al menos una partida', 'warning');
     return;
   }
 
   if (!formPago.value.fecha_pago || !formPago.value.oficina_pago ||
     !formPago.value.caja_pago || !formPago.value.operacion_pago) {
-    showToast('warning', 'Complete todos los datos del pago');
+    showToast('Complete todos los datos del pago', 'warning');
     return;
   }
 
@@ -498,12 +498,12 @@ async function grabarPagos() {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', `${pagosValidos.length} pagos grabados correctamente`);
+      showToast(`${pagosValidos.length} pagos grabados correctamente`, 'success');
       await buscarAdeudos();
     }
   } catch (error) {
     console.error('Error al grabar pagos:', error);
-    showToast('error', 'Error al grabar pagos');
+    showToast('Error al grabar pagos', 'error');
   } finally {
     loading.value = false;
     hideLoading();

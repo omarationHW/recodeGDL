@@ -313,7 +313,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Busque un local sin energía registrada para dar de alta el servicio de energía eléctrica. Los adeudos se generarán automáticamente desde la fecha de alta.')
+  showToast('Busque un local sin energía registrada para dar de alta el servicio de energía eléctrica. Los adeudos se generarán automáticamente desde la fecha de alta.', 'info')
 }
 
 // Cargar catálogos
@@ -331,14 +331,14 @@ const fetchRecaudadoras = async () => {
     if (res.data.eResponse.success) {
       recaudadoras.value = res.data.eResponse.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} recaudadoras`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar recaudadoras')
+      showToast(res.data.eResponse.message || 'Error al cargar recaudadoras', 'error')
     }
   } catch (err) {
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', 'Error de conexión al cargar recaudadoras')
+    showToast('Error de conexión al cargar recaudadoras', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -357,11 +357,11 @@ const fetchSecciones = async () => {
     if (res.data.eResponse.success) {
       secciones.value = res.data.eResponse.data.result || []
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar secciones')
+      showToast(res.data.eResponse.message || 'Error al cargar secciones', 'error')
     }
   } catch (err) {
     console.error('Error al cargar secciones:', err)
-    showToast('error', 'Error de conexión al cargar secciones')
+    showToast('Error de conexión al cargar secciones', 'error')
   }
 }
 
@@ -385,16 +385,16 @@ const onRecaudadoraChange = async () => {
     if (res.data.eResponse.success) {
       mercados.value = res.data.eResponse.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('warning', 'No se encontraron mercados para esta recaudadora')
+        showToast('No se encontraron mercados para esta recaudadora', 'warning')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar mercados')
+      showToast(res.data.eResponse.message || 'Error al cargar mercados', 'error')
     }
   } catch (err) {
     console.error('Error al cargar mercados:', err)
-    showToast('error', 'Error de conexión al cargar mercados')
+    showToast('Error de conexión al cargar mercados', 'error')
   } finally {
     loading.value = false
   }
@@ -404,7 +404,7 @@ const onRecaudadoraChange = async () => {
 const buscarLocal = async () => {
   if (!form.value.oficina || !form.value.num_mercado || !form.value.categoria ||
     !form.value.seccion || !form.value.local) {
-    showToast('warning', 'Debe completar todos los campos requeridos')
+    showToast('Debe completar todos los campos requeridos', 'warning')
     return
   }
 
@@ -450,27 +450,27 @@ const buscarLocal = async () => {
             // El local YA tiene energía
             localInfo.value = null
             localEncontrado.value = false
-            showToast('warning', resultEnergia[0].message || 'El local ya tiene energía registrada')
+            showToast(resultEnergia[0].message || 'El local ya tiene energía registrada', 'warning')
           } else {
             // El local NO tiene energía, se puede continuar
             localInfo.value = local
             localEncontrado.value = true
-            showToast('success', 'Local encontrado. Complete los datos de energía para continuar.')
+            showToast('Local encontrado. Complete los datos de energía para continuar.', 'success')
           }
         } else {
-          showToast('error', resEnergia.data.eResponse.message || 'Error al verificar energía')
+          showToast(resEnergia.data.eResponse.message || 'Error al verificar energía', 'error')
         }
       } else {
         localInfo.value = null
         localEncontrado.value = false
-        showToast('warning', 'No se encontró el local')
+        showToast('No se encontró el local', 'warning')
       }
     } else {
-      showToast('error', resLocal.data.eResponse.message || 'Error al buscar local')
+      showToast(resLocal.data.eResponse.message || 'Error al buscar local', 'error')
     }
   } catch (err) {
     console.error('Error al buscar local:', err)
-    showToast('error', 'Error de conexión al buscar local')
+    showToast('Error de conexión al buscar local', 'error')
   } finally {
     loading.value = false
   }
@@ -479,7 +479,7 @@ const buscarLocal = async () => {
 // Grabar energía
 const grabarEnergia = async () => {
   if (!localInfo.value) {
-    showToast('error', 'No hay un local seleccionado')
+    showToast('No hay un local seleccionado', 'error')
     return
   }
 
@@ -487,12 +487,12 @@ const grabarEnergia = async () => {
   if (!energiaForm.value.cve_consumo || !energiaForm.value.descripcion ||
     !energiaForm.value.cantidad || !energiaForm.value.vigencia ||
     !energiaForm.value.fecha_alta || !energiaForm.value.axo || !energiaForm.value.numero) {
-    showToast('warning', 'Debe completar todos los campos de energía')
+    showToast('Debe completar todos los campos de energía', 'warning')
     return
   }
 
   if (energiaForm.value.cantidad <= 0) {
-    showToast('warning', 'La cantidad debe ser mayor a 0')
+    showToast('La cantidad debe ser mayor a 0', 'warning')
     return
   }
 
@@ -520,21 +520,21 @@ const grabarEnergia = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result || []
       if (result.length > 0 && result[0].success) {
-        showToast('success', result[0].message || 'Energía eléctrica grabada correctamente')
+        showToast(result[0].message || 'Energía eléctrica grabada correctamente', 'success')
         // Limpiar y resetear
         setTimeout(() => {
           limpiarBusqueda()
         }, 2000)
       } else {
         const errorMsg = result.length > 0 ? result[0].message : 'Error al grabar energía'
-        showToast('error', errorMsg)
+        showToast(errorMsg, 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al grabar energía')
+      showToast(res.data.eResponse.message || 'Error al grabar energía', 'error')
     }
   } catch (err) {
     console.error('Error al grabar energía:', err)
-    showToast('error', 'Error de conexión al grabar energía')
+    showToast('Error de conexión al grabar energía', 'error')
   } finally {
     loading.value = false
   }

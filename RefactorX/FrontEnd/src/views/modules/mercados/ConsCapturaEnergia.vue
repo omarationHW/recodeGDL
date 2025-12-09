@@ -122,7 +122,7 @@ async function fetchData() {
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar datos');
+    showToast('Error al cargar datos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -152,11 +152,11 @@ async function borrarPago(row) {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', 'Pago eliminado');
+      showToast('Pago eliminado', 'success');
       fetchData();
     }
   } catch (error) {
-    showToast('error', 'Error al eliminar');
+    showToast('Error al eliminar', 'error');
   }
 }
 

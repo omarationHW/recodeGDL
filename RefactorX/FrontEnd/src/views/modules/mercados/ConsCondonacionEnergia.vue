@@ -311,7 +311,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione al menos una Oficina Recaudadora. Los demás campos son opcionales para búsquedas más amplias.')
+  showToast('Ayuda: Seleccione al menos una Oficina Recaudadora. Los demás campos son opcionales para búsquedas más amplias.', 'info')
 }
 
 const showToast = (type, message) => {
@@ -388,16 +388,16 @@ const cargarRecaudadoras = async () => {
     if (response.data.eResponse?.success) {
       recaudadoras.value = response.data.eResponse.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
       error.value = response.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -429,18 +429,18 @@ const cargarMercados = async () => {
     if (response.data.eResponse && response.data.eResponse.success === true) {
       mercados.value = response.data.eResponse.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
       error.value = response.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -459,14 +459,14 @@ const cargarSecciones = async () => {
       secciones.value = response.data.eResponse.data.result || []
     }
   } catch (error) {
-    showToast('error', 'Error al cargar secciones')
+    showToast('Error al cargar secciones', 'error')
   }
 }
 
 const buscarCondonaciones = async () => {
   // Solo la oficina es obligatoria
   if (!form.value.oficina) {
-    showToast('warning', 'Debe seleccionar una Oficina Recaudadora')
+    showToast('Debe seleccionar una Oficina Recaudadora', 'warning')
     return
   }
 
@@ -519,19 +519,19 @@ const buscarCondonaciones = async () => {
           ? `Se encontraron ${condonaciones.value.length} condonaciones (${criterios.join(', ')})`
           : `Se encontraron ${condonaciones.value.length} condonaciones en toda la oficina`
 
-        showToast('success', msg)
+        showToast(msg, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron condonaciones con los criterios especificados')
+        showToast('No se encontraron condonaciones con los criterios especificados', 'info')
       }
     } else {
       error.value = response.data.eResponse?.message || 'Error en la búsqueda'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = err.response?.data?.message || 'Error al buscar condonaciones'
     console.error('Error al buscar condonaciones:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -551,25 +551,25 @@ const limpiarFiltros = () => {
   condonaciones.value = []
   searched.value = false
   error.value = ''
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (condonaciones.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (condonaciones.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 </script>
 

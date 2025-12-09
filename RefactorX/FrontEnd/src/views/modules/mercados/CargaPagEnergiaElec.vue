@@ -354,7 +354,7 @@ async function cargarRecaudadoras() {
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
-    showToast('error', 'Error al cargar recaudadoras');
+    showToast('Error al cargar recaudadoras', 'error');
   } finally {
     hideLoading();
   }
@@ -377,7 +377,7 @@ async function cargarSecciones() {
     }
   } catch (error) {
     console.error('Error al cargar secciones:', error);
-    showToast('error', 'Error al cargar secciones');
+    showToast('Error al cargar secciones', 'error');
   } finally {
     hideLoading();
   }
@@ -409,7 +409,7 @@ async function onOficinaChange() {
     }
   } catch (error) {
     console.error('Error al cargar mercados:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     hideLoading();
   }
@@ -447,7 +447,7 @@ async function onOficinaPagoChange() {
     }
   } catch (error) {
     console.error('Error al cargar cajas:', error);
-    showToast('error', 'Error al cargar cajas');
+    showToast('Error al cargar cajas', 'error');
   } finally {
     hideLoading();
   }
@@ -456,7 +456,7 @@ async function onOficinaPagoChange() {
 // Buscar adeudos
 async function buscarAdeudos() {
   if (!puedesBuscar.value) {
-    showToast('warning', 'Complete todos los campos requeridos');
+    showToast('Complete todos los campos requeridos', 'warning');
     return;
   }
 
@@ -488,16 +488,16 @@ async function buscarAdeudos() {
       }));
 
       if (adeudos.value.length === 0) {
-        showToast('info', 'No se encontraron adeudos');
+        showToast('No se encontraron adeudos', 'info');
       } else {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`);
+        showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success');
       }
     } else {
-      showToast('info', 'No se encontraron adeudos');
+      showToast('No se encontraron adeudos', 'info');
     }
   } catch (error) {
     console.error('Error al buscar adeudos:', error);
-    showToast('error', 'Error al buscar adeudos');
+    showToast('Error al buscar adeudos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -511,13 +511,13 @@ async function cargarPagos() {
   );
 
   if (pagosValidos.length === 0) {
-    showToast('warning', 'Seleccione al menos un adeudo y capture la partida');
+    showToast('Seleccione al menos un adeudo y capture la partida', 'warning');
     return;
   }
 
   if (!formPago.value.fecha_pago || !formPago.value.oficina_pago ||
     !formPago.value.caja_pago || !formPago.value.operacion_pago) {
-    showToast('warning', 'Complete todos los datos del pago');
+    showToast('Complete todos los datos del pago', 'warning');
     return;
   }
 
@@ -566,12 +566,12 @@ async function cargarPagos() {
     }
 
     if (pagosExitosos > 0) {
-      showToast('success', `${pagosExitosos} pagos cargados correctamente`);
+      showToast(`${pagosExitosos} pagos cargados correctamente`, 'success');
       await buscarAdeudos();
     }
   } catch (error) {
     console.error('Error al cargar pagos:', error);
-    showToast('error', 'Error al cargar pagos');
+    showToast('Error al cargar pagos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -582,7 +582,7 @@ async function cargarPagos() {
 async function consultarPagosSeleccionados() {
   const seleccionado = adeudos.value.find(a => a.selected);
   if (!seleccionado) {
-    showToast('warning', 'Seleccione un adeudo para consultar pagos');
+    showToast('Seleccione un adeudo para consultar pagos', 'warning');
     return;
   }
 
@@ -601,12 +601,12 @@ async function consultarPagosSeleccionados() {
     if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
       pagos.value = response.data.eResponse.data.result;
       if (pagos.value.length === 0) {
-        showToast('info', 'No hay pagos registrados para este adeudo');
+        showToast('No hay pagos registrados para este adeudo', 'info');
       }
     }
   } catch (error) {
     console.error('Error al consultar pagos:', error);
-    showToast('error', 'Error al consultar pagos');
+    showToast('Error al consultar pagos', 'error');
   } finally {
     hideLoading();
   }

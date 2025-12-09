@@ -333,7 +333,7 @@ const onRecaudadoraChange = async () => {
       mercados.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   } finally {
     loading.value = false
   }

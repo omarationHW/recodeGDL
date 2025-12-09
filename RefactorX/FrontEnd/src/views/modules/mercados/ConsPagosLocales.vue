@@ -221,7 +221,7 @@ const form = ref({
 const toast = ref({ show: false, type: 'info', message: '' })
 
 const toggleFilters = () => { showFilters.value = !showFilters.value }
-const mostrarAyuda = () => { showToast('info', 'Ayuda: Busque pagos por local o por fecha de pago') }
+const mostrarAyuda = () => { showToast('Ayuda: Busque pagos por local o por fecha de pago', 'info') }
 const showToast = (type, message) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
@@ -245,7 +245,7 @@ const fetchRecaudadoras = async () => {
       eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
     })
     if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar recaudadoras') }
+  } catch { showToast('Error al cargar recaudadoras', 'error') }
 }
 
 const fetchSecciones = async () => {
@@ -254,7 +254,7 @@ const fetchSecciones = async () => {
       eRequest: { Operacion: 'sp_get_secciones', Base: 'padron_licencias', Parametros: [] }
     })
     if (res.data.eResponse?.success) secciones.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar secciones') }
+  } catch { showToast('Error al cargar secciones', 'error') }
 }
 
 const onOficinaChange = async () => {
@@ -273,7 +273,7 @@ const onOficinaChange = async () => {
       }
     })
     if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar mercados') }
+  } catch { showToast('Error al cargar mercados', 'error') }
 }
 
 const onMercadoChange = () => {
@@ -293,7 +293,7 @@ const onOficinaPagoChange = async () => {
       }
     })
     if (res.data.eResponse?.success) cajas.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar cajas') }
+  } catch { showToast('Error al cargar cajas', 'error') }
 }
 
 const onOpcionChange = () => {
@@ -303,14 +303,14 @@ const onOpcionChange = () => {
 
 const buscarPagos = async () => {
   if (!opcion.value) {
-    showToast('warning', 'Seleccione una opción de búsqueda')
+    showToast('Seleccione una opción de búsqueda', 'warning')
     return
   }
 
   let sp = '', params = []
   if (opcion.value === 'L') {
     if (!form.value.oficina || !form.value.num_mercado || !form.value.seccion || !form.value.local) {
-      showToast('warning', 'Complete los campos requeridos')
+      showToast('Complete los campos requeridos', 'warning')
       return
     }
     sp = 'sp_cons_pagos_locales_por_local'
@@ -325,7 +325,7 @@ const buscarPagos = async () => {
     ]
   } else {
     if (!form.value.fecha_pago || !form.value.oficina_pago) {
-      showToast('warning', 'Complete los campos requeridos')
+      showToast('Complete los campos requeridos', 'warning')
       return
     }
     sp = 'sp_cons_pagos_locales_por_fecha'
@@ -348,15 +348,15 @@ const buscarPagos = async () => {
     if (res.data.eResponse?.success) {
       pagos.value = res.data.eResponse.data.result || []
       if (pagos.value.length > 0) {
-        showToast('success', `Se encontraron ${pagos.value.length} pagos`)
+        showToast(`Se encontraron ${pagos.value.length} pagos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron pagos')
+        showToast('No se encontraron pagos', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse?.message || 'Error en la consulta')
+      showToast(res.data.eResponse?.message || 'Error en la consulta', 'error')
     }
-  } catch { showToast('error', 'Error al buscar pagos') }
+  } catch { showToast('Error al buscar pagos', 'error') }
   finally { loading.value = false }
 }
 
@@ -369,15 +369,15 @@ const limpiarFiltros = () => {
   cajas.value = []
   pagos.value = []
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (pagos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación en desarrollo')
+  showToast('Funcionalidad de exportación en desarrollo', 'info')
 }
 
 onMounted(async () => {

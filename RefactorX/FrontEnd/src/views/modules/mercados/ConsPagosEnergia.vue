@@ -213,20 +213,17 @@
       </div>
     </div>
 
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast"><font-awesome-icon icon="times" /></button>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 import axios from 'axios'
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 const showFilters = ref(true)
 const searchType = ref('')
@@ -240,8 +237,6 @@ const searchPerformed = ref(false)
 
 const formLocal = ref({ oficina: '', num_mercado: '', categoria: '', seccion: '', local: '', letra_local: '', bloque: '' })
 const formFechaPago = ref({ fecha_pago: '', oficina_pago: '', caja_pago: '', operacion_pago: '' })
-
-const toast = ref({ show: false, type: 'info', message: '' })
 
 // Paginación
 const currentPage = ref(1)
@@ -285,13 +280,7 @@ watch(resultados, () => {
 })
 
 const toggleFilters = () => { showFilters.value = !showFilters.value }
-const mostrarAyuda = () => { showToast('info', 'Ayuda: Busque pagos de energía por local o por fecha de pago') }
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
-const hideToast = () => { toast.value.show = false }
-const getToastIcon = (type) => ({ success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }[type] || 'info-circle')
+const mostrarAyuda = () => { showToast('Ayuda: Busque pagos de energía por local o por fecha de pago', 'info') }
 
 const formatCurrency = (val) => val ? '$' + parseFloat(val).toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '$0.00'
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('es-MX') : ''
@@ -301,14 +290,14 @@ const fetchRecaudadoras = async () => {
   try {
     const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] } })
     if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar recaudadoras') }
+  } catch { showToast('Error al cargar recaudadoras', 'error') }
 }
 
 const fetchSecciones = async () => {
   try {
     const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_secciones', Base: 'padron_licencias', Parametros: [] } })
     if (res.data.eResponse?.success) secciones.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar secciones') }
+  } catch { showToast('Error al cargar secciones', 'error') }
 }
 
 const onOficinaChange = async () => {
@@ -320,7 +309,7 @@ const onOficinaChange = async () => {
       eRequest: { Operacion: 'sp_consulta_locales_get_mercados', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: formLocal.value.oficina }] }
     })
     if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar mercados') }
+  } catch { showToast('Error al cargar mercados', 'error') }
 }
 
 const onOficinaPagoChange = async () => {
@@ -332,17 +321,17 @@ const onOficinaPagoChange = async () => {
       eRequest: { Operacion: 'sp_get_cajas_energia', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: formFechaPago.value.oficina_pago }] }
     })
     if (res.data.eResponse?.success) cajas.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar cajas') }
+  } catch { showToast('Error al cargar cajas', 'error') }
 }
 
 const onSearchTypeChange = () => { resultados.value = []; searchPerformed.value = false }
 
 const buscar = async () => {
-  if (!searchType.value) { showToast('warning', 'Seleccione tipo de búsqueda'); return }
+  if (!searchType.value) { showToast('Seleccione tipo de búsqueda', 'warning'); return }
 
   let sp = '', params = []
   if (searchType.value === 'local') {
-    if (!formLocal.value.oficina || !formLocal.value.local) { showToast('warning', 'Complete recaudadora y local'); return }
+    if (!formLocal.value.oficina || !formLocal.value.local) { showToast('Complete recaudadora y local', 'warning'); return }
     sp = 'sp_cons_pagos_energia_por_local'
     params = [
       { Nombre: 'p_oficina', Valor: formLocal.value.oficina },
@@ -354,7 +343,7 @@ const buscar = async () => {
       { Nombre: 'p_bloque', Valor: formLocal.value.bloque || null }
     ]
   } else {
-    if (!formFechaPago.value.fecha_pago || !formFechaPago.value.oficina_pago) { showToast('warning', 'Complete fecha y oficina'); return }
+    if (!formFechaPago.value.fecha_pago || !formFechaPago.value.oficina_pago) { showToast('Complete fecha y oficina', 'warning'); return }
     sp = 'sp_cons_pagos_energia_por_fecha'
     params = [
       { Nombre: 'p_fecha_pago', Valor: formFechaPago.value.fecha_pago },
@@ -370,9 +359,9 @@ const buscar = async () => {
     const res = await axios.post('/api/generic', { eRequest: { Operacion: sp, Base: 'padron_licencias', Parametros: params } })
     if (res.data.eResponse?.success) {
       resultados.value = res.data.eResponse.data.result || []
-      resultados.value.length > 0 ? (showToast('success', `${resultados.value.length} pagos encontrados`), showFilters.value = false) : showToast('info', 'No se encontraron pagos')
-    } else showToast('error', res.data.eResponse?.message || 'Error')
-  } catch { showToast('error', 'Error al buscar') }
+      resultados.value.length > 0 ? (showToast(`${resultados.value.length} pagos encontrados`), showFilters.value = false) : showToast('No se encontraron pagos', 'success', 'info')
+    } else showToast(res.data.eResponse?.message || 'Error', 'error')
+  } catch { showToast('Error al buscar', 'error') }
   finally {
     loading.value = false
     hideLoading()
@@ -383,10 +372,10 @@ const limpiar = () => {
   formLocal.value = { oficina: '', num_mercado: '', categoria: '', seccion: '', local: '', letra_local: '', bloque: '' }
   formFechaPago.value = { fecha_pago: '', oficina_pago: '', caja_pago: '', operacion_pago: '' }
   cajas.value = []; resultados.value = []; searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
-const exportarExcel = () => resultados.value.length ? showToast('info', 'Exportación en desarrollo') : showToast('warning', 'No hay datos')
+const exportarExcel = () => resultados.value.length ? showToast('Exportación en desarrollo') : showToast('No hay datos', 'info', 'warning')
 
 onMounted(async () => {
   showLoading('Cargando Consulta de Pagos de Energía', 'Preparando catálogos...')

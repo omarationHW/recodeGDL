@@ -275,18 +275,18 @@ async function buscarLocal() {
       const result = response.data.eResponse.data.result;
       if (result && result.length > 0) {
         localData.value = result[0];
-        showToast('success', 'Local encontrado');
+        showToast('Local encontrado', 'success');
         listarAdeudos();
         listarCondonados();
       } else {
-        showToast('warning', 'Local no encontrado');
+        showToast('Local no encontrado', 'warning');
       }
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al buscar');
+      showToast(response.data?.eResponse?.message || 'Error al buscar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar local');
+    showToast('Error al buscar local', 'error');
   } finally {
     loading.value = false;
   }
@@ -321,13 +321,13 @@ async function listarAdeudos() {
 // Condonar Seleccionados
 async function condonarSeleccionados() {
   if (!oficio.value || oficio.value.trim().length < 10) {
-    showToast('warning', 'Ingrese un oficio válido (mín. 10 caracteres)');
+    showToast('Ingrese un oficio válido (mín. 10 caracteres)', 'warning');
     return;
   }
 
   const seleccionados = adeudos.value.filter(a => a.selected);
   if (seleccionados.length === 0) {
-    showToast('warning', 'Seleccione al menos un adeudo');
+    showToast('Seleccione al menos un adeudo', 'warning');
     return;
   }
 
@@ -366,12 +366,12 @@ async function condonarSeleccionados() {
       }
     }
 
-    showToast('success', `${exitosos} adeudo(s) condonado(s)`);
+    showToast(`${exitosos} adeudo(s) condonado(s)`, 'success');
     listarAdeudos();
     listarCondonados();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al condonar');
+    showToast('Error al condonar', 'error');
   } finally {
     loading.value = false;
   }
@@ -407,7 +407,7 @@ async function listarCondonados() {
 async function deshacerCondonacion() {
   const seleccionados = condonados.value.filter(c => c.selected);
   if (seleccionados.length === 0) {
-    showToast('warning', 'Seleccione al menos una condonación');
+    showToast('Seleccione al menos una condonación', 'warning');
     return;
   }
 
@@ -447,12 +447,12 @@ async function deshacerCondonacion() {
       }
     }
 
-    showToast('success', `${exitosos} condonación(es) deshecha(s)`);
+    showToast(`${exitosos} condonación(es) deshecha(s)`, 'success');
     listarAdeudos();
     listarCondonados();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al deshacer');
+    showToast('Error al deshacer', 'error');
   } finally {
     loading.value = false;
   }

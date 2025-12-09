@@ -289,7 +289,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione una oficina, año y periodo para consultar los adeudos condonados de locales')
+  showToast('Seleccione una oficina, año y periodo para consultar los adeudos condonados de locales', 'info')
 }
 
 const showToast = (type, message) => {
@@ -369,13 +369,13 @@ const fetchMercados = async () => {
 const buscar = async () => {
   if (!selectedOficina.value || !axo.value || !periodo.value) {
     error.value = 'Debe seleccionar oficina, año y periodo'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (periodo.value < 1 || periodo.value > 12) {
     error.value = 'El periodo debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -408,19 +408,19 @@ const buscar = async () => {
     if (res.data.eResponse.success) {
       adeudos.value = res.data.eResponse.data.result || []
       if (adeudos.value.length > 0) {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos condonados`)
+        showToast(`Se encontraron ${adeudos.value.length} adeudos condonados`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron adeudos condonados con los criterios especificados')
+        showToast('No se encontraron adeudos condonados con los criterios especificados', 'info')
       }
     } else {
       error.value = res.data.eResponse.message || 'Error al consultar adeudos condonados'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar adeudos'
     console.error('Error al buscar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -434,12 +434,12 @@ const limpiarFiltros = () => {
   adeudos.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -476,10 +476,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 

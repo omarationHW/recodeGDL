@@ -149,7 +149,7 @@ async function cargarMercados() {
     }
   } catch (error) {
     console.error('Error cargando mercados:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   }
 }
 
@@ -177,12 +177,12 @@ async function buscarPagos() {
     if (response.data?.eResponse?.success) {
       pagos.value = response.data.eResponse.data.result || [];
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos');
+        showToast('No se encontraron pagos', 'info');
       }
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar pagos');
+    showToast('Error al buscar pagos', 'error');
   } finally {
     loading.value = false;
   }

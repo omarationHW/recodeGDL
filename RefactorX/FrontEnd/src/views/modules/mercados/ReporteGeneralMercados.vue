@@ -295,7 +295,7 @@ watch(reporte, () => {
 
 // Métodos
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione una oficina, año y periodo para generar el reporte general con estadísticas de pagos, adeudos y porcentaje de cobranza por mercado.')
+  showToast('Seleccione una oficina, año y periodo para generar el reporte general con estadísticas de pagos, adeudos y porcentaje de cobranza por mercado.', 'info')
 }
 
 const showToast = (type, message) => {
@@ -358,13 +358,13 @@ const fetchRecaudadoras = async () => {
 const buscar = async () => {
   if (!selectedOficina.value || !axo.value || !periodo.value) {
     error.value = 'Debe seleccionar oficina, año y periodo'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (periodo.value < 1 || periodo.value > 12) {
     error.value = 'El periodo debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -391,18 +391,18 @@ const buscar = async () => {
     if (res.data.eResponse.success) {
       reporte.value = res.data.eResponse.data.result || []
       if (reporte.value.length > 0) {
-        showToast('success', `Reporte generado con ${reporte.value.length} mercados`)
+        showToast(`Reporte generado con ${reporte.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados con los criterios especificados')
+        showToast('No se encontraron mercados con los criterios especificados', 'info')
       }
     } else {
       error.value = res.data.eResponse.message || 'Error al generar reporte'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al generar reporte'
     console.error('Error al buscar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -415,12 +415,12 @@ const limpiarFiltros = () => {
   reporte.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (reporte.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -461,10 +461,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 

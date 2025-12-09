@@ -154,11 +154,11 @@ async function fetchData() {
     if (response.data?.eResponse?.success) {
       rows.value = response.data.eResponse.data.result || [];
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar categorías');
+    showToast('Error al cargar categorías', 'error');
   } finally {
     hideLoading();
   }
@@ -188,7 +188,7 @@ function closeModal() {
 // Guardar
 async function submitForm() {
   if (!form.value.categoria || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+    showToast('Complete los campos requeridos', 'warning');
     return;
   }
 
@@ -211,18 +211,18 @@ async function submitForm() {
     if (response.data?.eResponse?.success) {
       const result = response.data.eResponse.data.result?.[0];
       if (result?.success) {
-        showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
+        showToast(result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'), 'success');
         closeModal();
         fetchData();
       } else {
-        showToast('error', result?.message || 'Error al guardar');
+        showToast(result?.message || 'Error al guardar', 'error');
       }
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast(response.data?.eResponse?.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar categoría');
+    showToast('Error al guardar categoría', 'error');
   } finally {
     hideLoading();
   }
@@ -258,17 +258,17 @@ async function deleteRow(row) {
     if (response.data?.eResponse?.success) {
       const deleteResult = response.data.eResponse.data.result?.[0];
       if (deleteResult?.success) {
-        showToast('success', 'Categoría eliminada');
+        showToast('Categoría eliminada', 'success');
         fetchData();
       } else {
-        showToast('error', deleteResult?.message || 'Error al eliminar');
+        showToast(deleteResult?.message || 'Error al eliminar', 'error');
       }
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+      showToast(response.data?.eResponse?.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar categoría');
+    showToast('Error al eliminar categoría', 'error');
   } finally {
     hideLoading();
   }

@@ -175,7 +175,7 @@ async function cargarOficinas() {
 
 async function buscarPagos() {
   if (!form.value.fecha || !form.value.oficina || !form.value.caja || !form.value.operacion) {
-    showToast('warning', 'Complete todos los campos');
+    showToast('Complete todos los campos', 'warning');
     return;
   }
 
@@ -201,12 +201,12 @@ async function buscarPagos() {
     if (response.data?.eResponse?.success) {
       pagos.value = response.data.eResponse.data.result || [];
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos');
+        showToast('No se encontraron pagos', 'info');
       }
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar pagos');
+    showToast('Error al buscar pagos', 'error');
   } finally {
     loading.value = false;
   }
@@ -222,7 +222,7 @@ function toggleAll() {
 
 async function borrarPagos() {
   if (selected.value.length === 0) {
-    showToast('warning', 'Seleccione al menos un pago');
+    showToast('Seleccione al menos un pago', 'warning');
     return;
   }
 
@@ -261,11 +261,11 @@ async function borrarPagos() {
       }
     }
 
-    showToast('success', `${exitosos} pago(s) eliminado(s)`);
+    showToast(`${exitosos} pago(s) eliminado(s)`, 'success');
     buscarPagos();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al borrar pagos');
+    showToast('Error al borrar pagos', 'error');
   } finally {
     loading.value = false;
   }

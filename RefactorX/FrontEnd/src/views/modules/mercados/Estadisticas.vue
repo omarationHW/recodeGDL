@@ -283,7 +283,7 @@ watch(resultados, () => {
 })
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione el tipo de estadística y los parámetros para consultar adeudos de locales')
+  showToast('Seleccione el tipo de estadística y los parámetros para consultar adeudos de locales', 'info')
 }
 
 const formatCurrency = (value) => {
@@ -319,17 +319,17 @@ const isNumericColumn = (col) => {
 
 const consultar = async () => {
   if (!filtros.value.year || !filtros.value.month) {
-    showToast('warning', 'Debe ingresar año y mes')
+    showToast('Debe ingresar año y mes', 'warning')
     return
   }
 
   if (filtros.value.month < 1 || filtros.value.month > 12) {
-    showToast('warning', 'El mes debe estar entre 1 y 12')
+    showToast('El mes debe estar entre 1 y 12', 'warning')
     return
   }
 
   if (tipoEstadistica.value !== 'global' && (!filtros.value.importe || filtros.value.importe < 0)) {
-    showToast('warning', 'Debe ingresar un importe válido')
+    showToast('Debe ingresar un importe válido', 'warning')
     return
   }
 
@@ -367,18 +367,18 @@ const consultar = async () => {
       resultados.value = res.data.eResponse.data.result || []
       if (resultados.value.length > 0) {
         columnas.value = Object.keys(resultados.value[0])
-        showToast('success', `Se encontraron ${resultados.value.length} registros`)
+        showToast(`Se encontraron ${resultados.value.length} registros`, 'success')
       } else {
-        showToast('info', 'No se encontraron registros con los criterios especificados')
+        showToast('No se encontraron registros con los criterios especificados', 'info')
       }
     } else {
       error.value = res.data.eResponse.message || 'Error al consultar estadísticas'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar estadísticas'
     console.error('Error al consultar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -394,12 +394,12 @@ const limpiar = () => {
   resultados.value = []
   columnas.value = []
   error.value = ''
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (resultados.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -425,10 +425,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 </script>

@@ -211,7 +211,7 @@ const hayPagosValidos = computed(() => {
 // Buscar adeudos
 async function buscarAdeudos() {
   if (!fechaPago.value) {
-    showToast('warning', 'Seleccione una fecha de pago');
+    showToast('Seleccione una fecha de pago', 'warning');
     return;
   }
 
@@ -237,17 +237,17 @@ async function buscarAdeudos() {
       pagos.value = adeudos.value.map(() => ({ partida: '' }));
 
       if (adeudos.value.length === 0) {
-        showToast('info', 'No se encontraron adeudos para esta fecha');
+        showToast('No se encontraron adeudos para esta fecha', 'info');
       } else {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`);
+        showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success');
       }
     } else {
       adeudos.value = [];
-      showToast('info', 'No se encontraron adeudos');
+      showToast('No se encontraron adeudos', 'info');
     }
   } catch (error) {
     console.error('Error al buscar adeudos:', error);
-    showToast('error', 'Error al buscar adeudos');
+    showToast('Error al buscar adeudos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -265,7 +265,7 @@ async function cargarPagos() {
     .filter(p => p.partida && p.partida.trim() !== '' && p.partida !== '0');
 
   if (pagosValidos.length === 0) {
-    showToast('warning', 'No hay pagos válidos para grabar');
+    showToast('No hay pagos válidos para grabar', 'warning');
     return;
   }
 
@@ -297,13 +297,13 @@ async function cargarPagos() {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', `${pagosValidos.length} pagos cargados correctamente`);
+      showToast(`${pagosValidos.length} pagos cargados correctamente`, 'success');
       // Recargar adeudos
       await buscarAdeudos();
     }
   } catch (error) {
     console.error('Error al cargar pagos:', error);
-    showToast('error', 'Error al cargar pagos');
+    showToast('Error al cargar pagos', 'error');
   } finally {
     loading.value = false;
     hideLoading();

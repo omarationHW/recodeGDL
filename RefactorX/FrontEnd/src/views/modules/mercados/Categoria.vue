@@ -149,10 +149,10 @@ async function fetchData() {
     const response = await execute('sp_categoria_list', 'mercados', [], '', null, 'publico');
 
     rows.value = response?.result || [];
-    showToast('success', `Se cargaron ${rows.value.length} categorías`);
+    showToast(`Se cargaron ${rows.value.length} categorías`, 'success');
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', error.message || 'Error al cargar categorías');
+    showToast(error.message || 'Error al cargar categorías', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -185,7 +185,7 @@ function closeModal() {
 // Guardar
 async function submitForm() {
   if (!form.value.categoria || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+    showToast('Complete los campos requeridos', 'warning');
     return;
   }
 
@@ -201,15 +201,15 @@ async function submitForm() {
     const response = await execute(sp, 'mercados', params, '', null, 'publico');
 
     if (response?.result?.[0]?.success) {
-      showToast('success', response.result[0].message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
+      showToast(response.result[0].message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'), 'success');
       closeModal();
       await fetchData();
     } else {
-      showToast('error', response?.result?.[0]?.message || 'Error al guardar');
+      showToast(response?.result?.[0]?.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', error.message || 'Error al guardar categoría');
+    showToast(error.message || 'Error al guardar categoría', 'error');
   } finally {
     guardando.value = false;
     hideLoading();
@@ -240,14 +240,14 @@ async function deleteRow(row) {
     const response = await execute('sp_categoria_delete', 'mercados', params, '', null, 'publico');
 
     if (response?.result?.[0]?.success) {
-      showToast('success', 'Categoría eliminada');
+      showToast('Categoría eliminada', 'success');
       await fetchData();
     } else {
-      showToast('error', response?.result?.[0]?.message || 'Error al eliminar');
+      showToast(response?.result?.[0]?.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', error.message || 'Error al eliminar categoría');
+    showToast(error.message || 'Error al eliminar categoría', 'error');
   } finally {
     hideLoading();
   }

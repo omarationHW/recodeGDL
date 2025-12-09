@@ -540,7 +540,7 @@ const getStatusClass = (vigencia) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta de convenios y sus pagos')
+  showToast('Consulta de convenios y sus pagos', 'info')
 }
 
 const buscarConvenios = async () => {
@@ -571,13 +571,13 @@ const buscarConvenios = async () => {
       convenios.value = res.data.eResponse.data?.result || []
       currentPageConvenios.value = 1
       if (convenios.value.length > 0) {
-        showToast('success', `Se encontraron ${convenios.value.length} convenios`)
+        showToast(`Se encontraron ${convenios.value.length} convenios`, 'success')
       } else {
-        showToast('info', 'No se encontraron convenios')
+        showToast('No se encontraron convenios', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar convenios')
+    showToast('Error al buscar convenios', 'error')
     console.error(err)
   } finally {
     loadingList.value = false
@@ -617,10 +617,10 @@ const seleccionarConvenio = async (conv) => {
     currentPageParciales.value = 1
 
     if (convenio.value) {
-      showToast('success', 'Convenio cargado correctamente')
+      showToast('Convenio cargado correctamente', 'success')
     }
   } catch (e) {
-    showToast('error', 'Error al cargar convenio: ' + (e.response?.data?.message || e.message))
+    showToast('Error al cargar convenio: ' + (e.response?.data?.message || e.message), 'error')
   } finally {
     loadingDetail.value = false
     hideLoading()

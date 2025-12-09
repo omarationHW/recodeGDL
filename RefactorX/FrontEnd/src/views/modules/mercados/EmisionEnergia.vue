@@ -221,7 +221,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione recaudadora, mercado, año y periodo. Luego ejecute la emisión para ver los locales. Finalmente grabe la emisión.')
+  showToast('Seleccione recaudadora, mercado, año y periodo. Luego ejecute la emisión para ver los locales. Finalmente grabe la emisión.', 'info')
 }
 
 const fetchRecaudadoras = async () => {
@@ -235,7 +235,7 @@ const fetchRecaudadoras = async () => {
       recaudadoras.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -255,7 +255,7 @@ const onRecaudadoraChange = async () => {
       mercados.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   } finally {
     loading.value = false
   }
@@ -263,7 +263,7 @@ const onRecaudadoraChange = async () => {
 
 const ejecutarEmision = async () => {
   if (!canExecute.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
   loading.value = true
@@ -285,15 +285,15 @@ const ejecutarEmision = async () => {
     if (res.data.eResponse.success) {
       emision.value = res.data.eResponse.data.result || []
       if (emision.value.length > 0) {
-        showToast('success', `Emisión ejecutada: ${emision.value.length} locales encontrados`)
+        showToast(`Emisión ejecutada: ${emision.value.length} locales encontrados`, 'success')
       } else {
-        showToast('info', 'No hay locales con energía para este periodo')
+        showToast('No hay locales con energía para este periodo', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al ejecutar emisión')
+      showToast(res.data.eResponse.message || 'Error al ejecutar emisión', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al ejecutar emisión')
+    showToast('Error de conexión al ejecutar emisión', 'error')
   } finally {
     loading.value = false
   }
@@ -301,7 +301,7 @@ const ejecutarEmision = async () => {
 
 const grabarEmision = async () => {
   if (emision.value.length === 0) {
-    showToast('warning', 'No hay datos para grabar')
+    showToast('No hay datos para grabar', 'warning')
     return
   }
   if (!confirm('¿Está seguro de grabar la emisión de energía? Esta acción no se puede deshacer.')) {
@@ -325,17 +325,17 @@ const grabarEmision = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result[0]
       if (result.status === 'ok') {
-        showToast('success', result.message)
+        showToast(result.message, 'success')
         emision.value = []
         searched.value = false
       } else {
-        showToast('error', result.message)
+        showToast(result.message, 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al grabar emisión')
+      showToast(res.data.eResponse.message || 'Error al grabar emisión', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al grabar emisión')
+    showToast('Error de conexión al grabar emisión', 'error')
   } finally {
     loading.value = false
   }

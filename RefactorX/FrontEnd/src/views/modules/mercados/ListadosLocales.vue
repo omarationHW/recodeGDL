@@ -362,7 +362,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione el tipo de listado y los filtros correspondientes para generar el reporte')
+  showToast('Ayuda: Seleccione el tipo de listado y los filtros correspondientes para generar el reporte', 'info')
 }
 
 const showToast = (type, message) => {
@@ -409,7 +409,7 @@ const fetchRecaudadoras = async () => {
       recaudadoras.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     hideLoading()
   }
@@ -435,7 +435,7 @@ const onRecChange = async () => {
       mercados.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   }
 }
 
@@ -451,7 +451,7 @@ const buscar = () => {
 
 const buscarPadron = async () => {
   if (!selectedRec.value || !selectedMercado.value) {
-    showToast('warning', 'Seleccione recaudadora y mercado')
+    showToast('Seleccione recaudadora y mercado', 'warning')
     return
   }
 
@@ -473,14 +473,14 @@ const buscarPadron = async () => {
     if (res.data.eResponse?.success) {
       locales.value = res.data.eResponse.data.result || []
       if (locales.value.length > 0) {
-        showToast('success', `Se encontraron ${locales.value.length} locales`)
+        showToast(`Se encontraron ${locales.value.length} locales`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay locales para el mercado seleccionado')
+        showToast('No hay locales para el mercado seleccionado', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar padrón')
+    showToast('Error al buscar padrón', 'error')
   } finally {
     loading.value = false
   }
@@ -488,7 +488,7 @@ const buscarPadron = async () => {
 
 const buscarMovimientos = async () => {
   if (!selectedRec.value || !fechaDesde.value || !fechaHasta.value) {
-    showToast('warning', 'Complete todos los filtros requeridos')
+    showToast('Complete todos los filtros requeridos', 'warning')
     return
   }
 
@@ -511,14 +511,14 @@ const buscarMovimientos = async () => {
     if (res.data.eResponse?.success) {
       movimientos.value = res.data.eResponse.data.result || []
       if (movimientos.value.length > 0) {
-        showToast('success', `Se encontraron ${movimientos.value.length} movimientos`)
+        showToast(`Se encontraron ${movimientos.value.length} movimientos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay movimientos para los filtros seleccionados')
+        showToast('No hay movimientos para los filtros seleccionados', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar movimientos')
+    showToast('Error al buscar movimientos', 'error')
   } finally {
     loading.value = false
   }
@@ -526,7 +526,7 @@ const buscarMovimientos = async () => {
 
 const buscarIngresoZonas = async () => {
   if (!fechaDesde.value || !fechaHasta.value) {
-    showToast('warning', 'Seleccione el rango de fechas')
+    showToast('Seleccione el rango de fechas', 'warning')
     return
   }
 
@@ -548,14 +548,14 @@ const buscarIngresoZonas = async () => {
     if (res.data.eResponse?.success) {
       ingresos.value = res.data.eResponse.data.result || []
       if (ingresos.value.length > 0) {
-        showToast('success', `Se encontraron ${ingresos.value.length} zonas con ingresos`)
+        showToast(`Se encontraron ${ingresos.value.length} zonas con ingresos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay ingresos para el rango seleccionado')
+        showToast('No hay ingresos para el rango seleccionado', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar ingresos por zonas')
+    showToast('Error al buscar ingresos por zonas', 'error')
   } finally {
     loading.value = false
   }
@@ -575,15 +575,15 @@ const limpiarFiltros = () => {
   fechaDesde.value = new Date().toISOString().split('T')[0]
   fechaHasta.value = new Date().toISOString().split('T')[0]
   limpiarResultados()
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (!hayResultados.value) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
 }
 
 onMounted(() => {

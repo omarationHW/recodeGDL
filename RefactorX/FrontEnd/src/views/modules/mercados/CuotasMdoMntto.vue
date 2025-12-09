@@ -390,7 +390,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Administre las cuotas de mercados por año. Puede crear, editar o eliminar cuotas. Seleccione categoría, sección y clave de cuota para definir la tarifa.')
+  showToast('Administre las cuotas de mercados por año. Puede crear, editar o eliminar cuotas. Seleccione categoría, sección y clave de cuota para definir la tarifa.', 'info')
 }
 
 const cargarCatalogos = async () => {
@@ -419,7 +419,7 @@ const cargarCatalogos = async () => {
       clavesCuota.value = resCve.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar catálogos')
+    showToast('Error al cargar catálogos', 'error')
     console.error(err)
   }
 }
@@ -439,13 +439,13 @@ const cargarCuotas = async () => {
       cuotas.value = res.data.eResponse.data.result || []
       currentPage.value = 1
       if (cuotas.value.length > 0) {
-        showToast('success', `Se cargaron ${cuotas.value.length} cuotas`)
+        showToast(`Se cargaron ${cuotas.value.length} cuotas`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar cuotas')
+      showToast(res.data.eResponse.message || 'Error al cargar cuotas', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al cargar cuotas')
+    showToast('Error de conexión al cargar cuotas', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -486,7 +486,7 @@ const editarCuota = (cuota) => {
 
 const guardarCuota = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos correctamente')
+    showToast('Complete todos los campos requeridos correctamente', 'warning')
     return
   }
 
@@ -521,17 +521,17 @@ const guardarCuota = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result
       if (result && result.length > 0 && result[0][operacion.replace('cuotasmdo_', '')]) {
-        showToast('success', isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente')
+        showToast(isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente', 'success')
         cerrarModal()
         cargarCuotas()
       } else {
-        showToast('error', 'La cuota ya existe con esos parámetros')
+        showToast('La cuota ya existe con esos parámetros', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar cuota')
+      showToast(res.data.eResponse.message || 'Error al guardar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al guardar cuota')
+    showToast('Error de conexión al guardar cuota', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -566,17 +566,17 @@ const eliminarCuota = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result
       if (result && result.length > 0 && result[0].eliminar) {
-        showToast('success', 'Cuota eliminada exitosamente')
+        showToast('Cuota eliminada exitosamente', 'success')
         cancelarEliminar()
         cargarCuotas()
       } else {
-        showToast('error', 'No se pudo eliminar la cuota')
+        showToast('No se pudo eliminar la cuota', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al eliminar cuota')
+      showToast(res.data.eResponse.message || 'Error al eliminar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al eliminar cuota')
+    showToast('Error de conexión al eliminar cuota', 'error')
     console.error(err)
   } finally {
     loading.value = false

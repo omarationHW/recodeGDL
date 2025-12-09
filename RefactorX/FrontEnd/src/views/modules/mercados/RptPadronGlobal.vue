@@ -177,8 +177,10 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 const filters = ref({
   year: new Date().getFullYear(),
@@ -191,7 +193,6 @@ const loading = ref(false)
 const busquedaRealizada = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(25)
-const toast = ref({ show: false, type: 'info', message: '' })
 
 const meses = ref([
   { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
@@ -215,20 +216,6 @@ const previousPage = () => {
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) currentPage.value++
-}
-
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
-  return icons[type] || 'info-circle'
 }
 
 const mostrarAyuda = () => {
@@ -257,15 +244,15 @@ const consultar = async () => {
       resultados.value = response.data.eResponse.data.result
       busquedaRealizada.value = true
       currentPage.value = 1
-      showToast('success', `Se encontraron ${resultados.value.length} locales`)
+      showToast(`Se encontraron ${resultados.value.length} locales`, 'success')
     } else {
       resultados.value = []
       busquedaRealizada.value = true
-      showToast('info', 'No se encontraron locales con los criterios especificados')
+      showToast('No se encontraron locales con los criterios especificados', 'info')
     }
   } catch (error) {
     console.error('Error al consultar:', error)
-    showToast('error', 'Error al consultar el padrón global')
+    showToast('Error al consultar el padrón global', 'error')
     resultados.value = []
   } finally {
     loading.value = false
@@ -333,7 +320,7 @@ const exportarExcel = () => {
   a.click()
   window.URL.revokeObjectURL(url)
 
-  showToast('success', 'Reporte exportado exitosamente')
+  showToast('Reporte exportado exitosamente', 'success')
 }
 
 onMounted(() => {

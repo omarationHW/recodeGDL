@@ -166,7 +166,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione un mes de la tabla y haga clic en Modificar para actualizar las fechas de descuento y recargos.')
+  showToast('Seleccione un mes de la tabla y haga clic en Modificar para actualizar las fechas de descuento y recargos.', 'info')
 }
 
 const getMesNombre = (mes) => {
@@ -187,10 +187,10 @@ const fetchRows = async () => {
     if (res.data.eResponse.success) {
       rows.value = res.data.eResponse.data.result || []
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar fechas de descuento')
+      showToast(res.data.eResponse.message || 'Error al cargar fechas de descuento', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al cargar datos')
+    showToast('Error de conexión al cargar datos', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -203,7 +203,7 @@ const selectRow = (row) => {
 
 const openEditModal = () => {
   if (!selectedRow.value) {
-    showToast('warning', 'Seleccione un mes de la tabla')
+    showToast('Seleccione un mes de la tabla', 'warning')
     return
   }
   editForm.value = {
@@ -220,7 +220,7 @@ const closeModal = () => {
 
 const save = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
   if (!confirm(`¿Está seguro de actualizar las fechas para ${getMesNombre(editForm.value.mes)}?`)) {
@@ -243,18 +243,18 @@ const save = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result[0]
       if (result.success) {
-        showToast('success', result.message || 'Fecha de descuento actualizada exitosamente')
+        showToast(result.message || 'Fecha de descuento actualizada exitosamente', 'success')
         showModal.value = false
         selectedRow.value = null
         await fetchRows()
       } else {
-        showToast('error', result.message || 'Error al actualizar')
+        showToast(result.message || 'Error al actualizar', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar')
+      showToast(res.data.eResponse.message || 'Error al guardar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al guardar')
+    showToast('Error de conexión al guardar', 'error')
   } finally {
     loading.value = false
   }

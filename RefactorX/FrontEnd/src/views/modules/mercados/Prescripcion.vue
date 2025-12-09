@@ -346,7 +346,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Complete los datos del local para buscar sus adeudos de energía y proceder con la prescripción')
+  showToast('Complete los datos del local para buscar sus adeudos de energía y proceder con la prescripción', 'info')
 }
 
 const formatCurrency = (value) => {
@@ -420,7 +420,7 @@ const onMercadoChange = () => {
 
 const buscarLocal = async () => {
   if (!form.value.oficina || !form.value.mercado || !form.value.categoria || !form.value.seccion || !form.value.local) {
-    showToast('warning', 'Complete los campos requeridos para buscar el local')
+    showToast('Complete los campos requeridos para buscar el local', 'warning')
     return
   }
 
@@ -452,17 +452,17 @@ const buscarLocal = async () => {
       const result = res.data.eResponse.data.result || []
       if (result.length > 0) {
         localEncontrado.value = result[0]
-        showToast('success', 'Local encontrado')
+        showToast('Local encontrado', 'success')
         await cargarAdeudos()
       } else {
-        showToast('warning', 'No se encontró el local con los datos especificados')
+        showToast('No se encontró el local con los datos especificados', 'warning')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al buscar local')
+      showToast(res.data.eResponse.message || 'Error al buscar local', 'error')
     }
   } catch (err) {
     console.error('Error al buscar local:', err)
-    showToast('error', 'Error de conexión al buscar local')
+    showToast('Error de conexión al buscar local', 'error')
   } finally {
     loading.value = false
   }
@@ -506,7 +506,7 @@ const cargarAdeudos = async () => {
     }
   } catch (err) {
     console.error('Error al cargar adeudos:', err)
-    showToast('error', 'Error al cargar adeudos del local')
+    showToast('Error al cargar adeudos del local', 'error')
   } finally {
     loadingAdeudos.value = false
     loadingPrescritos.value = false
@@ -515,12 +515,12 @@ const cargarAdeudos = async () => {
 
 const prescribirSeleccionados = async () => {
   if (adeudosSeleccionados.value.length === 0) {
-    showToast('warning', 'Seleccione al menos un adeudo para prescribir')
+    showToast('Seleccione al menos un adeudo para prescribir', 'warning')
     return
   }
 
   if (!numeroOficio.value.trim()) {
-    showToast('warning', 'Debe ingresar el número de oficio')
+    showToast('Debe ingresar el número de oficio', 'warning')
     return
   }
 
@@ -547,12 +547,12 @@ const prescribirSeleccionados = async () => {
       })
     }
 
-    showToast('success', `Se prescribieron ${adeudosSeleccionados.value.length} adeudo(s) exitosamente`)
+    showToast(`Se prescribieron ${adeudosSeleccionados.value.length} adeudo(s) exitosamente`, 'success')
     adeudosSeleccionados.value = []
     await cargarAdeudos()
   } catch (err) {
     console.error('Error al prescribir adeudos:', err)
-    showToast('error', 'Error al prescribir adeudos')
+    showToast('Error al prescribir adeudos', 'error')
   } finally {
     loading.value = false
   }
@@ -560,7 +560,7 @@ const prescribirSeleccionados = async () => {
 
 const quitarPrescripcionSeleccionados = async () => {
   if (prescritosSeleccionados.value.length === 0) {
-    showToast('warning', 'Seleccione al menos una prescripción para quitar')
+    showToast('Seleccione al menos una prescripción para quitar', 'warning')
     return
   }
 
@@ -586,12 +586,12 @@ const quitarPrescripcionSeleccionados = async () => {
       })
     }
 
-    showToast('success', `Se quitaron ${prescritosSeleccionados.value.length} prescripción(es) exitosamente`)
+    showToast(`Se quitaron ${prescritosSeleccionados.value.length} prescripción(es) exitosamente`, 'success')
     prescritosSeleccionados.value = []
     await cargarAdeudos()
   } catch (err) {
     console.error('Error al quitar prescripción:', err)
-    showToast('error', 'Error al quitar prescripción')
+    showToast('Error al quitar prescripción', 'error')
   } finally {
     loading.value = false
   }

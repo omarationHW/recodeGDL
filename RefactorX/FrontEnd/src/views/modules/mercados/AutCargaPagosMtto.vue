@@ -90,7 +90,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="col-md-12 mb-3">
+              <div class="col-md-6 mb-3">
                 <label class="municipal-form-label">Comentarios</label>
                 <textarea
                   class="municipal-form-control"
@@ -102,7 +102,7 @@
               </div>
             </div>
             <div class="d-flex justify-content-end gap-2">
-              <button class="btn-municipal-success" type="submit" :disabled="loading">
+              <button class="btn-municipal-primary" type="submit" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 <font-awesome-icon icon="save" v-if="!loading" />
                 {{ editing ? 'Actualizar' : 'Guardar' }}
@@ -321,12 +321,13 @@ async function guardarAutorizacion() {
           { Nombre: 'p_comentarios', Valor: form.value.comentarios.toUpperCase() },
           { Nombre: 'p_id_usuario', Valor: 1 }, // TODO: Obtener de sesión
           { Nombre: 'p_actualizacion', Valor: ahora }
-        ]
+        ],
+        Esquema: 'publico'
       }
     });
 
     if (response.data?.eResponse?.success) {
-      showToast(editing.value ? 'Autorización actualizada' : 'Autorización creada', 'success');
+      showToast('success', editing.value ? 'Autorización actualizada' : 'Autorización creada');
       cancelar();
       await cargarDatos();
     }

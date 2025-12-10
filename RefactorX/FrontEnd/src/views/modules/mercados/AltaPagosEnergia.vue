@@ -213,7 +213,7 @@
           </div>
 
           <div class="d-flex justify-content-end mt-3 gap-2">
-            <button class="btn-municipal-success" @click="agregarPago"
+            <button class="btn-municipal-primary" @click="agregarPago"
               :disabled="loading || !validarPago() || pagoExistente">
               <font-awesome-icon icon="save" />
               Agregar

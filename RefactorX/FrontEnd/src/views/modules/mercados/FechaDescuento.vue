@@ -102,7 +102,7 @@
           </form>
         </div>
         <div class="municipal-modal-footer">
-          <button class="btn-municipal-success" @click="save" :disabled="loading || !isFormValid">
+          <button class="btn-municipal-primary" @click="save" :disabled="loading || !isFormValid">
             <font-awesome-icon icon="save" /> Guardar
           </button>
           <button class="btn-municipal-secondary" @click="closeModal" :disabled="loading">

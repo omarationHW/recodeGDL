@@ -223,7 +223,7 @@
               </div>
             </div>
             <div class="d-flex justify-content-end">
-              <button type="submit" class="btn-municipal-success" :disabled="loading">
+              <button type="submit" class="btn-municipal-primary" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 Modificar Local
               </button>

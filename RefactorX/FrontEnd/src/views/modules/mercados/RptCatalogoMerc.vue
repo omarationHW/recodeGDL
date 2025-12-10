@@ -363,7 +363,7 @@ onMounted(() => {
 }
 
 .module-view-header .btn-municipal-primary,
-.module-view-header .btn-municipal-success {
+.module-view-header .btn-municipal-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;

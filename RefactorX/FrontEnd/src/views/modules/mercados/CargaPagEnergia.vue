@@ -253,7 +253,7 @@
 
           <div class="d-flex justify-content-end gap-2">
             <button
-              class="btn-municipal-success"
+              class="btn-municipal-primary"
               @click="cargarPagos"
               :disabled="!haySeleccionados || loading"
             >

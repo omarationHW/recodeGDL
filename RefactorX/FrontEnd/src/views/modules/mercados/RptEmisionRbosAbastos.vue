@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="buscar">
           <font-awesome-icon icon="search" /> Buscar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="results.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">

@@ -196,7 +196,7 @@
         </button>
         <button
           type="button"
-          class="btn-municipal-success"
+          class="btn-municipal-primary"
           @click="guardarSeccion"
           :disabled="guardando">
           <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />

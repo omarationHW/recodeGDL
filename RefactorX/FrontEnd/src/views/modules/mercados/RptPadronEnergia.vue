@@ -10,7 +10,7 @@
         <p>Inicio > Reportes > Padrón de Energía del Mercado</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="!resultados.length || loading">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="!resultados.length || loading">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>

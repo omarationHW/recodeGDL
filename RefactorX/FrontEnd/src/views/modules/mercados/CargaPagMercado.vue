@@ -262,7 +262,7 @@
 
           <div class="d-flex justify-content-end mt-3">
             <button
-              class="btn-municipal-success"
+              class="btn-municipal-primary"
               @click="grabarPagos"
               :disabled="!hayPagosValidos || loading"
             >

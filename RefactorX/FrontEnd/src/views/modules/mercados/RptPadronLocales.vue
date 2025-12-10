@@ -15,7 +15,7 @@
         <button class="btn-municipal-secondary" @click="limpiar" :disabled="loading">
           <font-awesome-icon icon="eraser" /> Limpiar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || !results.length">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || !results.length">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">

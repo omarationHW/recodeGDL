@@ -171,7 +171,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn-municipal-secondary" @click="closeAddModal">Cancelar</button>
-              <button type="submit" class="btn-municipal-success" :disabled="loading">
+              <button type="submit" class="btn-municipal-primary" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 Guardar
               </button>
@@ -208,7 +208,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn-municipal-secondary" @click="closeEditModal">Cancelar</button>
-              <button type="submit" class="btn-municipal-success" :disabled="loading">
+              <button type="submit" class="btn-municipal-primary" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 Actualizar
               </button>

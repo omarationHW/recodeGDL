@@ -7,7 +7,7 @@
         <p>Inicio > Reportes > Adeudos Anteriores a 1996</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || datos.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || datos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>
@@ -445,7 +445,7 @@ onMounted(async () => {
 }
 
 .module-view-header .btn-municipal-primary,
-.module-view-header .btn-municipal-success {
+.module-view-header .btn-municipal-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;

@@ -59,7 +59,7 @@
                   Buscar
                 </button>
                 <button
-                  class="btn-municipal-success"
+                  class="btn-municipal-primary"
                   @click="cargarPagos"
                   :disabled="!hayPagosValidos || loading"
                 >

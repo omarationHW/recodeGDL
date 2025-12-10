@@ -161,7 +161,7 @@
               <div class="col-12">
                 <div class="text-end">
                   <button
-                    class="btn-municipal-success"
+                    class="btn-municipal-primary"
                     @click="onGenerarTransferencia"
                     :disabled="loading"
                   >

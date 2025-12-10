@@ -92,7 +92,7 @@
             </table>
           </div>
           <div class="button-row mt-3">
-            <button class="btn-municipal-success" @click="insertarAdeudos" :disabled="loading">
+            <button class="btn-municipal-primary" @click="insertarAdeudos" :disabled="loading">
               <font-awesome-icon :icon="loading ? 'spinner' : 'save'" :spin="loading" />
               {{ loading ? 'Insertando...' : 'Insertar Adeudos en BD' }}
             </button>

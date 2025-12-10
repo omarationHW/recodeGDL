@@ -5,7 +5,7 @@
       <div class="module-view-info"><h1>Reporte de Ingresos por Energía</h1><p>Inicio > Mercados > Ingresos Energía</p></div>
       <div class="button-group ms-auto">
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading"><font-awesome-icon icon="search" /> Consultar</button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0"><font-awesome-icon icon="file-excel" /> Exportar</button>
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0"><font-awesome-icon icon="file-excel" /> Exportar</button>
         <button class="btn-municipal-purple" @click="mostrarAyuda"><font-awesome-icon icon="question-circle" /> Ayuda</button>
       </div>
     </div>

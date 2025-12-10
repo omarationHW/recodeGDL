@@ -10,7 +10,7 @@
         <p>Mercados - Administración y Mantenimiento del Catálogo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -246,7 +246,7 @@
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loading">
+        <button type="button" class="btn-municipal-primary" @click="submitForm" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
           <font-awesome-icon icon="save" v-if="!loading" />
           Guardar

@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="generarEmision" :disabled="loading || !canGenerate">
           <font-awesome-icon icon="play" /> Generar Emisión
         </button>
-        <button class="btn-municipal-success" @click="exportarTXT" :disabled="loading || emision.length === 0">
+        <button class="btn-municipal-primary" @click="exportarTXT" :disabled="loading || emision.length === 0">
           <font-awesome-icon icon="file-download" /> Exportar TXT
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -168,7 +168,7 @@ const loading = ref(false)
 const searched = ref(false)
 const toast = ref({ show: false, type: 'info', message: '' })
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 
 const canGenerate = computed(() => selectedRecaudadora.value && selectedMercados.value.length > 0 && axo.value && periodo.value)
 

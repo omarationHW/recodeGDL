@@ -43,23 +43,25 @@
 
               <div class="form-group">
                 <label class="municipal-form-label">Mercado <span class="required">*</span></label>
-                <select class="municipal-form-control" v-model="form.num_mercado" :disabled="loading || !form.oficina || localEncontrado"
-                  required>
+                <select class="municipal-form-control" v-model="form.num_mercado" @change="onMercadoChange"
+                  :disabled="loading || !form.oficina || localEncontrado" required>
                   <option value="">Seleccione...</option>
-                  <option v-for="merc in mercados" :key="merc.num_mercado" :value="merc.num_mercado">
-                    {{ merc.num_mercado }} - {{ merc.descripcion }}
+                  <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                    {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
                   </option>
                 </select>
               </div>
 
               <div class="form-group">
                 <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <input type="number" class="municipal-form-control" v-model.number="form.categoria"
-                  :disabled="loading || localEncontrado" min="1" max="9" required />
+                <input type="text" class="municipal-form-control" v-model="form.categoria"
+                  :disabled="true" readonly required
+                  :style="{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }"
+                  placeholder="Automático" />
               </div>
 
               <div class="form-group">
-                <label class="municipal-form-label">Sección <span class="required">*</span></label>
+                <label class="municipal-form-label">Sección</label>
                 <select class="municipal-form-control" v-model="form.seccion" :disabled="loading || localEncontrado"
                   required>
                   <option value="">Seleccione...</option>
@@ -70,7 +72,7 @@
               </div>
 
               <div class="form-group">
-                <label class="municipal-form-label">Local <span class="required">*</span></label>
+                <label class="municipal-form-label">Local</label>
                 <input type="number" class="municipal-form-control" v-model.number="form.local"
                   :disabled="loading || localEncontrado" min="1" required />
               </div>
@@ -91,9 +93,14 @@
             <div class="row mt-3">
               <div class="col-12">
                 <div class="text-end">
-                  <button v-if="!localEncontrado" type="submit" class="btn-municipal-primary" :disabled="loading">
+                  <button v-if="form.oficina && form.num_mercado && !localEncontrado && !localSeleccionado" type="button"
+                    class="btn-municipal-secondary me-2" @click="mostrarLocalesDisponibles" :disabled="loading">
+                    <font-awesome-icon icon="list" />
+                    Ver Locales Disponibles
+                  </button>
+                  <button v-if="localSeleccionado && !localEncontrado" type="submit" class="btn-municipal-primary" :disabled="loading">
                     <font-awesome-icon icon="search" />
-                    Buscar Local
+                    Cargar datos del Local
                   </button>
                   <button v-if="localEncontrado" type="button" class="btn-municipal-secondary" @click="limpiarBusqueda"
                     :disabled="loading">
@@ -136,6 +143,55 @@
         </div>
       </div>
 
+      <!-- Listado de Locales Disponibles -->
+      <div v-if="mostrarListaLocales && localesDisponibles.length > 0" class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Locales Disponibles en este Mercado
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple">{{ localesDisponibles.length }} locales</span>
+            <button class="btn-sm btn-municipal-secondary ms-2" @click="mostrarListaLocales = false">
+              <font-awesome-icon icon="times" />
+            </button>
+          </div>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="municipal-table table-sm">
+              <thead class="municipal-table-header" style="position: sticky; top: 0; z-index: 10;">
+                <tr>
+                  <th>Cat.</th>
+                  <th>Sec.</th>
+                  <th>Local</th>
+                  <th>Letra</th>
+                  <th>Bloque</th>
+                  <th>Nombre</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(local, index) in localesDisponibles" :key="index">
+                  <td>{{ local.categoria }}</td>
+                  <td>{{ local.seccion }}</td>
+                  <td><strong>{{ local.local }}</strong></td>
+                  <td>{{ local.letra_local || '-' }}</td>
+                  <td>{{ local.bloque || '-' }}</td>
+                  <td>{{ local.nombre }}</td>
+                  <td>
+                    <button class="btn-municipal-primary btn-sm" @click="seleccionarLocal(local)">
+                      <font-awesome-icon icon="check" />
+                      Usar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Formulario de Alta de Energía -->
       <div v-if="localEncontrado" class="municipal-card">
         <div class="municipal-card-header">
@@ -157,7 +213,7 @@
                 </select>
               </div>
 
-              <div class="form-group col-md-3">
+              <div class="form-group">
                 <label class="municipal-form-label">Descripción Local <span class="required">*</span></label>
                 <input type="text" class="municipal-form-control" v-model="energiaForm.descripcion"
                   :disabled="loading" maxlength="50" required />
@@ -194,8 +250,8 @@
 
               <div class="form-group col-md-3">
                 <label class="municipal-form-label">Número de Oficio <span class="required">*</span></label>
-                <input type="text" class="municipal-form-control" v-model="energiaForm.numero"
-                  :disabled="loading" maxlength="20" required />
+                <input type="number" class="municipal-form-control" v-model.number="energiaForm.numero"
+                  :disabled="loading" min="1" required />
               </div>
             </div>
 
@@ -226,15 +282,6 @@
         <p class="mt-3 text-muted">Procesando, por favor espere...</p>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
@@ -242,8 +289,10 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const loading = ref(false)
@@ -252,6 +301,9 @@ const mercados = ref([])
 const secciones = ref([])
 const localEncontrado = ref(false)
 const localInfo = ref(null)
+const localesDisponibles = ref([])
+const mostrarListaLocales = ref(false)
+const localSeleccionado = ref(false)
 
 // Formulario de búsqueda
 const form = ref({
@@ -272,45 +324,12 @@ const energiaForm = ref({
   vigencia: 'A',
   fecha_alta: '',
   axo: new Date().getFullYear(),
-  numero: ''
-})
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
+  numero: null
 })
 
 // Computed
 const currentYear = computed(() => new Date().getFullYear())
 const maxDate = computed(() => new Date().toISOString().split('T')[0])
-
-// Métodos de Toast
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
-}
 
 const mostrarAyuda = () => {
   showToast('Busque un local sin energía registrada para dar de alta el servicio de energía eléctrica. Los adeudos se generarán automáticamente desde la fecha de alta.', 'info')
@@ -368,17 +387,22 @@ const fetchSecciones = async () => {
 const onRecaudadoraChange = async () => {
   if (!form.value.oficina) {
     mercados.value = []
+    form.value.num_mercado = ''
+    form.value.categoria = ''
+    localSeleccionado.value = false
     return
   }
 
   try {
     loading.value = true
+    const nivelUsuario = 1 // TODO: Obtener del store de usuario
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_get_mercados',
+        Operacion: 'sp_get_catalogo_mercados',
         Base: 'padron_licencias',
         Parametros: [
-          { Nombre: 'p_id_rec', Valor: parseInt(form.value.oficina) }
+          { nombre: 'p_oficina', tipo: 'integer', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
         ]
       }
     })
@@ -398,6 +422,75 @@ const onRecaudadoraChange = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const onMercadoChange = () => {
+  const mercadoSeleccionado = mercados.value.find(m => m.num_mercado_nvo == form.value.num_mercado)
+  if (mercadoSeleccionado) {
+    form.value.categoria = mercadoSeleccionado.categoria
+  } else {
+    form.value.categoria = ''
+  }
+  // Limpiar lista de locales disponibles al cambiar de mercado
+  localesDisponibles.value = []
+  mostrarListaLocales.value = false
+  localSeleccionado.value = false
+}
+
+// Mostrar locales disponibles
+const mostrarLocalesDisponibles = async () => {
+  if (!form.value.oficina || !form.value.num_mercado) {
+    showToast('Seleccione oficina y mercado primero', 'warning')
+    return
+  }
+
+  loading.value = true
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_consulta_locales_buscar',
+        Base: 'padron_licencias',
+        Parametros: [
+          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
+          { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
+          { Nombre: 'p_categoria', Valor: null },
+          { Nombre: 'p_seccion', Valor: null },
+          { Nombre: 'p_local', Valor: null },
+          { Nombre: 'p_letra_local', Valor: null },
+          { Nombre: 'p_bloque', Valor: null }
+        ]
+      }
+    })
+
+    if (res.data.eResponse.success) {
+      localesDisponibles.value = res.data.eResponse.data.result || []
+      if (localesDisponibles.value.length > 0) {
+        mostrarListaLocales.value = true
+        showToast(`Se encontraron ${localesDisponibles.value.length} locales`, 'success')
+      } else {
+        showToast('No se encontraron locales en este mercado', 'info')
+      }
+    } else {
+      showToast(res.data.eResponse.message || 'Error al cargar locales', 'error')
+    }
+  } catch (err) {
+    console.error('Error al cargar locales:', err)
+    showToast('Error de conexión al cargar locales', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Seleccionar un local de la lista
+const seleccionarLocal = (local) => {
+  form.value.categoria = local.categoria
+  form.value.seccion = local.seccion
+  form.value.local = local.local
+  form.value.letra_local = local.letra_local || ''
+  form.value.bloque = local.bloque || ''
+  mostrarListaLocales.value = false
+  localSeleccionado.value = true
+  showToast('Local seleccionado. Haga clic en "Cargar datos del Local" para continuar.', 'info')
 }
 
 // Buscar local
@@ -496,6 +589,11 @@ const grabarEnergia = async () => {
     return
   }
 
+  if (energiaForm.value.numero <= 0) {
+    showToast('El número de oficio debe ser mayor a 0', 'warning')
+    return
+  }
+
   loading.value = true
 
   try {
@@ -511,9 +609,10 @@ const grabarEnergia = async () => {
           { Nombre: 'p_vigencia', Valor: energiaForm.value.vigencia },
           { Nombre: 'p_fecha_alta', Valor: energiaForm.value.fecha_alta },
           { Nombre: 'p_axo', Valor: parseInt(energiaForm.value.axo) },
-          { Nombre: 'p_numero', Valor: energiaForm.value.numero },
+          { Nombre: 'p_numero', Valor: String(energiaForm.value.numero) },
           { Nombre: 'p_user_id', Valor: 1 } // TODO: Obtener del contexto de usuario
-        ]
+        ],
+        Esquema: 'publico'
       }
     })
 
@@ -558,11 +657,14 @@ const limpiarBusqueda = () => {
     vigencia: 'A',
     fecha_alta: '',
     axo: new Date().getFullYear(),
-    numero: ''
+    numero: null
   }
   localEncontrado.value = false
   localInfo.value = null
   mercados.value = []
+  localesDisponibles.value = []
+  mostrarListaLocales.value = false
+  localSeleccionado.value = false
 }
 
 // Lifecycle
@@ -591,5 +693,26 @@ onMounted(() => {
   border-radius: 0.25rem;
   font-size: 0.875rem;
   font-weight: 600;
+}
+
+.badge-purple {
+  background-color: #6f42c1;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.header-with-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 </style>

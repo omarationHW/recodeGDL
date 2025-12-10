@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="ejecutarEmision" :disabled="loading || !canExecute">
           <font-awesome-icon icon="play" /> Ejecutar Emisión
         </button>
-        <button class="btn-municipal-success" @click="grabarEmision" :disabled="loading || emision.length === 0">
+        <button class="btn-municipal-primary" @click="grabarEmision" :disabled="loading || emision.length === 0">
           <font-awesome-icon icon="save" /> Grabar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">

@@ -9,7 +9,7 @@
         <p>Inicio > Reportes > Padrón Global</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="!resultados.length">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="!resultados.length">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">

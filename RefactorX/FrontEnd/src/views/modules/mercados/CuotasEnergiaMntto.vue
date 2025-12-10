@@ -270,7 +270,7 @@ const form = ref({
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 
 const totalPages = computed(() => Math.ceil(cuotas.value.length / itemsPerPage.value))
 

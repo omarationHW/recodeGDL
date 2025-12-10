@@ -246,7 +246,7 @@ const toast = ref({
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => resultados.value.length)
 
 // Métodos

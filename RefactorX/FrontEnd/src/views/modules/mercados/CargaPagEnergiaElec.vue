@@ -179,7 +179,7 @@
           </div>
 
           <div class="d-flex justify-content-end gap-2">
-            <button class="btn-municipal-success" @click="cargarPagos" :disabled="!hayPagosValidos || loading">
+            <button class="btn-municipal-primary" @click="cargarPagos" :disabled="!hayPagosValidos || loading">
               <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
               <font-awesome-icon icon="save" v-if="!loading" />
               Cargar Pagos

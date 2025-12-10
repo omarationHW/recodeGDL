@@ -260,7 +260,7 @@
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button class="btn-municipal-success" type="button" @click="guardarAutorizacion">
+        <button class="btn-municipal-primary" type="button" @click="guardarAutorizacion">
           <font-awesome-icon icon="save" />
           Guardar
         </button>
@@ -315,7 +315,7 @@ const form = ref({
 
 // Paginación
 const currentPage = ref(1);
-const itemsPerPage = ref(25);
+const itemsPerPage = ref(10);
 const totalRecords = computed(() => rows.value.length);
 
 const totalPages = computed(() => {

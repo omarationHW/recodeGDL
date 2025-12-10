@@ -182,7 +182,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="250">250</option>
               </select>
             </div>
 
@@ -245,7 +244,7 @@ const searchPerformed = ref(false)
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => adeudos.value.length)
 
 // Métodos

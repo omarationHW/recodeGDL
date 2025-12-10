@@ -53,7 +53,7 @@
             <button type="button" class="btn-municipal-secondary" @click="limpiarFiltros">
               <i class="fas fa-eraser"></i> Limpiar
             </button>
-            <button type="button" class="btn-municipal-success" @click="exportarExcel" :disabled="!resultados.length">
+            <button type="button" class="btn-municipal-primary" @click="exportarExcel" :disabled="!resultados.length">
               <i class="fas fa-file-excel"></i> Exportar
             </button>
           </div>

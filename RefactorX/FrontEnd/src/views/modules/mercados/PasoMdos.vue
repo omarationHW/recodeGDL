@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="triggerFileInput" :disabled="loading">
           <font-awesome-icon icon="folder-open" /> Seleccionar Archivo
         </button>
-        <button class="btn-municipal-success" @click="ejecutarCarga" :disabled="loading || rows.length === 0">
+        <button class="btn-municipal-primary" @click="ejecutarCarga" :disabled="loading || rows.length === 0">
           <font-awesome-icon icon="play" /> Ejecutar Carga
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">

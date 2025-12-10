@@ -102,7 +102,7 @@
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button type="button" class="btn-municipal-success" @click="submitForm">
+        <button type="button" class="btn-municipal-primary" @click="submitForm">
           <font-awesome-icon icon="save" />
           Guardar
         </button>

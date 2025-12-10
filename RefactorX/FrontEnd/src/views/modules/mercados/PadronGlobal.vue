@@ -49,7 +49,7 @@
       <div class="municipal-card-header d-flex justify-content-between align-items-center">
         <h5>Padrón Global de Locales</h5>
         <div>
-          <button class="btn-municipal-success me-2" @click="exportExcel" :disabled="loading">Exportar Excel</button>
+          <button class="btn-municipal-primary me-2" @click="exportExcel" :disabled="loading">Exportar Excel</button>
           <button class="btn-municipal-secondary" @click="$router.push('/')">Salir</button>
         </div>
       </div>

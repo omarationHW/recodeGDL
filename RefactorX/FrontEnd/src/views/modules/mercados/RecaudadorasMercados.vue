@@ -165,7 +165,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="250">250</option>
               </select>
             </div>
 
@@ -196,7 +195,7 @@
           <div class="modal-header">
             <h5 class="modal-title">
               <font-awesome-icon :icon="modalMode === 'nuevo' ? 'plus' : 'edit'" />
-              {{ modalMode === 'nuevo' ? 'Agregar Nuevo Mercado' : 'Modificar Mercado' }}
+              {{ modalMode === 'nuevo' ? 'Agregar nuevo mercado' : 'Modificar mercado' }}
             </h5>
             <button type="button" class="btn-close" @click="cerrarModal"></button>
           </div>
@@ -208,7 +207,7 @@
                   :disabled="modalMode === 'modificar'" />
               </div>
               <div class="form-group col-md-6">
-                <label class="municipal-form-label">Mercado Nuevo <span class="required">*</span></label>
+                <label class="municipal-form-label">Mercado nuevo <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.num_mercado_nvo"
                   :disabled="modalMode === 'modificar'" />
               </div>
@@ -226,11 +225,11 @@
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
-                <label class="municipal-form-label">Cuenta Ingreso <span class="required">*</span></label>
+                <label class="municipal-form-label">Cuenta ingreso <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_ingreso" />
               </div>
               <div class="form-group col-md-6">
-                <label class="municipal-form-label">Cuenta Energía</label>
+                <label class="municipal-form-label">Cuenta energía</label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_energia" />
               </div>
             </div>
@@ -297,7 +296,7 @@ export default {
 
     // Paginación
     const currentPage = ref(1);
-    const itemsPerPage = ref(25);
+    const itemsPerPage = ref(10);
 
     // Modal
     const showModal = ref(false);
@@ -355,8 +354,9 @@ export default {
         const response = await axios.post('/api/generic', {
           eRequest: {
             Operacion: 'sp_get_zonas',
-            Base: 'padron_licencias',
-            Parametros: []
+            Base: 'mercados',
+            Parametros: [],
+            Esquema: 'publico'
           }
         });
 

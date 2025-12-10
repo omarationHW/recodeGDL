@@ -10,7 +10,7 @@
         <p>Inicio > Mercados > Configuración de Fechas Límite</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" />
           Nueva Fecha
         </button>

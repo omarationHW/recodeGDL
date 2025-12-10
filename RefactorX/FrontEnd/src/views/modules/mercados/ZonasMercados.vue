@@ -9,7 +9,7 @@
         <p>Inicio > Mercados > Zonas Geográficas</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="cargarZonas">
+        <button class="btn-municipal-primary" @click="cargarZonas">
           <font-awesome-icon icon="sync-alt" /> Actualizar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">

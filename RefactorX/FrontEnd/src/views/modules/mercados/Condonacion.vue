@@ -133,7 +133,7 @@
                   <input type="text" class="municipal-form-control" v-model="oficio" maxlength="13" placeholder="LLL/9999/9999" />
                 </div>
                 <div class="col-md-4">
-                  <button class="btn-municipal-success" @click="condonarSeleccionados" :disabled="loading">
+                  <button class="btn-municipal-primary" @click="condonarSeleccionados" :disabled="loading">
                     <font-awesome-icon icon="check" />
                     Condonar Seleccionados
                   </button>

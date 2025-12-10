@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="previsualizar" :disabled="loading">
           <font-awesome-icon icon="search" /> Previsualizar
         </button>
-        <button class="btn-municipal-success" @click="emitirRecibos" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="emitirRecibos" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-invoice-dollar" /> Emitir Recibos
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">

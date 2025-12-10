@@ -285,7 +285,7 @@ const cargarItems = async () => {
   showLoading('Cargando claves de diferencias', 'Por favor espere...')
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_cve_diferencia_list', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_cve_diferencia_list', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (res.data.eResponse.success) {
       items.value = res.data.eResponse.data.result || []
@@ -307,7 +307,7 @@ const cargarCuentas = async () => {
   showLoading('Cargando catálogo de cuentas', 'Por favor espere...')
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_cuentas_ingreso', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_cuentas_ingreso', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (res.data.eResponse.success) {
       cuentas.value = res.data.eResponse.data.result || []
@@ -355,6 +355,7 @@ const guardar = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_clave_diferencia', Valor: parseInt(form.value.clave_diferencia) },
           { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() },
@@ -403,6 +404,7 @@ const eliminar = async () => {
       eRequest: {
         Operacion: 'sp_delete_cve_diferencia',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_clave_diferencia', Valor: parseInt(itemAEliminar.value.clave_diferencia) }
         ]

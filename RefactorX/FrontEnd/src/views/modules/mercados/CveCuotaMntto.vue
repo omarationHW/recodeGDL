@@ -179,7 +179,7 @@ const cargarItems = async () => {
   showLoading('Cargando claves de cuota', 'Por favor espere...')
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_cve_cuota_list', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_cve_cuota_list', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (res.data.eResponse.success) {
       items.value = res.data.eResponse.data.result || []
@@ -222,6 +222,7 @@ const guardar = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_clave_cuota', Valor: parseInt(form.value.clave_cuota) },
           { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() }
@@ -268,6 +269,7 @@ const eliminar = async () => {
       eRequest: {
         Operacion: 'sp_cve_cuota_delete',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_clave_cuota', Valor: parseInt(itemAEliminar.value.clave_cuota) }
         ]

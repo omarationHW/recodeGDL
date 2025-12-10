@@ -264,6 +264,7 @@ const buscar = async () => {
       eRequest: {
         Operacion: 'sp_cons_pagos_get_by_local',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_local', Valor: parseInt(form.value.id_local) }
         ]
@@ -309,6 +310,7 @@ const agregarPago = async () => {
       eRequest: {
         Operacion: 'sp_cons_pagos_add',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_local', Valor: parseInt(form.value.id_local) },
           { Nombre: 'p_axo', Valor: parseInt(newPago.value.axo) },
@@ -349,6 +351,7 @@ const eliminar = (pago) => {
         eRequest: {
           Operacion: 'sp_cons_pagos_delete',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_id_pago_local', Valor: pago.id_pago_local }
           ]

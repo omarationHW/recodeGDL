@@ -184,6 +184,7 @@ const cargarZonas = async () => {
       eRequest: {
         Operacion: 'sp_zonas_list',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     });
@@ -240,6 +241,7 @@ const guardarZona = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_zona', Valor: parseInt(form.value.id_zona) },
           { Nombre: 'p_zona', Valor: form.value.zona }
@@ -294,6 +296,7 @@ const eliminarZona = async () => {
       eRequest: {
         Operacion: 'sp_zonas_delete',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_zona', Valor: parseInt(zonaEliminar.value.id_zona) }
         ]

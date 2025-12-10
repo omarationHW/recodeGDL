@@ -288,14 +288,14 @@ const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num)
 
 const fetchRecaudadoras = async () => {
   try {
-    const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] } })
+    const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Esquema: 'publico', Parametros: [] } })
     if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
   } catch { showToast('Error al cargar recaudadoras', 'error') }
 }
 
 const fetchSecciones = async () => {
   try {
-    const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_secciones', Base: 'padron_licencias', Parametros: [] } })
+    const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_secciones', Base: 'padron_licencias', Esquema: 'publico', Parametros: [] } })
     if (res.data.eResponse?.success) secciones.value = res.data.eResponse.data.result || []
   } catch { showToast('Error al cargar secciones', 'error') }
 }
@@ -306,7 +306,7 @@ const onOficinaChange = async () => {
   if (!formLocal.value.oficina) return
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_consulta_locales_get_mercados', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: formLocal.value.oficina }] }
+      eRequest: { Operacion: 'sp_consulta_locales_get_mercados', Base: 'padron_licencias', Esquema: 'publico', Parametros: [{ Nombre: 'p_oficina', Valor: formLocal.value.oficina }] }
     })
     if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
   } catch { showToast('Error al cargar mercados', 'error') }
@@ -318,7 +318,7 @@ const onOficinaPagoChange = async () => {
   if (!formFechaPago.value.oficina_pago) return
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_cajas_energia', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: formFechaPago.value.oficina_pago }] }
+      eRequest: { Operacion: 'sp_get_cajas_energia', Base: 'padron_licencias', Esquema: 'publico', Parametros: [{ Nombre: 'p_oficina', Valor: formFechaPago.value.oficina_pago }] }
     })
     if (res.data.eResponse?.success) cajas.value = res.data.eResponse.data.result || []
   } catch { showToast('Error al cargar cajas', 'error') }
@@ -356,7 +356,7 @@ const buscar = async () => {
   showLoading('Consultando pagos de energía...', 'Por favor espere')
   loading.value = true; resultados.value = []; searchPerformed.value = true
   try {
-    const res = await axios.post('/api/generic', { eRequest: { Operacion: sp, Base: 'padron_licencias', Parametros: params } })
+    const res = await axios.post('/api/generic', { eRequest: { Operacion: sp, Base: 'padron_licencias', Esquema: 'publico', Parametros: params } })
     if (res.data.eResponse?.success) {
       resultados.value = res.data.eResponse.data.result || []
       resultados.value.length > 0 ? (showToast(`${resultados.value.length} pagos encontrados`), showFilters.value = false) : showToast('No se encontraron pagos', 'success', 'info')

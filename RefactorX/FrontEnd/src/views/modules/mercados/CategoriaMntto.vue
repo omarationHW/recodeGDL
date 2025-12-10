@@ -140,6 +140,7 @@ async function fetchData() {
       eRequest: {
         Operacion: 'sp_categoria_list',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: []
       }
     });
@@ -197,6 +198,7 @@ async function submitForm() {
       eRequest: {
         Operacion: sp,
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: params
       }
     });
@@ -242,6 +244,7 @@ async function deleteRow(row) {
       eRequest: {
         Operacion: 'sp_categoria_delete',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
         ]

@@ -364,6 +364,7 @@ async function cargarRecaudadoras() {
         eRequest: {
           Operacion: 'sp_get_recaudadoras',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -386,6 +387,7 @@ async function cargarSecciones() {
         eRequest: {
           Operacion: 'sp_get_secciones',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -414,6 +416,7 @@ async function onOficinaChange() {
         eRequest: {
           Operacion: 'sp_get_catalogo_mercados',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_id_rec', Valor: parseInt(form.value.oficina) },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
@@ -452,6 +455,7 @@ async function onOficinaPagoChange() {
         eRequest: {
           Operacion: 'sp_get_cajas',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) }
           ]
@@ -484,6 +488,7 @@ async function buscarAdeudos() {
         eRequest: {
           Operacion: 'sp_get_adeudos_local',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
             { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) },
@@ -539,6 +544,7 @@ async function actualizarStatus() {
         eRequest: {
           Operacion: 'sp_get_ingreso_operacion',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_fecha_ingreso', Valor: formPago.value.fecha_ingreso },
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
@@ -559,6 +565,7 @@ async function actualizarStatus() {
         eRequest: {
           Operacion: 'sp_get_captura_operacion',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
@@ -624,6 +631,7 @@ async function grabarPagos() {
         eRequest: {
           Operacion: 'sp_insert_pagos_mercado',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },

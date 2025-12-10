@@ -335,6 +335,7 @@ async function fetchRecaudadoras() {
         eRequest: {
           Operacion: 'sp_get_recaudadoras',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -366,6 +367,7 @@ async function onRecChange() {
         eRequest: {
           Operacion: 'sp_get_catalogo_mercados',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_rec', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
@@ -406,6 +408,7 @@ async function fetchSecciones() {
         eRequest: {
           Operacion: 'sp_get_secciones',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -459,6 +462,7 @@ async function buscarLocal() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_buscar_local',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_oficina', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
             { nombre: 'p_num_mercado', tipo: 'int4', valor: parseInt(filters.value.numMercado) },
@@ -519,6 +523,7 @@ async function verificarPagoExistente() {
       eRequest: {
         Operacion: 'sp_alta_pagos_energia_consultar_pago',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
           { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -568,6 +573,7 @@ async function buscarImporteEnAdeudos() {
       eRequest: {
         Operacion: 'sp_alta_pagos_energia_listar_adeudos',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia }
         ]
@@ -599,6 +605,7 @@ async function cargarAdeudos() {
       eRequest: {
         Operacion: 'sp_alta_pagos_energia_listar_adeudos',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia }
         ]
@@ -642,6 +649,7 @@ async function agregarPago() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_agregar',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -691,6 +699,7 @@ async function modificarPago() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_modificar',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -737,6 +746,7 @@ async function borrarPago() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_borrar',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },

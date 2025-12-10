@@ -397,7 +397,7 @@ const cargarCatalogos = async () => {
   try {
     // Cargar categorías
     const resCat = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_categorias', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_categorias', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (resCat.data.eResponse.success) {
       categorias.value = resCat.data.eResponse.data.result || []
@@ -405,7 +405,7 @@ const cargarCatalogos = async () => {
 
     // Cargar secciones
     const resSec = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_secciones', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_secciones', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (resSec.data.eResponse.success) {
       secciones.value = resSec.data.eResponse.data.result || []
@@ -413,7 +413,7 @@ const cargarCatalogos = async () => {
 
     // Cargar claves de cuota
     const resCve = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_claves_cuota', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_claves_cuota', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (resCve.data.eResponse.success) {
       clavesCuota.value = resCve.data.eResponse.data.result || []
@@ -431,6 +431,7 @@ const cargarCuotas = async () => {
       eRequest: {
         Operacion: 'cuotasmdo_listar',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -514,6 +515,7 @@ const guardarCuota = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: parametros
       }
     })
@@ -557,6 +559,7 @@ const eliminarCuota = async () => {
       eRequest: {
         Operacion: 'cuotasmdo_eliminar',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_cuotas', Valor: parseInt(cuotaAEliminar.value.id_cuotas) }
         ]

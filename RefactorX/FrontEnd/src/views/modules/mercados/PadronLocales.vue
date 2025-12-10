@@ -237,6 +237,7 @@ const fetchRecaudadoras = async () => {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -273,6 +274,7 @@ const buscar = async () => {
       eRequest: {
         Operacion: 'sp_get_padron_locales',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_recaudadora', Valor: selectedRec.value }
         ]

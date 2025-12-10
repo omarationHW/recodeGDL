@@ -234,6 +234,7 @@ const fetchRecaudadoras = async () => {
         eRequest: {
           Operacion: 'sp_get_recaudadoras',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       })
@@ -271,6 +272,7 @@ const onRecChange = async () => {
         eRequest: {
           Operacion: 'sp_get_catalogo_mercados',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
@@ -320,6 +322,7 @@ const fetchSecciones = async () => {
         eRequest: {
           Operacion: 'sp_get_secciones',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       })
@@ -344,6 +347,7 @@ const fetchGiros = async () => {
         eRequest: {
           Operacion: 'sp_get_giros_vigentes',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       })
@@ -370,6 +374,7 @@ const cargarCatalogos = async () => {
         eRequest: {
           Operacion: 'sp_categoria_list',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: []
         }
       })
@@ -382,6 +387,7 @@ const cargarCatalogos = async () => {
         eRequest: {
           Operacion: 'sp_cve_cuota_list',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       })
@@ -394,6 +400,7 @@ const cargarCatalogos = async () => {
         eRequest: {
           Operacion: 'sp_get_zonas',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       })
@@ -422,6 +429,7 @@ const buscarLocal = async () => {
         eRequest: {
           Operacion: 'sp_locales_mtto_buscar',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_oficina', Valor: selectedRec.value },
             { Nombre: 'p_num_mercado', Valor: form.value.num_mercado },
@@ -465,6 +473,7 @@ const altaLocal = async () => {
         eRequest: {
           Operacion: 'sp_locales_mtto_alta',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_oficina', Valor: selectedRec.value },
             { Nombre: 'p_num_mercado', Valor: form.value.num_mercado },

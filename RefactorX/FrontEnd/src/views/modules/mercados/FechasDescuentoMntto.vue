@@ -308,7 +308,7 @@ const cargarFechas = async () => {
   loading.value = true
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'fechas_descuento_get_all', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'fechas_descuento_get_all', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (res.data.eResponse.success) {
       fechas.value = res.data.eResponse.data.result || []
@@ -347,6 +347,7 @@ const guardar = async () => {
       eRequest: {
         Operacion: 'fechas_descuento_update',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_mes', Valor: parseInt(form.value.mes) },
           { Nombre: 'p_fecha_descuento', Valor: form.value.fecha_descuento },

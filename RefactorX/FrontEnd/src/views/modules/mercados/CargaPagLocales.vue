@@ -272,6 +272,7 @@ async function cargarRecaudadoras() {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     });
@@ -295,6 +296,7 @@ async function cargarSecciones() {
       eRequest: {
         Operacion: 'sp_get_secciones',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     });
@@ -327,6 +329,7 @@ async function onOficinaChange() {
       eRequest: {
         Operacion: 'sp_get_catalogo_mercados',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
@@ -368,6 +371,7 @@ async function onOficinaPagoChange() {
       eRequest: {
         Operacion: 'sp_get_cajas',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) }
         ]
@@ -401,6 +405,7 @@ async function buscarAdeudos() {
       eRequest: {
         Operacion: 'sp_get_adeudos_local',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
           { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) },
@@ -478,6 +483,7 @@ async function grabarPagos() {
       eRequest: {
         Operacion: 'sp_insert_pagos_mercado',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
           { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },

@@ -319,6 +319,7 @@ const cargarCuotas = async () => {
       eRequest: {
         Operacion: 'sp_list_cuotas_energia',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_axo', Valor: filtros.value.axo || null },
           { Nombre: 'p_periodo', Valor: filtros.value.periodo || null }
@@ -405,6 +406,7 @@ const guardarCuota = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: parametros
       }
     })
@@ -448,6 +450,7 @@ const eliminarCuota = async () => {
       eRequest: {
         Operacion: 'sp_delete_cuota_energia',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_kilowhatts', Valor: parseInt(cuotaAEliminar.value.id_kilowhatts) }
         ]

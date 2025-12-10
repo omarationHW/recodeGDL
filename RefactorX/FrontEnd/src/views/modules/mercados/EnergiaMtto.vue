@@ -344,6 +344,7 @@ const fetchRecaudadoras = async () => {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -370,6 +371,7 @@ const fetchSecciones = async () => {
       eRequest: {
         Operacion: 'sp_get_secciones',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -400,6 +402,7 @@ const onRecaudadoraChange = async () => {
       eRequest: {
         Operacion: 'sp_get_catalogo_mercados',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_oficina', tipo: 'integer', valor: parseInt(form.value.oficina) },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
@@ -450,6 +453,7 @@ const mostrarLocalesDisponibles = async () => {
       eRequest: {
         Operacion: 'sp_consulta_locales_buscar',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
           { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
@@ -509,6 +513,7 @@ const buscarLocal = async () => {
       eRequest: {
         Operacion: 'sp_buscar_local',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
           { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
@@ -531,6 +536,7 @@ const buscarLocal = async () => {
           eRequest: {
             Operacion: 'sp_verificar_local_sin_energia',
             Base: 'mercados',
+            Esquema: 'publico',
             Parametros: [
               { Nombre: 'p_id_local', Valor: local.id_local }
             ]

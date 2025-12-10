@@ -399,6 +399,7 @@ async function fetchRecaudadoras() {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     });
@@ -429,6 +430,7 @@ async function onRecChange() {
       eRequest: {
         Operacion: 'sp_get_catalogo_mercados',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_rec', tipo: 'int4', valor: filters.value.idRecaudadora },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: p_nivel_usuario }
@@ -473,6 +475,7 @@ async function mostrarLocalesDisponibles() {
       eRequest: {
         Operacion: 'sp_consulta_locales_buscar',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(filters.value.idRecaudadora) },
           { Nombre: 'p_num_mercado', Valor: parseInt(filters.value.numMercado) },
@@ -524,6 +527,7 @@ async function fetchSecciones() {
       eRequest: {
         Operacion: 'sp_get_secciones',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     });
@@ -562,6 +566,7 @@ async function buscarLocal() {
       eRequest: {
         Operacion: 'sp_alta_pagos_buscar_local',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_oficina', tipo: 'int4', valor: filters.value.idRecaudadora },
           { nombre: 'p_num_mercado', tipo: 'int4', valor: filters.value.numMercado },
@@ -602,6 +607,7 @@ async function cargarAdeudos() {
       eRequest: {
         Operacion: 'sp_alta_pagos_listar_adeudos',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_local', tipo: 'int4', valor: localEncontrado.value.id_local }
         ]
@@ -647,6 +653,7 @@ async function verificarYAgregar() {
       eRequest: {
         Operacion: 'sp_alta_pagos_consultar_pago',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_local', tipo: 'int4', valor: localEncontrado.value.id_local },
           { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -679,6 +686,7 @@ async function agregarPago() {
       eRequest: {
         Operacion: 'sp_alta_pagos_agregar',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_local', tipo: 'int4', valor: localEncontrado.value.id_local },
           { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -720,6 +728,7 @@ async function verificarYModificar() {
       eRequest: {
         Operacion: 'sp_alta_pagos_modificar',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_local', tipo: 'int4', valor: localEncontrado.value.id_local },
           { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },

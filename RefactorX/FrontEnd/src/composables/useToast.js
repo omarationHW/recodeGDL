@@ -69,8 +69,18 @@ export function useToast() {
     return colors[type] || colors.info
   }
 
+  // Funciones de conveniencia
+  const showSuccess = (message, duration = 3000) => showToast(message, 'success', duration)
+  const showError = (message, duration = 3000) => showToast(message, 'error', duration)
+  const showWarning = (message, duration = 3000) => showToast(message, 'warning', duration)
+  const showInfo = (message, duration = 3000) => showToast(message, 'info', duration)
+
   return {
-    showToast
+    showToast,
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo
   }
 }
 

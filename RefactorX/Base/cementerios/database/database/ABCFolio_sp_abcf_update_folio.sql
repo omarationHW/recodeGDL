@@ -4,32 +4,34 @@
 -- Generado para formulario: ABCFolio
 -- Fecha: 2025-08-27 14:01:11
 
+
 CREATE OR REPLACE PROCEDURE sp_abcf_update_folio(
     p_folio INTEGER,
-    p_cementerio VARCHAR,
+    p_cementerio CHAR(1),
     p_clase SMALLINT,
-    p_clase_alfa VARCHAR,
+    p_clase_alfa VARCHAR(10),
     p_seccion SMALLINT,
-    p_seccion_alfa VARCHAR,
+    p_seccion_alfa VARCHAR(10),
     p_linea SMALLINT,
-    p_linea_alfa VARCHAR,
+    p_linea_alfa VARCHAR(20),
     p_fosa SMALLINT,
-    p_fosa_alfa VARCHAR,
+    p_fosa_alfa VARCHAR(20),
     p_axo_pagado INTEGER,
-    p_metros FLOAT,
-    p_nombre VARCHAR,
-    p_domicilio VARCHAR,
-    p_exterior VARCHAR,
-    p_interior VARCHAR,
-    p_colonia VARCHAR,
-    p_observaciones VARCHAR,
-    p_tipo VARCHAR,
+    p_metros NUMERIC,
+    p_nombre VARCHAR(60),
+    p_domicilio VARCHAR(60),
+    p_exterior CHAR(6),
+    p_interior CHAR(6),
+    p_colonia VARCHAR(30),
+    p_observaciones VARCHAR(60),
+    p_tipo CHAR(1),
     p_usuario INTEGER
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE ta_13_datosrcm SET
+    UPDATE ta_13_datosrcm
+    SET
         cementerio = p_cementerio,
         clase = p_clase,
         clase_alfa = p_clase_alfa,
@@ -51,7 +53,8 @@ BEGIN
         fecha_mov = CURRENT_DATE,
         tipo = p_tipo
     WHERE control_rcm = p_folio;
-    -- Lógica de histórico
-    CALL sp_13_historia(p_folio);
+
+    -- Aquí podrías llamar al histórico si existe
+    -- CALL sp_13_historia(p_folio);
 END;
 $$;

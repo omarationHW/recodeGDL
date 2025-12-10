@@ -2301,6 +2301,7 @@ body.modal-open {
   font-size: 0.9rem;
   transition: all 0.3s ease;
   background: white;
+  color: #333;
   width: 100%;
 }
 

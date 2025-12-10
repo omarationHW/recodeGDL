@@ -22,8 +22,8 @@ CREATE OR REPLACE FUNCTION sp_recargos_list(p_mes integer)
 RETURNS TABLE(
     axo integer,
     mes smallint,
-    porcentaje_parcial float,
-    porcentaje_global float,
+    porcentaje_parcial numeric,
+    porcentaje_global numeric,
     usuario integer,
     fecha_mov date
 ) AS $$
@@ -70,7 +70,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sp_recargos_create(
     p_axo integer,
     p_mes integer,
-    p_porcentaje_parcial float,
+    p_porcentaje_parcial numeric,
     p_usuario integer
 ) RETURNS TABLE(result text) AS $$
 DECLARE
@@ -97,7 +97,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sp_recargos_update(
     p_axo integer,
     p_mes integer,
-    p_porcentaje_parcial float,
+    p_porcentaje_parcial numeric
     p_usuario integer
 ) RETURNS TABLE(result text) AS $$
 DECLARE

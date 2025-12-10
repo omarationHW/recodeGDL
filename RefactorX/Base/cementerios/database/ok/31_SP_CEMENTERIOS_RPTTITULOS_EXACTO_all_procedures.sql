@@ -93,3 +93,66 @@ $$ LANGUAGE plpgsql;
 
 -- ============================================
 
+-- SP 4/4: sp_rpttitulos_reporte_titulos
+-- Tipo: Report
+-- Descripción: Genera reporte de títulos emitidos por rango de fechas y cementerio
+-- NUEVO 2025-12-01
+-- --------------------------------------------
+
+CREATE OR REPLACE FUNCTION sp_rpttitulos_reporte_titulos(
+    p_fecha_desde DATE,
+    p_fecha_hasta DATE,
+    p_cementerio VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+    titulo INTEGER,
+    fecha DATE,
+    control_rcm INTEGER,
+    nombre VARCHAR,
+    cementerio VARCHAR,
+    clase SMALLINT,
+    clase_alfa VARCHAR,
+    seccion SMALLINT,
+    seccion_alfa VARCHAR,
+    linea SMALLINT,
+    linea_alfa VARCHAR,
+    fosa SMALLINT,
+    fosa_alfa VARCHAR,
+    importe NUMERIC,
+    recaudacion VARCHAR,
+    libro INTEGER,
+    axo SMALLINT,
+    folio_libro INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.titulo,
+        t.fecha,
+        t.control_rcm,
+        d.nombre,
+        d.cementerio,
+        d.clase,
+        d.clase_alfa,
+        d.seccion,
+        d.seccion_alfa,
+        d.linea,
+        d.linea_alfa,
+        d.fosa,
+        d.fosa_alfa,
+        t.importe,
+        COALESCE(r.nombre, 'N/A') AS recaudacion,
+        t.libro,
+        t.axo,
+        t.folio AS folio_libro
+    FROM cementerio.ta_13_titulos t
+    LEFT JOIN comun.ta_13_datosrcm d ON t.control_rcm = d.control_rcm
+    LEFT JOIN padron_licencias.comun.ta_12_recaudadoras r ON t.id_rec = r.id_rec
+    WHERE t.fecha BETWEEN p_fecha_desde AND p_fecha_hasta
+      AND (p_cementerio IS NULL OR d.cementerio = p_cementerio)
+    ORDER BY t.fecha DESC, t.titulo DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+

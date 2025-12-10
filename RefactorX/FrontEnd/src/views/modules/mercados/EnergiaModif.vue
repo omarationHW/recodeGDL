@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -206,6 +206,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
@@ -238,6 +239,28 @@ const periodoBaja = ref({
 })
 
 // Inicializar
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - ModificaciÃ³n de EnergÃ­a',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite modificar los registros de energÃ­a elÃ©ctrica.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Busque el local por recaudadora, mercado y nÃºmero de local
+          <li>Puede modificar el consumo, vigencia y otros datos
+          <li>Los cambios quedan registrados en el historial</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(async () => {
   showLoading('Cargando Cambios de Energía Eléctrica', 'Preparando catálogos...')
   try {

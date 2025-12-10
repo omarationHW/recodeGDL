@@ -262,5 +262,27 @@ async function borrarPagos() {
   }
 }
 
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura por Fecha',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas realizadas en un rango de fechas.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione el rango de fechas a consultar
+          <li>Aplique filtros adicionales segÃºn sea necesario
+          <li>Los resultados se muestran en orden cronolÃ³gico</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(() => cargarOficinas());
 </script>

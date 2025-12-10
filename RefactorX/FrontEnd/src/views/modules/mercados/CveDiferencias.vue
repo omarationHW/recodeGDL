@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -222,6 +222,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
@@ -426,6 +427,28 @@ const updateCveDiferencia = async () => {
 const formatDate = (dt) => {
   if (!dt) return ''
   return new Date(dt).toLocaleString('es-MX')
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Clave de Diferencias',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite gestionar las claves de diferencias en pagos.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Las diferencias se registran cuando hay ajustes en los pagos
+          <li>Puede consultar y administrar las claves disponibles
+          <li>Cada clave debe tener una descripciÃ³n clara</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

@@ -17,7 +17,12 @@
         <button class="btn-municipal-primary" @click="fetchData">
           <font-awesome-icon icon="sync" />
           Refrescar
-        </button></div>
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -260,6 +265,28 @@ async function deleteRow(row) {
   } finally {
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Mantenimiento de CategorÃ­as',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite el mantenimiento de categorÃ­as de locales.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Use este mÃ³dulo para actualizar las categorÃ­as existentes
+          <li>Los cambios afectarÃ¡n a todos los locales asociados a la categorÃ­a
+          <li>Verifique los datos antes de guardar</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

@@ -22,7 +22,7 @@
           <div class="municipal-card-body">
 
             <!-- Selección de Mercado -->
-            <div class="col-md-12">
+            <div class="col-md-1">
               <div class="municipal-card mb-3">
                 <div class="municipal-card-header">
                   <h5>

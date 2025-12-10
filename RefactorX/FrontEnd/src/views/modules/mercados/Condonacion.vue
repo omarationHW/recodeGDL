@@ -492,6 +492,28 @@ async function onOficinaChange() {
   }
 }
 
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Condonaciones',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite gestionar las condonaciones de adeudos.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione el local y el perÃ­odo a condonar
+          <li>Indique el porcentaje o monto de condonaciÃ³n
+          <li>Las condonaciones requieren autorizaciÃ³n y quedan registradas en el historial</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(() => {
   fetchRecaudadoras();
 });

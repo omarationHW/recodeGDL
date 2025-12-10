@@ -12,7 +12,12 @@
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Actualizar
-        </button></div>
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -149,6 +154,28 @@ async function borrarPago(row) {
   } catch (error) {
     showToast('Error al eliminar', 'error');
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura de EnergÃ­a',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar los registros de captura de energÃ­a elÃ©ctrica.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Use los filtros para buscar capturas especÃ­ficas
+          <li>Puede ver el detalle de cada captura haciendo clic en la fila
+          <li>Exporte los resultados si es necesario</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => fetchData());

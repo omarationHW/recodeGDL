@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -17,6 +17,10 @@
         <button class="btn-municipal-primary" @click="imprimir" :disabled="!resultados.length || loading">
           <font-awesome-icon icon="print" />
           Imprimir
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -187,6 +191,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
@@ -345,6 +350,28 @@ const exportarExcel = () => {
   a.click();
   window.URL.revokeObjectURL(url);
 };
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Reporte de PadrÃ³n de EnergÃ­a',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo genera el reporte del padrÃ³n de energÃ­a elÃ©ctrica.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione la recaudadora y mercado
+          <li>Puede filtrar por vigencia y otros criterios
+          <li>Exporte el reporte para anÃ¡lisis adicional</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
 
 onMounted(() => {
   fetchRecaudadoras();

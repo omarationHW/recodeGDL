@@ -17,7 +17,12 @@
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Refrescar
-        </button></div>
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -333,6 +338,28 @@ async function deleteRow(row) {
     loading.value = false;
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Reporte de CatÃ¡logo de Mercados',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo genera reportes del catÃ¡logo de mercados.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione los filtros deseados
+          <li>Puede exportar a Excel o imprimir
+          <li>El reporte incluye todos los mercados activos y de baja</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

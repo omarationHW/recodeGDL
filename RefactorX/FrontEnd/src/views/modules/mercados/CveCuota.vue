@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -190,6 +190,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
@@ -390,6 +391,28 @@ const eliminar = (item) => {
     }
   });
 };
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Clave de Cuota',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite administrar las claves de cuotas aplicables.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Las claves de cuota definen los tipos de cobro
+          <li>Puede agregar, modificar o dar de baja claves
+          <li>Verifique que la clave no estÃ© en uso antes de eliminarla</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
 
 onMounted(() => {
   cargarCveCuotas();

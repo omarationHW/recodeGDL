@@ -18,6 +18,10 @@
           <font-awesome-icon :icon="loading ? 'spinner' : 'sync'" :spin="loading" />
           Refrescar
         </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
 
@@ -244,6 +248,28 @@ async function deleteRow(row) {
   } finally {
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - CategorÃ­as',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite gestionar las categorÃ­as de los locales en mercados.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Las categorÃ­as determinan las cuotas aplicables a cada local
+          <li>Puede agregar, modificar o eliminar categorÃ­as
+          <li>AsegÃºrese de que las categorÃ­as estÃ©n correctamente configuradas antes de asignarlas a locales</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

@@ -17,7 +17,12 @@
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Refrescar
-        </button></div>
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -329,6 +334,29 @@ async function deleteRow(row) {
   } finally {
     loading.value = false;
   }
+}
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Catálogo de Mercados',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del módulo:</h6>
+        <p>Este módulo permite administrar el catálogo de mercados del municipio.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Haga clic en "Agregar" para registrar un nuevo mercado</li>
+          <li>Los campos de Oficina y Número de Mercado no pueden modificarse después de crear el registro</li>
+          <li>Puede editar o eliminar mercados usando los botones de la tabla</li>
+          <li>Use "Refrescar" para actualizar el listado</li>
+        </ol>
+        <p><strong>Nota:</strong> La eliminación de un mercado puede afectar otros módulos relacionados.</p>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

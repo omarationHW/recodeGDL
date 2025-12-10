@@ -17,7 +17,12 @@
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Refrescar
-        </button></div>
+        </button>
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -252,6 +257,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -450,6 +456,28 @@ async function submitForm() {
     loading.value = false;
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - CatÃ¡logo de Mantenimiento',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite administrar el catÃ¡logo de mantenimiento de mercados.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Utilice los botones de la barra superior para agregar o modificar registros
+          <li>Complete todos los campos requeridos marcados con *
+          <li>Los cambios se guardarÃ¡n inmediatamente al hacer clic en Guardar</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

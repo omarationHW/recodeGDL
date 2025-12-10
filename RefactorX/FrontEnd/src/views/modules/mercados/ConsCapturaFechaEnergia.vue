@@ -266,5 +266,27 @@ async function borrarPagos() {
   }
 }
 
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura de EnergÃ­a por Fecha',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas de energÃ­a en un perÃ­odo especÃ­fico.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Indique el rango de fechas
+          <li>Seleccione la recaudadora y mercado si desea filtrar
+          <li>Puede exportar el reporte a Excel</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(() => cargarOficinas());
 </script>

@@ -179,5 +179,27 @@ async function buscarPagos() {
   }
 }
 
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura por Mercado',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas realizadas por mercado.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione la recaudadora y mercado
+          <li>Indique el perÃ­odo a consultar
+          <li>Los resultados incluyen el detalle de todas las capturas</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(() => cargarMercados());
 </script>

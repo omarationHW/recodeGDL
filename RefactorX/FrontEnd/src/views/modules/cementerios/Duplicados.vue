@@ -1,14 +1,22 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="copy" />
-        Registros Duplicados
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Registros Duplicados"
-        :sections="helpSections"
-      />
+      </div>
+      <div class="module-view-info">
+        <h1>Registros Duplicados</h1>
+        <p>Cementerios - Gestión de registros duplicados y traslados</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <!-- Búsqueda de duplicados -->
@@ -262,24 +270,79 @@
       <font-awesome-icon icon="info-circle" />
       No se encontraron duplicados con el nombre especificado
     </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      :componentName="'Duplicados'"
+      :moduleName="'cementerios'"
+      @close="closeDocumentation"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
 
-// Modal de documentación
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Estado
 const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
+const mostrarAyuda = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const busqueda = reactive({
@@ -305,63 +368,40 @@ const nuevaUbicacion = reactive({
   observaciones: ''
 })
 
-const helpSections = [
-  {
-    title: 'Registros Duplicados',
-    content: `
-      <p>Este módulo permite gestionar registros que fueron capturados incorrectamente o en ubicaciones duplicadas.</p>
-      <h4>Proceso:</h4>
-      <ol>
-        <li><strong>Buscar:</strong> Ingrese el nombre del titular para buscar duplicados</li>
-        <li><strong>Seleccionar:</strong> Elija el registro duplicado a trasladar</li>
-        <li><strong>Ubicación:</strong> Especifique la ubicación correcta (cementerio, clase, sección, línea, fosa)</li>
-        <li><strong>Modo:</strong> Seleccione si solo traslada pagos o todo el registro</li>
-        <li><strong>Trasladar:</strong> Confirme la operación</li>
-      </ol>
-    `
-  },
-  {
-    title: 'Modos de Operación',
-    content: `
-      <p><strong>Solo Pagos:</strong> Use esta opción cuando los datos del titular ya existan en la ubicación correcta y solo necesite trasladar los pagos.</p>
-      <p><strong>Todo:</strong> Use esta opción para crear un nuevo registro con los datos del titular y trasladar los pagos a la nueva ubicación.</p>
-    `
-  }
-]
-
 const buscarDuplicados = async () => {
   if (!busqueda.nombre.trim()) {
-    toast.warning('Ingrese un nombre para buscar')
+    showToast('warning', 'Ingrese un nombre para buscar')
     return
   }
 
+  showLoading('Buscando duplicados...', 'Consultando base de datos')
+
   try {
     const patron = `%${busqueda.nombre}%`
-    const params = [
-      {
-        nombre: 'p_nombre',
-        valor: patron,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_buscar_duplicados', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_duplicados_buscar_por_nombre',
+      'cementerio',
+      [
+        { nombre: 'p_nombre', valor: patron, tipo: 'string' }
+      ],
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    duplicados.value = response.result || []
+    duplicados.value = response?.result || []
     duplicadoSeleccionado.value = null
 
     if (duplicados.value.length === 0) {
-      toast.info('No se encontraron duplicados')
+      showToast('info', 'No se encontraron duplicados')
     } else {
-      toast.success(`Se encontraron ${duplicados.value.length} duplicado(s)`)
+      showToast('success', `Se encontraron ${duplicados.value.length} duplicado(s)`)
     }
   } catch (error) {
     console.error('Error al buscar duplicados:', error)
-    toast.error('Error al buscar duplicados')
+    showToast('error', 'Error al buscar duplicados')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -403,123 +443,81 @@ const limpiarFormulario = () => {
 const verificarYTrasladar = async () => {
   // Validaciones
   if (!nuevaUbicacion.cementerio) {
-    toast.warning('Seleccione un cementerio')
+    showToast('warning', 'Seleccione un cementerio')
     return
   }
   if (!nuevaUbicacion.clase || nuevaUbicacion.clase === 0) {
-    toast.warning('Error en clase')
+    showToast('warning', 'Error en clase')
     return
   }
   if (!nuevaUbicacion.seccion || nuevaUbicacion.seccion === 0) {
-    toast.warning('Error en sección')
+    showToast('warning', 'Error en sección')
     return
   }
   if (!nuevaUbicacion.linea || nuevaUbicacion.linea === 0) {
-    toast.warning('Error en línea')
+    showToast('warning', 'Error en línea')
     return
   }
   if (!nuevaUbicacion.fosa || nuevaUbicacion.fosa === 0) {
-    toast.warning('Error en fosa')
+    showToast('warning', 'Error en fosa')
     return
   }
 
+  showLoading('Verificando ubicación...', 'Validando datos')
+
   try {
     // Verificar ubicación
-    const params = [
-      {
-        nombre: 'p_cementerio',
-        valor: nuevaUbicacion.cementerio,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase',
-        valor: nuevaUbicacion.clase,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase_alfa',
-        valor: nuevaUbicacion.clase_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion',
-        valor: nuevaUbicacion.seccion,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion_alfa',
-        valor: nuevaUbicacion.seccion_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea',
-        valor: nuevaUbicacion.linea,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea_alfa',
-        valor: nuevaUbicacion.linea_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa',
-        valor: nuevaUbicacion.fosa,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa_alfa',
-        valor: nuevaUbicacion.fosa_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fecing',
-        valor: duplicadoSeleccionado.value.fecing,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_recing',
-        valor: duplicadoSeleccionado.value.recing,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_cajing',
-        valor: duplicadoSeleccionado.value.cajing,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_opcaja',
-        valor: duplicadoSeleccionado.value.opcaja,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_verificar_ubicacion_duplicado', 'cementerios', params,
-      'cementerios',
+    const verificarResponse = await execute(
+      'sp_duplicados_verificar_ubicacion',
+      'cementerio',
+      [
+        { nombre: 'p_cementerio', valor: nuevaUbicacion.cementerio, tipo: 'string' },
+        { nombre: 'p_clase', valor: nuevaUbicacion.clase, tipo: 'integer' },
+        { nombre: 'p_clase_alfa', valor: nuevaUbicacion.clase_alfa || null, tipo: 'string' },
+        { nombre: 'p_seccion', valor: nuevaUbicacion.seccion, tipo: 'integer' },
+        { nombre: 'p_seccion_alfa', valor: nuevaUbicacion.seccion_alfa || null, tipo: 'string' },
+        { nombre: 'p_linea', valor: nuevaUbicacion.linea, tipo: 'integer' },
+        { nombre: 'p_linea_alfa', valor: nuevaUbicacion.linea_alfa || null, tipo: 'string' },
+        { nombre: 'p_fosa', valor: nuevaUbicacion.fosa, tipo: 'integer' },
+        { nombre: 'p_fosa_alfa', valor: nuevaUbicacion.fosa_alfa || null, tipo: 'string' },
+        { nombre: 'p_fecing', valor: duplicadoSeleccionado.value.fecing, tipo: 'date' },
+        { nombre: 'p_recing', valor: duplicadoSeleccionado.value.recing, tipo: 'integer' },
+        { nombre: 'p_cajing', valor: duplicadoSeleccionado.value.cajing, tipo: 'string' },
+        { nombre: 'p_opcaja', valor: duplicadoSeleccionado.value.opcaja, tipo: 'integer' }
+      ],
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    const { existe_datos, existe_pago } = verificacion.data[0]
+    hideLoading()
+
+    if (!verificarResponse?.result || verificarResponse.result.length === 0) {
+      showToast('error', 'Error al verificar ubicación')
+      return
+    }
+
+    const { existe_datos, existe_pago } = verificarResponse.result[0]
 
     // Validar según modo de operación
     if (operacion.value === '1') {
       // Solo pagos: debe existir datos
       if (existe_datos !== 'S') {
-        toast.error('No se encuentran Datos en el Archivo de Cementerios')
+        showToast('error', 'No se encuentran Datos en el Archivo de Cementerios')
         return
       }
       if (existe_pago === 'S') {
-        toast.error('Ya se encuentran Datos en el Archivo de Pagos')
+        showToast('error', 'Ya se encuentran Datos en el Archivo de Pagos')
         return
       }
     } else {
       // Todo: no deben existir datos
       if (existe_datos === 'S') {
-        toast.error('Ya se encuentran Datos en el Archivo de Cementerios')
+        showToast('error', 'Ya se encuentran Datos en el Archivo de Cementerios')
         return
       }
       if (existe_pago === 'S') {
-        toast.error('Ya se encuentran Datos en el Archivo de Pagos')
+        showToast('error', 'Ya se encuentran Datos en el Archivo de Pagos')
         return
       }
     }
@@ -537,114 +535,78 @@ const verificarYTrasladar = async () => {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, trasladar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ea8215',
+      cancelButtonColor: '#6c757d'
     })
 
     if (!result.isConfirmed) return
 
-    // Ejecutar traslado
-    const trasladoParams = [
-      {
-        nombre: 'p_control_id',
-        valor: duplicadoSeleccionado.value.control_id,
-        tipo: 'integer'
-      },
-      {
-        nombre: 'p_operacion',
-        valor: parseInt(operacion.value),
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_cementerio',
-        valor: nuevaUbicacion.cementerio,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase',
-        valor: nuevaUbicacion.clase,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase_alfa',
-        valor: nuevaUbicacion.clase_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion',
-        valor: nuevaUbicacion.seccion,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion_alfa',
-        valor: nuevaUbicacion.seccion_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea',
-        valor: nuevaUbicacion.linea,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea_alfa',
-        valor: nuevaUbicacion.linea_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa',
-        valor: nuevaUbicacion.fosa,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa_alfa',
-        valor: nuevaUbicacion.fosa_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_tipo',
-        valor: nuevaUbicacion.tipo,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_observaciones',
-        valor: nuevaUbicacion.observaciones || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1, // TODO: obtener del contexto de usuario
-        tipo: 'string'
-      }
-    ]
+    showLoading('Trasladando duplicado...', 'Actualizando base de datos')
 
-    const trasladoResponse = await execute('sp_cem_trasladar_duplicado', 'cementerios', trasladoParams,
-      'cementerios',
+    // Ejecutar traslado
+    const trasladoResponse = await execute(
+      'spd_trasladar_duplicado',
+      'cementerio',
+      [
+        { nombre: 'p_control_id', valor: duplicadoSeleccionado.value.control_id, tipo: 'integer' },
+        { nombre: 'p_operacion', valor: parseInt(operacion.value), tipo: 'integer' },
+        { nombre: 'p_cementerio', valor: nuevaUbicacion.cementerio, tipo: 'string' },
+        { nombre: 'p_clase', valor: nuevaUbicacion.clase, tipo: 'integer' },
+        { nombre: 'p_clase_alfa', valor: nuevaUbicacion.clase_alfa || null, tipo: 'string' },
+        { nombre: 'p_seccion', valor: nuevaUbicacion.seccion, tipo: 'integer' },
+        { nombre: 'p_seccion_alfa', valor: nuevaUbicacion.seccion_alfa || null, tipo: 'string' },
+        { nombre: 'p_linea', valor: nuevaUbicacion.linea, tipo: 'integer' },
+        { nombre: 'p_linea_alfa', valor: nuevaUbicacion.linea_alfa || null, tipo: 'string' },
+        { nombre: 'p_fosa', valor: nuevaUbicacion.fosa, tipo: 'integer' },
+        { nombre: 'p_fosa_alfa', valor: nuevaUbicacion.fosa_alfa || null, tipo: 'string' },
+        { nombre: 'p_tipo', valor: nuevaUbicacion.tipo, tipo: 'string' },
+        { nombre: 'p_observaciones', valor: nuevaUbicacion.observaciones || null, tipo: 'string' },
+        { nombre: 'p_usuario', valor: 1, tipo: 'integer' } // TODO: obtener de sesión
+      ],
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
+
+    if (!trasladoResponse?.result || trasladoResponse.result.length === 0) {
+      showToast('error', 'Error al trasladar duplicado')
+      return
+    }
 
     const resultado = trasladoResponse.result[0]
     if (resultado.resultado === 'S') {
-      toast.success('El Registro se ha trasladado')
+      showToast('success', 'El Registro se ha trasladado correctamente')
       // Refrescar búsqueda
       await buscarDuplicados()
       duplicadoSeleccionado.value = null
       limpiarFormulario()
     } else {
-      toast.error(resultado.mensaje)
+      showToast('error', resultado.mensaje || 'Error al trasladar')
     }
   } catch (error) {
     console.error('Error al trasladar duplicado:', error)
-    toast.error('Error al trasladar el duplicado')
+    showToast('error', 'Error al trasladar el duplicado')
+  } finally {
+    hideLoading()
   }
 }
-
+// Para evitar SP adicionales, agregamos un SP generico 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
-    cementerios.value = response.result || []
+    const response = await execute(
+      //'sp_duplicados_listar_cementerios',
+      'sp_get_cementerios_list',
+      'cementerio',
+      [],
+      'cementerio',
+      null,
+      'public'
+    )
+    cementerios.value = response?.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
-    toast.error('Error al cargar cementerios')
+    showToast('error', 'Error al cargar cementerios')
   }
 }
 
@@ -682,28 +644,3 @@ onMounted(() => {
   cargarCementerios()
 })
 </script>
-
-<style scoped>
-/* Componentes únicos de selección y radio buttons - Justificado mantener scoped */
-.selected-row {
-  background-color: var(--color-primary-light);
-  font-weight: 500;
-}
-
-.radio-group {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.radio-option input[type="radio"] {
-  cursor: pointer;
-}
-</style>

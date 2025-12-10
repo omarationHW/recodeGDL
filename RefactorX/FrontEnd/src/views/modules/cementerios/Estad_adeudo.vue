@@ -1,14 +1,19 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="chart-bar" />
-        Estadísticas de Adeudos
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Estadísticas de Adeudos"
-        :sections="helpSections"
-      />
+      </div>
+      <div class="module-view-info">
+        <h1>Estadísticas de Adeudos</h1>
+        <p>Cementerios - Reporte estadístico de pagos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <!-- Filtros -->
@@ -108,23 +113,78 @@
       <font-awesome-icon icon="info-circle" />
       No se encontraron estadísticas
     </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
+      :componentName="'Estad_adeudo'"
+      :moduleName="'cementerios'"
+      @close="closeDocumentation"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
 
-// Modal de documentación
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Estado
 const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
+const mostrarAyuda = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
@@ -134,22 +194,6 @@ const filtros = reactive({
 const estadisticas = ref([])
 const cementerios = ref([])
 const busquedaRealizada = ref(false)
-
-const helpSections = [
-  {
-    title: 'Estadísticas de Adeudos',
-    content: `
-      <p>Genera estadísticas y reportes de adeudos por cementerio.</p>
-      <h4>Información Mostrada:</h4>
-      <ul>
-        <li><strong>Total Folios:</strong> Cantidad total de folios registrados</li>
-        <li><strong>Al Corriente:</strong> Folios con pagos al día</li>
-        <li><strong>Atrasados:</strong> Folios con pagos pendientes</li>
-        <li><strong>Porcentajes:</strong> Distribución porcentual</li>
-      </ul>
-    `
-  }
-]
 
 const generarEstadisticas = async () => {
   try {
@@ -162,28 +206,32 @@ const generarEstadisticas = async () => {
     ]
 
     const response = await execute('sp_cem_estadisticas_adeudos', 'cementerios', params,
-      'cementerios',
+      'padron_licencias',
       null,
       'public'
-    , '', null, 'comun')
+    , '', null, 'public')
 
     estadisticas.value = response.result || []
     busquedaRealizada.value = true
 
     if (estadisticas.value.length > 0) {
-      toast.success('Estadísticas generadas correctamente')
+      showToast('success', 'Estadísticas generadas correctamente')
     } else {
-      toast.info('No se encontraron datos')
+      showToast('info', 'No se encontraron datos')
     }
   } catch (error) {
     console.error('Error al generar estadísticas:', error)
-    toast.error('Error al generar estadísticas')
+    showToast('error', 'Error al generar estadísticas')
   }
 }
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
+    const response = await execute('sp_cem_listar_cementerios', 'cementerios', [],
+      'cementerio',
+      null,
+      'public'
+    )
     cementerios.value = response.result || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
@@ -207,53 +255,3 @@ onMounted(() => {
   cargarCementerios()
 })
 </script>
-
-<style scoped>
-/* Layout único de estadísticas y barras de progreso - Justificado mantener scoped */
-.totals-row {
-  background-color: var(--color-bg-secondary);
-  font-weight: bold;
-}
-
-.stats-visual {
-  margin-top: 2rem;
-}
-
-.stat-bar {
-  margin-bottom: 1.5rem;
-}
-
-.stat-label {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--color-text-primary);
-}
-
-.stat-progress {
-  display: flex;
-  height: 40px;
-  background-color: var(--color-bg-secondary);
-  border-radius: 0.375rem;
-  overflow: hidden;
-}
-
-.stat-progress-success {
-  background-color: var(--color-success);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  transition: width 0.3s ease;
-}
-
-.stat-progress-danger {
-  background-color: var(--color-danger);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  transition: width 0.3s ease;
-}
-</style>

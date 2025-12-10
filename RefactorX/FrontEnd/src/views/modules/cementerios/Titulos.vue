@@ -9,14 +9,12 @@
         <h1>Gestión de Títulos de Fosas</h1>
         <p>Cementerios - Impresión y actualización de títulos de propiedad</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="mostrarAyuda = true"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -30,6 +28,15 @@
         </div>
         <div class="municipal-card-body">
           <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Fecha del Título</label>
+              <input
+                type="date"
+                class="municipal-form-control"
+                v-model="busqueda.fecha"
+                @keyup.enter="buscarTitulo"
+              />
+            </div>
             <div class="form-group">
               <label class="municipal-form-label required">Folio (Cuenta)</label>
               <input
@@ -55,7 +62,7 @@
             <button
               class="btn-municipal-primary"
               @click="buscarTitulo"
-              :disabled="loading || !busqueda.folio || !busqueda.operacion"
+              :disabled="loading || !busqueda.fecha || !busqueda.folio || !busqueda.operacion"
             >
               <font-awesome-icon icon="search" />
               Buscar Título
@@ -361,33 +368,22 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
-      :show="mostrarAyuda"
-      @close="mostrarAyuda = false"
-      title="Gestión de Títulos de Fosas"
-    >
-      <h6>Descripción</h6>
-      <p>Módulo para la gestión e impresión de títulos de propiedad de fosas en cementerios municipales.</p>
-
-      <h6>Funcionalidades</h6>
-      <ul>
-        <li>Búsqueda de títulos por folio y operación</li>
-        <li>Actualización de datos del beneficiario</li>
-        <li>Registro de libro, año y folio del título impreso</li>
-        <li>Listado de todos los títulos registrados</li>
-        <li>Preparación para impresión de títulos</li>
-      </ul>
-
-      <h6>Instrucciones</h6>
-      <ol>
-        <li>Ingrese el folio (cuenta) y número de operación del pago</li>
-        <li>Haga clic en "Buscar Título" para cargar los datos</li>
-        <li>Complete los datos del beneficiario y título (libro, año, folio)</li>
-        <li>Guarde los datos antes de preparar la impresión</li>
-        <li>Use "Preparar Impresión" para generar el título</li>
-      </ol>
-    </DocumentationModal>
+      :show="showDocumentation"
+      :componentName="'Titulos'"
+      :moduleName="'cementerios'"
+      @close="closeDocumentation"
+    />
   </div>
 </template>
 
@@ -397,12 +393,54 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast } = useToast()
+
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Estado
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 // Estado
 const loading = ref(false)
@@ -410,12 +448,12 @@ const guardando = ref(false)
 const titulos = ref([])
 const tituloActual = ref(null)
 const tituloGuardado = ref(false)
-const mostrarAyuda = ref(false)
 
 // Búsqueda
 const busqueda = ref({
   folio: null,
-  operacion: null
+  operacion: null,
+  fecha: new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
 })
 
 // Paginación
@@ -449,18 +487,22 @@ const cargarTitulos = async () => {
   loading.value = true
   try {
     const response = await execute(
-      'sp_cem_listar_titulos',
-      'cementerios',
-      {
-        p_page: currentPage.value,
-        p_page_size: pageSize.value,
-        p_search: null,
-        p_cementerio: null,
-        p_order_by: 'fecha'
-      },
+      'sp_titulos_actualizar_numero',
+      'cementerio',
+      [ { nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+        {   nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+        { nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+        { nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+     
+        // p_page: currentPage.value,
+        // p_page_size: pageSize.value,
+        // p_search: null,
+        // p_cementerio: null,
+        // p_order_by: 'fecha'
+      ] ,
       '',
       null,
-      'comun'
+      'public'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -471,7 +513,7 @@ const cargarTitulos = async () => {
       totalRecords.value = 0
     }
   } catch (error) {
-    showToast('Error al cargar títulos: ' + error.message, 'error')
+    showToast('error', 'Error al cargar títulos: ' + error.message)
     titulos.value = []
   } finally {
     loading.value = false
@@ -480,22 +522,24 @@ const cargarTitulos = async () => {
 
 const buscarTitulo = async () => {
   if (!busqueda.value.folio || !busqueda.value.operacion) {
-    showToast('Debe ingresar folio y operación', 'warning')
+    showToast('warning', 'Debe ingresar folio y operación')
     return
   }
 
   loading.value = true
   try {
     const response = await execute(
-      'sp_cem_buscar_titulo',
-      'cementerios',
-      {
-        p_folio: busqueda.value.folio,
-        p_operacion: busqueda.value.operacion
-      },
+      'sp_titulos_buscar_por_folio_operacion',
+      'cementerio',
+      [
+         { nombre: 'p_fecha', valor: busqueda.value.fecha, tipo: 'date' },
+         { nombre: 'p_folio', valor: busqueda.value.folio, tipo: 'integer' },
+         { nombre: 'p_operacion', valor: busqueda.value.operacion, tipo: 'integer' },
+
+    ],
       '',
       null,
-      'comun'
+      'public'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -516,14 +560,14 @@ const buscarTitulo = async () => {
           partida: result.partida || ''
         }
 
-        showToast(result.mensaje, 'success')
+        showToast('success', result.mensaje)
       } else {
-        showToast(result.mensaje, 'error')
+        showToast('error', result.mensaje)
         tituloActual.value = null
       }
     }
   } catch (error) {
-    showToast('Error al buscar título: ' + error.message, 'error')
+    showToast('error', 'Error al buscar título: ' + error.message)
     tituloActual.value = null
   } finally {
     loading.value = false
@@ -542,15 +586,15 @@ const validarFormulario = () => {
 
 const guardarTitulo = async () => {
   if (!validarFormulario()) {
-    showToast('Por favor complete todos los campos requeridos', 'warning')
+    showToast('warning', 'Por favor complete todos los campos requeridos')
     return
   }
 
   guardando.value = true
   try {
     const response = await execute(
-      'sp_cem_actualizar_titulo_extra',
-      'cementerios',
+      'sp_titulos_actualizar_datos_extra',
+      'cementerio',
       {
         p_control_rcm: tituloActual.value.control_rcm,
         p_titulo: tituloActual.value.titulo,
@@ -566,21 +610,21 @@ const guardarTitulo = async () => {
       },
       '',
       null,
-      'comun'
+      'public'
     )
 
     if (response && response[0]) {
       const result = response.result[0]
       if (result.resultado === 'S') {
-        showToast(result.mensaje, 'success')
+        showToast('success', result.mensaje)
         tituloGuardado.value = true
         cargarTitulos() // Recargar listado
       } else {
-        showToast(result.mensaje, 'error')
+        showToast('error', result.mensaje)
       }
     }
   } catch (error) {
-    showToast('Error al guardar datos del título: ' + error.message, 'error')
+    showToast('error', 'Error al guardar datos del título: ' + error.message)
   } finally {
     guardando.value = false
   }
@@ -597,10 +641,12 @@ const prepararImpresion = () => {
     icon: 'info',
     showCancelButton: true,
     confirmButtonText: 'Preparar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   }).then((result) => {
     if (result.isConfirmed) {
-      showToast('La funcionalidad de impresión se implementará próximamente', 'info')
+      showToast('info', 'La funcionalidad de impresión se implementará próximamente')
     }
   })
 }
@@ -616,7 +662,8 @@ const cargarTitulo = (titulo) => {
 const limpiarBusqueda = () => {
   busqueda.value = {
     folio: null,
-    operacion: null
+    operacion: null,
+    fecha: new Date().toISOString().split('T')[0] // Restablecer a fecha actual
   }
   tituloActual.value = null
   tituloGuardado.value = false

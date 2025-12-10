@@ -2,15 +2,18 @@
   <div class="module-view">
     <!-- Header -->
     <div class="module-view-header">
-      <div class="module-title-section">
-        <font-awesome-icon icon="map-marked-alt module-icon" />
-        <div>
-          <h1 class="module-view-info">Traslados por Ubicación</h1>
-          <p class="module-subtitle">Traslado de pagos entre ubicaciones físicas</p>
-        </div>
+      <div class="module-view-icon">
+        <font-awesome-icon icon="map-marked-alt" />
       </div>
-      <div class="module-actions">
-        <button class="btn-help" @click="mostrarAyuda = true">
+      <div class="module-view-info">
+        <h1>Traslados por Ubicación</h1>
+        <p>Cementerios - Traslado de pagos entre ubicaciones físicas</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -34,7 +37,7 @@
 
             <div class="form-group">
               <label class="form-label required">Cementerio</label>
-              <select v-model="origen.cementerio" class="form-input">
+              <select v-model="origen.cementerio" class="municipal-form-control">
                 <option value="">-- Seleccione --</option>
                 <option v-for="cem in cementerios" :key="cem.cementerio" :value="cem.cementerio">
                   {{ cem.cementerio }} - {{ cem.nombre }}
@@ -45,44 +48,44 @@
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Clase</label>
-                <input type="number" v-model.number="origen.clase" class="form-input" />
+                <input type="number" v-model.number="origen.clase" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Clase Alfa</label>
-                <input v-model="origen.clase_alfa" class="form-input" maxlength="2" />
+                <input v-model="origen.clase_alfa" class="municipal-form-control" maxlength="2" />
               </div>
             </div>
 
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Sección</label>
-                <input type="number" v-model.number="origen.seccion" class="form-input" />
+                <input type="number" v-model.number="origen.seccion" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Sección Alfa</label>
-                <input v-model="origen.seccion_alfa" class="form-input" maxlength="2" />
+                <input v-model="origen.seccion_alfa" class="municipal-form-control" maxlength="2" />
               </div>
             </div>
 
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Línea</label>
-                <input type="number" v-model.number="origen.linea" class="form-input" />
+                <input type="number" v-model.number="origen.linea" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Línea Alfa</label>
-                <input v-model="origen.linea_alfa" class="form-input" maxlength="2" />
+                <input v-model="origen.linea_alfa" class="municipal-form-control" maxlength="2" />
               </div>
             </div>
 
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Fosa</label>
-                <input type="number" v-model.number="origen.fosa" class="form-input" />
+                <input type="number" v-model.number="origen.fosa" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Fosa Alfa</label>
-                <input v-model="origen.fosa_alfa" class="form-input" maxlength="4" />
+                <input v-model="origen.fosa_alfa" class="municipal-form-control" maxlength="4" />
               </div>
             </div>
           </div>
@@ -100,7 +103,7 @@
 
             <div class="form-group">
               <label class="form-label required">Cementerio</label>
-              <select v-model="destino.cementerio" class="form-input">
+              <select v-model="destino.cementerio" class="municipal-form-control">
                 <option value="">-- Seleccione --</option>
                 <option v-for="cem in cementerios" :key="cem.cementerio" :value="cem.cementerio">
                   {{ cem.cementerio }} - {{ cem.nombre }}
@@ -111,44 +114,44 @@
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Clase</label>
-                <input type="number" v-model.number="destino.clase" class="form-input" />
+                <input type="number" v-model.number="destino.clase" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Clase Alfa</label>
-                <input v-model="destino.clase_alfa" class="form-input" maxlength="2" />
+                <input v-model="destino.clase_alfa" class="municipal-form-control" maxlength="2" />
               </div>
             </div>
 
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Sección</label>
-                <input type="number" v-model.number="destino.seccion" class="form-input" />
+                <input type="number" v-model.number="destino.seccion" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Sección Alfa</label>
-                <input v-model="destino.seccion_alfa" class="form-input" maxlength="2" />
+                <input v-model="destino.seccion_alfa" class="municipal-form-control" maxlength="2" />
               </div>
             </div>
 
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Línea</label>
-                <input type="number" v-model.number="destino.linea" class="form-input" />
+                <input type="number" v-model.number="destino.linea" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Línea Alfa</label>
-                <input v-model="destino.linea_alfa" class="form-input" maxlength="2" />
+                <input v-model="destino.linea_alfa" class="municipal-form-control" maxlength="2" />
               </div>
             </div>
 
             <div class="form-grid-two">
               <div class="form-group">
                 <label class="form-label required">Fosa</label>
-                <input type="number" v-model.number="destino.fosa" class="form-input" />
+                <input type="number" v-model.number="destino.fosa" class="municipal-form-control" />
               </div>
               <div class="form-group">
                 <label class="municipal-form-label">Fosa Alfa</label>
-                <input v-model="destino.fosa_alfa" class="form-input" maxlength="4" />
+                <input v-model="destino.fosa_alfa" class="municipal-form-control" maxlength="4" />
               </div>
             </div>
           </div>
@@ -219,56 +222,78 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
-      v-if="mostrarAyuda"
-      title="Ayuda - Traslados por Ubicación"
-      @close="mostrarAyuda = false"
-    >
-      <div class="help-content">
-        <section class="help-section">
-          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
-          <p>
-            Este módulo traslada TODOS los pagos de una ubicación física completa
-            (cementerio-clase-sección-línea-fosa) a otra ubicación física.
-          </p>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="exclamation-triangle" /> Diferencia con Traslado de Folios</h3>
-          <ul>
-            <li><strong>Traslado de Folios:</strong> Mueve pagos seleccionados entre folios</li>
-            <li><strong>Traslado por Ubicación:</strong> Mueve TODOS los pagos de una ubicación física a otra</li>
-          </ul>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
-          <ol>
-            <li>Complete la ubicación origen (cementerio, clase, sección, línea, fosa)</li>
-            <li>Complete la ubicación destino</li>
-            <li>Presione "Verificar Ubicaciones"</li>
-            <li>El sistema mostrará todos los pagos en la ubicación origen</li>
-            <li>Confirme el traslado</li>
-          </ol>
-        </section>
-      </div>
-    </DocumentationModal>
+      :show="showDocumentation"
+      :componentName="'Traslados'"
+      :moduleName="'cementerios'"
+      @close="closeDocumentation"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 const { callProcedure } = useApi()
-const { showSuccess, showError } = useToast()
 
-const mostrarAyuda = ref(false)
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Estado
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const cementerios = ref([])
 const pagosOrigen = ref([])
 const folioDestino = ref(null)
@@ -306,7 +331,7 @@ const ubicacionesValidas = computed(() => {
 
 onMounted(async () => {
   try {
-    const result = await callProcedure('sp_cem_listar_cementerios', {})
+    const result = await callProcedure('sp_cem_listar_cementerios', [], 'cementerio', 'public')
     cementerios.value = result.data || []
   } catch (error) {
     console.error('Error al cargar cementerios:', error)
@@ -316,51 +341,53 @@ onMounted(async () => {
 const verificarUbicaciones = async () => {
   try {
     // Buscar pagos en ubicación origen
-    const resultPagos = await callProcedure('sp_cem_buscar_pagos_por_ubicacion', {
-      p_cementerio: origen.value.cementerio,
-      p_clase: origen.value.clase,
-      p_clase_alfa: origen.value.clase_alfa || null,
-      p_seccion: origen.value.seccion,
-      p_seccion_alfa: origen.value.seccion_alfa || null,
-      p_linea: origen.value.linea,
-      p_linea_alfa: origen.value.linea_alfa || null,
-      p_fosa: origen.value.fosa,
-      p_fosa_alfa: origen.value.fosa_alfa || null
-    })
+    const resultPagos = await callProcedure('sp_traslados_buscar_pagos_origen', [
+      { nombre: 'p_cementerio', valor: origen.value.cementerio, tipo: 'varchar' },
+      { nombre: 'p_clase', valor: origen.value.clase, tipo: 'integer' },
+      { nombre: 'p_clase_alfa', valor: origen.value.clase_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_seccion', valor: origen.value.seccion, tipo: 'integer' },
+      { nombre: 'p_seccion_alfa', valor: origen.value.seccion_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_linea', valor: origen.value.linea, tipo: 'integer' },
+      { nombre: 'p_linea_alfa', valor: origen.value.linea_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_fosa', valor: origen.value.fosa, tipo: 'integer' },
+      { nombre: 'p_fosa_alfa', valor: origen.value.fosa_alfa || null, tipo: 'varchar' }
+    ], 'padron_licencias', 'public')
 
     pagosOrigen.value = resultPagos.data || []
 
     if (pagosOrigen.value.length === 0) {
-      showError('No se encontraron pagos en la ubicación origen')
+      showToast('error', 'No se encontraron pagos en la ubicación origen')
       return
     }
 
     // Buscar folio destino
-    const resultFolio = await callProcedure('sp_cem_buscar_folio_por_ubicacion', {
-      p_cementerio: destino.value.cementerio,
-      p_clase: destino.value.clase,
-      p_clase_alfa: destino.value.clase_alfa || null,
-      p_seccion: destino.value.seccion,
-      p_seccion_alfa: destino.value.seccion_alfa || null,
-      p_linea: destino.value.linea,
-      p_linea_alfa: destino.value.linea_alfa || null,
-      p_fosa: destino.value.fosa,
-      p_fosa_alfa: destino.value.fosa_alfa || null
-    })
+    const resultFolio = await callProcedure('sp_traslados_buscar_folio_destino', [
+      { nombre: 'p_cementerio', valor: destino.value.cementerio, tipo: 'varchar' },
+      { nombre: 'p_clase', valor: destino.value.clase, tipo: 'integer' },
+      { nombre: 'p_clase_alfa', valor: destino.value.clase_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_seccion', valor: destino.value.seccion, tipo: 'integer' },
+      { nombre: 'p_seccion_alfa', valor: destino.value.seccion_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_linea', valor: destino.value.linea, tipo: 'integer' },
+      { nombre: 'p_linea_alfa', valor: destino.value.linea_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_fosa', valor: destino.value.fosa, tipo: 'integer' },
+      { nombre: 'p_fosa_alfa', valor: destino.value.fosa_alfa || null, tipo: 'varchar' }
+    ], 'padron_licencias', 'public')
 
-    if (resultFolio.resultado !== 'S') {
-      showError('No se encontró folio en la ubicación destino')
+    const folioData = resultFolio.data && resultFolio.data.length > 0 ? resultFolio.data[0] : null
+
+    if (!folioData || folioData.resultado !== 'S') {
+      showToast('error', 'No se encontró folio en la ubicación destino')
       return
     }
 
     folioDestino.value = {
-      control_rcm: resultFolio.control_rcm,
-      nombre: resultFolio.nombre
+      control_rcm: folioData.control_rcm,
+      nombre: folioData.nombre
     }
 
   } catch (error) {
     console.error('Error al verificar ubicaciones:', error)
-    showError('Error al verificar las ubicaciones')
+    showToast('error', 'Error al verificar las ubicaciones')
   }
 }
 
@@ -371,44 +398,48 @@ const confirmarTraslado = async () => {
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: 'Sí, trasladar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   })
 
   if (!result.isConfirmed) return
 
   try {
-    const resultTraslado = await callProcedure('sp_cem_trasladar_pagos_ubicacion', {
-      p_cem_origen: origen.value.cementerio,
-      p_clase_origen: origen.value.clase,
-      p_clase_alfa_origen: origen.value.clase_alfa || null,
-      p_sec_origen: origen.value.seccion,
-      p_sec_alfa_origen: origen.value.seccion_alfa || null,
-      p_lin_origen: origen.value.linea,
-      p_lin_alfa_origen: origen.value.linea_alfa || null,
-      p_fosa_origen: origen.value.fosa,
-      p_fosa_alfa_origen: origen.value.fosa_alfa || null,
-      p_cem_destino: destino.value.cementerio,
-      p_clase_destino: destino.value.clase,
-      p_clase_alfa_destino: destino.value.clase_alfa || null,
-      p_sec_destino: destino.value.seccion,
-      p_sec_alfa_destino: destino.value.seccion_alfa || null,
-      p_lin_destino: destino.value.linea,
-      p_lin_alfa_destino: destino.value.linea_alfa || null,
-      p_fosa_destino: destino.value.fosa,
-      p_fosa_alfa_destino: destino.value.fosa_alfa || null,
-      p_control_rcm_destino: folioDestino.value.control_rcm,
-      p_usuario: 1
-    })
+    const resultTraslado = await callProcedure('sp_traslados_trasladar_pagos_ubicacion', [
+      { nombre: 'p_cem_origen', valor: origen.value.cementerio, tipo: 'varchar' },
+      { nombre: 'p_clase_origen', valor: origen.value.clase, tipo: 'integer' },
+      { nombre: 'p_clase_alfa_origen', valor: origen.value.clase_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_sec_origen', valor: origen.value.seccion, tipo: 'integer' },
+      { nombre: 'p_sec_alfa_origen', valor: origen.value.seccion_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_lin_origen', valor: origen.value.linea, tipo: 'integer' },
+      { nombre: 'p_lin_alfa_origen', valor: origen.value.linea_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_fosa_origen', valor: origen.value.fosa, tipo: 'integer' },
+      { nombre: 'p_fosa_alfa_origen', valor: origen.value.fosa_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_cem_destino', valor: destino.value.cementerio, tipo: 'varchar' },
+      { nombre: 'p_clase_destino', valor: destino.value.clase, tipo: 'integer' },
+      { nombre: 'p_clase_alfa_destino', valor: destino.value.clase_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_sec_destino', valor: destino.value.seccion, tipo: 'integer' },
+      { nombre: 'p_sec_alfa_destino', valor: destino.value.seccion_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_lin_destino', valor: destino.value.linea, tipo: 'integer' },
+      { nombre: 'p_lin_alfa_destino', valor: destino.value.linea_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_fosa_destino', valor: destino.value.fosa, tipo: 'integer' },
+      { nombre: 'p_fosa_alfa_destino', valor: destino.value.fosa_alfa || null, tipo: 'varchar' },
+      { nombre: 'p_control_rcm_destino', valor: folioDestino.value.control_rcm, tipo: 'integer' },
+      { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+    ], 'padron_licencias', 'public')
 
-    if (resultTraslado.resultado === 'S') {
-      showSuccess('Pagos trasladados exitosamente')
+    const trasladoData = resultTraslado.data && resultTraslado.data.length > 0 ? resultTraslado.data[0] : null
+
+    if (trasladoData && trasladoData.resultado === 'S') {
+      showToast('success', `${trasladoData.registros_actualizados} pago(s) trasladados exitosamente`)
       cancelar()
     } else {
-      showError(resultTraslado.mensaje || 'Error al trasladar')
+      showToast('error', trasladoData?.mensaje || 'Error al trasladar')
     }
   } catch (error) {
     console.error('Error al trasladar:', error)
-    showError('Error al realizar el traslado')
+    showToast('error', 'Error al realizar el traslado')
   }
 }
 
@@ -429,53 +460,3 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('es-MX')
 }
 </script>
-
-<style scoped>
-/* Layout único de traslado por ubicaciones - Justificado mantener scoped */
-.ubicaciones-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-
-.ubicacion-form {
-  background: var(--color-bg-secondary);
-  border-radius: 8px;
-  padding: 1.5rem;
-}
-
-.ubicacion-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.ubicacion-title.origin {
-  color: var(--color-warning);
-}
-
-.ubicacion-title.destination {
-  color: var(--color-success);
-}
-
-.transfer-arrow {
-  font-size: 3rem;
-  color: var(--color-primary);
-  align-self: center;
-}
-
-@media (max-width: 768px) {
-  .ubicaciones-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .transfer-arrow {
-    transform: rotate(90deg);
-    font-size: 2rem;
-  }
-}
-</style>

@@ -299,9 +299,9 @@ const buscarFolio = async () => {
     // ✅ NUEVO FORMATO: Llamada con execute()
     const response = await execute(
       'sp_cem_consultar_folio',  // Nombre del SP (lowercase)
-      'cementerios',              // Módulo
+      'cementerio',              // Módulo
       params,                     // Parámetros con estructura
-      'cementerios',              // Conexión
+      'cementerio',              // Conexión
       null,                       // Parámetro adicional
       'public'                    // Schema de PostgreSQL
     )

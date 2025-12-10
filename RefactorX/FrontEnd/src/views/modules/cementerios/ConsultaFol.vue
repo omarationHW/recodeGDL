@@ -9,14 +9,15 @@
         <h1>Consulta de Folio</h1>
         <p>Cementerios - Consulta completa de información de fosa/cuenta RCM</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="mostrarAyuda = true"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -353,34 +354,22 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+    <!-- Modal de Ayuda/Documentación -->
     <DocumentationModal
-      :show="mostrarAyuda"
-      @close="mostrarAyuda = false"
-      title="Consulta de Folio"
-    >
-      <h6>Descripción</h6>
-      <p>Módulo para consultar información completa de un folio/cuenta RCM en cementerios municipales.</p>
-
-      <h6>Funcionalidades</h6>
-      <ul>
-        <li>Búsqueda de folio por número de control RCM</li>
-        <li>Visualización completa de datos de la fosa</li>
-        <li>Información del propietario</li>
-        <li>Historial completo de pagos</li>
-        <li>Listado de adeudos (pagados y pendientes)</li>
-        <li>Resumen financiero con totales</li>
-      </ul>
-
-      <h6>Instrucciones</h6>
-      <ol>
-        <li>Ingrese el número de folio (control RCM)</li>
-        <li>Haga clic en "Buscar" o presione Enter</li>
-        <li>Revise la información de la fosa y propietario</li>
-        <li>Consulte el historial de pagos y adeudos</li>
-        <li>Verifique el resumen financiero</li>
-      </ol>
-    </DocumentationModal>
+      :show="showDocumentation"
+      :componentName="'ConsultaFol'"
+      :moduleName="'cementerios'"
+      @close="closeDocumentation"
+    />
   </div>
 </template>
 
@@ -390,11 +379,42 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast } = useToast()
+
+// Sistema de Toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => {
+    hideToast()
+  }, 4000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Modal de documentación
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 
 // Estado
 const loading = ref(false)
@@ -402,7 +422,6 @@ const folioABuscar = ref(null)
 const datosfolio = ref(null)
 const pagos = ref([])
 const adeudos = ref([])
-const mostrarAyuda = ref(false)
 
 // Computed
 const domicilioCompleto = computed(() => {
@@ -417,66 +436,88 @@ const domicilioCompleto = computed(() => {
 // Métodos
 const buscarFolio = async () => {
   if (!folioABuscar.value) {
-    showToast('Debe ingresar un número de folio', 'warning')
+    showToast('warning', 'Debe ingresar un número de folio')
     return
   }
 
   loading.value = true
+  showLoading()
+
   try {
-    // Consultar datos del folio
+    /* TODO FUTURO: Query SQL original (Pascal líneas 405-411, Vue líneas 427-436)
     const response = await execute(
-      'sp_cem_consultar_folio',
-      'cementerios',
-      {
-        p_control_rcm: folioABuscar.value
-      },
-      '',
+      'SELECT d.*, c.nombre as nombre_cementerio, a.rfc, a.curp, a.telefono, a.clave_ife ' +
+      'FROM ta_13_datosrcm d ' +
+      'LEFT JOIN tc_13_cementerios c ON d.cementerio = c.cementerio ' +
+      'LEFT JOIN ta_13_datosrcmadic a ON d.control_rcm = a.control_rcm ' +
+      'WHERE d.control_rcm = :control_rcm AND d.vigencia = ''S''',
+      'padron_licencias',
+      [folioABuscar.value],
+      'query',
       null,
       'comun'
     )
+    */
 
-    if (response && response.result && response.result.length > 0) {
-      const result = response.result[0]
-      if (result.resultado === 'S') {
-        datosfolio.value = result
-        showToast(result.mensaje, 'success')
+    // Consultar datos del folio usando SP
+    const response = await execute(
+      'sp_consultafol_buscar_folio',
+      'cementerio',
+      [{ nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' } ],
+      'function',
+      null,
+      'public'
+    )
 
-        // Cargar pagos
-        await cargarPagos()
+    if (response && response.length > 0) {
+      datosfolio.value = response[0]
+      showToast('success', 'Folio encontrado correctamente')
 
-        // Cargar adeudos
-        await cargarAdeudos()
-      } else {
-        showToast(result.mensaje, 'error')
-        datosfolio.value = null
-        pagos.value = []
-        adeudos.value = []
-      }
+      // Cargar pagos y adeudos
+      await cargarPagos()
+      await cargarAdeudos()
+    } else {
+      showToast('warning', 'No se encontró el folio especificado')
+      datosfolio.value = null
+      pagos.value = []
+      adeudos.value = []
     }
   } catch (error) {
-    showToast('Error al buscar folio: ' + error.message, 'error')
+    console.error('Error al buscar folio:', error)
+    showToast('error', 'Error al buscar folio: ' + error.message)
     datosfolio.value = null
     pagos.value = []
     adeudos.value = []
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
 const cargarPagos = async () => {
   try {
+    /* TODO FUTURO: Query SQL original (Pascal líneas 437-439)
     const response = await execute(
-      'sp_cem_obtener_pagos_folio',
-      'cementerios',
-      {
-        p_control_rcm: folioABuscar.value
-      },
-      '',
+      'SELECT * FROM ta_13_pagosrcm WHERE control_rcm = :folp ORDER BY fecing DESC',
+      'cementerio',
+      [folioABuscar.value],
+      'query',
       null,
-      'comun'
+      'public'
+    )
+    */
+
+    // Cargar pagos usando SP
+    const response = await execute(
+      'sp_consultafol_listar_pagos',
+      'cementerio',
+      [{ nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' }],
+      'function',
+      null,
+      'public'
     )
 
-    pagos.value = response.result || []
+    pagos.value = response || []
   } catch (error) {
     console.error('Error al cargar pagos:', error)
     pagos.value = []
@@ -485,15 +526,35 @@ const cargarPagos = async () => {
 
 const cargarAdeudos = async () => {
   try {
+    /* TODO FUTURO: Query SQL original (Pascal líneas 440-442, 456-469)
     const response = await execute(
-      'sp_cem_obtener_adeudos_folio',
-      'cementerios',
-      {
-        p_control_rcm: folioABuscar.value
-      },
-      '',
+      'SELECT * FROM ta_13_adeudosrcm WHERE control_rcm = :control_rcm AND vigencia = ''S'' ORDER BY axo_adeudo DESC',
+      'cementerio',
+      [folioABuscar.value],
+      'query',
       null,
-      'comun'
+      'public'
+    )
+    // Cálculo de totales en Pascal (líneas 456-469):
+    // simporte := simporte + Qryadeudoimporte.Value
+    // sdescto := sdescto + Qryadeudodescto_impote.Value
+    // sdesctor := sdescto + Qryadeudodescto_recargos.Value
+    // sreca := sreca + Qryadeudoimporte_recargos.Value
+    */
+
+    // Obtener año actual
+    const anioActual = new Date().getFullYear()
+
+    // Cargar adeudos usando SP (filtrados por año actual)
+    const response = await execute(
+      'sp_consultafol_listar_adeudos',
+      'cementerio',
+      [
+        { nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' },
+        { nombre: 'p_control_rcm', valor: anioActual, tipo: 'integer' }],
+      'function',
+      null,
+      'public'
     )
 
     adeudos.value = response || []

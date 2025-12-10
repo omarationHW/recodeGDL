@@ -1,16 +1,20 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <div class="module-title-section">
-        <font-awesome-icon icon="hand-holding-usd module-icon" />
-        <div>
-          <h1 class="module-view-info">Bonificaciones de Cementerios</h1>
-          <p class="module-subtitle">Gestión de bonificaciones y descuentos por oficio</p>
-        </div>
+      <div class="module-view-icon">
+        <font-awesome-icon icon="hand-holding-usd" />
       </div>
-      <div class="module-actions">
-        <button @click="showHelp = true" class="btn-icon" title="Ayuda">
+      <div class="module-view-info">
+        <h1>Bonificaciones de Cementerios</h1>
+        <p>Cementerios - Gestión de bonificaciones y descuentos por oficio</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
           <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -250,68 +254,79 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
-      v-if="showHelp"
-      title="Bonificaciones de Cementerios"
-      @close="showHelp = false"
-    >
-      <div class="help-content">
-        <h3>Descripción</h3>
-        <p>
-          Este módulo permite gestionar bonificaciones y descuentos aplicados a folios de cementerios
-          mediante oficios autorizados.
-        </p>
-
-        <h3>Proceso de Registro</h3>
-        <ol>
-          <li><strong>Paso 1:</strong> Ingrese los datos del oficio (número, año y recibido)</li>
-          <li><strong>Paso 2:</strong> Si el oficio no existe, ingrese el folio a bonificar</li>
-          <li><strong>Paso 3:</strong> Capture los importes y guarde la bonificación</li>
-        </ol>
-
-        <h3>Instrucciones de Uso</h3>
-        <ul>
-          <li>Para crear nueva bonificación: ingrese oficio que no exista</li>
-          <li>Para modificar: ingrese oficio existente y modifique los importes</li>
-          <li>El importe pendiente se calcula automáticamente</li>
-          <li>Puede eliminar bonificaciones existentes con el botón "Eliminar"</li>
-        </ul>
-
-        <h3>Campos Requeridos</h3>
-        <ul>
-          <li><strong>Número de Oficio:</strong> Número del oficio que autoriza la bonificación</li>
-          <li><strong>Año:</strong> Año del oficio (no puede ser mayor al actual)</li>
-          <li><strong>Recibido:</strong> Duplicado del oficio (0-9)</li>
-          <li><strong>Folio:</strong> Control RCM a bonificar</li>
-          <li><strong>Fecha del Oficio:</strong> Fecha de emisión del oficio</li>
-          <li><strong>Importe a Bonificar:</strong> Total autorizado para bonificar</li>
-        </ul>
-
-        <h3>Cálculo Automático</h3>
-        <p>
-          <strong>Pendiente = Total a Bonificar - Bonificado</strong><br>
-          El sistema calcula automáticamente el importe pendiente al modificar los valores.
-        </p>
-      </div>
-    </DocumentationModal>
+      :show="showDocumentation"
+      :componentName="'Bonificaciones'"
+      :moduleName="'cementerios'"
+      @close="closeDocumentation"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showSuccess, showError, showWarning } = useToast()
+
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
 
 // Estado
-const showHelp = ref(false)
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const pasoActual = ref(1)
 const modoModificacion = ref(false)
 const currentYear = new Date().getFullYear()
@@ -371,25 +386,36 @@ const bonificacionValid = computed(() => {
 // Buscar oficio
 const buscarOficio = async () => {
   if (!oficioValid.value) {
-    showWarning('Complete correctamente los datos del oficio')
+    showToast('warning', 'Complete correctamente los datos del oficio')
     return
   }
 
+  showLoading('Procesando...')
   try {
+    // Usar SP: sp_bonificaciones_buscar_oficio
+    // Base: cementerio.publico (según 18_SP_CEMENTERIOS_BONIFICACIONES_BUSQUEDA_all_procedures.sql)
     const response = await execute(
-      'sp_cem_buscar_bonificacion',
-      'cementerios',
-      {
-        p_oficio: datosOficio.value.oficio,
-        p_axo: datosOficio.value.axo,
-        p_doble: datosOficio.value.doble
-      },
+      'sp_bonificaciones_buscar_oficio',
+      'cementerio',
+      [
+        { nombre: 'p_oficio', valor: datosOficio.value.oficio, tipo: 'integer' },
+        { nombre: 'p_axo', valor: datosOficio.value.axo, tipo: 'integer' },
+        { nombre: 'p_doble', valor: datosOficio.value.doble, tipo: 'string' }
+      ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
-    if (response && response.resultado === 'S' && response.result && response.result.length > 0) {
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT *
+    FROM cementerio.publico.ta_13_bonifrcm
+    WHERE oficio = [oficio]
+      AND axo = [axo]
+      AND doble = [doble]
+    */
+
+    if (response?.result?.length > 0) {
       // Bonificación existe - modo modificación
       const bonif = response.result[0]
       modoModificacion.value = true
@@ -399,7 +425,7 @@ const buscarOficio = async () => {
       // Cargar datos del RCM
       datosRCM.value = {
         control_rcm: bonif.control_rcm,
-        nombre: bonif.nombre_propietario || '',
+        nombre: '', // Se cargará al buscar el folio
         cementerio: bonif.cementerio,
         clase: bonif.clase,
         clase_alfa: bonif.clase_alfa,
@@ -411,52 +437,83 @@ const buscarOficio = async () => {
         fosa_alfa: bonif.fosa_alfa
       }
 
+      // // Buscar nombre del propietario
+      // const responseFolio = await execute(
+      //   'SELECT',
+      //   'padron_licencias',
+      //   {
+      //     table: 'ta_13_datosrcm',
+      //     fields: ['nombre'],
+      //     where: { control_rcm: bonif.control_rcm }
+      //   },
+      //   '',
+      //   null,
+      //   'comun'
+      // )
+      // if (responseFolio?.result?.length > 0) {
+      //   datosRCM.value.nombre = responseFolio.result[0].nombre
+      // }
+
       // Cargar datos de bonificación
       formBonificacion.value = {
         fecha_ofic: bonif.fecha_ofic ? new Date(bonif.fecha_ofic).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        importe_bonificar: bonif.importe_bonificar || 0,
-        importe_bonificado: bonif.importe_bonificado || 0,
-        importe_resto: bonif.importe_resto || 0
+        importe_bonificar: parseFloat(bonif.importe_bonificar) || 0,
+        importe_bonificado: parseFloat(bonif.importe_bonificado) || 0,
+        importe_resto: parseFloat(bonif.importe_resto) || 0
       }
 
-      showSuccess('Bonificación encontrada - Modo modificación')
+      showToast('success', 'Bonificación encontrada - Modo modificación')
     } else {
       // No existe - modo alta
       modoModificacion.value = false
       pasoActual.value = 2
-      showSuccess('Oficio no encontrado - Ingrese el folio a bonificar')
+      showToast('success', 'Oficio no encontrado - Ingrese el folio a bonificar')
     }
   } catch (error) {
     console.error('Error al buscar oficio:', error)
     // Si no existe, pasar a paso 2 para crear nuevo
     modoModificacion.value = false
     pasoActual.value = 2
-    showSuccess('Oficio nuevo - Ingrese el folio a bonificar')
+    showToast('success', 'Oficio nuevo - Ingrese el folio a bonificar')
+  } finally {
+    hideLoading()
   }
 }
 
 // Buscar folio
 const buscarFolio = async () => {
   if (!folioBuscar.value) {
-    showWarning('Ingrese un número de folio')
+    showToast('warning', 'Ingrese un número de folio')
     return
   }
 
+  showLoading('Procesando...')
   try {
+    // Usar SP: sp_bonificaciones_buscar_folio
+    // Base: cementerio.publico (según 18_SP_CEMENTERIOS_BONIFICACIONES_BUSQUEDA_all_procedures.sql)
     const response = await execute(
-      'sp_cem_buscar_folio',
-      'cementerios',
-      { p_control_rcm: folioBuscar.value },
+      'sp_bonificaciones_buscar_folio',
+      'cementerio',
+      [
+        { nombre: 'p_folio', valor: folioBuscar.value, tipo: 'integer' }
+      ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
-    if (response && response.resultado === 'S' && response.result && response.result.length > 0) {
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT *
+    FROM padron_licencias.comun.ta_13_datosrcm
+    WHERE control_rcm = [folioBuscar]
+      AND vigencia = 'A'
+    */
+
+    if (response?.result?.length > 0) {
       const folio = response.result[0]
 
       if (folio.vigencia === 'B') {
-        showWarning('Este folio está dado de baja')
+        showToast('warning', 'Este folio está dado de baja')
         return
       }
 
@@ -475,13 +532,15 @@ const buscarFolio = async () => {
       }
 
       pasoActual.value = 3
-      showSuccess('Folio encontrado')
+      showToast('success', 'Folio encontrado')
     } else {
-      showError('Folio no encontrado')
+      showToast('error', 'Folio no encontrado')
     }
   } catch (error) {
     console.error('Error al buscar folio:', error)
-    showError('Error al buscar el folio')
+    showToast('error', 'Error al buscar el folio')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -495,40 +554,83 @@ const calcularPendiente = () => {
 // Guardar bonificación
 const guardarBonificacion = async () => {
   if (!bonificacionValid.value) {
-    showWarning('Complete todos los campos requeridos')
+    showToast('warning', 'Complete todos los campos requeridos')
     return
   }
 
+  showLoading('Procesando...')
   try {
-    const response = await execute(
-      'sp_cem_registrar_bonificacion',
-      'cementerios',
-      {
-        p_operacion: modoModificacion.value ? 2 : 1,
-        p_oficio: datosOficio.value.oficio,
-        p_axo: datosOficio.value.axo,
-        p_doble: datosOficio.value.doble,
-        p_control_rcm: datosRCM.value.control_rcm,
-        p_fecha_ofic: formBonificacion.value.fecha_ofic,
-        p_importe_bonificar: formBonificacion.value.importe_bonificar,
-        p_importe_bonificado: formBonificacion.value.importe_bonificado,
-        p_importe_resto: formBonificacion.value.importe_resto,
-        p_usuario: 1 // TODO: Obtener del contexto de usuario
-      },
-      '',
-      null,
-      'comun'
-    )
+    // Usar SP existentes: sp_bonificaciones_create o sp_bonificaciones_update
+    // Base: cementerio.publico (según postgreok.csv: ta_13_bonifrcm → cementerio.publico)
+    // SP en: RefactorX/Base/cementerios/database/ok/04_SP_CEMENTERIOS_BONIFICACIONES_EXACTO_all_procedures.sql
 
-    if (response && response.resultado === 'S') {
-      showSuccess(modoModificacion.value ? 'Bonificación modificada exitosamente' : 'Bonificación registrada exitosamente')
+    if (modoModificacion.value) {
+      // Modificación usando sp_bonificaciones_update (Pascal línea 201-205)
+      const response = await execute(
+        'sp_bonificaciones_update',
+        'cementerio',
+        [
+          { nombre: 'p_oficio', valor: datosOficio.value.oficio, tipo: 'integer' },
+          { nombre: 'p_axo', valor: datosOficio.value.axo, tipo: 'integer' },
+          { nombre: 'p_doble', valor: datosOficio.value.doble, tipo: 'string' },
+          { nombre: 'p_fecha_ofic', valor: formBonificacion.value.fecha_ofic, tipo: 'string' },
+          { nombre: 'p_importe_bonificar', valor: formBonificacion.value.importe_bonificar, tipo: 'numeric' },
+          { nombre: 'p_importe_bonificado', valor: formBonificacion.value.importe_bonificado, tipo: 'numeric' },
+          { nombre: 'p_importe_resto', valor: formBonificacion.value.importe_resto, tipo: 'numeric' },
+          { nombre: 'p_usuario', valor: 1, tipo: 'integer' } // TODO: Obtener del contexto de usuario
+        ],
+        '',
+        null,
+        'publico'
+      )
+
+      showToast('success', 'Bonificación modificada exitosamente')
       nuevoOficio()
     } else {
-      showError(response?.mensaje || 'Error al guardar la bonificación')
+      // Alta usando sp_bonificaciones_create (Pascal línea 167-174)
+      const response = await execute(
+        'sp_bonificaciones_create',
+        'cementerio',
+        [
+          { nombre: 'p_oficio', valor: datosOficio.value.oficio, tipo: 'integer' },
+          { nombre: 'p_axo', valor: datosOficio.value.axo, tipo: 'integer' },
+          { nombre: 'p_doble', valor: datosOficio.value.doble, tipo: 'string' },
+          { nombre: 'p_control_rcm', valor: datosRCM.value.control_rcm, tipo: 'integer' },
+          { nombre: 'p_cementerio', valor: datosRCM.value.cementerio, tipo: 'string' },
+          { nombre: 'p_clase', valor: datosRCM.value.clase, tipo: 'integer' },
+          { nombre: 'p_clase_alfa', valor: datosRCM.value.clase_alfa, tipo: 'string' },
+          { nombre: 'p_seccion', valor: datosRCM.value.seccion, tipo: 'integer' },
+          { nombre: 'p_seccion_alfa', valor: datosRCM.value.seccion_alfa, tipo: 'string' },
+          { nombre: 'p_linea', valor: datosRCM.value.linea, tipo: 'integer' },
+          { nombre: 'p_linea_alfa', valor: datosRCM.value.linea_alfa, tipo: 'string' },
+          { nombre: 'p_fosa', valor: datosRCM.value.fosa, tipo: 'integer' },
+          { nombre: 'p_fosa_alfa', valor: datosRCM.value.fosa_alfa, tipo: 'string' },
+          { nombre: 'p_fecha_ofic', valor: formBonificacion.value.fecha_ofic, tipo: 'string' },
+          { nombre: 'p_importe_bonificar', valor: formBonificacion.value.importe_bonificar, tipo: 'numeric' },
+          { nombre: 'p_importe_bonificado', valor: formBonificacion.value.importe_bonificado, tipo: 'numeric' },
+          { nombre: 'p_importe_resto', valor: formBonificacion.value.importe_resto, tipo: 'numeric' },
+          { nombre: 'p_usuario', valor: 1, tipo: 'integer' }, // TODO: Obtener del contexto de usuario
+          { nombre: 'p_fecha_mov', valor: new Date().toISOString(), tipo: 'string' }
+        ],
+        '',
+        null,
+        'publico'
+      )
+
+      // Verificar si hay error (p_error OUT parameter)
+      if (response?.result?.[0]?.p_error) {
+        showToast('error', 'Error al guardar: ' + response.result[0].p_error)
+        return
+      }
+
+      showToast('success', 'Bonificación registrada exitosamente')
+      nuevoOficio()
     }
   } catch (error) {
     console.error('Error al guardar bonificación:', error)
-    showError('Error al guardar la bonificación')
+    showToast('error', 'Error al guardar la bonificación')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -546,8 +648,8 @@ const confirmarEliminacion = async () => {
     showCancelButton: true,
     confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   })
 
   if (result.isConfirmed) {
@@ -557,29 +659,33 @@ const confirmarEliminacion = async () => {
 
 // Eliminar bonificación
 const eliminarBonificacion = async () => {
+  showLoading('Procesando...')
   try {
+    // Usar SP existente: sp_bonificaciones_delete
+    // Base: cementerio.publico (según postgreok.csv: ta_13_bonifrcm → cementerio.publico)
+    // SP en: RefactorX/Base/cementerios/database/ok/04_SP_CEMENTERIOS_BONIFICACIONES_EXACTO_all_procedures.sql
+    // Pascal original línea 230-231
     const response = await execute(
-      'sp_cem_eliminar_bonificacion',
-      'cementerios',
-      {
-        p_oficio: datosOficio.value.oficio,
-        p_axo: datosOficio.value.axo,
-        p_doble: datosOficio.value.doble
-      },
+      'sp_bonificaciones_delete',
+      'cementerio',
+      [
+        { nombre: 'p_oficio', valor: datosOficio.value.oficio, tipo: 'integer' },
+        { nombre: 'p_axo', valor: datosOficio.value.axo, tipo: 'integer' },
+        { nombre: 'p_doble', valor: datosOficio.value.doble, tipo: 'string' },
+        { nombre: 'p_usuario', valor: 1, tipo: 'integer' } // TODO: Obtener del contexto de usuario
+      ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
-    if (response && response.resultado === 'S') {
-      showSuccess('Bonificación eliminada exitosamente')
-      nuevoOficio()
-    } else {
-      showError(response?.mensaje || 'Error al eliminar la bonificación')
-    }
+    showToast('success', 'Bonificación eliminada exitosamente')
+    nuevoOficio()
   } catch (error) {
     console.error('Error al eliminar bonificación:', error)
-    showError('Error al eliminar la bonificación')
+    showToast('error', 'Error al eliminar la bonificación')
+  } finally {
+    hideLoading()
   }
 }
 

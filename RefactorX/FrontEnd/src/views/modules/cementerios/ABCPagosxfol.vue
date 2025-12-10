@@ -1,393 +1,608 @@
 <template>
   <div class="module-view">
+    <!-- Header del módulo -->
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="money-check-alt" />
-        Gestión de Pagos por Folio
-      </h1>
-      <DocumentationModal
-        title="Ayuda - ABC Pagos"
-        :sections="helpSections"
-      />
+      </div>
+      <div class="module-view-info">
+        <h1>Gestión de Pagos por Folio</h1>
+        <p>Cementerios - ABC de Pagos Individual</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
-    <!-- Búsqueda de Folio -->
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="search" />
-        Buscar Folio
-      </div>
-      <div class="municipal-card-body">
-        <div class="form-grid-two">
-          <div class="form-group">
-            <label class="form-label required">Número de Folio</label>
-            <input
-              v-model.number="folioABuscar"
-              type="number"
-              class="municipal-form-control"
-              @keyup.enter="buscarPagos"
-            />
+    <div class="module-view-content">
+      <!-- Sección 1: Datos de Pago (Fecha, Recibo, Caja, Operación) -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="file-invoice-dollar" />
+            Datos del Pago
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Fecha de Pago</label>
+              <input
+                type="date"
+                class="municipal-form-control"
+                v-model="datosPago.fecha"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Recibo</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="datosPago.recibo"
+                placeholder="Número de recibo..."
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Caja</label>
+              <input
+                type="text"
+                class="municipal-form-control"
+                v-model="datosPago.caja"
+                placeholder="Caja..."
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Operación</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="datosPago.operacion"
+                placeholder="Número de operación..."
+              />
+            </div>
           </div>
-          <div class="form-actions">
-            <button @click="buscarPagos" class="btn-municipal-primary">
+
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="verificarPago"
+              :disabled="loading"
+            >
               <font-awesome-icon icon="search" />
-              Buscar
+              Verificar Pago
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 2: Buscar Folio (solo visible si no existe el pago) -->
+      <div class="municipal-card" v-if="mostrarBusquedaFolio">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="search" />
+            Buscar Folio
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Número de Folio</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="folioABuscar"
+                @keyup.enter="buscarFolio"
+                :disabled="folioEncontrado"
+                placeholder="Ingrese el folio..."
+              />
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="buscarFolio"
+              :disabled="loading || folioEncontrado"
+            >
+              <font-awesome-icon icon="search" />
+              Buscar Folio
+            </button>
+          </div>
+
+          <!-- Info del folio encontrado -->
+          <div v-if="folioEncontrado" class="info-section">
+            <h6>Información del Folio</h6>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Titular:</span>
+                <span class="value">{{ datosFolio.nombre }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Cementerio:</span>
+                <span class="value">{{ datosFolio.nombre_cementerio }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Ubicación:</span>
+                <span class="value">{{ formatearUbicacion(datosFolio) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Último Año Pagado:</span>
+                <span class="value">{{ datosFolio.axo_pagado }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 3: Formulario de Alta/Modificación (solo visible si hay folio) -->
+      <div class="municipal-card" v-if="folioEncontrado">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="edit" />
+            {{ pagoExistente ? 'Modificar Pago' : 'Registrar Pago' }}
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Año Desde</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="formPago.axo_desde"
+                :min="2000"
+                placeholder="Año desde..."
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Año Hasta</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="formPago.axo_hasta"
+                :min="2000"
+                placeholder="Año hasta..."
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Importe Mantenimiento</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="formPago.importe_anual"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Importe Recargos</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="formPago.importe_recargos"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="guardarPago"
+              :disabled="loading"
+            >
+              <font-awesome-icon icon="save" />
+              {{ pagoExistente ? 'Modificar' : 'Registrar' }}
+            </button>
+            <button
+              v-if="pagoExistente"
+              class="btn-municipal-danger"
+              @click="confirmarEliminarPago"
+              :disabled="loading"
+            >
+              <font-awesome-icon icon="trash" />
+              Eliminar
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="limpiarFormulario"
+              :disabled="loading"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Lista de Pagos -->
-    <div v-if="pagos.length > 0" class="municipal-card mb-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="list" />
-        Pagos del Folio {{ folioABuscar }}
-        <button @click="mostrarFormAlta = true" class="btn-municipal-primary btn-sm float-right">
-          <font-awesome-icon icon="plus" />
-          Nuevo Pago
-        </button>
-      </div>
-      <div class="municipal-card-body">
-        <div class="table-responsive">
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr>
-                <th>Año</th>
-                <th>Fecha</th>
-                <th>Recibo</th>
-                <th>Importe</th>
-                <th>Descuento</th>
-                <th>Bonificación</th>
-                <th>Recargo</th>
-                <th>Total</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="pago in pagos" :key="pago.anio">
-                <td><strong>{{ pago.anio }}</strong></td>
-                <td>{{ formatearFecha(pago.fecha_mov) }}</td>
-                <td>{{ pago.recibo }}</td>
-                <td>${{ formatearMoneda(pago.importe) }}</td>
-                <td>${{ formatearMoneda(pago.descuento) }}</td>
-                <td>${{ formatearMoneda(pago.bonificacion) }}</td>
-                <td>${{ formatearMoneda(pago.recargo) }}</td>
-                <td class="total-amount">${{ formatearMoneda(calcularTotal(pago)) }}</td>
-                <td>
-                  <button @click="eliminarPago(pago.anio)" class="btn-municipal-danger btn-sm">
-                    <font-awesome-icon icon="trash" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
 
-    <!-- Formulario Alta de Pago -->
-    <div v-if="mostrarFormAlta" class="municipal-card">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="plus-circle" />
-        Registrar Nuevo Pago
-      </div>
-      <div class="municipal-card-body">
-        <div class="form-grid-three">
-          <div class="form-group">
-            <label class="form-label required">Año</label>
-            <input v-model.number="nuevoPago.anio" type="number" class="municipal-form-control" :min="2000" />
-          </div>
-          <div class="form-group">
-            <label class="form-label required">Importe</label>
-            <input v-model.number="nuevoPago.importe" type="number" class="municipal-form-control" step="0.01" min="0" />
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Recibo</label>
-            <input v-model.number="nuevoPago.recibo" type="number" class="municipal-form-control" />
-          </div>
-        </div>
-        <div class="form-actions">
-          <button @click="registrarPago" class="btn-municipal-primary">
-            <font-awesome-icon icon="save" />
-            Registrar Pago
-          </button>
-          <button @click="cancelarAlta" class="btn-municipal-secondary">
-            <font-awesome-icon icon="times" />
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Modal de Ayuda/Documentación -->
+    <DocumentationModal
+      :show="showDocumentation"
+      :componentName="'ABCPagosxfol'"
+      :moduleName="'cementerios'"
+      @close="closeDocumentation"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
 
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
-const folioABuscar = ref(null)
-const pagos = ref([])
-const mostrarFormAlta = ref(false)
-
-const nuevoPago = reactive({
-  anio: new Date().getFullYear(),
-  importe: 0,
-  recibo: 0
+// Sistema de Toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
 })
 
-const helpSections = [
-  {
-    title: 'Gestión de Pagos por Folio',
-    content: `
-      <p>Administración completa de pagos asociados a un folio.</p>
-      <h4>Funcionalidades:</h4>
-      <ul>
-        <li><strong>Consultar:</strong> Ver todos los pagos de un folio</li>
-        <li><strong>Registrar:</strong> Agregar nuevos pagos</li>
-        <li><strong>Eliminar:</strong> Borrar pagos registrados</li>
-      </ul>
-    `
-  }
-]
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => {
+    hideToast()
+  }, 4000)
+}
 
-const buscarPagos = async () => {
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Estado
+const loading = ref(false)
+const showDocumentation = ref(false)
+const mostrarBusquedaFolio = ref(false)
+const folioEncontrado = ref(false)
+const pagoExistente = ref(false)
+const folioABuscar = ref(null)
+
+const datosPago = reactive({
+  fecha: new Date().toISOString().split('T')[0],
+  recibo: 0,
+  caja: '',
+  operacion: 0
+})
+
+const datosFolio = ref({})
+const pagoActual = ref({})
+
+const formPago = reactive({
+  axo_desde: new Date().getFullYear(),
+  axo_hasta: new Date().getFullYear(),
+  importe_anual: 0,
+  importe_recargos: 0
+})
+
+// Métodos
+const verificarPago = async () => {
+  if (!datosPago.fecha || !datosPago.recibo || !datosPago.caja || !datosPago.operacion) {
+    showToast('warning', 'Complete todos los datos del pago')
+    return
+  }
+
+  loading.value = true
+  showLoading()
+
+  try {
+    /* TODO FUTURO: Query SQL original (ABCPagosxfol.pas DFM):
+    -- SQL: 'select * from ta_13_pagosrcm where fecing=:fecha and recing=:rec
+    --       and cajing=:caja and opcaja=:operac'
+    */
+
+    const response = await execute(
+      'sp_pagosxfol_verificar_pago',
+      'cementerio',
+      [
+        { nombre: 'p_fecha', valor: datosPago.fecha, tipo: 'date' },
+        { nombre: 'p_recibo', valor: datosPago.recibo, tipo: 'smallint' },
+        { nombre: 'p_caja', valor: datosPago.caja, tipo: 'varchar' },
+        { nombre: 'p_operacion', valor: datosPago.operacion, tipo: 'integer' }
+      ],
+      'function',
+      null,
+      'publico'
+    )
+
+    if (response?.result?.length > 0) {
+      // Pago existe - modo modificación
+      pagoExistente.value = true
+      pagoActual.value = response.result[0]
+      folioABuscar.value = pagoActual.value.control_rcm
+
+      // Buscar datos del folio
+      await buscarFolio()
+
+      // Cargar datos del pago existente
+      formPago.axo_desde = pagoActual.value.axo_pago_desde
+      formPago.axo_hasta = pagoActual.value.axo_pago_hasta
+      formPago.importe_anual = parseFloat(pagoActual.value.importe_anual || 0)
+      formPago.importe_recargos = parseFloat(pagoActual.value.importe_recargos || 0)
+
+      showToast('info', 'Pago encontrado - Modo modificación')
+    } else {
+      // Pago no existe - modo alta
+      pagoExistente.value = false
+      mostrarBusquedaFolio.value = true
+      showToast('info', 'No existe un pago con estos datos. Busque el folio para registrarlo.')
+    }
+  } catch (error) {
+    console.error('Error al verificar pago:', error)
+    showToast('error', 'Error al verificar pago: ' + error.message)
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
+}
+
+const buscarFolio = async () => {
   if (!folioABuscar.value) {
-    toast.warning('Ingrese un número de folio')
+    showToast('warning', 'Ingrese un número de folio')
     return
   }
 
+  loading.value = true
+  showLoading()
+
   try {
-    const params = [
-      {
-        nombre: 'p_operacion',
-        valor: 3,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_id_pago',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_control_rcm',
-        valor: folioABuscar.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_anio',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_importe',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_recibo',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1,
-        tipo: 'string'
-      }
-    ]
+    /* TODO FUTURO: Query SQL original (ABCPagosxfol.pas DFM):
+    -- SQL: 'select a.*,b.* from ta_13_datosrcm a, tc_13_cementerios b
+    --       where control_rcm=:control and a.cementerio=b.cementerio'
+    */
 
-    const response = await execute('sp_cem_abc_pagos_por_folio', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_pagosxfol_buscar_folio',
+      'cementerio',
+      [
+        { nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' }
+      ],
+      'function',
       null,
-      'public'
-    , '', null, 'comun')
+      'publico'
+    )
 
-    pagos.value = response.result || []
+    if (response?.result?.length > 0) {
+      datosFolio.value = response.result[0]
+      folioEncontrado.value = true
 
-    if (pagos.value.length > 0) {
-      toast.success(`Se encontraron ${pagos.value.length} pago(s)`)
+      // Inicializar años con el año actual
+      const anioActual = new Date().getFullYear()
+      formPago.axo_desde = anioActual
+      formPago.axo_hasta = anioActual
+
+      showToast('success', 'Folio encontrado')
     } else {
-      toast.info('No hay pagos registrados para este folio')
+      showToast('error', 'No se encontró el folio especificado')
     }
   } catch (error) {
-    console.error('Error al buscar pagos:', error)
-    toast.error('Error al buscar pagos')
+    console.error('Error al buscar folio:', error)
+    showToast('error', 'Error al buscar folio: ' + error.message)
+  } finally {
+    loading.value = false
+    hideLoading()
   }
 }
 
-const registrarPago = async () => {
-  if (!nuevoPago.anio || nuevoPago.importe <= 0) {
-    toast.warning('Complete todos los campos requeridos')
+const guardarPago = async () => {
+  // Validaciones
+  if (formPago.axo_desde === 0) {
+    showToast('warning', 'El año desde es obligatorio')
+    return
+  }
+  if (formPago.axo_hasta === 0) {
+    showToast('warning', 'El año hasta es obligatorio')
+    return
+  }
+  if (formPago.importe_anual === 0) {
+    showToast('warning', 'El importe de mantenimiento es obligatorio')
+    return
+  }
+  if (formPago.axo_desde > formPago.axo_hasta) {
+    showToast('warning', 'El año desde no puede ser mayor que el año hasta')
     return
   }
 
+  loading.value = true
+  showLoading()
+
   try {
-    const params = [
-      {
-        nombre: 'p_operacion',
-        valor: 1,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_id_pago',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_control_rcm',
-        valor: folioABuscar.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_anio',
-        valor: nuevoPago.anio,
-        tipo: 'integer'
-      },
-      {
-        nombre: 'p_importe',
-        valor: nuevoPago.importe,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_recibo',
-        valor: nuevoPago.recibo || 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1,
-        tipo: 'string'
-      }
-    ]
+    let response
 
-    const response = await execute('sp_cem_abc_pagos_por_folio', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
+    if (pagoExistente.value) {
+      // Modificar pago existente
+      /* TODO FUTURO: Query SQL original (ABCPagosxfol.pas línea 212-216):
+      -- UPDATE ta_13_pagosrcm SET axo_pago_desde=:desde, axo_pago_hasta=:hasta,
+      --   importe_anual=:importeman, importe_recargos=:importerec,
+      --   usuario=:user, fecha_mov=today WHERE control_id=:id
+      */
 
-    if (response.result && response.result[0]?.resultado === 'S') {
-      toast.success('Pago registrado exitosamente')
-      cancelarAlta()
-      await buscarPagos()
+      response = await execute(
+        'sp_pagosxfol_modificar',
+        'cementerio',
+        [
+          { nombre: 'p_control_id', valor: pagoActual.value.control_id, tipo: 'integer' },
+          { nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' },
+          { nombre: 'p_axo_desde', valor: formPago.axo_desde, tipo: 'integer' },
+          { nombre: 'p_axo_hasta', valor: formPago.axo_hasta, tipo: 'integer' },
+          { nombre: 'p_importe_anual', valor: formPago.importe_anual, tipo: 'numeric' },
+          { nombre: 'p_importe_recargos', valor: formPago.importe_recargos, tipo: 'numeric' },
+          { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+        ],
+        'function',
+        null,
+        'publico'
+      )
     } else {
-      toast.error(response.result[0]?.mensaje || 'Error al registrar pago')
+      // Registrar nuevo pago
+      /* TODO FUTURO: Query SQL original (ABCPagosxfol.pas línea 178-186):
+      -- INSERT INTO ta_13_pagosrcm VALUES(fecha, recibo, caja, operacion, 0, control_rcm,
+      --   cementerio, clase, clase_alfa, seccion, seccion_alfa, linea, linea_alfa,
+      --   fosa, fosa_alfa, axo_desde, axo_hasta, importe_anual, importe_recargos, 'A', usuario, today)
+      */
+
+      response = await execute(
+        'sp_pagosxfol_registrar',
+        'cementerio',
+        [
+          { nombre: 'p_fecha', valor: datosPago.fecha, tipo: 'date' },
+          { nombre: 'p_recibo', valor: datosPago.recibo, tipo: 'smallint' },
+          { nombre: 'p_caja', valor: datosPago.caja, tipo: 'varchar' },
+          { nombre: 'p_operacion', valor: datosPago.operacion, tipo: 'integer' },
+          { nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' },
+          { nombre: 'p_cementerio', valor: datosFolio.value.cementerio, tipo: 'varchar' },
+          { nombre: 'p_clase', valor: datosFolio.value.clase, tipo: 'smallint' },
+          { nombre: 'p_clase_alfa', valor: datosFolio.value.clase_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_seccion', valor: datosFolio.value.seccion, tipo: 'smallint' },
+          { nombre: 'p_seccion_alfa', valor: datosFolio.value.seccion_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_linea', valor: datosFolio.value.linea, tipo: 'smallint' },
+          { nombre: 'p_linea_alfa', valor: datosFolio.value.linea_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_fosa', valor: datosFolio.value.fosa, tipo: 'smallint' },
+          { nombre: 'p_fosa_alfa', valor: datosFolio.value.fosa_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_axo_desde', valor: formPago.axo_desde, tipo: 'integer' },
+          { nombre: 'p_axo_hasta', valor: formPago.axo_hasta, tipo: 'integer' },
+          { nombre: 'p_importe_anual', valor: formPago.importe_anual, tipo: 'numeric' },
+          { nombre: 'p_importe_recargos', valor: formPago.importe_recargos, tipo: 'numeric' },
+          { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+        ],
+        'function',
+        null,
+        'publico'
+      )
+    }
+
+    if (response && response.length > 0 && response[0].resultado === 'S') {
+      showToast('success', response[0].mensaje)
+      limpiarFormulario()
+    } else {
+      showToast('error', response[0]?.mensaje || 'Error al guardar pago')
     }
   } catch (error) {
-    console.error('Error al registrar pago:', error)
-    toast.error('Error al registrar pago')
+    console.error('Error al guardar pago:', error)
+    showToast('error', 'Error al guardar pago: ' + error.message)
+  } finally {
+    loading.value = false
+    hideLoading()
   }
 }
 
-const eliminarPago = async (anio) => {
+const confirmarEliminarPago = async () => {
   const result = await Swal.fire({
     title: '¿Eliminar pago?',
-    text: `¿Está seguro de eliminar el pago del año ${anio}?`,
+    text: '¿Está seguro de eliminar este pago? Esta acción no se puede deshacer.',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d'
   })
 
   if (result.isConfirmed) {
-    try {
-      const params = [
-      {
-        nombre: 'p_operacion',
-        valor: 2,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_id_pago',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_control_rcm',
-        valor: folioABuscar.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_anio',
-        valor: anio,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_importe',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_recibo',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_abc_pagos_por_folio', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
-
-      if (response.result && response.result[0]?.resultado === 'S') {
-        toast.success('Pago eliminado exitosamente')
-        await buscarPagos()
-      } else {
-        toast.error(response.result[0]?.mensaje || 'Error al eliminar pago')
-      }
-    } catch (error) {
-      console.error('Error al eliminar pago:', error)
-      toast.error('Error al eliminar pago')
-    }
+    await eliminarPago()
   }
 }
 
-const cancelarAlta = () => {
-  mostrarFormAlta.value = false
-  nuevoPago.anio = new Date().getFullYear()
-  nuevoPago.importe = 0
-  nuevoPago.recibo = 0
+const eliminarPago = async () => {
+  loading.value = true
+  showLoading()
+
+  try {
+    /* TODO FUTURO: Query SQL original (ABCPagosxfol.pas línea 241-242):
+    -- DELETE FROM ta_13_pagosrcm WHERE control_id=:id
+    */
+
+    const response = await execute(
+      'sp_pagosxfol_eliminar',
+      'cementerio',
+      [
+        { nombre: 'p_control_id', valor: pagoActual.value.control_id, tipo: 'integer' },
+        { nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' },
+        { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+      ],
+      'function',
+      null,
+      'publico'
+    )
+
+    if (response && response.length > 0 && response[0].resultado === 'S') {
+      showToast('success', response[0].mensaje)
+      limpiarFormulario()
+    } else {
+      showToast('error', response[0]?.mensaje || 'Error al eliminar pago')
+    }
+  } catch (error) {
+    console.error('Error al eliminar pago:', error)
+    showToast('error', 'Error al eliminar pago: ' + error.message)
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
 }
 
-const formatearFecha = (fecha) => {
-  if (!fecha) return '-'
-  return new Date(fecha).toLocaleDateString('es-MX')
+// Métodos de ayuda/documentación
+const mostrarAyuda = () => {
+  showDocumentation.value = true
 }
 
-const formatearMoneda = (valor) => {
-  if (!valor) return '0.00'
-  return parseFloat(valor).toFixed(2)
+const closeDocumentation = () => {
+  showDocumentation.value = false
 }
 
-const calcularTotal = (pago) => {
-  return parseFloat(pago.importe || 0) - parseFloat(pago.descuento || 0) -
-         parseFloat(pago.bonificacion || 0) + parseFloat(pago.recargo || 0)
+const limpiarFormulario = () => {
+  folioABuscar.value = null
+  datosFolio.value = {}
+  pagoActual.value = {}
+  folioEncontrado.value = false
+  pagoExistente.value = false
+  mostrarBusquedaFolio.value = false
+
+  formPago.axo_desde = new Date().getFullYear()
+  formPago.axo_hasta = new Date().getFullYear()
+  formPago.importe_anual = 0
+  formPago.importe_recargos = 0
+}
+
+const formatearUbicacion = (folio) => {
+  if (!folio) return ''
+  const partes = []
+  partes.push(`Cl:${folio.clase}${folio.clase_alfa || ''}`)
+  partes.push(`Sec:${folio.seccion}${folio.seccion_alfa || ''}`)
+  partes.push(`Lin:${folio.linea}${folio.linea_alfa || ''}`)
+  partes.push(`Fosa:${folio.fosa}${folio.fosa_alfa || ''}`)
+  return partes.join(' ')
 }
 </script>
-
-<style scoped>
-/* Estilo único de monto total - Justificado mantener scoped */
-.total-amount {
-  font-weight: bold;
-  color: var(--color-primary);
-}
-</style>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -13,12 +13,7 @@
         <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -816,13 +811,7 @@ function formatFecha(fecha) {
 // Mostrar ayuda
 function mostrarAyuda() {
   toast.info('Ayuda: Seleccione la recaudadora, mercado, ingrese los datos del local y presione Buscar. Complete los datos del pago y presione Agregar o Modificar según corresponda.');
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <!-- Sin estilos scoped - Se usan clases municipales globales -->
 <!-- Clases utilizadas: module-view, municipal-card, municipal-form-control, btn-municipal-*, gap-2 -->

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
@@ -8,12 +8,7 @@
         <h1>Consulta Captura por Mercado</h1>
         <p>Mercados - Detalle de Pagos Capturados por Mercado</p>
       </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+      <div class="button-group ms-auto"></div>
     </div>
 
     <div class="module-view-content">
@@ -130,11 +125,7 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function cargarMercados() {
+};async function cargarMercados() {
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {

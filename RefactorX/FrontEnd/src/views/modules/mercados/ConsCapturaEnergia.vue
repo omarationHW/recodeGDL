@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
@@ -12,12 +12,7 @@
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Actualizar
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -100,11 +95,7 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function fetchData() {
+};async function fetchData() {
   showLoading('Cargando Captura de Energía', 'Consultando información...');
   loading.value = true;
   try {

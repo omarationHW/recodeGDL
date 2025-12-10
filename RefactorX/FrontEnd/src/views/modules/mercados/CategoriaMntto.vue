@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -17,12 +17,7 @@
         <button class="btn-municipal-primary" @click="fetchData">
           <font-awesome-icon icon="sync" />
           Refrescar
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -132,14 +127,7 @@ const formMode = ref('create');
 const form = ref({
   categoria: '',
   descripcion: ''
-});
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Cargar datos
+});// Cargar datos
 async function fetchData() {
   showLoading('Cargando categorías...', 'Por favor espere');
   try {

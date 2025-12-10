@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -13,12 +13,7 @@
         <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -800,13 +795,7 @@ function formatFecha(fecha) {
 // Mostrar ayuda
 function mostrarAyuda() {
   showToast('Ayuda: Complete los datos del mercado, busque el local y registre el pago correspondiente', 'info');
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <style scoped>
 /* Los estilos están definidos en municipal-theme.css */

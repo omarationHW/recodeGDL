@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -134,14 +134,7 @@ const formMode = ref('create');
 const form = ref({
   categoria: '',
   descripcion: ''
-});
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Cargar datos
+});// Cargar datos
 async function fetchData() {
   loading.value = true;
   showLoading('Cargando categorías...');

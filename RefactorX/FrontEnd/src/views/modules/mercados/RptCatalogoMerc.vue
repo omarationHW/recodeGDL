@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -17,12 +17,7 @@
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Refrescar
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times-circle" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -182,14 +177,7 @@ const form = ref({
   descripcion: '',
   id_zona: '',
   tipo_emision: 'M'
-});
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Helper para tipo emisión
+});// Helper para tipo emisión
 const emisionLabel = (val) => {
   if (val === 'M') return 'Masiva';
   if (val === 'D') return 'Diskette';

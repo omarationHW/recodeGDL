@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -17,12 +17,7 @@
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Refrescar
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -191,14 +186,7 @@ const showToast = (type, message) => {
     showConfirmButton: false,
     timer: 3000
   });
-};
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Cargar datos
+};// Cargar datos
 async function fetchData() {
   showLoading('Cargando Catálogo de Mercados', 'Preparando listado de mercados...');
   loading.value = true;

@@ -22,10 +22,6 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-secondary" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
@@ -585,14 +581,6 @@ export default {
         title: 'Funcionalidad pendiente',
         text: 'La impresión de reportes está pendiente de implementación'
       });
-    };
-
-    const cerrar = () => {
-      if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.location.href = '/';
-      }
     };
 
     const mostrarAyuda = () => {

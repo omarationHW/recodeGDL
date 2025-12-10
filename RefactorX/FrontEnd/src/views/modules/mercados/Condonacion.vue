@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -9,12 +9,7 @@
         <h1>Condonación de Adeudos</h1>
         <p>Mercados - Gestión de Condonaciones de Adeudos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+      <div class="button-group ms-auto"></div>
     </div>
 
     <div class="module-view-content">
@@ -241,13 +236,7 @@ const showToast = (type, message) => {
     showConfirmButton: false,
     timer: 3000
   });
-};
-
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Buscar Local
+};// Buscar Local
 async function buscarLocal() {
   loading.value = true;
   localData.value = null;

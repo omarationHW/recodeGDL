@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
           <font-awesome-icon icon="search" /> Consultar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -145,11 +145,11 @@
             </div>
             <div class="pagination-controls">
               <button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
               <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>

@@ -7,7 +7,7 @@
         <p>Inicio > Reportes > Adeudos Anteriores a 1996</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || datos.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || datos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>
@@ -27,7 +27,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
         <div v-show="showFilters" class="municipal-card-body">
@@ -162,11 +162,11 @@
             </div>
             <div class="pagination-buttons">
               <button @click="previousPage" :disabled="currentPage === 1" class="btn-pagination">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-pagination">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -433,5 +433,27 @@ onMounted(async () => {
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.module-view-header .btn-municipal-primary,
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.pagination-buttons .btn,
+.pagination-buttons .btn-pagination {
+  min-width: 2rem;
 }
 </style>

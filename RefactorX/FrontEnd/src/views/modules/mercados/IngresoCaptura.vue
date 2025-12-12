@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="buscar" :disabled="loading || !isFormValid">
           <font-awesome-icon icon="search" /> Buscar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -177,7 +177,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Complete todos los filtros (mercado, fecha, oficina, caja y operación) para consultar los ingresos capturados en ese periodo.')
+  showToast('Complete todos los filtros (mercado, fecha, oficina, caja y operación) para consultar los ingresos capturados en ese periodo.', 'info')
 }
 
 const fetchRecaudadoras = async () => {
@@ -188,7 +188,7 @@ const fetchRecaudadoras = async () => {
     })
     if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     hideLoading()
   }
@@ -208,13 +208,13 @@ const onOficinaChange = async () => {
     })
     if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   }
 }
 
 const buscar = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -241,15 +241,15 @@ const buscar = async () => {
     if (res.data.eResponse.success) {
       results.value = res.data.eResponse.data.result || []
       if (results.value.length > 0) {
-        showToast('success', `Se encontraron ${results.value.length} registros`)
+        showToast(`Se encontraron ${results.value.length} registros`, 'success')
       } else {
-        showToast('info', 'No se encontraron resultados para los filtros aplicados')
+        showToast('No se encontraron resultados para los filtros aplicados', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al consultar')
+      showToast(res.data.eResponse.message || 'Error al consultar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al realizar la consulta')
+    showToast('Error de conexión al realizar la consulta', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -258,7 +258,7 @@ const buscar = async () => {
 
 const exportarExcel = () => {
   if (results.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -279,9 +279,9 @@ const exportarExcel = () => {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
-    showToast('error', 'Error al exportar')
+    showToast('Error al exportar', 'error')
   }
 }
 

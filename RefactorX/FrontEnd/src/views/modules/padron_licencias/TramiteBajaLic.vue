@@ -356,7 +356,7 @@ const buscarLicencia = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (licenciaResponse && licenciaResponse.result && licenciaResponse.result.length > 0) {
@@ -373,7 +373,7 @@ const buscarLicencia = async () => {
         ],
         'guadalajara',
         null,
-        'comun'
+        'publico'
       )
 
       if (adeudosResponse && adeudosResponse.result && adeudosResponse.result.length > 0) {
@@ -493,7 +493,7 @@ const tramitarBaja = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (tramiteResponse && tramiteResponse.result && tramiteResponse.result[0]?.success) {
@@ -506,7 +506,7 @@ const tramitarBaja = async () => {
         ],
         'guadalajara',
         null,
-        'comun'
+        'publico'
       )
 
       // Paso 3: Recalcular adeudos (NO-OP)
@@ -518,7 +518,7 @@ const tramitarBaja = async () => {
         ],
         'guadalajara',
         null,
-        'comun'
+        'publico'
       )
 
       limpiarTodo()

@@ -440,6 +440,7 @@ const buscar = async () => {
         eRequest: {
           Operacion: 'sp_consulta_energia_get_by_local',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_id_local', Valor: parseInt(id_local.value) }
           ]
@@ -456,6 +457,7 @@ const buscar = async () => {
             eRequest: {
               Operacion: 'sp_consulta_energia_get_adeudos',
               Base: 'padron_licencias',
+              Esquema: 'publico',
               Parametros: [
                 { Nombre: 'p_id_local', Valor: parseInt(id_local.value) }
               ]
@@ -488,6 +490,7 @@ const verPagos = async () => {
         eRequest: {
           Operacion: 'sp_consulta_energia_get_pagos',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_id_energia', Valor: energia.value.id_energia }
           ]
@@ -517,6 +520,7 @@ const verCondonaciones = async () => {
         eRequest: {
           Operacion: 'sp_consulta_energia_get_condonaciones',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_id_energia', Valor: energia.value.id_energia }
           ]

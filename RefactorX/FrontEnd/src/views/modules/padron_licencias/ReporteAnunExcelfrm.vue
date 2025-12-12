@@ -450,7 +450,9 @@ const generarReporte = async () => {
       'sp_reporte_anuncios_excel',
       'padron_licencias',
       params,
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

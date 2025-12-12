@@ -225,6 +225,7 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LISTANOTIFICACIONESFRM'
+const SCHEMA = 'publico'
 
 const form = ref({
   reca: 1,
@@ -290,7 +291,7 @@ async function onSubmit() {
       { nombre: 'p_orden', tipo: 'string', valor: form.value.orden }
     ]
 
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     // Manejar diferentes formatos de respuesta
     let data = null

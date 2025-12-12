@@ -132,7 +132,7 @@ const currentPage = ref(1)
 const itemsPerPage = 10
 const errorMessage = ref('')
 
-const SCHEMA = 'multas_reglamentos'
+const SCHEMA = 'publico'
 
 // Paginación
 const totalPages = computed(() => Math.ceil(rows.value.length / itemsPerPage))

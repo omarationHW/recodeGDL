@@ -72,6 +72,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_LISTANA' // TODO confirmar
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 
@@ -94,7 +95,7 @@ async function loadData() {
     { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
   ]
   try {
-    const response = await execute(OP_LIST, BASE_DB, params)
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     // Manejar diferentes formatos de respuesta
     let data = null
     if (response?.result) {

@@ -10,7 +10,7 @@
         <p>Inicio > Mercados > Configuración de Fechas Límite</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" />
           Nueva Fecha
         </button>
@@ -209,14 +209,6 @@
       </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
@@ -224,9 +216,11 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const loading = ref(false)
@@ -242,13 +236,6 @@ const formData = ref({
   dia_vencimiento: null,
   fecha_descuento: '',
   fecha_recargo: ''
-})
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
 })
 
 // Computed
@@ -269,31 +256,6 @@ const modalTitle = computed(() => {
 // Métodos de UI
 const mostrarAyuda = () => {
   showToast('info', 'Configure los días de vencimiento y fechas de descuento/recargo para cada mes del año.')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
 }
 
 // Utilidades
@@ -332,16 +294,16 @@ const cargarFechas = async () => {
     if (response.data.eResponse && response.data.eResponse.success === true) {
       fechas.value = response.data.eResponse.data.result || []
       if (fechas.value.length > 0) {
-        showToast('success', `Se cargaron ${fechas.value.length} meses`)
+        showToast(`Se cargaron ${fechas.value.length} meses`, 'success')
       }
     } else {
       error.value = response.data.eResponse?.message || 'Error al cargar fechas'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = err.response?.data?.eResponse?.message || 'Error al cargar fechas'
     console.error('Error al cargar fechas:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -382,7 +344,7 @@ const cerrarModal = () => {
 
 const guardar = async () => {
   if (!formData.value.dia_vencimiento || !formData.value.fecha_descuento || !formData.value.fecha_recargo) {
-    showToast('warning', 'Por favor complete todos los campos requeridos')
+    showToast('Por favor complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -406,14 +368,14 @@ const guardar = async () => {
     })
 
     if (response.data.eResponse && response.data.eResponse.success === true) {
-      showToast('success', isEditMode.value ? 'Fecha actualizada correctamente' : 'Fecha creada correctamente')
+      showToast(isEditMode.value ? 'Fecha actualizada correctamente' : 'Fecha creada correctamente', 'success')
       cerrarModal()
       await cargarFechas()
     } else {
-      showToast('error', response.data.eResponse?.message || 'Error al guardar')
+      showToast(response.data.eResponse?.message || 'Error al guardar', 'error')
     }
   } catch (err) {
-    showToast('error', err.response?.data?.eResponse?.message || 'Error al guardar')
+    showToast(err.response?.data?.eResponse?.message || 'Error al guardar', 'error')
     console.error('Error al guardar:', err)
   } finally {
     saving.value = false

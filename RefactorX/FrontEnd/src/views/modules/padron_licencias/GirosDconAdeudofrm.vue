@@ -441,7 +441,9 @@ const loadEstadisticas = async () => {
         { nombre: 'p_page', valor: 1, tipo: 'integer' },
         { nombre: 'p_limit', valor: 10, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -497,7 +499,9 @@ const loadGiros = async () => {
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -568,7 +572,9 @@ const exportToExcel = async () => {
           { nombre: 'p_giro', valor: filters.value.giro || null, tipo: 'string' },
           { nombre: 'p_min_debt', valor: filters.value.minDebt ? parseFloat(filters.value.minDebt) : null, tipo: 'numeric' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       if (response && response.result) {
@@ -613,7 +619,9 @@ const generateReport = async () => {
           { nombre: 'p_giro', valor: filters.value.giro || null, tipo: 'string' },
           { nombre: 'p_min_debt', valor: filters.value.minDebt ? parseFloat(filters.value.minDebt) : null, tipo: 'numeric' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       if (response && response.result) {

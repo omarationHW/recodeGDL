@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -38,13 +38,6 @@
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button
-          class="btn-municipal-danger"
-          @click="cerrar"
-        >
-          <font-awesome-icon icon="times" />
-          Cerrar
         </button>
       </div>
     </div>
@@ -260,7 +253,7 @@
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button class="btn-municipal-success" type="button" @click="guardarAutorizacion">
+        <button class="btn-municipal-primary" type="button" @click="guardarAutorizacion">
           <font-awesome-icon icon="save" />
           Guardar
         </button>
@@ -315,7 +308,7 @@ const form = ref({
 
 // Paginación
 const currentPage = ref(1);
-const itemsPerPage = ref(25);
+const itemsPerPage = ref(10);
 const totalRecords = computed(() => rows.value.length);
 
 const totalPages = computed(() => {
@@ -512,10 +505,4 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>

@@ -148,6 +148,7 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LISTCHQ'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const allRows = ref([])
@@ -190,7 +191,7 @@ async function buscar() {
   try {
     const data = await execute(OP, BASE_DB, [
       { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
-    ])
+    ], '', null, SCHEMA)
 
     // Extraer los datos de la respuesta
     let rows = []

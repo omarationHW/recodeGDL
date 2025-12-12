@@ -4,7 +4,7 @@
       <div class="module-view-icon"><font-awesome-icon icon="percent" /></div>
       <div class="module-view-info">
         <h1>Descuentos Derechos de Mercado</h1>
-        <p>Consulta y administración de descuentos</p>
+        <p>Consulta de descuentos aplicables a derechos de mercado por cuenta y ejercicio</p>
       </div>
     </div>
 
@@ -14,15 +14,42 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Cuenta</label>
-              <input class="municipal-form-control" v-model="filters.cuenta" @keyup.enter="reload" />
+              <input
+                class="municipal-form-control"
+                v-model="filters.cuenta"
+                placeholder="Ej: MER-2024-001"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Año</label>
-              <input class="municipal-form-control" type="number" v-model.number="filters.ejercicio" @keyup.enter="reload" />
+              <input
+                class="municipal-form-control"
+                type="number"
+                v-model.number="filters.ejercicio"
+                placeholder="Ej: 2024"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload"><font-awesome-icon icon="search" /> Buscar</button>
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cuenta.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
+            </button>
           </div>
         </div>
       </div>
@@ -101,11 +128,10 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_DESCDERECHOS_MERC'
-const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
 
-const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear() })
+const filters = ref({ cuenta: '', ejercicio: 2024 })
 const rows = ref([])
 const currentPage = ref(1)
 const itemsPerPage = 10
@@ -123,15 +149,29 @@ async function reload() {
   ]
 
   try {
-    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
-    rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
+
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
+
+    console.log('Registros extraídos:', arr.length, arr)
+    rows.value = arr
     currentPage.value = 1 // Reset a la primera página
   } catch (e) {
+    console.error('Error al consultar descuentos:', e)
     rows.value = []
   }
 }
 
-reload()
+function limpiar() {
+  filters.value = { cuenta: '', ejercicio: 2024 }
+  rows.value = []
+  currentPage.value = 1
+}
 </script>
 
 <style scoped>
@@ -176,6 +216,58 @@ reload()
 }
 
 .btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-municipal-primary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #007bff;
+  border-radius: 0.25rem;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-municipal-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-municipal-secondary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  background-color: #6c757d;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-secondary:hover:not(:disabled) {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.btn-municipal-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

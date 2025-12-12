@@ -81,6 +81,7 @@ import MunicipalModal from '@/components/MunicipalModal.vue'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_SAVE = 'RECAUDADORA_REQ_FRM_SAVE'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 
 const form = ref({
@@ -124,7 +125,7 @@ async function guardar() {
   ]
 
   try {
-    const data = await execute(OP_SAVE, BASE_DB, params)
+    const data = await execute(OP_SAVE, BASE_DB, params, '', null, SCHEMA)
 
     if (data?.result && Array.isArray(data.result) && data.result.length > 0) {
       const result = data.result[0]

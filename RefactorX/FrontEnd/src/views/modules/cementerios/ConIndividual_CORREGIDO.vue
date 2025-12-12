@@ -234,7 +234,7 @@
       </div>
 
       <!-- Mensaje cuando no hay resultados -->
-      <div v-if="busquedaRealizada && !folio" class="municipal-alert municipal-alert-warning">
+      <div v-if="busquedaRealizada && !folio" class="alert alert-warning">
         <font-awesome-icon icon="exclamation-triangle" />
         <strong>No se encontró el folio especificado</strong>
         <p class="mb-0">
@@ -254,7 +254,6 @@
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
@@ -300,9 +299,9 @@ const buscarFolio = async () => {
     // ✅ NUEVO FORMATO: Llamada con execute()
     const response = await execute(
       'sp_cem_consultar_folio',  // Nombre del SP (lowercase)
-      'cementerios',              // Módulo
+      'cementerio',              // Módulo
       params,                     // Parámetros con estructura
-      'cementerios',              // Conexión
+      'cementerio',              // Conexión
       null,                       // Parámetro adicional
       'public'                    // Schema de PostgreSQL
     )
@@ -332,6 +331,7 @@ const buscarFolio = async () => {
     }
   } catch (error) {
     hideLoading()
+    console.error('Error al buscar folio:', error)
     toast.error('Error al buscar folio: ' + (error.message || 'Error desconocido'))
     folio.value = null
     pagos.value = []
@@ -358,6 +358,7 @@ const cargarPagos = async () => {
     // ✅ CORRECCIÓN: Usar response.result
     pagos.value = response.result && response.result ? response.result : []
   } catch (error) {
+    console.error('Error al cargar pagos:', error)
     toast.error('Error al cargar historial de pagos')
     pagos.value = []
   }

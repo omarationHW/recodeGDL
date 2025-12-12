@@ -92,7 +92,7 @@
             </table>
           </div>
           <div class="button-row mt-3">
-            <button class="btn-municipal-success" @click="insertarAdeudos" :disabled="loading">
+            <button class="btn-municipal-primary" @click="insertarAdeudos" :disabled="loading">
               <font-awesome-icon :icon="loading ? 'spinner' : 'save'" :spin="loading" />
               {{ loading ? 'Insertando...' : 'Insertar Adeudos en BD' }}
             </button>
@@ -168,12 +168,12 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Genere adeudos para el Tianguis (Mercado 214) seleccionando el año y trimestre. El importe se calcula como: (Superficie * Importe Cuota) * 13')
+  showToast('Genere adeudos para el Tianguis (Mercado 214) seleccionando el año y trimestre. El importe se calcula como: (Superficie * Importe Cuota) * 13', 'info')
 }
 
 const generarAdeudos = async () => {
   if (!form.value.ano || form.value.ano < 2009) {
-    showToast('warning', 'Ingrese un año válido (mayor o igual a 2009)')
+    showToast('Ingrese un año válido (mayor o igual a 2009)', 'warning')
     return
   }
 
@@ -198,7 +198,7 @@ const generarAdeudos = async () => {
       const locales = res.data.eResponse.data.result
 
       if (locales.length === 0) {
-        showToast('warning', 'No se encontraron locales activos para el año seleccionado')
+        showToast('No se encontraron locales activos para el año seleccionado', 'warning')
         return
       }
 
@@ -220,12 +220,12 @@ const generarAdeudos = async () => {
       })
 
       adeudos.value = adeudosGenerados
-      showToast('success', `${adeudosGenerados.length} adeudos generados correctamente`)
+      showToast(`${adeudosGenerados.length} adeudos generados correctamente`, 'success')
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al obtener locales')
+      showToast(res.data.eResponse.message || 'Error al obtener locales', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión: ' + err.message)
+    showToast('Error de conexión: ' + err.message, 'error')
   } finally {
     loading.value = false
   }
@@ -233,7 +233,7 @@ const generarAdeudos = async () => {
 
 const insertarAdeudos = async () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay adeudos para insertar')
+    showToast('No hay adeudos para insertar', 'warning')
     return
   }
 
@@ -287,14 +287,14 @@ const insertarAdeudos = async () => {
   }
 
   if (insertados.length === adeudos.value.length) {
-    showToast('success', `¡Proceso completado! ${insertados.length} adeudos insertados`)
+    showToast(`¡Proceso completado! ${insertados.length} adeudos insertados`, 'success')
     setTimeout(() => {
       adeudos.value = []
     }, 3000)
   } else if (insertados.length > 0) {
-    showToast('warning', `Proceso completado con errores: ${insertados.length} insertados, ${errores.length} fallidos`)
+    showToast(`Proceso completado con errores: ${insertados.length} insertados, ${errores.length} fallidos`, 'warning')
   } else {
-    showToast('error', 'No se pudieron insertar adeudos')
+    showToast('No se pudieron insertar adeudos', 'error')
   }
 }
 

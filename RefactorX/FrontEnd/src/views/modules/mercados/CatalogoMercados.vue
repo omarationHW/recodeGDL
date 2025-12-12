@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -10,7 +10,7 @@
         <p>Mercados - Administración del Catálogo de Mercados</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -18,9 +18,9 @@
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -142,7 +142,7 @@
               <font-awesome-icon icon="times" />
               Cancelar
             </button>
-            <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loading">
+            <button type="button" class="btn-municipal-primary" @click="submitForm" :disabled="loading">
               <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
               <font-awesome-icon icon="save" v-if="!loading" />
               Guardar
@@ -191,14 +191,7 @@ const showToast = (type, message) => {
     showConfirmButton: false,
     timer: 3000
   });
-};
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Cargar datos
+};// Cargar datos
 async function fetchData() {
   showLoading('Cargando Catálogo de Mercados', 'Preparando listado de mercados...');
   loading.value = true;
@@ -214,11 +207,11 @@ async function fetchData() {
     if (response.data?.eResponse?.success) {
       rows.value = response.data.eResponse.data.result || [];
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -257,7 +250,7 @@ function closeModal() {
 // Guardar
 async function submitForm() {
   if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+    showToast('Complete los campos requeridos', 'warning');
     return;
   }
 
@@ -288,15 +281,15 @@ async function submitForm() {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado');
+      showToast(formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado', 'success');
       closeModal();
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast(response.data?.eResponse?.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar mercado');
+    showToast('Error al guardar mercado', 'error');
   } finally {
     loading.value = false;
   }
@@ -330,17 +323,40 @@ async function deleteRow(row) {
     });
 
     if (response.data?.eResponse?.success) {
-      showToast('success', 'Mercado eliminado');
+      showToast('Mercado eliminado', 'success');
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+      showToast(response.data?.eResponse?.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar mercado');
+    showToast('Error al eliminar mercado', 'error');
   } finally {
     loading.value = false;
   }
+}
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Catálogo de Mercados',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del módulo:</h6>
+        <p>Este módulo permite administrar el catálogo de mercados del municipio.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Haga clic en "Agregar" para registrar un nuevo mercado</li>
+          <li>Los campos de Oficina y Número de Mercado no pueden modificarse después de crear el registro</li>
+          <li>Puede editar o eliminar mercados usando los botones de la tabla</li>
+          <li>Use "Refrescar" para actualizar el listado</li>
+        </ol>
+        <p><strong>Nota:</strong> La eliminación de un mercado puede afectar otros módulos relacionados.</p>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

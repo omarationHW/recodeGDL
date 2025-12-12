@@ -232,7 +232,8 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
-const { showToast } = useLicenciasErrorHandler()
+const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showDocumentation = ref(false)
 const searchParams = ref({ num_contrato: null, num_empresa: null, nombre_empresa: '' })
@@ -340,8 +341,6 @@ const verEstadoCuenta = async () => {
         importe_actualizacion: row.actualizacion || 0,
         total_periodo: (row.importe_adeudos || 0) + (row.importe_recargos || 0) +
                        (row.importe_multa || 0) + (row.importe_gastos || 0) + (row.actualizacion || 0)
-
-const { showLoading, hideLoading } = useGlobalLoading()
       }))
 
       if (estadoCuenta.value.length === 0) {

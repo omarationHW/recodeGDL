@@ -301,7 +301,7 @@ const formatCurrency = (val) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta de movimientos históricos de un local de mercado')
+  showToast('Consulta de movimientos históricos de un local de mercado', 'info')
 }
 
 // Función para calcular descripción de vigencia en frontend
@@ -330,7 +330,7 @@ const calcularRenta = (superficie, importeCuota, seccion) => {
 
 const fetchMovimientos = async () => {
   if (!id_local.value) {
-    showToast('warning', 'Ingrese un ID de local')
+    showToast('Ingrese un ID de local', 'warning')
     return
   }
 
@@ -384,12 +384,12 @@ const fetchMovimientos = async () => {
     currentPage.value = 1
 
     if (movs.length > 0) {
-      showToast('success', `Se encontraron ${movs.length} movimientos`)
+      showToast(`Se encontraron ${movs.length} movimientos`, 'success')
     } else {
-      showToast('info', 'No se encontraron movimientos')
+      showToast('No se encontraron movimientos', 'info')
     }
   } catch (err) {
-    showToast('error', 'Error al cargar movimientos')
+    showToast('Error al cargar movimientos', 'error')
     console.error(err)
   } finally {
     loading.value = false

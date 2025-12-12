@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="container-fluid py-4">
     <div class="municipal-card" style="min-height: 350px;">
       <div class="municipal-card-header">
@@ -225,6 +225,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
@@ -530,6 +531,28 @@ const limpiar = () => {
   condonados.value = [];
   mercados.value = [];
 };
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Condonaciones',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar el historial de condonaciones aplicadas.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Use los filtros para buscar condonaciones especÃ­ficas
+          <li>Puede ver el detalle completo de cada condonaciÃ³n
+          <li>El historial incluye fecha, usuario y justificaciÃ³n</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
 
 onMounted(() => {
   fetchRecaudadoras();

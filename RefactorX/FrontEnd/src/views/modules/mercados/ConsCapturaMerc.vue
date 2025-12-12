@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
@@ -8,12 +8,7 @@
         <h1>Consulta Captura por Mercado</h1>
         <p>Mercados - Detalle de Pagos Capturados por Mercado</p>
       </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+      <div class="button-group ms-auto"></div>
     </div>
 
     <div class="module-view-content">
@@ -130,11 +125,7 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function cargarMercados() {
+};async function cargarMercados() {
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -149,7 +140,7 @@ async function cargarMercados() {
     }
   } catch (error) {
     console.error('Error cargando mercados:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   }
 }
 
@@ -177,15 +168,37 @@ async function buscarPagos() {
     if (response.data?.eResponse?.success) {
       pagos.value = response.data.eResponse.data.result || [];
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos');
+        showToast('No se encontraron pagos', 'info');
       }
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar pagos');
+    showToast('Error al buscar pagos', 'error');
   } finally {
     loading.value = false;
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura por Mercado',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas realizadas por mercado.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione la recaudadora y mercado
+          <li>Indique el perÃ­odo a consultar
+          <li>Los resultados incluyen el detalle de todas las capturas</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => cargarMercados());

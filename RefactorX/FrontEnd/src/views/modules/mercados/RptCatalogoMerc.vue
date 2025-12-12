@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -10,7 +10,7 @@
         <p>Mercados - Reporte y Administración del Catálogo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -18,9 +18,9 @@
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -75,10 +75,10 @@
                   </td>
                   <td>
                     <div class="button-group button-group-sm">
-                      <button class="btn-municipal-primary btn-sm" @click.stop="showModal('update', row)" title="Editar">
+                      <button class="btn-municipal-primary" @click.stop="showModal('update', row)" title="Editar">
                         <font-awesome-icon icon="edit" />
                       </button>
-                      <button class="btn-municipal-danger btn-sm" @click.stop="deleteRow(row)" title="Eliminar">
+                      <button class="btn-municipal-danger" @click.stop="deleteRow(row)" title="Eliminar">
                         <font-awesome-icon icon="trash" />
                       </button>
                     </div>
@@ -182,14 +182,7 @@ const form = ref({
   descripcion: '',
   id_zona: '',
   tipo_emision: 'M'
-});
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Helper para tipo emisión
+});// Helper para tipo emisión
 const emisionLabel = (val) => {
   if (val === 'M') return 'Masiva';
   if (val === 'D') return 'Diskette';
@@ -347,7 +340,60 @@ async function deleteRow(row) {
   }
 }
 
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Reporte de CatÃ¡logo de Mercados',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo genera reportes del catÃ¡logo de mercados.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione los filtros deseados
+          <li>Puede exportar a Excel o imprimir
+          <li>El reporte incluye todos los mercados activos y de baja</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(() => {
   fetchData();
 });
 </script>
+
+<style scoped>
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.module-view-header .btn-municipal-primary,
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+@media print {
+  .module-view-header,
+  .municipal-card-header,
+  .button-group {
+    display: none !important;
+  }
+
+  .municipal-table {
+    font-size: 10px;
+  }
+}
+</style>

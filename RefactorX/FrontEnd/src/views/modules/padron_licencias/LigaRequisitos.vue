@@ -322,9 +322,11 @@ const loadGiros = async () => {
   try {
     const response = await execute(
       'sp_ligarequisitos_giros',
-      'licencias',
+      'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -365,21 +367,25 @@ const loadRequisitosGiro = async () => {
     // Cargar requisitos disponibles
     const disponiblesResponse = await execute(
       'sp_ligarequisitos_available',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     // Cargar requisitos asignados
     const asignadosResponse = await execute(
       'sp_ligarequisitos_list',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (disponiblesResponse && disponiblesResponse.result) {
@@ -448,12 +454,14 @@ const addSelectedRequisitos = async () => {
       try {
         const response = await execute(
           'sp_ligarequisitos_add',
-          'licencias',
+          'padron_licencias',
           [
             { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' },
             { nombre: 'p_req', valor: reqId, tipo: 'integer' }
           ],
-          'guadalajara'
+          'guadalajara',
+          null,
+          'publico'
         )
 
         if (response && response.result) {
@@ -538,12 +546,14 @@ const removeSelectedRequisitos = async () => {
       try {
         const response = await execute(
           'sp_ligarequisitos_remove',
-          'licencias',
+          'padron_licencias',
           [
             { nombre: 'p_id_giro', valor: parseInt(selectedGiroId.value), tipo: 'integer' },
             { nombre: 'p_req', valor: reqId, tipo: 'integer' }
           ],
-          'guadalajara'
+          'guadalajara',
+          null,
+          'publico'
         )
 
         if (response && response.result) {

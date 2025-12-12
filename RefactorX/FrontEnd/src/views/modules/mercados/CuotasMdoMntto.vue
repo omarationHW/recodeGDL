@@ -9,7 +9,7 @@
         <p>Inicio > Catálogos > Cuotas Mercado Mntto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -390,14 +390,14 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Administre las cuotas de mercados por año. Puede crear, editar o eliminar cuotas. Seleccione categoría, sección y clave de cuota para definir la tarifa.')
+  showToast('Administre las cuotas de mercados por año. Puede crear, editar o eliminar cuotas. Seleccione categoría, sección y clave de cuota para definir la tarifa.', 'info')
 }
 
 const cargarCatalogos = async () => {
   try {
     // Cargar categorías
     const resCat = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_categorias', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_categorias', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (resCat.data.eResponse.success) {
       categorias.value = resCat.data.eResponse.data.result || []
@@ -405,7 +405,7 @@ const cargarCatalogos = async () => {
 
     // Cargar secciones
     const resSec = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_secciones', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_secciones', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (resSec.data.eResponse.success) {
       secciones.value = resSec.data.eResponse.data.result || []
@@ -413,13 +413,13 @@ const cargarCatalogos = async () => {
 
     // Cargar claves de cuota
     const resCve = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_claves_cuota', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'sp_get_claves_cuota', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (resCve.data.eResponse.success) {
       clavesCuota.value = resCve.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar catálogos')
+    showToast('Error al cargar catálogos', 'error')
     console.error(err)
   }
 }
@@ -431,6 +431,7 @@ const cargarCuotas = async () => {
       eRequest: {
         Operacion: 'cuotasmdo_listar',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -439,13 +440,13 @@ const cargarCuotas = async () => {
       cuotas.value = res.data.eResponse.data.result || []
       currentPage.value = 1
       if (cuotas.value.length > 0) {
-        showToast('success', `Se cargaron ${cuotas.value.length} cuotas`)
+        showToast(`Se cargaron ${cuotas.value.length} cuotas`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar cuotas')
+      showToast(res.data.eResponse.message || 'Error al cargar cuotas', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al cargar cuotas')
+    showToast('Error de conexión al cargar cuotas', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -486,7 +487,7 @@ const editarCuota = (cuota) => {
 
 const guardarCuota = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos correctamente')
+    showToast('Complete todos los campos requeridos correctamente', 'warning')
     return
   }
 
@@ -514,6 +515,7 @@ const guardarCuota = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: parametros
       }
     })
@@ -521,17 +523,17 @@ const guardarCuota = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result
       if (result && result.length > 0 && result[0][operacion.replace('cuotasmdo_', '')]) {
-        showToast('success', isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente')
+        showToast(isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente', 'success')
         cerrarModal()
         cargarCuotas()
       } else {
-        showToast('error', 'La cuota ya existe con esos parámetros')
+        showToast('La cuota ya existe con esos parámetros', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar cuota')
+      showToast(res.data.eResponse.message || 'Error al guardar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al guardar cuota')
+    showToast('Error de conexión al guardar cuota', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -557,6 +559,7 @@ const eliminarCuota = async () => {
       eRequest: {
         Operacion: 'cuotasmdo_eliminar',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_cuotas', Valor: parseInt(cuotaAEliminar.value.id_cuotas) }
         ]
@@ -566,17 +569,17 @@ const eliminarCuota = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result
       if (result && result.length > 0 && result[0].eliminar) {
-        showToast('success', 'Cuota eliminada exitosamente')
+        showToast('Cuota eliminada exitosamente', 'success')
         cancelarEliminar()
         cargarCuotas()
       } else {
-        showToast('error', 'No se pudo eliminar la cuota')
+        showToast('No se pudo eliminar la cuota', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al eliminar cuota')
+      showToast(res.data.eResponse.message || 'Error al eliminar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al eliminar cuota')
+    showToast('Error de conexión al eliminar cuota', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -722,5 +725,21 @@ onMounted(async () => {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
 }
 </style>

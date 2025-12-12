@@ -237,7 +237,7 @@ const searchPerformed = ref(false)
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => adeudos.value.length)
 
 // Métodos

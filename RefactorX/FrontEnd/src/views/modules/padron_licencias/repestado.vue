@@ -360,7 +360,9 @@ const consultarTramite = async () => {
       [
         { nombre: 'p_id_tramite', valor: parseInt(filters.value.idTramite), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (responseTramite && responseTramite.result && responseTramite.result.length > 0) {
@@ -391,7 +393,9 @@ const loadRevisiones = async () => {
       [
         { nombre: 'p_id_tramite', valor: parseInt(filters.value.idTramite), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

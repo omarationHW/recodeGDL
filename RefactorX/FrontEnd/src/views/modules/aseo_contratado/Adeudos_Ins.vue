@@ -188,6 +188,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showDocumentation = ref(false)
 const contratoInfo = ref(null)
@@ -287,8 +288,6 @@ const limpiarFormulario = () => {
     periodo: '',
     cve_operacion: '',
     importe: null,
-
-const { showLoading, hideLoading } = useGlobalLoading()
     exedencias: 0,
     observaciones: ''
   }

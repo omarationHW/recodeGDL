@@ -398,7 +398,7 @@ const formatCurrency = (val) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta de requerimientos de pago por folio')
+  showToast('Consulta de requerimientos de pago por folio', 'info')
 }
 
 const buscarRequerimiento = async () => {
@@ -477,12 +477,12 @@ const buscarRequerimiento = async () => {
     currentPage.value = 1
 
     searched.value = true
-    showToast('success', 'Requerimiento encontrado')
+    showToast('Requerimiento encontrado', 'success')
 
   } catch (e) {
     error.value = e.message || 'Error al consultar datos'
     searched.value = true
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()

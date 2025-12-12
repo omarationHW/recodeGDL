@@ -244,7 +244,7 @@ import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()

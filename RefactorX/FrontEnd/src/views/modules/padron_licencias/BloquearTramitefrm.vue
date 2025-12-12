@@ -323,7 +323,7 @@ const buscarTramite = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -363,7 +363,7 @@ const cargarBloqueos = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -387,7 +387,7 @@ const cargarGiroDescripcion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -441,7 +441,7 @@ const confirmarBloqueo = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -511,7 +511,7 @@ const confirmarDesbloqueo = async (bloqueo) => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

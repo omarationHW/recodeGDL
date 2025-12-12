@@ -458,7 +458,9 @@ const loadConnectionStatus = async () => {
       'tdmconection_sp_get_connection_status',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -503,7 +505,9 @@ const loadLogs = async () => {
         { nombre: 'p_fecha_fin', valor: filters.value.fechaFin || null, tipo: 'date' },
         { nombre: 'p_estado', valor: filters.value.estado || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -587,7 +591,9 @@ const syncTramites = async () => {
       'tdmconection_sp_sync_tramites',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

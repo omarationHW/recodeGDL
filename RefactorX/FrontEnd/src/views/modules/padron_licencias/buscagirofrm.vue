@@ -374,7 +374,7 @@ const cargarEstadisticas = async () => {
       [],
       '', // tenant vacío
       null, // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -416,7 +416,7 @@ const buscarGiros = async () => {
       ],
       '', // tenant vacío para usar conexión por defecto
       null, // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     const endTime = performance.now()

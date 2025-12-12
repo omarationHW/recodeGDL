@@ -6,7 +6,7 @@
       </div>
       <div class="module-view-info">
         <h1>Cartas de Invitación Predial</h1>
-        <p>Consulta de cartas de invitación por cuenta</p>
+        <p>Consulta de cartas de invitación por cuenta v2</p>
       </div>
     </div>
 
@@ -124,20 +124,18 @@ async function generar() {
   ]
 
   try {
-    const data = await execute(OP_GEN, BASE_DB, params)
+    const response = await execute(OP_GEN, BASE_DB, params, '', null, 'publico')
+
+    // Extraer datos de la estructura correcta
+    const data = response?.eResponse?.data || response?.data || response
     const arr = Array.isArray(data?.result) ? data.result : []
 
     if (arr.length > 0) {
-      if (arr[0].success) {
-        rows.value = arr
-        mensaje.value = arr[0].message
-      } else {
-        rows.value = []
-        mensaje.value = arr[0].message
-      }
+      rows.value = arr
+      mensaje.value = ''
     } else {
       rows.value = []
-      mensaje.value = 'No se encontraron resultados'
+      mensaje.value = 'No se encontraron cartas de invitación para esta cuenta'
     }
   } catch (e) {
     rows.value = []

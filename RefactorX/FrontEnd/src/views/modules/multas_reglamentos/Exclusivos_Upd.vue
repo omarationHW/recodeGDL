@@ -104,7 +104,7 @@ async function aplicar() {
     const params = [
       { nombre: 'datos', tipo: 'string', valor: jsonPayload.value }
     ]
-    const data = await execute(OP_UPD, BASE_DB, params)
+    const data = await execute(OP_UPD, BASE_DB, params, '', null, 'publico')
 
     // Extraer el resultado del SP
     const result = data?.result?.[0] || data?.[0] || {}

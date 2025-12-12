@@ -345,7 +345,9 @@ const searchLicense = async () => {
       [
         { nombre: 'p_numero_licencia', valor: licenseNumber.value.trim(), tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -419,7 +421,9 @@ const printLicense = async () => {
         { nombre: 'p_formato', valor: printFormat.value, tipo: 'string' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

@@ -290,10 +290,9 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showDocumentation = ref(false)
 const numContratoBuscar = ref(null)

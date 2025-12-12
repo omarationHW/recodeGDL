@@ -217,7 +217,9 @@ const loadUserInfo = async () => {
       'sp_psplash_get_user_info',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -234,7 +236,9 @@ const loadAnnouncements = async () => {
       'sp_psplash_get_announcements',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -253,7 +257,9 @@ const loadStats = async () => {
       'sp_psplash_get_stats',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {

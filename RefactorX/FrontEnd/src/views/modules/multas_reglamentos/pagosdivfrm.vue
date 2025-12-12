@@ -121,6 +121,7 @@ import { useApi } from '@/composables/useApi';
 const { loading, execute } = useApi();
 const BASE_DB = 'multas_reglamentos';
 const OP = 'RECAUDADORA_PAGOSDIVFRM';
+const SCHEMA = 'publico';
 
 const filters = ref({
   cuenta: ''
@@ -166,9 +167,10 @@ async function pagar() {
   cols.value = [];
 
   try {
-    const data = await execute(OP, BASE_DB, [
-      { name: 'clave_cuenta', type: 'C', value: String(filters.value.cuenta || '') }
-    ]);
+    const params = [
+      { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
+    ];
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA);
 
     // Extraer los datos de la respuesta
     let rows = [];

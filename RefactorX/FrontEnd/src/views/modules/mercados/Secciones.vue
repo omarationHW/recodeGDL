@@ -10,7 +10,7 @@
         <p>Inicio > Mercados > Secciones</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalCrear" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalCrear" :disabled="loading">
           <font-awesome-icon icon="plus-circle" />
           Nueva Sección
         </button>
@@ -29,7 +29,7 @@
       <!-- Estadísticas -->
       <div class="stats-grid mb-4">
         <div class="stat-card stat-card-primary">
-          <div class="stat-icon">
+          <div class="stat-icon-wrapper">
             <font-awesome-icon icon="layer-group" />
           </div>
           <div class="stat-content">
@@ -38,7 +38,7 @@
           </div>
         </div>
         <div class="stat-card stat-card-success">
-          <div class="stat-icon">
+          <div class="stat-icon-wrapper">
             <font-awesome-icon icon="store" />
           </div>
           <div class="stat-content">
@@ -47,7 +47,7 @@
           </div>
         </div>
         <div class="stat-card stat-card-info">
-          <div class="stat-icon">
+          <div class="stat-icon-wrapper">
             <font-awesome-icon icon="chart-bar" />
           </div>
           <div class="stat-content">
@@ -196,7 +196,7 @@
         </button>
         <button
           type="button"
-          class="btn-municipal-success"
+          class="btn-municipal-primary"
           @click="guardarSeccion"
           :disabled="guardando">
           <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />

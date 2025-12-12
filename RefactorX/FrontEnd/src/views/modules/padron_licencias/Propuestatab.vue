@@ -574,7 +574,9 @@ const buscarPropuestas = async () => {
         { nombre: 'p_clave_catastral', valor: filters.value.claveCatastral || null },
         { nombre: 'p_anio', valor: filters.value.anio }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -602,7 +604,9 @@ const cargarHistoricoCuenta = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -630,7 +634,9 @@ const cargarHistoricoPredial = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -658,7 +664,9 @@ const cargarHistoricoUbicacion = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -686,7 +694,9 @@ const cargarHistoricoValores = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -714,7 +724,9 @@ const cargarHistoricoDiferencias = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -742,7 +754,9 @@ const cargarHistoricoRegimen = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -770,7 +784,9 @@ const cargarCondominio = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.cuenta }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {

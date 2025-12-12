@@ -1,14 +1,23 @@
 <template>
   <div class="module-view">
+    <!-- Header del módulo -->
     <div class="module-view-header">
-      <h1 class="module-view-info">
-        <font-awesome-icon icon="user-search" />
-        Consulta por Nombre del Titular
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Consulta por Nombre"
-        :sections="helpSections"
-      />
+      <div class="module-view-icon">
+        <font-awesome-icon icon="user" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta por Nombre del Titular</h1>
+        <p>Cementerios - Búsqueda de folios por nombre</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <!-- Búsqueda -->
@@ -90,94 +99,119 @@
       <font-awesome-icon icon="info-circle" />
       No se encontraron folios con el nombre especificado
     </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+    <!-- Modal de Ayuda/Documentación -->
+    <DocumentationModal
+      :show="showDocumentation"
       :componentName="'ConsultaNombre'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      @close="closeDocumentation"
     />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
+const router = useRouter()
+
+// Sistema de Toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => {
+    hideToast()
+  }, 4000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
 
 // Modal de documentación
 const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
+const mostrarAyuda = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
-const router = useRouter()
 
 const nombreBuscar = ref('')
 const folios = ref([])
 const busquedaRealizada = ref(false)
 
-const helpSections = [
-  {
-    title: 'Consulta por Nombre del Titular',
-    content: `
-      <p>Búsqueda de folios por nombre del titular.</p>
-      <h4>Uso:</h4>
-      <ol>
-        <li>Ingrese el nombre completo o parte del nombre del titular</li>
-        <li>La búsqueda no distingue mayúsculas/minúsculas</li>
-        <li>Se mostrarán todos los folios que coincidan</li>
-        <li>Haga clic en el ícono de ojo para ver el detalle completo</li>
-      </ol>
-      <h4>Columnas de Año Pagado:</h4>
-      <ul>
-        <li><span style="color: green;">Verde:</span> Al corriente</li>
-        <li><span style="color: orange;">Naranja:</span> 1-2 años atrasado</li>
-        <li><span style="color: red;">Rojo:</span> 3+ años atrasado</li>
-      </ul>
-    `
-  }
-]
-
 const buscarPorNombre = async () => {
   if (!nombreBuscar.value || nombreBuscar.value.trim().length < 3) {
-    toast.warning('Ingrese al menos 3 caracteres para buscar')
+    showToast('warning', 'Ingrese al menos 3 caracteres para buscar')
     return
   }
 
+  showLoading('Buscando folios...')
   try {
-    const params = [
-      {
-        nombre: 'p_nombre',
-        valor: nombreBuscar.value.trim(),
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_consultar_por_nombre', 'cementerios', params,
-      'cementerios',
+    // Usar SP: sp_consultanombre_buscar
+    // Base: cementerio.public (según 07_SP_CEMENTERIOS_CONSULTANOMBRE_EXACTO_all_procedures.sql)
+    const response = await execute(
+      'sp_consultanombre_buscar',
+      'cementerio',
+      [
+         { nombre: 'p_nombre', valor: nombreBuscar.value.trim(), tipo: 'string' }
+      ],
+      '',
       null,
-      'public'
-    , '', null, 'comun')
+      'publico'
+    )
 
-    folios.value = response.result || []
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT FIRST 50 *
+    FROM padron_licencias.comun.ta_13_datosrcm
+    WHERE UPPER(nombre) LIKE UPPER([nombre] || '%')
+      AND vigencia = 'A'
+    ORDER BY nombre
+    */
+
+    if (response && response.result) {
+      folios.value = response.result
+    }
     busquedaRealizada.value = true
 
     if (folios.value.length > 0) {
-      toast.success(`Se encontraron ${folios.value.length} folio(s)`)
+      showToast('success', `Se encontraron ${folios.value.length} folio(s)`)
     } else {
-      toast.info('No se encontraron folios con el nombre especificado')
+      showToast('info', 'No se encontraron folios con el nombre especificado')
     }
   } catch (error) {
-    toast.error('Error al buscar folios')
+    console.error('Error al buscar por nombre:', error)
+    showToast('error', 'Error al buscar folios')
     folios.value = []
+  } finally {
+    hideLoading()
   }
 }
 

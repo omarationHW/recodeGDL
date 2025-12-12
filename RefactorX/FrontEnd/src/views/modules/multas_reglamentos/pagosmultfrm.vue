@@ -107,6 +107,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_PAGOSMULTFRM'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 
 const jsonPayload = ref('')
@@ -130,7 +131,7 @@ async function pagar() {
   ]
 
   try {
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     if (data?.result && Array.isArray(data.result) && data.result.length > 0) {
       const res = data.result[0]

@@ -820,7 +820,7 @@ const buscarAnuncios = async () => {
       params,
       'padron_licencias',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -865,7 +865,7 @@ const cargarEstadisticas = async () => {
       [],
       'padron_licencias',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {

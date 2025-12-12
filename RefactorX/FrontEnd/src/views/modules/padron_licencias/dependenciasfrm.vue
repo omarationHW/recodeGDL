@@ -621,7 +621,7 @@ const buscar = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -714,7 +714,7 @@ const crearDependencia = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -770,7 +770,7 @@ const actualizarDependencia = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -818,7 +818,7 @@ const confirmarEliminar = async (dep) => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {

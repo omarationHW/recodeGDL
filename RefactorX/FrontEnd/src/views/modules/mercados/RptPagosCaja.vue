@@ -161,23 +161,17 @@
       </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 import axios from 'axios'
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const recaudadoras = ref([])
@@ -190,13 +184,6 @@ const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
 // Computed
 const totalGeneral = computed(() => {
   return pagos.value.reduce((sum, item) => sum + (parseFloat(item.importe_total) || 0), 0)
@@ -205,31 +192,6 @@ const totalGeneral = computed(() => {
 // Métodos
 const mostrarAyuda = () => {
   showToast('info', 'Seleccione una oficina y rango de fechas para consultar los pagos agrupados por caja recaudadora.')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
 }
 
 const formatCurrency = (value) => {
@@ -274,13 +236,13 @@ const fetchRecaudadoras = async () => {
 const buscar = async () => {
   if (!selectedOficina.value || !fechaDesde.value || !fechaHasta.value) {
     error.value = 'Debe seleccionar oficina y rango de fechas'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (new Date(fechaDesde.value) > new Date(fechaHasta.value)) {
     error.value = 'La fecha desde no puede ser mayor que la fecha hasta'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -314,18 +276,18 @@ const buscar = async () => {
     if (res.data.eResponse.success) {
       pagos.value = res.data.eResponse.data.result || []
       if (pagos.value.length > 0) {
-        showToast('success', `Se encontraron ${pagos.value.length} registros de pagos`)
+        showToast(`Se encontraron ${pagos.value.length} registros de pagos`, 'success')
       } else {
-        showToast('info', 'No se encontraron pagos con los criterios especificados')
+        showToast('No se encontraron pagos con los criterios especificados', 'info')
       }
     } else {
       error.value = res.data.eResponse.message || 'Error al consultar pagos'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar pagos'
     console.error('Error al buscar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -339,12 +301,12 @@ const limpiarFiltros = () => {
   pagos.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (pagos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -377,10 +339,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 

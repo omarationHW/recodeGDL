@@ -488,7 +488,9 @@ const loadTramitesByFecha = async () => {
       [
         { nombre: 'p_fecha', valor: filters.value.fecha, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -527,7 +529,9 @@ const loadTramiteById = async () => {
       [
         { nombre: 'p_id_tramite', valor: parseInt(filters.value.id_tramite), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -589,7 +593,9 @@ const verCruceCalles = async (id_tramite) => {
       [
         { nombre: 'p_id_tramite', valor: parseInt(id_tramite), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)

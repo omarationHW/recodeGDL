@@ -1100,7 +1100,7 @@ const buscarTramite = async () => {
       [{ nombre: 'p_id_tramite', valor: searchId.value, tipo: 'integer' }],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (!response || !response.result || response.result.length === 0) {
@@ -1197,7 +1197,7 @@ const cargarGiro = async (idGiro) => {
       [{ nombre: 'p_id_giro', valor: idGiro, tipo: 'integer' }],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1378,7 +1378,7 @@ const confirmarActualizacion = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     hideLoading()
@@ -1495,7 +1495,7 @@ const buscarGiros = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (response && response.result) {
@@ -1539,7 +1539,7 @@ const buscarCalles = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (response && response.result) {

@@ -96,16 +96,23 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_IMPRESIONNVA'
+const SCHEMA = 'publico'
 
 const filters = ref({ cuenta: '' })
 const result = ref(null)
 
 async function imprimir() {
   const params = [
-    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
+    {
+      nombre: 'p_datos',
+      tipo: 'string',
+      valor: JSON.stringify({
+        clave_cuenta: filters.value.cuenta
+      })
+    }
   ]
   try {
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     if (response?.result) {
       result.value = response.result
     } else {

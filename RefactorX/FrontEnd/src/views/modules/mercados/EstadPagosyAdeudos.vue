@@ -238,7 +238,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Consulte estadísticas de pagos, capturas y adeudos por mercado')
+  showToast('Ayuda: Consulte estadísticas de pagos, capturas y adeudos por mercado', 'info')
 }
 
 const showToast = (type, message) => {
@@ -280,7 +280,7 @@ const fetchRecaudadoras = async () => {
       recaudadoras.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     hideLoading()
   }
@@ -288,7 +288,7 @@ const fetchRecaudadoras = async () => {
 
 const consultar = async () => {
   if (!selectedRec.value || !form.value.axo || !form.value.mes || !form.value.fechaDesde || !form.value.fechaHasta) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -313,16 +313,16 @@ const consultar = async () => {
     if (res.data.eResponse?.success) {
       result.value = res.data.eResponse.data.result || []
       if (result.value.length > 0) {
-        showToast('success', `Se encontraron ${result.value.length} mercados`)
+        showToast(`Se encontraron ${result.value.length} mercados`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay datos para los filtros seleccionados')
+        showToast('No hay datos para los filtros seleccionados', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse?.message || 'Error en la consulta')
+      showToast(res.data.eResponse?.message || 'Error en la consulta', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error al consultar estadísticas')
+    showToast('Error al consultar estadísticas', 'error')
   } finally {
     loading.value = false
   }
@@ -336,15 +336,15 @@ const limpiarFiltros = () => {
   form.value.fechaHasta = new Date().toISOString().split('T')[0]
   result.value = []
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (result.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
 }
 
 onMounted(() => {

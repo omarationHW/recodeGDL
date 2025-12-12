@@ -103,6 +103,7 @@ import { useApi } from '@/composables/useApi'
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_LISTADO_MULTIPLE'
 const OP_COUNT = 'RECAUDADORA_LISTADO_MULTIPLE_COUNT'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 
@@ -126,12 +127,12 @@ async function loadData() {
   const offset = (currentPage.value - 1) * pageSize.value
   const params = [
     { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') },
-    { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value },
-    { nombre: 'p_offset', tipo: 'integer', valor: offset }
+    { nombre: 'p_offset', tipo: 'integer', valor: offset },
+    { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
   ]
 
   try {
-    const response = await execute(OP_LIST, BASE_DB, params)
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     // Manejar diferentes formatos de respuesta
     let data = null
     if (response?.result) {
@@ -162,7 +163,7 @@ async function getCount() {
   ]
 
   try {
-    const response = await execute(OP_COUNT, BASE_DB, params)
+    const response = await execute(OP_COUNT, BASE_DB, params, '', null, SCHEMA)
     let data = null
     if (response?.result) {
       data = response.result

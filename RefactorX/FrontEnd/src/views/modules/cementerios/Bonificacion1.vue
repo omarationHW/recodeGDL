@@ -1,18 +1,84 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="file-signature" />
-        Bonificaciones Especiales con Oficio
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Bonificaciones con Oficio"
-        :sections="helpSections"
-      />
+      </div>
+      <div class="module-view-info">
+        <h1>Bonificaciones Especiales con Oficio</h1>
+        <p>Cementerios - Gestión de bonificaciones especiales autorizadas por oficio</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
-    <!-- Búsqueda de Folio -->
+    <!-- Búsqueda de Oficio/Año/Recaudadora -->
     <div class="municipal-card mb-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="file-invoice" />
+        Buscar por Oficio
+      </div>
+      <div class="municipal-card-body">
+        <div class="form-grid-three">
+          <div class="form-group">
+            <label class="form-label required">Número de Oficio</label>
+            <input
+              v-model.number="busqueda.oficio"
+              type="number"
+              class="municipal-form-control"
+              min="1"
+              autofocus
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Año</label>
+            <input
+              v-model.number="busqueda.axo"
+              type="number"
+              class="municipal-form-control"
+              :min="2000"
+              :max="new Date().getFullYear()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Recaudadora</label>
+            <select
+              v-model.number="busqueda.id_rec"
+              class="municipal-form-control"
+            >
+              <option value="">Seleccione...</option>
+              <option
+                v-for="rec in recaudadoras"
+                :key="rec.id_rec"
+                :value="rec.id_rec"
+              >
+                {{ rec.recaudadora }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button @click="buscarPorOficio" class="btn-municipal-primary">
+            <font-awesome-icon icon="search" />
+            Buscar Oficio
+          </button>
+          <button @click="limpiar" class="btn-municipal-secondary">
+            <font-awesome-icon icon="eraser" />
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Búsqueda de Folio (solo si no existe bonificación) -->
+    <div v-if="modoNuevo" class="municipal-card mb-3">
       <div class="municipal-card-header">
         <font-awesome-icon icon="search" />
         Buscar Folio
@@ -26,7 +92,6 @@
               type="number"
               class="municipal-form-control"
               @keyup.enter="buscarFolio"
-              autofocus
             />
           </div>
           <div class="form-actions">
@@ -46,356 +111,536 @@
         Información del Folio {{ folio.control_rcm }}
       </div>
       <div class="municipal-card-body">
-        <div class="folio-info-grid">
-          <div class="info-group">
-            <label>Titular:</label>
+        <div class="info-grid">
+          <div class="info-item">
+            <label class="info-label">Titular:</label>
             <span class="info-value">{{ folio.nombre }}</span>
           </div>
-          <div class="info-group">
-            <label>Cementerio:</label>
-            <span class="info-value">{{ folio.cementerio }}</span>
+          <div class="info-item">
+            <label class="info-label">Cementerio:</label>
+            <span class="info-value">{{ folio.nombre_cementerio }}</span>
           </div>
-          <div class="info-group">
-            <label>Ubicación:</label>
+          <div class="info-item">
+            <label class="info-label">Ubicación:</label>
             <span class="info-value">{{ formatearUbicacion(folio) }}</span>
           </div>
-          <div class="info-group">
-            <label>Año Pagado:</label>
-            <span class="info-value highlight">{{ folio.axo_pagado }}</span>
+          <div class="info-item">
+            <label class="info-label">Año Pagado:</label>
+            <span class="info-value text-primary fw-bold">{{ folio.axo_pagado }}</span>
           </div>
-          <div class="info-group">
-            <label>Metros:</label>
+          <div class="info-item">
+            <label class="info-label">Metros:</label>
             <span class="info-value">{{ folio.metros }} m²</span>
-          </div>
-          <div class="info-group">
-            <label>Tipo:</label>
-            <span class="info-value">{{ folio.tipo }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Formulario de Bonificación con Oficio -->
+    <!-- Formulario de Bonificación -->
     <div v-if="folio" class="municipal-card">
       <div class="municipal-card-header">
         <font-awesome-icon icon="percentage" />
-        Aplicar Bonificación Especial
+        {{ bonificacionExistente ? 'Modificar' : 'Aplicar' }} Bonificación Especial
       </div>
       <div class="municipal-card-body">
         <div class="form-grid-three">
           <div class="form-group">
-            <label class="form-label required">Número de Oficio</label>
+            <label class="form-label required">Fecha del Oficio</label>
             <input
-              v-model.number="bonificacion.numero_oficio"
-              type="number"
+              v-model="bonificacion.fecha_ofic"
+              type="date"
               class="municipal-form-control"
-              min="1"
             />
           </div>
           <div class="form-group">
-            <label class="form-label required">Año Desde</label>
+            <label class="form-label required">Importe a Bonificar</label>
             <input
-              v-model.number="bonificacion.anio_desde"
-              type="number"
-              class="municipal-form-control"
-              :min="2000"
-              :max="new Date().getFullYear()"
-            />
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Porcentaje de Bonificación (%)</label>
-            <input
-              v-model.number="bonificacion.porcentaje"
+              v-model.number="bonificacion.importe_bonificar"
               type="number"
               class="municipal-form-control"
               min="0"
-              max="100"
               step="0.01"
+              @blur="calcularResto"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Importe Bonificado</label>
+            <input
+              v-model.number="bonificacion.importe_bonificado"
+              type="number"
+              class="municipal-form-control"
+              min="0"
+              step="0.01"
+              @blur="calcularResto"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Importe Restante</label>
+            <input
+              v-model.number="bonificacion.importe_resto"
+              type="number"
+              class="municipal-form-control"
+              min="0"
+              step="0.01"
+              readonly
             />
           </div>
         </div>
-        <div class="form-group">
-          <label class="municipal-form-label">Observaciones</label>
-          <textarea
-            v-model="bonificacion.observaciones"
-            class="municipal-form-control"
-            rows="3"
-            maxlength="255"
-          ></textarea>
-        </div>
         <div class="form-actions">
-          <button @click="aplicarBonificacion" class="btn-municipal-primary">
+          <button @click="guardarBonificacion" class="btn-municipal-primary">
             <font-awesome-icon icon="save" />
-            Aplicar Bonificación
+            {{ bonificacionExistente ? 'Actualizar' : 'Aplicar' }} Bonificación
           </button>
-          <button @click="limpiar" class="btn-municipal-secondary">
-            <font-awesome-icon icon="eraser" />
-            Limpiar
+          <button
+            v-if="bonificacionExistente"
+            @click="confirmarEliminar"
+            class="btn-municipal-danger"
+          >
+            <font-awesome-icon icon="trash" />
+            Eliminar Bonificación
+          </button>
+          <button @click="cancelar" class="btn-municipal-secondary">
+            <font-awesome-icon icon="times" />
+            Cancelar
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Historial de Bonificaciones con Oficio -->
-    <div v-if="folio && bonificaciones.length > 0" class="municipal-card mt-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="history" />
-        Historial de Bonificaciones con Oficio
-      </div>
-      <div class="municipal-card-body">
-        <div class="table-responsive">
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr>
-                <th>Oficio</th>
-                <th>Año Desde</th>
-                <th>Porcentaje</th>
-                <th>Fecha Aplicación</th>
-                <th>Observaciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="bon in bonificaciones" :key="bon.id_bonificacion">
-                <td>{{ bon.numero_oficio }}</td>
-                <td>{{ bon.anio_desde }}</td>
-                <td>{{ bon.porcentaje }}%</td>
-                <td>{{ formatearFecha(bon.fecha_mov) }}</td>
-                <td>{{ bon.observaciones }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
       :componentName="'Bonificacion1'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      @close="closeDocumentation"
     />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
 
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
-const folioABuscar = ref(null)
-const folio = ref(null)
-const bonificaciones = ref([])
-
-const bonificacion = reactive({
-  numero_oficio: null,
-  anio_desde: new Date().getFullYear(),
-  porcentaje: 0,
-  observaciones: ''
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
 })
 
-const helpSections = [
-  {
-    title: 'Bonificaciones Especiales con Oficio',
-    content: `
-      <p>Gestión de bonificaciones especiales autorizadas mediante oficio oficial.</p>
-      <h4>Características:</h4>
-      <ul>
-        <li><strong>Número de Oficio:</strong> Documento que autoriza la bonificación</li>
-        <li><strong>Año Desde:</strong> A partir de qué año aplica la bonificación</li>
-        <li><strong>Porcentaje:</strong> Porcentaje de bonificación autorizado</li>
-      </ul>
-      <p>Este tipo de bonificaciones requiere autorización oficial y queda registrada en el historial del folio.</p>
-    `
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
   }
-]
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Estado
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
+
+const recaudadoras = ref([])
+const folioABuscar = ref(null)
+const folio = ref(null)
+const bonificacionExistente = ref(false)
+const modoNuevo = ref(false)
+
+const busqueda = reactive({
+  oficio: null,
+  axo: new Date().getFullYear(),
+  id_rec: ''
+})
+
+const bonificacion = reactive({
+  fecha_ofic: new Date().toISOString().split('T')[0],
+  importe_bonificar: 0,
+  importe_bonificado: 0,
+  importe_resto: 0
+})
+
+onMounted(async () => {
+  await cargarRecaudadoras()
+})
+
+const cargarRecaudadoras = async () => {
+  try {
+    /* TODO FUTURO: Query SQL original (Bonificacion1.dfm líneas 1812-1813):
+    -- DatabaseName: 'ingresosifx'
+    -- SQL: 'select * from ta_12_recaudadoras where id_rec<8'
+    */
+    //Tabla ta_12_recaudadoras no existe en DB Cementerio- apunta a padron_licencias/comun
+    const response = await execute(
+      'sp_bonificacion1_listar_recaudadoras',
+      'cementerio',
+      [],
+      'function',
+      null,
+      'public'
+    )
+    if(response?.result?.length > 0) {
+      recaudadoras.value = response.result
+    }
+
+  } catch (error) {
+    console.error('Error al cargar recaudadoras:', error)
+    showToast('error', 'Error al cargar recaudadoras: ' + error.message)
+  }
+}
+
+const buscarPorOficio = async () => {
+  if (!busqueda.oficio || !busqueda.axo || !busqueda.id_rec) {
+    showToast('warning', 'Complete todos los campos: Oficio, Año y Recaudadora')
+    return
+  }
+
+  showLoading()
+
+  try {
+    /* TODO FUTURO: Query SQL original (Bonificacion1.dfm líneas 1617-1620):
+    -- DatabaseName: 'ingresosifx'
+    -- SQL: 'select * from ta_13_bonifica where oficio=:ofic and axo=:vaxo and id_rec=:reca'
+    -- Parámetros Pascal (líneas 315-317):
+    --   :ofic = StrToInt(mxFlatFloatEOficio.Text)
+    --   :vaxo = StrToInt(FlatSpinEditIAxo.Text)
+    --   :reca = Qryrecid_rec.Value
+    */
+    // La tabla ta_13_bonifica no tiene registros
+
+    const response = await execute(
+      'sp_bonificacion1_buscar_bonificacion',
+      'cementerio',
+      [
+        { nombre: 'p_oficio', valor: busqueda.oficio, tipo: 'integer' },
+        { nombre: 'p_axo', valor: busqueda.axo, tipo: 'smallint' },
+        { nombre: 'p_id_rec', valor: busqueda.id_rec, tipo: 'integer' }
+      ],
+      'function',
+      null,
+      'public'
+    )
+
+    if (response && response.length > 0) {
+      // Bonificación existe - Modo edición
+      bonificacionExistente.value = true
+      modoNuevo.value = false
+
+      const bon = response[0]
+      await buscarFolioPorId(bon.control_rcm)
+
+      bonificacion.fecha_ofic = bon.fecha_ofic
+      bonificacion.importe_bonificar = bon.importe_bonificar
+      bonificacion.importe_bonificado = bon.importe_bonificado
+      bonificacion.importe_resto = bon.importe_resto
+
+      showToast('success', 'Bonificación encontrada - Modo edición')
+    } else {
+      // No existe - Modo nuevo
+      bonificacionExistente.value = false
+      modoNuevo.value = true
+      folio.value = null
+      folioABuscar.value = null
+
+      bonificacion.fecha_ofic = new Date().toISOString().split('T')[0]
+      bonificacion.importe_bonificar = 0
+      bonificacion.importe_bonificado = 0
+      bonificacion.importe_resto = 0
+
+      showToast('info', 'Oficio no encontrado - Busque un folio para crear la bonificación')
+    }
+  } catch (error) {
+    console.error('Error al buscar oficio:', error)
+    showToast('error', 'Error al buscar oficio: ' + error.message)
+  } finally {
+    hideLoading()
+  }
+}
 
 const buscarFolio = async () => {
   if (!folioABuscar.value) {
-    toast.warning('Ingrese un número de folio')
+    showToast('warning', 'Ingrese un número de folio')
     return
   }
 
-  try {
-    const params = [
-      {
-        nombre: 'p_control_rcm',
-        valor: folioABuscar.value,
-        tipo: 'string'
-      }
-    ]
+  showLoading()
 
-    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
-      'cementerios',
+  try {
+    /* TODO FUTURO: Query SQL original (Bonificacion1.dfm líneas 1496-1498):
+    -- DatabaseName: 'ingresosifx'
+    -- SQL: 'select a.*, b.nombre from ta_13_datosrcm a, tc_13_cementerios b
+    --       where a.control_rcm=:control and a.cementerio=b.cementerio'
+    -- Parámetro Pascal (línea 259):
+    --   :control = StrToInt(sCurrencyEfolio.Text)
+    --NO EXISTE TABLA tc_13_cementerios EN DB CEMENTERIO ni padron_licencias/comun
+    */
+
+    const response = await execute(
+      'sp_bonificacion1_buscar_folio',
+      'cementerio',
+      [
+        { nombre: 'p_control_rcm', valor: folioABuscar.value, tipo: 'integer' }
+      ],
+      'function',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    if (response.result && response.result.length > 0) {
-      const result = response.result[0]
-
-      if (result.resultado === 'N') {
-        folio.value = null
-        toast.warning(result.mensaje)
-        return
-      }
-
-      folio.value = result
-      await cargarBonificaciones()
-      toast.success('Folio encontrado')
+    if (response && response.length > 0) {
+      folio.value = response[0]
+      showToast('success', 'Folio encontrado')
     } else {
       folio.value = null
-      toast.warning('No se encontró el folio')
+      showToast('warning', 'No existe registro con ese folio')
     }
   } catch (error) {
-    toast.error('Error al buscar folio')
+    console.error('Error al buscar folio:', error)
+    showToast('error', 'Error al buscar folio: ' + error.message)
     folio.value = null
+  } finally {
+    hideLoading()
   }
 }
 
-const cargarBonificaciones = async () => {
-  try {
-    const params = [
-      {
-        nombre: 'p_operacion',
-        valor: 3,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_control_rcm',
-        valor: folioABuscar.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_numero_oficio',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_anio_desde',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_porcentaje',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_observaciones',
-        valor: '',
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_bonificaciones_oficio', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
-
-    bonificaciones.value = response.result || []
-  } catch (error) {
-    bonificaciones.value = []
-  }
-}
-
-const aplicarBonificacion = async () => {
-  if (!bonificacion.numero_oficio || !bonificacion.anio_desde) {
-    toast.warning('Complete los campos requeridos: Número de Oficio y Año Desde')
-    return
-  }
-
-  if (bonificacion.porcentaje < 0 || bonificacion.porcentaje > 100) {
-    toast.warning('El porcentaje debe estar entre 0 y 100')
-    return
-  }
+const buscarFolioPorId = async (controlRcm) => {
+  showLoading()
 
   try {
-    const params = [
-      {
-        nombre: 'p_operacion',
-        valor: 1,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_control_rcm',
-        valor: folioABuscar.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_numero_oficio',
-        valor: bonificacion.numero_oficio,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_anio_desde',
-        valor: bonificacion.anio_desde,
-        tipo: 'integer'
-      },
-      {
-        nombre: 'p_porcentaje',
-        valor: bonificacion.porcentaje,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_observaciones',
-        valor: bonificacion.observaciones || '',
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1,
-        tipo: 'string'
-      }
-    ]
+    // Tabla tc_13_cementerios no existe en DB Cementerio ni padron_licencias/comun
 
-    const response = await execute('sp_cem_bonificaciones_oficio', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_bonificacion1_buscar_folio',
+      'cementerio',
+      [
+        { nombre: 'p_control_rcm', valor: controlRcm, tipo: 'integer' }
+      ],
+      'function',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    if (response.result && response.result[0]?.resultado === 'S') {
-      toast.success('Bonificación aplicada exitosamente')
-      bonificacion.numero_oficio = null
-      bonificacion.anio_desde = new Date().getFullYear()
-      bonificacion.porcentaje = 0
-      bonificacion.observaciones = ''
-      await cargarBonificaciones()
+    if (response && response.length > 0) {
+      folio.value = response[0]
     } else {
-      toast.error(response.result[0]?.mensaje || 'Error al aplicar bonificación')
+      folio.value = null
+      showToast('error', 'Error: No se encontró el folio asociado a la bonificación')
     }
   } catch (error) {
-    toast.error('Error al aplicar bonificación')
+    console.error('Error al buscar folio:', error)
+    folio.value = null
+  } finally {
+    hideLoading()
   }
+}
+
+const calcularResto = () => {
+  bonificacion.importe_resto = bonificacion.importe_bonificar - bonificacion.importe_bonificado
+}
+
+const guardarBonificacion = async () => {
+  if (!folio.value) {
+    showToast('warning', 'Debe buscar un folio primero')
+    return
+  }
+
+  if (!bonificacion.fecha_ofic) {
+    showToast('warning', 'Ingrese la fecha del oficio')
+    return
+  }
+
+  if (bonificacion.importe_bonificar <= 0) {
+    showToast('warning', 'El importe a bonificar debe ser mayor a cero')
+    return
+  }
+
+  showLoading()
+
+  try {
+    if (bonificacionExistente.value) {
+      /* TODO FUTURO: Query SQL original (Bonificacion1.pas líneas 204-208):
+      -- SQL: 'update ta_13_bonifrcm set
+      --       fecha_ofic=fecha, importe_bonificar=valor,
+      --       importe_bonificado=valor, importe_resto=valor,
+      --       usuario=valor, fecha_mov=today
+      --       where oficio=valor and axo=valor and id_rec=valor'
+      */
+      // sp no existe en tabla propiedad   id_rec
+      const response = await execute(
+        'sp_bonificacion1_actualizar',
+        'cementerio',
+        [
+          { nombre: 'p_oficio', valor: busqueda.oficio, tipo: 'integer' },
+          { nombre: 'p_axo', valor: busqueda.axo, tipo: 'smallint' },
+          { nombre: 'p_id_rec', valor: busqueda.id_rec, tipo: 'integer' },
+          { nombre: 'p_fecha_ofic', valor: bonificacion.fecha_ofic, tipo: 'date' },
+          { nombre: 'p_importe_bonificar', valor: bonificacion.importe_bonificar, tipo: 'numeric' },
+          { nombre: 'p_importe_bonificado', valor: bonificacion.importe_bonificado, tipo: 'numeric' },
+          { nombre: 'p_importe_resto', valor: bonificacion.importe_resto, tipo: 'numeric' },
+          { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+        ],
+        'function',
+        null,
+        'public'
+      )
+
+      showToast('success', 'Bonificación actualizada exitosamente')
+    } else {
+      /* TODO FUTURO: Query SQL original (Bonificacion1.pas líneas 169-177):
+      -- SQL: 'insert into ta_13_bonifrcm values(0,
+      --       oficio, axo, id_rec, null,
+      --       control_rcm, cementerio, clase, clase_alfa,
+      --       seccion, seccion_alfa, linea, linea_alfa,
+      --       fosa, fosa_alfa,
+      --       fecha_ofic, importe_bonificar, importe_bonificado,
+      --       importe_resto, usuario, today)'
+      */
+
+      const response = await execute(
+        'sp_bonificacion1_insertar',
+        'cementerio',
+        [
+          { nombre: 'p_oficio', valor: busqueda.oficio, tipo: 'integer' },
+          { nombre: 'p_axo', valor: busqueda.axo, tipo: 'smallint' },
+          { nombre: 'p_id_rec', valor: busqueda.id_rec, tipo: 'integer' },
+          { nombre: 'p_control_rcm', valor: folio.value.control_rcm, tipo: 'integer' },
+          { nombre: 'p_cementerio', valor: folio.value.cementerio, tipo: 'varchar' },
+          { nombre: 'p_clase', valor: folio.value.clase, tipo: 'smallint' },
+          { nombre: 'p_clase_alfa', valor: folio.value.clase_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_seccion', valor: folio.value.seccion, tipo: 'smallint' },
+          { nombre: 'p_seccion_alfa', valor: folio.value.seccion_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_linea', valor: folio.value.linea, tipo: 'smallint' },
+          { nombre: 'p_linea_alfa', valor: folio.value.linea_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_fosa', valor: folio.value.fosa, tipo: 'smallint' },
+          { nombre: 'p_fosa_alfa', valor: folio.value.fosa_alfa || '', tipo: 'varchar' },
+          { nombre: 'p_fecha_ofic', valor: bonificacion.fecha_ofic, tipo: 'date' },
+          { nombre: 'p_importe_bonificar', valor: bonificacion.importe_bonificar, tipo: 'numeric' },
+          { nombre: 'p_importe_bonificado', valor: bonificacion.importe_bonificado, tipo: 'numeric' },
+          { nombre: 'p_importe_resto', valor: bonificacion.importe_resto, tipo: 'numeric' },
+          { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+        ],
+        'function',
+        null,
+        'public'
+      )
+
+      showToast('success', 'Bonificación aplicada exitosamente')
+    }
+
+    limpiar()
+  } catch (error) {
+    console.error('Error al guardar bonificación:', error)
+    showToast('error', 'Error al guardar bonificación: ' + error.message)
+  } finally {
+    hideLoading()
+  }
+}
+
+const confirmarEliminar = async () => {
+  const result = await Swal.fire({
+    title: '¿Eliminar bonificación?',
+    text: 'Esta acción no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (result.isConfirmed) {
+    await eliminarBonificacion()
+  }
+}
+
+const eliminarBonificacion = async () => {
+  showLoading()
+
+  try {
+    /* TODO FUTURO: Query SQL original (Bonificacion1.pas líneas 233-234):
+    -- SQL: 'delete from ta_13_bonifrcm
+    --       where oficio=valor and axo=valor and id_rec=valor'
+    */
+
+    const response = await execute(
+      'sp_bonificacion1_eliminar',
+      'cementerio',
+      [
+        { nombre: 'p_oficio', valor: busqueda.oficio, tipo: 'integer' },
+        { nombre: 'p_axo', valor: busqueda.axo, tipo: 'smallint' },
+        { nombre: 'p_id_rec', valor: busqueda.id_rec, tipo: 'integer' }
+      ],
+      'function',
+      null,
+      'public'
+    )
+
+    showToast('success', 'Bonificación eliminada exitosamente')
+    limpiar()
+  } catch (error) {
+    console.error('Error al eliminar bonificación:', error)
+    showToast('error', 'Error al eliminar bonificación: ' + error.message)
+  } finally {
+    hideLoading()
+  }
+}
+
+const cancelar = () => {
+  folio.value = null
+  folioABuscar.value = null
+  modoNuevo.value = false
+  bonificacionExistente.value = false
+
+  bonificacion.fecha_ofic = new Date().toISOString().split('T')[0]
+  bonificacion.importe_bonificar = 0
+  bonificacion.importe_bonificado = 0
+  bonificacion.importe_resto = 0
 }
 
 const limpiar = () => {
-  folioABuscar.value = null
-  folio.value = null
-  bonificaciones.value = []
-  bonificacion.numero_oficio = null
-  bonificacion.anio_desde = new Date().getFullYear()
-  bonificacion.porcentaje = 0
-  bonificacion.observaciones = ''
+  busqueda.oficio = null
+  busqueda.axo = new Date().getFullYear()
+  busqueda.id_rec = ''
+  cancelar()
 }
 
 const formatearUbicacion = (folio) => {
@@ -406,42 +651,4 @@ const formatearUbicacion = (folio) => {
   partes.push(`Fosa:${folio.fosa}${folio.fosa_alfa || ''}`)
   return partes.join(' ')
 }
-
-const formatearFecha = (fecha) => {
-  if (!fecha) return '-'
-  return new Date(fecha).toLocaleDateString('es-MX')
-}
 </script>
-
-<style scoped>
-/* Layout único de información de folio - Justificado mantener scoped */
-.folio-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.info-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-group label {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.info-value {
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  font-weight: 600;
-}
-
-.info-value.highlight {
-  color: var(--color-primary);
-  font-size: 1.25rem;
-}
-</style>

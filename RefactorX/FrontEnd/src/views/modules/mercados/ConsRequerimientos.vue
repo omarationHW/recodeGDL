@@ -431,7 +431,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ingrese los datos del local para buscar sus requerimientos. Los campos marcados con (*) son obligatorios.')
+  showToast('Ingrese los datos del local para buscar sus requerimientos. Los campos marcados con (*) son obligatorios.', 'info')
 }
 
 const showToast = (type, message) => {
@@ -503,16 +503,16 @@ const cargarRecaudadoras = async () => {
     if (res.data.eResponse.success === true) {
       recaudadoras.value = res.data.eResponse.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
       errorLocales.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   } catch (err) {
     errorLocales.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
   }
@@ -545,18 +545,18 @@ const cargarMercados = async () => {
     if (res.data.eResponse && res.data.eResponse.success === true) {
       mercados.value = res.data.eResponse.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
       errorLocales.value = res.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   } catch (err) {
     errorLocales.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
   }
@@ -581,16 +581,16 @@ const cargarSecciones = async () => {
     if (res.data.eResponse && res.data.eResponse.success === true) {
       secciones.value = res.data.eResponse.data.result || []
       if (secciones.value.length > 0) {
-        showToast('success', `Se cargaron ${secciones.value.length} secciones`)
+        showToast(`Se cargaron ${secciones.value.length} secciones`, 'success')
       }
     } else {
       errorLocales.value = res.data.eResponse?.message || 'Error al cargar secciones'
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   } catch (error) {
     errorLocales.value = 'Error de conexión al cargar secciones'
     console.error('Error al cargar secciones:', error)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
   }
@@ -599,7 +599,7 @@ const cargarSecciones = async () => {
 const buscarLocales = async () => {
   if (!form.value.oficina || !form.value.num_mercado || !form.value.seccion || !form.value.local) {
     errorLocales.value = 'Debe completar todos los campos obligatorios'
-    showToast('warning', errorLocales.value)
+    showToast(errorLocales.value, 'warning')
     return
   }
 
@@ -656,19 +656,19 @@ const buscarLocales = async () => {
     if (response.data.eResponse && response.data.eResponse.success === true) {
       locales.value = response.data.eResponse.data.result || []
       if (locales.value.length === 0) {
-        showToast('info', 'No se encontraron locales con los criterios especificados')
+        showToast('No se encontraron locales con los criterios especificados', 'info')
       } else {
-        showToast('success', `Se encontraron ${locales.value.length} locales`)
+        showToast(`Se encontraron ${locales.value.length} locales`, 'success')
         showFilters.value = false
       }
     } else {
       errorLocales.value = response.data.eResponse?.message || 'Error en la búsqueda'
-      showToast('error', errorLocales.value)
+      showToast(errorLocales.value, 'error')
     }
   } catch (error) {
     errorLocales.value = error.response?.data?.message || 'Error al buscar locales'
     console.error('Error al buscar locales:', error)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
     loadingLocales.value = false
@@ -699,18 +699,18 @@ const seleccionarLocal = async (local) => {
     if (response.data.eResponse && response.data.eResponse.success === true) {
       requerimientos.value = response.data.eResponse.data.result || []
       if (requerimientos.value.length === 0) {
-        showToast('info', 'No se encontraron requerimientos para este local')
+        showToast('No se encontraron requerimientos para este local', 'info')
       } else {
-        showToast('success', `Se encontraron ${requerimientos.value.length} requerimientos`)
+        showToast(`Se encontraron ${requerimientos.value.length} requerimientos`, 'success')
       }
     } else {
       errorRequerimientos.value = response.data.eResponse?.message || 'Error al obtener requerimientos'
-      showToast('error', errorRequerimientos.value)
+      showToast(errorRequerimientos.value, 'error')
     }
   } catch (error) {
     errorRequerimientos.value = 'Error de conexión al cargar requerimientos'
     console.error('Error al cargar requerimientos:', error)
-    showToast('error', errorRequerimientos.value)
+    showToast(errorRequerimientos.value, 'error')
   } finally {
     loading.value = false
     loadingRequerimientos.value = false
@@ -738,18 +738,18 @@ const verPeriodos = async (requerimiento) => {
     if (response.data.eResponse && response.data.eResponse.success === true) {
       periodos.value = response.data.eResponse.data.result || []
       if (periodos.value.length === 0) {
-        showToast('info', 'No se encontraron periodos para este requerimiento')
+        showToast('No se encontraron periodos para este requerimiento', 'info')
       } else {
-        showToast('success', `Se encontraron ${periodos.value.length} periodos`)
+        showToast(`Se encontraron ${periodos.value.length} periodos`, 'success')
       }
     } else {
       errorPeriodos.value = response.data.eResponse?.message || 'Error al obtener periodos'
-      showToast('error', errorPeriodos.value)
+      showToast(errorPeriodos.value, 'error')
     }
   } catch (error) {
     errorPeriodos.value = 'Error de conexión al cargar periodos'
     console.error('Error al cargar periodos:', error)
-    showToast('error', errorPeriodos.value)
+    showToast(errorPeriodos.value, 'error')
   } finally {
     loading.value = false
     loadingPeriodos.value = false
@@ -775,25 +775,25 @@ const limpiarFiltros = () => {
   searchPerformed.value = false
   // Recargar secciones
   cargarSecciones()
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (requerimientos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación en desarrollo')
+  showToast('Funcionalidad de exportación en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (requerimientos.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 </script>
 

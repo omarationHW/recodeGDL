@@ -511,7 +511,7 @@ const buscar = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -655,7 +655,7 @@ const crearObservacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -696,7 +696,7 @@ const actualizarObservacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -734,7 +734,7 @@ const confirmarEliminar = async (obs) => {
       [{ nombre: 'p_id_observacion', valor: obs.id_observacion, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {

@@ -246,7 +246,7 @@ const toast = ref({
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => resultados.value.length)
 
 // Métodos
@@ -255,7 +255,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione el tipo de inconsistencia, recaudadora y rango de fechas para detectar pagos con errores')
+  showToast('Ayuda: Seleccione el tipo de inconsistencia, recaudadora y rango de fechas para detectar pagos con errores', 'info')
 }
 
 const showToast = (type, message) => {
@@ -298,16 +298,16 @@ const fetchRecaudadoras = async () => {
     if (res.data.eResponse.success) {
       recaudadoras.value = res.data.eResponse.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} recaudadoras`, 'success')
       }
     } else {
       error.value = res.data.eResponse.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -318,13 +318,13 @@ const buscar = async () => {
   // Validaciones
   if (!selectedRecaudadora.value || !fechaDesde.value || !fechaHasta.value) {
     error.value = 'Debe seleccionar recaudadora y rango de fechas'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (fechaDesde.value > fechaHasta.value) {
     error.value = 'La fecha desde no puede ser mayor a la fecha hasta'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -355,19 +355,19 @@ const buscar = async () => {
       resultados.value = res.data.eResponse.data.result || []
       if (resultados.value.length > 0) {
         columnas.value = Object.keys(resultados.value[0])
-        showToast('success', `Se encontraron ${resultados.value.length} inconsistencias`)
+        showToast(`Se encontraron ${resultados.value.length} inconsistencias`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron inconsistencias en el rango especificado')
+        showToast('No se encontraron inconsistencias en el rango especificado', 'info')
       }
     } else {
       error.value = res.data.eResponse.message || 'Error en la consulta'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al realizar la consulta'
     console.error('Error en búsqueda:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -384,12 +384,12 @@ const limpiarFiltros = () => {
   error.value = ''
   searchPerformed.value = false
   currentPage.value = 1
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (resultados.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -411,9 +411,9 @@ const exportarExcel = () => {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Datos exportados exitosamente')
+    showToast('Datos exportados exitosamente', 'success')
   } catch (err) {
-    showToast('error', 'Error al exportar datos')
+    showToast('Error al exportar datos', 'error')
     console.error('Error en exportación:', err)
   }
 }

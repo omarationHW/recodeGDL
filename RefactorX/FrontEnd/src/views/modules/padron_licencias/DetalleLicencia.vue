@@ -317,7 +317,7 @@ const cargarSaldo = async (idLicencia) => {
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()

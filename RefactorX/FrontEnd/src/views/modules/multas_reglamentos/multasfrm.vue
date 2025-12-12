@@ -148,6 +148,7 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_MULTASFRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -175,7 +176,7 @@ async function reload() {
     searched.value = true
     const data = await execute(OP, BASE_DB, [
       { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
-    ])
+    ], '', null, SCHEMA)
     const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
     rows.value = arr
   } catch (e) {

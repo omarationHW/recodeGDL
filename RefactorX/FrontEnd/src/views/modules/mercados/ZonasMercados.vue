@@ -9,7 +9,7 @@
         <p>Inicio > Mercados > Zonas Geográficas</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="cargarZonas">
+        <button class="btn-municipal-primary" @click="cargarZonas">
           <font-awesome-icon icon="sync-alt" /> Actualizar
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -184,20 +184,21 @@ const cargarZonas = async () => {
       eRequest: {
         Operacion: 'sp_zonas_list',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     });
 
     if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
       zonas.value = response.data.eResponse.data.result;
-      showToast('success', `Se cargaron ${zonas.value.length} zonas`);
+      showToast(`Se cargaron ${zonas.value.length} zonas`, 'success');
     } else {
       zonas.value = [];
-      showToast('warning', 'No se encontraron zonas');
+      showToast('No se encontraron zonas', 'warning');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar las zonas');
+    showToast('Error al cargar las zonas', 'error');
   } finally {
     hideLoading();
   }
@@ -228,7 +229,7 @@ const cerrarModal = () => {
 
 const guardarZona = async () => {
   if (!form.value.id_zona || !form.value.zona) {
-    showToast('warning', 'Por favor complete todos los campos requeridos');
+    showToast('Por favor complete todos los campos requeridos', 'warning');
     return;
   }
 
@@ -240,6 +241,7 @@ const guardarZona = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_zona', Valor: parseInt(form.value.id_zona) },
           { Nombre: 'p_zona', Valor: form.value.zona }
@@ -251,23 +253,23 @@ const guardarZona = async () => {
       const result = response.data.eResponse.data.result;
       if (result && result.length > 0 && result[0].message) {
         if (result[0].message.includes('ERROR')) {
-          showToast('error', result[0].message);
+          showToast(result[0].message, 'error');
         } else {
-          showToast('success', result[0].message);
+          showToast(result[0].message, 'success');
           cerrarModal();
           cargarZonas();
         }
       } else {
-        showToast('success', modoEdicion.value ? 'Zona actualizada exitosamente' : 'Zona creada exitosamente');
+        showToast(modoEdicion.value ? 'Zona actualizada exitosamente' : 'Zona creada exitosamente', 'success');
         cerrarModal();
         cargarZonas();
       }
     } else {
-      showToast('error', 'Error al guardar la zona');
+      showToast('Error al guardar la zona', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar la zona: ' + error.message);
+    showToast('Error al guardar la zona: ' + error.message, 'error');
   } finally {
     guardando.value = false;
     hideLoading();
@@ -294,6 +296,7 @@ const eliminarZona = async () => {
       eRequest: {
         Operacion: 'sp_zonas_delete',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_zona', Valor: parseInt(zonaEliminar.value.id_zona) }
         ]
@@ -304,19 +307,19 @@ const eliminarZona = async () => {
       const result = response.data.eResponse.data.result;
       if (result && result.length > 0) {
         if (result[0].success) {
-          showToast('success', result[0].message);
+          showToast(result[0].message, 'success');
           cerrarModalEliminar();
           cargarZonas();
         } else {
-          showToast('error', result[0].message);
+          showToast(result[0].message, 'error');
         }
       }
     } else {
-      showToast('error', 'Error al eliminar la zona');
+      showToast('Error al eliminar la zona', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar la zona: ' + error.message);
+    showToast('Error al eliminar la zona: ' + error.message, 'error');
   } finally {
     eliminando.value = false;
     hideLoading();
@@ -324,6 +327,6 @@ const eliminarZona = async () => {
 };
 
 const mostrarAyuda = () => {
-  showToast('info', 'Catálogo de Zonas Geográficas\n\nAdministre las zonas geográficas utilizadas para clasificar los mercados municipales.\n\n- Crear: Agregue nuevas zonas\n- Editar: Modifique el nombre de zonas existentes\n- Eliminar: Elimine zonas que no estén en uso\n\nNota: No se pueden eliminar zonas que estén asignadas a mercados.');
+  showToast('Catálogo de Zonas Geográficas\n\nAdministre las zonas geográficas utilizadas para clasificar los mercados municipales.\n\n- Crear: Agregue nuevas zonas\n- Editar: Modifique el nombre de zonas existentes\n- Eliminar: Elimine zonas que no estén en uso\n\nNota: No se pueden eliminar zonas que estén asignadas a mercados.', 'info');
 };
 </script>

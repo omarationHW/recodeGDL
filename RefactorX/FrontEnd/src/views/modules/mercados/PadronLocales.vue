@@ -212,7 +212,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina recaudadora para generar el padrón de locales')
+  showToast('Ayuda: Seleccione una oficina recaudadora para generar el padrón de locales', 'info')
 }
 
 const showToast = (type, message) => {
@@ -237,21 +237,22 @@ const fetchRecaudadoras = async () => {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     })
     if (res.data.eResponse.success === true) {
       recaudadoras.value = res.data.eResponse.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
       error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -259,7 +260,7 @@ const fetchRecaudadoras = async () => {
 
 const buscar = async () => {
   if (!selectedRec.value) {
-    showToast('warning', 'Debe seleccionar una oficina recaudadora')
+    showToast('Debe seleccionar una oficina recaudadora', 'warning')
     return
   }
 
@@ -273,6 +274,7 @@ const buscar = async () => {
       eRequest: {
         Operacion: 'sp_get_padron_locales',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_recaudadora', Valor: selectedRec.value }
         ]
@@ -281,18 +283,18 @@ const buscar = async () => {
     if (res.data.eResponse && res.data.eResponse.success === true) {
       padron.value = res.data.eResponse.data.result || []
       if (padron.value.length > 0) {
-        showToast('success', `Se encontraron ${padron.value.length} locales`)
+        showToast(`Se encontraron ${padron.value.length} locales`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron locales para esta recaudadora')
+        showToast('No se encontraron locales para esta recaudadora', 'info')
       }
     } else {
       error.value = res.data.eResponse?.message || 'Error al generar padrón'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al generar padrón'
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -303,15 +305,15 @@ const limpiarFiltros = () => {
   padron.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (padron.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
 }
 
 const formatCurrency = (val) => {

@@ -348,7 +348,7 @@ const formatCurrency = (val) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta completa de datos de un local de mercado')
+  showToast('Consulta completa de datos de un local de mercado', 'info')
 }
 
 const api = async (operacion, parametros, base = 'mercados') => {
@@ -371,7 +371,7 @@ const limpiarError = () => {
 
 const buscarLocal = () => {
   if (!searchIdLocal.value) {
-    showToast('warning', 'Por favor ingrese un ID de local')
+    showToast('Por favor ingrese un ID de local', 'warning')
     return
   }
   cargarDatos(searchIdLocal.value)
@@ -440,10 +440,10 @@ const cargarDatos = async (id_local) => {
     }
 
     datosLoaded.value = true
-    showToast('success', 'Datos cargados correctamente')
+    showToast('Datos cargados correctamente', 'success')
   } catch (e) {
     error.value = e.message || 'Error al cargar datos'
-    showToast('error', error.value)
+    showToast(error.value, 'error')
     datosLoaded.value = false
   } finally {
     hideLoading()

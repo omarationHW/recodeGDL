@@ -14,12 +14,31 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Clave Catastral</label>
-              <input class="municipal-form-control" v-model="filters.cvecat" placeholder="Ej: D65I3950016" @keyup.enter="consultar"/>
+              <input
+                class="municipal-form-control"
+                v-model="filters.cvecat"
+                placeholder="Ej: D65I3950016"
+                @keyup.enter="filters.cvecat.trim() && consultar()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="consultar">
-              <font-awesome-icon icon="search"/> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cvecat.trim()"
+              @click="consultar"
+            >
+              <font-awesome-icon icon="search" v-if="!loading"/>
+              <font-awesome-icon icon="spinner" spin v-if="loading"/>
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -137,22 +156,36 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_CONSULTAPREDIAL'
-const SCHEMA = 'multas_reglamentos'
 
 const filters = ref({ cvecat: '' })
 const data = ref(null)
 
 async function consultar() {
+  const params = [
+    { nombre: 'p_cvecat', tipo: 'string', valor: String(filters.value.cvecat || '') }
+  ]
+
   try {
-    const result = await execute(OP, BASE_DB, [
-      { nombre: 'p_cvecat', tipo: 'string', valor: String(filters.value.cvecat || '') }
-    ], '', null, SCHEMA)
-    data.value = Array.isArray(result?.result) ? result.result[0] :
-                  Array.isArray(result?.rows) ? result.rows[0] :
-                  Array.isArray(result) ? result[0] : result
+    const response = await execute(OP, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
+
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
+
+    console.log('Datos extraídos:', arr.length, arr)
+    data.value = arr.length > 0 ? arr[0] : null
   } catch (e) {
+    console.error('Error al consultar predio:', e)
     data.value = null
   }
+}
+
+function limpiar() {
+  filters.value = { cvecat: '' }
+  data.value = null
 }
 
 function formatCurrency(value) {
@@ -275,6 +308,58 @@ function formatCurrency(value) {
   .predial-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-municipal-primary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #007bff;
+  border-radius: 0.25rem;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-municipal-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-municipal-secondary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  background-color: #6c757d;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-secondary:hover:not(:disabled) {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.btn-municipal-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
 

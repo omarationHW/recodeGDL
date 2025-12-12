@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="previsualizar" :disabled="loading">
           <font-awesome-icon icon="search" /> Previsualizar
         </button>
-        <button class="btn-municipal-success" @click="emitirRecibos" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="emitirRecibos" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-invoice-dollar" /> Emitir Recibos
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -295,7 +295,7 @@ const onOficinaChange = async () => {
 
 const previsualizar = async () => {
   if (!filters.value.oficina || !filters.value.mercado) {
-    showToast('warning', 'Por favor complete todos los filtros requeridos')
+    showToast('Por favor complete todos los filtros requeridos', 'warning')
     return
   }
 
@@ -322,11 +322,11 @@ const previsualizar = async () => {
       results.value = response.result
       busquedaRealizada.value = true
       currentPage.value = 1
-      showToast('success', `Se encontraron ${results.value.length} locales`)
+      showToast(`Se encontraron ${results.value.length} locales`, 'success')
     } else {
       results.value = []
       busquedaRealizada.value = true
-      showToast('info', 'No se encontraron locales para emitir')
+      showToast('No se encontraron locales para emitir', 'info')
     }
   } catch (error) {
     console.error('Error al consultar:', error)
@@ -341,7 +341,7 @@ const previsualizar = async () => {
 
 const emitirRecibos = async () => {
   if (!results.value.length) {
-    showToast('warning', 'No hay recibos para emitir')
+    showToast('No hay recibos para emitir', 'warning')
     return
   }
 
@@ -391,7 +391,7 @@ const emitirRecibos = async () => {
         timer: 2000
       })
 
-      showToast('success', 'Recibos emitidos correctamente')
+      showToast('Recibos emitidos correctamente', 'success')
       await previsualizar()
     } else {
       throw new Error('Error en la emisión')

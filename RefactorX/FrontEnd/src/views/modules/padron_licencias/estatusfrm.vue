@@ -328,7 +328,9 @@ const searchTramite = async () => {
       [
         { nombre: 'p_tramite', valor: filters.value.tramite, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -366,7 +368,9 @@ const loadHistorialEstatus = async () => {
       [
         { nombre: 'p_tramite', valor: filters.value.tramite, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -431,7 +435,9 @@ const changeStatus = async () => {
         { nombre: 'p_observaciones', valor: statusForm.value.observaciones.trim(), tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {

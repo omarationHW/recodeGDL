@@ -363,6 +363,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showDocumentation = ref(false)
 const numContrato = ref(null)
@@ -386,8 +387,6 @@ const totales = computed(() => {
       multa: acc.multa + parseFloat(edo.importe_multa || 0),
       gastos: acc.gastos + parseFloat(edo.importe_gastos || 0),
       actualizacion: acc.actualizacion + parseFloat(edo.importe_actualizacion || 0),
-
-const { showLoading, hideLoading } = useGlobalLoading()
       total: acc.total + parseFloat(edo.total_periodo || 0)
     }
   }, { adeudo: 0, recargo: 0, multa: 0, gastos: 0, actualizacion: 0, total: 0 })

@@ -1,554 +1,590 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <h1 class="module-view-info">
-        <font-awesome-icon icon="exchange-alt" />
-        Traslado de Folios sin Número
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Traslado de Folios"
-        :sections="helpSections"
-      />
+      <div class="module-title-section">
+        <font-awesome-icon icon="exchange-alt" class="module-icon" />
+        <div>
+          <h1 class="module-view-info">Traslado de Folios Sin Adeudos</h1>
+          <p class="module-subtitle">Traslado de pagos entre folios sin afectar adeudos</p>
+        </div>
+      </div>
+      <div class="module-actions">
+        <button class="btn-help" @click="mostrarAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
-    <!-- Folio Origen -->
-    <div class="municipal-card mb-3">
+    <!-- Búsqueda de Folios -->
+    <div class="municipal-card">
       <div class="municipal-card-header">
-        <font-awesome-icon icon="file-export" />
-        Folio de Origen
+        <font-awesome-icon icon="search" />
+        Selección de Folios
       </div>
       <div class="municipal-card-body">
-        <div class="form-grid-two">
+        <div class="alert-info mb-3">
+          <font-awesome-icon icon="info-circle" />
+          <span>Ingrese el folio origen (de donde se trasladarán los pagos) y el folio destino</span>
+        </div>
+
+        <div class="form-grid-three">
           <div class="form-group">
-            <label class="form-label required">Número de Folio Origen</label>
+            <label class="form-label required">Folio Origen (DE)</label>
             <input
+              type="number"
               v-model.number="folioOrigen"
-              type="number"
-              class="municipal-form-control"
-              @keyup.enter="buscarFolioOrigen"
+              class="form-input"
+              placeholder="Folio de traslado"
+              @keyup.enter="verificarFolios"
             />
+            <small class="form-help">Folio desde el cual se trasladarán los pagos</small>
           </div>
-          <div class="form-actions">
-            <button @click="buscarFolioOrigen" class="btn-municipal-primary">
-              <font-awesome-icon icon="search" />
-              Buscar
-            </button>
-          </div>
-        </div>
-
-        <div v-if="datosOrigen" class="folio-info mt-3">
-          <h5>Información del Folio Origen</h5>
-          <div class="info-grid">
-            <div class="info-item">
-              <label>Titular:</label>
-              <span>{{ datosOrigen.nombre }}</span>
-            </div>
-            <div class="info-item">
-              <label>Cementerio:</label>
-              <span>{{ datosOrigen.cementerio }}</span>
-            </div>
-            <div class="info-item">
-              <label>Ubicación:</label>
-              <span>{{ formatearUbicacion(datosOrigen) }}</span>
-            </div>
-            <div class="info-item">
-              <label>Año Pagado:</label>
-              <span class="highlight">{{ datosOrigen.axo_pagado }}</span>
-            </div>
-            <div class="info-item">
-              <label>Metros:</label>
-              <span>{{ datosOrigen.metros }} m²</span>
-            </div>
-            <div class="info-item">
-              <label>Tipo:</label>
-              <span>{{ datosOrigen.tipo }}</span>
-            </div>
-          </div>
-
-          <!-- Pagos del Folio Origen -->
-          <div v-if="pagosOrigen.length > 0" class="mt-3">
-            <h6><font-awesome-icon icon="list" /> Pagos Registrados ({{ pagosOrigen.length }})</h6>
-            <div class="table-responsive">
-              <table class="municipal-table">
-                <thead class="municipal-table-header">
-                  <tr>
-                    <th>Año</th>
-                    <th>Fecha</th>
-                    <th>Importe</th>
-                    <th>Recargos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="pago in pagosOrigen" :key="pago.control_id">
-                    <td>{{ pago.axo_pago_desde }} - {{ pago.axo_pago_hasta }}</td>
-                    <td>{{ formatearFecha(pago.fecing) }}</td>
-                    <td>${{ formatearMoneda(pago.importe_anual) }}</td>
-                    <td>${{ formatearMoneda(pago.importe_recargos) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Folio Destino -->
-    <div v-if="datosOrigen" class="municipal-card mb-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="file-import" />
-        Folio de Destino
-      </div>
-      <div class="municipal-card-body">
-        <div class="form-grid-two">
           <div class="form-group">
-            <label class="form-label required">Número de Folio Destino</label>
+            <label class="form-label required">Folio Destino (A)</label>
             <input
-              v-model.number="folioDestino"
               type="number"
-              class="municipal-form-control"
-              @keyup.enter="buscarFolioDestino"
+              v-model.number="folioDestino"
+              class="form-input"
+              placeholder="Folio a trasladar"
+              @keyup.enter="verificarFolios"
             />
+            <small class="form-help">Folio hacia el cual se trasladarán los pagos</small>
           </div>
-          <div class="form-actions">
-            <button @click="buscarFolioDestino" class="btn-municipal-primary">
+          <div class="form-group align-end">
+            <button
+              class="btn-municipal-primary"
+              @click="verificarFolios"
+              :disabled="!foliosValidos"
+            >
               <font-awesome-icon icon="search" />
-              Buscar
+              Verificar
             </button>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div v-if="datosDestino" class="folio-info mt-3">
-          <h5>Información del Folio Destino</h5>
-          <div class="info-grid">
-            <div class="info-item">
-              <label>Titular:</label>
-              <span>{{ datosDestino.nombre }}</span>
+    <!-- Información de Folios -->
+    <div v-if="datosOrigen && datosDestino" class="municipal-card mt-3">
+      <div class="municipal-card-header">
+        <font-awesome-icon icon="info-circle" />
+        Información de Folios
+      </div>
+      <div class="municipal-card-body">
+        <div class="folio-comparison">
+          <!-- Folio Origen -->
+          <div class="folio-info">
+            <h3 class="folio-title origin">
+              <font-awesome-icon icon="arrow-right" />
+              Folio Origen
+            </h3>
+            <div class="info-section">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Folio:</span>
+                  <span class="info-value">{{ datosOrigen.control_rcm }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Cementerio:</span>
+                  <span class="info-value">{{ datosOrigen.cementerio }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Ubicación:</span>
+                  <span class="info-value">
+                    {{ datosOrigen.clase_alfa }}-{{ datosOrigen.seccion_alfa }}-{{ datosOrigen.linea_alfa }}-{{ datosOrigen.fosa_alfa }}
+                  </span>
+                </div>
+                <div class="info-item full-width">
+                  <span class="info-label">Nombre:</span>
+                  <span class="info-value">{{ datosOrigen.nombre }}</span>
+                </div>
+              </div>
             </div>
-            <div class="info-item">
-              <label>Cementerio:</label>
-              <span>{{ datosDestino.cementerio }}</span>
-            </div>
-            <div class="info-item">
-              <label>Ubicación:</label>
-              <span>{{ formatearUbicacion(datosDestino) }}</span>
-            </div>
-            <div class="info-item">
-              <label>Año Pagado:</label>
-              <span class="highlight">{{ datosDestino.axo_pagado }}</span>
+          </div>
+
+          <!-- Flecha de traslado -->
+          <div class="transfer-arrow">
+            <font-awesome-icon icon="arrow-circle-right" />
+          </div>
+
+          <!-- Folio Destino -->
+          <div class="folio-info">
+            <h3 class="folio-title destination">
+              <font-awesome-icon icon="arrow-left" />
+              Folio Destino
+            </h3>
+            <div class="info-section">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Folio:</span>
+                  <span class="info-value">{{ datosDestino.control_rcm }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Cementerio:</span>
+                  <span class="info-value">{{ datosDestino.cementerio }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Ubicación:</span>
+                  <span class="info-value">
+                    {{ datosDestino.clase_alfa }}-{{ datosDestino.seccion_alfa }}-{{ datosDestino.linea_alfa }}-{{ datosDestino.fosa_alfa }}
+                  </span>
+                </div>
+                <div class="info-item full-width">
+                  <span class="info-label">Nombre:</span>
+                  <span class="info-value">{{ datosDestino.nombre }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Opciones de Traslado -->
-    <div v-if="datosOrigen && datosDestino" class="municipal-card">
+    <!-- Tabla de Pagos para Trasladar -->
+    <div v-if="pagosOrigen.length > 0" class="municipal-card mt-3">
       <div class="municipal-card-header">
-        <font-awesome-icon icon="tasks" />
-        Opciones de Traslado
+        <font-awesome-icon icon="list-check" />
+        Pagos a Trasladar ({{ pagosSeleccionados.length }} seleccionados)
       </div>
       <div class="municipal-card-body">
-        <div class="form-group">
-          <div class="checkbox-group">
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="opcionesTraslado.trasladarPagos" />
-              <span>Trasladar Pagos del Folio Origen al Destino</span>
-            </label>
-          </div>
-          <div class="checkbox-group">
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="opcionesTraslado.trasladarDatos" />
-              <span>Trasladar Datos del Titular (Nombre y Domicilio)</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="municipal-form-label">Observaciones del Traslado</label>
-          <textarea
-            v-model="opcionesTraslado.observaciones"
-            class="municipal-form-control"
-            rows="3"
-            maxlength="255"
-            placeholder="Motivo o detalles del traslado..."
-          ></textarea>
-        </div>
-
         <div class="alert-warning mb-3">
           <font-awesome-icon icon="exclamation-triangle" />
-          <strong>Advertencia:</strong> El traslado es una operación delicada. Verifique cuidadosamente
-          los folios de origen y destino antes de continuar.
+          <span>Seleccione los pagos que desea trasladar del folio {{ folioOrigen }} al folio {{ folioDestino }}</span>
+        </div>
+
+        <div class="table-actions mb-3">
+          <button class="btn-municipal-secondary" @click="seleccionarTodos">
+            <font-awesome-icon icon="check-square" />
+            Seleccionar Todos
+          </button>
+          <button class="btn-municipal-secondary" @click="deseleccionarTodos">
+            <font-awesome-icon icon="square" />
+            Deseleccionar Todos
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table class="municipal-table">
+            <thead class="municipal-table-header">
+              <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    @change="toggleTodos"
+                    :checked="todosMarcados"
+                  />
+                </th>
+                <th>Fecha Ingreso</th>
+                <th>Recibo</th>
+                <th>Control ID</th>
+                <th>Años</th>
+                <th>Importe</th>
+                <th>Recargos</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="pago in pagosOrigen" :key="pago.control_id">
+                <td>
+                  <input
+                    type="checkbox"
+                    :value="pago.control_id"
+                    v-model="pagosSeleccionados"
+                  />
+                </td>
+                <td>{{ formatDate(pago.fecing) }}</td>
+                <td>{{ pago.recing }}</td>
+                <td>{{ pago.control_id }}</td>
+                <td>{{ pago.axo_pago_desde }} - {{ pago.axo_pago_hasta }}</td>
+                <td>{{ formatCurrency(pago.importe_anual) }}</td>
+                <td>{{ formatCurrency(pago.importe_recargos) }}</td>
+                <td class="text-bold">
+                  {{ formatCurrency(parseFloat(pago.importe_anual || 0) + parseFloat(pago.importe_recargos || 0)) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="summary-box mt-3">
+          <div class="summary-item">
+            <span class="summary-label">Total Pagos:</span>
+            <span class="summary-value">{{ pagosOrigen.length }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Seleccionados:</span>
+            <span class="summary-value primary">{{ pagosSeleccionados.length }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Total a Trasladar:</span>
+            <span class="summary-value success">
+              {{ formatCurrency(totalSeleccionado) }}
+            </span>
+          </div>
         </div>
 
         <div class="form-actions">
-          <button @click="ejecutarTraslado" class="btn-municipal-primary">
-            <font-awesome-icon icon="exchange-alt" />
-            Ejecutar Traslado
-          </button>
-          <button @click="limpiar" class="btn-municipal-secondary">
+          <button
+            class="btn-municipal-secondary"
+            @click="cancelar"
+          >
             <font-awesome-icon icon="times" />
             Cancelar
+          </button>
+          <button
+            class="btn-municipal-primary"
+            @click="confirmarTraslado"
+            :disabled="pagosSeleccionados.length === 0"
+          >
+            <font-awesome-icon icon="exchange-alt" />
+            Trasladar Pagos ({{ pagosSeleccionados.length }})
           </button>
         </div>
       </div>
     </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'TrasladoFolSin'"
-      :moduleName="'cementerios'"
-      @close="closeTechDocs"
-    />
 
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      v-if="mostrarAyuda"
+      title="Ayuda - Traslado de Folios Sin Adeudos"
+      @close="mostrarAyuda = false"
+    >
+      <div class="help-content">
+        <section class="help-section">
+          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
+          <p>
+            Este módulo permite trasladar pagos de un folio a otro SIN afectar los adeudos.
+            Es útil cuando se necesita reorganizar pagos sin modificar el estatus de deudas.
+          </p>
+        </section>
+
+        <section class="help-section">
+          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
+          <ol>
+            <li>Ingrese el <strong>Folio Origen</strong> (desde donde se trasladarán los pagos)</li>
+            <li>Ingrese el <strong>Folio Destino</strong> (hacia donde se trasladarán los pagos)</li>
+            <li>Presione "Verificar" para cargar los datos de ambos folios</li>
+            <li>El sistema mostrará los pagos del folio origen</li>
+            <li>Seleccione los pagos que desea trasladar (puede usar "Seleccionar Todos")</li>
+            <li>Presione "Trasladar Pagos" para confirmar</li>
+            <li>El sistema actualizará los pagos al nuevo folio</li>
+          </ol>
+        </section>
+
+        <section class="help-section">
+          <h3><font-awesome-icon icon="exclamation-triangle" /> Importante</h3>
+          <ul>
+            <li>Ambos folios deben existir en el sistema</li>
+            <li>Solo se trasladarán los pagos seleccionados</li>
+            <li>Los pagos mantendrán su información original de fechas e importes</li>
+            <li>La ubicación (cementerio, clase, sección, etc.) se actualizará al folio destino</li>
+            <li>El año pagado de ambos folios se recalculará automáticamente</li>
+            <li><strong>Los adeudos NO se verán afectados</strong> (diferencia clave con el otro módulo)</li>
+          </ul>
+        </section>
+
+        <section class="help-section">
+          <h3><font-awesome-icon icon="shield-alt" /> Seguridad</h3>
+          <p>
+            Se recomienda verificar cuidadosamente los folios antes de realizar el traslado,
+            ya que esta operación afecta el historial de pagos.
+          </p>
+        </section>
+      </div>
+    </DocumentationModal>
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
-import { ref, reactive } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
-import Swal from 'sweetalert2'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
+const { showSuccess, showError } = useToast()
 
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
+// Estado
+const mostrarAyuda = ref(false)
 const folioOrigen = ref(null)
 const folioDestino = ref(null)
 const datosOrigen = ref(null)
 const datosDestino = ref(null)
 const pagosOrigen = ref([])
+const pagosSeleccionados = ref([])
 
-const opcionesTraslado = reactive({
-  trasladarPagos: true,
-  trasladarDatos: false,
-  observaciones: ''
+// Validaciones
+const foliosValidos = computed(() => {
+  return folioOrigen.value > 0 && folioDestino.value > 0 && folioOrigen.value !== folioDestino.value
 })
 
-const helpSections = [
-  {
-    title: 'Traslado de Folios sin Número',
-    content: `
-      <p>Permite trasladar información de un folio a otro sin asignar un número de operación específico.</p>
-      <h4>Proceso:</h4>
-      <ol>
-        <li>Buscar y verificar el folio de origen</li>
-        <li>Buscar y verificar el folio de destino</li>
-        <li>Seleccionar qué información trasladar:
-          <ul>
-            <li><strong>Pagos:</strong> Transfiere todos los pagos al nuevo folio</li>
-            <li><strong>Datos del Titular:</strong> Copia nombre y domicilio</li>
-          </ul>
-        </li>
-        <li>Ejecutar el traslado</li>
-      </ol>
-      <h4>Advertencia:</h4>
-      <p>Esta operación es delicada y debe realizarse con precaución. Verifique siempre
-      que los folios sean correctos antes de ejecutar el traslado.</p>
-    `
-  }
-]
+const todosMarcados = computed(() => {
+  return pagosOrigen.value.length > 0 &&
+         pagosSeleccionados.value.length === pagosOrigen.value.length
+})
 
-const buscarFolioOrigen = async () => {
-  if (!folioOrigen.value) {
-    toast.warning('Ingrese un número de folio origen')
+const totalSeleccionado = computed(() => {
+  return pagosOrigen.value
+    .filter(p => pagosSeleccionados.value.includes(p.control_id))
+    .reduce((sum, p) => {
+      const importe = parseFloat(p.importe_anual || 0)
+      const recargos = parseFloat(p.importe_recargos || 0)
+      return sum + importe + recargos
+    }, 0)
+})
+
+// Verificar folios
+const verificarFolios = async () => {
+  if (!foliosValidos.value) {
+    showError('Por favor ingrese dos folios diferentes válidos')
     return
   }
 
+  showLoading()
+
   try {
-    const params = [
-      {
-        nombre: 'p_control_rcm',
-        valor: folioOrigen.value,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
-      'cementerios',
+    // Buscar folio origen
+    const response = await execute(
+      'sp_abcf_get_folio',
+      'cementerio',
+      [
+        { nombre: 'p_folio', valor: folioOrigen.value, tipo: 'integer' }
+      ],
+      '',
       null,
-      'public'
-    , '', null, 'comun')
+      'public')
 
-    if (response.result && response.result.length > 0) {
-      const result = response.result[0]
-
-      if (result.resultado === 'N') {
-        datosOrigen.value = null
-        toast.warning(result.mensaje)
-        return
-      }
-
-      datosOrigen.value = result
-      await cargarPagosOrigen()
-      toast.success('Folio origen encontrado')
+    if(response?.result?.length > 0 ) {
+      datosOrigen.value = response.result[0]
     } else {
-      datosOrigen.value = null
-      toast.warning('No se encontró el folio origen')
+      showError('El folio origen no existe')
+      return
     }
+
+    // Buscar folio destino
+    const resultDestino = await execute(
+      'sp_abcf_get_folio',
+      'cementerio',
+      [
+        { nombre: 'p_folio', valor: folioDestino.value, tipo: 'integer' }
+      ],
+      '',
+      null,
+      'public')
+
+    if(resultDestino?.result?.length > 0 ) {
+      datosDestino.value = resultDestino.result[0]
+    } else {
+      showError('El folio destino no existe')
+      return
+    }
+
+    // Cargar pagos del folio origen
+    await cargarPagosOrigen()
+
   } catch (error) {
-    toast.error('Error al buscar folio origen')
-    datosOrigen.value = null
+    console.error('Error al verificar folios:', error)
+    showError('Error al verificar los folios')
+  } finally {
+    hideLoading()
   }
 }
 
-const buscarFolioDestino = async () => {
-  if (!folioDestino.value) {
-    toast.warning('Ingrese un número de folio destino')
-    return
-  }
-
-  if (folioDestino.value === folioOrigen.value) {
-    toast.warning('El folio destino no puede ser igual al folio origen')
-    return
-  }
-
-  try {
-    const params = [
-      {
-        nombre: 'p_control_rcm',
-        valor: folioDestino.value,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
-
-    if (response.result && response.result.length > 0) {
-      const result = response.result[0]
-
-      if (result.resultado === 'N') {
-        datosDestino.value = null
-        toast.warning(result.mensaje)
-        return
-      }
-
-      datosDestino.value = result
-      toast.success('Folio destino encontrado')
-    } else {
-      datosDestino.value = null
-      toast.warning('No se encontró el folio destino')
-    }
-  } catch (error) {
-    toast.error('Error al buscar folio destino')
-    datosDestino.value = null
-  }
-}
-
+// Cargar pagos del folio origen
 const cargarPagosOrigen = async () => {
   try {
-    const params = [
-      {
-        nombre: 'p_control_rcm',
-        valor: folioOrigen.value,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_listar_pagos', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_trasladofol_listar_pagos_folio',
+      'cementerio',
+      [
+        { nombre: 'p_control_rcm', valor: folioOrigen.value, tipo: 'integer' }
+      ],
+      'cementerio',
       null,
-      'public'
-    , '', null, 'comun')
+      'public')
 
-    pagosOrigen.value = response.result || []
+    if(response?.result?.length > 0 ) {
+      pagosOrigen.value = response.result
+    } else {
+      showError('El folio origen no tiene pagos para trasladar')
+      return
+    }
+    pagosSeleccionados.value = []
+
   } catch (error) {
-    pagosOrigen.value = []
+    console.error('Error al cargar pagos:', error)
+    showError('Error al cargar los pagos')
   }
 }
 
-const ejecutarTraslado = async () => {
-  if (!opcionesTraslado.trasladarPagos && !opcionesTraslado.trasladarDatos) {
-    toast.warning('Seleccione al menos una opción de traslado')
+// Seleccionar todos los pagos
+const seleccionarTodos = () => {
+  pagosSeleccionados.value = pagosOrigen.value.map(p => p.control_id)
+}
+
+// Deseleccionar todos los pagos
+const deseleccionarTodos = () => {
+  pagosSeleccionados.value = []
+}
+
+// Toggle todos
+const toggleTodos = () => {
+  if (todosMarcados.value) {
+    deseleccionarTodos()
+  } else {
+    seleccionarTodos()
+  }
+}
+
+// Confirmar traslado
+const confirmarTraslado = async () => {
+  if (pagosSeleccionados.value.length === 0) {
+    showError('Debe seleccionar al menos un pago')
     return
   }
 
   const result = await Swal.fire({
-    title: '¿Confirmar Traslado?',
+    title: '¿Confirmar traslado?',
     html: `
-      <p>¿Está seguro de trasladar información del folio <strong>${folioOrigen.value}</strong>
-      al folio <strong>${folioDestino.value}</strong>?</p>
-      <p><strong>Opciones seleccionadas:</strong></p>
-      <ul style="text-align: left;">
-        ${opcionesTraslado.trasladarPagos ? '<li>Trasladar Pagos</li>' : ''}
-        ${opcionesTraslado.trasladarDatos ? '<li>Trasladar Datos del Titular</li>' : ''}
-      </ul>
+      Se trasladarán <strong>${pagosSeleccionados.value.length}</strong> pago(s)<br>
+      Del folio <strong>${folioOrigen.value}</strong><br>
+      Al folio <strong>${folioDestino.value}</strong><br><br>
+      Total: <strong>${formatCurrency(totalSeleccionado.value)}</strong><br><br>
+      <strong>Nota:</strong> Los adeudos NO se verán afectados
     `,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: 'Sí, trasladar',
     cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#d33'
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33'
   })
 
-  if (result.isConfirmed) {
-    try {
-      const params = [
-      {
-        nombre: 'p_folio_origen',
-        valor: folioOrigen.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_folio_destino',
-        valor: folioDestino.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_trasladar_pagos',
-        valor: opcionesTraslado.trasladarPagos ? 1 : 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_trasladar_datos',
-        valor: opcionesTraslado.trasladarDatos ? 1 : 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_observaciones',
-        valor: opcionesTraslado.observaciones || '',
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1,
-        tipo: 'string'
-      }
-    ]
+  if (!result.isConfirmed) return
 
-    const response = await execute('sp_cem_trasladar_folio', 'cementerios', params,
-      'cementerios',
+  showLoading()
+
+  try {
+    // Trasladar pagos sin afectar adeudos usando el SP correcto
+    const controlIds = pagosSeleccionados.value.join(',')
+
+    const response = await execute(
+      'sp_traslado_folios_sin_adeudo',
+      'cementerio',
+      [
+        { nombre: 'p_folio_de', valor: folioOrigen.value, tipo: 'integer' },
+        { nombre: 'p_folio_a', valor: folioDestino.value, tipo: 'integer' },
+        { nombre: 'p_pagos_ids', valor: controlIds, tipo: 'varchar' },
+        { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+      ],
+      'cementerio',
       null,
-      'public'
-    , '', null, 'comun')
+      'public')
 
-      if (response.result && response.result[0]?.resultado === 'S') {
-        toast.success('Traslado ejecutado exitosamente')
-        limpiar()
-      } else {
-        toast.error(response.result[0]?.mensaje || 'Error al ejecutar traslado')
-      }
-    } catch (error) {
-      toast.error('Error al ejecutar traslado')
+    let trasladoData = null
+    if(response?.result?.length > 0 ){
+      trasladoData = response.result[0]
     }
+
+    if (trasladoData && trasladoData.resultado === 'S') {
+    showSuccess(trasladoData.mensaje || 'Traslado realizado exitosamente')
+
+      // Limpiar y recargar
+      await verificarFolios()
+    } else {
+      showError(trasladoData?.mensaje || 'Error al trasladar pagos')
+    }
+  } catch (error) {
+    console.error('Error al trasladar pagos:', error)
+    showError('Error al trasladar los pagos')
+  } finally {
+    hideLoading()
   }
 }
 
-const limpiar = () => {
+// Cancelar
+const cancelar = () => {
   folioOrigen.value = null
   folioDestino.value = null
   datosOrigen.value = null
   datosDestino.value = null
   pagosOrigen.value = []
-  opcionesTraslado.trasladarPagos = true
-  opcionesTraslado.trasladarDatos = false
-  opcionesTraslado.observaciones = ''
+  pagosSeleccionados.value = []
 }
 
-const formatearUbicacion = (folio) => {
-  const partes = []
-  partes.push(`Cl:${folio.clase}${folio.clase_alfa || ''}`)
-  partes.push(`Sec:${folio.seccion}${folio.seccion_alfa || ''}`)
-  partes.push(`Lin:${folio.linea}${folio.linea_alfa || ''}`)
-  partes.push(`Fosa:${folio.fosa}${folio.fosa_alfa || ''}`)
-  return partes.join(' ')
+// Formatear moneda
+const formatCurrency = (value) => {
+  if (value == null) return '$0.00'
+  const numValue = parseFloat(value)
+  if (isNaN(numValue)) return '$0.00'
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(numValue)
 }
 
-const formatearFecha = (fecha) => {
-  if (!fecha) return '-'
-  return new Date(fecha).toLocaleDateString('es-MX')
-}
-
-const formatearMoneda = (valor) => {
-  if (!valor) return '0.00'
-  return parseFloat(valor).toFixed(2)
+// Formatear fecha
+const formatDate = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('es-MX')
 }
 </script>
 
 <style scoped>
-/* Layout único de información de folio con checkboxes personalizados - Justificado mantener scoped */
+/* Layout único de comparación de folios - Justificado mantener scoped */
+.folio-comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
 .folio-info {
-  padding: 1rem;
-  background-color: var(--color-bg-secondary);
-  border-radius: 0.375rem;
-  border-left: 4px solid var(--color-primary);
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
 }
 
-.folio-info h5 {
-  margin-bottom: 1rem;
-  color: var(--color-primary);
-}
-
-.folio-info h6 {
+.folio-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
-  color: var(--color-text-secondary);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-item label {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.info-item span {
-  font-size: 1rem;
-  color: var(--color-text-primary);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
-.info-item span.highlight {
+.folio-title.origin {
+  color: var(--color-warning);
+}
+
+.folio-title.destination {
+  color: var(--color-success);
+}
+
+.transfer-arrow {
+  font-size: 3rem;
   color: var(--color-primary);
-  font-size: 1.25rem;
 }
 
-.checkbox-group {
-  margin-bottom: 0.75rem;
-}
-
-.checkbox-label {
+.table-actions {
   display: flex;
-  align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
-  font-size: 1rem;
 }
 
-.checkbox-label input[type="checkbox"] {
-  width: 1.25rem;
-  height: 1.25rem;
-  cursor: pointer;
-}
+@media (max-width: 768px) {
+  .folio-comparison {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 
-.checkbox-label span {
-  user-select: none;
+  .transfer-arrow {
+    transform: rotate(90deg);
+    font-size: 2rem;
+  }
 }
 </style>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <div class="module-view-header">
       <div class="module-view-icon">
@@ -8,12 +8,7 @@
         <h1>Consulta Captura por Fecha</h1>
         <p>Mercados - Detalle de Pagos Capturados por Fecha</p>
       </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+      <div class="button-group ms-auto"></div>
     </div>
 
     <div class="module-view-content">
@@ -151,11 +146,7 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function cargarOficinas() {
+};async function cargarOficinas() {
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
@@ -175,7 +166,7 @@ async function cargarOficinas() {
 
 async function buscarPagos() {
   if (!form.value.fecha || !form.value.oficina || !form.value.caja || !form.value.operacion) {
-    showToast('warning', 'Complete todos los campos');
+    showToast('Complete todos los campos', 'warning');
     return;
   }
 
@@ -201,12 +192,12 @@ async function buscarPagos() {
     if (response.data?.eResponse?.success) {
       pagos.value = response.data.eResponse.data.result || [];
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos');
+        showToast('No se encontraron pagos', 'info');
       }
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar pagos');
+    showToast('Error al buscar pagos', 'error');
   } finally {
     loading.value = false;
   }
@@ -222,7 +213,7 @@ function toggleAll() {
 
 async function borrarPagos() {
   if (selected.value.length === 0) {
-    showToast('warning', 'Seleccione al menos un pago');
+    showToast('Seleccione al menos un pago', 'warning');
     return;
   }
 
@@ -261,14 +252,36 @@ async function borrarPagos() {
       }
     }
 
-    showToast('success', `${exitosos} pago(s) eliminado(s)`);
+    showToast(`${exitosos} pago(s) eliminado(s)`, 'success');
     buscarPagos();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al borrar pagos');
+    showToast('Error al borrar pagos', 'error');
   } finally {
     loading.value = false;
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura por Fecha',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas realizadas en un rango de fechas.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione el rango de fechas a consultar
+          <li>Aplique filtros adicionales segÃºn sea necesario
+          <li>Los resultados se muestran en orden cronolÃ³gico</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => cargarOficinas());

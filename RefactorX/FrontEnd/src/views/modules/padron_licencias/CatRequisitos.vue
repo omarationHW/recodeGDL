@@ -507,9 +507,11 @@ const buscar = async () => {
   try {
     const response = await execute(
       'sp_catrequisitos_list',
-      'licencias',
+      'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -600,13 +602,15 @@ const crearRequisito = async () => {
   try {
     const response = await execute(
       'sp_catrequisitos_create',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_id_requisito', valor: nuevoRequisito.value.id_requisito, tipo: 'integer' },
         { nombre: 'p_descripcion', valor: nuevoRequisito.value.descripcion.trim(), tipo: 'string' },
         { nombre: 'p_requisitos', valor: nuevoRequisito.value.requisitos || '', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()
@@ -676,13 +680,15 @@ const actualizarRequisito = async () => {
   try {
     const response = await execute(
       'sp_catrequisitos_update',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_id_requisito', valor: requisitoSeleccionado.value.id_requisito, tipo: 'integer' },
         { nombre: 'p_descripcion', valor: requisitoEditado.value.descripcion.trim(), tipo: 'string' },
         { nombre: 'p_requisitos', valor: requisitoEditado.value.requisitos || '', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()
@@ -733,11 +739,13 @@ const eliminarRequisito = async (requisito) => {
   try {
     const response = await execute(
       'sp_catrequisitos_delete',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_id_requisito', valor: requisito.id_requisito, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()

@@ -233,7 +233,9 @@ const loadGiros = async () => {
       [
         { nombre: 'p_tipo', valor: filters.value.tipoGiro, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -266,7 +268,9 @@ const loadRequisitos = async () => {
       [
         { nombre: 'p_id_giro', valor: filters.value.idGiro, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

@@ -428,7 +428,7 @@ const loadTablas = async () => {
       [],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false
@@ -479,7 +479,7 @@ const onTablaChange = async () => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loadingEtiquetas.value = false
@@ -622,7 +622,7 @@ const saveEtiquetas = async () => {
       params,
       '',
       null,
-      'public'
+      'publico'
     )
 
     saving.value = false

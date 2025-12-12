@@ -511,7 +511,9 @@ const searchLicencia = async () => {
       [
         { nombre: 'p_licencia', valor: searchForm.value.licencia, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -555,7 +557,9 @@ const loadResponsivas = async () => {
         { nombre: 'p_licencia', valor: licenciaData.value.licencia, tipo: 'integer' },
         { nombre: 'p_tipo', valor: tipoDocumento.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -594,7 +598,9 @@ const searchByFolio = async () => {
         { nombre: 'p_folio', valor: folioSearch.value.folio, tipo: 'integer' },
         { nombre: 'p_tipo', valor: tipoDocumento.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -652,7 +658,9 @@ const createResponsiva = async () => {
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' },
         { nombre: 'p_observacion', valor: newResponsiva.value.observacion || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -723,7 +731,9 @@ const cancelResponsiva = async (responsiva, motivo) => {
         { nombre: 'p_motivo', valor: motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

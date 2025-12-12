@@ -122,6 +122,7 @@ const { loading, execute } = useApi()
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_ESTADREQ'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -169,7 +170,7 @@ async function reload() {
     const params = [
       { nombre: 'q', tipo: 'string', valor: String(filters.value.q || '') }
     ]
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     // La API puede retornar data.result, data.rows, o data directamente como array
     const arr = Array.isArray(data?.result) ? data.result

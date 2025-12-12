@@ -1,12 +1,15 @@
 import { ref } from 'vue'
 import apiService from '@/services/apiService'
 
+// Esquema por defecto para todas las llamadas API
+export const DEFAULT_SCHEMA = 'publico'
+
 export function useApi() {
   const loading = ref(false)
   const error = ref(null)
   const data = ref(null)
 
-  const execute = async (operacion, base, parametros = [], tenant = '', pagination = null, esquema = null) => {
+  const execute = async (operacion, base, parametros = [], tenant = '', pagination = null, esquema = DEFAULT_SCHEMA) => {
     loading.value = true
     error.value = null
     data.value = null

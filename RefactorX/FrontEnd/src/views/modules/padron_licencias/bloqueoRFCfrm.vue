@@ -519,7 +519,7 @@ const cargarBloqueos = async () => {
   try {
     const response = await execute(
       'sp_bloqueorfc_list',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_page_size', valor: pageSize.value, tipo: 'integer' },
@@ -528,7 +528,7 @@ const cargarBloqueos = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -573,11 +573,11 @@ const buscarTramite = async () => {
   try {
     const response = await execute(
       'sp_bloqueorfc_buscar_tramite',
-      'licencias',
+      'padron_licencias',
       [{ nombre: 'p_id_tramite', valor: idTramiteBuscar.value, tipo: 'integer' }],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -647,7 +647,7 @@ const crearBloqueo = async () => {
   try {
     const response = await execute(
       'sp_bloqueorfc_create',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_rfc', valor: tramiteInfo.value.rfc, tipo: 'string' },
         { nombre: 'p_id_tramite', valor: idTramiteBuscar.value, tipo: 'integer' },
@@ -657,7 +657,7 @@ const crearBloqueo = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     // Primero ocultar el loading
@@ -732,7 +732,7 @@ const confirmarDesbloqueo = async (bloqueo) => {
   try {
     const response = await execute(
       'sp_bloqueorfc_desbloquear',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_rfc', valor: bloqueo.rfc, tipo: 'string' },
         { nombre: 'p_id_tramite', valor: bloqueo.id_tramite, tipo: 'integer' },
@@ -740,7 +740,7 @@ const confirmarDesbloqueo = async (bloqueo) => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     // Primero ocultar el loading

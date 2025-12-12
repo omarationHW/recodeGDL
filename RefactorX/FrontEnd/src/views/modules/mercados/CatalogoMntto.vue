@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -10,7 +10,7 @@
         <p>Mercados - Administración y Mantenimiento del Catálogo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -18,9 +18,9 @@
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -246,7 +246,7 @@
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loading">
+        <button type="button" class="btn-municipal-primary" @click="submitForm" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
           <font-awesome-icon icon="save" v-if="!loading" />
           Guardar
@@ -257,6 +257,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -322,14 +323,7 @@ const goToPage = (page) => {
 const changePageSize = (size) => {
   itemsPerPage.value = parseInt(size);
   currentPage.value = 1;
-};
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Cargar mercados
+};// Cargar mercados
 async function fetchData() {
   loading.value = true;
   showLoading();
@@ -462,6 +456,28 @@ async function submitForm() {
     loading.value = false;
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - CatÃ¡logo de Mantenimiento',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite administrar el catÃ¡logo de mantenimiento de mercados.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Utilice los botones de la barra superior para agregar o modificar registros
+          <li>Complete todos los campos requeridos marcados con *
+          <li>Los cambios se guardarÃ¡n inmediatamente al hacer clic en Guardar</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

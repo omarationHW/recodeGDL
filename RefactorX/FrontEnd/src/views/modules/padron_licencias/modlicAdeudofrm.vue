@@ -443,7 +443,9 @@ const searchLicencia = async () => {
       [
         { nombre: 'p_id_licencia', valor: searchForm.value.id_licencia, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (responseLic && responseLic.result && responseLic.result.length > 0) {
@@ -480,7 +482,9 @@ const loadAdeudos = async () => {
       [
         { nombre: 'p_id_licencia', valor: searchForm.value.id_licencia, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -501,7 +505,9 @@ const loadSaldos = async () => {
       [
         { nombre: 'p_id_licencia', valor: searchForm.value.id_licencia, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -536,7 +542,9 @@ const recalcularSaldos = async () => {
         [
           { nombre: 'p_id_licencia', valor: searchForm.value.id_licencia, tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       await loadSaldos()
@@ -669,7 +677,9 @@ const guardarAdeudo = async () => {
       spName,
       'padron_licencias',
       params,
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response) {
@@ -727,7 +737,9 @@ const eliminarAdeudo = async (adeudo, index) => {
         { nombre: 'p_id_licencia', valor: searchForm.value.id_licencia, tipo: 'integer' },
         { nombre: 'p_id_adeudo', valor: adeudo.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response) {

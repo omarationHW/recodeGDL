@@ -6,7 +6,7 @@
       </div>
       <div class="module-view-info">
         <h1>Consulta Observaciones Multa</h1>
-        <p>consobsmulfrm.vue</p>
+        <p>Consulta de observaciones y notas asociadas a multas</p>
       </div>
     </div>
     <div class="module-view-content">
@@ -14,13 +14,32 @@
         <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group full-width">
-              <label class="municipal-form-label">Filtro</label>
-              <input class="municipal-form-control" v-model="filters.q" @keyup.enter="reload"/>
+              <label class="municipal-form-label">Folio de Multa o Texto de Observación</label>
+              <input
+                class="municipal-form-control"
+                v-model="filters.q"
+                placeholder="Ingrese folio de multa o texto a buscar en observaciones"
+                @keyup.enter="filters.q.trim() && reload()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload">
-              <font-awesome-icon icon="search"/> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.q.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading"/>
+              <font-awesome-icon icon="spinner" spin v-if="loading"/>
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -90,13 +109,13 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_CONSOBSMULFRM'
-const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
 
 const filters = ref({ q: '' })
 const rows = ref([])
 const cols = ref([])
+const hasSearched = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 10
 
@@ -107,34 +126,41 @@ const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, rows.v
 const paginatedRows = computed(() => rows.value.slice(startIndex.value, endIndex.value))
 
 async function reload() {
+  hasSearched.value = true
+
+  const params = [
+    { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
+  ]
+
   try {
-    const data = await execute(
-      OP,
-      BASE_DB,
-      [
-        { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
-      ],
-      '',
-      null,
-      SCHEMA
-    )
+    const response = await execute(OP, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
 
-    const arr = Array.isArray(data?.result)
-      ? data.result
-      : Array.isArray(data?.rows)
-      ? data.rows
-      : Array.isArray(data)
-      ? data
-      : []
+    // Extraer datos con fallbacks
+    const data = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
 
+    console.log('Registros extraídos:', arr.length, arr)
     rows.value = arr
     cols.value = arr.length ? Object.keys(arr[0]) : []
-    currentPage.value = 1 // Reset a la primera página
+    currentPage.value = 1
   } catch (e) {
+    console.error('Error al buscar observaciones:', e)
     rows.value = []
     cols.value = []
   }
 }
+
+function limpiar() {
+  filters.value = { q: '' }
+  rows.value = []
+  cols.value = []
+  hasSearched.value = false
+  currentPage.value = 1
+}
+
+// No cargar automáticamente, esperar a que el usuario haga clic en Buscar
+// reload()
 </script>
 
 <style scoped>
@@ -179,6 +205,58 @@ async function reload() {
 }
 
 .btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-municipal-primary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #007bff;
+  border-radius: 0.25rem;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-municipal-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-municipal-secondary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  background-color: #6c757d;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-secondary:hover:not(:disabled) {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.btn-municipal-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

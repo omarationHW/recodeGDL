@@ -395,7 +395,9 @@ const searchActividades = async () => {
         [
           { nombre: 'p_id_giro', valor: parseInt(filters.value.id_giro), tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
     }
     // Si busca por SCIAN (con o sin descripción), usar buscar_actividades
@@ -417,7 +419,9 @@ const searchActividades = async () => {
         'buscar_actividades',
         'padron_licencias',
         parametros,
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
     }
     // Si solo busca por descripción, mostrar advertencia

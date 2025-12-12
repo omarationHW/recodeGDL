@@ -212,7 +212,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina, mercado, año y periodo para generar la emisión de recibos')
+  showToast('Ayuda: Seleccione una oficina, mercado, año y periodo para generar la emisión de recibos', 'info')
 }
 
 const showToast = (type, message) => {
@@ -256,16 +256,16 @@ const fetchRecaudadoras = async () => {
     if (res.data.eResponse.success === true) {
       recaudadoras.value = res.data.eResponse.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
       error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -297,18 +297,18 @@ const onRecChange = async () => {
     if (res.data.eResponse && res.data.eResponse.success === true) {
       mercados.value = res.data.eResponse.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
       error.value = res.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -317,13 +317,13 @@ const onRecChange = async () => {
 const generarEmision = async () => {
   if (!selectedRec.value || !selectedMercado.value || !axo.value || !periodo.value) {
     error.value = 'Debe seleccionar oficina, mercado, año y periodo'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (periodo.value < 1 || periodo.value > 12) {
     error.value = 'El periodo debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -349,19 +349,19 @@ const generarEmision = async () => {
     if (res.data.eResponse && res.data.eResponse.success === true) {
       recibos.value = res.data.eResponse.data.result || []
       if (recibos.value.length > 0) {
-        showToast('success', `Se generaron ${recibos.value.length} recibos`)
+        showToast(`Se generaron ${recibos.value.length} recibos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron locales para el mercado seleccionado')
+        showToast('No se encontraron locales para el mercado seleccionado', 'info')
       }
     } else {
       error.value = res.data.eResponse?.message || 'Error al generar emisión'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al generar emisión'
     console.error('Error al generar emisión:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -376,7 +376,7 @@ const limpiarFiltros = () => {
   recibos.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 // Utilidades

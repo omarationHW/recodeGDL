@@ -949,7 +949,7 @@ const buscarTramites = async () => {
       params,
       'padron_licencias',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -990,7 +990,7 @@ const cargarEstadisticas = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {

@@ -174,7 +174,7 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()

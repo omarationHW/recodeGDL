@@ -401,7 +401,9 @@ const saveSignature = async () => {
         { nombre: 'p_signature_base64', valor: base64, tipo: 'string' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
@@ -470,7 +472,9 @@ const validateSignature = async () => {
       [
         { nombre: 'p_signature_id', valor: savedSignature.value.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 

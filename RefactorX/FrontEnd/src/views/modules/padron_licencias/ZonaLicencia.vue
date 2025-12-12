@@ -379,7 +379,9 @@ const loadRecaudadoras = async () => {
       'sp_get_recaudadoras',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -433,7 +435,9 @@ const loadZonas = async () => {
       [
         { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -476,7 +480,9 @@ const loadSubzonas = async () => {
         { nombre: 'p_cvezona', valor: selectedZonaForSubzonas.value, tipo: 'integer' },
         { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -518,7 +524,9 @@ const onZonaChange = async () => {
         { nombre: 'p_cvezona', valor: asignacion.value.zonaId, tipo: 'integer' },
         { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -550,7 +558,9 @@ const buscarLicencia = async () => {
       [
         { nombre: 'p_licencia', valor: parseInt(asignacion.value.numeroLicencia), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -646,7 +656,9 @@ const guardarAsignacion = async () => {
         { nombre: 'p_recaud', valor: selectedRecaudadora.value, tipo: 'integer' },
         { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

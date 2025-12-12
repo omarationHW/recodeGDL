@@ -367,11 +367,10 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
 const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const cargando = ref(false)
 const mostrarAyuda = ref(false)

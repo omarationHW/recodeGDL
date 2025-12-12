@@ -548,11 +548,10 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
 const { handleApiError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const tabActual = ref('ejercicios')

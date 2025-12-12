@@ -149,6 +149,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_PAGOS_ESPE'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 
 const filters = ref({
@@ -199,7 +200,7 @@ async function reload() {
   ]
 
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
 
     // Extraer los datos de la respuesta
     let rows = []

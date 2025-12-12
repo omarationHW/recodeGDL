@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -16,13 +16,6 @@
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button
-          class="btn-municipal-danger"
-          @click="cerrar"
-        >
-          <font-awesome-icon icon="times" />
-          Cerrar
         </button>
       </div>
     </div>
@@ -262,7 +255,7 @@
 
           <div class="d-flex justify-content-end mt-3">
             <button
-              class="btn-municipal-success"
+              class="btn-municipal-primary"
               @click="grabarPagos"
               :disabled="!hayPagosValidos || loading"
             >
@@ -371,6 +364,7 @@ async function cargarRecaudadoras() {
         eRequest: {
           Operacion: 'sp_get_recaudadoras',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -393,6 +387,7 @@ async function cargarSecciones() {
         eRequest: {
           Operacion: 'sp_get_secciones',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -421,6 +416,7 @@ async function onOficinaChange() {
         eRequest: {
           Operacion: 'sp_get_catalogo_mercados',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_id_rec', Valor: parseInt(form.value.oficina) },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
@@ -459,6 +455,7 @@ async function onOficinaPagoChange() {
         eRequest: {
           Operacion: 'sp_get_cajas',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) }
           ]
@@ -491,6 +488,7 @@ async function buscarAdeudos() {
         eRequest: {
           Operacion: 'sp_get_adeudos_local',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
             { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) },
@@ -546,6 +544,7 @@ async function actualizarStatus() {
         eRequest: {
           Operacion: 'sp_get_ingreso_operacion',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_fecha_ingreso', Valor: formPago.value.fecha_ingreso },
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
@@ -566,6 +565,7 @@ async function actualizarStatus() {
         eRequest: {
           Operacion: 'sp_get_captura_operacion',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
@@ -631,6 +631,7 @@ async function grabarPagos() {
         eRequest: {
           Operacion: 'sp_insert_pagos_mercado',
           Base: 'mercados',
+          Esquema: 'publico',
           Parametros: [
             { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
             { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
@@ -717,13 +718,7 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <!--
   Estilos eliminados según patrones municipales.

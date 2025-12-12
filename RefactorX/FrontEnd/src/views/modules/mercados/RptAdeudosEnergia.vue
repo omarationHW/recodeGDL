@@ -33,7 +33,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
         <div v-show="showFilters" class="municipal-card-body">
@@ -140,7 +140,7 @@
 
             <div class="pagination-controls">
               <label>Registros por página:</label>
-              <select v-model.number="pageSize" class="form-select form-select-sm">
+              <select v-model.number="pageSize" class="municipal-form-control" style="width: auto;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -150,12 +150,12 @@
             </div>
 
             <div class="pagination-buttons">
-              <button @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button @click="previousPage" :disabled="currentPage === 1" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -299,3 +299,123 @@ const formatNumber = (value) => {
   return new Intl.NumberFormat('es-MX').format(value);
 };
 </script>
+
+<style scoped>
+@media print {
+  .module-view-header,
+  .municipal-card-header,
+  .pagination-container,
+  .button-group {
+    display: none !important;
+  }
+
+  .municipal-table {
+    font-size: 10px;
+  }
+
+  .sticky-header {
+    position: static !important;
+  }
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+}
+
+.table-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.empty-icon {
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.row-hover:hover {
+  background-color: #f0f8ff;
+  cursor: pointer;
+}
+
+.header-with-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.pagination-info {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-controls label {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.pagination-controls select {
+  width: auto;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-buttons .btn,
+.pagination-buttons .btn-municipal-secondary {
+  min-width: 2rem;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
+}
+
+.module-view-header .btn-municipal-primary,
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.required {
+  color: #dc3545;
+}
+</style>

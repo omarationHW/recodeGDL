@@ -301,25 +301,25 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Configure las fechas de descuento y recargos para cada mes del año.')
+  showToast('Configure las fechas de descuento y recargos para cada mes del año.', 'info')
 }
 
 const cargarFechas = async () => {
   loading.value = true
   try {
     const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'fechas_descuento_get_all', Base: 'mercados', Parametros: [] }
+      eRequest: { Operacion: 'fechas_descuento_get_all', Base: 'mercados', Esquema: 'publico', Parametros: [] }
     })
     if (res.data.eResponse.success) {
       fechas.value = res.data.eResponse.data.result || []
       if (fechas.value.length > 0) {
-        showToast('success', `Se cargaron ${fechas.value.length} registros`)
+        showToast(`Se cargaron ${fechas.value.length} registros`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar fechas')
+      showToast(res.data.eResponse.message || 'Error al cargar fechas', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión')
+    showToast('Error de conexión', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -337,7 +337,7 @@ const editarFecha = (fecha) => {
 
 const guardar = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos correctamente')
+    showToast('Complete todos los campos correctamente', 'warning')
     return
   }
 
@@ -347,6 +347,7 @@ const guardar = async () => {
       eRequest: {
         Operacion: 'fechas_descuento_update',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_mes', Valor: parseInt(form.value.mes) },
           { Nombre: 'p_fecha_descuento', Valor: form.value.fecha_descuento },
@@ -358,17 +359,17 @@ const guardar = async () => {
     if (res.data.eResponse.success) {
       const result = res.data.eResponse.data.result
       if (result && result.length > 0 && result[0].success) {
-        showToast('success', result[0].message || 'Fechas actualizadas')
+        showToast(result[0].message || 'Fechas actualizadas', 'success')
         cerrarModal()
         cargarFechas()
       } else {
-        showToast('error', result && result[0] ? result[0].message : 'Error al actualizar')
+        showToast(result && result[0] ? result[0].message : 'Error al actualizar', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar')
+      showToast(res.data.eResponse.message || 'Error al guardar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión')
+    showToast('Error de conexión', 'error')
     console.error(err)
   } finally {
     loading.value = false

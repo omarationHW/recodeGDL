@@ -469,7 +469,7 @@ const loadBloques = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -519,7 +519,7 @@ const searchBloques = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result) {
@@ -557,7 +557,7 @@ const viewDetalle = async (bloqueo) => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -611,7 +611,9 @@ const exportToExcel = async () => {
           { nombre: 'p_colonia', valor: filters.value.colonia || null, tipo: 'string' },
           { nombre: 'p_tipo_bloqueo', valor: filters.value.tipoBloqueo || null, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       if (response && response.result) {
@@ -658,7 +660,9 @@ const printReport = async () => {
           { nombre: 'p_colonia', valor: filters.value.colonia || null, tipo: 'string' },
           { nombre: 'p_tipo_bloqueo', valor: filters.value.tipoBloqueo || null, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       if (response && response.result) {

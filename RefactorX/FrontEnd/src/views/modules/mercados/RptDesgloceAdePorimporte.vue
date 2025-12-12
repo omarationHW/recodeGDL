@@ -32,7 +32,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
 
@@ -202,7 +202,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="250">250</option>
               </select>
             </div>
 
@@ -239,20 +238,15 @@
 
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useToast } from '@/composables/useToast'
+
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -264,16 +258,9 @@ const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => report.value.length)
 
 // Métodos
@@ -285,54 +272,29 @@ const mostrarAyuda = () => {
   showToast('info', 'Ayuda: Ingrese año, periodo (mes) e importe mínimo para consultar el desglose de adeudos vencidos por año')
 }
 
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
-}
-
 const fetchReport = async () => {
   // Validaciones
   if (!year.value || !period.value || amount.value === null || amount.value === undefined) {
     error.value = 'Debe ingresar año, periodo e importe mínimo'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (year.value < 2000 || year.value > 2100) {
     error.value = 'El año debe estar entre 2000 y 2100'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (period.value < 1 || period.value > 12) {
     error.value = 'El periodo debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (amount.value < 0) {
     error.value = 'El importe mínimo debe ser mayor o igual a cero'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -358,19 +320,19 @@ const fetchReport = async () => {
     if (res.data.eResponse.success) {
       report.value = res.data.eResponse.data.result || []
       if (report.value.length > 0) {
-        showToast('success', `Se encontraron ${report.value.length} locales con adeudos`)
+        showToast(`Se encontraron ${report.value.length} locales con adeudos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron resultados para los parámetros indicados')
+        showToast('No se encontraron resultados para los parámetros indicados', 'info')
       }
     } else {
       error.value = res.data.eResponse.message || 'Error al consultar el reporte'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar el reporte'
     console.error('Error al consultar reporte:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -384,20 +346,20 @@ const limpiarFiltros = () => {
   error.value = ''
   searchPerformed.value = false
   currentPage.value = 1
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (report.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación a Excel en desarrollo')
+  showToast('Funcionalidad de exportación a Excel en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (report.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   window.print()

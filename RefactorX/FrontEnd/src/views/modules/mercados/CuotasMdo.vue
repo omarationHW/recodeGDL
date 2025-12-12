@@ -10,7 +10,7 @@
         <p>Inicio > Mercados > Cuotas</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="openCreate">
+        <button class="btn-municipal-primary" @click="openCreate">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>

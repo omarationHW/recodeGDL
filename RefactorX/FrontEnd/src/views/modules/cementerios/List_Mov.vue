@@ -1,14 +1,22 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="list-alt" />
-        Listado de Movimientos
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Listado de Movimientos"
-        :sections="helpSections"
-      />
+      </div>
+      <div class="module-view-info">
+        <h1>Listado de Movimientos</h1>
+        <p>Cementerios - Consulta de movimientos por rango de fechas</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <!-- Filtros -->
@@ -64,6 +72,7 @@
                 <th>Fecha</th>
                 <th>Folio</th>
                 <th>Cementerio</th>
+                <th>Ubicación</th>
                 <th>Titular</th>
                 <th>Usuario</th>
                 <th>Observaciones</th>
@@ -71,11 +80,22 @@
             </thead>
             <tbody>
               <tr v-for="mov in movimientos" :key="`${mov.control_rcm}-${mov.fecha_mov}`">
-                <td>{{ formatearFecha(mov.fecha_mov) }}</td>
-                <td>{{ mov.control_rcm }}</td>
-                <td>{{ mov.cementerio }}</td>
+                <td>
+                  <strong>{{ formatearFecha(mov.fecha_mov) }}</strong>
+                </td>
+                <td>
+                  <span class="badge badge-primary">{{ mov.control_rcm }}</span>
+                </td>
+                <td>
+                  <small>{{ mov.nombre_cementerio || mov.cementerio }}</small>
+                </td>
+                <td>
+                  <small class="text-muted">{{ mov.ubicacion || '-' }}</small>
+                </td>
                 <td>{{ mov.nombre }}</td>
-                <td>{{ mov.nombre_usuario || mov.usuario }}</td>
+                <td>
+                  <small>{{ mov.nombre_usuario || mov.usuario }}</small>
+                </td>
                 <td>{{ mov.observaciones || '-' }}</td>
               </tr>
             </tbody>
@@ -88,32 +108,78 @@
       <font-awesome-icon icon="info-circle" />
       No se encontraron movimientos en el rango de fechas especificado
     </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocumentation"
       :componentName="'List_Mov'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      @close="closeDocumentation"
     />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
 
-// Modal de documentación
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Estado
 const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
+const mostrarAyuda = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const filtros = reactive({
@@ -126,73 +192,48 @@ const movimientos = ref([])
 const cementerios = ref([])
 const busquedaRealizada = ref(false)
 
-const helpSections = [
-  {
-    title: 'Listado de Movimientos',
-    content: `
-      <p>Consulta y lista todos los movimientos de folios en un rango de fechas.</p>
-      <h4>Filtros Disponibles:</h4>
-      <ul>
-        <li><strong>Rango de Fechas:</strong> Obligatorio - define el período de consulta</li>
-        <li><strong>Cementerio:</strong> Opcional - filtra por cementerio específico</li>
-      </ul>
-      <h4>Información Mostrada:</h4>
-      <ul>
-        <li>Fecha del movimiento</li>
-        <li>Número de folio afectado</li>
-        <li>Usuario que realizó el movimiento</li>
-        <li>Observaciones registradas</li>
-      </ul>
-    `
-  }
-]
-
 const buscarMovimientos = async () => {
   if (!filtros.fecha_inicio || !filtros.fecha_fin) {
-    toast.warning('Debe especificar el rango de fechas')
+    showToast('warning', 'Debe especificar el rango de fechas')
     return
   }
 
   if (new Date(filtros.fecha_inicio) > new Date(filtros.fecha_fin)) {
-    toast.warning('La fecha de inicio no puede ser mayor a la fecha fin')
+    showToast('warning', 'La fecha de inicio no puede ser mayor a la fecha fin')
     return
   }
 
+  showLoading('Buscando movimientos...', 'Consultando base de datos')
+
   try {
     const params = [
-      {
-        nombre: 'p_fecha_inicio',
-        valor: filtros.fecha_inicio,
-        tipo: 'date'
-      },
-      {
-        nombre: 'p_fecha_fin',
-        valor: filtros.fecha_fin,
-        tipo: 'date'
-      },
-      {
-        nombre: 'p_cementerio',
-        valor: filtros.cementerio || null,
-        tipo: 'string'
-      }
+      { nombre: 'p_fecha_inicio', valor: filtros.fecha_inicio, tipo: 'date' },
+      { nombre: 'p_fecha_fin', valor: filtros.fecha_fin, tipo: 'date' },
+      { nombre: 'p_cementerio', valor: filtros.cementerio || null, tipo: 'string' }
     ]
 
-    const response = await execute('sp_cem_listar_movimientos', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_listmov_buscar_movimientos',
+      'cementerio',
+      params,
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    movimientos.value = response.result || []
+    movimientos.value = response?.result || []
     busquedaRealizada.value = true
 
     if (movimientos.value.length > 0) {
-      toast.success(`Se encontraron ${movimientos.value.length} movimiento(s)`)
+      showToast('success', `Se encontraron ${movimientos.value.length} movimiento(s)`)
     } else {
-      toast.info('No se encontraron movimientos en el período especificado')
+      showToast('info', 'No se encontraron movimientos en el período especificado')
     }
   } catch (error) {
-    toast.error('Error al buscar movimientos')
+    console.error('Error al buscar movimientos:', error)
+    showToast('error', 'Error al buscar movimientos')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -206,9 +247,22 @@ const limpiar = () => {
 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
-    cementerios.value = response.result || []
+    // Para evitar SP adicionales llamamos el SP que ya existe para listar cementerios
+    const response = await execute(
+      //'sp_listmov_listar_cementerios',
+      'sp_get_cementerios_list',
+      'cementerio',
+      [],
+      'cementerio',
+      null,
+      'public'
+    )
+
+    if (response?.result?.length > 0) {
+      cementerios.value = response.result
+    }
   } catch (error) {
+    console.error('Error al cargar cementerios:', error)
   }
 }
 

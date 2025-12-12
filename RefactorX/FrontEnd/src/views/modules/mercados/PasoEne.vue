@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="triggerFileInput" :disabled="loading">
           <font-awesome-icon icon="folder-open" /> Seleccionar Archivo
         </button>
-        <button class="btn-municipal-success" @click="ejecutarCarga" :disabled="loading || rows.length === 0">
+        <button class="btn-municipal-primary" @click="ejecutarCarga" :disabled="loading || rows.length === 0">
           <font-awesome-icon icon="play" /> Ejecutar Carga
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -207,7 +207,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione un archivo .txt con pagos de energía. El formato debe ser: ID_ENERGIA|AXO|PERIODO|FECHA_PAGO|OFICINA|CAJA|OPERACION|IMPORTE|CONSUMO|CANTIDAD|FOLIO|FECHA_ACT|USUARIO')
+  showToast('Seleccione un archivo .txt con pagos de energía. El formato debe ser: ID_ENERGIA|AXO|PERIODO|FECHA_PAGO|OFICINA|CAJA|OPERACION|IMPORTE|CONSUMO|CANTIDAD|FOLIO|FECHA_ACT|USUARIO', 'info')
 }
 
 const triggerFileInput = () => {
@@ -222,7 +222,7 @@ const handleDrop = (e) => {
   if (file && file.name.endsWith('.txt')) {
     processFile(file)
   } else {
-    showToast('error', 'Por favor seleccione un archivo .txt')
+    showToast('Por favor seleccione un archivo .txt', 'error')
   }
 }
 
@@ -314,16 +314,16 @@ const parseFileContent = (content) => {
   parseErrors.value = errors
 
   if (parsed.length > 0) {
-    showToast('success', `${parsed.length} registros cargados correctamente`)
+    showToast(`${parsed.length} registros cargados correctamente`, 'success')
   }
   if (errors.length > 0) {
-    showToast('warning', `${errors.length} líneas con errores fueron omitidas`)
+    showToast(`${errors.length} líneas con errores fueron omitidas`, 'warning')
   }
 }
 
 const ejecutarCarga = async () => {
   if (rows.value.length === 0) {
-    showToast('warning', 'No hay registros para procesar')
+    showToast('No hay registros para procesar', 'warning')
     return
   }
 
@@ -386,7 +386,7 @@ const ejecutarCarga = async () => {
   }
 
   if (insertedIds.length === rows.value.length) {
-    showToast('success', `¡Proceso completado! ${insertedIds.length} registros insertados`)
+    showToast(`¡Proceso completado! ${insertedIds.length} registros insertados`, 'success')
     // Limpiar después de inserción exitosa completa
     setTimeout(() => {
       rows.value = []
@@ -395,9 +395,9 @@ const ejecutarCarga = async () => {
       fileInput.value.value = ''
     }, 3000)
   } else if (insertedIds.length > 0) {
-    showToast('warning', `Proceso completado con errores: ${insertedIds.length} insertados, ${errors.length} fallidos`)
+    showToast(`Proceso completado con errores: ${insertedIds.length} insertados, ${errors.length} fallidos`, 'warning')
   } else {
-    showToast('error', 'No se pudieron insertar registros')
+    showToast('No se pudieron insertar registros', 'error')
   }
 }
 

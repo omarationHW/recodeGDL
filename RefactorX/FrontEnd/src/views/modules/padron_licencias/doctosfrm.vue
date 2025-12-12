@@ -496,7 +496,7 @@ const buscar = async () => {
       [],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -604,7 +604,7 @@ const crearDocumento = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     hideLoading()
@@ -667,7 +667,7 @@ const actualizarDocumento = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     hideLoading()
@@ -725,7 +725,7 @@ const eliminarDocumento = async (doc) => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     hideLoading()

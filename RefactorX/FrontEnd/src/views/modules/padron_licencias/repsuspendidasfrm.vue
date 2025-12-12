@@ -504,7 +504,9 @@ const generarReporte = async () => {
       'report_licencias_suspendidas',
       'padron_licencias',
       params,
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

@@ -362,37 +362,49 @@ const buscarPrivilegios = async () => {
         'privilegios_privilegios_get_permisos_usuario',
         'padron_licencias',
         [{ nombre: 'p_usuario', valor: searchUsuario.value, tipo: 'string' }],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       ),
       execute(
         'privilegios_privilegios_get_deptos',
         'padron_licencias',
         [{ nombre: 'p_usuario', valor: searchUsuario.value, tipo: 'string' }],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       ),
       execute(
         'privilegios_privilegios_get_mov_licencias',
         'padron_licencias',
         [{ nombre: 'p_usuario', valor: searchUsuario.value, tipo: 'string' }],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       ),
       execute(
         'privilegios_privilegios_get_mov_tramites',
         'padron_licencias',
         [{ nombre: 'p_usuario', valor: searchUsuario.value, tipo: 'string' }],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       ),
       execute(
         'privilegios_privilegios_get_revisiones',
         'padron_licencias',
         [{ nombre: 'p_usuario', valor: searchUsuario.value, tipo: 'string' }],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       ),
       execute(
         'privilegios_privilegios_get_auditoria_usuario',
         'padron_licencias',
         [{ nombre: 'p_usuario', valor: searchUsuario.value, tipo: 'string' }],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
     ])
 

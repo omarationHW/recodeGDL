@@ -674,7 +674,7 @@ const cargarEstadisticas = async () => {
       [],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -707,7 +707,7 @@ const buscar = async () => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -767,7 +767,7 @@ const verDetalle = async (giro) => {
       [{ nombre: 'p_id_giro', valor: giro.id_giro, tipo: 'integer' }],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -793,7 +793,7 @@ const editarGiro = async (giro) => {
       [{ nombre: 'p_id_giro', valor: giro.id_giro, tipo: 'integer' }],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -879,7 +879,7 @@ const guardarGiro = async () => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -956,7 +956,7 @@ const actualizarGiro = async () => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1005,7 +1005,7 @@ const cambiarVigencia = async (giro, nuevaVigencia) => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

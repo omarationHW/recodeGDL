@@ -415,7 +415,9 @@ const searchPredios = async () => {
         { nombre: 'p_cuenta', valor: filters.value.cuenta || null, tipo: 'string' },
         { nombre: 'p_propietario', valor: filters.value.propietario || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -451,7 +453,9 @@ const loadPredioDetails = async (claveCatastral) => {
       'GET_CONSTRUCCIONES',
       'padron_licencias',
       [{ nombre: 'p_clavecatastral', valor: claveCatastral, tipo: 'string' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     construccionesData.value = constResponse?.result || []
 
@@ -460,7 +464,9 @@ const loadPredioDetails = async (claveCatastral) => {
       'GET_AVALUO',
       'padron_licencias',
       [{ nombre: 'p_clavecatastral', valor: claveCatastral, tipo: 'string' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     avaluoData.value = avaluoResponse?.result?.[0] || null
 
@@ -469,7 +475,9 @@ const loadPredioDetails = async (claveCatastral) => {
       'GET_CARTOGRAFIA_PREDIAL',
       'padron_licencias',
       [{ nombre: 'p_clavecatastral', valor: claveCatastral, tipo: 'string' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     cartografiaData.value = cartoResponse?.result?.[0] || null
   } catch (error) {
@@ -508,7 +516,9 @@ const deletePredio = async (predio) => {
       'CARGA_DELETE_PREDIO',
       'padron_licencias',
       [{ nombre: 'p_clavecatastral', valor: predio.clavecatastral, tipo: 'string' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result?.[0]?.success) {

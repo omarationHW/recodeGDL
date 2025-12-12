@@ -238,6 +238,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_GEN = 'RECAUDADORA_FOL_MULTA'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const form = ref({ clave_cuenta: '', ejercicio: new Date().getFullYear() })
 const result = ref('')
@@ -290,7 +291,7 @@ async function generar() {
     { nombre: 'p_ejercicio', tipo: 'integer', valor: Number(form.value.ejercicio || 0) }
   ]
   try {
-    const response = await execute(OP_GEN, BASE_DB, params)
+    const response = await execute(OP_GEN, BASE_DB, params, '', null, SCHEMA)
     console.log('📥 Respuesta de useApi:', response)
 
     // useApi ya extrae 'data' de eResponse, así que response = { result: [...], count: 1, debug: {...} }

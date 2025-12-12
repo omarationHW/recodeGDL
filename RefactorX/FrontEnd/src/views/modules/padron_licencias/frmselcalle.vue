@@ -336,7 +336,9 @@ const loadSuggestions = async () => {
         { nombre: 'p_nombre', valor: searchQuery.value, tipo: 'string' },
         { nombre: 'p_limit', valor: 10, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -377,7 +379,9 @@ const searchCalles = async () => {
         { nombre: 'p_nombre', valor: searchQuery.value || null, tipo: 'string' },
         { nombre: 'p_limit', valor: 100, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -410,7 +414,9 @@ const selectCalle = async (calle) => {
       [
         { nombre: 'p_codigo', valor: calle.codigo, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {

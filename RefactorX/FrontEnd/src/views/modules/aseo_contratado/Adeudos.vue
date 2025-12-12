@@ -275,10 +275,9 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const activeTab = ref('buscar')
 const showDocumentation = ref(false)

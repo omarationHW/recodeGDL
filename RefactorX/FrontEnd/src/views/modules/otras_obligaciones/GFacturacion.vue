@@ -450,7 +450,7 @@ const loadEtiquetas = async () => {
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -470,7 +470,7 @@ const loadTablas = async () => {
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -547,7 +547,7 @@ const generarReporte = async () => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     const endTime = performance.now()

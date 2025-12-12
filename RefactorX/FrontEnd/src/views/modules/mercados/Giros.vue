@@ -255,6 +255,7 @@ const cargarGiros = async () => {
       eRequest: {
         Operacion: 'sp_giros_list',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -290,6 +291,7 @@ const verLocales = async (giro) => {
       eRequest: {
         Operacion: 'sp_giros_locales',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_giro', Valor: giro.id_giro }
         ]

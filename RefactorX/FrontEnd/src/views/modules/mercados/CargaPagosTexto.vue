@@ -92,7 +92,7 @@
                   <font-awesome-icon icon="folder-open" />
                   Seleccionar Archivo
                 </button>
-                <button class="btn-municipal-success" @click="procesarPagos" :disabled="loading || procesando || pagos.length === 0">
+                <button class="btn-municipal-primary" @click="procesarPagos" :disabled="loading || procesando || pagos.length === 0">
                   <font-awesome-icon :icon="procesando ? 'spinner' : 'upload'" :spin="procesando" />
                   {{ procesando ? 'Procesando...' : 'Actualizar Pagos' }}
                 </button>

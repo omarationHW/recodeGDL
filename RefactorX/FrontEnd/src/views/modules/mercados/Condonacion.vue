@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -9,12 +9,7 @@
         <h1>Condonación de Adeudos</h1>
         <p>Mercados - Gestión de Condonaciones de Adeudos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+      <div class="button-group ms-auto"></div>
     </div>
 
     <div class="module-view-content">
@@ -133,7 +128,7 @@
                   <input type="text" class="municipal-form-control" v-model="oficio" maxlength="13" placeholder="LLL/9999/9999" />
                 </div>
                 <div class="col-md-4">
-                  <button class="btn-municipal-success" @click="condonarSeleccionados" :disabled="loading">
+                  <button class="btn-municipal-primary" @click="condonarSeleccionados" :disabled="loading">
                     <font-awesome-icon icon="check" />
                     Condonar Seleccionados
                   </button>
@@ -241,13 +236,7 @@ const showToast = (type, message) => {
     showConfirmButton: false,
     timer: 3000
   });
-};
-
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Buscar Local
+};// Buscar Local
 async function buscarLocal() {
   loading.value = true;
   localData.value = null;
@@ -275,18 +264,18 @@ async function buscarLocal() {
       const result = response.data.eResponse.data.result;
       if (result && result.length > 0) {
         localData.value = result[0];
-        showToast('success', 'Local encontrado');
+        showToast('Local encontrado', 'success');
         listarAdeudos();
         listarCondonados();
       } else {
-        showToast('warning', 'Local no encontrado');
+        showToast('Local no encontrado', 'warning');
       }
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al buscar');
+      showToast(response.data?.eResponse?.message || 'Error al buscar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar local');
+    showToast('Error al buscar local', 'error');
   } finally {
     loading.value = false;
   }
@@ -321,13 +310,13 @@ async function listarAdeudos() {
 // Condonar Seleccionados
 async function condonarSeleccionados() {
   if (!oficio.value || oficio.value.trim().length < 10) {
-    showToast('warning', 'Ingrese un oficio válido (mín. 10 caracteres)');
+    showToast('Ingrese un oficio válido (mín. 10 caracteres)', 'warning');
     return;
   }
 
   const seleccionados = adeudos.value.filter(a => a.selected);
   if (seleccionados.length === 0) {
-    showToast('warning', 'Seleccione al menos un adeudo');
+    showToast('Seleccione al menos un adeudo', 'warning');
     return;
   }
 
@@ -366,12 +355,12 @@ async function condonarSeleccionados() {
       }
     }
 
-    showToast('success', `${exitosos} adeudo(s) condonado(s)`);
+    showToast(`${exitosos} adeudo(s) condonado(s)`, 'success');
     listarAdeudos();
     listarCondonados();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al condonar');
+    showToast('Error al condonar', 'error');
   } finally {
     loading.value = false;
   }
@@ -407,7 +396,7 @@ async function listarCondonados() {
 async function deshacerCondonacion() {
   const seleccionados = condonados.value.filter(c => c.selected);
   if (seleccionados.length === 0) {
-    showToast('warning', 'Seleccione al menos una condonación');
+    showToast('Seleccione al menos una condonación', 'warning');
     return;
   }
 
@@ -447,12 +436,12 @@ async function deshacerCondonacion() {
       }
     }
 
-    showToast('success', `${exitosos} condonación(es) deshecha(s)`);
+    showToast(`${exitosos} condonación(es) deshecha(s)`, 'success');
     listarAdeudos();
     listarCondonados();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al deshacer');
+    showToast('Error al deshacer', 'error');
   } finally {
     loading.value = false;
   }
@@ -501,6 +490,28 @@ async function onOficinaChange() {
   } catch (error) {
     console.error('Error al cargar mercados:', error);
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Condonaciones',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite gestionar las condonaciones de adeudos.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione el local y el perÃ­odo a condonar
+          <li>Indique el porcentaje o monto de condonaciÃ³n
+          <li>Las condonaciones requieren autorizaciÃ³n y quedan registradas en el historial</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

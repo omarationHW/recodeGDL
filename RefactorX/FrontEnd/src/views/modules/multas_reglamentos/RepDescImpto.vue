@@ -43,6 +43,26 @@
             </button>
 
             <button
+              class="btn-municipal-success"
+              :disabled="loading || rows.length === 0"
+              @click="verReporte"
+              title="Ver reporte en PDF"
+            >
+              <font-awesome-icon icon="file-pdf" />
+              Ver Reporte
+            </button>
+
+            <button
+              class="btn-municipal-info"
+              :disabled="loading || rows.length === 0"
+              @click="descargarReporte"
+              title="Descargar reporte en PDF"
+            >
+              <font-awesome-icon icon="download" />
+              Descargar Reporte
+            </button>
+
+            <button
               class="btn-municipal-secondary"
               @click="limpiar"
               :disabled="loading"
@@ -191,8 +211,10 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { usePdfGenerator } from '@/composables/usePdfGenerator'
 
 const { loading, error: apiError, execute } = useApi()
+const { verReporteTabular, descargarReporteTabular } = usePdfGenerator()
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_REP_DESC_IMPTO'
@@ -307,6 +329,78 @@ function formatCurrency(value) {
     currency: 'MXN'
   }).format(value)
 }
+
+function verReporte() {
+  if (rows.value.length === 0) {
+    error.value = 'No hay datos para generar el reporte'
+    return
+  }
+
+  try {
+    const opciones = {
+      titulo: 'Reporte de Descuento de Impuesto',
+      subtitulo: 'Multas por Dependencia',
+      ejercicio: filters.value.ejercicio.toString(),
+      columnas: [
+        { key: 'dependencia', header: 'Dep.', type: 'text' },
+        { key: 'nombre_dependencia', header: 'Nombre Dependencia', type: 'text' },
+        { key: 'cantidad_multas', header: 'Cantidad Multas', type: 'number' },
+        { key: 'total_multas', header: 'Total Multas', type: 'currency' },
+        { key: 'total_gastos', header: 'Total Gastos', type: 'currency' },
+        { key: 'total_general', header: 'Total General', type: 'currency' }
+      ],
+      totales: {
+        nombre_dependencia: '', // Primera columna vacía para "TOTALES"
+        cantidad_multas: totalMultas.value,
+        total_multas: totalMultasImporte.value,
+        total_gastos: totalGastos.value,
+        total_general: totalRecaudado.value
+      }
+    }
+
+    verReporteTabular(rows.value, opciones)
+    success.value = 'Reporte generado exitosamente'
+  } catch (e) {
+    error.value = e.message || 'Error al generar el reporte PDF'
+    console.error('Error al generar reporte:', e)
+  }
+}
+
+function descargarReporte() {
+  if (rows.value.length === 0) {
+    error.value = 'No hay datos para descargar el reporte'
+    return
+  }
+
+  try {
+    const opciones = {
+      titulo: 'Reporte de Descuento de Impuesto',
+      subtitulo: 'Multas por Dependencia',
+      ejercicio: filters.value.ejercicio.toString(),
+      columnas: [
+        { key: 'dependencia', header: 'Dep.', type: 'text' },
+        { key: 'nombre_dependencia', header: 'Nombre Dependencia', type: 'text' },
+        { key: 'cantidad_multas', header: 'Cantidad Multas', type: 'number' },
+        { key: 'total_multas', header: 'Total Multas', type: 'currency' },
+        { key: 'total_gastos', header: 'Total Gastos', type: 'currency' },
+        { key: 'total_general', header: 'Total General', type: 'currency' }
+      ],
+      totales: {
+        nombre_dependencia: '',
+        cantidad_multas: totalMultas.value,
+        total_multas: totalMultasImporte.value,
+        total_gastos: totalGastos.value,
+        total_general: totalRecaudado.value
+      }
+    }
+
+    descargarReporteTabular(rows.value, opciones)
+    success.value = 'Reporte descargado exitosamente'
+  } catch (e) {
+    error.value = e.message || 'Error al descargar el reporte PDF'
+    console.error('Error al descargar reporte:', e)
+  }
+}
 </script>
 
 <style scoped>
@@ -350,7 +444,9 @@ function formatCurrency(value) {
 }
 
 .btn-municipal-primary,
-.btn-municipal-secondary {
+.btn-municipal-secondary,
+.btn-municipal-success,
+.btn-municipal-info {
   padding: 0.6rem 1.5rem;
   border: none;
   border-radius: 4px;
@@ -372,6 +468,26 @@ function formatCurrency(value) {
   box-shadow: 0 4px 8px rgba(234, 130, 21, 0.3);
 }
 
+.btn-municipal-success {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: white;
+}
+
+.btn-municipal-success:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-municipal-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  color: white;
+}
+
+.btn-municipal-info:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+}
+
 .btn-municipal-secondary {
   background: #6c757d;
   color: white;
@@ -382,7 +498,9 @@ function formatCurrency(value) {
 }
 
 .btn-municipal-primary:disabled,
-.btn-municipal-secondary:disabled {
+.btn-municipal-secondary:disabled,
+.btn-municipal-success:disabled,
+.btn-municipal-info:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

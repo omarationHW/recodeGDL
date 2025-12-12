@@ -12,7 +12,7 @@
         <button class="btn-municipal-primary" @click="generarEmision" :disabled="loading || !canGenerate">
           <font-awesome-icon icon="play" /> Generar Emisión
         </button>
-        <button class="btn-municipal-success" @click="exportarTXT" :disabled="loading || emision.length === 0">
+        <button class="btn-municipal-primary" @click="exportarTXT" :disabled="loading || emision.length === 0">
           <font-awesome-icon icon="file-download" /> Exportar TXT
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -168,7 +168,7 @@ const loading = ref(false)
 const searched = ref(false)
 const toast = ref({ show: false, type: 'info', message: '' })
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 
 const canGenerate = computed(() => selectedRecaudadora.value && selectedMercados.value.length > 0 && axo.value && periodo.value)
 
@@ -200,7 +200,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione año, periodo, recaudadora y uno o más mercados. Luego genere la emisión para crear recibos.')
+  showToast('Seleccione año, periodo, recaudadora y uno o más mercados. Luego genere la emisión para crear recibos.', 'info')
 }
 
 const fetchRecaudadoras = async () => {
@@ -214,7 +214,7 @@ const fetchRecaudadoras = async () => {
       recaudadoras.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -238,7 +238,7 @@ const onRecaudadoraChange = async () => {
       mercados.value = res.data.eResponse.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   } finally {
     loading.value = false
   }
@@ -246,7 +246,7 @@ const onRecaudadoraChange = async () => {
 
 const generarEmision = async () => {
   if (!canGenerate.value) {
-    showToast('warning', 'Complete todos los campos y seleccione al menos un mercado')
+    showToast('Complete todos los campos y seleccione al menos un mercado', 'warning')
     return
   }
   loading.value = true
@@ -270,15 +270,15 @@ const generarEmision = async () => {
     if (res.data.eResponse.success) {
       emision.value = res.data.eResponse.data.result || []
       if (emision.value.length > 0) {
-        showToast('success', `Emisión generada: ${emision.value.length} locales`)
+        showToast(`Emisión generada: ${emision.value.length} locales`, 'success')
       } else {
-        showToast('info', 'No hay locales para los mercados seleccionados')
+        showToast('No hay locales para los mercados seleccionados', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al generar emisión')
+      showToast(res.data.eResponse.message || 'Error al generar emisión', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al generar emisión')
+    showToast('Error de conexión al generar emisión', 'error')
   } finally {
     loading.value = false
   }
@@ -286,7 +286,7 @@ const generarEmision = async () => {
 
 const exportarTXT = () => {
   if (emision.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   try {
@@ -303,9 +303,9 @@ const exportarTXT = () => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
-    showToast('error', 'Error al exportar')
+    showToast('Error al exportar', 'error')
   }
 }
 

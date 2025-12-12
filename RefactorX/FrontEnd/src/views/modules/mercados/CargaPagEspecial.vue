@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -13,12 +13,7 @@
         <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -27,7 +22,7 @@
           <div class="municipal-card-body">
 
             <!-- Selección de Mercado -->
-            <div class="col-md-12">
+            <div class="col-md-1">
               <div class="municipal-card mb-3">
                 <div class="municipal-card-header">
                   <h5>
@@ -161,7 +156,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-3">
-              <button class="btn-municipal-success" @click="cargarPagos" :disabled="!hayPagosValidos || loading">
+              <button class="btn-municipal-primary" @click="cargarPagos" :disabled="!hayPagosValidos || loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 <font-awesome-icon icon="save" v-if="!loading" />
                 Cargar Pagos
@@ -417,13 +412,7 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <!--
   Estilos removidos - Se usan clases globales municipales:

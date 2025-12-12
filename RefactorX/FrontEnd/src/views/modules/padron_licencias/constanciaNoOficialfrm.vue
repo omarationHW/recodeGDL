@@ -384,7 +384,9 @@ const loadSolicitudes = async () => {
       'sp_solicnooficial_list',
       'padron_licencias',
       params,
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -461,7 +463,9 @@ const crearSolicitud = async () => {
         { nombre: 'p_subzona', valor: formData.value.subzona, tipo: 'integer' },
         { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -509,7 +513,9 @@ const actualizarSolicitud = async () => {
         { nombre: 'p_zona', valor: formData.value.zona, tipo: 'integer' },
         { nombre: 'p_subzona', valor: formData.value.subzona, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -567,7 +573,9 @@ const cancelarSolicitud = async (solic) => {
           { nombre: 'p_axo', valor: solic.axo, tipo: 'integer' },
           { nombre: 'p_folio', valor: solic.folio, tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       const endTime = performance.now()

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="module-view">
     <!-- Header del módulo -->
     <div class="module-view-header">
@@ -13,12 +13,7 @@
         <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        </button></div>
     </div>
 
     <div class="module-view-content">
@@ -213,7 +208,7 @@
           </div>
 
           <div class="d-flex justify-content-end mt-3 gap-2">
-            <button class="btn-municipal-success" @click="agregarPago"
+            <button class="btn-municipal-primary" @click="agregarPago"
               :disabled="loading || !validarPago() || pagoExistente">
               <font-awesome-icon icon="save" />
               Agregar
@@ -340,6 +335,7 @@ async function fetchRecaudadoras() {
         eRequest: {
           Operacion: 'sp_get_recaudadoras',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -371,6 +367,7 @@ async function onRecChange() {
         eRequest: {
           Operacion: 'sp_get_catalogo_mercados',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_rec', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
@@ -411,6 +408,7 @@ async function fetchSecciones() {
         eRequest: {
           Operacion: 'sp_get_secciones',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: []
         }
       });
@@ -464,6 +462,7 @@ async function buscarLocal() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_buscar_local',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_oficina', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
             { nombre: 'p_num_mercado', tipo: 'int4', valor: parseInt(filters.value.numMercado) },
@@ -524,6 +523,7 @@ async function verificarPagoExistente() {
       eRequest: {
         Operacion: 'sp_alta_pagos_energia_consultar_pago',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
           { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -573,6 +573,7 @@ async function buscarImporteEnAdeudos() {
       eRequest: {
         Operacion: 'sp_alta_pagos_energia_listar_adeudos',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia }
         ]
@@ -604,6 +605,7 @@ async function cargarAdeudos() {
       eRequest: {
         Operacion: 'sp_alta_pagos_energia_listar_adeudos',
         Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia }
         ]
@@ -647,6 +649,7 @@ async function agregarPago() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_agregar',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -696,6 +699,7 @@ async function modificarPago() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_modificar',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -742,6 +746,7 @@ async function borrarPago() {
         eRequest: {
           Operacion: 'sp_alta_pagos_energia_borrar',
           Base: 'padron_licencias',
+          Esquema: 'publico',
           Parametros: [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
@@ -816,13 +821,7 @@ function formatFecha(fecha) {
 // Mostrar ayuda
 function mostrarAyuda() {
   toast.info('Ayuda: Seleccione la recaudadora, mercado, ingrese los datos del local y presione Buscar. Complete los datos del pago y presione Agregar o Modificar según corresponda.');
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <!-- Sin estilos scoped - Se usan clases municipales globales -->
 <!-- Clases utilizadas: module-view, municipal-card, municipal-form-control, btn-municipal-*, gap-2 -->

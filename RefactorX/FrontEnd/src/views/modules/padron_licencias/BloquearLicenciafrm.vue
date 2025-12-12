@@ -287,11 +287,13 @@ const buscarLicencia = async () => {
   try {
     const response = await execute(
       'sp_bloquearlicencia_get_licencia',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()
@@ -323,11 +325,13 @@ const cargarBloqueos = async () => {
   try {
     const response = await execute(
       'sp_bloquearlicencia_get_bloqueos',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -373,14 +377,16 @@ const confirmarBloqueo = async () => {
   try {
     const response = await execute(
       'sp_bloquearlicencia_bloquear',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' },
         { nombre: 'p_tipo', valor: bloqueoForm.value.tipo, tipo: 'string' },
         { nombre: 'p_motivo', valor: bloqueoForm.value.motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()
@@ -442,13 +448,15 @@ const confirmarDesbloqueo = async (bloqueo) => {
   try {
     const response = await execute(
       'sp_bloquearlicencia_desbloquear',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_id_bloqueo', valor: bloqueo.id_bloqueo, tipo: 'integer' },
         { nombre: 'p_motivo_desbloqueo', valor: motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()

@@ -180,7 +180,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="250">250</option>
               </select>
             </div>
 
@@ -217,14 +216,6 @@
 
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
@@ -232,8 +223,10 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -246,16 +239,11 @@ const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
+// Toast removido - ahora usa useToast composable
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => adeudos.value.length)
 
 // Métodos
@@ -264,32 +252,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina y año para consultar los adeudos de energía eléctrica')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+  showToast('Ayuda: Seleccione una oficina y año para consultar los adeudos de energía eléctrica', 'info')
 }
 
 const fetchRecaudadoras = async () => {
@@ -308,16 +271,16 @@ const fetchRecaudadoras = async () => {
     if (res.data.eResponse.success === true) {
       recaudadoras.value = res.data.eResponse.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
       error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -327,13 +290,13 @@ const fetchRecaudadoras = async () => {
 const buscar = async () => {
   if (!selectedOficina.value || !axo.value) {
     error.value = 'Debe seleccionar oficina y año'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (axo.value < 1995 || axo.value > 2999) {
     error.value = 'El año debe estar entre 1995 y 2999'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -358,19 +321,19 @@ const buscar = async () => {
     if (res.data.eResponse && res.data.eResponse.success === true) {
       adeudos.value = res.data.eResponse.data.result || []
       if (adeudos.value.length > 0) {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`)
+        showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron adeudos con los criterios especificados')
+        showToast('No se encontraron adeudos con los criterios especificados', 'info')
       }
     } else {
       error.value = res.data.eResponse?.message || 'Error al consultar adeudos'
-      showToast('error', error.value)
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar adeudos'
     console.error('Error al buscar adeudos:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -384,25 +347,25 @@ const limpiarFiltros = () => {
   error.value = ''
   searchPerformed.value = false
   currentPage.value = 1
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación a Excel en desarrollo')
+  showToast('Funcionalidad de exportación a Excel en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 
 // Utilidades

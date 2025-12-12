@@ -706,7 +706,9 @@ const loadStats = async () => {
       'LicenciasVigentesfrm_sp_stats',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -773,7 +775,9 @@ const loadLicencias = async () => {
         { nombre: 'p_fecha_hasta', valor: cleanValue(filters.value.fechaHasta), tipo: 'string' },
         { nombre: 'p_propietario', valor: cleanValue(filters.value.propietario), tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -898,7 +902,9 @@ const ejecutarBajaMasiva = async () => {
         { nombre: 'p_numeros_licencia', valor: numerosLicencias, tipo: 'string' },
         { nombre: 'p_motivo', valor: motivoBaja.value.trim(), tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

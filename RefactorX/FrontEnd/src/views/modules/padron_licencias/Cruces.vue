@@ -340,7 +340,9 @@ const searchCalles1 = () => {
         [
           { nombre: 'p_busqueda', valor: searchCalle1.value, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       const endTime = performance.now()
@@ -383,7 +385,9 @@ const searchCalles2 = () => {
         [
           { nombre: 'p_busqueda', valor: searchCalle2.value, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       const endTime = performance.now()
@@ -441,7 +445,9 @@ const localizarCruce = async () => {
         { nombre: 'p_clave_calle1', valor: calle1Selected.value.clave, tipo: 'string' },
         { nombre: 'p_clave_calle2', valor: calle2Selected.value.clave, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

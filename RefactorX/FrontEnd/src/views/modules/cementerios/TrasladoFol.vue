@@ -2,15 +2,15 @@
   <div class="module-view">
     <!-- Header -->
     <div class="module-view-header">
-      <div class="module-title-section">
-        <font-awesome-icon icon="exchange-alt module-icon" />
-        <div>
-          <h1 class="module-view-info">Traslado de Folios</h1>
-          <p class="module-subtitle">Traslado de pagos entre folios</p>
-        </div>
+      <div class="module-view-icon">
+        <font-awesome-icon icon="exchange-alt" />
       </div>
-      <div class="module-actions">
-        <button class="btn-help" @click="mostrarAyuda = true">
+      <div class="module-view-info">
+        <h1>Traslado de Folios</h1>
+        <p>Traslado de pagos entre folios</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-purple" @click="mostrarAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -35,7 +35,7 @@
             <input
               type="number"
               v-model.number="folioOrigen"
-              class="form-input"
+              class="municipal-form-control"
               placeholder="Folio de traslado"
               @keyup.enter="verificarFolios"
             />
@@ -46,7 +46,7 @@
             <input
               type="number"
               v-model.number="folioDestino"
-              class="form-input"
+              class="municipal-form-control"
               placeholder="Folio a trasladar"
               @keyup.enter="verificarFolios"
             />
@@ -245,81 +245,79 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
-      v-if="mostrarAyuda"
-      title="Ayuda - Traslado de Folios"
-      @close="mostrarAyuda = false"
-    >
-      <div class="help-content">
-        <section class="help-section">
-          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
-          <p>
-            Este módulo permite trasladar pagos de un folio a otro. Es útil cuando se necesita
-            corregir errores en la asignación de pagos o cuando se fusionan folios.
-          </p>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
-          <ol>
-            <li>Ingrese el <strong>Folio Origen</strong> (desde donde se trasladarán los pagos)</li>
-            <li>Ingrese el <strong>Folio Destino</strong> (hacia donde se trasladarán los pagos)</li>
-            <li>Presione "Verificar" para cargar los datos de ambos folios</li>
-            <li>El sistema mostrará los pagos del folio origen</li>
-            <li>Seleccione los pagos que desea trasladar (puede usar "Seleccionar Todos")</li>
-            <li>Presione "Trasladar Pagos" para confirmar</li>
-            <li>El sistema actualizará los pagos al nuevo folio</li>
-          </ol>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="exclamation-triangle" /> Importante</h3>
-          <ul>
-            <li>Ambos folios deben existir en el sistema</li>
-            <li>Solo se trasladarán los pagos seleccionados</li>
-            <li>Los pagos mantendrán su información original de fechas e importes</li>
-            <li>La ubicación (cementerio, clase, sección, etc.) se actualizará al folio destino</li>
-            <li>El año pagado de ambos folios se recalculará automáticamente</li>
-            <li>Esta operación no se puede deshacer fácilmente</li>
-          </ul>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="shield-alt" /> Seguridad</h3>
-          <p>
-            Se recomienda verificar cuidadosamente los folios antes de realizar el traslado,
-            ya que esta operación afecta el historial de pagos y puede tener implicaciones
-            en la contabilidad.
-          </p>
-        </section>
-      </div>
-    </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+      :show="showDocumentation"
       :componentName="'TrasladoFol'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      @close="closeDocumentation"
     />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
-const { callProcedure } = useApi()
-const { showSuccess, showError } = useToast()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
 
 // Estado
-const mostrarAyuda = ref(false)
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const folioOrigen = ref(null)
 const folioDestino = ref(null)
 const datosOrigen = ref(null)
@@ -346,58 +344,94 @@ const totalSeleccionado = computed(() => {
 // Verificar folios
 const verificarFolios = async () => {
   if (!foliosValidos.value) {
-    showError('Por favor ingrese dos folios diferentes válidos')
+    showToast('error', 'Por favor ingrese dos folios diferentes válidos')
     return
   }
 
+  showLoading()
+
   try {
     // Buscar folio origen
-    const resultOrigen = await callProcedure('sp_cem_buscar_folio', {
-      p_control_rcm: folioOrigen.value
-    })
+    const response = await execute(
+      'sp_abcf_get_folio',
+      'cementerio',
+       [
+      { nombre: 'p_folio', valor: folioOrigen.value, tipo: 'integer' }
+    ], 
+    '',
+    null,
+    'public')
 
-    if (resultOrigen.resultado !== 'S' || !resultOrigen.data) {
-      showError('El folio origen no existe')
-      return
+    if(response?.result?.length > 0 )
+    {
+      datosOrigen.value = response.result[0]
     }
+    else{
+      showToast('error', 'El folio origen no existe')
+          return
 
-    datosOrigen.value = resultOrigen.data
-
+    }
+    
     // Buscar folio destino
-    const resultDestino = await callProcedure('sp_cem_buscar_folio', {
-      p_control_rcm: folioDestino.value
-    })
+    const resultDestino = await execute(
+      'sp_abcf_get_folio',
+      'cementerio',
+      [
+      { nombre: 'p_folio', valor: folioDestino.value, tipo: 'integer' }
+      ], 
+      '',
+      null, 
+      'public')
 
-    if (resultDestino.resultado !== 'S' || !resultDestino.data) {
-      showError('El folio destino no existe')
-      return
+
+    if(resultDestino?.result?.length > 0 )
+    {
+      datosDestino.value = resultDestino.result[0]
     }
+    else{
+      showToast('error', 'El folio destino no existe')
+          return
 
-    datosDestino.value = resultDestino.data
-
+    }
+    
     // Cargar pagos del folio origen
     await cargarPagosOrigen()
 
   } catch (error) {
-    showError('Error al verificar los folios')
+    console.error('Error al verificar folios:', error)
+    showToast('error', 'Error al verificar los folios')
+  } finally {
+    hideLoading()
   }
 }
 
 // Cargar pagos del folio origen
 const cargarPagosOrigen = async () => {
   try {
-    const result = await callProcedure('sp_cem_listar_pagos_folio', {
-      p_control_rcm: folioOrigen.value
-    })
+    const response = await execute(
+      'sp_trasladofol_listar_pagos_folio',
+      'cementerio', 
+       [
+        { nombre: 'p_control_rcm', valor: folioOrigen.value, tipo: 'integer' }
+       ],
+      'cementerio', 
+        null,
+      'public')
 
-    pagosOrigen.value = result.data || []
+    if(response?.result?.length > 0 )
+    {
+      pagosOrigen.value = response.result
+    }
+    else{
+      showToast('error', 'El folio origen no tiene pagos para trasladar')
+          return
+
+    }
     pagosSeleccionados.value = []
 
-    if (pagosOrigen.value.length === 0) {
-      showError('El folio origen no tiene pagos para trasladar')
-    }
   } catch (error) {
-    showError('Error al cargar los pagos')
+    console.error('Error al cargar pagos:', error)
+    showToast('error', 'Error al cargar los pagos')
   }
 }
 
@@ -423,7 +457,7 @@ const toggleTodos = () => {
 // Confirmar traslado
 const confirmarTraslado = async () => {
   if (pagosSeleccionados.value.length === 0) {
-    showError('Debe seleccionar al menos un pago')
+    showToast('error', 'Debe seleccionar al menos un pago')
     return
   }
 
@@ -439,37 +473,47 @@ const confirmarTraslado = async () => {
     showCancelButton: true,
     confirmButtonText: 'Sí, trasladar',
     cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   })
 
   if (!result.isConfirmed) return
 
+  showLoading()
+
   try {
     // Trasladar pagos
     const controlIds = pagosSeleccionados.value.join(',')
-    const resultTraslado = await callProcedure('sp_cem_trasladar_pagos', {
-      p_control_ids: controlIds,
-      p_folio_destino: folioDestino.value,
-      p_usuario: 1 // TODO: Obtener de sesión
-    })
+    const response = await execute(
+      'sp_trasladofol_trasladar_pagos', 
+      'cementerio',
+      [
+      { nombre: 'p_folio_origen', valor: folioOrigen.value, tipo: 'integer' },
+      { nombre: 'p_folio_destino', valor: folioDestino.value, tipo: 'integer' },
+      { nombre: 'p_control_ids', valor: controlIds, tipo: 'varchar' },
+      { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+    ], 
+    'cementerio',
+    null,
+     'public')
 
-    if (resultTraslado.resultado === 'S') {
-      // Actualizar año pagado del folio origen
-      await callProcedure('sp_cem_actualizar_axo_pagado', {
-        p_control_rcm: folioOrigen.value,
-        p_usuario: 1
-      })
-
-      showSuccess(`${pagosSeleccionados.value.length} pago(s) trasladado(s) exitosamente`)
+    let trasladoData = null
+     if(response?.result?.length > 0 ){
+      trasladoData = response.result[0]
+     }
+    if (trasladoData && trasladoData.resultado === 'S') {
+      showToast('success', `${trasladoData.registros_actualizados} pago(s) trasladado(s) exitosamente`)
 
       // Limpiar y recargar
       await verificarFolios()
     } else {
-      showError(resultTraslado.mensaje || 'Error al trasladar pagos')
+      showToast('error', trasladoData?.mensaje || 'Error al trasladar pagos')
     }
   } catch (error) {
-    showError('Error al trasladar los pagos')
+    console.error('Error al trasladar pagos:', error)
+    showToast('error', 'Error al trasladar los pagos')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -497,68 +541,4 @@ const formatDate = (date) => {
   if (!date) return ''
   return new Date(date).toLocaleDateString('es-MX')
 }
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>
-
-<style scoped>
-/* Layout único de comparación de folios - Justificado mantener scoped */
-.folio-comparison {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 2rem;
-  align-items: center;
-}
-
-.folio-info {
-  background: var(--color-bg-secondary);
-  border-radius: 8px;
-  padding: 1.5rem;
-}
-
-.folio-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.folio-title.origin {
-  color: var(--color-warning);
-}
-
-.folio-title.destination {
-  color: var(--color-success);
-}
-
-.transfer-arrow {
-  font-size: 3rem;
-  color: var(--color-primary);
-}
-
-.table-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .folio-comparison {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .transfer-arrow {
-    transform: rotate(90deg);
-    font-size: 2rem;
-  }
-}
-</style>

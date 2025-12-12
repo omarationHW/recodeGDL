@@ -14,83 +14,83 @@ class GenericController
         return [
             'padron_licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun'] // Solo estos esquemas
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun'] // Solo estos esquemas
             ],
             'licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'aseo_contratado' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'aseo' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'cementerio' => [
                 'database' => 'cementerio',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'cementerios' => [
                 'database' => 'cementerio',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'estacionamiento_exclusivo' => [
                 'database' => 'estacionamiento_exclusivo',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'estacionamiento_publico' => [
                 'database' => 'estacionamiento_publico',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'estacionamientos' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'mercados' => [
                 'database' => 'mercados',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'multas_reglamentos' => [
                 'database' => 'multas_reglamentos',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'multas' => [
                 'database' => 'multas_reglamentos',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'otras_obligaciones' => [
                 'database' => 'otras_obligaciones',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'otras-oblig' => [
                 'database' => 'otras_obligaciones',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'distribucion' => [
                 'database' => 'distribucion',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'default' => [
                 'database' => config('database.connections.pgsql.database', 'postgres'),
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ]
         ];
     }
@@ -192,7 +192,7 @@ class GenericController
             $config = $moduleDbConfig[$base] ?? $moduleDbConfig['default'];
             $dbname = $config['database'];
             $schemaDefault = $config['schema']; // Esquema por defecto (public)
-            $allowedSchemas = $config['allowed_schemas'] ?? ['public'];
+            $allowedSchemas = $config['allowed_schemas'] ?? ['publico', 'public'];
 
             // Si viene esquema en el request, validar que sea permitido
             if ($esquemaRequest) {

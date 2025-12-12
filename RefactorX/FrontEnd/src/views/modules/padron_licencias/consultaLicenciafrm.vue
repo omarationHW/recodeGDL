@@ -764,7 +764,7 @@ const cargarEstadisticas = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -873,7 +873,7 @@ const buscarLicencias = async () => {
       params,
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

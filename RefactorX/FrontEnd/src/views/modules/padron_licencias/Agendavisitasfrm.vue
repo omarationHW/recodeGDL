@@ -403,7 +403,9 @@ const loadDependencias = async () => {
       'SP_GET_DEPENDENCIAS',
       'padron_licencias',
       [],
-      'comun'
+      '',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -435,7 +437,9 @@ const loadVisitas = async () => {
         { nombre: 'p_fechaini', valor: filters.value.fechaini, tipo: 'string' },
         { nombre: 'p_fechafin', valor: filters.value.fechafin, tipo: 'string' }
       ],
-      'comun'
+      '',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

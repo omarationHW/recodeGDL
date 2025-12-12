@@ -9,7 +9,7 @@
         <p>Inicio > Catálogos > Cuotas Energía Mntto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
         <button class="btn-municipal-purple" @click="mostrarAyuda">
@@ -122,12 +122,12 @@
               {{ Math.min(currentPage * itemsPerPage, cuotas.length) }} de {{ cuotas.length }} registros
             </div>
             <div class="pagination-controls">
-              <button class="btn-pagination" @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button class="btn-municipal-secondary btn-sm" @click="previousPage" :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn-pagination" @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+              <button class="btn-municipal-secondary btn-sm" @click="nextPage" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
             <div class="items-per-page">
@@ -270,7 +270,7 @@ const form = ref({
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 
 const totalPages = computed(() => Math.ceil(cuotas.value.length / itemsPerPage.value))
 
@@ -309,7 +309,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Administre las cuotas de energía eléctrica por año y periodo. Puede crear nuevas cuotas o editar las existentes.')
+  showToast('Administre las cuotas de energía eléctrica por año y periodo. Puede crear nuevas cuotas o editar las existentes.', 'info')
 }
 
 const cargarCuotas = async () => {
@@ -319,6 +319,7 @@ const cargarCuotas = async () => {
       eRequest: {
         Operacion: 'sp_list_cuotas_energia',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_axo', Valor: filtros.value.axo || null },
           { Nombre: 'p_periodo', Valor: filtros.value.periodo || null }
@@ -330,15 +331,15 @@ const cargarCuotas = async () => {
       cuotas.value = res.data.eResponse.data.result || []
       currentPage.value = 1
       if (cuotas.value.length === 0) {
-        showToast('info', 'No se encontraron cuotas con los criterios especificados')
+        showToast('No se encontraron cuotas con los criterios especificados', 'info')
       } else {
-        showToast('success', `Se encontraron ${cuotas.value.length} cuotas`)
+        showToast(`Se encontraron ${cuotas.value.length} cuotas`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar cuotas')
+      showToast(res.data.eResponse.message || 'Error al cargar cuotas', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al cargar cuotas')
+    showToast('Error de conexión al cargar cuotas', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -381,7 +382,7 @@ const editarCuota = (cuota) => {
 
 const guardarCuota = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos correctamente')
+    showToast('Complete todos los campos requeridos correctamente', 'warning')
     return
   }
 
@@ -405,19 +406,20 @@ const guardarCuota = async () => {
       eRequest: {
         Operacion: operacion,
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: parametros
       }
     })
 
     if (res.data.eResponse.success) {
-      showToast('success', isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente')
+      showToast(isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente', 'success')
       cerrarModal()
       cargarCuotas()
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar cuota')
+      showToast(res.data.eResponse.message || 'Error al guardar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al guardar cuota')
+    showToast('Error de conexión al guardar cuota', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -448,6 +450,7 @@ const eliminarCuota = async () => {
       eRequest: {
         Operacion: 'sp_delete_cuota_energia',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_id_kilowhatts', Valor: parseInt(cuotaAEliminar.value.id_kilowhatts) }
         ]
@@ -455,14 +458,14 @@ const eliminarCuota = async () => {
     })
 
     if (res.data.eResponse.success) {
-      showToast('success', 'Cuota eliminada exitosamente')
+      showToast('Cuota eliminada exitosamente', 'success')
       cancelarEliminar()
       cargarCuotas()
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al eliminar cuota')
+      showToast(res.data.eResponse.message || 'Error al eliminar cuota', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al eliminar cuota')
+    showToast('Error de conexión al eliminar cuota', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -533,5 +536,21 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.module-view-header .btn-municipal-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.button-group-sm {
+  gap: 0.125rem;
 }
 </style>

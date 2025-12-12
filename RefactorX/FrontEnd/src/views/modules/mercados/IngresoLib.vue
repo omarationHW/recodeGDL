@@ -207,7 +207,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione el mes, año y mercado para consultar los ingresos del Mercado Libertad. Se mostrarán los ingresos por fecha/caja, totales por caja y totales globales.')
+  showToast('Seleccione el mes, año y mercado para consultar los ingresos del Mercado Libertad. Se mostrarán los ingresos por fecha/caja, totales por caja y totales globales.', 'info')
 }
 
 const fetchMercados = async () => {
@@ -228,10 +228,10 @@ const fetchMercados = async () => {
         form.value.mercado_id = mercados.value[0].num_mercado_nvo
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar mercados')
+      showToast(res.data.eResponse.message || 'Error al cargar mercados', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al cargar mercados')
+    showToast('Error de conexión al cargar mercados', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -240,7 +240,7 @@ const fetchMercados = async () => {
 
 const procesar = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -307,12 +307,12 @@ const procesar = async () => {
     }
 
     if (ingresos.value.length > 0) {
-      showToast('success', `Se encontraron ${ingresos.value.length} registros de ingresos`)
+      showToast(`Se encontraron ${ingresos.value.length} registros de ingresos`, 'success')
     } else {
-      showToast('info', 'No se encontraron ingresos para el periodo seleccionado')
+      showToast('No se encontraron ingresos para el periodo seleccionado', 'info')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al procesar la consulta')
+    showToast('Error de conexión al procesar la consulta', 'error')
   } finally {
     loading.value = false
     hideLoading()

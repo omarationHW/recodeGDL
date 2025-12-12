@@ -298,7 +298,9 @@ const searchLicencia = async () => {
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -335,7 +337,9 @@ const checkLicenciaBloqueada = async () => {
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -357,7 +361,9 @@ const calcularAdeudo = async () => {
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -376,7 +382,9 @@ const obtenerSaldo = async () => {
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {

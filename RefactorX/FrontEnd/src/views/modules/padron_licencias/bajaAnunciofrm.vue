@@ -445,10 +445,12 @@ const buscarAnuncio = async () => {
 
   try {
     const response = await execute(
-      'sp_baja_anuncio_buscar',
+      'sp_baja_anuncio_buscar_v2',
       'padron_licencias',
       [{ nombre: 'p_anuncio', valor: searchAnuncio.value, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -487,7 +489,9 @@ const cargarAdeudos = async () => {
       'sp_consulta_adeudos_anuncio',
       'padron_licencias',
       [{ nombre: 'p_anuncio', valor: searchAnuncio.value, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -617,7 +621,9 @@ const confirmarBaja = async () => {
               { nombre: 'p_usuario', valor: usuario, tipo: 'string' },
               { nombre: 'p_password', valor: password, tipo: 'string' }
             ],
-            'guadalajara'
+            'guadalajara',
+      null,
+      'publico'
           )
 
           if (response && response.result && response.result[0]?.autorizado) {
@@ -698,7 +704,9 @@ const solicitarFirma = async () => {
         { nombre: 'p_usuario', valor: localStorage.getItem('usuario') || '', tipo: 'string' },
         { nombre: 'p_firma', valor: firma, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.firma_valida) {
@@ -739,7 +747,9 @@ const ejecutarBaja = async () => {
         { nombre: 'p_baja_tiempo', valor: false, tipo: 'boolean' },
         { nombre: 'p_fecha', valor: new Date().toISOString(), tipo: 'timestamp' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

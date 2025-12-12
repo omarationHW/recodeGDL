@@ -950,7 +950,7 @@ const buscarLicencia = async () => {
       [{ nombre: 'p_licencia', valor: searchNumber.value, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -992,7 +992,7 @@ const buscarAnuncio = async () => {
       [{ nombre: 'p_anuncio', valor: searchNumber.value, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1026,7 +1026,7 @@ const loadGirosScian = async () => {
       [],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result) {
@@ -1047,7 +1047,7 @@ const loadActividades = async (codGiro) => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result) {
@@ -1065,7 +1065,7 @@ const loadTiposAnuncio = async () => {
       [],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result) {
@@ -1083,7 +1083,7 @@ const loadSaldoLicencia = async (idLicencia) => {
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1168,7 +1168,7 @@ const actualizarLicencia = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1240,7 +1240,7 @@ const actualizarAnuncio = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1291,7 +1291,7 @@ const recalcularSaldos = async (idLicencia) => {
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
   } catch (error) {
   }
@@ -1308,7 +1308,7 @@ const recalcularAdeudoAnuncio = async (idAnuncio, idLicencia) => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     // Recalcular saldos totales de la licencia
@@ -1336,7 +1336,7 @@ const abrirMapa = async () => {
       [],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]?.sessionid) {
@@ -1349,7 +1349,7 @@ const abrirMapa = async () => {
         [{ nombre: 'p_sesion_id', valor: sesionMapa.value, tipo: 'integer' }],
         'guadalajara',
         null,
-        'comun' // esquema
+        'publico' // esquema
       )
 
       // Abrir URL del mapa
@@ -1383,7 +1383,7 @@ const iniciarPollingUbicacion = () => {
         [{ nombre: 'p_sesion_id', valor: sesionMapa.value, tipo: 'integer' }],
         'guadalajara',
         null,
-        'comun' // esquema
+        'publico' // esquema
       )
 
       if (response && response.result && response.result.length > 0) {
@@ -1419,7 +1419,7 @@ const actualizarCoordenadas = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
   } catch (error) {
   }
@@ -1460,7 +1460,7 @@ const solicitarFirma = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]) {
@@ -1519,7 +1519,7 @@ const solicitarFirmaUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]) {

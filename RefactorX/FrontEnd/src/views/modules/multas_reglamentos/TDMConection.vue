@@ -25,7 +25,7 @@
                 class="municipal-form-control municipal-form-control-wide"
                 v-model="filters.filtro"
                 placeholder="Ingrese usuario, nombre, estado o nivel"
-                @keyup.enter="reload"
+                @keyup.enter="filters.filtro.trim() && reload()"
               />
             </div>
           </div>
@@ -33,7 +33,7 @@
           <div class="button-group">
             <button
               class="btn-municipal-primary"
-              :disabled="loading"
+              :disabled="loading || !filters.filtro.trim()"
               @click="reload"
             >
               <font-awesome-icon icon="search" v-if="!loading" />
@@ -185,7 +185,7 @@ async function reload() {
   ]
 
   try {
-    const response = await execute(OP_LIST, BASE_DB, params)
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, 'publico')
     console.log('Respuesta completa:', response)
 
     // Procesar la respuesta

@@ -1,0 +1,40 @@
+CREATE OR REPLACE FUNCTION publico.recaudadora_reimpfrm(
+    p_folio INTEGER,
+    p_tipo_documento VARCHAR,
+    p_id_dependencia INTEGER,
+    p_formato VARCHAR
+)
+RETURNS TABLE (
+    folio INTEGER,
+    tipo_documento VARCHAR,
+    fecha DATE,
+    contribuyente VARCHAR,
+    dependencia VARCHAR,
+    axo_acta INTEGER,
+    num_acta VARCHAR,
+    importe NUMERIC,
+    estatus VARCHAR
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        d.folio,
+        d.tipo_documento::VARCHAR,
+        d.fecha,
+        d.contribuyente::VARCHAR,
+        d.dependencia::VARCHAR,
+        d.axo_acta,
+        d.num_acta::VARCHAR,
+        d.importe,
+        d.estatus::VARCHAR
+    FROM publico.documentos_reimprimir d
+    WHERE
+        -- Filtro por folio específico
+        (p_folio IS NULL OR d.folio = p_folio)
+        -- Filtro por tipo de documento
+        AND (p_tipo_documento IS NULL OR p_tipo_documento = '' OR d.tipo_documento = p_tipo_documento)
+        -- Filtro por dependencia
+        AND (p_id_dependencia IS NULL OR d.id_dependencia = p_id_dependencia)
+    ORDER BY d.fecha DESC, d.folio DESC;
+END; $$;

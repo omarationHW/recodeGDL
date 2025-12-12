@@ -182,9 +182,9 @@ async function reload() {
   currentPage.value = 1
 
   // Parámetros en el formato correcto para el SP
-  const params = {
-    p_filtro: String(filters.value.q || '')
-  }
+  const params = [
+    { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
+  ]
 
   console.log('🔍 Ejecutando SP:', OP_LIST)
   console.log('🔍 Base de datos:', BASE_DB)

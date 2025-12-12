@@ -142,6 +142,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_GET = 'RECAUDADORA_PERIODO_INICIAL'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 
 const filters = ref({ ejercicio: new Date().getFullYear() })
@@ -187,7 +188,7 @@ async function consultar() {
   ]
 
   try {
-    const data = await execute(OP_GET, BASE_DB, params)
+    const data = await execute(OP_GET, BASE_DB, params, '', null, SCHEMA)
 
     // Extraer los datos de la respuesta
     let rows = []

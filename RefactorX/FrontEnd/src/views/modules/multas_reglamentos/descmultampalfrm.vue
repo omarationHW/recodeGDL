@@ -4,7 +4,7 @@
       <div class="module-view-icon"><font-awesome-icon icon="percent" /></div>
       <div class="module-view-info">
         <h1>Descuentos Multa Municipal</h1>
-        <p>Consulta descuentos de multas municipales</p>
+        <p>Consulta y gestión de descuentos aplicados a multas municipales por ID de multa</p>
       </div>
     </div>
 
@@ -14,12 +14,31 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">ID Multa</label>
-              <input class="municipal-form-control" v-model="filters.cuenta" @keyup.enter="reload" placeholder="Ej: 191, 224, 241" />
+              <input
+                class="municipal-form-control"
+                v-model="filters.cuenta"
+                placeholder="Ej: 191, 224, 241"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload">
-              <font-awesome-icon icon="search" /> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cuenta.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -135,8 +154,6 @@ const rows = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-const SCHEMA = 'multas_reglamentos'
-
 // Computed properties para paginación
 const totalPages = computed(() => Math.ceil(rows.value.length / pageSize.value))
 
@@ -176,12 +193,26 @@ async function reload() {
     { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
   ]
   try {
-    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
-    rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
+
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
+
+    console.log('Registros extraídos:', arr.length, arr)
+    rows.value = arr
   } catch (e) {
+    console.error('Error al consultar descuentos:', e)
     rows.value = []
   }
 }
 
-reload()
+function limpiar() {
+  filters.value = { cuenta: '' }
+  rows.value = []
+  currentPage.value = 1
+}
 </script>

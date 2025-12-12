@@ -30,11 +30,12 @@ const form=ref({ texto:'' })
 const result=ref(null)
 async function codificar() {
   try {
-    const data = await execute(OP_CODIF, BASE_DB, [
+    const response = await execute(OP_CODIF, BASE_DB, [
       { nombre: 'p_texto', valor: String(form.value.texto || ''), tipo: 'string' }
-    ])
+    ], '', null, 'publico')
 
-    // Extraer solo el resultado limpio
+    // Extraer datos de la estructura correcta
+    const data = response?.eResponse?.data || response?.data || response
     const arr = Array.isArray(data?.result) ? data.result : []
     result.value = arr.length > 0 ? arr[0] : { error: 'Sin resultados' }
   } catch (e) {

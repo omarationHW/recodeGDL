@@ -107,6 +107,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_REPORTE = 'RECAUDADORA_IMPRIME_DESCTOS'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 
@@ -122,7 +123,7 @@ async function generar() {
     { nombre: 'p_ejercicio', tipo: 'integer', valor: Number(filters.value.ejercicio || 0) }
   ]
   try {
-    const response = await execute(OP_REPORTE, BASE_DB, params)
+    const response = await execute(OP_REPORTE, BASE_DB, params, '', null, SCHEMA)
     if (response?.result) {
       result.value = response.result
     } else {

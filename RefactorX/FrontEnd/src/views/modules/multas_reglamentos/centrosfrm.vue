@@ -1,6 +1,6 @@
 <template>
   <div class="module-view module-layout">
-    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="building-columns" /></div><div class="module-view-info"><h1>Centros</h1><p>Catálogo de centros</p></div></div>
+    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="building-columns" /></div><div class="module-view-info"><h1>Centros</h1><p>Catálogo de centros v2</p></div></div>
     <div class="module-view-content">
       <div class="municipal-card"><div class="municipal-card-body">
         <div class="form-row"><div class="form-group"><label class="municipal-form-label">Filtro</label><input class="municipal-form-control" v-model="filters.q" @keyup.enter="reload"/></div></div>
@@ -93,8 +93,12 @@ async function reload() {
   ]
 
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, 'publico')
+
+    // Extraer datos de la estructura correcta
+    const data = response?.eResponse?.data || response?.data || response
     const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
+
     rows.value = arr
     columns.value = arr.length ? Object.keys(arr[0]) : []
     currentPage.value = 1 // Reset a la primera página

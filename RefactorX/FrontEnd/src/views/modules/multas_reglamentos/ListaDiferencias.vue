@@ -145,6 +145,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_LISTA_DIFERENCIAS'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 
@@ -199,7 +200,7 @@ async function reload() {
   ]
 
   try {
-    const response = await execute(OP_LIST, BASE_DB, params)
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     searched.value = true
 
     // Manejar diferentes formatos de respuesta

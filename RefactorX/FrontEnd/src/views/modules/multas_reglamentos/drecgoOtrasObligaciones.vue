@@ -6,7 +6,7 @@
       </div>
       <div class="module-view-info">
         <h1>Derechos Otras Obligaciones</h1>
-        <p>Consulta de otras obligaciones fiscales</p>
+        <p>Consulta y gestión de otras obligaciones fiscales por número de cuenta</p>
       </div>
     </div>
 
@@ -20,14 +20,28 @@
               <input
                 class="municipal-form-control"
                 v-model="filters.cuenta"
-                @keyup.enter="reload"
-                placeholder="Ingrese número de cuenta"
+                placeholder="Ej: OBL-2024-001"
+                @keyup.enter="filters.cuenta.trim() && reload()"
               />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload">
-              <font-awesome-icon icon="search" /> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cuenta.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -122,7 +136,6 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_DRECGOOTRASOBLIGACIONES'
-const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
 
@@ -167,31 +180,33 @@ function goToPage(page) {
 
 async function reload() {
   currentPage.value = 1 // Reset a la primera página al buscar
-
+  const params = [
+    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
+  ]
   try {
-    const data = await execute(
-      OP,
-      BASE_DB,
-      [{ nombre: 'clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }],
-      '',
-      null,
-      SCHEMA
-    )
+    const response = await execute(OP, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
 
-    const arr = Array.isArray(data?.result)
-      ? data.result
-      : Array.isArray(data?.rows)
-      ? data.rows
-      : Array.isArray(data)
-      ? data
-      : []
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
 
+    console.log('Registros extraídos:', arr.length, arr)
     rows.value = arr
     cols.value = arr.length ? Object.keys(arr[0]) : []
   } catch (e) {
+    console.error('Error al consultar otras obligaciones:', e)
     rows.value = []
     cols.value = []
-    console.error('Error al cargar datos:', e)
   }
+}
+
+function limpiar() {
+  filters.value = { cuenta: '' }
+  rows.value = []
+  cols.value = []
+  currentPage.value = 1
 }
 </script>

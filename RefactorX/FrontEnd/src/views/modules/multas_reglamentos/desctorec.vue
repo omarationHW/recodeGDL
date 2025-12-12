@@ -144,7 +144,7 @@ const rows = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-const SCHEMA = 'multas_reglamentos'
+const SCHEMA = 'publico'
 
 // Computed properties para paginación
 const totalPages = computed(() => Math.ceil(rows.value.length / pageSize.value))

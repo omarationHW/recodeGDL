@@ -145,6 +145,7 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_MULTAS400FRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ filtro: '' })
 const allRows = ref([])
@@ -207,7 +208,7 @@ async function reload() {
 
     console.log('📤 Parámetros enviados:', params)
 
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     console.log('📥 Respuesta recibida:', response)
 

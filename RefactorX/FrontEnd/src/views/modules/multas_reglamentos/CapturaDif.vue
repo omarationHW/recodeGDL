@@ -65,13 +65,6 @@
         <div class="municipal-card-body">
           <div :class="['alert', resultado.success ? 'alert-success' : 'alert-error']">
             <p><strong>{{ resultado.message }}</strong></p>
-            <div v-if="resultado.success && resultado.data">
-              <hr/>
-              <p><strong>ID Generado:</strong> {{ resultado.data.id_insertado }}</p>
-              <p><strong>Año:</strong> {{ resultado.data.axo }}</p>
-              <p><strong>Cve Cuenta:</strong> {{ resultado.data.cvecuenta }}</p>
-              <p><strong>Monto:</strong> ${{ resultado.data.monto }}</p>
-            </div>
           </div>
         </div>
       </div>
@@ -104,7 +97,7 @@ async function guardar() {
   ]
 
   try {
-    const data = await execute(OP_SAVE, BASE_DB, params)
+    const data = await execute(OP_SAVE, BASE_DB, params, '', null, 'public')
 
     // El SP devuelve un array con un solo registro
     const row = Array.isArray(data?.result) && data.result.length > 0

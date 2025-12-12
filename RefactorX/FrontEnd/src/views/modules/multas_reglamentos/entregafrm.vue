@@ -102,6 +102,7 @@ const { loading, execute } = useApi()
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_ENTREGAFRM'
+const SCHEMA = 'publico'
 
 const jsonPayload = ref('')
 const resultado = ref(null)
@@ -113,7 +114,7 @@ async function guardar() {
     const params = [
       { nombre: 'datos', tipo: 'string', valor: jsonPayload.value }
     ]
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     // Extraer el resultado del SP
     const result = data?.result?.[0] || data?.[0] || {}

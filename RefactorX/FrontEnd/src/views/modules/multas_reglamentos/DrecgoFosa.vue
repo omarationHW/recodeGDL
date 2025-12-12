@@ -4,7 +4,7 @@
       <div class="module-view-icon"><font-awesome-icon icon="dumpster" /></div>
       <div class="module-view-info">
         <h1>Derechos de Fosa</h1>
-        <p>Consulta y control de fosas en panteones municipales</p>
+        <p>Consulta y gestión de fosas en panteones municipales por folio de control</p>
       </div>
     </div>
 
@@ -135,7 +135,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_DRECGO_FOSA'
-const SCHEMA = 'multas_reglamentos'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 

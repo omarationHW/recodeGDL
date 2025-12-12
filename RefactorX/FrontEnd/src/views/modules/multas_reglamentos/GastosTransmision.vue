@@ -114,7 +114,8 @@ import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
-const OP_LIST = 'RECAUDADORA_GASTOS_TRANSMISION' // TODO confirmar
+const OP_LIST = 'RECAUDADORA_GASTOS_TRANSMISION'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 
@@ -164,7 +165,7 @@ async function reload() {
     { nombre: 'p_ejercicio', tipo: 'integer', valor: Number(filters.value.ejercicio || 0) }
   ]
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
   } catch (e) {
     rows.value = []

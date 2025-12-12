@@ -217,7 +217,7 @@ async function reload() {
     console.log('🔍 Buscando multas con parámetros:', params)
     console.log('🔍 Cuenta vacía?', !filters.value.cuenta, 'Año:', filters.value.ejercicio)
 
-    const data = await execute(OP_LIST, BASE_DB, params)
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, 'publico')
 
     console.log('📦 Respuesta recibida:', data)
     console.log('📊 Tipo de data:', typeof data, Array.isArray(data) ? '(es array)' : '(es objeto)')
@@ -330,7 +330,7 @@ async function bloquearMulta() {
     loadingAction.value = true
     console.log('🔒 Bloqueando multa:', selectedForAction.value.cvereq)
 
-    const data = await execute(OP_BLOQUEAR, BASE_DB, params)
+    const data = await execute(OP_BLOQUEAR, BASE_DB, params, '', null, 'publico')
     console.log('📦 Respuesta bloqueo:', data)
 
     const result = Array.isArray(data?.result) ? data.result[0] : data
@@ -379,7 +379,7 @@ async function desbloquearMulta() {
     loadingAction.value = true
     console.log('🔓 Desbloqueando multa:', selectedForAction.value.cvereq)
 
-    const data = await execute(OP_DESBLOQUEAR, BASE_DB, params)
+    const data = await execute(OP_DESBLOQUEAR, BASE_DB, params, '', null, 'publico')
     console.log('📦 Respuesta desbloqueo:', data)
 
     const result = Array.isArray(data?.result) ? data.result[0] : data

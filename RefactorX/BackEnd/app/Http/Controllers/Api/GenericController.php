@@ -14,8 +14,9 @@ class GenericController
         return [
             'padron_licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun'] // Solo estos esquemas
+                'schema' => 'publico',
+                'allowed_schemas' => ['public', 'comun','publico'] // Solo estos esquemas
+                //'allowed_schemas' => ['publico'] // Solo estos esquemas
             ],
             'licencias' => [
                 'database' => 'padron_licencias',
@@ -64,13 +65,13 @@ class GenericController
             ],
             'multas_reglamentos' => [
                 'database' => 'multas_reglamentos',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico','public']
             ],
             'multas' => [
                 'database' => 'multas_reglamentos',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico']
             ],
             'otras_obligaciones' => [
                 'database' => 'otras_obligaciones',

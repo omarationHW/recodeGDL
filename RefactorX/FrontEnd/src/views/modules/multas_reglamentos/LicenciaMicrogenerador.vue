@@ -147,6 +147,7 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LICENCIAMICROGENERADOR'
+const SCHEMA = 'publico'
 
 const filters = ref({ rfc: '' })
 const rows = ref([])
@@ -199,7 +200,7 @@ async function consultar() {
   ]
 
   try {
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     searched.value = true
 
     // Manejar diferentes formatos de respuesta

@@ -262,6 +262,17 @@ class GenericController
             $spParametros = [];
             $paramMap = [];
 
+            // Normalizar claves de parámetros a minúsculas para compatibilidad
+            $parametrosNormalizados = [];
+            foreach ($parametros as $param) {
+                $paramNormalizado = [];
+                foreach ($param as $key => $value) {
+                    $paramNormalizado[strtolower($key)] = $value;
+                }
+                $parametrosNormalizados[] = $paramNormalizado;
+            }
+            $parametros = $parametrosNormalizados;
+
             foreach ($parametros as $param) {
                 if (isset($param['nombre']) && array_key_exists('valor', $param)) {
                     $valor = $param['valor'];

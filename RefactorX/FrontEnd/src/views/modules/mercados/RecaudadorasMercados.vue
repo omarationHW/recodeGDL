@@ -14,10 +14,6 @@
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
-        <button class="btn-municipal-primary" @click="modificarMercado" :disabled="!selectedMercado || loading">
-          <font-awesome-icon icon="edit" />
-          Modificar
-        </button>
         <button class="btn-municipal-primary" @click="imprimirReporte" :disabled="loading || mercados.length === 0">
           <font-awesome-icon icon="print" />
           Imprimir
@@ -114,17 +110,17 @@
                   <th>ID Zona</th>
                   <th>Tipo Emisión</th>
                   <th>Mercado</th>
+                  <th class="text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="mercados.length === 0">
-                  <td colspan="9" class="text-center text-muted">
+                  <td colspan="10" class="text-center text-muted">
                     <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
                     <p>No hay mercados registrados en el sistema</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in paginatedMercados" :key="index" @click="selectedMercado = row"
-                  :class="{ 'table-row-selected': selectedMercado === row }" class="row-hover">
+                <tr v-else v-for="(row, index) in paginatedMercados" :key="index" class="row-hover">
                   <td><strong class="text-primary">{{ row.oficina }}</strong></td>
                   <td>{{ row.num_mercado_nvo }}</td>
                   <td>{{ row.categoria }}</td>
@@ -138,6 +134,13 @@
                     </span>
                   </td>
                   <td>{{ row.num_mercado }}</td>
+                  <td class="text-center">
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click="modificarMercado(row)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -155,8 +158,13 @@
 
             <div class="pagination-size">
               <label class="municipal-form-label me-2">Registros por página:</label>
-              <select class="municipal-form-control form-control-sm" :value="itemsPerPage"
-                @change="changePageSize($event.target.value)" style="width: auto; display: inline-block;">
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
@@ -165,18 +173,50 @@
             </div>
 
             <div class="pagination-buttons">
-              <button class="btn btn-sm btn-outline-primary" @click="firstPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="angles-left" />
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
               </button>
-              <button class="btn btn-sm btn-outline-primary" @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
               </button>
-              <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn btn-sm btn-outline-primary" @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
               </button>
-              <button class="btn btn-sm btn-outline-primary" @click="lastPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="angles-right" />
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
           </div>
@@ -192,6 +232,7 @@
             <h5 class="modal-title">
               <font-awesome-icon :icon="modalMode === 'nuevo' ? 'plus' : 'edit'" />
               {{ modalMode === 'nuevo' ? 'Agregar nuevo mercado' : 'Modificar mercado' }}
+              {{ modalMode === 'nuevo' ? 'Agregar nuevo mercado' : 'Modificar mercado' }}
             </h5>
             <button type="button" class="btn-close" @click="cerrarModal"></button>
           </div>
@@ -203,6 +244,7 @@
                   :disabled="modalMode === 'modificar'" />
               </div>
               <div class="form-group col-md-6">
+                <label class="municipal-form-label">Mercado nuevo <span class="required">*</span></label>
                 <label class="municipal-form-label">Mercado nuevo <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.num_mercado_nvo"
                   :disabled="modalMode === 'modificar'" />
@@ -222,9 +264,11 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Cuenta ingreso <span class="required">*</span></label>
+                <label class="municipal-form-label">Cuenta ingreso <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_ingreso" />
               </div>
               <div class="form-group col-md-6">
+                <label class="municipal-form-label">Cuenta energía</label>
                 <label class="municipal-form-label">Cuenta energía</label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_energia" />
               </div>
@@ -235,7 +279,7 @@
                 <select class="municipal-form-control" v-model.number="formData.id_zona" :disabled="loading">
                   <option value="">Seleccione...</option>
                   <option v-for="zona in zonas" :key="zona.id_zona" :value="zona.id_zona">
-                    {{ zona.id_zona }} - {{ zona.zona }}
+                    {{ zona.ctrol_zona }} - {{ zona.zona }}
                   </option>
                 </select>
               </div>
@@ -288,7 +332,6 @@ export default {
     const mercados = ref([]);
     const zonas = ref([]);
     const selectedRec = ref('');
-    const selectedMercado = ref(null);
 
     // Paginación
     const currentPage = ref(1);
@@ -317,6 +360,23 @@ export default {
       const start = (currentPage.value - 1) * itemsPerPage.value;
       const end = start + itemsPerPage.value;
       return mercados.value.slice(start, end);
+    });
+
+    const visiblePages = computed(() => {
+      const pages = [];
+      const maxVisible = 5;
+      let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
+
+      if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      return pages;
     });
 
     // Métodos - API Calls
@@ -350,7 +410,7 @@ export default {
         const response = await axios.post('/api/generic', {
           eRequest: {
             Operacion: 'sp_get_zonas',
-            Base: 'mercados',
+            Base: 'padron_licencias',
             Parametros: [],
             Esquema: 'publico'
           }
@@ -425,7 +485,6 @@ export default {
 
     const limpiarFiltros = () => {
       selectedRec.value = '';
-      selectedMercado.value = null;
       mercados.value = [];
       searchPerformed.value = false;
       currentPage.value = 1;
@@ -436,15 +495,15 @@ export default {
     };
 
     // Métodos - Paginación
+    const goToPage = (page) => {
+      if (page < 1 || page > totalPages.value) return;
+      currentPage.value = page;
+    };
+
     const changePageSize = (newSize) => {
       itemsPerPage.value = parseInt(newSize);
       currentPage.value = 1;
     };
-
-    const firstPage = () => { currentPage.value = 1; };
-    const lastPage = () => { currentPage.value = totalPages.value; };
-    const previousPage = () => { if (currentPage.value > 1) currentPage.value--; };
-    const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
 
     // Métodos - Modal
     const abrirModalNuevo = async () => {
@@ -469,18 +528,9 @@ export default {
       showModal.value = true;
     };
 
-    const modificarMercado = async () => {
-      if (!selectedMercado.value) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Atención',
-          text: 'Por favor seleccione un mercado de la tabla para modificar'
-        });
-        return;
-      }
-
+    const modificarMercado = async (mercado) => {
       modalMode.value = 'modificar';
-      formData.value = { ...selectedMercado.value };
+      formData.value = { ...mercado };
 
       // Cargar catálogo de zonas si no está cargado
       if (zonas.value.length === 0) {
@@ -595,7 +645,7 @@ export default {
             <p><strong>Funciones:</strong></p>
             <ul>
               <li><strong>Agregar:</strong> Permite dar de alta un nuevo mercado</li>
-              <li><strong>Modificar:</strong> Permite editar un mercado existente</li>
+              <li><strong>Editar:</strong> Use el botón de editar en cada fila para modificar un mercado</li>
               <li><strong>Imprimir:</strong> Genera un reporte del catálogo</li>
               <li><strong>Filtros:</strong> Permite filtrar por recaudadora</li>
             </ul>
@@ -603,7 +653,7 @@ export default {
             <p><strong>Notas:</strong></p>
             <ul>
               <li>Seleccione una recaudadora para filtrar los mercados</li>
-              <li>Haga clic en una fila para seleccionarla</li>
+              <li>Use los controles de paginación para navegar entre registros</li>
               <li>Los mercados con tipo emisión "B" están ocultos</li>
             </ul>
           </div>
@@ -635,7 +685,6 @@ export default {
       mercados,
       zonas,
       selectedRec,
-      selectedMercado,
 
       // Paginación
       currentPage,
@@ -643,6 +692,7 @@ export default {
       totalRecords,
       totalPages,
       paginatedMercados,
+      visiblePages,
 
       // Modal
       showModal,
@@ -656,11 +706,8 @@ export default {
       onRecChange,
       limpiarFiltros,
       toggleFilters,
+      goToPage,
       changePageSize,
-      firstPage,
-      lastPage,
-      previousPage,
-      nextPage,
       abrirModalNuevo,
       modificarMercado,
       cerrarModal,
@@ -668,7 +715,6 @@ export default {
       formatNumber,
       getTipoEmisionClass,
       imprimirReporte,
-      cerrar,
       mostrarAyuda
     };
   }
@@ -676,7 +722,6 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos específicos del componente si se necesitan */
 .empty-icon {
   color: var(--color-municipal-secondary);
   opacity: 0.3;
@@ -684,16 +729,11 @@ export default {
 }
 
 .row-hover {
-  cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .row-hover:hover {
   background-color: rgba(var(--color-primary-rgb), 0.05);
-}
-
-.table-row-selected {
-  background-color: rgba(var(--color-primary-rgb), 0.1) !important;
 }
 
 .modal-overlay {

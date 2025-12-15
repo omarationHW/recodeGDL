@@ -549,7 +549,9 @@ const loadIndicators = async () => {
       'sgcv2_sp_get_quality_indicators',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -581,7 +583,9 @@ const loadProcesses = async () => {
         { nombre: 'p_categoria', valor: filters.value.categoria || null, tipo: 'string' },
         { nombre: 'p_estado', valor: filters.value.estado || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -726,7 +730,9 @@ const saveProcess = async () => {
       'sgcv2_sp_save_process',
       'padron_licencias',
       params,
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

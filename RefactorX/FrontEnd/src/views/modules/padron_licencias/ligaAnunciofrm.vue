@@ -310,7 +310,9 @@ const buscarAnuncio = async () => {
       [
         { nombre: 'p_anuncio', valor: searchForm.value.anuncioId, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -365,7 +367,9 @@ const buscarTarget = async () => {
       [
         { nombre: paramName, valor: searchForm.value.targetId, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -436,7 +440,9 @@ const ligarAnuncio = async () => {
         { nombre: 'p_is_empresa', valor: ligaType.value === 'empresa', tipo: 'boolean' },
         { nombre: 'p_user', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.p_success) {

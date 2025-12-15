@@ -386,7 +386,7 @@ const buscarTramite = async () => {
       [{ nombre: 'p_id_tramite', valor: parseInt(searchIdTramite.value), tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (!responseTramite || !responseTramite.result || responseTramite.result.length === 0) {
@@ -408,7 +408,7 @@ const buscarTramite = async () => {
           [{ nombre: 'p_id_giro', valor: parseInt(tramiteData.value.id_giro), tipo: 'integer' }],
           'guadalajara',
           null,
-          'comun'
+          'publico'
         )
 
         if (responseGiro && responseGiro.result && responseGiro.result.length > 0) {
@@ -541,7 +541,7 @@ const confirmarCancelacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()

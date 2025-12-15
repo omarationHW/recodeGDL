@@ -391,7 +391,9 @@ const changeFirma = async () => {
         { nombre: 'p_firma_actual', valor: formData.value.firmaActual, tipo: 'string' },
         { nombre: 'p_firma_nueva', valor: formData.value.nuevaFirma, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {

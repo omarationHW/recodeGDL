@@ -289,7 +289,9 @@ const searchByAccount = async () => {
       [
         { nombre: 'p_cvecuenta', valor: filters.value.cveCuenta, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (responseCuenta && responseCuenta.result && responseCuenta.result.length > 0) {
@@ -301,7 +303,9 @@ const searchByAccount = async () => {
         [
           { nombre: 'p_cvecuenta', valor: filters.value.cveCuenta, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       if (responseConvcta && responseConvcta.result) {
@@ -347,7 +351,9 @@ const searchByCatastral = async () => {
         { nombre: 'p_cvecatnva', valor: filters.value.cveCatNva, tipo: 'string' },
         { nombre: 'p_subpredio', valor: filters.value.subpredio || '', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -391,7 +397,9 @@ const viewCartografia = async (item) => {
       [
         { nombre: 'p_cvecatnva', valor: item.cvecatnva, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

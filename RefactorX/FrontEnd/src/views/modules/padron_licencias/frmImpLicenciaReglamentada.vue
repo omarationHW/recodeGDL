@@ -538,7 +538,9 @@ const loadLicencias = async () => {
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -617,7 +619,9 @@ const createLicencia = async () => {
         { nombre: 'p_observaciones', valor: newLicencia.value.observaciones || '', tipo: 'string' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -664,7 +668,9 @@ const editLicencia = async (licencia) => {
       [
         { nombre: 'p_id', valor: licencia.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -712,7 +718,9 @@ const updateLicencia = async () => {
         { nombre: 'p_observaciones', valor: editForm.value.observaciones || '', tipo: 'string' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -776,7 +784,9 @@ const deleteLicencia = async (licencia) => {
       [
         { nombre: 'p_id', valor: licencia.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -815,7 +825,9 @@ const previewLicencia = async (licencia) => {
       [
         { nombre: 'p_id', valor: licencia.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)

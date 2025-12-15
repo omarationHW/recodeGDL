@@ -170,6 +170,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_UPDATE = 'RECAUDADORA_MODIF_MASIVA'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 
@@ -217,7 +218,7 @@ async function aplicar() {
 
   try {
     const params = [{ nombre: 'datos', tipo: 'string', valor: jsonPayload.value }]
-    const data = await execute(OP_UPDATE, BASE_DB, params)
+    const data = await execute(OP_UPDATE, BASE_DB, params, '', null, SCHEMA)
 
     // Extraer resultados
     let rows = []

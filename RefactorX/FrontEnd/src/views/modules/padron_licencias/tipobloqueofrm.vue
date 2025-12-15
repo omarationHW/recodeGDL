@@ -497,7 +497,7 @@ const buscar = async () => {
       [],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -595,7 +595,7 @@ const crearTipo = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -674,7 +674,7 @@ const actualizarTipo = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -731,7 +731,7 @@ const eliminarTipo = async (tipo) => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()

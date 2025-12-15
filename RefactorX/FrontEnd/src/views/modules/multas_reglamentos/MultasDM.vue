@@ -85,6 +85,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_MULTAS_DM' // TODO confirmar
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 
@@ -102,7 +103,7 @@ async function reload() {
     { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
   ]
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     // El backend devuelve data.result en lugar de data.rows
     const result = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
     rows.value = result

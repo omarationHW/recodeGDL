@@ -405,7 +405,9 @@ const searchCuenta = async () => {
       [
         { nombre: 'p_cvecuenta', valor: searchForm.value.cvecuenta, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -441,7 +443,9 @@ const loadUltimoRequerimiento = async () => {
       [
         { nombre: 'p_cvecuenta', valor: searchForm.value.cvecuenta, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -467,7 +471,9 @@ const calcularDescuentos = async () => {
         { nombre: 'p_periodo_hasta', valor: descuentosForm.value.periodo_hasta, tipo: 'integer' },
         { nombre: 'p_porcentaje', valor: descuentosForm.value.porcentaje_descuento, tipo: 'numeric' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -507,7 +513,9 @@ const recalcularDescuentos = async () => {
         [
           { nombre: 'p_cvecuenta', valor: searchForm.value.cvecuenta, tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       await calcularDescuentos()
@@ -561,7 +569,9 @@ const procesarLiquidacion = async () => {
           { nombre: 'p_monto', valor: liquidacionForm.value.monto, tipo: 'numeric' },
           { nombre: 'p_forma_pago', valor: liquidacionForm.value.forma_pago, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       await Swal.fire({
@@ -612,7 +622,9 @@ const eliminarDescuentos = async () => {
         [
           { nombre: 'p_cvecuenta', valor: searchForm.value.cvecuenta, tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       descuentos.value = []

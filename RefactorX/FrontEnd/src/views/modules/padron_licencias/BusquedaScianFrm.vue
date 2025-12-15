@@ -395,7 +395,9 @@ const searchScian = async () => {
       [
         { nombre: 'p_descripcion', valor: searchTerm, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

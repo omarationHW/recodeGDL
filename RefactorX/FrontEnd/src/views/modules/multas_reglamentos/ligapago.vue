@@ -92,6 +92,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LIGAPAGO'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 
 const filters = ref({ cuenta: '' })
@@ -112,16 +113,44 @@ async function generar() {
   datosCuenta.value = null
 
   const params = [
-    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
+    {
+      nombre: 'p_datos',
+      tipo: 'string',
+      valor: JSON.stringify({
+        clave_cuenta: filters.value.cuenta
+      })
+    }
   ]
 
   try {
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     if (data?.result && Array.isArray(data.result) && data.result.length > 0) {
       const resultado = data.result[0]
 
-      if (resultado.liga) {
+      // Parsear el JSON que viene como string en el campo 'resultado'
+      if (resultado.resultado) {
+        try {
+          const datosLiga = JSON.parse(resultado.resultado)
+
+          if (datosLiga.success && datosLiga.url) {
+            ligaGenerada.value = datosLiga.url
+            datosCuenta.value = {
+              cuenta: filters.value.cuenta,
+              total_adeudo: datosLiga.total_adeudo || 0,
+              total_requerimientos: datosLiga.total_requerimientos || 0,
+              mensaje: datosLiga.message || 'Liga generada exitosamente'
+            }
+            successMessage.value = datosLiga.message || 'Liga generada exitosamente'
+          } else {
+            errorMessage.value = datosLiga.message || 'No se pudo generar la liga de pago'
+          }
+        } catch (e) {
+          console.error('Error parseando resultado:', e)
+          errorMessage.value = 'Error al procesar la respuesta del servidor'
+        }
+      } else if (resultado.liga) {
+        // Formato alternativo (por si acaso)
         ligaGenerada.value = resultado.liga
         datosCuenta.value = {
           cuenta: resultado.cuenta,

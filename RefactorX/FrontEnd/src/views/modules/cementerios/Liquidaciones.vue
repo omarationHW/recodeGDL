@@ -1,16 +1,20 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <div class="module-title-section">
-        <font-awesome-icon icon="file-invoice-dollar module-icon" />
-        <div>
-          <h1 class="module-view-info">Liquidaciones de Cementerios</h1>
-          <p class="module-subtitle">Cálculo de liquidaciones de cuotas de mantenimiento</p>
-        </div>
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-invoice-dollar" />
       </div>
-      <div class="module-actions">
-        <button @click="showHelp = true" class="btn-icon" title="Ayuda">
+      <div class="module-view-info">
+        <h1>Liquidaciones de Cementerios</h1>
+        <p>Cementerios - Cálculo de liquidaciones de cuotas de mantenimiento</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
           <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -211,73 +215,78 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
-      v-if="showHelp"
-      title="Liquidaciones de Cementerios"
-      @close="showHelp = false"
-    >
-      <div class="help-content">
-        <h3>Descripción</h3>
-        <p>
-          Este módulo permite calcular liquidaciones de cuotas de mantenimiento para espacios
-          en cementerios municipales.
-        </p>
-
-        <h3>Instrucciones de Uso</h3>
-        <ol>
-          <li>Seleccione el cementerio</li>
-          <li>Ingrese los metros cuadrados del espacio</li>
-          <li>Seleccione el tipo de espacio (Fosa, Urna, Gaveta u Otros)</li>
-          <li>Indique el rango de años para la liquidación</li>
-          <li>Si es un espacio nuevo, marque la casilla "Nuevo" (no aplicará recargos)</li>
-          <li>Haga clic en "Calcular Liquidación"</li>
-          <li>Revise el detalle año por año y los totales calculados</li>
-          <li>Use el botón "Imprimir" para generar el reporte</li>
-        </ol>
-
-        <h3>Notas Importantes</h3>
-        <ul>
-          <li>Para años anteriores a 2008, el cálculo usa el multiplicador de metros</li>
-          <li>A partir de 2008, se usa un multiplicador estándar de 1</li>
-          <li>Los recargos se calculan según el porcentaje vigente del mes actual</li>
-          <li>Si marca "Nuevo", no se aplicarán recargos y los años se ajustarán al año actual</li>
-        </ul>
-
-        <h3>Campos Requeridos</h3>
-        <ul>
-          <li><strong>Cementerio:</strong> Cementerio municipal</li>
-          <li><strong>Metros:</strong> Metros cuadrados del espacio</li>
-          <li><strong>Tipo de Espacio:</strong> Fosa, Urna, Gaveta u Otros</li>
-          <li><strong>Año Desde/Hasta:</strong> Rango de años para el cálculo</li>
-        </ul>
-      </div>
-    </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+      :show="showDocumentation"
       :componentName="'Liquidaciones'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      @close="closeDocumentation"
     />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showSuccess, showError, showWarning } = useToast()
+
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
 
 // Estado
-const showHelp = ref(false)
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const cementerios = ref([])
 const resultados = ref([])
 const currentYear = new Date().getFullYear()
@@ -314,20 +323,29 @@ const formValid = computed(() => {
 // Cargar cementerios
 const cargarCementerios = async () => {
   try {
+    // Usar SP: sp_get_cementerios_list
+    // Base: cementerio.public (según 24_SP_CEMENTERIOS_LIQUIDACIONES_LISTAR_CEMENTERIOS.sql)
     const response = await execute(
-      'sp_cem_listar_cementerios',
-      'cementerios',
-      {},
+      'sp_get_cementerios_list',
+      'cementerio',
+      [],
       '',
       null,
-      'comun'
+      'public'
     )
+
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT cementerio, nombre, domicilio
+    FROM cementerio.public.tc_13_cementerios
+    ORDER BY cementerio
+    */
 
     if (response && response.result) {
       cementerios.value = response.result
     }
   } catch (error) {
-    showError('Error al cargar la lista de cementerios')
+    console.error('Error al cargar cementerios:', error)
+    showToast('error', 'Error al cargar la lista de cementerios')
   }
 }
 
@@ -347,45 +365,73 @@ const onNuevoChange = () => {
 // Calcular liquidación
 const calcularLiquidacion = async () => {
   if (!formValid.value) {
-    showWarning('Por favor complete todos los campos requeridos')
+    showToast('warning', 'Por favor complete todos los campos requeridos')
     return
   }
 
+  showLoading('Calculando liquidación...')
   try {
+    /* TODO FUTURO: Query SQL original Pascal (Liquidaciones.pas líneas 126-158)
+    -- LÓGICA CRÍTICA: UNION de 2 queries diferentes según año 2008
+    -- Query 1 (años < 2008): SELECT axo_cuota, TRUNC((cuota*metros),2) manten, recargos...
+    --   FROM ta_13_rcmcuotas WHERE cementerio=cem AND axo_cuota>=desde AND axo_cuota<2008
+    -- UNION ALL
+    -- Query 2 (años >= 2008): SELECT axo_cuota, TRUNC((cuota*1),2) manten, recargos...
+    --   FROM ta_13_rcmcuotas WHERE cementerio=cem AND axo_cuota BETWEEN 2008 AND hasta
+    -- IMPORTANTE: Años < 2008 usan metros reales, años >= 2008 usan multiplicador 1
+    */
+
+    // Usar SP CORREGIDO: sp_liquidaciones_calcular
+    // Archivo: 11_SP_CEMENTERIOS_LIQUIDACIONES_EXACTO_all_procedures_CORREGIDO.sql
+    // Base: cementerio.public (según postgreok.csv)
+    // NOTA: SP ahora implementa lógica EXACTA del Pascal con UNION de 2 queries
+
+    // Mapear tipo de espacio a letra
+    let tipoLetra = 'F'
+    switch(formData.value.tipoEspacio) {
+      case 1: tipoLetra = 'F'; break // Fosa
+      case 2: tipoLetra = 'U'; break // Urna
+      case 3: tipoLetra = 'G'; break // Gaveta
+      case 4: tipoLetra = 'O'; break // Otros
+    }
+
     const response = await execute(
-      'sp_cem_calcular_liquidacion',
-      'cementerios',
-      {
-        p_cementerio: formData.value.cementerio,
-        p_tipo_espacio: formData.value.tipoEspacio,
-        p_metros: formData.value.metros,
-        p_axo_desde: formData.value.axoDesde,
-        p_axo_hasta: formData.value.axoHasta,
-        p_es_nuevo: formData.value.esNuevo ? 1 : 0,
-        p_mes_actual: currentMonth
-      },
-      '',
+      'sp_liquidaciones_calcular',
+      'cementerio',
+      [
+        { nombre: 'p_cementerio', valor: formData.value.cementerio, tipo: 'string' },
+        { nombre: 'p_anio_desde', valor: formData.value.axoDesde, tipo: 'integer' },
+        { nombre: 'p_anio_hasta', valor: formData.value.axoHasta, tipo: 'integer' },
+        { nombre: 'p_metros', valor: formData.value.metros, tipo: 'numeric' },
+        { nombre: 'p_tipo', valor: tipoLetra, tipo: 'string' },
+        { nombre: 'p_nuevo', valor: formData.value.esNuevo ? 1 : 0, tipo: 'integer' },
+        { nombre: 'p_mes', valor: currentMonth, tipo: 'integer' }
+      ],
+      'function',
       null,
-      'comun'
+      'public'
     )
 
-    if (response && response.resultado === 'S' && response.result && response.result.length > 0) {
-      resultados.value = response.result
+    if (response && response.result && response.result.length > 0) {
+      // Agregar campo total a cada resultado
+      resultados.value = response.result.map(item => ({
+        ...item,
+        total: parseFloat(item.manten || 0) + parseFloat(item.recargos || 0)
+      }))
       calcularTotales()
-      showSuccess('Liquidación calculada exitosamente')
-    } else if (response && response.resultado === 'E') {
-      showError(response.mensaje || 'No se encontraron cuotas para el rango especificado')
-      resultados.value = []
-      resetTotales()
+      showToast('success', 'Liquidación calculada exitosamente')
     } else {
-      showWarning('No se encontraron datos para los parámetros especificados')
+      showToast('warning', 'No se encontraron cuotas para el rango especificado')
       resultados.value = []
       resetTotales()
     }
   } catch (error) {
-    showError('Error al calcular la liquidación')
+    console.error('Error al calcular liquidación:', error)
+    showToast('error', 'Error al calcular la liquidación')
     resultados.value = []
     resetTotales()
+  } finally {
+    hideLoading()
   }
 }
 
@@ -420,7 +466,7 @@ const limpiarFormulario = () => {
 // Imprimir liquidación
 const imprimirLiquidacion = () => {
   if (resultados.value.length === 0) {
-    showWarning('No hay datos para imprimir')
+    showToast('warning', 'No hay datos para imprimir')
     return
   }
 
@@ -558,13 +604,4 @@ const formatCurrency = (value) => {
 onMounted(() => {
   cargarCementerios()
 })
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>

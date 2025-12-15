@@ -52,15 +52,6 @@
         <div class="municipal-card-body">
           <div :class="['alert', resultado.success ? 'alert-success' : 'alert-error']">
             <p><strong>{{ resultado.message }}</strong></p>
-            <div v-if="resultado.success && resultado.data">
-              <hr/>
-              <p><strong>ID Multa:</strong> {{ resultado.data.id_multa }}</p>
-              <p><strong>Folio:</strong> {{ resultado.data.num_acta }}</p>
-              <p><strong>Ejercicio:</strong> {{ resultado.data.axo_acta }}</p>
-              <p><strong>Contribuyente:</strong> {{ resultado.data.contribuyente }}</p>
-              <p><strong>Total:</strong> ${{ resultado.data.total }}</p>
-              <p><strong>Fecha de Cancelación:</strong> {{ resultado.data.fecha_cancelacion }}</p>
-            </div>
           </div>
         </div>
       </div>
@@ -98,7 +89,7 @@ async function cancelar() {
   ]
 
   try {
-    const data = await execute(OP_CANCEL, BASE_DB, params)
+    const data = await execute(OP_CANCEL, BASE_DB, params, '', null, 'publico')
 
     // El SP devuelve un array con un solo registro
     const row = Array.isArray(data?.result) && data.result.length > 0
@@ -109,7 +100,14 @@ async function cancelar() {
       resultado.value = {
         success: row.success,
         message: row.message,
-        data: row.success ? row : null
+        data: row.success ? {
+          id_multa: row.multa_id,
+          num_acta: row.multa_num_acta,
+          axo_acta: row.multa_axo_acta,
+          contribuyente: row.multa_contribuyente,
+          total: row.multa_total,
+          fecha_cancelacion: row.multa_fecha_cancelacion
+        } : null
       }
     } else {
       resultado.value = {

@@ -212,7 +212,14 @@ async function calcular() {
     console.log('🔍 Ejecutando SP:', OP)
     console.log('🔍 Parámetros:', params.value)
 
-    const data = await execute(OP, BASE_DB, params.value)
+    // Convertir parámetros al formato correcto
+    const apiParams = [
+      { nombre: 'p_importe_base', tipo: 'numeric', valor: params.value.p_importe_base },
+      { nombre: 'p_meses_mora', tipo: 'integer', valor: params.value.p_meses_mora },
+      { nombre: 'p_porc_descuento', tipo: 'numeric', valor: params.value.p_porc_descuento }
+    ]
+
+    const data = await execute(OP, BASE_DB, apiParams)
 
     console.log('✅ Resultado:', data)
 

@@ -740,7 +740,7 @@ const guardarEdicion = async () => {
   try {
     const response = await execute(
       'sp_bloqueodomicilios_update',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_tipo', valor: bloqueoEditar.value.tipo_registro, tipo: 'string' },
         { nombre: 'p_id_registro', valor: bloqueoEditar.value.numero_registro, tipo: 'integer' },
@@ -749,7 +749,7 @@ const guardarEdicion = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     // Primero ocultar el loading
@@ -795,7 +795,7 @@ const cargarBloqueos = async () => {
   try {
     const response = await execute(
       'sp_bloqueodomicilios_list',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
         { nombre: 'p_page_size', valor: pageSize.value, tipo: 'integer' },
@@ -805,7 +805,7 @@ const cargarBloqueos = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -879,7 +879,7 @@ const guardarNuevoBloqueo = async () => {
   try {
     const response = await execute(
       'sp_bloqueodomicilios_create',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_tipo', valor: nuevoBloqueo.value.tipo, tipo: 'string' },
         { nombre: 'p_id_registro', valor: nuevoBloqueo.value.idRegistro, tipo: 'integer' },
@@ -888,7 +888,7 @@ const guardarNuevoBloqueo = async () => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     // Primero ocultar el loading
@@ -955,7 +955,7 @@ const confirmarCancelacion = async (bloqueo) => {
   try {
     const response = await execute(
       'sp_bloqueodomicilios_cancel',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_tipo', valor: bloqueo.tipo_registro, tipo: 'string' },
         { nombre: 'p_id_registro', valor: bloqueo.numero_registro, tipo: 'integer' },
@@ -963,7 +963,7 @@ const confirmarCancelacion = async (bloqueo) => {
       ],
       'guadalajara',
       null,
-      'public'
+      'publico'
     )
 
     // Primero ocultar el loading

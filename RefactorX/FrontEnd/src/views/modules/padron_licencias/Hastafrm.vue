@@ -320,7 +320,9 @@ const validateForm = async () => {
         { nombre: 'p_bimestre', valor: parseInt(formData.value.bimestre), tipo: 'integer' },
         { nombre: 'p_anio', valor: parseInt(formData.value.anio), tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {

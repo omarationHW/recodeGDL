@@ -430,7 +430,9 @@ const consultarDatos = async () => {
       [
         { nombre: 'p_cvecatnva', valor: cvecatnva.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -513,7 +515,9 @@ const guardarDatos = async () => {
         { nombre: 'p_data', valor: JSON.stringify(datosGenerales.value), tipo: 'json' },
         { nombre: 'p_user', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -562,7 +566,9 @@ const cargarAvaluos = async () => {
         { nombre: 'p_cvecatnva', valor: cvecatnva.value, tipo: 'string' },
         { nombre: 'p_subpredio', valor: subpredio.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -606,7 +612,9 @@ const cargarConstrucciones = async () => {
       [
         { nombre: 'p_cveavaluo', valor: cveavaluo.value, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -645,7 +653,9 @@ const cargarAreaCarto = async () => {
       [
         { nombre: 'p_cvecatnva', valor: cvecatnva.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

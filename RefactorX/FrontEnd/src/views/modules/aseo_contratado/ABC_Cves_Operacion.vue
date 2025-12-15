@@ -271,7 +271,7 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 
 const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { execute } = useApi()
 const { isLoading: loading, showLoading, hideLoading } = useGlobalLoading()

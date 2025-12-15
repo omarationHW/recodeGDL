@@ -212,7 +212,7 @@ async function buscar() {
   ]
 
   try {
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, 'publico')
     console.log('Respuesta completa:', response)
 
     // Procesar la respuesta

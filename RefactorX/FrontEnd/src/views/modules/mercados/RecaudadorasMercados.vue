@@ -232,6 +232,7 @@
             <h5 class="modal-title">
               <font-awesome-icon :icon="modalMode === 'nuevo' ? 'plus' : 'edit'" />
               {{ modalMode === 'nuevo' ? 'Agregar nuevo mercado' : 'Modificar mercado' }}
+              {{ modalMode === 'nuevo' ? 'Agregar nuevo mercado' : 'Modificar mercado' }}
             </h5>
             <button type="button" class="btn-close" @click="cerrarModal"></button>
           </div>
@@ -243,6 +244,7 @@
                   :disabled="modalMode === 'modificar'" />
               </div>
               <div class="form-group col-md-6">
+                <label class="municipal-form-label">Mercado nuevo <span class="required">*</span></label>
                 <label class="municipal-form-label">Mercado nuevo <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.num_mercado_nvo"
                   :disabled="modalMode === 'modificar'" />
@@ -262,9 +264,11 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Cuenta ingreso <span class="required">*</span></label>
+                <label class="municipal-form-label">Cuenta ingreso <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_ingreso" />
               </div>
               <div class="form-group col-md-6">
+                <label class="municipal-form-label">Cuenta energía</label>
                 <label class="municipal-form-label">Cuenta energía</label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_energia" />
               </div>
@@ -331,6 +335,7 @@ export default {
 
     // Paginación
     const currentPage = ref(1);
+    const itemsPerPage = ref(10);
     const itemsPerPage = ref(10);
 
     // Modal

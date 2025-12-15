@@ -328,11 +328,11 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 // Estado de búsqueda
 const numContrato = ref(null)

@@ -329,7 +329,7 @@ const buscarTramite = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -377,7 +377,7 @@ const cargarGiroDescripcion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -451,7 +451,7 @@ const confirmarReactivacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

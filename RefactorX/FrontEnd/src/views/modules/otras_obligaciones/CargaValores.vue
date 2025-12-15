@@ -341,7 +341,7 @@ const loadTablas = async () => {
       [],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loadingTablas.value = false
@@ -387,7 +387,7 @@ const onTablaChange = async () => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false
@@ -519,7 +519,7 @@ const aplicaValores = async () => {
         ],
         '',
         null,
-        'public'
+        'publico'
       )
 
       if (response && response.result) {

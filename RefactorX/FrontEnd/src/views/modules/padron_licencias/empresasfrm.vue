@@ -909,7 +909,7 @@ const loadStats = async () => {
       'sp_empresas_estadisticas',
       'padron_licencias',
       [],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -937,7 +937,7 @@ const buscarEmpresas = async () => {
         { nombre: 'p_rfc', valor: filters.value.rfc || null },
         { nombre: 'p_vigente', valor: filters.value.vigente || null }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     const endTime = performance.now()
@@ -1052,7 +1052,7 @@ const crearEmpresa = async () => {
         { nombre: 'p_subzona', valor: newEmpresa.value.subzona },
         { nombre: 'p_vigente', valor: newEmpresa.value.vigente }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result) {
@@ -1134,7 +1134,7 @@ const actualizarEmpresa = async () => {
         { nombre: 'p_subzona', valor: editForm.value.subzona },
         { nombre: 'p_vigente', valor: editForm.value.vigente }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result) {
@@ -1186,7 +1186,7 @@ const eliminarEmpresa = async (empresa) => {
       [
         { nombre: 'p_empresa', valor: empresa.empresa }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result) {

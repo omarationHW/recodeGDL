@@ -504,7 +504,7 @@ const loadGrupos = async () => {
       'GET_GRUPOS_ANUNCIOS',
       'padron_licencias',
       [],
-      'public'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -536,7 +536,7 @@ const loadGiros = async () => {
       'GET_GIROS',
       'padron_licencias',
       [],
-      'public'
+      'publico'
     )
 
     if (response && response.result) {
@@ -597,7 +597,7 @@ const createGrupo = async () => {
       [
         { nombre: 'p_descripcion', valor: newGrupo.value.descripcion, tipo: 'string' }
       ],
-      'public'
+      'publico'
     )
 
     // Verificar si tiene success=true O si tiene id/descripcion (formato antiguo)
@@ -690,7 +690,7 @@ const updateGrupo = async () => {
         { nombre: 'p_id', valor: editForm.value.id, tipo: 'integer' },
         { nombre: 'p_descripcion', valor: editForm.value.descripcion, tipo: 'string' }
       ],
-      'public'
+      'publico'
     )
 
     // Verificar si tiene success=true O si tiene id/descripcion (formato antiguo)
@@ -753,7 +753,7 @@ const deleteGrupo = async (grupo) => {
       [
         { nombre: 'p_id', valor: grupo.id, tipo: 'integer' }
       ],
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -812,7 +812,7 @@ const loadAnunciosDisponibles = async () => {
       [
         { nombre: 'p_grupo_id', valor: selectedGrupo.value.id, tipo: 'integer' }
       ],
-      'public'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -846,7 +846,7 @@ const loadAnunciosGrupo = async (grupoId) => {
       [
         { nombre: 'p_grupo_id', valor: grupoId, tipo: 'integer' }
       ],
-      'public'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -905,7 +905,7 @@ const addSelectedAnuncios = async () => {
         { nombre: 'p_grupo_id', valor: selectedGrupo.value.id, tipo: 'integer' },
         { nombre: 'p_anuncios', valor: selectedDisponibles.value, tipo: 'integer_array' }
       ],
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -976,7 +976,7 @@ const removeSelectedAnuncios = async () => {
         { nombre: 'p_grupo_id', valor: selectedGrupo.value.id, tipo: 'integer' },
         { nombre: 'p_anuncios', valor: selectedGrupoAnuncios.value, tipo: 'integer_array' }
       ],
-      'public'
+      'publico'
     )
 
     hideLoading()

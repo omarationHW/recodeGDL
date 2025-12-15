@@ -129,8 +129,12 @@ async function reload() {
     { nombre: 'p_limit', valor: pageSize.value, tipo: 'integer' }
   ]
   try {
-    const data = await execute(OP_CATASTRO_DM, BASE_DB, params)
+    const response = await execute(OP_CATASTRO_DM, BASE_DB, params, '', null, 'public')
+
+    // Extraer datos de la estructura correcta
+    const data = response?.eResponse?.data || response?.data || response
     const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
+
     rows.value = arr
     total.value = arr.length > 0 ? Number(arr[0].total_count || 0) : 0
   } catch (e) {

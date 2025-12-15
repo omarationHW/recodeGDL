@@ -165,6 +165,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showDocumentation = ref(false)
 const reporteGenerado = ref(false)
@@ -179,8 +180,6 @@ const filtros = ref({
 
 const totales = computed(() => ({
   monto_total: datos.value.reduce((sum, p) => sum + parseFloat(p.importe || 0), 0)
-
-const { showLoading, hideLoading } = useGlobalLoading()
 }))
 
 const generarReporte = async () => {

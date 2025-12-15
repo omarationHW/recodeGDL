@@ -249,7 +249,9 @@ const validateFirma = async () => {
         { nombre: 'p_usuario', valor: validationForm.value.usuario, tipo: 'string' },
         { nombre: 'p_firma', valor: validationForm.value.firma, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {

@@ -276,7 +276,7 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { execute } = useApi()
 const { showToast, handleApiError } = useLicenciasErrorHandler()

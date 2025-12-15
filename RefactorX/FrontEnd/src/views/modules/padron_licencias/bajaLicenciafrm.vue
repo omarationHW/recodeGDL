@@ -484,7 +484,9 @@ const buscarLicencia = async () => {
       'sp_consulta_licencia',
       'padron_licencias',
       [{ nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -525,7 +527,9 @@ const cargarAnuncios = async () => {
       'sp_consulta_anuncios_licencia',
       'padron_licencias',
       [{ nombre: 'p_licencia', valor: searchLicencia.value, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -546,7 +550,9 @@ const cargarAdeudos = async () => {
       'sp_consulta_adeudos_licencia',
       'padron_licencias',
       [{ nombre: 'p_id_licencia', valor: licenciaData.value.id_licencia, tipo: 'integer' }],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -690,7 +696,9 @@ const confirmarBaja = async () => {
               { nombre: 'p_usuario', valor: usuario, tipo: 'string' },
               { nombre: 'p_password', valor: password, tipo: 'string' }
             ],
-            'guadalajara'
+            'guadalajara',
+      null,
+      'publico'
           )
 
           if (response && response.result && response.result[0]?.autorizado) {
@@ -778,7 +786,9 @@ const solicitarFirma = async () => {
         { nombre: 'p_usuario', valor: localStorage.getItem('usuario') || '', tipo: 'string' },
         { nombre: 'p_firma', valor: firma, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.firma_valida) {
@@ -817,7 +827,9 @@ const ejecutarBaja = async () => {
         { nombre: 'p_baja_error', valor: bajaForm.value.bajaError, tipo: 'boolean' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

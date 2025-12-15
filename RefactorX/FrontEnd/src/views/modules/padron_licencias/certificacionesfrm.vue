@@ -674,7 +674,7 @@ const cargarCertificaciones = async () => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -708,7 +708,7 @@ const cargarEstadisticas = async () => {
       [],
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result) {
@@ -775,7 +775,7 @@ const abrirModalNuevo = async () => {
       [{ nombre: 'p_axo', valor: new Date().getFullYear(), tipo: 'integer' }],
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -844,7 +844,7 @@ const crearCertificacion = async () => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -910,7 +910,7 @@ const actualizarCertificacion = async () => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -962,7 +962,7 @@ const eliminarCertificacion = async (cert) => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()

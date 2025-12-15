@@ -227,6 +227,7 @@ import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showDocumentation = ref(false)
 const numContrato = ref(null)
@@ -427,8 +428,6 @@ const registrarPago = async () => {
 const cancelarPago = () => {
   formPago.value = {
     importe: null,
-
-const { showLoading, hideLoading } = useGlobalLoading()
     id_rec: 1,
     caja: '001',
     folio: null

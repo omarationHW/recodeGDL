@@ -314,7 +314,9 @@ const loadBookmarks = async () => {
       'webbrowser_sp_get_bookmarks',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -429,7 +431,9 @@ const addBookmark = async () => {
           { nombre: 'p_url', valor: currentUrl.value, tipo: 'string' },
           { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       const endTime = performance.now()
@@ -470,7 +474,9 @@ const deleteBookmark = async (bookmark) => {
         [
           { nombre: 'p_id', valor: bookmark.id, tipo: 'integer' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       const endTime = performance.now()

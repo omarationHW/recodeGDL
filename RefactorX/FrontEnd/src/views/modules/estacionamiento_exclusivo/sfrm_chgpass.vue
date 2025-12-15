@@ -36,7 +36,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import Swal from 'sweetalert2'
 
 const BASE_DB = 'padron_licencias'
-const BASE_SCHEMA = 'comun'
+const BASE_SCHEMA = 'publico'
 const OP_CHGPASS = 'sp_change_user_password'
 const OP_QUERY = 'sp_passwords_list'
 

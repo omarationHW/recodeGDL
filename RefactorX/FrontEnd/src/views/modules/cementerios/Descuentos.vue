@@ -2,15 +2,18 @@
   <div class="module-view">
     <!-- Header -->
     <div class="module-view-header">
-      <div class="module-title-section">
-        <font-awesome-icon icon="percentage module-icon" />
-        <div>
-          <h1 class="module-view-info">Descuentos</h1>
-          <p class="module-subtitle">Aplicación de descuentos a folios</p>
-        </div>
+      <div class="module-view-icon">
+        <font-awesome-icon icon="percentage" />
       </div>
-      <div class="module-actions">
-        <button class="btn-help" @click="mostrarAyuda = true">
+      <div class="module-view-info">
+        <h1>Descuentos</h1>
+        <p>Cementerios - Aplicación de descuentos a folios</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-purple"
+          @click="mostrarAyuda"
+        >
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -30,7 +33,7 @@
             <input
               type="number"
               v-model.number="folioSearch"
-              class="form-input"
+              class="municipal-form-control"
               placeholder="Ingrese número de folio"
               @keyup.enter="buscarFolio"
             />
@@ -119,17 +122,14 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="adeudo in adeudos" :key="adeudo.id_adeudo">
+                <tr v-for="adeudo in paginatedAdeudos" :key="adeudo.id_adeudo">
                   <td>{{ adeudo.axo_adeudo }}</td>
                   <td>{{ formatCurrency(adeudo.importe) }}</td>
                   <td>{{ formatCurrency(adeudo.importe_recargos) }}</td>
                   <td>{{ formatCurrency(adeudo.descto_impote) }}</td>
                   <td>{{ formatCurrency(adeudo.descto_recargos) }}</td>
                   <td class="text-bold">
-                    {{ formatCurrency(
-                      adeudo.importe + adeudo.importe_recargos -
-                      adeudo.descto_impote - adeudo.descto_recargos
-                    ) }}
+                    {{ formatCurrency(calcularTotalAdeudo(adeudo)) }}
                   </td>
                   <td>
                     <button
@@ -145,6 +145,81 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="adeudos.length > 0" class="pagination-controls mt-3">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -188,7 +263,7 @@
         <div v-if="tiposDescuento.length > 0" class="form-grid-two">
           <div class="form-group">
             <label class="form-label required">Tipo de Descuento</label>
-            <select v-model="descuentoSeleccionado" class="form-input">
+            <select v-model="descuentoSeleccionado" class="municipal-form-control">
               <option :value="null">-- Seleccione --</option>
               <option
                 v-for="tipo in tiposDescuento"
@@ -305,78 +380,79 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
-      v-if="mostrarAyuda"
-      title="Ayuda - Descuentos"
-      @close="mostrarAyuda = false"
-    >
-      <div class="help-content">
-        <section class="help-section">
-          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
-          <p>
-            Este módulo permite aplicar descuentos a los adeudos de folios de cementerio.
-            Los descuentos se aplican por año y tipo de descuento según el catálogo configurado.
-          </p>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
-          <ol>
-            <li>Ingrese el número de folio y presione "Buscar Folio"</li>
-            <li>El sistema mostrará la información del folio y sus adeudos vigentes</li>
-            <li>Si hay adeudos, puede seleccionar un año para aplicar descuento</li>
-            <li>Seleccione el tipo de descuento del catálogo disponible</li>
-            <li>Revise el cálculo del descuento en el resumen</li>
-            <li>Presione "Aplicar Descuento" para guardar</li>
-            <li>Puede cancelar descuentos aplicados desde la tabla de descuentos</li>
-          </ol>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="exclamation-triangle" /> Restricciones</h3>
-          <ul>
-            <li>Solo se puede aplicar un descuento por año por folio</li>
-            <li>El folio debe tener adeudos vigentes para aplicar descuentos</li>
-            <li>Los descuentos solo se aplican a adeudos no pagados</li>
-            <li>Si el folio no tiene adeudos, solo puede reactivarlo</li>
-          </ul>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="redo" /> Reactivación</h3>
-          <p>
-            Si un folio no tiene adeudos vigentes, puede marcarse como reactivado.
-            Active la casilla "Reactivar folio" y presione el botón de reactivación.
-          </p>
-        </section>
-      </div>
-    </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+      :show="showDocumentation"
       :componentName="'Descuentos'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      @close="closeDocumentation"
     />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
-const { callProcedure } = useApi()
-const { showSuccess, showError } = useToast()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
 
 // Estado
-const mostrarAyuda = ref(false)
+const showDocumentation = ref(false)
+const mostrarAyuda = () => showDocumentation.value = true
+const closeDocumentation = () => showDocumentation.value = false
 const folioSearch = ref(null)
 const folioData = ref(null)
 const adeudos = ref([])
@@ -386,43 +462,99 @@ const descuentoSeleccionado = ref(null)
 const descuentosAplicados = ref([])
 const modoReactivar = ref(false)
 
+// Paginación para tabla de adeudos
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+// Computed - Paginación
+const totalRecords = computed(() => adeudos.value.length)
+
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
+})
+
+const paginatedAdeudos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return adeudos.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Buscar folio
 const buscarFolio = async () => {
   if (!folioSearch.value || folioSearch.value <= 0) {
-    showError('Por favor ingrese un número de folio válido')
+    showToast('warning', 'Por favor ingrese un número de folio válido')
     return
   }
 
-  try {
-    // Buscar folio
-    const result = await callProcedure('sp_cem_buscar_folio', {
-      p_control_rcm: folioSearch.value
-    })
+  showLoading('Buscando folio...', 'Consultando base de datos')
 
-    if (result.resultado === 'S' && result.data) {
-      folioData.value = result.data
+  try {
+    // Buscar folio - sp_descuentos_buscar_folio
+    const response = await execute(
+      'sp_descuentos_buscar_folio',
+      'padron_licencias',
+      [
+        { nombre: 'p_control_rcm', valor: folioSearch.value, tipo: 'integer' }
+      ],
+      '',
+      null,
+      'comun'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      folioData.value = response.result[0]
       await cargarAdeudos()
       await cargarDescuentos()
       await cargarTiposDescuento()
+      showToast('success', 'Folio encontrado')
     } else {
-      showError(result.mensaje || 'Folio no encontrado')
+      showToast('error', 'Folio no encontrado')
       limpiarDatos()
     }
   } catch (error) {
-    showError('Error al buscar el folio')
+    console.error('Error al buscar folio:', error)
+    showToast('error', 'Error al buscar el folio')
     limpiarDatos()
+  } finally {
+    hideLoading()
   }
 }
 
 // Cargar adeudos del folio
 const cargarAdeudos = async () => {
   try {
-    const result = await callProcedure('sp_cem_listar_adeudos_folio', {
-      p_control_rcm: folioSearch.value
-    })
+    const response = await execute(
+      'sp_descuentos_listar_adeudos',
+      'cementerio',
+      [
+        { nombre: 'p_control_rcm', valor: folioSearch.value, tipo: 'integer' }
+      ],
+      'cementerio',
+      null,
+      'public'
+    )
 
-    adeudos.value = result.data || []
+    adeudos.value = response?.result || []
+    currentPage.value = 1 // Reset paginación al cargar nuevos datos
   } catch (error) {
+    console.error('Error al cargar adeudos:', error)
     adeudos.value = []
   }
 }
@@ -430,12 +562,20 @@ const cargarAdeudos = async () => {
 // Cargar descuentos aplicados
 const cargarDescuentos = async () => {
   try {
-    const result = await callProcedure('sp_cem_listar_descuentos_folio', {
-      p_control_rcm: folioSearch.value
-    })
+    const response = await execute(
+      'sp_descuentos_listar_descuentos_aplicados',
+      'cementerio',
+      [
+        { nombre: 'p_control_rcm', valor: folioSearch.value, tipo: 'integer' }
+      ],
+      'cementerio',
+      null,
+      'public'
+    )
 
-    descuentosAplicados.value = result.data || []
+    descuentosAplicados.value = response?.result || []
   } catch (error) {
+    console.error('Error al cargar descuentos:', error)
     descuentosAplicados.value = []
   }
 }
@@ -444,12 +584,20 @@ const cargarDescuentos = async () => {
 const cargarTiposDescuento = async () => {
   try {
     const currentYear = new Date().getFullYear()
-    const result = await callProcedure('sp_cem_listar_tipos_descuento', {
-      p_axo: currentYear
-    })
+    const response = await execute(
+      'sp_descuentos_listar_tipos_descuento',
+      'cementerio',
+      [
+        { nombre: 'p_axo', valor: currentYear, tipo: 'integer' }
+      ],
+      'cementerio',
+      null,
+      'public'
+    )
 
-    tiposDescuento.value = result.data || []
+    tiposDescuento.value = response?.result || []
   } catch (error) {
+    console.error('Error al cargar tipos de descuento:', error)
     tiposDescuento.value = []
   }
 }
@@ -477,9 +625,10 @@ const calcularDescuento = (monto) => {
 const calcularTotalConDescuento = () => {
   if (!adeudoSeleccionado.value || !descuentoSeleccionado.value) return 0
 
-  const total = adeudoSeleccionado.value.importe + adeudoSeleccionado.value.importe_recargos
-  const descuento = calcularDescuento(adeudoSeleccionado.value.importe) +
-                    calcularDescuento(adeudoSeleccionado.value.importe_recargos)
+  const importe = parseFloat(adeudoSeleccionado.value.importe || 0)
+  const recargos = parseFloat(adeudoSeleccionado.value.importe_recargos || 0)
+  const total = importe + recargos
+  const descuento = calcularDescuento(importe) + calcularDescuento(recargos)
 
   return total - descuento
 }
@@ -487,31 +636,49 @@ const calcularTotalConDescuento = () => {
 // Aplicar descuento
 const aplicarDescuento = async () => {
   if (!descuentoSeleccionado.value) {
-    showError('Seleccione un tipo de descuento')
+    showToast('warning', 'Seleccione un tipo de descuento')
     return
   }
 
-  try {
-    const result = await callProcedure('sp_cem_gestionar_descuento', {
-      p_operacion: 1, // Alta
-      p_control_rcm: folioSearch.value,
-      p_axo: adeudoSeleccionado.value.axo_adeudo,
-      p_porcentaje: descuentoSeleccionado.value.porcentaje,
-      p_tipo_descto: descuentoSeleccionado.value.tipo_descto,
-      p_reactivar: 'N',
-      p_usuario: 1 // TODO: Obtener de sesión
-    })
+  showLoading('Aplicando descuento...', 'Guardando en base de datos')
 
-    if (result.resultado === 'S') {
-      showSuccess(result.mensaje)
-      await cargarAdeudos()
-      await cargarDescuentos()
-      cancelarDescuento()
+  try {
+    // spd_13_abcdesctos - Operación 1 = Alta
+    const response = await execute(
+      'spd_13_abcdesctos',
+      'cementerio',
+      [
+        { nombre: 'v_control', valor: folioSearch.value, tipo: 'integer' },
+        { nombre: 'v_axo', valor: adeudoSeleccionado.value.axo_adeudo, tipo: 'integer' },
+        { nombre: 'v_porc', valor: descuentoSeleccionado.value.porcentaje, tipo: 'integer' },
+        { nombre: 'v_usu', valor: 1, tipo: 'integer' }, // TODO: Obtener de sesión
+        { nombre: 'v_reac', valor: 'N', tipo: 'string' },
+        { nombre: 'v_tipo_descto', valor: descuentoSeleccionado.value.tipo_descto, tipo: 'string' },
+        { nombre: 'v_opc', valor: 1, tipo: 'integer' } // 1 = Alta
+      ],
+      'cementerio',
+      null,
+      'public'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      const resultado = response.result[0]
+      if (resultado.par_ok === 0) {
+        showToast('success', resultado.par_observ || 'Descuento aplicado correctamente')
+        await cargarAdeudos()
+        await cargarDescuentos()
+        cancelarDescuento()
+      } else {
+        showToast('error', resultado.par_observ || 'Error al aplicar descuento')
+      }
     } else {
-      showError(result.mensaje || 'Error al aplicar descuento')
+      showToast('error', 'Error al aplicar descuento')
     }
   } catch (error) {
-    showError('Error al aplicar el descuento')
+    console.error('Error al aplicar descuento:', error)
+    showToast('error', 'Error al aplicar el descuento')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -530,32 +697,50 @@ const eliminarDescuento = async (descuento) => {
     showCancelButton: true,
     confirmButtonText: 'Sí, cancelar',
     cancelButtonText: 'No',
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   })
 
   if (!result.isConfirmed) return
 
-  try {
-    const response = await callProcedure('sp_cem_gestionar_descuento', {
-      p_operacion: 2, // Baja
-      p_control_rcm: folioSearch.value,
-      p_axo: descuento.axo_descto,
-      p_porcentaje: descuento.descuento,
-      p_tipo_descto: descuento.tipo_descto,
-      p_reactivar: 'N',
-      p_usuario: 1 // TODO: Obtener de sesión
-    })
+  showLoading('Cancelando descuento...', 'Actualizando base de datos')
 
-    if (response.resultado === 'S') {
-      showSuccess(response.mensaje)
-      await cargarAdeudos()
-      await cargarDescuentos()
+  try {
+    // spd_13_abcdesctos - Operación 2 = Baja
+    const response = await execute(
+      'spd_13_abcdesctos',
+      'cementerio',
+      [
+        { nombre: 'v_control', valor: folioSearch.value, tipo: 'integer' },
+        { nombre: 'v_axo', valor: descuento.axo_descto, tipo: 'integer' },
+        { nombre: 'v_porc', valor: descuento.descuento, tipo: 'integer' },
+        { nombre: 'v_usu', valor: 1, tipo: 'integer' }, // TODO: Obtener de sesión
+        { nombre: 'v_reac', valor: 'N', tipo: 'string' },
+        { nombre: 'v_tipo_descto', valor: descuento.tipo_descto, tipo: 'string' },
+        { nombre: 'v_opc', valor: 2, tipo: 'integer' } // 2 = Baja
+      ],
+      'cementerio',
+      null,
+      'public'
+    )
+
+    if (response && response.result && response.result.length > 0) {
+      const resultado = response.result[0]
+      if (resultado.par_ok === 0) {
+        showToast('success', resultado.par_observ || 'Descuento cancelado correctamente')
+        await cargarAdeudos()
+        await cargarDescuentos()
+      } else {
+        showToast('error', resultado.par_observ || 'Error al cancelar descuento')
+      }
     } else {
-      showError(response.mensaje || 'Error al cancelar descuento')
+      showToast('error', 'Error al cancelar descuento')
     }
   } catch (error) {
-    showError('Error al cancelar el descuento')
+    console.error('Error al cancelar descuento:', error)
+    showToast('error', 'Error al cancelar el descuento')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -563,27 +748,45 @@ const eliminarDescuento = async (descuento) => {
 const reactivarFolio = async () => {
   if (!modoReactivar.value) return
 
+  showLoading('Reactivando folio...', 'Actualizando base de datos')
+
   try {
     const currentYear = new Date().getFullYear()
-    const result = await callProcedure('sp_cem_gestionar_descuento', {
-      p_operacion: 4, // Reactivar
-      p_control_rcm: folioSearch.value,
-      p_axo: currentYear,
-      p_porcentaje: 0,
-      p_tipo_descto: '',
-      p_reactivar: 'S',
-      p_usuario: 1 // TODO: Obtener de sesión
-    })
+    // spd_13_abcdesctos - Operación 4 = Reactivar
+    const response = await execute(
+      'spd_13_abcdesctos',
+      'cementerio',
+      [
+        { nombre: 'v_control', valor: folioSearch.value, tipo: 'integer' },
+        { nombre: 'v_axo', valor: currentYear, tipo: 'integer' },
+        { nombre: 'v_porc', valor: 0, tipo: 'integer' },
+        { nombre: 'v_usu', valor: 1, tipo: 'integer' }, // TODO: Obtener de sesión
+        { nombre: 'v_reac', valor: 'S', tipo: 'string' },
+        { nombre: 'v_tipo_descto', valor: '', tipo: 'string' },
+        { nombre: 'v_opc', valor: 4, tipo: 'integer' } // 4 = Reactivar
+      ],
+      'cementerio',
+      null,
+      'public'
+    )
 
-    if (result.resultado === 'S') {
-      showSuccess(result.mensaje)
-      modoReactivar.value = false
-      await cargarDescuentos()
+    if (response && response.result && response.result.length > 0) {
+      const resultado = response.result[0]
+      if (resultado.par_ok === 0) {
+        showToast('success', resultado.par_observ || 'Folio reactivado correctamente')
+        modoReactivar.value = false
+        await cargarDescuentos()
+      } else {
+        showToast('error', resultado.par_observ || 'Error al reactivar folio')
+      }
     } else {
-      showError(result.mensaje || 'Error al reactivar folio')
+      showToast('error', 'Error al reactivar folio')
     }
   } catch (error) {
-    showError('Error al reactivar el folio')
+    console.error('Error al reactivar folio:', error)
+    showToast('error', 'Error al reactivar el folio')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -595,6 +798,16 @@ const limpiarDatos = () => {
   descuentoSeleccionado.value = null
   descuentosAplicados.value = []
   modoReactivar.value = false
+}
+
+// Calcular total de un adeudo
+const calcularTotalAdeudo = (adeudo) => {
+  const importe = parseFloat(adeudo.importe || 0)
+  const recargos = parseFloat(adeudo.importe_recargos || 0)
+  const descImporte = parseFloat(adeudo.descto_impote || 0)
+  const descRecargos = parseFloat(adeudo.descto_recargos || 0)
+
+  return importe + recargos - descImporte - descRecargos
 }
 
 // Formatear moneda
@@ -612,12 +825,18 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('es-MX')
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
 
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
 </script>

@@ -616,7 +616,9 @@ const loadConstancias = async () => {
         { nombre: 'p_feccap_ini', valor: filters.value.feccap_ini || null, tipo: 'string' },
         { nombre: 'p_feccap_fin', valor: filters.value.feccap_fin || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
@@ -714,7 +716,9 @@ const createConstancia = async () => {
         { nombre: 'p_id_licencia', valor: newConstancia.value.id_licencia || null, tipo: 'integer' },
         { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
@@ -826,7 +830,9 @@ const updateConstancia = async () => {
         { nombre: 'p_id_licencia', valor: editForm.value.id_licencia || null, tipo: 'integer' },
         { nombre: 'p_vigente', valor: editForm.value.vigente, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 
@@ -891,7 +897,9 @@ const cancelConstancia = async (constancia) => {
         { nombre: 'p_axo', valor: constancia.axo, tipo: 'integer' },
         { nombre: 'p_folio', valor: constancia.folio, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const duration = ((performance.now() - startTime) / 1000).toFixed(2)
 

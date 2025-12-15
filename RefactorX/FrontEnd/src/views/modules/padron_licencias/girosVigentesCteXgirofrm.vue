@@ -403,7 +403,9 @@ const loadCatalogoGiros = async () => {
       'girosVigentesCteXgirofrm_sp_get_catalogo_giros',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -432,7 +434,9 @@ const loadLicencias = async () => {
         { nombre: 'p_fecha_inicio', valor: filters.value.fechaInicio || null, tipo: 'date' },
         { nombre: 'p_fecha_fin', valor: filters.value.fechaFin || null, tipo: 'date' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -521,7 +525,9 @@ const generatePDF = async () => {
         { nombre: 'p_fecha_inicio', valor: filters.value.fechaInicio || null, tipo: 'date' },
         { nombre: 'p_fecha_fin', valor: filters.value.fechaFin || null, tipo: 'date' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

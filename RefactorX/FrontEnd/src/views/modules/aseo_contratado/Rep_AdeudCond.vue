@@ -243,12 +243,12 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 
 // Composables
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Configuración
 const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 // Estado del formulario
 const numContrato = ref(null)

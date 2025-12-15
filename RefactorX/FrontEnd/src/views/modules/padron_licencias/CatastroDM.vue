@@ -531,7 +531,9 @@ const autorizarDocumento = async () => {
         { nombre: 'p_fecha', valor: autorizacionForm.value.fecha },
         { nombre: 'p_observaciones', valor: autorizacionForm.value.observaciones }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -593,7 +595,9 @@ const calcularFecha = async () => {
         { nombre: 'p_fecha_inicial', valor: fechasForm.value.fechaInicial },
         { nombre: 'p_dias_habiles', valor: fechasForm.value.diasHabiles }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -629,7 +633,9 @@ const verificarInhabil = async () => {
       [
         { nombre: 'p_fecha', valor: fechasForm.value.fechaInicial }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -670,7 +676,9 @@ const generarDictamen = async () => {
         { nombre: 'p_capacidad', valor: dictamenForm.value.capacidad },
         { nombre: 'p_fecha_solicitud', valor: dictamenForm.value.fechaSolicitud }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -703,7 +711,9 @@ const imprimirDictamen = async () => {
       [
         { nombre: 'p_folio', valor: dictamenResult.value.folio }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -750,7 +760,9 @@ const consultarDerechos = async () => {
         { nombre: 'p_tipo_licencia', valor: derechosForm.value.tipoLicencia },
         { nombre: 'p_anio', valor: derechosForm.value.anioFiscal }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -778,7 +790,9 @@ const actualizarConsulta = async () => {
       'sp_refresh_query',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     showToast('success', 'Consulta actualizada')
     if (derechosForm.value.empresa) {

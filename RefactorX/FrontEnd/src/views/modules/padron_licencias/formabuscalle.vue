@@ -317,7 +317,9 @@ const loadCalles = async () => {
       'sp_listar_calles',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -366,7 +368,9 @@ const searchCalles = async () => {
       [
         { nombre: 'filtro', valor: filters.value.nombre, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

@@ -308,7 +308,9 @@ const loadGiros = async () => {
       'grs_dlg_sp_get_giros',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -362,7 +364,9 @@ const searchGiros = () => {
         [
           { nombre: 'p_search', valor: searchQuery.value, tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       if (response && response.result) {

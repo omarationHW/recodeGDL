@@ -330,7 +330,9 @@ const searchTramite = async () => {
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' },
         { nombre: 'p_anio', valor: filters.value.anio, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -362,7 +364,9 @@ const loadImpresiones = async () => {
       [
         { nombre: 'p_numerotramite', valor: filters.value.numeroTramite, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -484,7 +488,9 @@ const registerOficio = async () => {
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' },
         { nombre: 'p_observaciones', valor: 'Impresión generada', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {

@@ -802,7 +802,7 @@ const registrarSolicitud = async () => {
       ],
       '', // tenant
       null, // pagination
-      'comun' // esquema correcto
+      'publico' // esquema correcto
     )
 
     const endTime = performance.now()

@@ -138,6 +138,7 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_NEWSFRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -154,7 +155,7 @@ async function reload() {
       { nombre: 'p_offset', tipo: 'integer', valor: (page.value - 1) * pageSize.value },
       { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
     ]
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     const result = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
     rows.value = result
     // Extraer total_registros de la primera fila si existe

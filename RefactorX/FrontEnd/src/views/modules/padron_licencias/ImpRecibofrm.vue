@@ -313,7 +313,9 @@ const searchLicencia = async () => {
       [
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -349,7 +351,9 @@ const getReciboInfo = async () => {
         { nombre: 'p_numerolicencia', valor: filters.value.numeroLicencia, tipo: 'string' },
         { nombre: 'p_tiporecibo', valor: filters.value.tipoRecibo || 'NORMAL', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -371,7 +375,9 @@ const getParametrosRecibo = async () => {
       'sp_get_parametros_recibo',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -390,7 +396,9 @@ const convertirMontoALetras = async (monto) => {
       [
         { nombre: 'p_numero', valor: monto, tipo: 'decimal' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {

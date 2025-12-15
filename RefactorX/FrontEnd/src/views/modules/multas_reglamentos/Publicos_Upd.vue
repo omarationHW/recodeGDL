@@ -196,7 +196,7 @@ async function aplicar() {
       }
     ]
 
-    const data = await execute(OP_UPDATE, BASE_DB, params)
+    const data = await execute(OP_UPDATE, BASE_DB, params, '', null, 'publico')
 
     console.log('✅ Resultado:', data)
 

@@ -368,7 +368,9 @@ const searchLicencia = async () => {
       [
         { nombre: 'p_numero_licencia', valor: filters.value.numeroLicencia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -406,7 +408,9 @@ const loadPagos = async () => {
       [
         { nombre: 'p_numero_licencia', valor: filters.value.numeroLicencia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

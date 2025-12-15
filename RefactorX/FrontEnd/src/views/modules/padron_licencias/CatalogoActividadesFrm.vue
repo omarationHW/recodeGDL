@@ -560,7 +560,7 @@ const buscar = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -710,7 +710,7 @@ const crearActividad = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -764,7 +764,7 @@ const actualizarActividad = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -822,7 +822,7 @@ const eliminarActividad = async (actividad) => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

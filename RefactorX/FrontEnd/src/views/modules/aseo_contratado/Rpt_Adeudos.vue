@@ -293,6 +293,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const showDocumentation = ref(false)
 const reporteGenerado = ref(false)
@@ -334,8 +335,6 @@ const totales = computed(() => {
     recargos: datos.value.reduce((sum, d) => sum + parseFloat(d.importe_recargo || 0), 0),
     multas: datos.value.reduce((sum, d) => sum + parseFloat(d.importe_multa || 0), 0),
     gastos: datos.value.reduce((sum, d) => sum + parseFloat(d.importe_gastos || 0), 0)
-
-const { showLoading, hideLoading } = useGlobalLoading()
   }
 })
 

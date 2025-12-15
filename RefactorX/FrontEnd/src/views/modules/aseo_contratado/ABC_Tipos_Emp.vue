@@ -361,7 +361,7 @@ import Swal from 'sweetalert2'
 
 // Constantes
 const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 // Composables
 const showDocumentation = ref(false)

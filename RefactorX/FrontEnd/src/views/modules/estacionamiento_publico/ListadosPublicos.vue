@@ -157,7 +157,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()

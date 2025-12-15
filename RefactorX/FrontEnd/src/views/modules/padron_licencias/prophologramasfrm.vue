@@ -551,7 +551,9 @@ const loadPropietarios = async () => {
       'get_contribholog_list',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -586,7 +588,9 @@ const searchPropietarios = async () => {
         { nombre: 'p_rfc', valor: filters.value.rfc || null, tipo: 'string' },
         { nombre: 'p_curp', valor: filters.value.curp || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -679,7 +683,9 @@ const createPropietario = async () => {
         { nombre: 'p_email', valor: newPropietario.value.email?.trim() || '', tipo: 'string' },
         { nombre: 'p_capturista', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -766,7 +772,9 @@ const updatePropietario = async () => {
         { nombre: 'p_email', valor: editForm.value.email?.trim() || '', tipo: 'string' },
         { nombre: 'p_capturista', valor: 'sistema', tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -820,7 +828,9 @@ const deletePropietario = async (propietario) => {
       [
         { nombre: 'p_idcontrib', valor: propietario.idcontrib, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

@@ -476,7 +476,7 @@ const cargarConfiguracion = async () => {
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (responseEtiq && responseEtiq.result && responseEtiq.result.length > 0) {
@@ -490,7 +490,7 @@ const cargarConfiguracion = async () => {
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false
@@ -556,7 +556,7 @@ const buscarRegistro = async () => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (!responseDatos || !responseDatos.result || responseDatos.result[0]?.status === -1) {
@@ -619,7 +619,7 @@ const cargarAdeudos = async (idDatos, ano, mes) => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (responseAdeudos && responseAdeudos.result) {
@@ -642,7 +642,7 @@ const verificarPagos = async (idDatos) => {
       [{ nombre: 'p_id_datos', valor: idDatos, tipo: 'integer' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (responsePagos && responsePagos.result && responsePagos.result.length > 0) {
@@ -700,7 +700,7 @@ const verPagados = async () => {
       [{ nombre: 'p_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false
@@ -791,7 +791,7 @@ const verHistorico = async () => {
       [{ nombre: 'p_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false

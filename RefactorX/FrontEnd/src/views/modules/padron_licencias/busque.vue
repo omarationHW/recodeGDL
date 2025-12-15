@@ -604,7 +604,9 @@ const searchByOwner = async () => {
         { nombre: 'p_apellido_paterno', valor: filters.value.owner.apellido_paterno || null, tipo: 'string' },
         { nombre: 'p_apellido_materno', valor: filters.value.owner.apellido_materno || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -669,7 +671,9 @@ const searchByLocation = async () => {
         { nombre: 'p_numero', valor: filters.value.location.numero || null, tipo: 'string' },
         { nombre: 'p_colonia', valor: filters.value.location.colonia || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -732,7 +736,9 @@ const searchByAccount = async () => {
       [
         { nombre: 'p_cuenta', valor: filters.value.account.cuenta, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -793,7 +799,9 @@ const searchByRfc = async () => {
       [
         { nombre: 'p_rfc', valor: filters.value.rfc.rfc.toUpperCase(), tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -854,7 +862,9 @@ const searchByCadastral = async () => {
       [
         { nombre: 'p_clave_catastral', valor: filters.value.cadastral.clave, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -908,7 +918,9 @@ const viewDetalle = async (resultado) => {
       [
         { nombre: 'p_id', valor: resultado.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

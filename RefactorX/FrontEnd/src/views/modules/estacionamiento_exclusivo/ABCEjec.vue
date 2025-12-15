@@ -356,7 +356,7 @@ import Swal from 'sweetalert2'
 // ========== CONSTANTES ==========
 // La tabla ta_15_ejecutores está en padron_licencias.comun
 const BASE_DB = 'padron_licencias'
-const SCHEMA = 'comun'
+const SCHEMA = 'publico'
 
 // SPs para ABCEjec (en esquema comun)
 const OP_LIST = 'sp_ejecutores_list'

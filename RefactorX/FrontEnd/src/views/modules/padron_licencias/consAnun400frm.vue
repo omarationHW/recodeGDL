@@ -389,7 +389,9 @@ const searchAnuncio = async () => {
       [
         { nombre: 'p_numero_anuncio', valor: filters.value.numeroAnuncio, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -427,7 +429,9 @@ const loadPagos = async () => {
       [
         { nombre: 'p_numero_anuncio', valor: filters.value.numeroAnuncio, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

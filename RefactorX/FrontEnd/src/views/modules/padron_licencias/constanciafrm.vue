@@ -886,7 +886,7 @@ const cargarConstancias = async () => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -919,7 +919,7 @@ const cargarEstadisticas = async () => {
       [],
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result) {
@@ -940,7 +940,7 @@ const abrirModalNuevo = async () => {
       [{ nombre: 'p_axo', valor: formNuevo.value.axo, tipo: 'integer' }],
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1028,7 +1028,7 @@ const crearConstancia = async () => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -1171,7 +1171,7 @@ const actualizarConstancia = async () => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -1257,7 +1257,7 @@ const eliminarConstancia = async (constancia) => {
       params,
       'padron_licencias',
       null,
-      'public'
+      'publico'
     )
 
     hideLoading()
@@ -1345,7 +1345,7 @@ watch(() => formNuevo.value.axo, async (newAxo) => {
         [{ nombre: 'p_axo', valor: newAxo, tipo: 'integer' }],
         'padron_licencias',
         null,
-        'public'
+        'publico'
       )
 
       if (response && response.result && response.result.length > 0) {

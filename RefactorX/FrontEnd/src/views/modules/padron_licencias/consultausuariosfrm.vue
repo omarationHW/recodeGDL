@@ -855,7 +855,7 @@ const cargarTodos = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -899,7 +899,7 @@ const buscarPorUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -943,7 +943,7 @@ const buscarPorNombre = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -988,7 +988,7 @@ const buscarPorDepartamento = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1139,7 +1139,7 @@ const crearUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1245,7 +1245,7 @@ const actualizarUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1349,7 +1349,7 @@ const darBajaUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1407,7 +1407,7 @@ const cargarDependencias = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1432,7 +1432,7 @@ const onDependenciaChange = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1457,7 +1457,7 @@ const cargarDeptosModal = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1481,7 +1481,7 @@ const cargarDeptosModalEditar = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {

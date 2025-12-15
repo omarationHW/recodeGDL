@@ -397,7 +397,9 @@ const changePassword = async () => {
         { nombre: 'p_usuario', valor: formData.value.usuario.trim(), tipo: 'string' },
         { nombre: 'p_password_actual', valor: formData.value.passwordActual, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (!validateResponse || !validateResponse.result || !validateResponse.result[0]?.valid) {
@@ -451,7 +453,9 @@ const changePassword = async () => {
         { nombre: 'p_usuario', valor: formData.value.usuario.trim(), tipo: 'string' },
         { nombre: 'p_password_nueva', valor: formData.value.nuevaPassword, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -467,7 +471,9 @@ const changePassword = async () => {
           { nombre: 'p_usuario', valor: formData.value.usuario.trim(), tipo: 'string' },
           { nombre: 'p_accion', valor: 'CAMBIO_CONTRASEÑA', tipo: 'string' }
         ],
-        'guadalajara'
+        'guadalajara',
+      null,
+      'publico'
       )
 
       resetForm()

@@ -833,7 +833,7 @@ const cargarEstadisticas = async () => {
       'sp_dictamenes_estadisticas',
       'padron_licencias',
       [],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     const endTime = performance.now()
@@ -882,7 +882,7 @@ const loadDictamenes = async () => {
         { nombre: 'p_domicilio', valor: searchForm.value.domicilio || null, tipo: 'string' },
         { nombre: 'p_actividad', valor: searchForm.value.actividad || null, tipo: 'string' }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     const endTime = performance.now()
@@ -1017,7 +1017,7 @@ const createDictamen = async () => {
         { nombre: 'p_subzona', valor: formData.value.subzona || null, tipo: 'integer' },
         { nombre: 'p_dictamen', valor: formData.value.dictamen, tipo: 'string' }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1086,7 +1086,7 @@ const updateDictamen = async () => {
         { nombre: 'p_subzona', valor: formData.value.subzona || null, tipo: 'string' },
         { nombre: 'p_dictamen', valor: formData.value.dictamen, tipo: 'string' }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {

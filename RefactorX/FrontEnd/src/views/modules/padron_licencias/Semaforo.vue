@@ -319,7 +319,9 @@ const generarColor = async () => {
       'sp_semaforo_get_random_color',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -351,7 +353,9 @@ const registrarColor = async () => {
         { nombre: 'p_color', valor: colorActual.value },
         { nombre: 'p_usuario', valor: 'sistema' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
   } catch (error) {
   }
@@ -388,7 +392,9 @@ const guardarResultado = async () => {
         { nombre: 'p_observaciones', valor: observaciones || null },
         { nombre: 'p_usuario', valor: 'sistema' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -418,7 +424,9 @@ const cargarEstadisticas = async () => {
       'sp_semaforo_get_stats',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -441,7 +449,9 @@ const cargarHistorial = async () => {
       [
         { nombre: 'p_limit', valor: 50 }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

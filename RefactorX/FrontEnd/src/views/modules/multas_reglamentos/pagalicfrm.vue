@@ -45,6 +45,52 @@
           </div>
         </div>
       </div>
+
+      <!-- Resultado del Pago -->
+      <div class="municipal-card" v-if="paymentResult && successMessage">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="check-circle" class="text-success" />
+            Detalles del Pago
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="result-grid">
+            <div class="result-item">
+              <label class="result-label">Número de Licencia:</label>
+              <div class="result-value"><strong>{{ paymentResult.licencia }}</strong></div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Contribuyente:</label>
+              <div class="result-value">{{ paymentResult.contribuyente }}</div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Monto Pagado:</label>
+              <div class="result-value monto-pagado">{{ formatCurrency(paymentResult.monto) }}</div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Folio/Referencia:</label>
+              <div class="result-value"><code>{{ paymentResult.folio }}</code></div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Fecha de Pago:</label>
+              <div class="result-value">{{ paymentResult.fecha }}</div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Estado:</label>
+              <div class="result-value">
+                <span class="status-badge status-success">{{ paymentResult.estado }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información adicional si existe -->
+          <div v-if="paymentResult.observaciones || paymentResult.nota" class="additional-info">
+            <label class="result-label">Observaciones:</label>
+            <div class="result-value">{{ paymentResult.observaciones || paymentResult.nota }}</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-if="loading" class="loading-overlay">
@@ -70,6 +116,7 @@ const filters = ref({
 
 const errorMessage = ref('');
 const successMessage = ref('');
+const paymentResult = ref(null);
 
 async function pagar() {
   // Validar que el campo no esté vacío
@@ -86,6 +133,7 @@ async function pagar() {
   // Limpiar mensajes previos
   errorMessage.value = '';
   successMessage.value = '';
+  paymentResult.value = null;
 
   try {
     // Crear una promesa con timeout de 10 segundos
@@ -101,13 +149,26 @@ async function pagar() {
     // Race entre la petición y el timeout
     const response = await Promise.race([executePromise, timeoutPromise]);
 
+    console.log('Respuesta del pago:', response);
+
+    // Extraer datos de la respuesta
+    const result = Array.isArray(response?.result) ? response.result[0] :
+                   Array.isArray(response) ? response[0] :
+                   response?.result || response || {};
+
+    // Guardar el resultado para mostrarlo
+    paymentResult.value = {
+      licencia: result.licencia || result.numero_licencia || licencia,
+      contribuyente: result.contribuyente || result.nombre || 'N/A',
+      monto: result.monto || result.total || result.importe || 0,
+      folio: result.folio || result.folio_pago || result.referencia || 'N/A',
+      fecha: result.fecha || result.fecha_pago || new Date().toLocaleDateString('es-MX'),
+      estado: result.estado || result.estatus || 'PAGADO',
+      ...result
+    };
+
     // Si la operación fue exitosa
     successMessage.value = 'Pago procesado exitosamente';
-    setTimeout(() => {
-      successMessage.value = '';
-    }, 3000);
-
-    console.log('Respuesta del pago:', response);
   } catch (e) {
     console.error('Error al procesar el pago:', e);
 
@@ -127,6 +188,11 @@ function limpiar() {
   filters.value = { licencia: '' };
   errorMessage.value = '';
   successMessage.value = '';
+  paymentResult.value = null;
+}
+
+function formatCurrency(v) {
+  return Number(v || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 </script>
 
@@ -251,6 +317,94 @@ function limpiar() {
 @media (max-width: 768px) {
   .button-group {
     flex-direction: column;
+  }
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.result-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.result-value {
+  font-size: 1rem;
+  color: #212529;
+}
+
+.result-value code {
+  background-color: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  color: #d63384;
+  font-size: 0.9rem;
+}
+
+.monto-pagado {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #28a745;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.text-success {
+  color: #28a745;
+}
+
+.additional-info {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.municipal-card-header {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.municipal-card-header h5 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  color: #212529;
+}
+
+@media (max-width: 768px) {
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .monto-pagado {
+    font-size: 1.25rem;
   }
 }
 </style>

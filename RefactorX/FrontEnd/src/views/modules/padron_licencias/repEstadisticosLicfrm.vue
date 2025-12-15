@@ -352,7 +352,9 @@ const generarReporte = async () => {
       spName,
       'padron_licencias',
       params,
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {

@@ -6,7 +6,7 @@
       </div>
       <div class="module-view-info">
         <h1>Derechos Licencias</h1>
-        <p>dderechosLic.vue</p>
+        <p>Consulta de derechos y conceptos asociados a una licencia específica</p>
       </div>
     </div>
     <div class="module-view-content">
@@ -15,12 +15,31 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Licencia</label>
-              <input class="municipal-form-control" v-model="filters.licencia" @keyup.enter="reload"/>
+              <input
+                class="municipal-form-control"
+                v-model="filters.licencia"
+                placeholder="Ej: 14862"
+                @keyup.enter="filters.licencia && reload()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload">
-              <font-awesome-icon icon="search"/> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.licencia"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -90,7 +109,6 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_DDERECHOSLIC'
-const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
 
@@ -108,7 +126,7 @@ const paginatedRows = computed(() => rows.value.slice(startIndex.value, endIndex
 
 async function reload() {
   try {
-    const data = await execute(
+    const response = await execute(
       OP,
       BASE_DB,
       [
@@ -116,24 +134,32 @@ async function reload() {
       ],
       '',
       null,
-      SCHEMA
+      'publico'
     )
+    console.log('Respuesta completa:', response)
 
-    const arr = Array.isArray(data?.result)
-      ? data.result
-      : Array.isArray(data?.rows)
-      ? data.rows
-      : Array.isArray(data)
-      ? data
-      : []
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
 
+    console.log('Registros extraídos:', arr.length, arr)
     rows.value = arr
     cols.value = arr.length ? Object.keys(arr[0]) : []
     currentPage.value = 1 // Reset a la primera página
   } catch (e) {
+    console.error('Error al consultar derechos:', e)
     rows.value = []
     cols.value = []
   }
+}
+
+function limpiar() {
+  filters.value = { licencia: '' }
+  rows.value = []
+  cols.value = []
+  currentPage.value = 1
 }
 </script>
 
@@ -179,6 +205,58 @@ async function reload() {
 }
 
 .btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-municipal-primary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #007bff;
+  border-radius: 0.25rem;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-municipal-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-municipal-secondary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  background-color: #6c757d;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-municipal-secondary:hover:not(:disabled) {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.btn-municipal-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

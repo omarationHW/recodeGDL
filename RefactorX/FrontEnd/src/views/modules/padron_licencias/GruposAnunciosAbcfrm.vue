@@ -334,7 +334,9 @@ const loadGrupos = async () => {
       [
         { nombre: 'p_search', valor: filters.value.descripcion || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -420,7 +422,9 @@ const createGrupo = async () => {
         { nombre: 'p_descripcion', valor: newGrupo.value.descripcion.trim(), tipo: 'string' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -518,7 +522,9 @@ const updateGrupo = async () => {
         { nombre: 'p_descripcion', valor: editForm.value.descripcion.trim(), tipo: 'string' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)
@@ -585,7 +591,9 @@ const deleteGrupo = async (grupo) => {
       [
         { nombre: 'p_id', valor: grupo.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
     const endTime = performance.now()
     const duration = ((endTime - startTime) / 1000).toFixed(2)

@@ -313,7 +313,9 @@ const cargarConfiguracion = async () => {
       'unidadimg_get_unidad_img',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -395,7 +397,9 @@ const guardarConfiguracion = async () => {
         { nombre: 'p_directorio_tramites', valor: configuracion.value.directorioTramites, tipo: 'string' },
         { nombre: 'p_directorio_anuncios', valor: configuracion.value.directorioAnuncios, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -451,7 +455,9 @@ const probarRutas = async () => {
       [
         { nombre: 'p_ruta', valor: rutaBase.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     validacionRutas.value.push({
@@ -467,7 +473,9 @@ const probarRutas = async () => {
       [
         { nombre: 'p_ruta', valor: rutaLicencias.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     validacionRutas.value.push({
@@ -483,7 +491,9 @@ const probarRutas = async () => {
       [
         { nombre: 'p_ruta', valor: rutaTramites.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     validacionRutas.value.push({
@@ -499,7 +509,9 @@ const probarRutas = async () => {
       [
         { nombre: 'p_ruta', valor: rutaAnuncios.value, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     validacionRutas.value.push({

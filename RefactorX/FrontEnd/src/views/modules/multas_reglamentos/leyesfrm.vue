@@ -146,6 +146,7 @@ import { useApi } from '@/composables/useApi'
 const { loading, execute } = useApi()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LEYESFRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -194,11 +195,17 @@ async function reload() {
   searched.value = false
 
   const params = [
-    { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
+    {
+      nombre: 'p_datos',
+      tipo: 'string',
+      valor: JSON.stringify({
+        filtro: filters.value.q || ''
+      })
+    }
   ]
 
   try {
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     searched.value = true
 
     // Manejar diferentes formatos de respuesta

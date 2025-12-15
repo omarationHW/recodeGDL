@@ -98,7 +98,7 @@ async function reload() {
   ]
 
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, 'publico')
     const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
     rows.value = arr
     columns.value = arr.length ? Object.keys(arr[0]) : []

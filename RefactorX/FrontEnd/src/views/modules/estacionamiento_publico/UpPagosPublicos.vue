@@ -157,7 +157,7 @@ async function actualizar() {
       { nombre: 'p_fecbaj', valor: form.fecbaj, tipo: 'date' }
     ]
 
-    const resp = await execute('sp_up_pagos_update', BASE_DB, params, '', null, 'public')
+    const resp = await execute('sp_up_pagos_update', BASE_DB, params, '', null, 'publico')
     const data = resp?.result?.[0] || resp?.data?.result?.[0] || resp?.data?.[0] || {}
 
     hideLoading()

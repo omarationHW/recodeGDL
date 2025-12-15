@@ -734,7 +734,7 @@ const buscar = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -828,7 +828,7 @@ const guardarEdicion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -913,7 +913,7 @@ const guardarNuevo = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -968,7 +968,7 @@ const eliminarFecha = async (id) => {
       [{ nombre: 'p_id', valor: id, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {

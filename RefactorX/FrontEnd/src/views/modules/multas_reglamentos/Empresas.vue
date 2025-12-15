@@ -132,7 +132,7 @@ import { useApi } from '@/composables/useApi'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_EMPRESAS'
-const SCHEMA = 'multas_reglamentos'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 

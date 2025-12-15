@@ -333,7 +333,7 @@ const buscarAnuncio = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -372,7 +372,9 @@ const cargarAdeudos = async () => {
       [
         { nombre: 'p_anuncio', valor: searchForm.value.numAnuncio, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+    null,
+    'publico'
     )
 
     if (adeudosResponse && adeudosResponse.result && adeudosResponse.result.length > 0) {
@@ -487,7 +489,7 @@ const tramitarBaja = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

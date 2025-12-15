@@ -477,7 +477,7 @@ const cargarConfiguracion = async () => {
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (responseEtiq && responseEtiq.result && responseEtiq.result.length > 0) {
@@ -491,7 +491,7 @@ const cargarConfiguracion = async () => {
       [{ nombre: 'par_tab', valor: tipoTabla.value, tipo: 'varchar' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false
@@ -535,7 +535,7 @@ const buscarCoincidencias = async () => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false
@@ -595,7 +595,7 @@ const seleccionarControl = async (control) => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (!responseDatos || !responseDatos.result || responseDatos.result[0]?.status === 1) {
@@ -667,7 +667,7 @@ const cargarAdeudos = async () => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (responseTotales && responseTotales.result) {
@@ -688,7 +688,7 @@ const cargarAdeudos = async () => {
       ],
       '',
       null,
-      'public'
+      'publico'
     )
 
     if (responseDetalle && responseDetalle.result) {
@@ -704,7 +704,7 @@ const cargarAdeudos = async () => {
       [{ nombre: 'p_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     tienePagados.value = responsePagados && responsePagados.result && responsePagados.result.length > 0
@@ -729,7 +729,7 @@ const verPagados = async () => {
       [{ nombre: 'p_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false
@@ -820,7 +820,7 @@ const verHistorico = async () => {
       [{ nombre: 'p_id_datos', valor: datosContrato.value.id_datos, tipo: 'integer' }],
       '',
       null,
-      'public'
+      'publico'
     )
 
     loading.value = false

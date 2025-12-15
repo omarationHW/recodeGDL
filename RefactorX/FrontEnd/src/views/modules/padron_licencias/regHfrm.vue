@@ -488,7 +488,9 @@ const loadRecords = async () => {
         { nombre: 'p_tipo', valor: filters.value.tipo || null, tipo: 'string' },
         { nombre: 'p_search', valor: filters.value.search || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -608,7 +610,9 @@ const createRecord = async () => {
         { nombre: 'p_estado', valor: newRecord.value.estado, tipo: 'string' },
         { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -661,7 +665,9 @@ const viewRecord = async (record) => {
       [
         { nombre: 'p_id', valor: record.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -708,7 +714,9 @@ const deleteRecord = async (record) => {
       [
         { nombre: 'p_id', valor: record.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

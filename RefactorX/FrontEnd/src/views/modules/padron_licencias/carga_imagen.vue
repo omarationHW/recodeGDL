@@ -382,7 +382,9 @@ const loadTramiteInfo = async () => {
       [
         { nombre: 'p_numero', valor: searchTramite.value.trim(), tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -414,7 +416,9 @@ const loadDocumentos = async () => {
       [
         { nombre: 'p_tramite_id', valor: tramiteInfo.value.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -434,7 +438,9 @@ const loadDocumentTypes = async () => {
       'carga_imagen_sp_get_document_types',
       'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result) {
@@ -546,7 +552,9 @@ const uploadImage = async () => {
         { nombre: 'p_tamano', valor: uploadForm.value.file.size, tipo: 'integer' },
         { nombre: 'p_contenido_base64', valor: base64, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     clearInterval(progressInterval)
@@ -603,7 +611,9 @@ const viewImage = async (doc) => {
       [
         { nombre: 'p_document_id', valor: doc.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -630,7 +640,9 @@ const downloadImage = async (doc) => {
       [
         { nombre: 'p_document_id', valor: doc.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -669,7 +681,9 @@ const deleteImage = async (doc) => {
       [
         { nombre: 'p_document_id', valor: doc.id, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {

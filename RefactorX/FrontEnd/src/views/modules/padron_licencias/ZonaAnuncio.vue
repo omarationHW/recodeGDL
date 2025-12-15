@@ -413,7 +413,9 @@ const loadZonas = async () => {
         { nombre: 'p_search', valor: filters.value.descripcion || null, tipo: 'string' },
         { nombre: 'p_vigente', valor: filters.value.vigente || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -505,7 +507,9 @@ const createZona = async () => {
         { nombre: 'p_descripcion', valor: newZona.value.descripcion.trim(), tipo: 'string' },
         { nombre: 'p_vigente', valor: newZona.value.vigente, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -601,7 +605,9 @@ const updateZona = async () => {
         { nombre: 'p_descripcion', valor: editForm.value.descripcion.trim(), tipo: 'string' },
         { nombre: 'p_vigente', valor: editForm.value.vigente, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -664,7 +670,9 @@ const deleteZona = async (zona) => {
       [
         { nombre: 'p_anuncio', valor: zona.anuncio, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()

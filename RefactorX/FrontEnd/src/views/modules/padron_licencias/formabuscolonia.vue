@@ -308,7 +308,9 @@ const loadColonias = async () => {
       [
         { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -360,7 +362,9 @@ const searchColonias = async () => {
         { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' },
         { nombre: 'p_filtro', valor: searchTerm || null, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     const endTime = performance.now()
@@ -411,7 +415,9 @@ const selectColonia = async (colonia) => {
         { nombre: 'p_c_mnpio', valor: appConfig.municipioId, tipo: 'integer' },
         { nombre: 'p_colonia', valor: colonia.colonia, tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {

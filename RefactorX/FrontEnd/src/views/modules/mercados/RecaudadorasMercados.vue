@@ -336,7 +336,6 @@ export default {
     // Paginación
     const currentPage = ref(1);
     const itemsPerPage = ref(10);
-    const itemsPerPage = ref(10);
 
     // Modal
     const showModal = ref(false);

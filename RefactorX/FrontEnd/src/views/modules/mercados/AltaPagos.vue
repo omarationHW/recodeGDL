@@ -399,7 +399,6 @@ async function fetchRecaudadoras() {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
         Base: 'padron_licencias',
-        Esquema: 'publico',
         Parametros: []
       }
     });

@@ -144,7 +144,8 @@
 
     <!-- Modal de Edición -->
     <div v-if="showModal" class="modal-backdrop" @click.self="cerrarModal">
-      <div class="modal-content modal-municipal">
+      <div class="modal-dialog-centered">
+        <div class="modal-content modal-municipal">
         <div class="modal-header municipal-modal-header">
           <h5 class="modal-title">
             <font-awesome-icon icon="calendar-edit" />
@@ -206,6 +207,7 @@
             Guardar
           </button>
         </div>
+      </div>
       </div>
     </div>
 
@@ -388,3 +390,33 @@ onMounted(() => {
   cargarFechas()
 })
 </script>
+
+<style scoped>
+/* Centrar y limitar el ancho del modal */
+.modal-backdrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-dialog-centered {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+
+.icon-small {
+  margin-right: 0.25rem;
+}
+</style>

@@ -71,6 +71,13 @@
           </p>
         </div>
       </form>
+
+      <div class="back-to-dashboard">
+        <router-link to="/" class="back-link">
+          <font-awesome-icon icon="arrow-left" />
+          Volver al Dashboard
+        </router-link>
+      </div>
     </div>
   </div>
 
@@ -236,135 +243,236 @@ const handleCancel = () => {
 </script>
 
 <style scoped>
+/* =================================================================================
+   LOGIN CEMENTERIOS - TEMA MUNICIPAL GUADALAJARA
+   Usando variables CSS del municipal-theme.css
+   ================================================================================= */
+
 .acceso-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #1e3a5f 100%);
-  padding: 2rem;
+  background: var(--gradient-guadalajara);
+  padding: var(--space-lg);
 }
 
 .acceso-card {
-  width: 100%;
-  max-width: 450px;
   background: white;
-  border-radius: 1rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-3xl);
+  max-width: 450px;
+  width: 100%;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .acceso-header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #2c5aa0 100%);
-  color: white;
-  padding: 2.5rem 2rem;
   text-align: center;
+  margin-bottom: var(--space-2xl);
 }
 
 .acceso-logo {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: 3rem;
+  color: var(--municipal-primary);
+  margin-bottom: var(--space-md);
   opacity: 0.9;
 }
 
 .acceso-title {
+  color: var(--municipal-primary);
   font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-heading);
+  margin: 0 0 var(--space-sm) 0;
 }
 
 .acceso-subtitle {
+  color: var(--slate-600);
   font-size: 0.95rem;
-  opacity: 0.9;
+  font-family: var(--font-municipal);
   margin: 0;
 }
 
 .acceso-form {
-  padding: 2rem;
+  padding: 0;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-lg);
 }
 
-.form-label {
+.form-label,
+.municipal-form-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
+  gap: var(--space-xs);
+  color: var(--slate-700);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-sm);
+  font-family: var(--font-municipal);
 }
 
-.form-label i {
-  color: var(--color-primary);
+.form-label i,
+.municipal-form-label i {
+  color: var(--municipal-primary);
 }
 
-.form-control {
+.form-control,
+.municipal-form-control {
   width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid var(--color-border);
-  border-radius: 0.5rem;
+  padding: 12px 16px;
+  border: 2px solid var(--slate-300);
+  border-radius: var(--radius-md);
   font-size: 1rem;
-  transition: all 0.3s ease;
+  font-family: var(--font-municipal);
+  transition: var(--transition-normal);
+  color: var(--slate-700);
 }
 
-.form-control:focus {
+.form-control:focus,
+.municipal-form-control:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(33, 87, 155, 0.1);
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
 }
 
-.form-control:disabled {
-  background-color: var(--color-bg-secondary);
+.form-control:disabled,
+.municipal-form-control:disabled {
+  background-color: var(--slate-100);
   cursor: not-allowed;
+  color: var(--slate-500);
 }
 
 .form-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+.btn-municipal-primary {
+  flex: 1;
+  background: var(--gradient-municipal) !important;
+  border: 2px solid var(--municipal-primary);
+  color: white;
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.btn-municipal-primary:hover:not(:disabled) {
+  background: var(--municipal-secondary) !important;
+  border-color: var(--municipal-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-municipal-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-municipal-secondary {
+  flex: 1;
+  background: white;
+  border: 2px solid var(--slate-300);
+  color: var(--slate-700);
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-municipal);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.btn-municipal-secondary:hover:not(:disabled) {
+  background: var(--slate-50);
+  border-color: var(--slate-400);
+}
+
+.btn-municipal-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .acceso-info {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--slate-200);
   text-align: center;
 }
 
 .acceso-info p {
   margin: 0;
   font-size: 0.875rem;
+  color: var(--slate-600);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
-.alert-danger,
-.alert-info {
-  padding: 0.875rem 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
+.text-muted {
+  color: var(--slate-600);
 }
 
 .alert-danger {
-  background-color: #fee;
-  color: var(--color-danger);
-  border: 1px solid var(--color-danger);
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--municipal-danger);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--municipal-danger);
+  margin-bottom: var(--space-md);
+  text-align: center;
+  font-weight: var(--font-weight-regular);
+  animation: shake 0.5s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
 }
 
 .alert-info {
-  background-color: #e7f3ff;
-  color: #0066cc;
-  border: 1px solid #0066cc;
+  color: var(--municipal-primary);
+  padding: 12px 16px;
+  margin-bottom: var(--space-md);
+  text-align: center;
+  font-weight: var(--font-weight-regular);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
 }
 
 .fa-spin {
@@ -377,6 +485,41 @@ const handleCancel = () => {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+.back-to-dashboard {
+  margin-top: var(--space-lg);
+  text-align: center;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--slate-200);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--municipal-primary);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-regular);
+  text-decoration: none;
+  transition: var(--transition-normal);
+}
+
+.back-link:hover {
+  color: var(--municipal-secondary);
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .acceso-card {
+    padding: var(--space-2xl) var(--space-lg);
+    max-width: 100%;
+  }
+
+  .acceso-title {
+    font-size: 1.3rem;
   }
 }
 </style>

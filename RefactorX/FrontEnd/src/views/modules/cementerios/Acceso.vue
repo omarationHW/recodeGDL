@@ -86,19 +86,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
+import axios from 'axios'
+import sessionService from '@/services/sessionService'
 
-const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
+const router = useRouter()
 
 // Modal de documentación
 const showDocumentation = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
-const router = useRouter()
 
 const credentials = ref({
   usuario: '',
@@ -128,63 +124,89 @@ const handleLogin = async () => {
 
   try {
     // Validar credenciales con el servidor
-    const params = [
-      {
-        nombre: 'p_usuario',
-        valor: credentials.value.usuario.trim(),
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_password',
-        valor: credentials.value.password.trim(),
-        tipo: 'string'
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_validar_usuario',
+        Base: 'cementerio',
+        Esquema: 'publico',
+        Parametros: [
+          { nombre: 'p_usuario', valor: credentials.value.usuario.trim(), tipo: 'string' },
+          { nombre: 'p_password', valor: credentials.value.password.trim(), tipo: 'string' }
+        ]
       }
-    ]
+    })
 
-    const response = await execute('sp_validar_usuario', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
+    // Verificar respuesta del SP
+    console.log('📦 Respuesta completa del servidor:', response.data)
 
-    if (response.result && response.result.length > 0) {
-      const result = response.result[0]
+    if (response.data.eResponse && response.data.eResponse.success) {
+      const result = response.data.eResponse.data.result
+      console.log('📦 Result del SP:', result)
 
-      if (result.resultado === 'S') {
-        // Login exitoso
-        toast.success(`Bienvenido, ${result.nombre_usuario || credentials.value.usuario}`)
+      if (result && result.length > 0) {
+        const userData = result[0]
+        console.log('📦 userData:', userData)
 
-        // Registrar el acceso
-        await registrarAcceso(result.id_usuario)
+        // Verificar si el login fue exitoso
+        // El SP retorna: {success: true, message: 'Usuario válido'}
+        const loginExitoso = userData.success === true ||
+                            userData.resultado === 'S' ||
+                            (userData.message && userData.message.includes('válido'))
 
-        // Guardar sesión (simplificado, en producción usar store/pinia)
-        sessionStorage.setItem('usuario', JSON.stringify({
-          id: result.id_usuario,
-          nombre: result.nombre_usuario,
-          usuario: credentials.value.usuario
-        }))
+        if (loginExitoso) {
+          // Guardar sesión usando sessionService
+          // Si el SP no retorna id_usuario, usamos el nombre de usuario como identificador
+          sessionService.setSession(
+            {
+              usuario: credentials.value.usuario,
+              id_usuario: userData.id_usuario || credentials.value.usuario,
+              nombre: userData.nombre_usuario || userData.nombre || credentials.value.usuario,
+              sistema: 'cementerios'
+            },
+            null // Cementerios no usa ejercicio
+          )
 
-        // Redirigir al módulo de cementerios
-        router.push({ name: 'cementerios' })
-      } else {
-        // Login fallido
-        intentos.value++
-        error.value = result.mensaje || 'Usuario o contraseña incorrectos'
+          // Registrar el acceso (si existe id_usuario)
+          if (userData.id_usuario) {
+            await registrarAcceso(userData.id_usuario)
+          }
 
-        if (intentosRestantes.value === 0) {
-          error.value = 'Máximo de intentos alcanzado. Contacte al administrador.'
-          setTimeout(() => {
-            handleCancel()
-          }, 3000)
+          console.log('✅ Login exitoso (Cementerios):', sessionService.getSessionInfo())
+
+          // Redirigir al módulo de cementerios
+          router.push({ name: 'cementerios' })
+        } else {
+          // Login fallido
+          intentos.value++
+          const mensaje = userData.mensaje || userData.message || 'Usuario o contraseña incorrectos'
+          error.value = `${mensaje} (Intento ${intentos.value} de ${maxIntentos})`
+
+          if (intentosRestantes.value === 0) {
+            error.value = 'Máximo de intentos alcanzado. Contacte al administrador.'
+            setTimeout(() => {
+              handleCancel()
+            }, 3000)
+          }
         }
+      } else {
+        intentos.value++
+        error.value = 'Usuario o contraseña incorrectos'
       }
     } else {
       intentos.value++
-      error.value = 'Usuario o contraseña incorrectos'
+      error.value = response.data.eResponse?.message || 'Error al validar credenciales'
     }
   } catch (err) {
     console.error('Error al validar usuario:', err)
-    error.value = 'Error de conexión con el servidor'
+
+    if (err.response) {
+      error.value = err.response.data?.message || 'Error al conectar con el servidor'
+    } else if (err.request) {
+      error.value = 'No se pudo conectar con el servidor. Verifique su conexión.'
+    } else {
+      error.value = 'Error al procesar la solicitud'
+    }
+
     intentos.value++
   } finally {
     loading.value = false
@@ -193,31 +215,22 @@ const handleLogin = async () => {
 
 const registrarAcceso = async (idUsuario) => {
   try {
-    const params = [
-      {
-        nombre: 'p_id_usuario',
-        valor: idUsuario,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_modulo',
-        valor: 'CEMENTERIOS',
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_accion',
-        valor: 'LOGIN',
-        tipo: 'string'
+    await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_registrar_acceso',
+        Base: 'cementerios',
+        Esquema: 'publico',
+        Parametros: [
+          { nombre: 'p_id_usuario', valor: idUsuario, tipo: 'string' },
+          { nombre: 'p_modulo', valor: 'CEMENTERIOS', tipo: 'string' },
+          { nombre: 'p_accion', valor: 'LOGIN', tipo: 'string' }
+        ]
       }
-    ]
-
-    const response = await execute('sp_registrar_acceso', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
+    })
+    console.log('✅ Acceso registrado correctamente')
   } catch (err) {
     console.error('Error al registrar acceso:', err)
+    // No es crítico, continuar con el login
   }
 }
 

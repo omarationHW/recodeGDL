@@ -1,161 +1,178 @@
 <template>
-  <div class="module-dashboard">
-        <!-- Header -->
-        <div class="dashboard-header">
-          <h1>
-            <font-awesome-icon icon="id-card" />
-            Padrón de Licencias
-          </h1>
-          <p>Sistema integral de gestión de licencias comerciales y anuncios publicitarios</p>
-        </div>
+  <div class="main-layout">
+    <AppHeader />
+    <AppSidebar />
 
-        <!-- Accesos Rápidos -->
-        <div class="quick-access-grid">
-          <!-- Consultas -->
-          <div class="quick-access-card">
-            <div class="card-icon consultas">
-              <font-awesome-icon icon="search" />
-            </div>
-            <h3>Consultas</h3>
-            <p>Búsqueda de usuarios, trámites y licencias</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/consulta-usuarios">Usuarios</router-link>
-              <router-link to="/padron-licencias/consulta-tramites">Trámites</router-link>
-              <router-link to="/padron-licencias/consulta-licencias">Licencias</router-link>
-              <router-link to="/padron-licencias/consulta-anuncios">Anuncios</router-link>
-            </div>
-          </div>
-
-          <!-- Trámites ✅ COMPLETO -->
-          <div class="quick-access-card">
-            <div class="card-icon tramites">
-              <font-awesome-icon icon="file-signature" />
-            </div>
-            <h3>Trámites ✅</h3>
-            <p>Gestión completa de trámites</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/modificacion-tramites">Modificar</router-link>
-              <router-link to="/padron-licencias/cancelacion-tramites">Cancelar</router-link>
-              <router-link to="/padron-licencias/reactivar-tramite">Reactivar</router-link>
-              <router-link to="/padron-licencias/bloquear-tramite">Bloquear/Desbloquear</router-link>
-              <router-link to="/padron-licencias/documentos-tramite">Documentos</router-link>
-              <router-link to="/padron-licencias/tramite-baja-licencia">Baja Licencia</router-link>
-              <router-link to="/padron-licencias/tramite-baja-anuncio">Baja Anuncio</router-link>
-            </div>
-          </div>
-
-          <!-- Licencias -->
-          <div class="quick-access-card">
-            <div class="card-icon licencias">
+    <main class="main-content" :style="{ marginLeft: sidebarCollapsed ? '0' : sidebarWidth + 'px' }">
+      <div class="content-wrapper">
+        <div class="module-dashboard">
+          <!-- Header -->
+          <div class="dashboard-header">
+            <h1>
               <font-awesome-icon icon="id-card" />
+              Padrón de Licencias
+            </h1>
+            <p>Sistema integral de gestión de licencias comerciales y anuncios publicitarios</p>
+          </div>
+
+          <!-- Accesos Rápidos -->
+          <div class="quick-access-grid">
+            <!-- Consultas -->
+            <div class="quick-access-card">
+              <div class="card-icon consultas">
+                <font-awesome-icon icon="search" />
+              </div>
+              <h3>Consultas</h3>
+              <p>Búsqueda de usuarios, trámites y licencias</p>
+              <div class="card-links">
+                <router-link to="/padron-licencias/consulta-usuarios">Usuarios</router-link>
+                <router-link to="/padron-licencias/consulta-tramites">Trámites</router-link>
+                <router-link to="/padron-licencias/consulta-licencias">Licencias</router-link>
+                <router-link to="/padron-licencias/consulta-anuncios">Anuncios</router-link>
+              </div>
             </div>
-            <h3>Licencias</h3>
-            <p>Administración de licencias comerciales</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/modificacion-licencias">Modificar</router-link>
-              <router-link to="/padron-licencias/baja-licencia">Dar de Baja</router-link>
-              <router-link to="/padron-licencias/bloquear-licencia">Bloquear/Desbloquear</router-link>
-              <router-link to="/padron-licencias/licencias-vigentes">Vigentes</router-link>
-              <router-link to="/padron-licencias/licencias-adeudo">Con Adeudo</router-link>
-              <router-link to="/padron-licencias/grupos-licencias">Grupos</router-link>
-              <router-link to="/padron-licencias/zona-licencia">Zonificación</router-link>
+
+            <!-- Trámites ✅ COMPLETO -->
+            <div class="quick-access-card">
+              <div class="card-icon tramites">
+                <font-awesome-icon icon="file-signature" />
+              </div>
+              <h3>Trámites ✅</h3>
+              <p>Gestión completa de trámites</p>
+              <div class="card-links">
+                <router-link to="/padron-licencias/modificacion-tramites">Modificar</router-link>
+                <router-link to="/padron-licencias/cancelacion-tramites">Cancelar</router-link>
+                <router-link to="/padron-licencias/reactivar-tramite">Reactivar</router-link>
+                <router-link to="/padron-licencias/bloquear-tramite">Bloquear/Desbloquear</router-link>
+                <router-link to="/padron-licencias/documentos-tramite">Documentos</router-link>
+                <router-link to="/padron-licencias/tramite-baja-licencia">Baja Licencia</router-link>
+                <router-link to="/padron-licencias/tramite-baja-anuncio">Baja Anuncio</router-link>
+              </div>
+            </div>
+
+            <!-- Licencias -->
+            <div class="quick-access-card">
+              <div class="card-icon licencias">
+                <font-awesome-icon icon="id-card" />
+              </div>
+              <h3>Licencias</h3>
+              <p>Administración de licencias comerciales</p>
+              <div class="card-links">
+                <router-link to="/padron-licencias/modificacion-licencias">Modificar</router-link>
+                <router-link to="/padron-licencias/baja-licencia">Dar de Baja</router-link>
+                <router-link to="/padron-licencias/bloquear-licencia">Bloquear/Desbloquear</router-link>
+                <router-link to="/padron-licencias/licencias-vigentes">Vigentes</router-link>
+                <router-link to="/padron-licencias/licencias-adeudo">Con Adeudo</router-link>
+                <router-link to="/padron-licencias/grupos-licencias">Grupos</router-link>
+                <router-link to="/padron-licencias/zona-licencia">Zonificación</router-link>
+              </div>
+            </div>
+
+            <!-- Anuncios -->
+            <div class="quick-access-card">
+              <div class="card-icon anuncios">
+                <font-awesome-icon icon="bullhorn" />
+              </div>
+              <h3>Anuncios</h3>
+              <p>Gestión de anuncios publicitarios</p>
+              <div class="card-links">
+                <router-link to="/padron-licencias/baja-anuncio">Dar de Baja</router-link>
+                <router-link to="/padron-licencias/bloquear-anuncio">Bloquear/Desbloquear</router-link>
+                <router-link to="/padron-licencias/liga-anuncio">Ligar Anuncio</router-link>
+                <router-link to="/padron-licencias/grupos-anuncios">Grupos</router-link>
+                <router-link to="/padron-licencias/zona-anuncio">Zonificación</router-link>
+                <router-link to="/padron-licencias/reporte-anuncios-excel">Reporte Excel</router-link>
+              </div>
+            </div>
+
+            <!-- Servicios -->
+            <div class="quick-access-card">
+              <div class="card-icon servicios">
+                <font-awesome-icon icon="concierge-bell" />
+              </div>
+              <h3>Servicios</h3>
+              <p>Emisión de documentos y certificaciones</p>
+              <div class="card-links">
+                <router-link to="/padron-licencias/constancias">Constancias</router-link>
+                <router-link to="/padron-licencias/certificaciones">Certificaciones</router-link>
+                <router-link to="/padron-licencias/dictamen-uso-suelo">Dictámenes</router-link>
+                <router-link to="/padron-licencias/registro-solicitud">Registro Solicitud</router-link>
+              </div>
+            </div>
+
+            <!-- Catálogos -->
+            <div class="quick-access-card">
+              <div class="card-icon catalogos">
+                <font-awesome-icon icon="list" />
+              </div>
+              <h3>Catálogos</h3>
+              <p>Administración de catálogos del sistema</p>
+              <div class="card-links">
+                <router-link to="/padron-licencias/catalogo-giros">Giros</router-link>
+                <router-link to="/padron-licencias/catalogo-actividades">Actividades</router-link>
+                <router-link to="/padron-licencias/empresas">Empresas</router-link>
+                <router-link to="/padron-licencias/dependencias">Dependencias</router-link>
+                <router-link to="/padron-licencias/estatus">Estatus</router-link>
+              </div>
             </div>
           </div>
 
-          <!-- Anuncios -->
-          <div class="quick-access-card">
-            <div class="card-icon anuncios">
-              <font-awesome-icon icon="bullhorn" />
+          <!-- Estadísticas Rápidas -->
+          <div class="stats-summary">
+            <div class="stat-item">
+              <font-awesome-icon icon="file-alt" />
+              <div>
+                <span class="stat-value">{{ stats.tramites }}</span>
+                <span class="stat-label">Trámites Activos</span>
+              </div>
             </div>
-            <h3>Anuncios</h3>
-            <p>Gestión de anuncios publicitarios</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/baja-anuncio">Dar de Baja</router-link>
-              <router-link to="/padron-licencias/bloquear-anuncio">Bloquear/Desbloquear</router-link>
-              <router-link to="/padron-licencias/liga-anuncio">Ligar Anuncio</router-link>
-              <router-link to="/padron-licencias/grupos-anuncios">Grupos</router-link>
-              <router-link to="/padron-licencias/zona-anuncio">Zonificación</router-link>
-              <router-link to="/padron-licencias/reporte-anuncios-excel">Reporte Excel</router-link>
+            <div class="stat-item">
+              <font-awesome-icon icon="id-badge" />
+              <div>
+                <span class="stat-value">{{ stats.licencias }}</span>
+                <span class="stat-label">Licencias Vigentes</span>
+              </div>
             </div>
-          </div>
-
-          <!-- Servicios -->
-          <div class="quick-access-card">
-            <div class="card-icon servicios">
-              <font-awesome-icon icon="concierge-bell" />
+            <div class="stat-item">
+              <font-awesome-icon icon="check-circle" />
+              <div>
+                <span class="stat-value">{{ stats.completados }}</span>
+                <span class="stat-label">Completados Hoy</span>
+              </div>
             </div>
-            <h3>Servicios</h3>
-            <p>Emisión de documentos y certificaciones</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/constancias">Constancias</router-link>
-              <router-link to="/padron-licencias/certificaciones">Certificaciones</router-link>
-              <router-link to="/padron-licencias/dictamen-uso-suelo">Dictámenes</router-link>
-              <router-link to="/padron-licencias/registro-solicitud">Registro Solicitud</router-link>
-            </div>
-          </div>
-
-          <!-- Catálogos -->
-          <div class="quick-access-card">
-            <div class="card-icon catalogos">
-              <font-awesome-icon icon="list" />
-            </div>
-            <h3>Catálogos</h3>
-            <p>Administración de catálogos del sistema</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/catalogo-giros">Giros</router-link>
-              <router-link to="/padron-licencias/catalogo-actividades">Actividades</router-link>
-              <router-link to="/padron-licencias/empresas">Empresas</router-link>
-              <router-link to="/padron-licencias/dependencias">Dependencias</router-link>
-              <router-link to="/padron-licencias/estatus">Estatus</router-link>
+            <div class="stat-item">
+              <font-awesome-icon icon="clock" />
+              <div>
+                <span class="stat-value">{{ stats.pendientes }}</span>
+                <span class="stat-label">Pendientes</span>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </main>
 
-        <!-- Estadísticas Rápidas -->
-        <div class="stats-summary">
-          <div class="stat-item">
-            <font-awesome-icon icon="file-alt" />
-            <div>
-              <span class="stat-value">{{ stats.tramites }}</span>
-              <span class="stat-label">Trámites Activos</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <font-awesome-icon icon="id-badge" />
-            <div>
-              <span class="stat-value">{{ stats.licencias }}</span>
-              <span class="stat-label">Licencias Vigentes</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <font-awesome-icon icon="check-circle" />
-            <div>
-              <span class="stat-value">{{ stats.completados }}</span>
-              <span class="stat-label">Completados Hoy</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <font-awesome-icon icon="clock" />
-            <div>
-              <span class="stat-value">{{ stats.pendientes }}</span>
-              <span class="stat-label">Pendientes</span>
-            </div>
-          </div>
-        </div>
-    </div>
+    <AppFooter />
+  </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'index'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
+  <!-- Modal de Ayuda -->
+  <DocumentationModal
+    :show="showDocumentation"
+    :componentName="'index'"
+    :moduleName="'padron_licencias'"
+    @close="closeDocumentation"
+  />
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import AppSidebar from '@/components/layout/AppSidebar.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
+import { useSidebar } from '@/composables/useSidebar'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const { sidebarCollapsed, sidebarWidth } = useSidebar()
 
 const showDocumentation = ref(false)
 const openDocumentation = () => showDocumentation.value = true
@@ -171,11 +188,38 @@ const stats = ref({
 </script>
 
 <style scoped>
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  transition: margin-left 0.3s ease;
+  margin-top: 60px; /* Altura del header */
+}
+
+.content-wrapper {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar-collapsed .main-content {
+  margin-left: 0 !important;
+}
+
 .module-dashboard {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
-  min-height: 100vh;
+  min-height: calc(100vh - 120px);
   background: #f9fafb;
 }
 
@@ -342,4 +386,3 @@ const stats = ref({
   }
 }
 </style>
-

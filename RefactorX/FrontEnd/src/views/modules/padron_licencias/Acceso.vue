@@ -158,6 +158,7 @@ export default {
           eRequest: {
             Operacion: 'sp_get_permisos_padron_licencias',
             Base: 'padron_licencias',
+            Esquema: 'public',
             Parametros: [
               { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
             ]

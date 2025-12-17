@@ -158,7 +158,7 @@ export default {
         const response = await axios.post('/api/generic', {
           eRequest: {
             Operacion: 'sp_get_permisos_multas',
-            Base: 'multas_reglamentos',
+            Base: 'padron_licencias',
             Esquema: 'public',
             Parametros: [
               { nombre: 'p_usuario', valor: usuario, tipo: 'string' }

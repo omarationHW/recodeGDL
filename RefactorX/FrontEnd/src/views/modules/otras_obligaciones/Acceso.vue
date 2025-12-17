@@ -2,7 +2,7 @@
   <div class="acceso-page">
     <div class="acceso-form-container">
       <div class="acceso-header">
-        <h2>Mercados</h2>
+        <h2>Otras Obligaciones</h2>
         <p class="subtitle">Sistema de Acceso</p>
       </div>
       <form @submit.prevent="onSubmit">
@@ -14,12 +14,8 @@
           <label for="contrasena">Contraseña</label>
           <input v-model="form.contrasena" id="contrasena" type="password" autocomplete="current-password" required />
         </div>
-        <div class="form-group">
-          <label for="ejercicio">Ejercicio</label>
-          <input v-model.number="form.ejercicio" id="ejercicio" type="number" :min="minEjercicio" :max="maxEjercicio" required />
-        </div>
         <div v-if="error" class="error-message">{{ error }}</div>
-        <div v-if="loading" class="loading-message">Conectando al sistema...</div>
+        <div v-if="loading" class="loading-message">Validando credenciales...</div>
         <div class="form-actions">
           <button type="submit" class="btn-primary" :disabled="loading">
             <span v-if="loading">Validando...</span>
@@ -43,120 +39,61 @@ import axios from 'axios';
 import sessionService from '@/services/sessionService';
 
 export default {
-  name: 'AccesoPage',
+  name: 'AccesoOtrasObligaciones',
   data() {
     return {
       form: {
         usuario: '',
-        contrasena: '',
-        ejercicio: new Date().getFullYear()
+        contrasena: ''
       },
-      minEjercicio: 2003,
-      maxEjercicio: new Date().getFullYear(),
       loading: false,
       error: '',
       intentos: 0
     };
   },
   mounted() {
-    // Cargar rango de ejercicios desde el SP
-    this.fetchEjercicioMinMax();
-
-    // Cargar último usuario desde sessionService
     const lastUser = sessionService.getUltimoUsuario();
     if (lastUser) {
       this.form.usuario = lastUser;
     }
   },
   methods: {
-    async fetchEjercicioMinMax() {
-      try {
-        const response = await axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'sp_acceso_ejercicio_minmax',
-            Base: 'mercados',
-            Parametros: []
-          }
-        });
-
-        if (response.data.eResponse && response.data.eResponse.success) {
-          const result = response.data.eResponse.data.result;
-          if (result && result.length > 0) {
-            this.minEjercicio = result[0].min_ejercicio || 2003;
-            this.maxEjercicio = result[0].max_ejercicio || new Date().getFullYear();
-
-            // Ajustar ejercicio si está fuera del rango
-            if (this.form.ejercicio < this.minEjercicio) {
-              this.form.ejercicio = this.minEjercicio;
-            }
-            if (this.form.ejercicio > this.maxEjercicio) {
-              this.form.ejercicio = this.maxEjercicio;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error al cargar ejercicios:', error);
-        // Usar valores por defecto si falla
-        this.minEjercicio = 2003;
-        this.maxEjercicio = new Date().getFullYear();
-      }
-    },
-
     async onSubmit() {
-      // Limpiar error previo
       this.error = '';
       this.loading = true;
 
       try {
-        // Request al SP sp_acceso_login(usuario, contrasena, ejercicio)
         const response = await axios.post('/api/generic', {
           eRequest: {
-            Operacion: 'sp_acceso_login',
-            Base: 'mercados',
-            Esquema: 'publico',
+            Operacion: 'sp_acceso_login_otras_obligaciones',
+            Base: 'otras_obligaciones',
             Parametros: [
               { nombre: 'p_usuario', valor: this.form.usuario, tipo: 'string' },
-              { nombre: 'p_contrasena', valor: this.form.contrasena, tipo: 'string' },
-              { nombre: 'p_ejercicio', valor: this.form.ejercicio, tipo: 'integer' }
+              { nombre: 'p_contrasena', valor: this.form.contrasena, tipo: 'string' }
             ]
           }
         });
 
-        // Verificar respuesta del SP
         if (response.data.eResponse && response.data.eResponse.success) {
           const result = response.data.eResponse.data.result;
-
-          // Verificar que el SP retornó datos y que el login fue exitoso
           if (result && result.length > 0 && result[0].success) {
             const userData = result[0];
-
-            // Guardar sesión usando sessionService
             sessionService.setSession(
               {
                 usuario: userData.usuario || this.form.usuario,
                 id_usuario: userData.id_usuario,
+                nombre: userData.nombre,
                 nivel: userData.nivel,
-                sistema: 'mercados'
+                sistema: 'otras_obligaciones'
               },
-              this.form.ejercicio
+              null
             );
-
-            // Cargar permisos del usuario
-            await this.cargarPermisos(userData.usuario);
-
-            // Mostrar info de sesión en consola (debugging)
-            console.log('✅ Login exitoso (Mercados):', sessionService.getSessionInfo());
-
-            // Redirigir al módulo de mercados
-            this.$router.push('/mercados');
-
+            console.log('✅ Login exitoso (Otras Obligaciones):', sessionService.getSessionInfo());
+            this.$router.push('/otras-obligaciones');
           } else {
-            // Login fallido - el SP retornó success=false
             this.intentos++;
-
             if (this.intentos >= 3) {
               this.error = 'Ha excedido el número de intentos. Por favor, contacte al administrador.';
-              // Reiniciar después de 3 segundos
               setTimeout(() => {
                 this.form.usuario = '';
                 this.form.contrasena = '';
@@ -164,62 +101,26 @@ export default {
                 this.error = '';
               }, 3000);
             } else {
-              const message = result && result[0] && result[0].message
-                ? result[0].message
-                : 'Usuario o contraseña incorrectos';
+              const message = result && result[0] && result[0].message ? result[0].message : 'Usuario o contraseña incorrectos';
               this.error = `${message} (Intento ${this.intentos} de 3)`;
             }
           }
         } else {
-          // Error en la respuesta del API
           this.intentos++;
           this.error = response.data.eResponse?.message || 'Error al validar credenciales';
         }
-
       } catch (error) {
         console.error('Error en login:', error);
-
         if (error.response) {
-          // Error del servidor
           this.error = error.response.data?.message || 'Error al conectar con el servidor';
         } else if (error.request) {
-          // Sin respuesta del servidor
           this.error = 'No se pudo conectar con el servidor. Verifique su conexión.';
         } else {
-          // Error en la configuración del request
           this.error = 'Error al procesar la solicitud';
         }
-
         this.intentos++;
       } finally {
         this.loading = false;
-      }
-    },
-
-    async cargarPermisos(usuario) {
-      try {
-        const response = await axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'sp_get_permisos_mercados',
-            Base: 'mercados',
-            Esquema: 'publico',
-            Parametros: [
-              { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
-            ]
-          }
-        });
-
-        if (response.data.eResponse && response.data.eResponse.success) {
-          const permisos = response.data.eResponse.data.result || [];
-
-          // Guardar permisos en sessionStorage
-          sessionStorage.setItem('permisos_mercados', JSON.stringify(permisos));
-
-          console.log(`✅ Permisos cargados: ${permisos.length} módulos disponibles`);
-        }
-      } catch (error) {
-        console.error('Error al cargar permisos:', error);
-        // No es crítico, continuar con el login
       }
     }
   }
@@ -228,7 +129,7 @@ export default {
 
 <style scoped>
 /* =================================================================================
-   LOGIN MERCADOS - TEMA MUNICIPAL GUADALAJARA
+   LOGIN OTRAS OBLIGACIONES - TEMA MUNICIPAL GUADALAJARA
    Usando variables CSS del municipal-theme.css
    ================================================================================= */
 

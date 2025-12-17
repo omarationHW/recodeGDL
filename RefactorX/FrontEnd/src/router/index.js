@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { setupGlobalGuards } from './guards'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,7 +7,14 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      component: () => import('@/views/Dashboard.vue')
+      component: () => import('@/views/Dashboard.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/Login.vue'),
+      meta: { requiresAuth: false }
     },
     {
       path: '/estacionamiento-publico',
@@ -18,7 +26,7 @@ const router = createRouter({
     { path: '/estacionamiento-publico/actualizacion', name: 'estacionamiento-publico-actualizacion', component: () => import('@/views/modules/estacionamiento_publico/ActualizacionPublicos.vue') },
     { path: '/estacionamiento-publico/nuevo', name: 'estacionamiento-publico-nuevo', component: () => import('@/views/modules/estacionamiento_publico/PublicosNew.vue') },
     { path: '/estacionamiento-publico/reportes', name: 'estacionamiento-publico-reportes', component: () => import('@/views/modules/estacionamiento_publico/ReportesPublicos.vue') },
-    { path: '/estacionamiento-publico/accesos', name: 'estacionamiento-publico-accesos', component: () => import('@/views/modules/estacionamiento_publico/AccesoPublicos.vue') },
+    { path: '/estacionamiento-publico/accesos', name: 'estacionamiento-publico-accesos', component: () => import('@/views/modules/estacionamiento_publico/AccesoPublicos.vue'), meta: { requiresAuth: false } },
     { path: '/estacionamiento-publico/admin', name: 'estacionamiento-publico-admin', component: () => import('@/views/modules/estacionamiento_publico/AdminPublicos.vue') },
     { path: '/estacionamiento-publico/bajas', name: 'estacionamiento-publico-bajas', component: () => import('@/views/modules/estacionamiento_publico/BajasPublicos.vue') },
     { path: '/estacionamiento-publico/generar', name: 'estacionamiento-publico-generar', component: () => import('@/views/modules/estacionamiento_publico/GenerarPublicos.vue') },
@@ -68,11 +76,13 @@ const router = createRouter({
     { path: '/multas-reglamentos/extractos-rpt', name: 'multas-reglamentos-extractos-rpt', component: () => import('@/views/modules/multas_reglamentos/ExtractosRpt.vue') },
     { path: '/multas-reglamentos/firma-electronica', name: 'multas-reglamentos-firma-electronica', component: () => import('@/views/modules/multas_reglamentos/FirmaElectronica.vue') },
     { path: '/multas-reglamentos/fol-multa', name: 'multas-reglamentos-fol-multa', component: () => import('@/views/modules/multas_reglamentos/FolMulta.vue') },
+    { path: '/multas-reglamentos/acceso', name: 'multas-reglamentos-acceso', component: () => import('@/views/modules/multas_reglamentos/Acceso.vue'), meta: { requiresAuth: false } },
     {
       path: '/aseo-contratado',
       name: 'aseo-contratado',
       component: () => import('@/views/modules/aseo_contratado/index.vue')
     },
+    { path: '/aseo-contratado/acceso', name: 'aseo-contratado-acceso', component: () => import('@/views/modules/aseo_contratado/Acceso.vue'), meta: { requiresAuth: false } },
     {
       path: '/aseo-contratado/empresas',
       name: 'aseo-contratado-empresas',
@@ -579,7 +589,8 @@ const router = createRouter({
     {
       path: '/cementerios/acceso',
       name: 'cementerios-acceso',
-      component: () => import('@/views/modules/cementerios/Acceso.vue')
+      component: () => import('@/views/modules/cementerios/Acceso.vue'),
+      meta: { requiresAuth: false }
     },
     {
       path: '/cementerios/menu',
@@ -603,7 +614,7 @@ const router = createRouter({
     },
     // RUTAS ESTACIONAMIENTO EXCLUSIVO
     { path: '/estacionamiento-exclusivo', name: 'estacionamiento-exclusivo', component: () => import('@/views/modules/estacionamiento_exclusivo/Menu.vue') },
-    { path: '/estacionamiento-exclusivo/acceso', name: 'estacionamiento-exclusivo-acceso', component: () => import('@/views/modules/estacionamiento_exclusivo/acceso.vue') },
+    { path: '/estacionamiento-exclusivo/acceso', name: 'estacionamiento-exclusivo-acceso', component: () => import('@/views/modules/estacionamiento_exclusivo/acceso.vue'), meta: { requiresAuth: false } },
     { path: '/estacionamiento-exclusivo/individual', name: 'estacionamiento-exclusivo-individual', component: () => import('@/views/modules/estacionamiento_exclusivo/Individual.vue') },
     { path: '/estacionamiento-exclusivo/individual-folio', name: 'estacionamiento-exclusivo-individual-folio', component: () => import('@/views/modules/estacionamiento_exclusivo/Individual_Folio.vue') },
     { path: '/estacionamiento-exclusivo/consulta-reg', name: 'estacionamiento-exclusivo-consulta-reg', component: () => import('@/views/modules/estacionamiento_exclusivo/ConsultaReg.vue') },
@@ -712,7 +723,7 @@ const router = createRouter({
     { path: '/mercados/datos-convenio', name: 'mercados-datos-convenio', component: () => import('@/views/modules/mercados/DatosConvenio.vue') },
     { path: '/mercados/datos-individuales', name: 'mercados-datos-individuales', component: () => import('@/views/modules/mercados/DatosIndividuales.vue') },
     { path: '/mercados/estadisticas', name: 'mercados-estadisticas', component: () => import('@/views/modules/mercados/Estadisticas.vue') },
-    { path: '/mercados/acceso', name: 'mercados-acceso', component: () => import('@/views/modules/mercados/Acceso.vue') },
+    { path: '/mercados/acceso', name: 'mercados-acceso', component: () => import('@/views/modules/mercados/Acceso.vue'), meta: { requiresAuth: false } },
     { path: '/mercados/catalogo-mntto', name: 'mercados-catalogo-mntto', component: () => import('@/views/modules/mercados/CatalogoMntto.vue') },
     { path: '/mercados/cons-requerimientos', name: 'mercados-cons-requerimientos', component: () => import('@/views/modules/mercados/ConsRequerimientos.vue') },
     { path: '/mercados/condonacion', name: 'mercados-condonacion', component: () => import('@/views/modules/mercados/Condonacion.vue') },
@@ -1076,6 +1087,8 @@ const router = createRouter({
       name: 'multas-reglamentos-loader',
       component: () => import('@/views/modules/multas_reglamentos/Loader.vue')
     },
+    // OTRAS OBLIGACIONES - Acceso
+    { path: '/otras-obligaciones/acceso', name: 'otras-obligaciones-acceso', component: () => import('@/views/modules/otras_obligaciones/Acceso.vue'), meta: { requiresAuth: false } },
     // OTRAS OBLIGACIONES - Menú Principal
     {
       path: '/otras_obligaciones/menu',
@@ -1218,6 +1231,7 @@ const router = createRouter({
       name: 'padron-licencias',
       component: () => import('@/views/modules/padron_licencias/index.vue')
     },
+    { path: '/padron-licencias/acceso', name: 'padron-licencias-acceso', component: () => import('@/views/modules/padron_licencias/Acceso.vue'), meta: { requiresAuth: false } },
     {
       path: '/padron-licencias/consulta-usuarios',
       name: 'consulta-usuarios',
@@ -1711,8 +1725,25 @@ const router = createRouter({
     { path: '/otras-obligaciones/aux-rep', name: 'otras-obligaciones-aux-rep', component: () => import('@/views/modules/otras_obligaciones/AuxRep.vue') },
     { path: '/otras-obligaciones/carga-cartera', name: 'otras-obligaciones-carga-cartera', component: () => import('@/views/modules/otras_obligaciones/CargaCartera.vue') },
     { path: '/otras-obligaciones/carga-valores', name: 'otras-obligaciones-carga-valores', component: () => import('@/views/modules/otras_obligaciones/CargaValores.vue') },
-    { path: '/otras-obligaciones/apremios', name: 'otras-obligaciones-apremios', component: () => import('@/views/modules/otras_obligaciones/Apremios.vue') }
+    { path: '/otras-obligaciones/apremios', name: 'otras-obligaciones-apremios', component: () => import('@/views/modules/otras_obligaciones/Apremios.vue') },
+    // PREDIAL - Acceso y rutas principales
+    {
+      path: '/predial',
+      name: 'predial',
+      component: () => import('@/views/modules/predial/index.vue')
+    },
+    { path: '/predial/acceso', name: 'predial-acceso', component: () => import('@/views/modules/predial/Acceso.vue'), meta: { requiresAuth: false } },
+    // DISTRIBUCIÓN - Acceso y rutas principales
+    {
+      path: '/distribucion',
+      name: 'distribucion',
+      component: () => import('@/views/modules/distribucion/index.vue')
+    },
+    { path: '/distribucion/acceso', name: 'distribucion-acceso', component: () => import('@/views/modules/distribucion/Acceso.vue'), meta: { requiresAuth: false } }
   ]
 })
+
+// Configurar guards globales para protección de rutas
+setupGlobalGuards(router)
 
 export default router

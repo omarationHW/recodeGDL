@@ -53,8 +53,11 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useSidebar } from '@/composables/useSidebar'
+import sessionService from '@/services/sessionService'
 
+const router = useRouter()
 const { toggleSidebar } = useSidebar()
 const showUserMenu = ref(false)
 const userMenuRef = ref(null)
@@ -74,9 +77,22 @@ const handleSettings = () => {
 }
 
 const handleLogout = () => {
-  console.log('Cerrar sesión')
+  console.log('Cerrando sesión...')
   showUserMenu.value = false
-  // Aquí iría la lógica de logout
+
+  // Limpiar sesión
+  sessionService.clearSession()
+
+  // Limpiar permisos del sistema actual
+  const sistema = sessionService.getSistema()
+  if (sistema) {
+    sessionStorage.removeItem(`permisos_${sistema}`)
+  }
+
+  // Redirigir al dashboard principal
+  router.push('/')
+
+  console.log('✅ Sesión cerrada correctamente')
 }
 
 // Cerrar menú al hacer clic fuera

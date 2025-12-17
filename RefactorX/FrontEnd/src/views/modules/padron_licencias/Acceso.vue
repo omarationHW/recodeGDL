@@ -2,7 +2,7 @@
   <div class="acceso-page">
     <div class="acceso-form-container">
       <div class="acceso-header">
-        <h2>Mercados</h2>
+        <h2>Padrón de Licencias</h2>
         <p class="subtitle">Sistema de Acceso</p>
       </div>
       <form @submit.prevent="onSubmit">
@@ -14,12 +14,8 @@
           <label for="contrasena">Contraseña</label>
           <input v-model="form.contrasena" id="contrasena" type="password" autocomplete="current-password" required />
         </div>
-        <div class="form-group">
-          <label for="ejercicio">Ejercicio</label>
-          <input v-model.number="form.ejercicio" id="ejercicio" type="number" :min="minEjercicio" :max="maxEjercicio" required />
-        </div>
         <div v-if="error" class="error-message">{{ error }}</div>
-        <div v-if="loading" class="loading-message">Conectando al sistema...</div>
+        <div v-if="loading" class="loading-message">Validando credenciales...</div>
         <div class="form-actions">
           <button type="submit" class="btn-primary" :disabled="loading">
             <span v-if="loading">Validando...</span>
@@ -43,25 +39,19 @@ import axios from 'axios';
 import sessionService from '@/services/sessionService';
 
 export default {
-  name: 'AccesoPage',
+  name: 'AccesoPadronLicenciasPage',
   data() {
     return {
       form: {
         usuario: '',
-        contrasena: '',
-        ejercicio: new Date().getFullYear()
+        contrasena: ''
       },
-      minEjercicio: 2003,
-      maxEjercicio: new Date().getFullYear(),
       loading: false,
       error: '',
       intentos: 0
     };
   },
   mounted() {
-    // Cargar rango de ejercicios desde el SP
-    this.fetchEjercicioMinMax();
-
     // Cargar último usuario desde sessionService
     const lastUser = sessionService.getUltimoUsuario();
     if (lastUser) {
@@ -69,55 +59,20 @@ export default {
     }
   },
   methods: {
-    async fetchEjercicioMinMax() {
-      try {
-        const response = await axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'sp_acceso_ejercicio_minmax',
-            Base: 'mercados',
-            Parametros: []
-          }
-        });
-
-        if (response.data.eResponse && response.data.eResponse.success) {
-          const result = response.data.eResponse.data.result;
-          if (result && result.length > 0) {
-            this.minEjercicio = result[0].min_ejercicio || 2003;
-            this.maxEjercicio = result[0].max_ejercicio || new Date().getFullYear();
-
-            // Ajustar ejercicio si está fuera del rango
-            if (this.form.ejercicio < this.minEjercicio) {
-              this.form.ejercicio = this.minEjercicio;
-            }
-            if (this.form.ejercicio > this.maxEjercicio) {
-              this.form.ejercicio = this.maxEjercicio;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error al cargar ejercicios:', error);
-        // Usar valores por defecto si falla
-        this.minEjercicio = 2003;
-        this.maxEjercicio = new Date().getFullYear();
-      }
-    },
-
     async onSubmit() {
       // Limpiar error previo
       this.error = '';
       this.loading = true;
 
       try {
-        // Request al SP sp_acceso_login(usuario, contrasena, ejercicio)
+        // Request al SP sp_acceso_login_padron_licencias(usuario, contrasena)
         const response = await axios.post('/api/generic', {
           eRequest: {
-            Operacion: 'sp_acceso_login',
-            Base: 'mercados',
-            Esquema: 'publico',
+            Operacion: 'sp_acceso_login_padron_licencias',
+            Base: 'padron_licencias',
             Parametros: [
               { nombre: 'p_usuario', valor: this.form.usuario, tipo: 'string' },
-              { nombre: 'p_contrasena', valor: this.form.contrasena, tipo: 'string' },
-              { nombre: 'p_ejercicio', valor: this.form.ejercicio, tipo: 'integer' }
+              { nombre: 'p_contrasena', valor: this.form.contrasena, tipo: 'string' }
             ]
           }
         });
@@ -135,20 +90,21 @@ export default {
               {
                 usuario: userData.usuario || this.form.usuario,
                 id_usuario: userData.id_usuario,
+                nombre: userData.nombre,
                 nivel: userData.nivel,
-                sistema: 'mercados'
+                sistema: 'padron_licencias'
               },
-              this.form.ejercicio
+              null // Padrón Licencias no usa ejercicio
             );
 
             // Cargar permisos del usuario
             await this.cargarPermisos(userData.usuario);
 
             // Mostrar info de sesión en consola (debugging)
-            console.log('✅ Login exitoso (Mercados):', sessionService.getSessionInfo());
+            console.log('✅ Login exitoso (Padrón Licencias):', sessionService.getSessionInfo());
 
-            // Redirigir al módulo de mercados
-            this.$router.push('/mercados');
+            // Redirigir al módulo de padron-licencias
+            this.$router.push('/padron-licencias');
 
           } else {
             // Login fallido - el SP retornó success=false
@@ -200,9 +156,8 @@ export default {
       try {
         const response = await axios.post('/api/generic', {
           eRequest: {
-            Operacion: 'sp_get_permisos_mercados',
-            Base: 'mercados',
-            Esquema: 'publico',
+            Operacion: 'sp_get_permisos_padron_licencias',
+            Base: 'padron_licencias',
             Parametros: [
               { nombre: 'p_usuario', valor: usuario, tipo: 'string' }
             ]
@@ -213,7 +168,7 @@ export default {
           const permisos = response.data.eResponse.data.result || [];
 
           // Guardar permisos en sessionStorage
-          sessionStorage.setItem('permisos_mercados', JSON.stringify(permisos));
+          sessionStorage.setItem('permisos_padron_licencias', JSON.stringify(permisos));
 
           console.log(`✅ Permisos cargados: ${permisos.length} módulos disponibles`);
         }
@@ -228,7 +183,7 @@ export default {
 
 <style scoped>
 /* =================================================================================
-   LOGIN MERCADOS - TEMA MUNICIPAL GUADALAJARA
+   LOGIN PADRÓN DE LICENCIAS - TEMA MUNICIPAL GUADALAJARA
    Usando variables CSS del municipal-theme.css
    ================================================================================= */
 

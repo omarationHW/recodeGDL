@@ -53,11 +53,20 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import MenuItem from './MenuItem.vue'
 import { useSidebar } from '@/composables/useSidebar'
+import sessionService from '@/services/sessionService'
 
+const route = useRoute()
 const { sidebarCollapsed, sidebarWidth, setSidebarWidth } = useSidebar()
 const searchQuery = ref('')
+const currentSystem = ref(sessionService.getSistema())
+
+// Watcher para actualizar el sistema cuando cambie la ruta o la sesión
+watch(() => route.path, () => {
+  currentSystem.value = sessionService.getSistema()
+}, { immediate: true })
 
 // Redimensionamiento del sidebar
 const MIN_WIDTH = 200
@@ -2400,10 +2409,97 @@ const sortMenu = (items) => {
   return result
 }
 
+// Función para filtrar menuItems por sistema actual
+const filterBySystem = (items, sistema) => {
+  if (!sistema) {
+    // Si no hay sistema activo, mostrar todo (dashboard principal)
+    return items
+  }
+
+  // Mapeo de sistemas a prefijos de rutas y labels
+  const systemMap = {
+    'mercados': { pathPrefix: '/mercados', label: 'Mercados' },
+    'padron_licencias': { pathPrefix: '/padron-licencias', label: 'Padrón de Licencias' },
+    'multas_reglamentos': { pathPrefix: '/multas-reglamentos', label: 'Multas y Reglamentos' },
+    'aseo_contratado': { pathPrefix: '/aseo-contratado', label: 'Aseo Contratado' },
+    'otras_obligaciones': { pathPrefix: '/otras-obligaciones', label: 'Otras Obligaciones' },
+    'distribucion': { pathPrefix: '/distribucion', label: 'Distribución' },
+    'predial': { pathPrefix: '/predial', label: 'Predial' },
+    'cementerios': { pathPrefix: '/cementerios', label: 'Cementerios' },
+    'estacionamiento_exclusivo': { pathPrefix: '/estacionamiento-exclusivo', label: 'Exclusivos' },
+    'estacionamiento_publico': { pathPrefix: '/estacionamiento-publico', label: 'Publicos' }
+  }
+
+  const systemConfig = systemMap[sistema]
+  if (!systemConfig) {
+    // Si no hay config para el sistema, mostrar todo
+    return items
+  }
+
+  const { pathPrefix, label } = systemConfig
+
+  // Función recursiva para filtrar items
+  const filterRecursive = (items) => {
+    return items.reduce((acc, item) => {
+      // Siempre incluir Dashboard
+      if (item.path === '/' || item.label === 'Dashboard') {
+        acc.push(item)
+        return acc
+      }
+
+      // Si el item tiene un path que coincide con el sistema, incluirlo
+      if (item.path && item.path.startsWith(pathPrefix)) {
+        acc.push(item)
+        return acc
+      }
+
+      // Si el item tiene children, filtrar recursivamente
+      if (item.children) {
+        // Verificar si este item o sus hijos pertenecen al sistema
+        const hasMatchingChild = (children) => {
+          return children.some(child => {
+            if (child.path && child.path.startsWith(pathPrefix)) return true
+            if (child.label === label) return true
+            if (child.children) return hasMatchingChild(child.children)
+            return false
+          })
+        }
+
+        // Si el label coincide exactamente o tiene hijos que coinciden, incluir el item completo
+        if (item.label === label || hasMatchingChild(item.children)) {
+          // Si el label coincide exactamente, incluir solo este subárbol
+          if (item.label === label) {
+            acc.push(item)
+          } else {
+            // Si no, filtrar sus hijos recursivamente
+            const filteredChildren = filterRecursive(item.children)
+            if (filteredChildren.length > 0) {
+              acc.push({
+                ...item,
+                children: filteredChildren
+              })
+            }
+          }
+        }
+      }
+
+      return acc
+    }, [])
+  }
+
+  return filterRecursive(items)
+}
+
 // Computed para items filtrados y ordenados
 const filteredItems = computed(() => {
-  const filtered = filterMenuItems(menuItems, searchQuery.value)
-  return sortMenu(filtered)
+  // Primero filtrar por sistema
+  const systemFiltered = filterBySystem(menuItems, currentSystem.value)
+
+  // Luego aplicar filtro de búsqueda
+  const searchFiltered = filterMenuItems(systemFiltered, searchQuery.value)
+
+  // Finalmente ordenar
+  return sortMenu(searchFiltered)
 })
 
 // Método para limpiar búsqueda

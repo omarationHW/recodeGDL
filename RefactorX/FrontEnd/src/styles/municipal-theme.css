@@ -2358,8 +2358,10 @@ body.modal-open {
   border: 1px solid #e8e8e8;
   border-radius: 0;
   box-shadow: none;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .municipal-card + .municipal-card {
@@ -2381,6 +2383,9 @@ body.modal-open {
 
 .municipal-card-body {
   padding: 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .municipal-card-footer {
@@ -2442,9 +2447,11 @@ body.modal-open {
 /* Table Container with Horizontal Scroll */
 .table-responsive {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   overflow-y: visible;
   margin-bottom: 1rem;
+  box-sizing: border-box;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling en iOS */
 }
 
@@ -2556,6 +2563,8 @@ body.modal-open {
   /* overflow: hidden; - REMOVIDO: Bloqueaba el scroll horizontal */
   overflow-x: auto;
   overflow-y: visible;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Tabla sin datos */
@@ -3266,7 +3275,10 @@ body.modal-open {
 /* Module Views */
 .module-view {
   width: 100%;
+  max-width: 100%;
   padding: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .module-view h1 {
@@ -3348,6 +3360,9 @@ body.modal-open {
   border-top: none;
   margin: 0 -0.5rem;
   min-height: 400px;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .placeholder-text {
@@ -3445,6 +3460,9 @@ body.modal-open {
 /* Table container */
 .table-container {
   padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Button groups */

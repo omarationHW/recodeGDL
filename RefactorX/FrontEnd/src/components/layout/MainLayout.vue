@@ -32,11 +32,13 @@ const { sidebarCollapsed, sidebarWidth } = useSidebar()
 
 .main-content {
   flex: 1;
-  width: 100%;
   margin: 0;
   padding: 0;
   transition: margin-left 0.3s ease;
   margin-top: 60px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-width: 100vw;
 }
 
 .content-wrapper {
@@ -44,6 +46,8 @@ const { sidebarCollapsed, sidebarWidth } = useSidebar()
   height: 100%;
   margin: 0;
   padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .sidebar-collapsed .main-content {

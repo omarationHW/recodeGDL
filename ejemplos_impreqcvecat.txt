@@ -1,0 +1,201 @@
+=== EJEMPLOS PARA PROBAR impreqCvecat.vue ===
+
+El componente y stored procedure han sido actualizados para mostrar información completa del requerimiento.
+
+IMPORTANTE:
+- Ahora muestra todos los detalles del requerimiento generado
+- Información organizada en secciones visuales
+- Monto destacado para mejor visibilidad
+- Validaciones de entrada implementadas
+
+--- EJEMPLO 1: Clave catastral válida ---
+
+Clave Catastral: 000001
+
+Resultado esperado:
+✓ Status: success
+✓ Mensaje: "Requerimiento generado exitosamente"
+
+INFORMACIÓN MOSTRADA:
+
+📄 Información del Requerimiento:
+- Folio: 0025922
+- Clave Catastral: 000001
+- Fecha de Generación: 18 de diciembre de 2025
+- Ejercicio: 000010
+- Tipo: Requerimiento de Pago
+- Periodo: Ejercicio 000010
+
+👤 Información del Contribuyente:
+- Propietario: CONTRIBUYENTE
+- Dirección: DOMICILIO NO DISPONIBLE
+
+💰 Monto a Pagar:
+$1,950.40
+(Mostrado en grande y destacado)
+
+ℹ️ Observaciones:
+Requerimiento generado para clave catastral 000001
+
+
+--- EJEMPLO 2: Otra clave catastral ---
+
+Clave Catastral: 000002
+
+Resultado esperado:
+✓ Búsqueda exitosa con datos del requerimiento
+✓ Folio y monto correspondientes
+✓ Toda la información organizada visualmente
+
+
+--- EJEMPLO 3: Clave catastral inexistente ---
+
+Clave Catastral: 999999999999999
+
+Resultado esperado:
+✗ Status: error
+✗ Mensaje: "No se encontró información para la clave catastral proporcionada"
+✗ Se muestra en rojo (alert-danger)
+
+
+--- EJEMPLO 4: Campo vacío (validación) ---
+
+Clave Catastral: (dejar vacío)
+
+Resultado esperado:
+✗ Botón deshabilitado (no se puede hacer clic)
+✗ Validación en frontend impide el envío
+
+Si se envía vacío desde el backend:
+✗ Status: error
+✗ Mensaje: "Debe proporcionar una clave catastral"
+
+
+--- ESTRUCTURA VISUAL DEL RESULTADO ---
+
+Cuando es exitoso:
+
+┌─────────────────────────────────────────────┐
+│ ✓ Requerimiento generado exitosamente      │
+├─────────────────────────────────────────────┤
+│                                             │
+│ 📄 Información del Requerimiento           │
+│ ┌───────────────┬───────────────┐          │
+│ │ Folio         │ Clave         │          │
+│ │ Fecha         │ Ejercicio     │          │
+│ │ Tipo          │ Periodo       │          │
+│ └───────────────┴───────────────┘          │
+│                                             │
+│ 👤 Información del Contribuyente           │
+│ ┌───────────────┬───────────────┐          │
+│ │ Propietario   │ Dirección     │          │
+│ └───────────────┴───────────────┘          │
+│                                             │
+│ 💰 Monto a Pagar                           │
+│        $1,950.40                           │
+│   (Destacado en grande)                    │
+│                                             │
+│ ℹ️ Observaciones                           │
+│ (Texto de observaciones con fondo claro)  │
+└─────────────────────────────────────────────┘
+
+
+--- MEJORAS VISUALES IMPLEMENTADAS ---
+
+1. **Organización por secciones**
+   - Información del Requerimiento
+   - Información del Contribuyente
+   - Monto a Pagar
+   - Observaciones
+
+2. **Grid responsive**
+   - Los campos se organizan en columnas
+   - Se adapta al tamaño de la pantalla
+   - Mínimo 250px por columna
+
+3. **Monto destacado**
+   - Tamaño grande (2rem)
+   - Color verde oscuro
+   - Fondo semitransparente
+   - Centrado y con padding
+
+4. **Etiquetas y valores claros**
+   - Etiquetas en gris (80% opacidad)
+   - Valores en negrita y color completo
+   - Separación vertical clara
+
+5. **Iconos descriptivos**
+   - 📄 file-alt para requerimiento
+   - 👤 user para contribuyente
+   - 💰 dollar-sign para monto
+   - ℹ️ info-circle para observaciones
+
+6. **Estados visuales**
+   - Verde para éxito (alert-success)
+   - Rojo para error (alert-danger)
+   - Loading spinner mientras procesa
+
+
+--- VALIDACIONES IMPLEMENTADAS ---
+
+Frontend:
+1. Botón deshabilitado si no hay clave catastral
+2. Campo obligatorio marcado visualmente
+3. Texto de ayuda: "Ingrese la clave catastral del predio"
+
+Backend (Stored Procedure):
+1. Valida que la clave no esté vacía
+2. Valida que la clave exista en la BD
+3. Retorna mensajes de error descriptivos
+
+
+--- FORMATO DE FECHAS ---
+
+Las fechas se muestran en formato largo en español:
+- "18 de diciembre de 2025"
+- Automático según el locale del navegador
+
+
+--- FORMATO DE MONEDA ---
+
+Los montos se formatean como pesos mexicanos:
+- $1,950.40
+- Con separador de miles
+- Dos decimales
+- Símbolo de pesos
+
+
+--- CAMPOS RETORNADOS POR EL SP ---
+
+El stored procedure retorna:
+- status: 'success' o 'error'
+- mensaje: Descripción del resultado
+- folio_requerimiento: Folio del documento
+- fecha_generacion: Fecha actual
+- propietario: Nombre del contribuyente
+- direccion: Domicilio del predio
+- monto_adeudo: Importe a pagar
+- clave_catastral: Clave consultada
+- ejercicio: Año del ejercicio
+- periodo: Descripción del periodo
+- tipo_requerimiento: Tipo de documento
+- observaciones: Notas adicionales
+
+
+--- TABLA USADA ---
+
+Base de datos: req_400
+Campo búsqueda: ctarfc (clave catastral)
+Registros: ~500,000 requerimientos
+
+
+--- PRUEBAS REALIZADAS ---
+
+✓ Búsqueda exitosa con datos completos
+✓ Validación de clave vacía
+✓ Validación de clave inexistente
+✓ Formato correcto de moneda
+✓ Formato correcto de fecha
+✓ Visualización responsive
+✓ Estados de éxito y error
+✓ Loading state durante proceso

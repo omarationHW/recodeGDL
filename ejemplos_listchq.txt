@@ -1,0 +1,211 @@
+=== EJEMPLOS PARA PROBAR listchq.vue ===
+
+El stored procedure ha sido actualizado para usar las tablas existentes:
+- publico.pagos (13,841,577 registros)
+- public.cheqpag (68,968 registros)
+
+IMPORTANTE:
+- 68,170 pagos con cheque no cancelados disponibles
+- Rango de fechas: 1999-11-03 a 2007-03-20 (histórico)
+- Paginación ya incluida en el componente (10 registros por página)
+- Búsqueda por defecto en todo el histórico
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.cheques" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa JOIN entre publico.pagos y public.cheqpag con los cvepago comunes
+
+--- PARÁMETRO DEL COMPONENTE ---
+
+El componente Vue envía un parámetro de texto llamado 'p_filtro':
+- Tipo: string (TEXT)
+- Búsqueda: case-insensitive con LIKE '%filtro%'
+- Campos buscados: cheque, cuenta, banco, folio_completo
+- Por defecto: '' (vacío, trae todos los primeros 100)
+
+--- EJEMPLO 1: Sin filtros (por defecto) ---
+
+Búsqueda: Campo vacío o sin texto
+
+Resultado esperado:
+✓ 100 pagos con cheque (límite máximo)
+✓ Ordenados por fecha descendente (más recientes primero)
+✓ Solo pagos NO cancelados
+
+Ejemplo de pago:
+   Fecha: 2007-03-20
+   Banco: SCOTIABANK
+   Cheque: 5908
+   Cuenta: 4557
+   Importe: $5,553.00
+   Tipo Pago: Cheque
+   Folio Completo: 2-r-2036
+   Recaudadora: 2
+   Caja: r
+   Operación: 2036
+
+
+--- EJEMPLO 2: Búsqueda por número de cheque ---
+
+Búsqueda: "5908"
+
+Resultado:
+✓ 7 pagos con el número de cheque 5908
+✓ Búsqueda exacta por número
+
+Ejemplo:
+   Fecha: 2007-03-20
+   Banco: SCOTIABANK
+   Cheque: 5908
+   Cuenta: 4557
+   Importe: $5,553.00
+
+
+--- EJEMPLO 3: Búsqueda por banco ---
+
+Búsqueda: "SANTANDER"
+
+Resultado:
+✓ 100 pagos (límite alcanzado)
+✓ Todos del banco SANTANDER
+✓ 10,777 cheques totales de SANTANDER disponibles
+
+
+--- EJEMPLO 4: Búsqueda por folio ---
+
+Búsqueda: "2-r-2036"
+
+Resultado:
+✓ Busca en el campo folio_completo (recaud-caja-operacion)
+✓ Encuentra pagos que coincidan con el patrón
+
+
+--- EJEMPLO 5: Búsqueda por cuenta ---
+
+Búsqueda: Número de cuenta (ej: "4557")
+
+Resultado:
+✓ Encuentra pagos por número de cuenta
+✓ Búsqueda en campo ncta
+
+
+--- CAMPOS MOSTRADOS ---
+
+| Campo           | Descripción                      | Ejemplo         |
+|-----------------|----------------------------------|-----------------|
+| fecha           | Fecha del pago                   | 2007-03-20      |
+| banco           | Nombre del banco                 | SCOTIABANK      |
+| cheque          | Número de cheque                 | 5908            |
+| cuenta          | Número de cuenta                 | 4557            |
+| importe         | Monto del cheque                 | 5553.00         |
+| tipo_pag        | Tipo de pago                     | Cheque          |
+| folio_completo  | Folio construido                 | 2-r-2036        |
+| id_rec          | ID de recaudadora                | 2               |
+| caja            | Caja de pago                     | r               |
+| operacion       | Número de operación              | 2036            |
+
+
+--- CATÁLOGO DE BANCOS ---
+
+El stored procedure convierte códigos numéricos a nombres:
+
+| Código | Nombre       | Total Cheques |
+|--------|--------------|---------------|
+| 1      | BANAMEX      | 14,597        |
+| 2      | BANCOMER     | 7,549         |
+| 3      | SANTANDER    | 10,777        |
+| 4      | HSBC         | 4,171         |
+| 5      | BANORTE      | 11,505        |
+| 6      | SCOTIABANK   | 1,850         |
+| 7      | INBURSA      | 1,624         |
+| 10     | BANCO 10     | 7,113         |
+| 12     | BANCO 12     | 5,609         |
+| 14     | BANCO 14     | 3,057         |
+| Otros  | BANCO XX     | Varios        |
+
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+
+Tablas JOIN:
+1. publico.pagos (tabla principal de pagos)
+   - cvepago, fecha, caja, folio, recaud, importe, cvecanc
+
+2. public.cheqpag (tabla de información de cheques)
+   - cvepago, cvebanco, numcheq, ncta, importe
+
+JOIN: publico.pagos LEFT JOIN public.cheqpag ON cvepago
+
+
+--- FILTROS APLICADOS ---
+
+✓ Solo pagos con cheque (WHERE c.cvepago IS NOT NULL)
+✓ Excluye pagos cancelados (WHERE p.cvecanc IS NULL)
+✓ Búsqueda de texto (p_filtro) aplica a:
+  - Número de cheque (numcheq)
+  - Número de cuenta (ncta)
+  - Folio completo (recaud-caja-operacion)
+  - Nombre del banco (BANAMEX, SANTANDER, etc.)
+✓ Límite de 100 registros
+✓ Ordenado por fecha descendente
+✓ Búsqueda case-insensitive (UPPER + LIKE)
+
+
+--- PAGINACIÓN ---
+
+✓ Ya incluida en el componente listchq.vue
+✓ 10 registros por página
+✓ Navegación completa (primera, anterior, siguiente, última)
+✓ Contador de registros
+✓ Botones con íconos FontAwesome
+✓ Estilos badge por tipo de pago (Efectivo, Cheque, Tarjeta, Transferencia)
+
+
+--- FUNCIONES DEL COMPONENTE ---
+
+✓ formatDate(fecha): Formatea fechas al formato español
+✓ formatMoney(valor): Formatea montos con símbolo de peso
+✓ getBadgeClass(tipo): Retorna clase CSS según tipo de pago
+✓ buscar(): Se ejecuta automáticamente al montar el componente
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Sin filtro (texto vacío): 100 pagos encontrados
+✅ Filtro por número de cheque '5908': 7 pagos
+✅ Filtro por banco 'SANTANDER': 100 pagos (límite alcanzado)
+✅ Formato JSON correcto con 10 campos
+✅ Catálogo de bancos funcional
+✅ Excluye pagos cancelados correctamente
+✅ Orden descendente por fecha
+✅ Búsqueda case-insensitive funcional
+
+
+--- ESTADÍSTICAS ---
+
+Total de pagos con cheque (no cancelados): 68,170
+Pagos cancelados: 728
+Rango de fechas: 1999-11-03 a 2007-03-20
+Registros retornados por búsqueda: Hasta 100 (límite)
+
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ Los pagos con cheque son históricos (1999-2007)
+⚠️ No hay cheques recientes en la base de datos
+⚠️ El componente busca automáticamente al cargar (mounted hook)
+⚠️ El límite de 100 registros evita sobrecargar el frontend
+
+
+--- RESUMEN ---
+
+**Problema**: Tabla publico.cheques no existe
+
+**Solución**: JOIN entre publico.pagos y public.cheqpag usando cvepago
+
+**Resultado**: Componente funcional con 68,170 pagos históricos disponibles
+

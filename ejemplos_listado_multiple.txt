@@ -1,0 +1,353 @@
+=== EJEMPLOS PARA PROBAR ListadoMultiple.vue ===
+
+El stored procedure ha sido actualizado para usar las tablas existentes:
+- publico.pagos (13,841,577 registros de pagos)
+- publico.c_conceptos (46 conceptos de pago)
+
+IMPORTANTE:
+- 13.8 millones de pagos disponibles
+- JOIN entre pagos y conceptos para descripción completa
+- Búsqueda por folio, cuenta, concepto, usuario o estado
+- Paginación incluida (offset y limit)
+- Ordenados por fecha descendente (más recientes primero)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.listado_multiple" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa JOIN entre:
+- publico.pagos (registros de pagos)
+- publico.c_conceptos (catálogo de conceptos)
+
+--- PARÁMETROS DEL COMPONENTE ---
+
+El componente Vue envía 3 parámetros:
+- p_filtro: VARCHAR (búsqueda general)
+- p_offset: INTEGER (registro inicial para paginación)
+- p_limit: INTEGER (cantidad de registros, default 100)
+
+Búsqueda aplica en:
+- Folio
+- Clave de cuenta
+- Concepto (descripción completa)
+- Descripción (nombre corto)
+- Usuario (cajero)
+- Recaudadora
+- Estado (activo/cancelado)
+
+--- EJEMPLO 1: Listado general (pagos recientes) ---
+
+Parámetros:
+- Filtro: (vacío)
+- Offset: 0
+- Limit: 10
+
+Resultado esperado:
+✓ 10 pagos más recientes
+✓ Ordenados por fecha descendente
+✓ Incluye todos los conceptos y estados
+
+Ejemplo de pago:
+   ID: 1972951
+   Folio: 1
+   Tipo: Pago
+   Cuenta: 331377
+   Contribuyente: Cuenta 331377
+   Concepto: PAGO PREDIAL EN BANCOS
+   Descripción: PAGO BANCOS
+   Monto: $375.00
+   Estado: Activo
+   Recaudadora: 101
+
+
+--- EJEMPLO 2: Búsqueda por concepto (PREDIAL) ---
+
+Parámetros:
+- Filtro: "PREDIAL"
+- Offset: 0
+- Limit: 10
+
+Resultado esperado:
+✓ 10 pagos relacionados con predial
+✓ Incluye: "PAGO DE IMPUESTO PREDIAL", "PAGO PREDIAL EN BANCOS", etc.
+✓ Búsqueda case-insensitive
+
+Ejemplo:
+   Folio: 5226163
+   Concepto: PAGO DE IMPUESTO PREDIAL
+   Monto: $1,982.00
+   Estado: Activo
+
+
+--- EJEMPLO 3: Búsqueda por folio específico ---
+
+Parámetros:
+- Filtro: "5226163"
+- Offset: 0
+- Limit: 10
+
+Resultado esperado:
+✓ Pagos con folio exacto o que contengan "5226163"
+✓ Búsqueda parcial con ILIKE
+
+Ejemplo:
+   Folio: 5226163
+   Cuenta: 424825
+   Concepto: PAGO DE IMPUESTO PREDIAL
+   Monto: $1,982.00
+
+
+--- EJEMPLO 4: Búsqueda por estado (cancelado) ---
+
+Parámetros:
+- Filtro: "cancelado"
+- Offset: 0
+- Limit: 10
+
+Resultado esperado:
+✓ 10 pagos cancelados
+✓ Estado: Cancelado
+✓ 180,727 pagos cancelados totales disponibles
+
+Ejemplo:
+   Folio: 7788426
+   Estado: Cancelado
+   Monto: $2,500.00
+
+
+--- CAMPOS MOSTRADOS ---
+
+| Campo            | Descripción                          | Ejemplo                       |
+|------------------|--------------------------------------|-------------------------------|
+| id               | ID único del pago                    | 1972951                       |
+| folio            | Número de folio                      | 5226163                       |
+| tipo_movimiento  | Tipo de movimiento                   | Pago                          |
+| clave_cuenta     | Cuenta catastral o identificador     | 331377                        |
+| contribuyente    | Nombre (Cuenta + número)             | Cuenta 331377                 |
+| concepto         | Descripción completa del concepto    | PAGO DE IMPUESTO PREDIAL      |
+| descripcion      | Nombre corto del concepto            | PREDIAL                       |
+| monto            | Monto del pago                       | 375.00                        |
+| fecha_movimiento | Fecha del pago                       | 2024-12-04                    |
+| estado           | Estado del pago                      | Activo / Cancelado            |
+| usuario          | Cajero que registró el pago          | ODOO                          |
+| recaudadora      | Número de recaudadora                | 1                             |
+
+
+--- CONCEPTOS PRINCIPALES ---
+
+Los 5 conceptos más comunes:
+
+| Código | Concepto                          | Total      | Descripción Corta |
+|--------|-----------------------------------|------------|-------------------|
+| 1      | PAGO DE IMPUESTO PREDIAL          | 9,018,186  | PREDIAL           |
+| 8      | PAGO DE LICENCIAS MUNICIPALES     | 2,525,949  | LICENCIAS         |
+| 3      | CERTIFICADOS DE NO ADEUDO         | 636,218    | CERT. NO ADEUDO   |
+| 4      | PAGO DE DIVERSOS                  | 430,596    | DIVERSOS          |
+| 5      | PAGO PREDIAL EN BANCOS            | 401,083    | PAGO BANCOS       |
+
+Otros conceptos disponibles (46 total):
+- PAGO DE IMPUESTO TRANSM. PATRIM.
+- PAGO DE MULTAS MUNICIPALES
+- PAGO DE MULTAS FEDERALES
+- APORTACION VOLUNTARIA 25 PESOS
+- DIFERENCIAS 2005
+- PAGO EN KIOSCO
+- PAGO CONVENIO PREDIAL
+- APLICACION DE SALDOS A FAVOR
+- PAGO DEVUELTO
+- PAGO DE AVALUO
+- PAGO CERTIFICACIONES
+- LICENCIA MAYOR DE CONSTRUCCION
+- LICENCIA MENOR DE CONSTRUCCION
+- ... y más
+
+
+--- ESTADOS ---
+
+| Estado    | Total        | Porcentaje | Descripción                          |
+|-----------|--------------|------------|--------------------------------------|
+| Activo    | 13,660,850   | 98.7%      | Pagos válidos (no cancelados)        |
+| Cancelado | 180,727      | 1.3%       | Pagos cancelados                     |
+
+
+--- BÚSQUEDA ---
+
+El parámetro p_filtro busca en múltiples campos:
+
+1. Folio (p.folio)
+   - Ejemplo: "5226163" encuentra ese folio específico
+
+2. Clave de cuenta (p.cvecuenta)
+   - Ejemplo: "331377" encuentra esa cuenta
+
+3. Concepto completo (c.descripcion)
+   - Ejemplo: "PREDIAL" encuentra todos los pagos prediales
+
+4. Descripción corta (c.ncorto)
+   - Ejemplo: "LICENCIAS" encuentra pagos de licencias
+
+5. Cajero (p.cajero)
+   - Ejemplo: "ODOO" encuentra pagos registrados por ese usuario
+
+6. Recaudadora (p.recaud)
+   - Ejemplo: "1" encuentra pagos de recaudadora 1
+
+7. Estado
+   - Ejemplo: "activo" o "cancelado"
+
+Búsqueda case-insensitive con ILIKE '%filtro%'
+
+
+--- TABLAS USADAS ---
+
+Base de datos: multas_reglamentos
+
+1. publico.pagos (13,841,577 registros):
+   - cvepago: ID único del pago
+   - folio: Número de folio
+   - cvecuenta: Cuenta catastral o identificador
+   - recaud: Recaudadora (1-10, 100-102, 106)
+   - caja: Caja registradora
+   - fecha: Fecha del pago
+   - hora: Hora del pago
+   - importe: Monto pagado
+   - cajero: Usuario que registró
+   - cvecanc: Cancelación (NULL = activo)
+   - cveconcepto: Relación con conceptos
+
+2. publico.c_conceptos (46 registros):
+   - cveconcepto: ID del concepto
+   - descripcion: Descripción completa
+   - ncorto: Nombre corto
+   - feccap: Fecha de captura
+   - capturista: Usuario que capturó
+   - cvegrupo: Grupo del concepto
+
+
+--- JOIN REALIZADO ---
+
+FROM publico.pagos p
+LEFT JOIN publico.c_conceptos c ON p.cveconcepto = c.cveconcepto
+
+LEFT JOIN se usa porque algunos pagos pueden no tener concepto asociado
+
+
+--- ORDENAMIENTO ---
+
+Los resultados se ordenan por:
+1. Fecha descendente (p.fecha DESC)
+   - Los pagos más recientes aparecen primero
+2. ID de pago descendente (p.cvepago DESC)
+   - Como criterio secundario
+
+
+--- PAGINACIÓN ---
+
+Usa p_offset y p_limit para navegación:
+- Página 1: offset=0, limit=100
+- Página 2: offset=100, limit=100
+- Página 3: offset=200, limit=100
+
+Default: 100 registros por página
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 10 pagos más recientes
+✅ Test filtro 'PREDIAL': 10 pagos de predial
+✅ Test filtro folio '5226163': 2 pagos encontrados
+✅ Test filtro 'cancelado': 10 pagos cancelados
+✅ Test paginación: offset=10, limit=5 correctos
+✅ Stored procedure actualizado exitosamente
+✅ JOIN con conceptos funcional
+✅ Formato JSON correcto con 12 campos
+✅ Búsqueda multi-campo funcional
+✅ Manejo de NULL en fechas y campos opcionales
+
+
+--- ESTADÍSTICAS ---
+
+Total de pagos: 13,841,577
+
+Por estado:
+- Activos: 13,660,850 (98.7%)
+- Cancelados: 180,727 (1.3%)
+
+Por concepto (top 5):
+- Predial: 9,018,186 (65.2%)
+- Licencias: 2,525,949 (18.2%)
+- Certificados: 636,218 (4.6%)
+- Diversos: 430,596 (3.1%)
+- Pago Bancos: 401,083 (2.9%)
+
+Por recaudadora (top 5):
+- Recaudadora 2: 4,392,206
+- Recaudadora 1: 2,879,942
+- Recaudadora 3: 2,703,280
+- Recaudadora 4: 1,972,501
+- Recaudadora 5: 1,018,949
+
+Registros por página: 100 (configurable)
+
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ El contribuyente siempre es "Cuenta {número}"
+   No hay tabla directa que relacione cvecuenta con nombres
+
+⚠️ El tipo_movimiento siempre es "Pago"
+   Todos los registros de la tabla pagos son pagos
+
+⚠️ Algunos registros tienen fecha NULL
+   Registros antiguos o incompletos pueden no tener fecha
+
+⚠️ El estado se deriva de cvecanc
+   NULL = Activo, NOT NULL = Cancelado
+
+⚠️ La búsqueda es muy flexible
+   Busca en 7 campos diferentes simultáneamente
+
+⚠️ El límite default es 100
+   Para evitar sobrecargar el frontend con millones de registros
+
+⚠️ Los folios no son únicos
+   Pueden repetirse entre diferentes recaudadoras
+
+
+--- MAPEO DE CAMPOS ---
+
+Componente espera → Tabla real:
+- id → pagos.cvepago
+- folio → pagos.folio
+- tipo_movimiento → 'Pago' (constante)
+- clave_cuenta → pagos.cvecuenta
+- contribuyente → 'Cuenta ' || cvecuenta
+- concepto → c_conceptos.descripcion
+- descripcion → c_conceptos.ncorto
+- monto → pagos.importe
+- fecha_movimiento → pagos.fecha
+- estado → 'Activo' OR 'Cancelado' (basado en cvecanc)
+- usuario → pagos.cajero
+- recaudadora → pagos.recaud
+
+
+--- RESUMEN ---
+
+Problema: Tabla publico.listado_multiple no existe
+
+Solución: Usa publico.pagos con JOIN a publico.c_conceptos
+
+Resultado: Listado múltiple funcional con 13.8 millones de pagos
+
+Características:
+- Búsqueda multi-campo (7 campos)
+- Paginación con offset y limit
+- Ordenamiento por fecha descendente
+- JOIN para descripción de conceptos
+- Manejo de NULL con COALESCE
+- Soporte para 46 tipos de conceptos diferentes
+- Información completa de cada pago
+- Estado derivado de campo de cancelación
+- Límite configurable (default 100)

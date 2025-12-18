@@ -1,0 +1,286 @@
+=== EJEMPLOS PARA PROBAR listareq.vue ===
+
+El stored procedure ha sido actualizado para usar las tablas existentes:
+- publico.reqmultas (403,162 registros)
+- publico.multas (para obtener num_acta, axo_acta, contribuyente, domicilio)
+
+IMPORTANTE:
+- 403,162 requerimientos de multas disponibles
+- JOIN entre reqmultas y multas para obtener datos completos
+- Búsqueda por folio, número de acta o contribuyente
+- Límite de 100 registros por consulta
+- Ordenados por fecha de emisión (más recientes primero)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.requerimientos" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa JOIN entre:
+- publico.reqmultas (requerimientos)
+- publico.multas (información del contribuyente y acta)
+
+--- PARÁMETRO DEL COMPONENTE ---
+
+El componente Vue envía 1 parámetro:
+- p_clave_cuenta: VARCHAR (búsqueda general)
+
+Búsqueda aplica en:
+- Folio del requerimiento (folioreq)
+- Número de acta (num_acta)
+- Nombre del contribuyente (contribuyente)
+
+--- EJEMPLO 1: Sin filtro (requerimientos recientes) ---
+
+Parámetros:
+- Búsqueda: (vacío)
+
+Resultado esperado:
+✓ 100 requerimientos (límite máximo)
+✓ Ordenados por fecha descendente (más recientes primero)
+✓ Incluye todos los tipos y estados
+
+Ejemplo de requerimiento:
+   Folio: 146294
+   Clave Cuenta: 946/2025
+   Ejercicio: 2025
+   Contribuyente: FRANCO MORA PEDRO
+   Domicilio: MORENO PEDRO
+   Concepto: Requerimiento
+   Monto: $15,750.00
+   Fecha Emisión: 2025-12-18
+   Estado: Vigente
+
+
+--- EJEMPLO 2: Búsqueda por contribuyente ---
+
+Parámetros:
+- Búsqueda: "FLORES"
+
+Resultado esperado:
+✓ 100 requerimientos (límite alcanzado)
+✓ Todos los contribuyentes con "FLORES" en el nombre
+✓ Búsqueda case-insensitive
+
+Ejemplo:
+   Folio: 146293
+   Contribuyente: FLORES CRUZ JORGE ENRIQUE
+   Concepto: Requerimiento
+   Estado: Vigente
+   Monto: $500.00
+
+
+--- EJEMPLO 3: Búsqueda por número de acta ---
+
+Parámetros:
+- Búsqueda: "2042"
+
+Resultado esperado:
+✓ 100 requerimientos (límite alcanzado)
+✓ Todas las actas que contienen "2042"
+✓ Formato: num_acta/axo_acta (ej: 2042/2025)
+
+Ejemplo:
+   Folio: 146293
+   Clave Cuenta: 2042/2025
+   Contribuyente: FLORES CRUZ JORGE ENRIQUE
+   Concepto: Requerimiento
+
+
+--- EJEMPLO 4: Búsqueda por folio ---
+
+Parámetros:
+- Búsqueda: "146289"
+
+Resultado esperado:
+✓ Requerimientos con folio específico
+✓ Búsqueda exacta o parcial
+
+Ejemplo:
+   Folio: 146289
+   Clave Cuenta: 2042/2025
+   Contribuyente: FLORES CRUZ JORGE ENRIQUE
+   Estado: Vigente
+
+
+--- CAMPOS MOSTRADOS ---
+
+| Campo          | Descripción                          | Ejemplo                  |
+|----------------|--------------------------------------|--------------------------|
+| folio          | Folio del requerimiento              | 146294                   |
+| clave_cuenta   | Número de acta / año                 | 946/2025                 |
+| ejercicio      | Año del requerimiento                | 2025                     |
+| contribuyente  | Nombre del contribuyente             | FRANCO MORA PEDRO        |
+| domicilio      | Domicilio del contribuyente          | MORENO PEDRO             |
+| concepto       | Tipo de documento                    | Requerimiento / Normal   |
+| monto          | Monto total del requerimiento        | 15750.00                 |
+| fecha_emision  | Fecha de emisión                     | 2025-12-18               |
+| estado         | Estado del requerimiento             | Vigente / Cancelado      |
+| observaciones  | Observaciones adicionales            | Segundo requerimiento... |
+
+
+--- TIPOS DE CONCEPTO ---
+
+| Código | Nombre        | Total    | Descripción                          |
+|--------|---------------|----------|--------------------------------------|
+| N      | Normal        | 233,854  | Notificaciones normales              |
+| R      | Requerimiento | 146,424  | Requerimientos de multa              |
+| S      | Especial      | 18,881   | Tipo especial                        |
+| D      | Diferencia    | 4,003    | Diferencias                          |
+
+
+--- ESTADOS ---
+
+| Código | Nombre     | Total    | Descripción                          |
+|--------|------------|----------|--------------------------------------|
+| V      | Vigente    | 113,972  | Requerimientos vigentes              |
+| C      | Cancelado  | 147,780  | Requerimientos cancelados            |
+| P      | Pagado     | 141,410  | Requerimientos pagados               |
+
+
+--- BÚSQUEDA ---
+
+El parámetro p_clave_cuenta busca en:
+1. Folio del requerimiento (r.folioreq)
+   - Ejemplo: "146289" encuentra folios 146289, 1462890, etc.
+
+2. Número de acta (m.num_acta)
+   - Ejemplo: "2042" encuentra actas 2042, 52042, etc.
+
+3. Nombre del contribuyente (m.contribuyente)
+   - Ejemplo: "FLORES" encuentra todos los contribuyentes con ese apellido
+   - Búsqueda case-insensitive (ILIKE)
+
+
+--- TABLAS USADAS ---
+
+Base de datos: multas_reglamentos
+
+1. publico.reqmultas (403,162 registros):
+   - cvereq: Clave del requerimiento
+   - folioreq: Folio del requerimiento
+   - axoreq: Año del requerimiento
+   - tipo: Tipo de documento (N/R/S/D)
+   - fecemi: Fecha de emisión
+   - total: Monto total
+   - vigencia: Estado (V/C/P)
+   - id_multa: Relación con tabla multas
+   - obs: Observaciones
+
+2. publico.multas:
+   - id_multa: ID único
+   - num_acta: Número de acta
+   - axo_acta: Año del acta
+   - contribuyente: Nombre del contribuyente
+   - domicilio: Domicilio
+
+
+--- JOIN REALIZADO ---
+
+FROM publico.reqmultas r
+LEFT JOIN publico.multas m ON r.id_multa = m.id_multa
+
+LEFT JOIN se usa porque no todos los requerimientos tienen multa asociada
+
+
+--- ORDENAMIENTO ---
+
+Los resultados se ordenan por:
+1. Fecha de emisión descendente (r.fecemi DESC)
+   - Los requerimientos más recientes aparecen primero
+2. Folio descendente (r.folioreq DESC)
+   - Como criterio secundario de ordenamiento
+
+
+--- LÍMITE ---
+
+Máximo 100 registros por consulta para optimizar rendimiento del frontend
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 100 requerimientos encontrados
+✅ Test con filtro 'FLORES': 100 requerimientos (contribuyente)
+✅ Test con filtro '2042': 100 requerimientos (número de acta)
+✅ Test con filtro '146289': 3 requerimientos (folio exacto)
+✅ Stored procedure actualizado exitosamente
+✅ JOIN funcional entre reqmultas y multas
+✅ Formato JSON correcto con 10 campos
+✅ COALESCE para manejo de NULL
+✅ Casting explícito de tipos (VARCHAR, NUMERIC, DATE, TEXT)
+✅ Mapeo de tipos y estados correctos
+
+
+--- ESTADÍSTICAS ---
+
+Total de requerimientos en BD: 403,162
+
+Por tipo de concepto:
+- Normal (N): 233,854 (58%)
+- Requerimiento (R): 146,424 (36%)
+- Especial (S): 18,881 (5%)
+- Diferencia (D): 4,003 (1%)
+
+Por estado:
+- Cancelado (C): 147,780 (37%)
+- Pagado (P): 141,410 (35%)
+- Vigente (V): 113,972 (28%)
+
+Rango de fechas: Varía según los registros
+Registros por consulta: Hasta 100 (límite)
+
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ El campo clave_cuenta muestra "num_acta/axo_acta"
+   No es una cuenta predial, sino el identificador del acta
+
+⚠️ La búsqueda es case-insensitive
+   "flores", "FLORES", "Flores" dan el mismo resultado
+
+⚠️ El límite de 100 registros evita sobrecargar el frontend
+   Para búsquedas más específicas, usar filtros más precisos
+
+⚠️ El ejercicio es el año del requerimiento (axoreq)
+   Puede diferir del año del acta (axo_acta)
+
+⚠️ El domicilio puede estar vacío
+   Algunos registros no tienen domicilio asociado
+
+⚠️ Las observaciones son opcionales
+   Campo obs puede estar vacío o NULL
+
+
+--- MAPEO DE CAMPOS ---
+
+Componente espera → Tabla real:
+- folio → reqmultas.folioreq
+- clave_cuenta → multas.num_acta || '/' || multas.axo_acta
+- ejercicio → reqmultas.axoreq
+- contribuyente → multas.contribuyente
+- domicilio → multas.domicilio
+- concepto → reqmultas.tipo (mapeado a texto)
+- monto → reqmultas.total
+- fecha_emision → reqmultas.fecemi
+- estado → reqmultas.vigencia (mapeado a texto)
+- observaciones → reqmultas.obs
+
+
+--- RESUMEN ---
+
+Problema: Tabla publico.requerimientos no existe
+
+Solución: Usa publico.reqmultas con JOIN a publico.multas
+
+Resultado: Componente funcional con 403,162 requerimientos disponibles
+
+Características:
+- Búsqueda por folio, acta o contribuyente
+- Ordenamiento por fecha descendente
+- Mapeo de tipos y estados a texto descriptivo
+- Límite de 100 registros por consulta
+- JOIN para obtener información completa
+- Manejo de NULL con COALESCE
+- Soporte para todos los tipos de documento (N, R, S, D)
+- Información completa de contribuyente y multa

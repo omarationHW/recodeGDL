@@ -17,7 +17,6 @@
               <input
                 class="municipal-form-control"
                 v-model="filters.cuenta"
-                placeholder="Ej: 12345678"
                 @keyup.enter="filters.cuenta.trim() && reload()"
               />
             </div>

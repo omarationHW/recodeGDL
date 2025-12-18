@@ -1,5 +1,5 @@
 <?php
-// Script para crear el SP listana con paginación server-side
+// Script para probar el stored procedure recaudadora_listana actualizado
 
 $host = '192.168.6.146';
 $dbname = 'multas_reglamentos';
@@ -12,250 +12,132 @@ try {
 
     echo "Conectado exitosamente.\n\n";
 
-    // 1. Crear tabla para listado analítico si no existe
-    echo "1. Creando tabla publico.listado_analitico...\n";
-    $pdo->exec("DROP TABLE IF EXISTS publico.listado_analitico CASCADE");
-
-    $sql = "
-    CREATE TABLE publico.listado_analitico (
-        id SERIAL PRIMARY KEY,
-        clave_cuenta VARCHAR(50) NOT NULL,
-        contribuyente VARCHAR(200) NOT NULL,
-        domicilio VARCHAR(300),
-        concepto VARCHAR(100) NOT NULL,
-        ejercicio INTEGER NOT NULL,
-        periodo VARCHAR(20),
-        monto_original NUMERIC(12,2) NOT NULL,
-        monto_recargos NUMERIC(12,2) DEFAULT 0,
-        monto_descuento NUMERIC(12,2) DEFAULT 0,
-        monto_total NUMERIC(12,2) NOT NULL,
-        fecha_emision DATE NOT NULL,
-        fecha_vencimiento DATE,
-        estado VARCHAR(20) NOT NULL,
-        recaudadora INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    ";
+    // 1. Actualizar el stored procedure
+    echo "1. Actualizando stored procedure recaudadora_listana...\n";
+    $sql = file_get_contents(__DIR__ . '/update_sp_listana.sql');
     $pdo->exec($sql);
-    echo "   ✓ Tabla creada exitosamente.\n\n";
+    echo "   ✓ Stored procedure actualizado exitosamente.\n\n";
 
-    // 2. Insertar datos de prueba (150 registros para probar paginación)
-    echo "2. Insertando 150 registros de prueba...\n";
+    // 2. Probar sin filtro (primeros registros)
+    echo "2. Probando sin filtro (listado analítico general)...\n";
 
-    $contribuyentes = [
-        'MARIA GUADALUPE HERNANDEZ LOPEZ',
-        'JUAN CARLOS MARTINEZ GARCIA',
-        'ANA PATRICIA RODRIGUEZ SANCHEZ',
-        'JOSE LUIS GONZALEZ RAMIREZ',
-        'CARMEN ROSA LOPEZ FERNANDEZ',
-        'FRANCISCO JAVIER PEREZ TORRES',
-        'LAURA ELENA JIMENEZ CRUZ',
-        'ROBERTO CARLOS SANCHEZ MORALES',
-        'GABRIELA MENDEZ ORTIZ',
-        'MIGUEL ANGEL VAZQUEZ RUIZ',
-        'PEDRO ANTONIO CASTRO REYES',
-        'MARTHA ELIZABETH RAMOS SILVA',
-        'JORGE ALBERTO FLORES DOMINGUEZ',
-        'SILVIA CRISTINA MORENO GUTIERREZ',
-        'RICARDO DAVID AGUILAR VARGAS'
-    ];
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listana(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['', 0, 10]);
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $conceptos = [
-        'Impuesto Predial',
-        'Agua Potable',
-        'Licencia Comercial',
-        'Multa de Tránsito',
-        'Derechos de Construcción',
-        'Limpia y Recolección',
-        'Alumbrado Público',
-        'Drenaje y Alcantarillado'
-    ];
-
-    $estados = ['PENDIENTE', 'PAGADO', 'VENCIDO', 'CANCELADO'];
-    $periodos = ['ENERO-FEBRERO', 'MARZO-ABRIL', 'MAYO-JUNIO', 'JULIO-AGOSTO', 'SEPT-OCT', 'NOV-DIC', 'ANUAL'];
-
-    $stmt = $pdo->prepare("
-        INSERT INTO publico.listado_analitico
-        (clave_cuenta, contribuyente, domicilio, concepto, ejercicio, periodo,
-         monto_original, monto_recargos, monto_descuento, monto_total,
-         fecha_emision, fecha_vencimiento, estado, recaudadora)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
-
-    for ($i = 1; $i <= 150; $i++) {
-        $cuenta = "ANA-" . str_pad($i, 5, '0', STR_PAD_LEFT);
-        $contribuyente = $contribuyentes[$i % 15];
-        $domicilio = "AV REVOLUCION #" . (100 + $i) . " COL CENTRO";
-        $concepto = $conceptos[$i % 8];
-        $ejercicio = 2024;
-        $periodo = $periodos[$i % 7];
-
-        $monto_original = 1000.00 + ($i * 25.00);
-        $monto_recargos = $monto_original * 0.10; // 10% de recargos
-        $monto_descuento = ($i % 3 == 0) ? $monto_original * 0.05 : 0; // 5% descuento cada 3
-        $monto_total = $monto_original + $monto_recargos - $monto_descuento;
-
-        $fecha_emision = date('Y-m-d', strtotime("2024-01-01 +{$i} days"));
-        $fecha_venc = date('Y-m-d', strtotime($fecha_emision . " +30 days"));
-        $estado = $estados[$i % 4];
-        $recaudadora = (($i - 1) % 5) + 1; // 1-5
-
-        $stmt->execute([
-            $cuenta,
-            $contribuyente,
-            $domicilio,
-            $concepto,
-            $ejercicio,
-            $periodo,
-            $monto_original,
-            $monto_recargos,
-            $monto_descuento,
-            $monto_total,
-            $fecha_emision,
-            $fecha_venc,
-            $estado,
-            $recaudadora
-        ]);
+    echo "   Registros encontrados: " . count($results) . "\n";
+    if (count($results) > 0) {
+        echo "   Total de registros en BD: " . number_format($results[0]['total_count']) . "\n\n";
     }
-    echo "   ✓ 150 registros insertados.\n\n";
 
-    // 3. Crear o reemplazar el stored procedure con paginación server-side
-    echo "3. Creando stored procedure publico.recaudadora_listana...\n";
-    $sql = "
-    CREATE OR REPLACE FUNCTION publico.recaudadora_listana(
-        p_filtro VARCHAR,
-        p_offset INTEGER,
-        p_limit INTEGER
-    )
-    RETURNS TABLE (
-        total_count BIGINT,
-        clave_cuenta VARCHAR,
-        contribuyente VARCHAR,
-        domicilio VARCHAR,
-        concepto VARCHAR,
-        ejercicio INTEGER,
-        periodo VARCHAR,
-        monto_original NUMERIC,
-        monto_recargos NUMERIC,
-        monto_descuento NUMERIC,
-        monto_total NUMERIC,
-        fecha_emision DATE,
-        fecha_vencimiento DATE,
-        estado VARCHAR,
-        recaudadora INTEGER
-    )
-    LANGUAGE plpgsql
-    AS \$\$
-    DECLARE
-        v_total_count BIGINT;
-    BEGIN
-        -- Primero calcular el total de registros que coinciden con el filtro
-        SELECT COUNT(*)
-        INTO v_total_count
-        FROM publico.listado_analitico l
-        WHERE
-            CASE
-                WHEN p_filtro = '' OR p_filtro IS NULL THEN TRUE
-                ELSE (
-                    l.clave_cuenta ILIKE '%' || p_filtro || '%'
-                    OR l.contribuyente ILIKE '%' || p_filtro || '%'
-                    OR l.concepto ILIKE '%' || p_filtro || '%'
-                    OR l.estado ILIKE '%' || p_filtro || '%'
-                )
-            END;
-
-        -- Luego devolver los registros paginados con el total_count incluido
-        RETURN QUERY
-        SELECT
-            v_total_count,
-            l.clave_cuenta,
-            l.contribuyente,
-            l.domicilio,
-            l.concepto,
-            l.ejercicio,
-            l.periodo,
-            l.monto_original,
-            l.monto_recargos,
-            l.monto_descuento,
-            l.monto_total,
-            l.fecha_emision,
-            l.fecha_vencimiento,
-            l.estado,
-            l.recaudadora
-        FROM publico.listado_analitico l
-        WHERE
-            CASE
-                WHEN p_filtro = '' OR p_filtro IS NULL THEN TRUE
-                ELSE (
-                    l.clave_cuenta ILIKE '%' || p_filtro || '%'
-                    OR l.contribuyente ILIKE '%' || p_filtro || '%'
-                    OR l.concepto ILIKE '%' || p_filtro || '%'
-                    OR l.estado ILIKE '%' || p_filtro || '%'
-                )
-            END
-        ORDER BY l.fecha_emision DESC, l.id DESC
-        LIMIT p_limit
-        OFFSET p_offset;
-    END;
-    \$\$;
-    ";
-    $pdo->exec($sql);
-    echo "   ✓ Stored procedure creado exitosamente.\n\n";
-
-    // 4. Probar el SP con varios ejemplos
-    echo "4. Probando el stored procedure:\n\n";
-
-    $tests = [
-        [
-            'nombre' => 'Primera página sin filtro (10 registros)',
-            'params' => ['', 0, 10]
-        ],
-        [
-            'nombre' => 'Segunda página sin filtro (10 registros, offset 10)',
-            'params' => ['', 10, 10]
-        ],
-        [
-            'nombre' => 'Filtrar por Predial (primera página, 25 registros)',
-            'params' => ['Predial', 0, 25]
-        ],
-        [
-            'nombre' => 'Filtrar por MARIA (primera página, 10 registros)',
-            'params' => ['MARIA', 0, 10]
-        ],
-        [
-            'nombre' => 'Filtrar por estado PENDIENTE (50 registros)',
-            'params' => ['PENDIENTE', 0, 50]
-        ]
-    ];
-
-    foreach ($tests as $idx => $test) {
-        echo "   Prueba " . ($idx + 1) . ": " . $test['nombre'] . "\n";
-        $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listana(?, ?, ?)");
-        $stmt->execute($test['params']);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $total_count = $rows[0]['total_count'] ?? 0;
-        echo "   Total de registros que coinciden: {$total_count}\n";
-        echo "   Registros devueltos en esta página: " . count($rows) . "\n";
-
-        if (count($rows) > 0) {
-            echo "   Primeros 2 registros:\n";
-            foreach (array_slice($rows, 0, 2) as $row) {
-                echo "      - " . $row['clave_cuenta'] .
-                     " - " . $row['contribuyente'] .
-                     " - " . $row['concepto'] .
-                     " - $" . number_format($row['monto_total'], 2) .
-                     " - " . $row['estado'] . "\n";
-            }
+    if (count($results) > 0) {
+        echo "   === PRIMEROS 3 REGISTROS ===\n";
+        for ($i = 0; $i < min(3, count($results)); $i++) {
+            $reg = $results[$i];
+            echo "\n   REGISTRO " . ($i + 1) . ":\n";
+            echo "   Cuenta: {$reg['clave_cuenta']}\n";
+            echo "   Contribuyente: {$reg['contribuyente']}\n";
+            echo "   Concepto: {$reg['concepto']}\n";
+            echo "   Impuesto: $" . number_format($reg['impuesto'], 2) . "\n";
+            echo "   Recargos: $" . number_format($reg['recargos'], 2) . "\n";
+            echo "   Multas: $" . number_format($reg['multas'], 2) . "\n";
+            echo "   Actualización: $" . number_format($reg['actualizacion'], 2) . "\n";
+            echo "   Total: $" . number_format($reg['total'], 2) . "\n";
+            echo "   Estado: {$reg['estado']}\n";
+            echo "   Fecha Emisión: {$reg['fecha_emision']}\n";
         }
-        echo "\n";
     }
 
-    echo "✅ Script completado exitosamente!\n";
-    echo "\n📝 NOTA: Paginación server-side implementada:\n";
-    echo "   - El SP cuenta el total de registros que coinciden con el filtro\n";
-    echo "   - Devuelve solo los registros de la página solicitada (OFFSET/LIMIT)\n";
-    echo "   - Incluye total_count en cada fila para la paginación del frontend\n";
+    // 3. Probar con paginación (página 2)
+    echo "\n\n3. Probando con paginación (offset=10, limit=5)...\n";
+
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listana(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['', 10, 5]);
+    $results_page2 = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "   Registros en página 2: " . count($results_page2) . "\n";
+
+    if (count($results_page2) > 0) {
+        $reg = $results_page2[0];
+        echo "\n   Ejemplo:\n";
+        echo "   Cuenta: {$reg['clave_cuenta']}\n";
+        echo "   Concepto: {$reg['concepto']}\n";
+        echo "   Total: $" . number_format($reg['total'], 2) . "\n";
+        echo "   Estado: {$reg['estado']}\n";
+    }
+
+    // 4. Probar con filtro por cuenta
+    echo "\n\n4. Probando con filtro por cuenta '100'...\n";
+
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listana(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['100', 0, 10]);
+    $results_filtro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "   Registros con cuenta '100': " . count($results_filtro) . "\n";
+
+    if (count($results_filtro) > 0) {
+        $reg = $results_filtro[0];
+        echo "\n   Ejemplo:\n";
+        echo "   Cuenta: {$reg['clave_cuenta']}\n";
+        echo "   Contribuyente: {$reg['contribuyente']}\n";
+        echo "   Concepto: {$reg['concepto']}\n";
+        echo "   Total: $" . number_format($reg['total'], 2) . "\n";
+    }
+
+    // 5. Estadísticas generales
+    echo "\n\n5. Estadísticas generales...\n";
+
+    $stmt_req = $pdo->query("
+        SELECT COUNT(*) as total
+        FROM public.reqbfpredial
+    ");
+    $total_req = $stmt_req->fetch(PDO::FETCH_ASSOC);
+    echo "   Total requerimientos prediales: " . number_format($total_req['total']) . "\n";
+
+    $stmt_det = $pdo->query("
+        SELECT COUNT(*) as total
+        FROM public.detreqbfpredial
+    ");
+    $total_det = $stmt_det->fetch(PDO::FETCH_ASSOC);
+    echo "   Total detalles por año: " . number_format($total_det['total']) . "\n";
+
+    // Ver distribución por estado
+    echo "\n   Distribución por estado:\n";
+    $stmt_estados = $pdo->query("
+        SELECT
+            vigencia,
+            COUNT(*) as total
+        FROM public.reqbfpredial
+        WHERE vigencia IS NOT NULL
+        GROUP BY vigencia
+        ORDER BY total DESC
+    ");
+    $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($estados as $estado) {
+        $estado_nombre = $estado['vigencia'] == 'V' ? 'Vigente' :
+                        ($estado['vigencia'] == 'C' ? 'Cancelado' :
+                        ($estado['vigencia'] == 'P' ? 'Pagado' :
+                        ($estado['vigencia'] == 'X' ? 'Expirado' :
+                        ($estado['vigencia'] == 'i' ? 'Incompleto' : $estado['vigencia']))));
+        echo "   - {$estado_nombre} ({$estado['vigencia']}): " . number_format($estado['total']) . "\n";
+    }
+
+    // 6. Ver formato JSON
+    echo "\n\n6. Formato JSON para el frontend (primeros 2 registros):\n";
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listana(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['', 0, 2]);
+    $result_json = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Remover total_count para JSON más limpio
+    foreach ($result_json as &$row) {
+        $total_count = $row['total_count'];
+        unset($row['total_count']);
+    }
+
+    echo json_encode($result_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    echo "\n\n   Total Count: " . number_format($total_count) . "\n";
+
+    echo "\n✅ Todas las pruebas completadas exitosamente!\n";
 
 } catch (PDOException $e) {
     echo "❌ Error: " . $e->getMessage() . "\n";

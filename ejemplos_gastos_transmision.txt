@@ -1,0 +1,165 @@
+=== EJEMPLOS PARA PROBAR GastosTransmision.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla public.reqdiftransmision.
+
+IMPORTANTE:
+- Cada requerimiento tiene múltiples tipos de gastos (impuesto, recargos, multas, etc.)
+- Cada tipo de gasto se retorna como un registro separado con su concepto
+- Se muestran solo los gastos con importe > 0
+
+--- EJEMPLO 1: Consulta por cuenta específica ---
+
+Filtros en el formulario:
+- Cuenta: 111111111
+- Año: 2024
+
+Resultado esperado:
+✓ 8 registros encontrados
+✓ Desglose completo de todos los gastos para esa cuenta
+
+Gastos mostrados:
+- Impuesto: $1,000.00
+- Recargos: $100.00
+- Multa por Impuesto: $50.00
+- Multa Extemporánea: $50.00
+- Actualización: $20.00
+- Gastos: $30.00
+- Gastos de Requerimiento: $50.00
+- Multa: $100.00
+
+TOTAL: $1,400.00
+
+
+--- EJEMPLO 2: Consulta por cuenta diferente ---
+
+Filtros en el formulario:
+- Cuenta: 123456789
+- Año: 2023
+
+Resultado esperado:
+✓ Múltiples registros con diferentes conceptos
+✓ Cada concepto muestra su importe correspondiente
+✓ Ordenados por fecha descendente
+
+
+--- EJEMPLO 3: Consulta sin filtros (todos los gastos) ---
+
+Filtros en el formulario:
+- Cuenta: (vacío)
+- Año: (año actual)
+
+Resultado esperado:
+✓ Se muestran todos los gastos de transmisión del año actual
+✓ Hasta 200 registros máximo
+✓ Ordenados por fecha descendente
+
+
+--- EJEMPLO 4: Filtro solo por año ---
+
+Filtros en el formulario:
+- Cuenta: (vacío)
+- Año: 2024
+
+Resultado esperado:
+✓ Todos los gastos del año 2024
+✓ Múltiples cuentas y conceptos
+✓ Ejemplo: 16 gastos distribuidos en:
+  - Impuesto: 2 registros ($2,000.00)
+  - Recargos: 2 registros ($200.00)
+  - Multas: varios registros
+  - Gastos: varios registros
+
+
+--- EJEMPLO 5: Búsqueda parcial ---
+
+Filtros en el formulario:
+- Cuenta: 111
+- Año: (año actual)
+
+Resultado esperado:
+✓ Todas las cuentas que contengan "111"
+✓ Ejemplo: cuenta 111111111 con 8 gastos
+
+
+--- ESTRUCTURA DE DATOS ---
+
+Cada registro retornado tiene:
+- clave_cuenta: Número de cuenta del contribuyente
+- concepto: Tipo de gasto (ver lista abajo)
+- importe: Monto del gasto
+- fecha: Fecha de emisión del requerimiento
+
+Conceptos disponibles:
+1. Impuesto
+2. Recargos
+3. Multa por Impuesto
+4. Multa Extemporánea
+5. Actualización
+6. Gastos
+7. Gastos de Requerimiento
+8. Multa
+
+
+--- COMPORTAMIENTO DEL FORMULARIO ---
+
+- Búsqueda por cuenta: usa ILIKE (no distingue mayúsculas/minúsculas)
+- Búsqueda parcial: busca cuentas que contengan el texto
+- Filtro por año: 0 = todos los años
+- Paginación: 10 registros por página
+- Ordenamiento: Por fecha descendente, luego por cuenta y concepto
+
+
+--- VALIDACIONES ---
+
+1. Si no hay registros: muestra "Sin registros"
+2. Búsqueda vacía: retorna todos los gastos (limitado a 200)
+3. Importes se formatean como moneda mexicana
+4. Las fechas se muestran en formato YYYY-MM-DD
+
+
+--- MAPEO DE CAMPOS ---
+
+public.reqdiftransmision → GastosTransmision.vue:
+- cvecuenta → clave_cuenta (cuenta del contribuyente)
+- [impuesto, recargos, multa_imp, etc.] → importe (según concepto)
+- "Impuesto", "Recargos", etc. → concepto (tipo de gasto)
+- fecemi → fecha (fecha de emisión)
+- axoreq → filtro por ejercicio/año
+
+
+--- ESTADÍSTICAS ACTUALES ---
+
+Base de datos: public.reqdiftransmision
+- Total de registros: 7 requerimientos
+- Cuentas únicas: 7
+- Suma total de gastos: $14,824.25
+- Rango de fechas: 2018-02-08 a 2025-11-19
+
+Distribución por tipo de gasto:
+- Impuesto: 7 registros, Total: $7,914.00
+- Recargos: 7 registros, Total: $838.67
+- Multa por Impuesto: 6 registros, Total: $794.85
+- Multa Extemporánea: 6 registros, Total: $635.00
+- Actualización: 6 registros, Total: $2,805.49
+- Gastos: 7 registros, Total: $503.44
+- Gastos de Requerimiento: 7 registros, Total: $603.44
+- Multa: 7 registros, Total: $1,082.80
+
+
+--- QUERY OPTIMIZADO ---
+
+El stored procedure usa UNION ALL para combinar todos los tipos de gastos en un solo resultado.
+Solo retorna gastos con importe > 0 para evitar registros vacíos.
+Limita a 200 registros para optimizar rendimiento.
+
+
+--- PRUEBAS REALIZADAS ---
+
+✓ Consulta por cuenta específica - Funciona
+✓ Consulta sin filtros - Funciona
+✓ Filtro por año - Funciona
+✓ Búsqueda parcial de cuenta - Funciona
+✓ Desglose completo de conceptos - Funciona
+✓ Ordenamiento correcto - Funciona
+✓ Formateo de importes - Funciona
+✓ Paginación - Funciona en el componente Vue

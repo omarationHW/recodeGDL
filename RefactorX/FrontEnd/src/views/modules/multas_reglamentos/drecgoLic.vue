@@ -19,7 +19,6 @@
                 class="municipal-form-control"
                 v-model="filters.licencia"
                 @keyup.enter="reload"
-                placeholder="Ej: 1, 5, 8"
               />
             </div>
           </div>

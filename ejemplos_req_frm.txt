@@ -1,0 +1,129 @@
+=== EJEMPLOS PARA PROBAR ReqFrm.vue ===
+
+El stored procedure recaudadora_req_frm_save ha sido actualizado para usar la tabla publico.reqmultas.
+
+IMPORTANTE: La secuencia reqmultas_cvereq_seq fue corregida para sincronizarla con los datos existentes.
+
+--- EJEMPLO 1: Guardar requerimiento con folio auto-generado ---
+
+JSON de entrada:
+{
+  "clave_cuenta": "946",
+  "ejercicio": 2025,
+  "id_multa": 417193,
+  "monto": 15000,
+  "gastos": 500,
+  "observaciones": "Requerimiento generado desde formulario"
+}
+
+Resultado esperado:
+- success: true
+- mensaje: "Requerimiento guardado exitosamente. Folio: [auto-generado]/2025"
+- id_req: [número generado automáticamente]
+
+Campos que se guardarán en reqmultas:
+- folioreq: Auto-generado (siguiente disponible para el ejercicio 2025)
+- axoreq: 2025
+- id_multa: 417193
+- multas: 15000.00
+- gastos: 500.00
+- total: 15500.00
+- vigencia: 'V' (Vigente)
+- tipo: 'R' (Requerimiento)
+- recaud: 3 (Multas)
+- fecemi: Fecha actual
+- obs: "Requerimiento generado desde formulario"
+
+
+--- EJEMPLO 2: Guardar con número de acta ---
+
+JSON de entrada:
+{
+  "clave_cuenta": "1780",
+  "ejercicio": 2025,
+  "monto": 8000,
+  "gastos": 750,
+  "observaciones": "Requerimiento urgente"
+}
+
+Nota: No se especifica id_multa, el SP lo buscará automáticamente usando num_acta="1780" y axo_acta=2025
+
+Resultado esperado:
+- success: true
+- mensaje: "Requerimiento guardado exitosamente. Folio: [auto-generado]/2025"
+- id_req: [número generado]
+- El sistema encontrará automáticamente id_multa=417192 para el acta 1780/2025
+
+
+--- EJEMPLO 3: Especificar folio manualmente ---
+
+JSON de entrada:
+{
+  "clave_cuenta": "2010",
+  "ejercicio": 2025,
+  "id_multa": 417191,
+  "folio": 150000,
+  "monto": 12000,
+  "gastos": 600,
+  "observaciones": "Requerimiento con folio específico"
+}
+
+Resultado esperado:
+- success: true
+- mensaje: "Requerimiento guardado exitosamente. Folio: 150000/2025"
+- id_req: [número generado]
+- folioreq será 150000 (el especificado en el JSON)
+
+Si el folio ya existe para ese ejercicio, retornará:
+- success: false
+- mensaje: "Error: Ya existe un requerimiento con este folio en el ejercicio especificado"
+
+
+--- VALIDACIONES ---
+
+El stored procedure valida:
+1. clave_cuenta es obligatoria (no puede ser vacía o null)
+2. ejercicio debe ser válido (si es 0 o null, usa el año actual)
+3. Si se especifica un folio, verifica que no exista ya en ese ejercicio
+4. El JSON debe ser válido
+
+--- CAMPOS MAPEADOS ---
+
+JSON → publico.reqmultas:
+- clave_cuenta → busca id_multa en publico.multas por num_acta
+- ejercicio → axoreq
+- id_multa → id_multa (opcional, se busca si no se proporciona)
+- folio → folioreq (opcional, auto-generado si no se especifica)
+- monto → multas y se usa para calcular total
+- gastos → gasto_req y gastos
+- observaciones → obs
+
+Valores fijos:
+- vigencia: 'V' (Vigente)
+- tipo: 'R' (Requerimiento)
+- recaud: 3 (Multas)
+- cveejecut: 0 (Sin ejecutor asignado)
+- nodiligenciado: 'N'
+- fecemi: CURRENT_DATE
+- feccap: CURRENT_DATE
+- capturista: CURRENT_USER
+- total: monto + gastos
+
+
+--- ESTADÍSTICAS ACTUALES ---
+
+Total de requerimientos en publico.reqmultas: 403,159
+- Vigentes: 113,969
+- Cancelados: 147,780
+
+Último cvereq: 450117
+Último folio usado para 2025: 146294
+
+
+--- NOTA SOBRE LA CORRECCIÓN ---
+
+Se encontró que la secuencia publico.reqmultas_cvereq_seq estaba desincronizada (en valor 11 mientras el MAX(cvereq) era 450114).
+La secuencia fue corregida usando:
+SELECT setval('publico.reqmultas_cvereq_seq', (SELECT MAX(cvereq) FROM publico.reqmultas));
+
+Esto asegura que los nuevos registros usen valores de cvereq correctos y secuenciales.

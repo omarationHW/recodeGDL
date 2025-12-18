@@ -1,0 +1,175 @@
+=== EJEMPLOS PARA PROBAR ReqFrm.vue ===
+
+El stored procedure y el componente Vue han sido sincronizados para trabajar con los 3 campos del formulario:
+- Cuenta (clave_cuenta)
+- Folio (folio)
+- Año (ejercicio)
+
+IMPORTANTE: El SP ahora:
+1. Busca automáticamente la multa por número de acta y año
+2. Toma el monto de la multa encontrada
+3. Usa $500.00 como gastos fijos
+4. Calcula el total: monto_multa + $500.00
+5. Retorna req_id (cvereq) del registro creado
+
+--- EJEMPLO 1: Requerimiento básico ---
+
+Campos en el formulario:
+- Cuenta: 50680
+- Folio: 1
+- Año: 5068
+
+JSON enviado al backend:
+{
+  "clave_cuenta": "50680",
+  "folio": 1,
+  "ejercicio": 5068
+}
+
+Resultado esperado:
+✓ success: true
+✓ mensaje: "Requerimiento guardado exitosamente. Folio: 1/5068"
+✓ req_id: [número auto-generado]
+
+Datos guardados en publico.reqmultas:
+- folioreq: 1
+- axoreq: 5068
+- id_multa: [encontrado por num_acta="50680" y axo_acta=5068]
+- multas: $2,500.00 (del registro de la multa)
+- gastos: $500.00 (valor fijo)
+- total: $3,000.00
+- vigencia: 'V' (Vigente)
+- tipo: 'R' (Requerimiento)
+- recaud: 3 (Multas)
+
+
+--- EJEMPLO 2: Otro requerimiento ---
+
+Campos en el formulario:
+- Cuenta: 26971
+- Folio: 1
+- Año: 2697
+
+JSON enviado:
+{
+  "clave_cuenta": "26971",
+  "folio": 1,
+  "ejercicio": 2697
+}
+
+Resultado esperado:
+✓ success: true
+✓ mensaje: "Requerimiento guardado exitosamente. Folio: 1/2697"
+✓ req_id: [número auto-generado]
+
+Contribuyente: ROJAS MENDOZA OLWALDO
+Monto multa: $2,500.00
+Gastos: $500.00
+Total: $3,000.00
+
+
+--- EJEMPLO 3: Con folio consecutivo ---
+
+Campos en el formulario:
+- Cuenta: 58783
+- Folio: 2
+- Año: 2500
+
+JSON enviado:
+{
+  "clave_cuenta": "58783",
+  "folio": 2,
+  "ejercicio": 2500
+}
+
+Resultado esperado:
+✓ success: true
+✓ mensaje: "Requerimiento guardado exitosamente. Folio: 2/2500"
+✓ req_id: [número auto-generado]
+
+Contribuyente: GONZALEZ VAZQUEZ MARCOS JAVIER
+Monto multa: $2,500.00
+Gastos: $500.00
+Total: $3,000.00
+
+
+--- VALIDACIONES ---
+
+El formulario y el SP validan:
+
+1. Cuenta es obligatoria (campo requerido en el formulario)
+   - Si está vacía: "Por favor complete los campos Cuenta y Folio"
+
+2. Folio es obligatorio (campo requerido en el formulario)
+   - Si está vacío: "Por favor complete los campos Cuenta y Folio"
+
+3. La multa debe existir en la BD
+   - Si no existe: "Error: No se encontró la multa con el número de acta especificado"
+
+4. El folio no debe estar duplicado para ese ejercicio
+   - Si ya existe: "Error: Ya existe un requerimiento con este folio en el ejercicio especificado"
+
+5. Año se puede omitir (usa el año actual por defecto)
+
+
+--- COMPORTAMIENTO DEL FORMULARIO ---
+
+Al guardar exitosamente:
+- Muestra modal: "Operación exitosa"
+- Mensaje: "[mensaje del SP]"
+- ID del requerimiento: [req_id]
+- Limpia el formulario automáticamente
+- Deja el año con el valor actual
+
+Al fallar:
+- Muestra modal: "Error"
+- Mensaje: [mensaje de error del SP]
+- Mantiene los datos en el formulario
+
+
+--- CAMPOS AUTOMÁTICOS ---
+
+El SP completa automáticamente estos campos:
+- cvereq: Auto-generado por la secuencia
+- id_multa: Buscado por num_acta y axo_acta
+- multas: Tomado del registro de la multa
+- gasto_req: $500.00 (fijo)
+- gastos: $500.00 (fijo)
+- total: multas + $500.00
+- vigencia: 'V' (Vigente)
+- tipo: 'R' (Requerimiento)
+- recaud: 3 (Multas)
+- cveejecut: 0 (Sin ejecutor)
+- nodiligenciado: 'N'
+- fecemi: Fecha actual
+- feccap: Fecha actual
+- capturista: Usuario actual de la BD
+- obs: 'Requerimiento capturado desde formulario'
+
+
+--- ESTADÍSTICAS ACTUALES ---
+
+Total de requerimientos: 403,161
+- Vigentes: 113,971
+- Cancelados: 147,780
+
+
+--- CORRECCIONES REALIZADAS ---
+
+1. Sincronizada secuencia publico.reqmultas_cvereq_seq
+2. Actualizado SP para usar solo los 3 campos del formulario
+3. Actualizado Vue component para mostrar req_id correctamente
+4. Validación de existencia de multa antes de insertar
+5. Valores fijos para gastos ($500.00)
+6. Búsqueda automática de id_multa y monto por acta
+
+
+--- PRUEBAS REALIZADAS ---
+
+✓ Guardado exitoso con todos los campos
+✓ Detección de duplicados (mismo folio/ejercicio)
+✓ Validación de multa inexistente
+✓ Retorno correcto del req_id
+✓ Limpieza de formulario después de guardar
+✓ Cálculo correcto del total
+✓ Asignación correcta de valores por defecto

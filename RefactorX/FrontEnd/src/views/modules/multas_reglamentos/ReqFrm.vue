@@ -133,7 +133,7 @@ async function guardar() {
       if (result.success) {
         showModal(
           'Operación exitosa',
-          `${result.mensaje}\n\nID del requerimiento: ${result.cvereq}`,
+          `${result.mensaje}\n\nID del requerimiento: ${result.req_id}`,
           'success'
         )
 

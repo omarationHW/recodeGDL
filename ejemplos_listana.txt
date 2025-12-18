@@ -1,0 +1,305 @@
+=== EJEMPLOS PARA PROBAR ListAna.vue (Listado Analítico) ===
+
+El stored procedure ha sido actualizado para usar las tablas existentes:
+- public.reqbfpredial (118,842 requerimientos prediales)
+- public.detreqbfpredial (443,880 detalles por año)
+- public.cartainvpredial (18,983 nombres de propietarios)
+
+IMPORTANTE:
+- 443,884 registros de detalles analíticos disponibles
+- Triple JOIN para obtener requerimiento + detalle + nombre
+- Paginación incluida (offset y limit)
+- Búsqueda por cuenta o estado
+- Cada cuenta puede tener múltiples años
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.listado_analitico" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa triple JOIN:
+1. public.reqbfpredial (requerimientos prediales con totales)
+2. public.detreqbfpredial (desglose por año y bimestre)
+3. public.cartainvpredial (nombres de propietarios)
+
+--- PARÁMETROS DEL COMPONENTE ---
+
+El componente Vue envía 3 parámetros:
+- p_filtro: VARCHAR (búsqueda en cuenta o estado)
+- p_offset: INTEGER (registro inicial para paginación)
+- p_limit: INTEGER (cantidad de registros, default 50)
+
+--- EJEMPLO 1: Listado general sin filtro ---
+
+Parámetros:
+- Filtro: (vacío)
+- Offset: 0
+- Limit: 10
+
+Resultado esperado:
+✓ 10 registros (primera página)
+✓ Total disponible: 443,884 registros
+✓ Ordenados por cuenta y año
+
+Ejemplo de registro:
+   Cuenta: 4
+   Contribuyente: Cuenta 4
+   Concepto: Año 2010 Bim 1-6
+   Impuesto: $4,594.26
+   Recargos: $2,986.27
+   Multas: $0.00
+   Total: $7,580.53
+   Estado: Expirado
+   Fecha Emisión: 2015-11-11
+
+
+--- EJEMPLO 2: Paginación (segunda página) ---
+
+Parámetros:
+- Filtro: (vacío)
+- Offset: 10
+- Limit: 5
+
+Resultado esperado:
+✓ 5 registros de la segunda página
+✓ Offset 10 = saltea los primeros 10 registros
+✓ Continúa la secuencia del listado
+
+Ejemplo:
+   Cuenta: 53
+   Concepto: Año 2014 Bim 1-6
+   Total: $2,286.97
+   Estado: Incompleto
+
+
+--- EJEMPLO 3: Búsqueda por cuenta ---
+
+Parámetros:
+- Filtro: "100"
+- Offset: 0
+- Limit: 10
+
+Resultado esperado:
+✓ Cuentas que contienen "100" (100, 1000, 1001, 1007, etc.)
+✓ Búsqueda con ILIKE '%100%'
+✓ Múltiples años por cuenta
+
+Ejemplo:
+   Cuenta: 1007
+   Contribuyente: Cuenta 1007
+   Concepto: Año 2014 Bim 1-6
+   Total: $2,827.17
+
+
+--- CAMPOS MOSTRADOS ---
+
+| Campo          | Descripción                          | Ejemplo                  |
+|----------------|--------------------------------------|--------------------------|
+| clave_cuenta   | Número de cuenta catastral           | 4                        |
+| contribuyente  | Nombre del propietario o "Cuenta #"  | Cuenta 4                 |
+| concepto       | Periodo (año y bimestres)            | Año 2010 Bim 1-6         |
+| impuesto       | Impuesto del periodo                 | 4594.26                  |
+| recargos       | Recargos del periodo                 | 2986.27                  |
+| multas         | Multas del requerimiento             | 0.00                     |
+| actualizacion  | Actualización (siempre 0)            | 0                        |
+| total          | Suma impuesto + recargos             | 7580.53                  |
+| estado         | Estado del requerimiento             | Vigente / Expirado       |
+| fecha_emision  | Fecha de emisión                     | 2015-11-11               |
+| total_count    | Total de registros (paginación)      | 443884                   |
+
+
+--- ESTADOS ---
+
+| Código | Nombre      | Total    | Descripción                          |
+|--------|-------------|----------|--------------------------------------|
+| V      | Vigente     | 99,606   | Requerimientos vigentes              |
+| i      | Incompleto  | 9,122    | Requerimientos incompletos           |
+| E      | E           | 5,064    | Estado especial E                    |
+| I      | I           | 2,313    | Estado especial I                    |
+| F      | F           | 2,232    | Estado especial F                    |
+| X      | Expirado    | 487      | Requerimientos expirados             |
+| C      | Cancelado   | 18       | Requerimientos cancelados            |
+
+
+--- DESGLOSE POR AÑO Y BIMESTRE ---
+
+Cada cuenta puede tener múltiples registros:
+- Un registro por cada año con adeudo
+- Cada registro muestra el periodo (axo, bimini-bimfin)
+- Por ejemplo: "Año 2010 Bim 1-6" = Todo el año 2010
+
+Ejemplo de cuenta con múltiples años:
+   Cuenta: 4
+   - Año 2010 Bim 1-6: $7,580.53
+   - Año 2011 Bim 1-6: $7,029.22
+   - Año 2012 Bim 1-6: $6,672.23
+   - Año 2013 Bim 1-6: $7,081.10
+   - Año 2014 Bim 1-6: $7,376.28
+   - Año 2015 Bim 1-6: $7,030.80
+
+
+--- TABLAS USADAS ---
+
+Base de datos: multas_reglamentos
+
+1. public.reqbfpredial (118,842 registros):
+   - cvecuenta: Cuenta catastral
+   - vigencia: Estado (V/C/P/X/i/E/I/F)
+   - impuesto: Impuesto total del requerimiento
+   - recargos: Recargos totales
+   - gastos: Gastos
+   - multas: Multas
+   - total: Total del requerimiento
+   - fecemi: Fecha de emisión
+   - axoini/bimini: Periodo inicial
+   - axofin/bimfin: Periodo final
+
+2. public.detreqbfpredial (443,880 registros):
+   - cvecuenta: Cuenta catastral (JOIN key)
+   - axo: Año específico
+   - bimini: Bimestre inicial
+   - bimfin: Bimestre final
+   - valfiscal: Valor fiscal
+   - tasa: Tasa aplicada
+   - impuesto: Impuesto del año
+   - recargos: Recargos del año
+
+3. public.cartainvpredial (18,983 registros):
+   - cvecuenta: Cuenta catastral (JOIN key)
+   - nombre: Nombre del propietario
+
+
+--- JOINS REALIZADOS ---
+
+FROM public.reqbfpredial r
+LEFT JOIN public.detreqbfpredial d ON r.cvecuenta = d.cvecuenta
+LEFT JOIN public.cartainvpredial c ON r.cvecuenta = c.cvecuenta
+
+LEFT JOIN se usa porque:
+- No todos los requerimientos tienen detalle por año
+- No todas las cuentas tienen nombre registrado en cartainvpredial
+
+
+--- ORDENAMIENTO ---
+
+Los resultados se ordenan por:
+1. Cuenta catastral (cvecuenta) ascendente
+2. Año (axo) ascendente
+
+Esto agrupa los registros por cuenta y muestra años en orden cronológico
+
+
+--- PAGINACIÓN ---
+
+El campo total_count indica el total de registros disponibles:
+- Total: 443,884 registros
+- Usa p_offset y p_limit para navegación
+- Ejemplo: página 2 = offset 50, limit 50
+
+Cálculo de páginas:
+- Página 1: offset=0, limit=50
+- Página 2: offset=50, limit=50
+- Página 3: offset=100, limit=50
+- Total páginas: CEILING(443884 / 50) = 8,878 páginas
+
+
+--- BÚSQUEDA ---
+
+El parámetro p_filtro busca en:
+1. Cuenta catastral (cvecuenta)
+   - Ejemplo: "100" encuentra 100, 1000, 1001, 1007, etc.
+   - Búsqueda parcial con ILIKE
+
+2. Estado (vigencia)
+   - Ejemplo: "V" encuentra solo vigentes
+   - Búsqueda exacta o parcial
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 10 registros, 443,884 total
+✅ Test con paginación: offset=10, limit=5 correctos
+✅ Test búsqueda por cuenta "100": 10 registros encontrados
+✅ Stored procedure actualizado exitosamente
+✅ Triple JOIN funcional
+✅ Formato JSON correcto con 11 campos
+✅ COALESCE para manejo de NULL
+✅ Paginación con total_count incluido
+✅ Ordenamiento por cuenta y año
+
+
+--- ESTADÍSTICAS ---
+
+Total de requerimientos: 118,842
+Total de detalles por año: 443,880
+Promedio de años por cuenta: ~3.7 años
+
+Por estado:
+- Vigente (V): 99,606 (83.8%)
+- Incompleto (i): 9,122 (7.7%)
+- Otros (E/I/F): 9,609 (8.1%)
+- Expirado (X): 487 (0.4%)
+- Cancelado (C): 18 (0.0%)
+
+Registros por página: 50 (configurable)
+Total páginas con 50 registros: 8,878 páginas
+
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ El campo actualizacion siempre es 0
+   La tabla detreqbfpredial no tiene campo actualizacion
+
+⚠️ Cada cuenta puede tener múltiples registros
+   Un registro por cada año con adeudo
+
+⚠️ El contribuyente puede ser "Cuenta #"
+   Si no hay nombre en cartainvpredial, se muestra "Cuenta {número}"
+
+⚠️ El concepto describe el periodo
+   Formato: "Año {año} Bim {inicio}-{fin}"
+
+⚠️ El total es impuesto + recargos
+   No incluye multas ni actualización
+
+⚠️ La paginación es obligatoria
+   El componente debe enviar offset y limit
+
+⚠️ El total_count está en todos los registros
+   Para calcular el total de páginas
+
+
+--- MAPEO DE CAMPOS ---
+
+Componente espera → Tabla real:
+- clave_cuenta → reqbfpredial.cvecuenta
+- contribuyente → cartainvpredial.nombre OR 'Cuenta ' || cvecuenta
+- concepto → 'Año ' || axo || ' Bim ' || bimini || '-' || bimfin
+- impuesto → detreqbfpredial.impuesto OR reqbfpredial.impuesto
+- recargos → detreqbfpredial.recargos OR reqbfpredial.recargos
+- multas → reqbfpredial.multas
+- actualizacion → 0 (no disponible)
+- total → impuesto + recargos del detalle
+- estado → mapeo de vigencia a texto
+- fecha_emision → reqbfpredial.fecemi
+- total_count → COUNT(*) para paginación
+
+
+--- RESUMEN ---
+
+Problema: Tabla publico.listado_analitico no existe
+
+Solución: Triple JOIN entre reqbfpredial, detreqbfpredial y cartainvpredial
+
+Resultado: Listado analítico funcional con 443,884 registros de detalles
+
+Características:
+- Desglose por año y bimestre para cada cuenta
+- Paginación con total_count incluido
+- Búsqueda por cuenta o estado
+- Ordenamiento por cuenta y año
+- Triple JOIN para información completa
+- Manejo de NULL con COALESCE
+- Mapeo de estados a texto descriptivo
+- Soporte para 118,842 cuentas con múltiples años

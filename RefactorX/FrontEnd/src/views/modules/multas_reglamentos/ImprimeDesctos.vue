@@ -73,13 +73,54 @@
             <div v-else class="alert-success">
               <font-awesome-icon icon="check-circle"/>
               <strong>{{ result[0].mensaje || 'Reporte generado exitosamente' }}</strong>
+
+              <!-- Detalles del Reporte -->
               <div class="result-details" v-if="result[0].folio_reporte">
-                <p>Folio del Reporte: <strong>{{ result[0].folio_reporte }}</strong></p>
-                <p>Clave de Cuenta: <strong>{{ filters.cuenta }}</strong></p>
-                <p>Ejercicio: <strong>{{ filters.ejercicio }}</strong></p>
-                <p v-if="result[0].fecha_generacion">Fecha de Generación: <strong>{{ result[0].fecha_generacion }}</strong></p>
-                <p v-if="result[0].total_descuentos">Total de Descuentos: <strong>{{ result[0].total_descuentos }}</strong></p>
-                <p v-if="result[0].monto_total">Monto Total: <strong>{{ formatCurrency(result[0].monto_total) }}</strong></p>
+                <h6><font-awesome-icon icon="file-alt"/> Información del Reporte</h6>
+
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <span class="detail-label">Folio del Reporte:</span>
+                    <span class="detail-value">{{ result[0].folio_reporte }}</span>
+                  </div>
+
+                  <div class="detail-item">
+                    <span class="detail-label">Clave de Cuenta:</span>
+                    <span class="detail-value">{{ filters.cuenta }}</span>
+                  </div>
+
+                  <div class="detail-item">
+                    <span class="detail-label">Ejercicio:</span>
+                    <span class="detail-value">{{ filters.ejercicio }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].fecha_generacion">
+                    <span class="detail-label">Fecha de Generación:</span>
+                    <span class="detail-value">{{ formatDate(result[0].fecha_generacion) }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].total_descuentos !== null">
+                    <span class="detail-label">Total de Descuentos:</span>
+                    <span class="detail-value">{{ result[0].total_descuentos }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].porcentaje_promedio !== null">
+                    <span class="detail-label">Porcentaje Promedio:</span>
+                    <span class="detail-value">{{ result[0].porcentaje_promedio }}%</span>
+                  </div>
+                </div>
+
+                <div class="detail-section" v-if="result[0].monto_total !== null && result[0].monto_total !== undefined">
+                  <h6><font-awesome-icon icon="dollar-sign"/> Monto Total de Descuentos</h6>
+                  <div class="monto-destacado">
+                    {{ formatCurrency(result[0].monto_total) }}
+                  </div>
+                </div>
+
+                <div class="detail-section" v-if="result[0].detalles_descuentos">
+                  <h6><font-awesome-icon icon="list"/> Detalles de Descuentos</h6>
+                  <pre class="detalles-text">{{ result[0].detalles_descuentos }}</pre>
+                </div>
               </div>
             </div>
           </div>
@@ -142,6 +183,16 @@ function formatCurrency(value) {
     currency: 'MXN'
   }).format(num)
 }
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr + 'T00:00:00')
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
 </script>
 
 <style scoped>
@@ -177,13 +228,79 @@ function formatCurrency(value) {
 }
 
 .result-details {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 16px;
+}
+
+.result-details h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #155724;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-section {
+  margin-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid #c3e6cb;
 }
 
-.result-details p {
-  margin: 4px 0;
+.detail-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #155724;
+  opacity: 0.8;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #155724;
+}
+
+.monto-destacado {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #155724;
+  text-align: center;
+  padding: 16px;
+  background: rgba(212, 237, 218, 0.3);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.detalles-text {
+  margin: 8px 0 0 0;
+  padding: 12px;
+  background: rgba(212, 237, 218, 0.3);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #155724;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Courier New', monospace;
 }
 
 .result-box {

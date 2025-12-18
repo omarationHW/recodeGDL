@@ -20,7 +20,6 @@
               <input
                 class="municipal-form-control"
                 v-model="filters.cuenta"
-                placeholder="Ej: OBL-2024-001"
                 @keyup.enter="filters.cuenta.trim() && reload()"
               />
             </div>

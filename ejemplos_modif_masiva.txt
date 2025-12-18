@@ -1,0 +1,326 @@
+=== EJEMPLOS PARA PROBAR ModifMasiva.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- public.reqbfpredial (118,842 requerimientos prediales)
+
+IMPORTANTE:
+- 99,606 requerimientos vigentes disponibles
+- Búsqueda por recaudadora y rango de cuentas
+- El campo "folio" se mapea a "cvecuenta" (cuenta catastral)
+- Estados: ACTIVO (V), CANCELADO (C), PAGADO (P)
+- Incluye dos funciones: búsqueda y obtención de detalles
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.req_predial" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla public.reqbfpredial (requerimientos prediales activos)
+
+NOTA CRÍTICA: En esta tabla NO existe un campo "folio" tradicional.
+Se usa el campo "cvecuenta" (cuenta catastral) como identificador.
+
+--- FUNCIONES DISPONIBLES ---
+
+1. **recaudadora_modif_masiva**: Busca y cuenta requerimientos
+2. **recaudadora_modif_masiva_detalles**: Obtiene listado detallado
+
+--- PARÁMETROS ---
+
+La función principal recibe un JSON con:
+- recaudadora: INTEGER (1-10)
+- folio_inicio: INTEGER (cuenta inicial)
+- folio_fin: INTEGER (cuenta final)
+- estado: VARCHAR ('ACTIVO', 'CANCELADO', 'PAGADO')
+
+Formato JSON:
+```json
+{
+  "recaudadora": 1,
+  "folio_inicio": 5000,
+  "folio_fin": 5200,
+  "estado": "ACTIVO"
+}
+```
+
+--- EJEMPLO 1: Búsqueda básica en rango pequeño ---
+
+Parámetros JSON:
+```json
+{
+  "recaudadora": 1,
+  "folio_inicio": 5000,
+  "folio_fin": 5200,
+  "estado": "ACTIVO"
+}
+```
+
+Resultado esperado:
+✓ Total encontrados: 41 requerimientos
+✓ Mensaje: "Se encontraron 41 requerimientos que cumplen los criterios"
+✓ Detalles JSON incluye:
+  - recaudadora: 1
+  - rango_cuentas: 201
+  - vigencia_codigo: V
+  - total: 41
+
+Ejemplo de requerimiento:
+   Cuenta: 5000
+   Recaudadora: 1
+   Vigencia: Vigente/Activo
+   Total: $85,523.52
+   Impuesto: $115,467.09
+   Recargos: $97,824.76
+   Gastos: $21,999.33
+   Multas: $28,418.85
+
+
+--- EJEMPLO 2: Búsqueda en rango amplio ---
+
+Parámetros JSON:
+```json
+{
+  "recaudadora": 3,
+  "folio_inicio": 1,
+  "folio_fin": 100000,
+  "estado": "ACTIVO"
+}
+```
+
+Resultado esperado:
+✓ Total encontrados: 8,051 requerimientos
+✓ Mensaje: "Se encontraron 8051 requerimientos que cumplen los criterios"
+✓ Útil para operaciones masivas en toda una recaudadora
+
+
+--- EJEMPLO 3: Búsqueda de requerimientos cancelados ---
+
+Parámetros JSON:
+```json
+{
+  "recaudadora": 1,
+  "folio_inicio": 1,
+  "folio_fin": 500000,
+  "estado": "CANCELADO"
+}
+```
+
+Resultado esperado:
+✓ Total encontrados: 4 requerimientos
+✓ Estado CANCELADO tiene muy pocos registros (18 total en BD)
+✓ Mensaje: "Se encontraron 4 requerimientos que cumplen los criterios"
+
+
+--- EJEMPLO 4: Obtener detalles de requerimientos ---
+
+Después de usar recaudadora_modif_masiva, usar la función de detalles:
+
+Parámetros:
+- p_recaud: 1
+- p_folio_ini: 5000
+- p_folio_fin: 5200
+- p_estado: 'ACTIVO'
+
+Resultado esperado:
+✓ Lista de hasta 1000 requerimientos
+✓ Campos retornados:
+  - cvecuenta
+  - recaudadora
+  - vigencia (texto descriptivo)
+  - total
+  - fecha_emision
+  - impuesto
+  - recargos
+  - gastos
+  - multas
+
+
+--- CAMPOS RETORNADOS ---
+
+**Función principal (recaudadora_modif_masiva):**
+
+| Campo             | Tipo   | Descripción                          |
+|-------------------|--------|--------------------------------------|
+| total_encontrados | BIGINT | Cantidad de registros encontrados    |
+| mensaje           | TEXT   | Mensaje descriptivo del resultado    |
+| detalles          | JSONB  | JSON con detalles de la búsqueda     |
+
+**Función de detalles (recaudadora_modif_masiva_detalles):**
+
+| Campo          | Tipo    | Descripción                          |
+|----------------|---------|--------------------------------------|
+| cvecuenta      | INTEGER | Cuenta catastral (usado como folio)  |
+| recaudadora    | SMALLINT| Recaudadora (1-10)                   |
+| vigencia       | VARCHAR | Estado descriptivo                   |
+| total          | NUMERIC | Monto total del requerimiento        |
+| fecha_emision  | DATE    | Fecha de emisión                     |
+| impuesto       | NUMERIC | Impuesto predial                     |
+| recargos       | NUMERIC | Recargos por mora                    |
+| gastos         | NUMERIC | Gastos de ejecución                  |
+| multas         | NUMERIC | Multas adicionales                   |
+
+
+--- MAPEO DE ESTADOS ---
+
+| Estado en JSON | Código BD | Descripción              | Total  |
+|----------------|-----------|--------------------------|--------|
+| ACTIVO         | V         | Vigente/Activo           | 99,606 |
+| VIGENTE        | V         | Vigente/Activo           | 99,606 |
+| CANCELADO      | C         | Cancelado                | 18     |
+| PAGADO         | P         | Pagado                   | N/D    |
+
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: "folio" = "cvecuenta"**
+   Esta tabla NO tiene campo "folio" tradicional
+   Se usa cvecuenta (cuenta catastral) como identificador
+
+⚠️ El rango es inclusivo
+   folio_inicio y folio_fin están incluidos (BETWEEN)
+
+⚠️ Límite de 1000 registros en detalles
+   La función de detalles retorna máximo 1000 registros
+
+⚠️ Muy pocos registros CANCELADOS
+   Solo 18 requerimientos cancelados en toda la BD
+
+⚠️ Búsqueda sin resultados retorna total_encontrados = 0
+   El mensaje indica "No se encontraron requerimientos"
+
+⚠️ Error en JSON retorna mensaje de error
+   Si el JSON está mal formado, retorna error en el campo mensaje
+
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: public
+Tabla: reqbfpredial (118,842 registros)
+
+Campos principales:
+- cvecuenta: Cuenta catastral (INTEGER) - usado como "folio"
+- recaud: Recaudadora (SMALLINT) - 1 a 10
+- vigencia: Estado (CHARACTER) - V, C, P, i, E, I, F, X
+- total: Monto total (NUMERIC)
+- fecemi: Fecha de emisión (DATE)
+- impuesto: Impuesto predial (NUMERIC)
+- recargos: Recargos (NUMERIC)
+- gastos: Gastos de ejecución (NUMERIC)
+- multas: Multas (NUMERIC)
+
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT COUNT(*)
+FROM public.reqbfpredial
+WHERE recaud = v_recaud
+  AND cvecuenta BETWEEN v_folio_ini AND v_folio_fin
+  AND vigencia = v_vigencia
+```
+
+Criterios:
+1. Recaudadora exacta (recaud = valor)
+2. Cuenta en rango (cvecuenta BETWEEN inicio AND fin)
+3. Estado específico (vigencia = código)
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test rango pequeño (5000-5200): 41 requerimientos encontrados
+✅ Test rango amplio (1-100000): 8,051 requerimientos
+✅ Test estado CANCELADO: 4 requerimientos
+✅ Test sin resultados (rango vacío): 0 requerimientos
+✅ Test función de detalles: 41 registros con datos completos
+✅ Stored procedures actualizados exitosamente
+✅ Formato JSON correcto
+✅ Manejo de errores en parsing JSON
+✅ Mapeo de estados funcional
+
+
+--- ESTADÍSTICAS ---
+
+Total de requerimientos: 118,842
+
+Por vigencia:
+- Vigente/Activo (V): 99,606 (83.8%)
+- Estado i: 9,122 (7.7%)
+- Estado E: 5,064 (4.3%)
+- Estado I: 2,313 (1.9%)
+- Estado F: 2,232 (1.9%)
+- Estado X: 487 (0.4%)
+- Cancelado (C): 18 (0.02%)
+
+Por recaudadora (vigentes):
+- Recaudadora 1: 22,569
+- Recaudadora 2: 17,438
+- Recaudadora 3: 38,425 (más registros)
+- Recaudadora 4: 21,174
+
+Rango típico de cuentas: 1 a 500,000+
+
+
+--- CASOS DE USO ---
+
+**Caso 1: Verificar antes de modificar**
+1. Llamar recaudadora_modif_masiva con los criterios
+2. Revisar total_encontrados
+3. Si el total es razonable, proceder con la modificación
+
+**Caso 2: Ver detalles antes de acción**
+1. Llamar recaudadora_modif_masiva_detalles
+2. Revisar los montos y estados
+3. Confirmar que son los registros correctos
+
+**Caso 3: Búsqueda por recaudadora completa**
+1. Usar rango 1 a 999999 para toda la recaudadora
+2. Ver cuántos requerimientos activos hay
+
+
+--- FLUJO RECOMENDADO ---
+
+1. **Búsqueda inicial**
+   ```
+   recaudadora_modif_masiva(JSON)
+   → Retorna: total_encontrados
+   ```
+
+2. **Verificar cantidad**
+   - Si total_encontrados = 0: No hay registros
+   - Si total_encontrados < 100: Rango pequeño, seguro
+   - Si total_encontrados > 1000: Rango grande, revisar
+
+3. **Obtener detalles (opcional)**
+   ```
+   recaudadora_modif_masiva_detalles(params)
+   → Retorna: lista de requerimientos
+   ```
+
+4. **Proceder con modificación**
+   - Confirmar con el usuario
+   - Ejecutar la modificación masiva
+
+
+--- RESUMEN ---
+
+Problema: Tabla publico.req_predial no existe
+
+Solución: Usa public.reqbfpredial (requerimientos prediales activos)
+
+Diferencia clave: "folio" → "cvecuenta" (cuenta catastral)
+
+Resultado: Sistema funcional para búsqueda masiva de requerimientos
+
+Características:
+- Búsqueda por recaudadora y rango de cuentas
+- Conteo rápido de registros afectados
+- Función auxiliar para obtener detalles
+- Soporte para múltiples estados
+- Límite de 1000 registros en detalles
+- Mapeo automático de estados
+- Manejo de errores en JSON
+- 118,842 requerimientos disponibles
+- 99,606 requerimientos vigentes/activos

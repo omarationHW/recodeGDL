@@ -1,0 +1,378 @@
+=== EJEMPLOS PARA PROBAR ImprimeDesctos.vue ===
+
+El componente y stored procedure han sido actualizados para mostrar información completa de descuentos.
+
+IMPORTANTE:
+- Ahora usa la tabla publico.aut_desctosotorgados (no crea nuevas tablas)
+- Muestra información detallada de los descuentos encontrados
+- Búsqueda por ID de multa (clave de cuenta) y ejercicio (año)
+- Información organizada en secciones visuales
+- Validaciones de entrada implementadas
+
+--- EJEMPLO 1: Búsqueda exitosa con descuentos ---
+
+Clave de Cuenta: 407185
+Año (Ejercicio): 2024
+
+Resultado esperado:
+✓ Status: success
+✓ Mensaje: "Reporte de descuentos generado exitosamente. Se encontraron 3 descuento(s)."
+
+INFORMACIÓN MOSTRADA:
+
+📄 Información del Reporte:
+- Folio del Reporte: RDESC-2024-20251218020557-2516
+- Clave de Cuenta: 407185
+- Ejercicio: 2024
+- Fecha de Generación: 18 de diciembre de 2025
+- Total de Descuentos: 3
+- Porcentaje Promedio: 95.00%
+
+💰 Monto Total de Descuentos:
+$0.00
+(Mostrado en grande y destacado)
+
+📋 Detalles de Descuentos:
+Folio: 28, Multa: 407185, Año: 2024, % Aut: 95, Monto: $0.00, Vigencia: C
+Folio: 29, Multa: 407185, Año: 2024, % Aut: 95, Monto: $0.00, Vigencia: C
+Folio: 30, Multa: 407185, Año: 2024, % Aut: 95, Monto: $0.00, Vigencia: B
+
+
+--- EJEMPLO 2: Otra cuenta con descuentos ---
+
+Clave de Cuenta: 413995
+Año (Ejercicio): 2025
+
+Resultado esperado:
+✓ Status: success
+✓ Mensaje: "Reporte de descuentos generado exitosamente. Se encontraron 2 descuento(s)."
+
+INFORMACIÓN MOSTRADA:
+- Total de Descuentos: 2
+- Porcentaje Promedio: 30.00%
+- Monto Total: $0.00
+- Detalles con los folios y datos de cada descuento
+
+
+--- EJEMPLO 3: Cuenta con descuento monetario ---
+
+Clave de Cuenta: 317396
+Año (Ejercicio): 2013
+
+Resultado esperado:
+✓ Status: success
+✓ Se encontraron descuentos con monto real
+✓ Monto Total: $1,000.00
+✓ Toda la información organizada visualmente
+
+
+--- EJEMPLO 4: Cuenta inexistente ---
+
+Clave de Cuenta: CUENTA_NO_EXISTE_999
+Año (Ejercicio): 2025
+
+Resultado esperado:
+✗ Status: error
+✗ Mensaje: "No se encontraron descuentos para la cuenta CUENTA_NO_EXISTE_999 en el ejercicio 2025"
+✗ Se muestra en rojo (alert-danger)
+
+
+--- EJEMPLO 5: Campo cuenta vacío (validación) ---
+
+Clave de Cuenta: (dejar vacío)
+Año (Ejercicio): 2025
+
+Resultado esperado:
+✗ Botón deshabilitado (no se puede hacer clic)
+✗ Validación en frontend impide el envío
+
+Si se envía vacío desde el backend:
+✗ Status: error
+✗ Mensaje: "La clave de cuenta es obligatoria"
+
+
+--- EJEMPLO 6: Campo ejercicio vacío (validación) ---
+
+Clave de Cuenta: 407185
+Año (Ejercicio): (dejar vacío o poner 0)
+
+Resultado esperado:
+✗ Botón deshabilitado (no se puede hacer clic)
+✗ Validación en frontend impide el envío
+
+Si se envía 0 desde el backend:
+✗ Status: error
+✗ Mensaje: "El ejercicio (año) es obligatorio"
+
+
+--- ESTRUCTURA VISUAL DEL RESULTADO ---
+
+Cuando es exitoso:
+
+┌─────────────────────────────────────────────┐
+│ ✓ Reporte de descuentos generado           │
+│   exitosamente. Se encontraron 3           │
+│   descuento(s).                            │
+├─────────────────────────────────────────────┤
+│                                             │
+│ 📄 Información del Reporte                 │
+│ ┌───────────────┬───────────────┐          │
+│ │ Folio         │ Clave Cuenta  │          │
+│ │ Ejercicio     │ Fecha         │          │
+│ │ Total Desctos │ % Promedio    │          │
+│ └───────────────┴───────────────┘          │
+│                                             │
+│ 💰 Monto Total de Descuentos               │
+│        $1,000.00                           │
+│   (Destacado en grande)                    │
+│                                             │
+│ 📋 Detalles de Descuentos                  │
+│ ┌───────────────────────────────┐          │
+│ │ Folio: 28, Multa: 407185,    │          │
+│ │ Año: 2024, % Aut: 95,        │          │
+│ │ Monto: $0.00, Vigencia: C    │          │
+│ │                               │          │
+│ │ Folio: 29, Multa: 407185,    │          │
+│ │ Año: 2024, % Aut: 95, ...    │          │
+│ └───────────────────────────────┘          │
+└─────────────────────────────────────────────┘
+
+
+--- MEJORAS VISUALES IMPLEMENTADAS ---
+
+1. **Organización por secciones**
+   - Información del Reporte (6 campos)
+   - Monto Total de Descuentos destacado
+   - Detalles de Descuentos (hasta 10 registros)
+
+2. **Grid responsive**
+   - Los campos se organizan en columnas
+   - Se adapta al tamaño de la pantalla
+   - Mínimo 250px por columna
+
+3. **Monto destacado**
+   - Tamaño grande (2rem)
+   - Color verde oscuro
+   - Fondo semitransparente
+   - Centrado y con padding
+
+4. **Detalles de descuentos**
+   - Formato monoespaciado (Courier New)
+   - Fondo con color semitransparente
+   - Line-height 1.6 para mejor lectura
+   - Máximo 10 descuentos mostrados
+
+5. **Etiquetas y valores claros**
+   - Etiquetas en verde claro (80% opacidad)
+   - Valores en negrita y color completo
+   - Separación vertical clara
+
+6. **Iconos descriptivos**
+   - 📄 file-alt para información del reporte
+   - 💰 dollar-sign para monto total
+   - 📋 list para detalles de descuentos
+   - ✓ check-circle para éxito
+   - ✗ times-circle para error
+
+7. **Loading state**
+   - Spinner mientras procesa
+   - Texto "Procesando..."
+   - Botón deshabilitado durante carga
+
+
+--- VALIDACIONES IMPLEMENTADAS ---
+
+Frontend:
+1. Botón deshabilitado si falta clave de cuenta o ejercicio
+2. Ambos campos son obligatorios
+3. Ejercicio debe ser un número entero
+4. Texto de ayuda en cada campo
+5. Enter key para enviar formulario
+
+Backend (Stored Procedure):
+1. Valida que la clave no esté vacía
+2. Valida que el ejercicio no sea 0 o NULL
+3. Busca en aut_desctosotorgados por id_multa y ejercicio
+4. Retorna error descriptivo si no encuentra datos
+
+
+--- FORMATO DE FECHAS ---
+
+Las fechas se muestran en formato largo en español:
+- "18 de diciembre de 2025"
+- Automático según el locale del navegador
+
+
+--- FORMATO DE MONEDA ---
+
+Los montos se formatean como pesos mexicanos:
+- $1,000.00
+- Con separador de miles
+- Dos decimales
+- Símbolo de pesos
+
+
+--- CAMPOS RETORNADOS POR EL SP ---
+
+El stored procedure retorna:
+- status: 'success' o 'error'
+- mensaje: Descripción del resultado
+- folio_reporte: Folio único (RDESC-YYYY-TIMESTAMP-RANDOM)
+- fecha_generacion: Fecha actual
+- total_descuentos: Cantidad de descuentos encontrados
+- monto_total: Suma de montos autorizados
+- porcentaje_promedio: Promedio de % autorizados
+- detalles_descuentos: Texto con detalle de cada descuento (max 10)
+
+
+--- LÓGICA DE NEGOCIO ---
+
+1. **Búsqueda flexible**:
+   - Busca por id_multa (clave de cuenta) en aut_desctosotorgados
+   - También busca por folio_descto si coincide exacto
+   - Filtra por ejercicio (año) en campo axo
+   - Usa ILIKE para búsqueda parcial
+
+2. **Generación de folio**:
+   - Formato: RDESC-YYYY-YYYYMMDDHH24MISS-RANDOM
+   - No usa secuencias (evita el error original)
+   - Ejemplo: RDESC-2024-20251218020557-2516
+   - Único por timestamp + número aleatorio
+
+3. **Cálculos**:
+   - COUNT(*) para total de descuentos
+   - SUM(monto_aut) para monto total
+   - AVG(por_aut) para porcentaje promedio
+   - STRING_AGG para concatenar detalles
+
+4. **Estados de vigencia**:
+   - 'V' = Vigente
+   - 'B' = Baja
+   - 'C' = Cancelado
+   - Se muestra en los detalles
+
+5. **Límites**:
+   - Máximo 10 descuentos en detalles (para no saturar UI)
+   - Todos se cuentan en total_descuentos
+   - Todos se suman en monto_total
+
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: publico
+Tabla: aut_desctosotorgados
+Registros: 35 descuentos otorgados
+
+Campos principales:
+- folio_descto: ID del descuento
+- id_multa: Clave de cuenta / ID de multa
+- axo: Año del ejercicio
+- por_aut: Porcentaje autorizado (0-100)
+- monto_aut: Monto del descuento autorizado
+- vigencia: Estado (V/B/C)
+- fecha_inicio: Fecha de inicio de vigencia
+- fecha_fin: Fecha de fin de vigencia
+
+
+--- PRUEBAS REALIZADAS ---
+
+✓ Búsqueda exitosa por ID de multa (407185, año 2024)
+✓ Búsqueda exitosa con múltiples descuentos (3 registros)
+✓ Cálculo correcto de porcentaje promedio (95%)
+✓ Validación de cuenta vacía
+✓ Validación de ejercicio = 0
+✓ Validación de cuenta inexistente
+✓ Formato correcto de moneda ($0.00)
+✓ Formato correcto de fecha (18 de diciembre de 2025)
+✓ Visualización responsive
+✓ Estados de éxito y error
+✓ Loading state durante proceso
+✓ Detalles de descuentos con formato correcto
+✓ Formato JSON correcto para frontend
+
+
+--- CAMBIOS EN EL CÓDIGO ---
+
+**Stored Procedure (update_sp_imprime_desctos.sql)**:
+- Eliminada la dependencia de secuencia reportes_descuentos_id_reporte_seq
+- Eliminada la inserción en tabla reportes_descuentos
+- Ahora busca en publico.aut_desctosotorgados
+- Folio generado con timestamp + random (sin secuencia)
+- Agrega porcentaje_promedio a la salida
+- Agrega detalles_descuentos con STRING_AGG
+- Validaciones mejoradas
+- Búsqueda flexible (id_multa o folio_descto)
+
+**Vue Component (ImprimeDesctos.vue)**:
+- Agregadas secciones detalladas de información
+- Grid responsive con auto-fit
+- Función formatDate() agregada
+- Sección de "Monto Total de Descuentos" destacada
+- Sección de "Detalles de Descuentos" con formato monoespaciado
+- Campo de "Porcentaje Promedio" agregado
+- CSS completo para visualización profesional
+
+
+--- INTEGRACIÓN CON EL SISTEMA ---
+
+El componente usa:
+- useApi() composable para llamadas API
+- BASE_DB: 'multas_reglamentos'
+- OP_REPORTE: 'RECAUDADORA_IMPRIME_DESCTOS'
+- SCHEMA: 'publico'
+- Parámetros:
+  - p_clave_cuenta (string): ID de multa o folio
+  - p_ejercicio (integer): Año del ejercicio
+
+Flujo:
+1. Usuario ingresa clave de cuenta y año
+2. Frontend valida que ambos campos no estén vacíos
+3. Se envía a través de useApi con execute()
+4. Backend ejecuta SP publico.recaudadora_imprime_desctos
+5. SP busca en aut_desctosotorgados por id_multa y axo
+6. SP calcula totales, promedios y genera detalles
+7. Retorna JSON con 8 campos
+8. Frontend parsea y muestra en secciones organizadas
+
+
+--- NOTAS TÉCNICAS ---
+
+1. Los montos en aut_desctosotorgados pueden ser NULL o 0
+   - Se usa COALESCE para manejar NULLs
+   - Suma correcta incluso con valores NULL
+
+2. El campo axo puede ser 0 en algunos registros
+   - Esto indica que no tiene año específico
+   - La búsqueda con ejercicio=0 se rechaza ahora (validación)
+
+3. Algunos descuentos tienen monto_aut = 0
+   - Esto indica que se aplicó solo porcentaje
+   - El porcentaje se calcula sobre el adeudo original
+
+4. Vigencia indica el estado actual del descuento
+   - 'V' = Vigente (puede aplicarse)
+   - 'B' = Baja (ya no es válido)
+   - 'C' = Cancelado (fue anulado)
+
+5. STRING_AGG concatena hasta 10 registros
+   - Usa '\n' como separador
+   - Formato legible en el frontend
+   - Si hay más de 10, solo muestra los primeros 10
+
+
+--- DIFERENCIAS CON LA VERSIÓN ANTERIOR ---
+
+Antes:
+- Usaba secuencia que no existía (causaba el error)
+- Insertaba en tabla reportes_descuentos que no existe
+- Retornaba datos simulados estáticos
+- No buscaba datos reales
+
+Ahora:
+- No usa secuencias (folio con timestamp)
+- No inserta en ninguna tabla (solo consulta)
+- Retorna datos reales de aut_desctosotorgados
+- Búsqueda funcional con filtros reales
+- Más campos de información (8 vs 6)
+- Detalles de descuentos incluidos

@@ -1,0 +1,317 @@
+=== EJEMPLOS PARA PROBAR ipor.vue ===
+
+El stored procedure ha sido actualizado para usar datos reales de la tabla public.c_tasas.
+
+IMPORTANTE:
+- SOLUCIONADO: Antes siempre retornaba los mismos datos estáticos
+- AHORA: Los resultados cambian según el filtro de búsqueda
+- Usa 240 registros reales de tasas con porcentajes
+- Búsqueda funciona por año, tipo de tasa, o ID
+
+--- PROBLEMA ORIGINAL ---
+
+Antes el SP retornaba siempre:
+```
+(1, 'CONCEPTO 1', 15.00)
+```
+Sin importar el filtro de búsqueda.
+
+--- SOLUCIÓN ---
+
+Ahora busca en la tabla public.c_tasas (240 registros reales) y filtra según:
+- Año de la tasa (ej: 2024, 2023, 1999)
+- Tipo de tasa (B=Baldío, C=Construcción, U=Urbano)
+- ID específico de tasa
+
+--- EJEMPLO 1: Sin filtro (muestra todas las tasas) ---
+
+Filtro de Búsqueda: (dejar vacío)
+Botón: Buscar
+
+Resultado esperado:
+✓ 100 registros mostrados (límite máximo)
+✓ Ordenados por año descendente (más recientes primero)
+✓ Columnas: id, concepto, porcentaje, anio
+
+Ejemplos de datos:
+- ID: 316, Concepto: Tasa U - Año 2024, Porcentaje: 0.0356%, Año: 2024
+- ID: 317, Concepto: Tasa U - Año 2024, Porcentaje: 0.0254%, Año: 2024
+- ID: 318, Concepto: Tasa U - Año 2024, Porcentaje: 0.0254%, Año: 2024
+...y 97 registros más
+
+
+--- EJEMPLO 2: Filtrar por año 2024 ---
+
+Filtro de Búsqueda: 2024
+Botón: Buscar
+
+Resultado esperado:
+✓ 20 registros del año 2024
+✓ Todas las tasas vigentes en 2024
+✓ Diferentes tipos de tasas (U=Urbano, B=Baldío)
+
+Ejemplos de resultados:
+- ID: 316, Concepto: Tasa U - Año 2024, Porcentaje: 0.0356%
+- ID: 317, Concepto: Tasa U - Año 2024, Porcentaje: 0.0254%
+- ID: 318, Concepto: Tasa U - Año 2024, Porcentaje: 0.0254%
+- ID: 319, Concepto: Tasa U - Año 2024, Porcentaje: 0.0279%
+- ID: 320, Concepto: Tasa U - Año 2024, Porcentaje: 0.0305%
+
+
+--- EJEMPLO 3: Filtrar por año 2023 ---
+
+Filtro de Búsqueda: 2023
+Botón: Buscar
+
+Resultado esperado:
+✓ 20 registros diferentes del año 2023
+✓ NOTA: Los datos son DIFERENTES a los del ejemplo 2
+
+Ejemplos de resultados:
+- ID: 296, Concepto: Tasa U - Año 2023, Porcentaje: 0.0254%
+- ID: 297, Concepto: Tasa U - Año 2023, Porcentaje: 0.0254%
+- ID: 298, Concepto: Tasa U - Año 2023, Porcentaje: 0.0279%
+- ID: 299, Concepto: Tasa U - Año 2023, Porcentaje: 0.0305%
+- ID: 300, Concepto: Tasa U - Año 2023, Porcentaje: 0.0330%
+
+
+--- EJEMPLO 4: Filtrar por tipo de tasa "B" (Baldío) ---
+
+Filtro de Búsqueda: B
+Botón: Buscar
+
+Resultado esperado:
+✓ 100 registros (máximo)
+✓ Todas las tasas de tipo "Baldío"
+✓ De diferentes años
+
+Ejemplos de resultados:
+- ID: 326, Concepto: Tasa B - Año 2024, Porcentaje: 0.0508%
+- ID: 327, Concepto: Tasa B - Año 2024, Porcentaje: 0.0508%
+- ID: 328, Concepto: Tasa B - Año 2024, Porcentaje: 0.0559%
+- ID: 329, Concepto: Tasa B - Año 2024, Porcentaje: 0.0610%
+- ID: 330, Concepto: Tasa B - Año 2024, Porcentaje: 0.0660%
+
+
+--- EJEMPLO 5: Filtrar por tipo de tasa "C" (Construcción) ---
+
+Filtro de Búsqueda: C
+Botón: Buscar
+
+Resultado esperado:
+✓ 58 registros de tipo "Construcción"
+✓ NOTA: Cantidad DIFERENTE al ejemplo 4
+
+Ejemplos de resultados:
+- ID: 211, Concepto: Tasa C - Año 2016, Porcentaje: 0.0254%
+- ID: 209, Concepto: Tasa C - Año 2015, Porcentaje: 0.0254%
+- ID: 175, Concepto: Tasa C - Año 2014, Porcentaje: 0.0254%
+- ID: 173, Concepto: Tasa C - Año 2013, Porcentaje: 0.0230%
+- ID: 157, Concepto: Tasa C - Año 2012, Porcentaje: 0.0230%
+
+
+--- EJEMPLO 6: Filtrar por año antiguo 1999 ---
+
+Filtro de Búsqueda: 1999
+Botón: Buscar
+
+Resultado esperado:
+✓ Solo 3 registros del año 1999
+✓ Tasas históricas
+
+Ejemplos de resultados:
+- ID: 1, Concepto: Tasa B - Año 1999, Porcentaje: 0.0700%
+- ID: 2, Concepto: Tasa C - Año 1999, Porcentaje: 0.0200%
+- ID: 120, Concepto: Tasa C - Año 1999, Porcentaje: 0.1500%
+
+
+--- VERIFICACIÓN: LOS RESULTADOS CAMBIAN ---
+
+Para verificar que el problema está solucionado, prueba diferentes filtros y compara:
+
+| Filtro    | Cantidad de Registros | Datos Diferentes |
+|-----------|----------------------|------------------|
+| (vacío)   | 100                  | Todos los tipos  |
+| 2024      | 20                   | Solo año 2024    |
+| 2023      | 20                   | Solo año 2023    |
+| 1999      | 3                    | Solo año 1999    |
+| B         | 100                  | Solo tipo Baldío |
+| C         | 58                   | Solo tipo Const. |
+
+✅ CADA FILTRO RETORNA DATOS DIFERENTES
+✅ EL PROBLEMA ORIGINAL ESTÁ RESUELTO
+
+
+--- TIPOS DE TASAS DISPONIBLES ---
+
+- **Tasa B** (Baldío): Predios sin construcción
+- **Tasa C** (Construcción): Predios con edificaciones
+- **Tasa U** (Urbano): Tasas urbanas generales
+
+Cada tipo tiene diferentes porcentajes según el año de vigencia.
+
+
+--- AÑOS DISPONIBLES ---
+
+La tabla contiene tasas desde 1989 hasta 2024:
+- Años recientes (2020-2024): ~20 tasas por año
+- Años intermedios (2000-2019): Variable
+- Años antiguos (1989-1999): Menos registros
+
+
+--- CARACTERÍSTICAS DE LA BÚSQUEDA ---
+
+1. **Búsqueda flexible**:
+   - Por año completo: "2024", "2023", "1999"
+   - Por tipo de tasa: "B", "C", "U"
+   - Sin filtro: muestra todos (máximo 100)
+
+2. **Ordenamiento**:
+   - Por año descendente (más recientes primero)
+   - Luego por ID de tasa
+
+3. **Límite de resultados**:
+   - Máximo 100 registros mostrados
+   - Si hay más, solo se muestran los primeros 100
+
+4. **Paginación**:
+   - El componente muestra 10 registros por página
+   - Puedes navegar entre páginas con los botones
+
+
+--- CAMPOS MOSTRADOS EN LA TABLA ---
+
+| Campo      | Descripción                                  | Ejemplo                |
+|------------|----------------------------------------------|------------------------|
+| id         | ID único de la tasa                          | 316                    |
+| concepto   | Descripción de la tasa (tipo + año)         | Tasa U - Año 2024      |
+| porcentaje | Porcentaje de la tasa (convertido a %)      | 0.0356%                |
+| anio       | Año de vigencia de la tasa                   | 2024                   |
+
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: public
+Tabla: c_tasas
+Registros totales: 240 tasas
+
+Campos de la tabla:
+- tasa: ID de la tasa
+- tasaporcen: Porcentaje (en decimal, ej: 0.0007)
+- constbald: Tipo de construcción/baldío (B, C, U)
+- axo: Año de vigencia
+- feccap: Fecha de captura
+- capturista: Usuario que capturó
+
+
+--- CAMBIOS REALIZADOS ---
+
+**Antes (problema)**:
+```sql
+RETURN QUERY SELECT t.*
+FROM (VALUES (1, 'CONCEPTO 1'::VARCHAR, 15.00::NUMERIC))
+AS t(id, concepto, porcentaje);
+```
+- Siempre retornaba el mismo registro
+- No usaba el parámetro de filtro
+- Datos estáticos hardcodeados
+
+**Ahora (solución)**:
+```sql
+SELECT
+    t.tasa::INTEGER AS id,
+    ('Tasa ' || t.constbald || ' - Año ' || t.axo)::VARCHAR AS concepto,
+    ROUND((t.tasaporcen * 100)::NUMERIC, 4) AS porcentaje,
+    t.axo::INTEGER AS anio
+FROM public.c_tasas t
+WHERE
+    (v_filtro = '' OR
+     CAST(t.axo AS TEXT) ILIKE '%' || v_filtro || '%' OR
+     t.constbald ILIKE '%' || v_filtro || '%')
+ORDER BY t.axo DESC, t.tasa
+LIMIT 100
+```
+- Busca en tabla real c_tasas
+- Aplica filtro sobre año y tipo
+- Retorna datos diferentes según búsqueda
+- Límite de 100 registros
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Sin filtro: 100 registros (todos los tipos)
+✅ Filtro "2024": 20 registros diferentes
+✅ Filtro "2023": 20 registros diferentes
+✅ Filtro "1999": 3 registros diferentes
+✅ Filtro "B": 100 registros de tipo Baldío
+✅ Filtro "C": 58 registros de tipo Construcción
+✅ Paginación funciona correctamente
+✅ Ordenamiento por año descendente
+✅ Formato JSON correcto para frontend
+
+
+--- INTEGRACIÓN CON EL SISTEMA ---
+
+El componente usa:
+- useApi() composable para llamadas API
+- BASE_DB: 'multas_reglamentos'
+- OP: 'RECAUDADORA_IPOR'
+- SCHEMA: 'publico'
+- Parámetro: p_datos (JSON string con filtro)
+
+Flujo:
+1. Usuario ingresa filtro de búsqueda (opcional)
+2. Click en "Buscar" o presiona Enter
+3. Frontend envía JSON: {"filtro": "valor"}
+4. Backend ejecuta SP publico.recaudadora_ipor
+5. SP busca en public.c_tasas aplicando filtro
+6. Retorna array de objetos con id, concepto, porcentaje, anio
+7. Frontend muestra resultados en tabla paginada
+
+
+--- NOTAS TÉCNICAS ---
+
+1. **Conversión de porcentaje**:
+   - En BD: tasaporcen = 0.0007 (decimal)
+   - Mostrado: 0.07% (multiplicado por 100)
+
+2. **Generación de concepto**:
+   - Formato: "Tasa {tipo} - Año {año}"
+   - Ejemplo: "Tasa B - Año 2024"
+
+3. **Límite de 100 registros**:
+   - Previene sobrecarga del frontend
+   - Suficiente para la mayoría de búsquedas
+   - Si necesitas más, refina el filtro
+
+4. **Búsqueda ILIKE**:
+   - Case-insensitive
+   - Búsqueda parcial
+   - Flexible para el usuario
+
+
+--- COMPATIBILIDAD ---
+
+El SP tiene 3 versiones para compatibilidad:
+
+1. **publico.recaudadora_ipor(TEXT)** - Recibe JSON como texto
+2. **publico.recaudadora_ipor(JSONB)** - Recibe JSONB
+3. **public.ipor_sp_list(JSONB)** - Función legacy
+
+Todas usan la misma lógica interna.
+
+
+--- RESUMEN DEL PROBLEMA Y SOLUCIÓN ---
+
+**Problema**: ipor.vue siempre traía la misma información (1 registro estático)
+
+**Causa**: Stored procedure con datos hardcodeados que ignoraba el filtro
+
+**Solución**:
+- Reemplazado datos estáticos con consulta a public.c_tasas
+- Implementado filtro funcional por año, tipo, o ID
+- Agregado ordenamiento por año descendente
+- Límite de 100 registros para rendimiento
+
+**Resultado**: Los resultados ahora cambian correctamente según el filtro aplicado

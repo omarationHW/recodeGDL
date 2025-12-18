@@ -20,7 +20,6 @@
                 v-model.number="filters.folio"
                 type="number"
                 @keyup.enter="reload"
-                placeholder="Ej: 2, 7, 12"
               />
             </div>
           </div>

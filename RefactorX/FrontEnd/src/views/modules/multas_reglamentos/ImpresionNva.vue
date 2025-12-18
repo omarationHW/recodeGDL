@@ -20,7 +20,6 @@
               <input
                 class="municipal-form-control"
                 v-model="filters.cuenta"
-                placeholder="Ej: CTA-001-2025"
                 @keyup.enter="imprimir"
               />
               <small class="form-text">Ingrese la clave de cuenta para generar la impresión</small>
@@ -62,12 +61,74 @@
             <div v-else class="alert-success">
               <font-awesome-icon icon="check-circle"/>
               <strong>{{ result[0].mensaje || 'Impresión generada exitosamente' }}</strong>
+
+              <!-- Detalles de la Impresión -->
               <div class="result-details" v-if="result[0].folio_impresion">
-                <p>Folio de Impresión: <strong>{{ result[0].folio_impresion }}</strong></p>
-                <p>Clave de Cuenta: <strong>{{ filters.cuenta }}</strong></p>
-                <p v-if="result[0].fecha_generacion">Fecha de Generación: <strong>{{ result[0].fecha_generacion }}</strong></p>
-                <p v-if="result[0].tipo_documento">Tipo de Documento: <strong>{{ result[0].tipo_documento }}</strong></p>
-                <p v-if="result[0].numero_paginas">Número de Páginas: <strong>{{ result[0].numero_paginas }}</strong></p>
+                <h6><font-awesome-icon icon="file-pdf"/> Información de la Impresión</h6>
+
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <span class="detail-label">Folio:</span>
+                    <span class="detail-value">{{ result[0].folio_impresion }}</span>
+                  </div>
+
+                  <div class="detail-item">
+                    <span class="detail-label">Clave de Cuenta:</span>
+                    <span class="detail-value">{{ result[0].clave_cuenta || filters.cuenta }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].fecha_generacion">
+                    <span class="detail-label">Fecha de Generación:</span>
+                    <span class="detail-value">{{ formatDate(result[0].fecha_generacion) }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].tipo_documento">
+                    <span class="detail-label">Tipo de Documento:</span>
+                    <span class="detail-value">{{ result[0].tipo_documento }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].numero_paginas">
+                    <span class="detail-label">Número de Páginas:</span>
+                    <span class="detail-value">{{ result[0].numero_paginas }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].formato">
+                    <span class="detail-label">Formato:</span>
+                    <span class="detail-value">{{ result[0].formato }}</span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].estado">
+                    <span class="detail-label">Estado:</span>
+                    <span class="detail-value">
+                      <span class="badge-success">{{ result[0].estado }}</span>
+                    </span>
+                  </div>
+
+                  <div class="detail-item" v-if="result[0].periodo">
+                    <span class="detail-label">Periodo:</span>
+                    <span class="detail-value">{{ result[0].periodo }}</span>
+                  </div>
+                </div>
+
+                <div class="detail-section" v-if="result[0].contribuyente">
+                  <h6><font-awesome-icon icon="user"/> Información del Contribuyente</h6>
+                  <div class="detail-grid">
+                    <div class="detail-item">
+                      <span class="detail-label">Contribuyente:</span>
+                      <span class="detail-value">{{ result[0].contribuyente }}</span>
+                    </div>
+
+                    <div class="detail-item" v-if="result[0].monto_total !== null && result[0].monto_total !== undefined">
+                      <span class="detail-label">Monto Total:</span>
+                      <span class="detail-value">{{ formatCurrency(result[0].monto_total) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="detail-section" v-if="result[0].observaciones">
+                  <h6><font-awesome-icon icon="info-circle"/> Observaciones</h6>
+                  <p class="observaciones-text">{{ result[0].observaciones }}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -122,6 +183,25 @@ async function imprimir() {
     result.value = { error: e?.message || 'Error desconocido' }
   }
 }
+
+function formatCurrency(value) {
+  if (!value) return '$0.00'
+  const num = parseFloat(value)
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(num)
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr + 'T00:00:00')
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
 </script>
 
 <style scoped>
@@ -157,13 +237,75 @@ async function imprimir() {
 }
 
 .result-details {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 16px;
+}
+
+.result-details h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #155724;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-section {
+  margin-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid #c3e6cb;
 }
 
-.result-details p {
-  margin: 4px 0;
+.detail-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #155724;
+  opacity: 0.8;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #155724;
+}
+
+.badge-success {
+  display: inline-block;
+  padding: 4px 12px;
+  background-color: #28a745;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.observaciones-text {
+  margin: 8px 0 0 0;
+  padding: 12px;
+  background: rgba(212, 237, 218, 0.3);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #155724;
+  line-height: 1.5;
 }
 
 .result-box {

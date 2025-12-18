@@ -1,0 +1,261 @@
+=== EJEMPLOS PARA PROBAR listanotificacionesfrm.vue ===
+
+El stored procedure ha sido actualizado para usar las tablas existentes:
+- publico.reqmultas (403,162 registros)
+- publico.multas (para obtener num_lote, num_acta, axo_acta, contribuyente, domicilio)
+- publico.c_dependencias (para obtener abrevia)
+
+IMPORTANTE:
+- 403,162 requerimientos de multas disponibles
+- Triple JOIN entre reqmultas, multas y c_dependencias
+- Filtros por recaudadora, año, rango de folios, tipo de documento
+- Ordenamiento dinámico (lote, vigentes, dependencia)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.notificaciones_actas" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa triple JOIN:
+1. publico.reqmultas LEFT JOIN publico.multas ON id_multa
+2. publico.multas LEFT JOIN publico.c_dependencias ON id_dependencia
+
+--- PARÁMETROS DEL COMPONENTE ---
+
+El componente Vue envía 6 parámetros:
+- p_reca: INTEGER (Recaudadora 1-10)
+- p_axo: INTEGER (Año del acta)
+- p_inicio: INTEGER (Folio de requerimiento inicio)
+- p_final: INTEGER (Folio de requerimiento final)
+- p_tipo: VARCHAR (Tipo de documento: N, R, S, D)
+- p_orden: VARCHAR (Orden: 'lote', 'vigentes', 'dependencia')
+
+--- EJEMPLO 1: Búsqueda básica por recaudadora y año ---
+
+Parámetros:
+- Recaudadora: 3
+- Año: 2025
+- Folio inicio: 1
+- Folio final: 150000
+- Tipo: R (Requerimiento)
+- Orden: lote
+
+Resultado esperado:
+✓ 13 notificaciones encontradas
+✓ Todas del año 2025
+✓ Recaudadora 3
+✓ Tipo R (Requerimiento)
+
+Ejemplo de notificación:
+   Abrevia: R
+   Año Acta: 2025
+   Num Acta: 2042
+   Folio Req: 146289
+   Contribuyente: FLORES CRUZ JORGE ENRIQUE
+   Total: $500.00
+
+
+--- EJEMPLO 2: Búsqueda por tipo Normal (N) ---
+
+Parámetros:
+- Recaudadora: 1
+- Año: 2024
+- Folio inicio: 1
+- Folio final: 200000
+- Tipo: N (Normal)
+- Orden: vigentes
+
+Resultado esperado:
+✓ Notificaciones tipo Normal del año 2024
+✓ Ordenadas por folio de requerimiento
+✓ 233,854 notificaciones tipo N disponibles en total
+
+
+--- EJEMPLO 3: Ordenamiento por dependencia ---
+
+Parámetros:
+- Recaudadora: 2
+- Año: 2024
+- Folio inicio: 1
+- Folio final: 100000
+- Tipo: R (Requerimiento)
+- Orden: dependencia
+
+Resultado esperado:
+✓ Ordenadas por abreviatura de dependencia + número de acta
+✓ Agrupación por dependencia visible
+✓ 146,424 requerimientos tipo R disponibles en total
+
+
+--- CAMPOS MOSTRADOS ---
+
+| Campo         | Descripción                          | Ejemplo                  |
+|---------------|--------------------------------------|--------------------------|
+| abrevia       | Abreviatura de la dependencia        | R                        |
+| axo_acta      | Año del acta                         | 2025                     |
+| num_acta      | Número de acta                       | 2042                     |
+| num_lote      | Número de lote                       | (puede estar vacío)      |
+| folioreq      | Folio del requerimiento              | 146289                   |
+| contribuyente | Nombre del contribuyente             | FLORES CRUZ JORGE        |
+| domicilio     | Domicilio del contribuyente          | CALLE PRINCIPAL 123      |
+| total         | Monto total del requerimiento        | 500.00                   |
+
+
+--- TIPOS DE DOCUMENTO ---
+
+| Código | Nombre       | Total    | Descripción                          |
+|--------|--------------|----------|--------------------------------------|
+| N      | Normal       | 233,854  | Notificaciones normales              |
+| R      | Requerimiento| 146,424  | Requerimientos de multa              |
+| S      | ?            | 18,881   | Tipo especial                        |
+| D      | Diferencia   | 4,003    | Diferencias                          |
+
+
+--- ESTADOS DE VIGENCIA ---
+
+| Código | Nombre      | Total    | Descripción                          |
+|--------|-------------|----------|--------------------------------------|
+| C      | Cancelado   | 147,780  | Requerimientos cancelados            |
+| P      | Pagado      | 141,410  | Requerimientos pagados               |
+| V      | Vigente     | 113,972  | Requerimientos vigentes              |
+
+
+--- RECAUDADORAS ---
+
+Las recaudadoras van del 0 al 10. Cada recaudadora tiene sus propios requerimientos.
+El parámetro p_reca filtra exactamente por una recaudadora específica.
+
+
+--- ORDENAMIENTO ---
+
+El parámetro p_orden controla cómo se ordenan los resultados:
+
+1. 'lote' (por defecto):
+   - Ordenado por número de lote (m.num_lote)
+   - Agrupa notificaciones del mismo lote
+
+2. 'vigentes':
+   - Ordenado por folio de requerimiento (r.folioreq)
+   - Útil para ver secuencia de folios
+
+3. 'dependencia':
+   - Ordenado por abreviatura + número de acta
+   - Agrupa por dependencia emisora
+
+
+--- FILTROS APLICADOS ---
+
+✓ Recaudadora exacta (r.recaud = p_reca)
+✓ Año del acta exacto (m.axo_acta = p_axo)
+✓ Rango de folios (r.folioreq BETWEEN p_inicio AND p_final)
+✓ Tipo de documento (r.tipo = p_tipo)
+
+
+--- TABLAS USADAS ---
+
+Base de datos: multas_reglamentos
+
+1. publico.reqmultas (403,162 registros):
+   - cvereq: Clave del requerimiento
+   - folioreq: Folio del requerimiento
+   - axoreq: Año del requerimiento
+   - recaud: Recaudadora (1-10)
+   - tipo: Tipo de documento (N/R/S/D)
+   - fecemi: Fecha de emisión
+   - total: Monto total
+   - vigencia: Estado (V/C/P)
+   - id_multa: Relación con tabla multas
+
+2. publico.multas:
+   - id_multa: ID único
+   - num_lote: Número de lote
+   - num_acta: Número de acta
+   - axo_acta: Año del acta
+   - contribuyente: Nombre del contribuyente
+   - domicilio: Domicilio
+   - id_dependencia: Relación con c_dependencias
+
+3. publico.c_dependencias:
+   - id_dependencia: ID único
+   - abrevia: Abreviatura de la dependencia
+
+
+--- JOINS REALIZADOS ---
+
+FROM publico.reqmultas r
+LEFT JOIN publico.multas m ON r.id_multa = m.id_multa
+LEFT JOIN publico.c_dependencias d ON m.id_dependencia = d.id_dependencia
+
+LEFT JOIN se usa porque:
+- No todos los requerimientos tienen multa asociada
+- No todas las multas tienen dependencia asignada
+- Se garantiza que aparezcan todos los requerimientos
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test con recaud=3, año=2025, tipo R: 13 notificaciones encontradas
+✅ Stored procedure actualizado exitosamente
+✅ Triple JOIN funcional
+✅ Formato JSON correcto con 8 campos
+✅ COALESCE para manejo de NULL
+✅ Casting explícito de tipos (VARCHAR, NUMERIC, INTEGER)
+✅ Ordenamiento dinámico funcional
+
+
+--- ESTADÍSTICAS ---
+
+Total de requerimientos en BD: 403,162
+
+Por tipo de documento:
+- Normal (N): 233,854 (58%)
+- Requerimiento (R): 146,424 (36%)
+- Tipo S: 18,881 (5%)
+- Diferencia (D): 4,003 (1%)
+
+Por estado de vigencia:
+- Cancelado (C): 147,780 (37%)
+- Pagado (P): 141,410 (35%)
+- Vigente (V): 113,972 (28%)
+
+Rango de fechas: Varía por recaudadora
+Registros por consulta: Variable según filtros
+
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ El campo num_lote puede estar vacío
+   Algunos requerimientos no tienen lote asignado
+
+⚠️ El año del acta (axo_acta) puede diferir del año del requerimiento (axoreq)
+   El filtro aplica sobre el año del acta, no del requerimiento
+
+⚠️ El rango de folios usa BETWEEN
+   Incluye tanto el folio inicio como el folio final
+
+⚠️ El tipo de documento es sensible a mayúsculas
+   Debe usarse 'N', 'R', 'S', 'D' (no 'n', 'r', etc.)
+
+⚠️ La abreviatura (abrevia) proviene de la tabla de dependencias
+   Si no hay dependencia asociada, aparecerá vacío
+
+⚠️ El total es del requerimiento, no de la multa original
+   El monto puede incluir recargos, actualizaciones, etc.
+
+
+--- RESUMEN ---
+
+Problema: Tabla publico.notificaciones_actas no existe
+
+Solución: Triple JOIN entre reqmultas, multas y c_dependencias
+
+Resultado: Componente funcional con 403,162 requerimientos disponibles
+
+Características:
+- Filtrado por recaudadora, año, rango de folios y tipo
+- Ordenamiento dinámico (lote, vigentes, dependencia)
+- Triple JOIN para datos completos
+- Manejo de NULL con COALESCE
+- Soporte para todos los tipos de documento (N, R, S, D)
+- Información completa de contribuyente y dependencia

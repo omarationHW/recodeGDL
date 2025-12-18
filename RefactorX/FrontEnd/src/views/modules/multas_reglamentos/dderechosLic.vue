@@ -18,7 +18,6 @@
               <input
                 class="municipal-form-control"
                 v-model="filters.licencia"
-                placeholder="Ej: 14862"
                 @keyup.enter="filters.licencia && reload()"
               />
             </div>

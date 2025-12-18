@@ -1,0 +1,246 @@
+=== EJEMPLOS PARA PROBAR listdesctomultafrm.vue ===
+
+El stored procedure ha sido actualizado para usar las tablas existentes:
+- publico.descmultampal (171,860 registros)
+- publico.multas (para obtener datos del acta y contribuyente)
+
+IMPORTANTE:
+- 108 descuentos vigentes disponibles
+- 162,275 descuentos pendientes
+- 9,475 descuentos cancelados
+- Paginación ya incluida en el componente (10 registros por página)
+- Búsqueda por defecto en todos los estados
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.descuentos_multa" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa JOIN entre publico.descmultampal y publico.multas con id_multa
+
+--- PARÁMETRO DEL COMPONENTE ---
+
+El componente Vue envía un parámetro de texto llamado 'p_filtro':
+- Tipo: string (VARCHAR)
+- Búsqueda: case-insensitive con ILIKE '%filtro%'
+- Campos buscados: id_multa, num_acta, axo_acta, contribuyente, tipo_descto, folio, estado
+- Por defecto: '' (vacío, trae todos los primeros 100)
+
+--- EJEMPLO 1: Sin filtros (por defecto) ---
+
+Búsqueda: Campo vacío o sin texto
+
+Resultado esperado:
+✓ 100 descuentos (límite máximo)
+✓ Ordenados por fecha descendente (más recientes primero)
+✓ Incluye todos los estados (V, C, P)
+
+Ejemplo de descuento:
+   ID Multa: 417194
+   Num Acta: 609
+   Año Acta: 2025
+   Contribuyente: CARLOS MARTIN SOLORIO
+   Tipo Descuento: Porcentaje
+   Valor Descuento: $75.00
+   Porcentaje: 75.00%
+   Total Original: $1,500.00
+   Total con Descto: $375.00
+   Estado: PENDIENTE
+   Fecha: 2025-12-15
+   Folio: (vacío)
+
+
+--- EJEMPLO 2: Búsqueda por contribuyente ---
+
+Búsqueda: "MEZA"
+
+Resultado:
+✓ 100 descuentos (límite alcanzado)
+✓ Contribuyentes con "MEZA" en el nombre
+
+Ejemplo:
+   Contribuyente: MEZA CARDENAS PATRICIA
+   Acta: 16695/2023
+   Porcentaje: 75.00%
+   Total Original: $4,026.42
+   Total con Descto: $1,006.61
+
+
+--- EJEMPLO 3: Búsqueda por año ---
+
+Búsqueda: "2024"
+
+Resultado:
+✓ 100 descuentos del año 2024 (límite alcanzado)
+✓ Busca en campo axo_acta
+
+
+--- EJEMPLO 4: Búsqueda por estado ---
+
+Búsqueda: "VIGENTE"
+
+Resultado:
+✓ Encuentra descuentos con estado V (VIGENTE)
+✓ Mapeo: V → VIGENTE, C → CANCELADO, P → PENDIENTE
+✓ 108 descuentos vigentes totales disponibles
+
+
+--- EJEMPLO 5: Búsqueda por número de acta ---
+
+Búsqueda: Número de acta (ej: "16695")
+
+Resultado:
+✓ Encuentra descuentos por número de acta
+✓ Búsqueda en campo num_acta
+
+
+--- CAMPOS MOSTRADOS ---
+
+| Campo              | Descripción                          | Ejemplo                  |
+|--------------------|--------------------------------------|--------------------------|
+| id_multa           | ID único de la multa                 | 417194                   |
+| num_acta           | Número de acta                       | 609                      |
+| axo_acta           | Año del acta                         | 2025                     |
+| contribuyente      | Nombre del contribuyente             | CARLOS MARTIN SOLORIO    |
+| tipo_descto        | Tipo de descuento                    | Porcentaje               |
+| valor_descto       | Valor del descuento                  | 75.00                    |
+| porcentaje         | Porcentaje de descuento              | 75.00                    |
+| total_original     | Total original de la multa           | 1500.00                  |
+| total_con_descto   | Total con descuento aplicado         | 375.00                   |
+| estado             | Estado del descuento                 | VIGENTE/CANCELADO/PEND   |
+| fecha_movto        | Fecha del movimiento                 | 2025-12-15               |
+| folio              | Folio del descuento                  | (puede estar vacío)      |
+| observacion        | Observaciones                        | (puede estar vacío)      |
+
+
+--- TIPOS DE DESCUENTO ---
+
+El stored procedure convierte códigos a nombres:
+
+| Código | Nombre        | Descripción                          |
+|--------|---------------|--------------------------------------|
+| P      | Porcentaje    | Descuento por porcentaje             |
+| M      | Monto Fijo    | Descuento por monto fijo             |
+| E      | Especial      | Descuento especial                   |
+
+
+--- CÁLCULOS REALIZADOS ---
+
+**1. Porcentaje:**
+- Si tipo_descto = 'P': porcentaje = valor (valor es el %)
+- Si tipo_descto != 'P': porcentaje = (valor / total * 100)
+
+**2. Total con descuento:**
+- Si tipo_descto = 'P': total_con_descto = total - (total * valor / 100)
+- Si tipo_descto != 'P': total_con_descto = total - valor
+
+**3. Total original:**
+- Usa multas.total, o multas.calificacion si total es NULL
+
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+
+Tablas JOIN:
+1. publico.descmultampal (tabla de descuentos de multas)
+   - id_multa, tipo_descto, valor, cvepago, feccap, estado, folio, observacion
+
+2. publico.multas (tabla de multas)
+   - id_multa, num_acta, axo_acta, contribuyente, total, calificacion
+
+JOIN: publico.descmultampal LEFT JOIN publico.multas ON id_multa
+
+
+--- FILTROS APLICADOS ---
+
+✓ Búsqueda de texto (p_filtro) aplica a:
+  - ID de multa (id_multa)
+  - Número de acta (num_acta)
+  - Año de acta (axo_acta)
+  - Contribuyente (nombre completo)
+  - Tipo de descuento (tipo_descto)
+  - Folio (folio)
+  - Estado (estado: V/C/P y VIGENTE/CANCELADO/PENDIENTE)
+✓ Límite de 100 registros
+✓ Ordenado por fecha descendente (feccap DESC)
+✓ Búsqueda case-insensitive (ILIKE)
+
+
+--- PAGINACIÓN ---
+
+✓ Ya incluida en el componente listdesctomultafrm.vue
+✓ 10 registros por página
+✓ Navegación completa (primera, anterior, siguiente, última)
+✓ Contador de registros
+✓ Botones con íconos FontAwesome
+
+
+--- FUNCIONES DEL COMPONENTE ---
+
+✓ formatDate(fecha): Formatea fechas al formato español
+✓ formatMoney(valor): Formatea montos con símbolo de peso
+✓ buscar(): Se ejecuta con filtro de texto
+✓ Tabla responsive con scroll horizontal
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Sin filtro (texto vacío): 100 descuentos encontrados
+✅ Filtro por contribuyente 'MEZA': 100 descuentos
+✅ Filtro por año '2024': 100 descuentos
+✅ Filtro por estado 'VIGENTE': descuentos vigentes
+✅ Formato JSON correcto con 13 campos
+✅ Cálculos de porcentaje y total con descuento correctos
+✅ JOIN entre descmultampal y multas funcional
+✅ Búsqueda case-insensitive funcional
+
+
+--- ESTADÍSTICAS ---
+
+Total de descuentos en BD:
+- Vigentes (V): 108
+- Pendientes (P): 162,275
+- Cancelados (C): 9,475
+- Total: 171,860
+
+Tipos de descuento vigentes:
+- Porcentaje (P): 108
+
+Registros retornados por búsqueda: Hasta 100 (límite)
+
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ La mayoría de los descuentos tienen estado 'P' (Pendiente)
+⚠️ Solo 108 descuentos con estado 'V' (Vigente)
+⚠️ El componente busca automáticamente al cargar si tiene filtro
+⚠️ El límite de 100 registros evita sobrecargar el frontend
+⚠️ El cálculo de porcentaje y total con descuento es dinámico según el tipo
+
+
+--- ESTADOS ---
+
+| Código | Nombre      | Descripción                          |
+|--------|-------------|--------------------------------------|
+| V      | VIGENTE     | Descuento vigente y aplicable        |
+| C      | CANCELADO   | Descuento cancelado                  |
+| P      | PENDIENTE   | Descuento pendiente de aplicar       |
+
+
+--- RESUMEN ---
+
+**Problema**: Tabla publico.descuentos_multa no existe
+
+**Solución**: JOIN entre publico.descmultampal y publico.multas usando id_multa
+
+**Resultado**: Componente funcional con 171,860 descuentos disponibles
+
+**Características**:
+- Búsqueda por múltiples campos
+- Cálculos automáticos de porcentajes y totales
+- Paginación incluida
+- Estados mapeados a nombres descriptivos
+- Límite de 100 registros por consulta
+

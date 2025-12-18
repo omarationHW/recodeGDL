@@ -1,0 +1,127 @@
+=== EJEMPLOS PARA PROBAR LicenciaMicrogenerador.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla publico.licencias existente.
+
+IMPORTANTE:
+- Usa la misma tabla que LicenciaMicrogeneradorEcologia (publico.licencias)
+- 484,281 licencias disponibles
+- Búsqueda por RFC funcional
+- Paginación incluida (10 registros por página)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.licencias_microgenerador" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa tabla publico.licencias (misma que el otro componente de microgenerador)
+
+--- EJEMPLO 1: RFC de OXXO (muchas licencias) ---
+
+RFC: CCO8605231N4
+
+Resultado esperado:
+✓ 100 licencias encontradas (límite máximo)
+✓ Empresa: CADENA COMERCIAL OXXO, S.A. DE C.V.
+
+Ejemplo de licencia:
+   Folio: LIC-487773
+   Titular: CADENA COMERCIAL OXXO, S.A. DE C.V.
+   Domicilio Instalación: GOMEZ MORIN MANUEL NORTE #3545
+   Tipo Sistema: Sistema: VINOS Y LICORES EN B.C.
+   Potencia Instalada: 167.00 KW
+   Núm. Paneles: 17 (calculado: 1 panel por cada 10 KW)
+   Fecha Instalación: 2025-11-20
+   Fecha Vencimiento: 2026-11-20
+   Estatus: DESCONOCIDO
+
+
+--- EJEMPLO 2: Otros RFCs con licencias ---
+
+RFC: FGU830930PD3
+RFC: LARM690427PY8
+
+Resultado: Múltiples licencias con información completa
+
+
+--- EJEMPLO 3: RFC inexistente ---
+
+RFC: XXXX000000XXX
+
+Resultado:
+✗ No se encontraron licencias para el RFC proporcionado
+
+
+--- EJEMPLO 4: RFC vacío ---
+
+RFC: (vacío)
+
+Resultado:
+✗ Botón deshabilitado
+
+
+--- CAMPOS MOSTRADOS ---
+
+| Campo                 | Descripción                           | Ejemplo                    |
+|-----------------------|---------------------------------------|----------------------------|
+| id_licencia           | ID único                              | 492051                     |
+| rfc                   | RFC del titular                       | CCO8605231N4               |
+| folio_licencia        | Folio (LIC-XXXXX)                     | LIC-487773                 |
+| nombre_titular        | Nombre completo                       | CADENA COMERCIAL OXXO...   |
+| domicilio_instalacion | Dirección de instalación              | GOMEZ MORIN MANUEL #3545   |
+| tipo_sistema          | Tipo de sistema (actividad adaptada)  | Sistema: TIENDA...         |
+| potencia_instalada_kw | Potencia en KW (superficie adaptada)  | 167.00                     |
+| num_paneles           | Número de paneles (calculado)         | 17                         |
+| fecha_instalacion     | Fecha de instalación                  | 2025-11-20                 |
+| fecha_vencimiento     | Fecha de vencimiento (+1 año)         | 2026-11-20                 |
+| estatus               | Estado de la licencia                 | VIGENTE/NO VIGENTE         |
+
+
+--- DIFERENCIAS CON LicenciaMicrogeneradorEcologia ---
+
+Nombres de campos diferentes:
+- nombre_titular (vs nombre_solicitante)
+- domicilio_instalacion (vs domicilio)
+- tipo_sistema (vs tipo_energia)
+- potencia_instalada_kw (vs capacidad_kw)
+- fecha_instalacion (vs fecha_emision)
+- num_paneles (campo adicional, calculado)
+
+Cálculo de paneles:
+- num_paneles = CEIL(sup_autorizada / 10)
+- Ejemplo: 167 m² → 17 paneles
+
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: publico
+Tabla: licencias (misma que el otro componente)
+Registros: 484,281 licencias
+
+
+--- PAGINACIÓN ---
+
+✓ Ya incluida en el componente
+✓ 10 registros por página
+✓ Navegación completa (primera, anterior, siguiente, última)
+✓ Contador de registros
+
+
+--- PRUEBAS REALIZADAS ---
+
+✅ RFC 'CCO8605231N4': 100 licencias encontradas
+✅ Validación de RFC vacío: Funciona
+✅ RFC inexistente: 0 resultados (correcto)
+✅ Formato JSON correcto
+✅ Todos los campos mapeados correctamente
+✅ Cálculo de num_paneles funciona
+
+
+--- RESUMEN ---
+
+**Problema**: Tabla publico.licencias_microgenerador no existe
+
+**Solución**: Usar tabla publico.licencias existente
+
+**Resultado**: Componente funcional con paginación incluida

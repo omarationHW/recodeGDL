@@ -1,5 +1,5 @@
 <?php
-// Script para crear los SPs listado_multiple y listado_multiple_count
+// Script para probar el stored procedure recaudadora_listado_multiple actualizado
 
 $host = '192.168.6.146';
 $dbname = 'multas_reglamentos';
@@ -12,281 +12,164 @@ try {
 
     echo "Conectado exitosamente.\n\n";
 
-    // 1. Crear tabla para listado múltiple si no existe
-    echo "1. Creando tabla publico.listado_multiple...\n";
-    $pdo->exec("DROP TABLE IF EXISTS publico.listado_multiple CASCADE");
-
-    $sql = "
-    CREATE TABLE publico.listado_multiple (
-        id SERIAL PRIMARY KEY,
-        folio VARCHAR(50) NOT NULL,
-        tipo_movimiento VARCHAR(50) NOT NULL,
-        clave_cuenta VARCHAR(50) NOT NULL,
-        contribuyente VARCHAR(200) NOT NULL,
-        concepto VARCHAR(100) NOT NULL,
-        descripcion TEXT,
-        monto NUMERIC(12,2) NOT NULL,
-        fecha_movimiento DATE NOT NULL,
-        estado VARCHAR(20) NOT NULL,
-        usuario VARCHAR(50),
-        recaudadora INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    ";
+    // 1. Actualizar el stored procedure
+    echo "1. Actualizando stored procedure recaudadora_listado_multiple...\n";
+    $sql = file_get_contents(__DIR__ . '/update_sp_listado_multiple.sql');
     $pdo->exec($sql);
-    echo "   ✓ Tabla creada exitosamente.\n\n";
+    echo "   ✓ Stored procedure actualizado exitosamente.\n\n";
 
-    // 2. Crear índices para mejorar performance en búsquedas
-    echo "2. Creando índices...\n";
-    $pdo->exec("CREATE INDEX idx_listado_multiple_folio ON publico.listado_multiple(folio)");
-    $pdo->exec("CREATE INDEX idx_listado_multiple_cuenta ON publico.listado_multiple(clave_cuenta)");
-    $pdo->exec("CREATE INDEX idx_listado_multiple_contribuyente ON publico.listado_multiple(contribuyente)");
-    $pdo->exec("CREATE INDEX idx_listado_multiple_fecha ON publico.listado_multiple(fecha_movimiento)");
-    echo "   ✓ Índices creados.\n\n";
+    // 2. Probar sin filtro (pagos recientes)
+    echo "2. Probando sin filtro (pagos más recientes)...\n";
 
-    // 3. Insertar datos de prueba (120 registros para probar paginación)
-    echo "3. Insertando 120 registros de prueba...\n";
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['', 0, 10]);
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $contribuyentes = [
-        'MARIA GUADALUPE HERNANDEZ LOPEZ',
-        'JUAN CARLOS MARTINEZ GARCIA',
-        'ANA PATRICIA RODRIGUEZ SANCHEZ',
-        'JOSE LUIS GONZALEZ RAMIREZ',
-        'CARMEN ROSA LOPEZ FERNANDEZ',
-        'FRANCISCO JAVIER PEREZ TORRES',
-        'LAURA ELENA JIMENEZ CRUZ',
-        'ROBERTO CARLOS SANCHEZ MORALES',
-        'GABRIELA MENDEZ ORTIZ',
-        'MIGUEL ANGEL VAZQUEZ RUIZ',
-        'PEDRO ANTONIO CASTRO REYES',
-        'MARTHA ELIZABETH RAMOS SILVA'
-    ];
+    echo "   Pagos encontrados: " . count($results) . "\n\n";
 
-    $conceptos = [
-        'Pago Predial',
-        'Pago Agua',
-        'Licencia Comercial',
-        'Multa Tránsito',
-        'Derechos Construcción',
-        'Certificación',
-        'Devolución',
-        'Ajuste de Cuenta'
-    ];
-
-    $tipos_mov = [
-        'PAGO',
-        'CARGO',
-        'DESCUENTO',
-        'CONDONACIÓN',
-        'CANCELACIÓN',
-        'AJUSTE'
-    ];
-
-    $estados = ['APLICADO', 'PENDIENTE', 'CANCELADO', 'PROCESADO'];
-    $usuarios = ['ADMIN01', 'CAJERO01', 'CAJERO02', 'SUPERVISOR01'];
-
-    $stmt = $pdo->prepare("
-        INSERT INTO publico.listado_multiple
-        (folio, tipo_movimiento, clave_cuenta, contribuyente, concepto, descripcion,
-         monto, fecha_movimiento, estado, usuario, recaudadora)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
-
-    for ($i = 1; $i <= 120; $i++) {
-        $year = 2024;
-        $folio = "MUL-{$year}-" . str_pad($i, 5, '0', STR_PAD_LEFT);
-        $tipo = $tipos_mov[$i % 6];
-        $cuenta = "CTA-" . str_pad(($i % 20) + 1, 5, '0', STR_PAD_LEFT);
-        $contribuyente = $contribuyentes[$i % 12];
-        $concepto = $conceptos[$i % 8];
-        $descripcion = "Movimiento múltiple: {$tipo} - {$concepto} para cuenta {$cuenta}";
-        $monto = 500.00 + ($i * 37.50);
-        $fecha = date('Y-m-d', strtotime("2024-01-01 +{$i} days"));
-        $estado = $estados[$i % 4];
-        $usuario = $usuarios[$i % 4];
-        $recaudadora = (($i - 1) % 5) + 1; // 1-5
-
-        $stmt->execute([
-            $folio,
-            $tipo,
-            $cuenta,
-            $contribuyente,
-            $concepto,
-            $descripcion,
-            $monto,
-            $fecha,
-            $estado,
-            $usuario,
-            $recaudadora
-        ]);
-    }
-    echo "   ✓ 120 registros insertados.\n\n";
-
-    // 4. Crear el stored procedure para obtener datos paginados
-    echo "4. Creando stored procedure publico.recaudadora_listado_multiple...\n";
-    $sql = "
-    CREATE OR REPLACE FUNCTION publico.recaudadora_listado_multiple(
-        p_filtro VARCHAR,
-        p_limit INTEGER,
-        p_offset INTEGER
-    )
-    RETURNS TABLE (
-        id INTEGER,
-        folio VARCHAR,
-        tipo_movimiento VARCHAR,
-        clave_cuenta VARCHAR,
-        contribuyente VARCHAR,
-        concepto VARCHAR,
-        descripcion TEXT,
-        monto NUMERIC,
-        fecha_movimiento DATE,
-        estado VARCHAR,
-        usuario VARCHAR,
-        recaudadora INTEGER
-    )
-    LANGUAGE plpgsql
-    AS \$\$
-    BEGIN
-        RETURN QUERY
-        SELECT
-            l.id,
-            l.folio,
-            l.tipo_movimiento,
-            l.clave_cuenta,
-            l.contribuyente,
-            l.concepto,
-            l.descripcion,
-            l.monto,
-            l.fecha_movimiento,
-            l.estado,
-            l.usuario,
-            l.recaudadora
-        FROM publico.listado_multiple l
-        WHERE
-            CASE
-                WHEN p_filtro = '' OR p_filtro IS NULL THEN TRUE
-                ELSE (
-                    l.folio ILIKE '%' || p_filtro || '%'
-                    OR l.clave_cuenta ILIKE '%' || p_filtro || '%'
-                    OR l.contribuyente ILIKE '%' || p_filtro || '%'
-                    OR l.concepto ILIKE '%' || p_filtro || '%'
-                    OR l.tipo_movimiento ILIKE '%' || p_filtro || '%'
-                    OR l.estado ILIKE '%' || p_filtro || '%'
-                )
-            END
-        ORDER BY l.fecha_movimiento DESC, l.id DESC
-        LIMIT p_limit
-        OFFSET p_offset;
-    END;
-    \$\$;
-    ";
-    $pdo->exec($sql);
-    echo "   ✓ Stored procedure recaudadora_listado_multiple creado.\n\n";
-
-    // 5. Crear el stored procedure para obtener el conteo
-    echo "5. Creando stored procedure publico.recaudadora_listado_multiple_count...\n";
-    $sql = "
-    CREATE OR REPLACE FUNCTION publico.recaudadora_listado_multiple_count(
-        p_filtro VARCHAR
-    )
-    RETURNS TABLE (
-        total BIGINT
-    )
-    LANGUAGE plpgsql
-    AS \$\$
-    BEGIN
-        RETURN QUERY
-        SELECT COUNT(*)::BIGINT
-        FROM publico.listado_multiple l
-        WHERE
-            CASE
-                WHEN p_filtro = '' OR p_filtro IS NULL THEN TRUE
-                ELSE (
-                    l.folio ILIKE '%' || p_filtro || '%'
-                    OR l.clave_cuenta ILIKE '%' || p_filtro || '%'
-                    OR l.contribuyente ILIKE '%' || p_filtro || '%'
-                    OR l.concepto ILIKE '%' || p_filtro || '%'
-                    OR l.tipo_movimiento ILIKE '%' || p_filtro || '%'
-                    OR l.estado ILIKE '%' || p_filtro || '%'
-                )
-            END;
-    END;
-    \$\$;
-    ";
-    $pdo->exec($sql);
-    echo "   ✓ Stored procedure recaudadora_listado_multiple_count creado.\n\n";
-
-    // 6. Probar los SPs con varios ejemplos
-    echo "6. Probando los stored procedures:\n\n";
-
-    $tests = [
-        [
-            'nombre' => 'Primera página sin filtro (10 registros)',
-            'filtro' => '',
-            'limit' => 10,
-            'offset' => 0
-        ],
-        [
-            'nombre' => 'Segunda página sin filtro (10 registros, offset 10)',
-            'filtro' => '',
-            'limit' => 10,
-            'offset' => 10
-        ],
-        [
-            'nombre' => 'Filtrar por tipo PAGO (primera página, 10 registros)',
-            'filtro' => 'PAGO',
-            'limit' => 10,
-            'offset' => 0
-        ],
-        [
-            'nombre' => 'Filtrar por contribuyente MARIA (primera página)',
-            'filtro' => 'MARIA',
-            'limit' => 10,
-            'offset' => 0
-        ],
-        [
-            'nombre' => 'Filtrar por estado APLICADO (primera página)',
-            'filtro' => 'APLICADO',
-            'limit' => 10,
-            'offset' => 0
-        ]
-    ];
-
-    foreach ($tests as $idx => $test) {
-        echo "   Prueba " . ($idx + 1) . ": " . $test['nombre'] . "\n";
-
-        // Obtener el conteo
-        $stmt_count = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple_count(?)");
-        $stmt_count->execute([$test['filtro']]);
-        $count_result = $stmt_count->fetch(PDO::FETCH_ASSOC);
-        $total = $count_result['total'];
-        echo "   Total de registros que coinciden: {$total}\n";
-
-        // Obtener los datos
-        $stmt_data = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple(?, ?, ?)");
-        $stmt_data->execute([$test['filtro'], $test['limit'], $test['offset']]);
-        $rows = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
-        echo "   Registros devueltos en esta página: " . count($rows) . "\n";
-
-        if (count($rows) > 0) {
-            echo "   Primeros 2 registros:\n";
-            foreach (array_slice($rows, 0, 2) as $row) {
-                echo "      - " . $row['folio'] .
-                     " - " . $row['tipo_movimiento'] .
-                     " - " . $row['contribuyente'] .
-                     " - " . $row['concepto'] .
-                     " - $" . number_format($row['monto'], 2) .
-                     " - " . $row['estado'] . "\n";
-            }
+    if (count($results) > 0) {
+        echo "   === PRIMEROS 3 PAGOS ===\n";
+        for ($i = 0; $i < min(3, count($results)); $i++) {
+            $pago = $results[$i];
+            echo "\n   PAGO " . ($i + 1) . ":\n";
+            echo "   ID: {$pago['id']}\n";
+            echo "   Folio: {$pago['folio']}\n";
+            echo "   Tipo: {$pago['tipo_movimiento']}\n";
+            echo "   Cuenta: {$pago['clave_cuenta']}\n";
+            echo "   Contribuyente: {$pago['contribuyente']}\n";
+            echo "   Concepto: {$pago['concepto']}\n";
+            echo "   Descripción: {$pago['descripcion']}\n";
+            echo "   Monto: $" . number_format($pago['monto'], 2) . "\n";
+            echo "   Fecha: {$pago['fecha_movimiento']}\n";
+            echo "   Estado: {$pago['estado']}\n";
+            echo "   Usuario: {$pago['usuario']}\n";
+            echo "   Recaudadora: {$pago['recaudadora']}\n";
         }
-        echo "\n";
     }
 
-    echo "✅ Script completado exitosamente!\n";
-    echo "\n📝 NOTA: Se crearon 2 stored procedures:\n";
-    echo "   1. recaudadora_listado_multiple - Obtiene los datos paginados\n";
-    echo "   2. recaudadora_listado_multiple_count - Obtiene el total de registros\n";
-    echo "   - Ambos SPs filtran por folio, cuenta, contribuyente, concepto, tipo y estado\n";
+    // 3. Probar con filtro por concepto
+    echo "\n\n3. Probando con filtro 'PREDIAL' (concepto)...\n";
+
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['PREDIAL', 0, 10]);
+    $results_predial = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "   Pagos de PREDIAL: " . count($results_predial) . "\n";
+
+    if (count($results_predial) > 0) {
+        $pago = $results_predial[0];
+        echo "\n   Ejemplo:\n";
+        echo "   Folio: {$pago['folio']}\n";
+        echo "   Concepto: {$pago['concepto']}\n";
+        echo "   Monto: $" . number_format($pago['monto'], 2) . "\n";
+        echo "   Estado: {$pago['estado']}\n";
+    }
+
+    // 4. Probar con filtro por folio
+    echo "\n\n4. Probando con filtro por folio '5226163'...\n";
+
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['5226163', 0, 10]);
+    $results_folio = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "   Pagos con folio '5226163': " . count($results_folio) . "\n";
+
+    if (count($results_folio) > 0) {
+        $pago = $results_folio[0];
+        echo "\n   Detalle:\n";
+        echo "   Folio: {$pago['folio']}\n";
+        echo "   Cuenta: {$pago['clave_cuenta']}\n";
+        echo "   Concepto: {$pago['concepto']}\n";
+        echo "   Monto: $" . number_format($pago['monto'], 2) . "\n";
+    }
+
+    // 5. Probar con filtro por estado
+    echo "\n\n5. Probando con filtro 'cancelado' (estado)...\n";
+
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['cancelado', 0, 10]);
+    $results_cancelado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "   Pagos cancelados: " . count($results_cancelado) . "\n";
+
+    if (count($results_cancelado) > 0) {
+        $pago = $results_cancelado[0];
+        echo "\n   Ejemplo:\n";
+        echo "   Folio: {$pago['folio']}\n";
+        echo "   Estado: {$pago['estado']}\n";
+        echo "   Monto: $" . number_format($pago['monto'], 2) . "\n";
+    }
+
+    // 6. Probar paginación
+    echo "\n\n6. Probando paginación (offset=10, limit=5)...\n";
+
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['', 10, 5]);
+    $results_page2 = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "   Pagos en página 2: " . count($results_page2) . "\n";
+
+    if (count($results_page2) > 0) {
+        $pago = $results_page2[0];
+        echo "\n   Ejemplo:\n";
+        echo "   Folio: {$pago['folio']}\n";
+        echo "   Concepto: {$pago['concepto']}\n";
+        echo "   Fecha: {$pago['fecha_movimiento']}\n";
+    }
+
+    // 7. Estadísticas generales
+    echo "\n\n7. Estadísticas generales...\n";
+
+    $stmt_total = $pdo->query("
+        SELECT COUNT(*) as total
+        FROM publico.pagos
+    ");
+    $total = $stmt_total->fetch(PDO::FETCH_ASSOC);
+    echo "   Total pagos en BD: " . number_format($total['total']) . "\n";
+
+    $stmt_activos = $pdo->query("
+        SELECT COUNT(*) as total
+        FROM publico.pagos
+        WHERE cvecanc IS NULL
+    ");
+    $activos = $stmt_activos->fetch(PDO::FETCH_ASSOC);
+    echo "   Pagos activos: " . number_format($activos['total']) . "\n";
+
+    $stmt_cancelados = $pdo->query("
+        SELECT COUNT(*) as total
+        FROM publico.pagos
+        WHERE cvecanc IS NOT NULL
+    ");
+    $cancelados = $stmt_cancelados->fetch(PDO::FETCH_ASSOC);
+    echo "   Pagos cancelados: " . number_format($cancelados['total']) . "\n";
+
+    // Ver distribución por concepto (top 5)
+    echo "\n   Top 5 conceptos:\n";
+    $stmt_conceptos = $pdo->query("
+        SELECT
+            c.descripcion,
+            c.ncorto,
+            COUNT(*) as total
+        FROM publico.pagos p
+        LEFT JOIN publico.c_conceptos c ON p.cveconcepto = c.cveconcepto
+        GROUP BY c.descripcion, c.ncorto
+        ORDER BY total DESC
+        LIMIT 5
+    ");
+    $conceptos = $stmt_conceptos->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($conceptos as $concepto) {
+        echo "   - " . trim($concepto['descripcion']) . " ({$concepto['ncorto']}): " . number_format($concepto['total']) . "\n";
+    }
+
+    // 8. Ver formato JSON
+    echo "\n\n8. Formato JSON para el frontend (primeros 2 registros):\n";
+    $stmt = $pdo->prepare("SELECT * FROM publico.recaudadora_listado_multiple(?::VARCHAR, ?::INTEGER, ?::INTEGER)");
+    $stmt->execute(['', 0, 2]);
+    $result_json = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode($result_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+    echo "\n\n✅ Todas las pruebas completadas exitosamente!\n";
 
 } catch (PDOException $e) {
     echo "❌ Error: " . $e->getMessage() . "\n";

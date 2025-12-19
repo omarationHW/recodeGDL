@@ -42,8 +42,8 @@
               <label class="municipal-form-label">Oficina (Recaudadora)</label>
               <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="loading">
                 <option value="">Todas las recaudadoras</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -218,8 +218,8 @@
                 <select class="municipal-form-control" v-model.number="formData.oficina"
                   :disabled="modalMode === 'modificar' || loading">
                   <option value="">Seleccione...</option>
-                  <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                    {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -368,7 +368,7 @@ export default {
         const response = await axios.post('/api/generic', {
           eRequest: {
             Operacion: 'sp_get_recaudadoras',
-            Base: 'padron_licencias',
+            Base: 'mercados',
             Parametros: []
           }
         });

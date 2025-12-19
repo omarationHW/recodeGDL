@@ -38,8 +38,8 @@
               <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
               <select class="municipal-form-control" v-model="selectedRec" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -138,27 +138,76 @@
             </table>
           </div>
 
-          <!-- Paginación -->
-          <div v-if="padron.length > 0" class="pagination-container">
+          <!-- Controles de paginación -->
+          <div v-if="padron.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+              <span class="text-muted">
+                Mostrando {{ paginationStart }}
+                a {{ paginationEnd }}
+                de {{ totalItems }} registros
+              </span>
             </div>
-            <div class="pagination-controls">
-              <label class="me-2">Registros por página:</label>
-              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
+
             <div class="pagination-buttons">
-              <button @click="prevPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
               </button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
           </div>
@@ -236,7 +285,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Esquema: 'publico',
         Parametros: []
       }
@@ -349,17 +398,33 @@ const paginationEnd = computed(() => {
 
 const totalItems = computed(() => padron.value.length)
 
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Paginación - Métodos
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
 }
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 // Reset página al buscar

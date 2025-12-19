@@ -72,7 +72,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in cuotas" :key="row.id_kilowhatts">
+              <tr v-for="row in paginatedData" :key="row.id_kilowhatts">
                 <td>{{ row.id_kilowhatts }}</td>
                 <td>{{ row.axo }}</td>
                 <td>{{ row.periodo }}</td>
@@ -89,6 +89,80 @@
               </tr>
             </tbody>
           </table>
+
+          <!-- Controles de paginación -->
+          <div v-if="cuotas.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, cuotas.length) }}
+                de {{ cuotas.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -97,21 +171,65 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/composables/useToast'
 
-const toast = useToast()
+const { showToast } = useToast()
 const loading = ref(false)
 const cuotas = ref([])
 const showCreate = ref(false)
 const editRow = ref(null)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const form = ref({
   axo: new Date().getFullYear(),
   periodo: 1,
   importe: null
 })
+
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(cuotas.value.length / itemsPerPage.value)
+})
+
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return cuotas.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
 
 const fetchCuotas = async () => {
   loading.value = true
@@ -126,11 +244,12 @@ const fetchCuotas = async () => {
 
     if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
       cuotas.value = response.data.eResponse.data.result
+      currentPage.value = 1
     } else {
       cuotas.value = []
     }
   } catch (error) {
-    toast.error('Error al cargar cuotas')
+    showToast('Error al cargar cuotas', 'error')
     console.error('Error:', error)
     cuotas.value = []
   } finally {
@@ -161,15 +280,15 @@ const createCuota = async () => {
     })
 
     if (response.data?.eResponse?.success) {
-      toast.success('Cuota agregada correctamente')
+      showToast('Cuota agregada correctamente', 'success')
       showCreate.value = false
       resetForm()
       await fetchCuotas()
     } else {
-      toast.error(response.data?.eResponse?.message || 'Error al agregar cuota')
+      showToast(response.data?.eResponse?.message || 'Error al agregar cuota', 'error')
     }
   } catch (error) {
-    toast.error('Error al agregar cuota')
+    showToast('Error al agregar cuota', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false
@@ -205,15 +324,15 @@ const updateCuota = async () => {
     })
 
     if (response.data?.eResponse?.success) {
-      toast.success('Cuota modificada correctamente')
+      showToast('Cuota modificada correctamente', 'success')
       editRow.value = null
       resetForm()
       await fetchCuotas()
     } else {
-      toast.error(response.data?.eResponse?.message || 'Error al modificar cuota')
+      showToast(response.data?.eResponse?.message || 'Error al modificar cuota', 'error')
     }
   } catch (error) {
-    toast.error('Error al modificar cuota')
+    showToast('Error al modificar cuota', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false
@@ -237,13 +356,13 @@ const deleteCuota = async (row) => {
     })
 
     if (response.data?.eResponse?.success) {
-      toast.success('Cuota eliminada correctamente')
+      showToast('Cuota eliminada correctamente', 'success')
       await fetchCuotas()
     } else {
-      toast.error(response.data?.eResponse?.message || 'Error al eliminar cuota')
+      showToast(response.data?.eResponse?.message || 'Error al eliminar cuota', 'error')
     }
   } catch (error) {
-    toast.error('Error al eliminar cuota')
+    showToast('Error al eliminar cuota', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false

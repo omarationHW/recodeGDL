@@ -46,8 +46,8 @@
                 <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
                 <select v-model="form.oficina" class="municipal-form-control" required @change="cargarMercados" :disabled="loading">
                   <option value="">Seleccione...</option>
-                  <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                    {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -63,7 +63,16 @@
                 </select>
               </div>
 
-              
+              <div class="form-group">
+                <label class="municipal-form-label">Categoría <span class="required">*</span></label>
+                <select v-model="form.categoria" class="municipal-form-control" required :disabled="loading">
+                  <option value="">Seleccione...</option>
+                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                    {{ cat.categoria }} - {{ cat.descripcion }}
+                  </option>
+                </select>
+              </div>
+
               <div class="form-group">
                 <label class="municipal-form-label">Sección <span class="required">*</span></label>
                 <select v-model="form.seccion" class="municipal-form-control" required :disabled="loading">
@@ -248,7 +257,7 @@
                     <p>No se encontraron requerimientos para este local</p>
                   </td>
                 </tr>
-                <tr v-else v-for="r in requerimientos" :key="r.id_control"
+                <tr v-else v-for="r in paginatedRequerimientos" :key="r.id_control"
                   @click="selectedReq = r"
                   :class="{ 'table-row-selected': selectedReq?.id_control === r.id_control }"
                   class="row-hover">
@@ -278,6 +287,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación para requerimientos -->
+          <div v-if="requerimientos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPageReq - 1) * itemsPerPageReq) + 1 }}
+                a {{ Math.min(currentPageReq * itemsPerPageReq, requerimientos.length) }}
+                de {{ requerimientos.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPageReq"
+                @change="changePageSizeReq($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(1)"
+                :disabled="currentPageReq === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(currentPageReq - 1)"
+                :disabled="currentPageReq === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePagesReq"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPageReq ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPageReq(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(currentPageReq + 1)"
+                :disabled="currentPageReq === totalPagesReq"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(totalPagesReq)"
+                :disabled="currentPageReq === totalPagesReq"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -330,7 +413,7 @@
                     <p>No se encontraron periodos para este requerimiento</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(p, idx) in periodos" :key="idx" class="row-hover">
+                <tr v-else v-for="(p, idx) in paginatedPeriodos" :key="idx" class="row-hover">
                   <td><strong>{{ p.axo }}</strong></td>
                   <td>{{ p.periodo }}</td>
                   <td class="text-end">
@@ -357,6 +440,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación para periodos -->
+          <div v-if="periodos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPagePer - 1) * itemsPerPagePer) + 1 }}
+                a {{ Math.min(currentPagePer * itemsPerPagePer, periodos.length) }}
+                de {{ periodos.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPagePer"
+                @change="changePageSizePer($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(1)"
+                :disabled="currentPagePer === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(currentPagePer - 1)"
+                :disabled="currentPagePer === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePagesPer"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPagePer ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPagePer(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(currentPagePer + 1)"
+                :disabled="currentPagePer === totalPagesPer"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(totalPagesPer)"
+                :disabled="currentPagePer === totalPagesPer"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -400,11 +557,13 @@ const searchPerformed = ref(false)
 const recaudadoras = ref([])
 const mercados = ref([])
 const secciones = ref([])
+const categorias = ref([])
 
 // Formulario
 const form = ref({
   oficina: '',
   num_mercado: '',
+  categoria: '',
   seccion: '',
   local: '',
   letra_local: '',
@@ -417,6 +576,14 @@ const requerimientos = ref([])
 const periodos = ref([])
 const selectedLocal = ref(null)
 const selectedReq = ref(null)
+
+// Paginación para requerimientos
+const currentPageReq = ref(1)
+const itemsPerPageReq = ref(10)
+
+// Paginación para periodos
+const currentPagePer = ref(1)
+const itemsPerPagePer = ref(10)
 
 // Toast
 const toast = ref({
@@ -434,7 +601,7 @@ const mostrarAyuda = () => {
   showToast('Ingrese los datos del local para buscar sus requerimientos. Los campos marcados con (*) son obligatorios.', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = {
     show: true,
     type,
@@ -477,12 +644,96 @@ const totalPeriodos = computed(() => {
   return { importe, recargos, total: importe + recargos }
 })
 
+// Paginación para requerimientos
+const totalPagesReq = computed(() => Math.ceil(requerimientos.value.length / itemsPerPageReq.value))
+const paginatedRequerimientos = computed(() => {
+  const start = (currentPageReq.value - 1) * itemsPerPageReq.value
+  const end = start + itemsPerPageReq.value
+  return requerimientos.value.slice(start, end)
+})
+const visiblePagesReq = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPageReq.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPagesReq.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+// Paginación para periodos
+const totalPagesPer = computed(() => Math.ceil(periodos.value.length / itemsPerPagePer.value))
+const paginatedPeriodos = computed(() => {
+  const start = (currentPagePer.value - 1) * itemsPerPagePer.value
+  const end = start + itemsPerPagePer.value
+  return periodos.value.slice(start, end)
+})
+const visiblePagesPer = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPagePer.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPagesPer.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const goToPageReq = (page) => {
+  if (page >= 1 && page <= totalPagesReq.value) {
+    currentPageReq.value = page
+  }
+}
+
+const changePageSizeReq = (newSize) => {
+  itemsPerPageReq.value = parseInt(newSize)
+  currentPageReq.value = 1
+}
+
+const goToPagePer = (page) => {
+  if (page >= 1 && page <= totalPagesPer.value) {
+    currentPagePer.value = page
+  }
+}
+
+const changePageSizePer = (newSize) => {
+  itemsPerPagePer.value = parseInt(newSize)
+  currentPagePer.value = 1
+}
+
+// Cargar categorías
+const cargarCategorias = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Esquema: 'publico',
+        Parametros: []
+      }
+    })
+    if (res.data.eResponse && res.data.eResponse.success === true) {
+      categorias.value = res.data.eResponse.data.result || []
+    }
+  } catch (error) {
+    console.error('Error al cargar categorías:', error)
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   showLoading('Cargando Consulta de Requerimientos', 'Preparando catálogos del sistema...')
   try {
     await cargarRecaudadoras()
     await cargarSecciones()
+    await cargarCategorias()
   } finally {
     hideLoading()
   }
@@ -495,7 +746,7 @@ const cargarRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })

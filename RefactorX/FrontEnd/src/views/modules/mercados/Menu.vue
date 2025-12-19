@@ -44,7 +44,7 @@
               <select class="municipal-form-control" v-model="selectedOficina" @change="fetchMercados" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in oficinas" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>

@@ -45,7 +45,7 @@
                   :key="rec.id_recaudadora"
                   :value="rec.id_recaudadora"
                 >
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -123,7 +123,7 @@
                   :key="rec.id_recaudadora"
                   :value="rec.id_recaudadora"
                 >
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -363,7 +363,7 @@ async function cargarRecaudadoras() {
       const response = await axios.post('/api/generic', {
         eRequest: {
           Operacion: 'sp_get_recaudadoras',
-          Base: 'padron_licencias',
+          Base: 'mercados',
           Esquema: 'publico',
           Parametros: []
         }

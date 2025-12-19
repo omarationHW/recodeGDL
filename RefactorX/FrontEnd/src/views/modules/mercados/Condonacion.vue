@@ -28,8 +28,8 @@
                 <label class="municipal-form-label">Recaudadora *</label>
                 <select class="municipal-form-control" v-model="form.oficina" @change="onOficinaChange" required>
                   <option value="">Seleccione...</option>
-                  <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                    {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -44,7 +44,12 @@
               </div>
               <div class="col-md-2 mb-3">
                 <label class="municipal-form-label">Categoría *</label>
-                <input type="number" class="municipal-form-control" v-model.number="form.categoria" required min="1" />
+                <select class="municipal-form-control" v-model="form.categoria" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                    {{ cat.categoria }} - {{ cat.descripcion }}
+                  </option>
+                </select>
               </div>
               <div class="col-md-1 mb-3">
                 <label class="municipal-form-label">Sección *</label>
@@ -112,7 +117,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(a, idx) in adeudos" :key="idx">
+                <tr v-for="(a, idx) in paginatedAdeudos" :key="idx">
                   <td><input type="checkbox" class="form-check-input" v-model="a.selected" /></td>
                   <td>{{ a.axo }}</td>
                   <td>{{ a.periodo }}</td>
@@ -121,6 +126,80 @@
                 </tr>
               </tbody>
             </table>
+
+            <!-- Controles de paginación para adeudos -->
+            <div v-if="adeudos.length > itemsPerPageAd" class="pagination-controls mt-3">
+              <div class="pagination-info">
+                <span class="text-muted">
+                  Mostrando {{ ((currentPageAd - 1) * itemsPerPageAd) + 1 }}
+                  a {{ Math.min(currentPageAd * itemsPerPageAd, adeudos.length) }}
+                  de {{ adeudos.length }} registros
+                </span>
+              </div>
+
+              <div class="pagination-size">
+                <label class="municipal-form-label me-2">Registros por página:</label>
+                <select
+                  class="municipal-form-control form-control-sm"
+                  :value="itemsPerPageAd"
+                  @change="changePageSizeAd($event.target.value)"
+                  style="width: auto; display: inline-block;"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+
+              <div class="pagination-buttons">
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageAd(1)"
+                  :disabled="currentPageAd === 1"
+                  title="Primera página"
+                >
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageAd(currentPageAd - 1)"
+                  :disabled="currentPageAd === 1"
+                  title="Página anterior"
+                >
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+
+                <button
+                  v-for="page in visiblePagesAd"
+                  :key="page"
+                  class="btn-sm"
+                  :class="page === currentPageAd ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                  @click="goToPageAd(page)"
+                >
+                  {{ page }}
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageAd(currentPageAd + 1)"
+                  :disabled="currentPageAd === totalPagesAd"
+                  title="Página siguiente"
+                >
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageAd(totalPagesAd)"
+                  :disabled="currentPageAd === totalPagesAd"
+                  title="Última página"
+                >
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
+              </div>
+            </div>
             <div class="mt-3">
               <div class="row align-items-end">
                 <div class="col-md-4">
@@ -168,7 +247,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(c, idx) in condonados" :key="idx">
+                <tr v-for="(c, idx) in paginatedCondonados" :key="idx">
                   <td><input type="checkbox" class="form-check-input" v-model="c.selected" /></td>
                   <td>{{ c.axo }}</td>
                   <td>{{ c.periodo }}</td>
@@ -177,6 +256,80 @@
                 </tr>
               </tbody>
             </table>
+
+            <!-- Controles de paginación para condonados -->
+            <div v-if="condonados.length > itemsPerPageCo" class="pagination-controls mt-3">
+              <div class="pagination-info">
+                <span class="text-muted">
+                  Mostrando {{ ((currentPageCo - 1) * itemsPerPageCo) + 1 }}
+                  a {{ Math.min(currentPageCo * itemsPerPageCo, condonados.length) }}
+                  de {{ condonados.length }} registros
+                </span>
+              </div>
+
+              <div class="pagination-size">
+                <label class="municipal-form-label me-2">Registros por página:</label>
+                <select
+                  class="municipal-form-control form-control-sm"
+                  :value="itemsPerPageCo"
+                  @change="changePageSizeCo($event.target.value)"
+                  style="width: auto; display: inline-block;"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+
+              <div class="pagination-buttons">
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageCo(1)"
+                  :disabled="currentPageCo === 1"
+                  title="Primera página"
+                >
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageCo(currentPageCo - 1)"
+                  :disabled="currentPageCo === 1"
+                  title="Página anterior"
+                >
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+
+                <button
+                  v-for="page in visiblePagesCo"
+                  :key="page"
+                  class="btn-sm"
+                  :class="page === currentPageCo ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                  @click="goToPageCo(page)"
+                >
+                  {{ page }}
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageCo(currentPageCo + 1)"
+                  :disabled="currentPageCo === totalPagesCo"
+                  title="Página siguiente"
+                >
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+
+                <button
+                  class="btn-municipal-secondary btn-sm"
+                  @click="goToPageCo(totalPagesCo)"
+                  :disabled="currentPageCo === totalPagesCo"
+                  title="Última página"
+                >
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
+              </div>
+            </div>
             <div class="mt-3">
               <button class="btn-municipal-warning" @click="deshacerCondonacion" :disabled="loading">
                 <font-awesome-icon icon="undo" />
@@ -194,7 +347,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
@@ -208,6 +361,7 @@ const router = useRouter();
 const loading = ref(false);
 const recaudadoras = ref([]);
 const mercados = ref([]);
+const categorias = ref([]);
 const form = ref({
   oficina: '',
   num_mercado: '',
@@ -222,12 +376,82 @@ const adeudos = ref([]);
 const condonados = ref([]);
 const oficio = ref('');
 
+// Paginación
+const currentPageAd = ref(1);
+const itemsPerPageAd = ref(10);
+const currentPageCo = ref(1);
+const itemsPerPageCo = ref(10);
+
 // Helpers
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0);
 };
 
-const showToast = (type, message) => {
+// Paginación adeudos
+const totalPagesAd = computed(() => Math.ceil(adeudos.value.length / itemsPerPageAd.value));
+const paginatedAdeudos = computed(() => {
+  const start = (currentPageAd.value - 1) * itemsPerPageAd.value;
+  const end = start + itemsPerPageAd.value;
+  return adeudos.value.slice(start, end);
+});
+const visiblePagesAd = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPageAd.value - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPagesAd.value, startPage + maxVisible - 1);
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+  return pages;
+});
+
+// Paginación condonados
+const totalPagesCo = computed(() => Math.ceil(condonados.value.length / itemsPerPageCo.value));
+const paginatedCondonados = computed(() => {
+  const start = (currentPageCo.value - 1) * itemsPerPageCo.value;
+  const end = start + itemsPerPageCo.value;
+  return condonados.value.slice(start, end);
+});
+const visiblePagesCo = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPageCo.value - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPagesCo.value, startPage + maxVisible - 1);
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+  return pages;
+});
+
+const goToPageAd = (page) => {
+  if (page >= 1 && page <= totalPagesAd.value) {
+    currentPageAd.value = page;
+  }
+};
+
+const changePageSizeAd = (newSize) => {
+  itemsPerPageAd.value = parseInt(newSize);
+  currentPageAd.value = 1;
+};
+
+const goToPageCo = (page) => {
+  if (page >= 1 && page <= totalPagesCo.value) {
+    currentPageCo.value = page;
+  }
+};
+
+const changePageSizeCo = (newSize) => {
+  itemsPerPageCo.value = parseInt(newSize);
+  currentPageCo.value = 1;
+};
+
+const showToast = (message, type) => {
   Swal.fire({
     toast: true,
     position: 'top-end',
@@ -454,7 +678,7 @@ async function fetchRecaudadoras() {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     });
@@ -465,6 +689,25 @@ async function fetchRecaudadoras() {
     console.error('Error al cargar recaudadoras:', error);
   } finally {
     hideLoading();
+  }
+}
+
+// Cargar Categorías
+async function fetchCategorias() {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Esquema: 'publico',
+        Parametros: []
+      }
+    });
+    if (response.data?.eResponse?.success) {
+      categorias.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    console.error('Error al cargar categorías:', error);
   }
 }
 
@@ -516,5 +759,6 @@ function mostrarAyuda() {
 
 onMounted(() => {
   fetchRecaudadoras();
+  fetchCategorias();
 });
 </script>

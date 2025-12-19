@@ -507,7 +507,7 @@ const goToPageParciales = (page) => {
 // Toast
 const toast = ref({ show: false, type: 'info', message: '' })
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }

@@ -14,7 +14,7 @@
         <div class="municipal-card-header"><h5><font-awesome-icon icon="filter" /> Filtros</h5></div>
         <div class="municipal-card-body">
           <div class="form-row">
-            <div class="form-group"><label class="municipal-form-label">Recaudadora</label><select v-model="filters.oficina" class="municipal-form-control" :disabled="loading"><option value="">Todas</option><option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">{{ rec.id_recaudadora }} - {{ rec.descripcion }}</option></select></div>
+            <div class="form-group"><label class="municipal-form-label">Recaudadora</label><select v-model="filters.oficina" class="municipal-form-control" :disabled="loading"><option value="">Todas</option><option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_recaudadora }} - {{ rec.descripcion }}</option></select></div>
             <div class="form-group"><label class="municipal-form-label">Estado</label><select v-model="filters.estado" class="municipal-form-control" :disabled="loading"><option value="">Todos</option><option value="A">Activo</option><option value="I">Inactivo</option></select></div>
           </div>
         </div>

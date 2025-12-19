@@ -356,8 +356,9 @@ async function fetchCategorias() {
   try {
     const response = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_categorias_list',
+        Operacion: 'sp_categoria_list',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: []
       }
     });

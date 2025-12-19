@@ -27,8 +27,8 @@
                 <label class="municipal-form-label">Recaudadora</label>
                 <select v-model="formBuscar.oficina" @change="onRecaudadoraChange" class="municipal-form-control" required>
                   <option value="">Seleccione...</option>
-                  <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                    {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -276,7 +276,7 @@ const fetchRecaudadoras = async () => {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Esquema: 'publico',
         Parametros: []
       }

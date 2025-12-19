@@ -178,7 +178,7 @@ const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();
 
 // Helper para mostrar toasts
-const showToast = (icon, title) => {
+const showToast = (title, icon) => {
   Swal.fire({
     toast: true,
     position: 'top-end',

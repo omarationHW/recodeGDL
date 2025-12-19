@@ -74,8 +74,8 @@
               <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
               <select class="municipal-form-control" v-model.number="selectedRec" @change="onRecChange" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -104,8 +104,8 @@
               <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
               <select class="municipal-form-control" v-model.number="selectedRec" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -193,7 +193,7 @@
                     <p>No se encontraron locales</p>
                   </td>
                 </tr>
-                <tr v-else v-for="loc in locales" :key="loc.id_local" class="row-hover">
+                <tr v-else v-for="loc in paginatedData" :key="loc.id_local" class="row-hover">
                   <td>{{ loc.oficina }}</td>
                   <td>{{ loc.num_mercado }}</td>
                   <td>{{ loc.categoria }}</td>
@@ -242,7 +242,7 @@
                     <p>No se encontraron movimientos</p>
                   </td>
                 </tr>
-                <tr v-else v-for="mov in movimientos" :key="mov.id_movimiento" class="row-hover">
+                <tr v-else v-for="mov in paginatedData" :key="mov.id_movimiento" class="row-hover">
                   <td>{{ formatDate(mov.fecha) }}</td>
                   <td>{{ mov.oficina }}</td>
                   <td>{{ mov.num_mercado }}</td>
@@ -279,7 +279,7 @@
                     <p>No se encontraron ingresos</p>
                   </td>
                 </tr>
-                <tr v-else v-for="ing in ingresos" :key="ing.id_zona" class="row-hover">
+                <tr v-else v-for="ing in paginatedData" :key="ing.id_zona" class="row-hover">
                   <td><strong>{{ ing.id_zona }}</strong></td>
                   <td>{{ ing.zona }}</td>
                   <td class="text-end"><strong class="text-success">{{ formatCurrency(ing.pagado) }}</strong></td>
@@ -290,6 +290,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="hayResultados" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRegistros) }}
+                de {{ totalRegistros }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -330,6 +404,10 @@ const ingresos = ref([])
 const loading = ref(false)
 const searchPerformed = ref(false)
 
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
 // Toast
 const toast = ref({
   show: false,
@@ -356,6 +434,36 @@ const totalRegistros = computed(() => {
   return 0
 })
 
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  if (tipoListado.value === 'padron') return locales.value.slice(start, end)
+  if (tipoListado.value === 'movimientos') return movimientos.value.slice(start, end)
+  if (tipoListado.value === 'ingresozonas') return ingresos.value.slice(start, end)
+  return []
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(totalRegistros.value / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Métodos
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
@@ -365,7 +473,7 @@ const mostrarAyuda = () => {
   showToast('Ayuda: Seleccione el tipo de listado y los filtros correspondientes para generar el reporte', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }
@@ -401,7 +509,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })
@@ -584,6 +692,18 @@ const exportarExcel = () => {
     return
   }
   showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
+}
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 onMounted(() => {

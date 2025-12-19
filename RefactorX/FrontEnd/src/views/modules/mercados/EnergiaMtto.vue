@@ -35,8 +35,8 @@
                 <select class="municipal-form-control" v-model="form.oficina" :disabled="loading || localEncontrado"
                   @change="onRecaudadoraChange" required>
                   <option value="">Seleccione...</option>
-                  <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                    {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -54,10 +54,12 @@
 
               <div class="form-group">
                 <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <input type="text" class="municipal-form-control" v-model="form.categoria"
-                  :disabled="true" readonly required
-                  :style="{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }"
-                  placeholder="Automático" />
+                <select class="municipal-form-control" v-model="form.categoria" :disabled="loading || localEncontrado" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                    {{ cat.categoria }} - {{ cat.descripcion }}
+                  </option>
+                </select>
               </div>
 
               <div class="form-group">
@@ -172,7 +174,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(local, index) in localesDisponibles" :key="index">
+                <tr v-for="(local, index) in paginatedData" :key="index">
                   <td>{{ local.categoria }}</td>
                   <td>{{ local.seccion }}</td>
                   <td><strong>{{ local.local }}</strong></td>
@@ -188,6 +190,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="localesDisponibles.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, localesDisponibles.length) }}
+                de {{ localesDisponibles.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -298,12 +374,17 @@ const { showToast } = useToast()
 const loading = ref(false)
 const recaudadoras = ref([])
 const mercados = ref([])
+const categorias = ref([])
 const secciones = ref([])
 const localEncontrado = ref(false)
 const localInfo = ref(null)
 const localesDisponibles = ref([])
 const mostrarListaLocales = ref(false)
 const localSeleccionado = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Formulario de búsqueda
 const form = ref({
@@ -331,6 +412,46 @@ const energiaForm = ref({
 const currentYear = computed(() => new Date().getFullYear())
 const maxDate = computed(() => new Date().toISOString().split('T')[0])
 
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(localesDisponibles.value.length / itemsPerPage.value)
+})
+
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return localesDisponibles.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
+
 const mostrarAyuda = () => {
   showToast('Busque un local sin energía registrada para dar de alta el servicio de energía eléctrica. Los adeudos se generarán automáticamente desde la fecha de alta.', 'info')
 }
@@ -343,7 +464,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Esquema: 'publico',
         Parametros: []
       }
@@ -383,6 +504,27 @@ const fetchSecciones = async () => {
   } catch (err) {
     console.error('Error al cargar secciones:', err)
     showToast('Error de conexión al cargar secciones', 'error')
+  }
+}
+
+const fetchCategorias = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Esquema: 'publico',
+        Parametros: []
+      }
+    })
+    if (res.data.eResponse.success) {
+      categorias.value = res.data.eResponse.data.result || []
+    } else {
+      showToast(res.data.eResponse.message || 'Error al cargar categorías', 'error')
+    }
+  } catch (err) {
+    console.error('Error al cargar categorías:', err)
+    showToast('Error de conexión al cargar categorías', 'error')
   }
 }
 
@@ -428,12 +570,8 @@ const onRecaudadoraChange = async () => {
 }
 
 const onMercadoChange = () => {
-  const mercadoSeleccionado = mercados.value.find(m => m.num_mercado_nvo == form.value.num_mercado)
-  if (mercadoSeleccionado) {
-    form.value.categoria = mercadoSeleccionado.categoria
-  } else {
-    form.value.categoria = ''
-  }
+  // No auto-llenar categoría - dejar que el usuario seleccione
+  form.value.categoria = ''
   // Limpiar lista de locales disponibles al cambiar de mercado
   localesDisponibles.value = []
   mostrarListaLocales.value = false
@@ -468,6 +606,7 @@ const mostrarLocalesDisponibles = async () => {
 
     if (res.data.eResponse.success) {
       localesDisponibles.value = res.data.eResponse.data.result || []
+      currentPage.value = 1 // Resetear a la primera página
       if (localesDisponibles.value.length > 0) {
         mostrarListaLocales.value = true
         showToast(`Se encontraron ${localesDisponibles.value.length} locales`, 'success')
@@ -677,6 +816,7 @@ const limpiarBusqueda = () => {
 onMounted(() => {
   fetchRecaudadoras()
   fetchSecciones()
+  fetchCategorias()
 })
 </script>
 

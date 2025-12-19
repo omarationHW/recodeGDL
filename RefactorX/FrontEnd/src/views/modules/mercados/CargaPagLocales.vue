@@ -32,8 +32,8 @@
               <select class="municipal-form-control" v-model="form.oficina" @change="onOficinaChange"
                 :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -48,8 +48,13 @@
               </select>
             </div>
             <div class="col-md-2 mb-3">
-              <label class="municipal-form-label">Categoría</label>
-              <input type="text" class="municipal-form-control" v-model="form.categoria" disabled />
+              <label class="municipal-form-label">Categoría *</label>
+              <select class="municipal-form-control" v-model="form.categoria" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                  {{ cat.categoria }} - {{ cat.descripcion }}
+                </option>
+              </select>
             </div>
             <div class="col-md-2 mb-3">
               <label class="municipal-form-label">Sección *</label>
@@ -143,8 +148,8 @@
               <select class="municipal-form-control" v-model="formPago.oficina_pago" @change="onOficinaPagoChange"
                 :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -212,7 +217,7 @@ const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();
 
 // Helper para mostrar toasts
-const showToast = (icon, title) => {
+const showToast = (title, icon) => {
   Swal.fire({
     toast: true,
     position: 'top-end',
@@ -229,8 +234,13 @@ const loading = ref(false);
 const recaudadoras = ref([]);
 const mercados = ref([]);
 const secciones = ref([]);
+const categorias = ref([]);
 const cajas = ref([]);
 const adeudos = ref([]);
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 
 // Formulario de búsqueda
 const form = ref({
@@ -262,6 +272,7 @@ const hayPagosValidos = computed(() => {
 onMounted(() => {
   cargarRecaudadoras();
   cargarSecciones();
+  cargarCategorias();
 });
 
 // Cargar recaudadoras
@@ -271,7 +282,7 @@ async function cargarRecaudadoras() {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Esquema: 'publico',
         Parametros: []
       }
@@ -285,6 +296,27 @@ async function cargarRecaudadoras() {
     showToast('Error al cargar recaudadoras', 'error');
   } finally {
     hideLoading();
+  }
+}
+
+// Cargar categorías
+async function cargarCategorias() {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Esquema: 'publico',
+        Parametros: []
+      }
+    });
+
+    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
+      categorias.value = response.data.eResponse.data.result;
+    }
+  } catch (error) {
+    console.error('Error al cargar categorías:', error);
+    showToast('Error al cargar categorías', 'error');
   }
 }
 
@@ -352,10 +384,7 @@ async function onOficinaChange() {
 
 // Cuando cambia el mercado
 function onMercadoChange() {
-  const mercadoSeleccionado = mercados.value.find(m => m.num_mercado_nvo == form.value.mercado);
-  if (mercadoSeleccionado) {
-    form.value.categoria = mercadoSeleccionado.categoria;
-  }
+  form.value.categoria = '';
 }
 
 // Cuando cambia la oficina de pago
@@ -529,6 +558,46 @@ function formatCurrency(value) {
     style: 'currency',
     currency: 'MXN'
   }).format(value);
+}
+
+// Paginación - Computed
+const paginatedAdeudos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return adeudos.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(adeudos.value.length / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 // Mostrar ayuda

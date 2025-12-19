@@ -99,11 +99,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/composables/useToast'
 
-const toast = useToast()
+const { showToast } = useToast()
 const loading = ref(false)
 const pago = ref(null)
 
@@ -132,12 +132,12 @@ const buscarPago = async () => {
 
     if (response.data?.eResponse?.success && response.data.eResponse.data?.result && response.data.eResponse.data.result.length > 0) {
       pago.value = response.data.eResponse.data.result[0]
-      toast.success('Pago encontrado')
+      showToast('Pago encontrado', 'success')
     } else {
-      toast.warning('No se encontró el pago')
+      showToast('No se encontró el pago', 'warning')
     }
   } catch (error) {
-    toast.error('Error al buscar el pago')
+    showToast('Error al buscar el pago', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false

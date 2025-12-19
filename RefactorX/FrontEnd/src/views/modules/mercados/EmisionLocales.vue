@@ -35,8 +35,8 @@
               <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
               <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -134,7 +134,7 @@
                     <p>No se encontraron locales para el mercado seleccionado</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in recibos" :key="index" class="row-hover">
+                <tr v-else v-for="(row, index) in paginatedRecibos" :key="index" class="row-hover">
                   <td><strong class="text-primary">{{ row.local }}{{ row.letra_local || '' }}</strong></td>
                   <td>{{ row.nombre }}</td>
                   <td>{{ row.descripcion_local }}</td>
@@ -156,6 +156,80 @@
                 </tr>
               </tfoot>
             </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="recibos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, recibos.length) }}
+                de {{ recibos.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -183,6 +257,7 @@ const { showLoading, hideLoading } = useGlobalLoading()
 const showFilters = ref(true)
 const recaudadoras = ref([])
 const mercados = ref([])
+const categorias = ref([])
 const selectedRec = ref('')
 const selectedMercado = ref('')
 const axo = ref(new Date().getFullYear())
@@ -193,6 +268,10 @@ const recibos = ref([])
 const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Toast
 const toast = ref({
@@ -206,6 +285,33 @@ const totalSubtotal = computed(() => {
   return recibos.value.reduce((sum, row) => sum + Number(row.subtotal || 0), 0)
 })
 
+const paginatedRecibos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return recibos.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(recibos.value.length / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Métodos
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
@@ -215,7 +321,7 @@ const mostrarAyuda = () => {
   showToast('Ayuda: Seleccione una oficina, mercado, año y periodo para generar la emisión de recibos', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = {
     show: true,
     type,
@@ -248,7 +354,7 @@ const fetchRecaudadoras = async () => {
     const res = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })
@@ -391,9 +497,42 @@ const formatNumber = (number) => {
   return new Intl.NumberFormat('es-MX').format(number)
 }
 
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
+
+// Fetch Categorías
+const fetchCategorias = async () => {
+  try {
+    const res = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Esquema: 'publico',
+        Parametros: []
+      }
+    })
+
+    if (res.data.eResponse.success === true) {
+      categorias.value = res.data.eResponse.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar categorías:', err)
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchRecaudadoras()
+  fetchCategorias()
 })
 </script>
 

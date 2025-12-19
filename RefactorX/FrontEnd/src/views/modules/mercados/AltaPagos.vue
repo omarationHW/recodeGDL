@@ -34,8 +34,8 @@
                 <select class="municipal-form-control" v-model="filters.idRecaudadora" @change="onRecChange"
                   :disabled="loading || localEncontrado">
                   <option value="">Seleccione...</option>
-                  <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                    {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                  <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -55,10 +55,12 @@
             <div class="form-row">
               <div class="form-group col-md-4">
                 <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <input type="text" class="municipal-form-control" v-model="filters.categoria"
-                  :disabled="true" readonly
-                  :style="{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }"
-                  placeholder="Automático" />
+                <select class="municipal-form-control" v-model="filters.categoria" :disabled="loading || localEncontrado">
+                  <option value="">Seleccione...</option>
+                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                    {{ cat.categoria }} - {{ cat.descripcion }}
+                  </option>
+                </select>
               </div>
 
               <div class="form-group col-md-4">
@@ -337,7 +339,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
@@ -352,12 +354,17 @@ const loading = ref(false);
 const recaudadoras = ref([]);
 const mercados = ref([]);
 const secciones = ref([]);
+const categorias = ref([]);
 const localEncontrado = ref(null);
 const mostrarAdeudos = ref(false);
 const adeudos = ref([]);
 const localesDisponibles = ref([]);
 const mostrarListaLocales = ref(false);
 const localSeleccionado = ref(false);
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 
 // Filtros de búsqueda
 const filters = ref({
@@ -387,7 +394,8 @@ const pago = ref({
 onMounted(async () => {
   await Promise.all([
     fetchRecaudadoras(),
-    fetchSecciones()
+    fetchSecciones(),
+    fetchCategorias()
   ]);
 });
 
@@ -398,7 +406,7 @@ async function fetchRecaudadoras() {
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Esquema: 'publico',
         Parametros: []
       }
@@ -448,14 +456,9 @@ async function onRecChange() {
   }
 }
 
-// Cambio de mercado - Auto-llenar categoría
+// Cambio de mercado
 function onMercadoChange() {
-  const mercadoSeleccionado = mercados.value.find(m => m.num_mercado_nvo == filters.value.numMercado);
-  if (mercadoSeleccionado) {
-    filters.value.categoria = mercadoSeleccionado.categoria;
-  } else {
-    filters.value.categoria = null;
-  }
+  filters.value.categoria = '';
   // Limpiar lista de locales disponibles al cambiar de mercado
   localesDisponibles.value = [];
   mostrarListaLocales.value = false;
@@ -517,6 +520,26 @@ function seleccionarLocal(local) {
   mostrarListaLocales.value = false;
   localSeleccionado.value = true;
   showToast('Local seleccionado. Haga clic en "Cargar Local" para continuar.', 'info');
+}
+
+// Fetch Categorías
+async function fetchCategorias() {
+  try {
+    const response = await axios.post('/api/generic', {
+      eRequest: {
+        Operacion: 'sp_categoria_list',
+        Base: 'mercados',
+        Esquema: 'publico',
+        Parametros: []
+      }
+    });
+
+    if (response.data?.eResponse?.success) {
+      categorias.value = response.data.eResponse.data.result || [];
+    }
+  } catch (error) {
+    showToast('Error al cargar categorías: ' + error.message, 'error');
+  }
 }
 
 // Fetch Secciones
@@ -799,6 +822,46 @@ function formatMoneda(valor) {
 function formatFecha(fecha) {
   if (!fecha) return '-';
   return new Date(fecha).toLocaleDateString('es-MX');
+}
+
+// Paginación - Computed
+const paginatedAdeudos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return adeudos.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(adeudos.value.length / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 // Mostrar ayuda

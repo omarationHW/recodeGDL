@@ -32,8 +32,8 @@
               <select class="municipal-form-control" v-model="filters.idRecaudadora" @change="onRecChange"
                 :disabled="loading || panelPagoVisible">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -63,8 +63,12 @@
 
             <div class="form-group col-md-2">
               <label class="municipal-form-label">Categoría *</label>
-              <input type="number" class="municipal-form-control" v-model.number="filters.categoria" placeholder="0"
-                :disabled="loading || panelPagoVisible" readonly />
+              <select class="municipal-form-control" v-model="filters.categoria" :disabled="loading || panelPagoVisible">
+                <option value="">Seleccione...</option>
+                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                  {{ cat.categoria }} - {{ cat.descripcion }}
+                </option>
+              </select>
             </div>
 
             <div class="form-group col-md-2">
@@ -153,8 +157,8 @@
               <label class="municipal-form-label">Oficina de Pago *</label>
               <select class="municipal-form-control" v-model="pago.oficinaPago" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
-                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -285,6 +289,7 @@ const globalLoading = useGlobalLoading();
 const loading = ref(false); // Solo para deshabilitar campos durante operaciones
 const recaudadoras = ref([]);
 const mercados = ref([]);
+const categorias = ref([]);
 const secciones = ref([]);
 const localEncontrado = ref(null);
 const errorBusqueda = ref('');
@@ -318,10 +323,37 @@ const pago = ref({
   folio: ''
 });
 
+// Fetch Categorías
+async function fetchCategorias() {
+  await globalLoading.withLoading(async () => {
+    loading.value = true;
+    try {
+      const response = await axios.post('/api/generic', {
+        eRequest: {
+          Operacion: 'sp_categoria_list',
+          Base: 'mercados',
+          Esquema: 'publico',
+          Parametros: []
+        }
+      });
+
+      if (response.data?.eResponse?.success) {
+        categorias.value = response.data.eResponse.data.result || [];
+      }
+    } catch (error) {
+      toast.error('Error al cargar categorías: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }, 'Cargando categorías');
+}
+
 // Cargar datos iniciales
 onMounted(async () => {
   await Promise.all([
     fetchRecaudadoras(),
+    fetchCategorias(),
     fetchSecciones()
   ]);
 });
@@ -334,7 +366,7 @@ async function fetchRecaudadoras() {
       const response = await axios.post('/api/generic', {
         eRequest: {
           Operacion: 'sp_get_recaudadoras',
-          Base: 'padron_licencias',
+          Base: 'mercados',
           Esquema: 'publico',
           Parametros: []
         }
@@ -387,16 +419,10 @@ async function onRecChange() {
   }, 'Cargando mercados');
 }
 
-// Cambio de mercado - actualiza categoría
+// Cambio de mercado - NO actualiza categoría automáticamente, el usuario la selecciona
 function onMercadoChange() {
-  if (filters.value.numMercado) {
-    const mercado = mercados.value.find(m => m.num_mercado_nvo === parseInt(filters.value.numMercado));
-    if (mercado) {
-      filters.value.categoria = mercado.categoria;
-    }
-  } else {
-    filters.value.categoria = null;
-  }
+  // Ya no establecemos categoría automáticamente
+  // El usuario debe seleccionarla manualmente desde el select
 }
 
 // Fetch Secciones

@@ -276,7 +276,7 @@ const loadCatalogos = async () => {
     const recRes = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
+        Base: 'mercados',
         Parametros: []
       }
     })

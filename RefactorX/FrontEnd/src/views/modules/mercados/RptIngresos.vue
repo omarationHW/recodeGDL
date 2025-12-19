@@ -18,7 +18,7 @@
               <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
               <select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">{{ rec.id_recaudadora }} - {{ rec.descripcion }}</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_recaudadora }} - {{ rec.descripcion }}</option>
               </select>
             </div>
             <div class="form-group">

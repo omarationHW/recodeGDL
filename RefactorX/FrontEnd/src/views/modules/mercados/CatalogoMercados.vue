@@ -58,7 +58,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in rows" :key="row.id_mercado"
+                <tr v-for="row in paginatedRows" :key="row.id_mercado"
                     :class="{ 'table-active': selectedRow?.id_mercado === row.id_mercado }"
                     @click="selectedRow = row">
                   <td>{{ row.id_mercado }}</td>
@@ -84,6 +84,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="rows.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, rows.length) }}
+                de {{ rows.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
 
           <!-- Sin datos -->
@@ -156,13 +230,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
 
 const { showLoading, hideLoading } = useGlobalLoading();
+const { showToast } = useToast();
 
 const router = useRouter();
 
@@ -172,6 +248,11 @@ const selectedRow = ref(null);
 const loading = ref(false);
 const showFormModal = ref(false);
 const formMode = ref('create');
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+
 const form = ref({
   id_mercado: null,
   oficina: '',
@@ -181,17 +262,47 @@ const form = ref({
   zona: ''
 });
 
-// Toast
-const showToast = (type, message) => {
-  Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon: type,
-    title: message,
-    showConfirmButton: false,
-    timer: 3000
-  });
-};// Cargar datos
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(rows.value.length / itemsPerPage.value);
+});
+
+const paginatedRows = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return rows.value.slice(start, end);
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+});
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+};
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize);
+  currentPage.value = 1;
+};
+
+// Cargar datos
 async function fetchData() {
   showLoading('Cargando Catálogo de Mercados', 'Preparando listado de mercados...');
   loading.value = true;
@@ -206,6 +317,7 @@ async function fetchData() {
 
     if (response.data?.eResponse?.success) {
       rows.value = response.data.eResponse.data.result || [];
+      currentPage.value = 1; // Resetear a la primera página
     } else {
       showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
     }

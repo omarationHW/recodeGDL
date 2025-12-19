@@ -97,10 +97,10 @@
 
                     <td class="text-center">
                       <div class="button-group button-group-sm">
-                        <button class="btn-municipal-primary btn-sm" @click="editCuota(item)" title="Editar">
+                        <button class="btn-municipal-primary btn-sm" @click="editCuota(cuota)" title="Editar">
                           <font-awesome-icon icon="edit" />
                         </button>
-                        <button class="btn-municipal-danger btn-sm" @click="deleteCuota(item)" title="Eliminar">
+                        <button class="btn-municipal-danger btn-sm" @click="deleteCuota(cuota)" title="Eliminar">
                           <font-awesome-icon icon="trash" />
                         </button>
                       </div>
@@ -441,12 +441,12 @@ const fetchCuotas = async () => {
 }
 
 const fetchCategorias = async () => {
-  showLoading('Cargando categorías...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_categorias_list',
+        Operacion: 'sp_categoria_list',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -456,18 +456,16 @@ const fetchCategorias = async () => {
   } catch (err) {
     console.error('Error al cargar categorías:', err)
     showToast('Error al cargar categorías', 'error')
-  } finally {
-    hideLoading()
   }
 }
 
 const fetchSecciones = async () => {
-  showLoading('Cargando secciones...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_secciones_list',
-        Base: 'mercados',
+        Operacion: 'sp_get_secciones',
+        Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -477,18 +475,16 @@ const fetchSecciones = async () => {
   } catch (err) {
     console.error('Error al cargar secciones:', err)
     showToast('Error al cargar secciones', 'error')
-  } finally {
-    hideLoading()
   }
 }
 
 const fetchClavesCuota = async () => {
-  showLoading('Cargando claves de cuota...', 'Por favor espere')
   try {
     const res = await axios.post('/api/generic', {
       eRequest: {
-        Operacion: 'sp_clavescuota_list',
-        Base: 'mercados',
+        Operacion: 'sp_cve_cuota_list',
+        Base: 'padron_licencias',
+        Esquema: 'publico',
         Parametros: []
       }
     })
@@ -498,8 +494,6 @@ const fetchClavesCuota = async () => {
   } catch (err) {
     console.error('Error al cargar claves de cuota:', err)
     showToast('Error al cargar claves de cuota', 'error')
-  } finally {
-    hideLoading()
   }
 }
 
@@ -648,12 +642,10 @@ const confirmDelete = async () => {
 onMounted(async () => {
   showLoading('Cargando datos iniciales...', 'Por favor espere')
   try {
-    await Promise.all([
-      fetchCuotas(),
-      fetchCategorias(),
-      fetchSecciones(),
-      fetchClavesCuota()
-    ])
+    await fetchCuotas()
+    await fetchCategorias()
+    await fetchSecciones()
+    await fetchClavesCuota()
   } finally {
     hideLoading()
   }

@@ -281,7 +281,7 @@ const formatDateTime = (dateStr) => {
   return new Date(dateStr).toLocaleString('es-MX')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }

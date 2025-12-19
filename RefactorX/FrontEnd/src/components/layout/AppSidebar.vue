@@ -1273,11 +1273,7 @@ const menuItems = [
             label: 'Datos de Requerimientos',
             icon: 'file-invoice'
           },
-          {
-            path: '/mercados/locales-modif',
-            label: 'Modificar Locales',
-            icon: 'pen'
-          },
+
           {
             path: '/mercados/energia-modif',
             label: 'Modificar Energía',

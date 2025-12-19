@@ -80,7 +80,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in padron" :key="row.id_local">
+              <tr v-for="row in paginatedPadron" :key="row.id_local">
                 <td>{{ row.oficina }}</td>
                 <td>{{ row.num_mercado }}</td>
                 <td>{{ row.descripcion }}</td>
@@ -102,6 +102,80 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Controles de paginación -->
+        <div v-if="padron.length > 0" class="pagination-controls">
+          <div class="pagination-info">
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, padron.length) }}
+              de {{ padron.length }} registros
+            </span>
+          </div>
+
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changeItemsPerPage($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <div class="pagination-buttons">
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              title="Primera página"
+            >
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              title="Página anterior"
+            >
+              <font-awesome-icon icon="angle-left" />
+            </button>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              title="Página siguiente"
+            >
+              <font-awesome-icon icon="angle-right" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              title="Última página"
+            >
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     </div>
@@ -109,7 +183,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
@@ -126,6 +200,55 @@ const filters = ref({
   mes: now.getMonth() + 1,
   vig: 'A'
 })
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(padron.value.length / itemsPerPage.value)
+})
+
+const paginatedPadron = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return padron.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changeItemsPerPage = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1 // Reset a la primera página
+}
+
+const resetPagination = () => {
+  currentPage.value = 1
+  itemsPerPage.value = 10
+}
 
 const fetchPadron = async () => {
   loading.value = true
@@ -144,6 +267,7 @@ const fetchPadron = async () => {
 
     if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
       padron.value = response.data.eResponse.data.result
+      resetPagination()
       toast.success(`Se encontraron ${padron.value.length} registros`)
     } else {
       padron.value = []

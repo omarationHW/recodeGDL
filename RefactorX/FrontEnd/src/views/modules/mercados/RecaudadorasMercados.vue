@@ -158,12 +158,8 @@
 
             <div class="pagination-size">
               <label class="municipal-form-label me-2">Registros por página:</label>
-              <select
-                class="municipal-form-control form-control-sm"
-                :value="itemsPerPage"
-                @change="changePageSize($event.target.value)"
-                style="width: auto; display: inline-block;"
-              >
+              <select class="municipal-form-control form-control-sm" :value="itemsPerPage"
+                @change="changePageSize($event.target.value)" style="width: auto; display: inline-block;">
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -173,49 +169,29 @@
             </div>
 
             <div class="pagination-buttons">
-              <button
-                class="btn-municipal-secondary btn-sm"
-                @click="goToPage(1)"
-                :disabled="currentPage === 1"
-                title="Primera página"
-              >
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1"
+                title="Primera página">
                 <font-awesome-icon icon="angle-double-left" />
               </button>
 
-              <button
-                class="btn-municipal-secondary btn-sm"
-                @click="goToPage(currentPage - 1)"
-                :disabled="currentPage === 1"
-                title="Página anterior"
-              >
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1" title="Página anterior">
                 <font-awesome-icon icon="angle-left" />
               </button>
 
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                class="btn-sm"
+              <button v-for="page in visiblePages" :key="page" class="btn-sm"
                 :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
-                @click="goToPage(page)"
-              >
+                @click="goToPage(page)">
                 {{ page }}
               </button>
 
-              <button
-                class="btn-municipal-secondary btn-sm"
-                @click="goToPage(currentPage + 1)"
-                :disabled="currentPage === totalPages"
-                title="Página siguiente"
-              >
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages" title="Página siguiente">
                 <font-awesome-icon icon="angle-right" />
               </button>
 
-              <button
-                class="btn-municipal-secondary btn-sm"
-                @click="goToPage(totalPages)"
-                :disabled="currentPage === totalPages"
-                title="Última página"
-              >
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages" title="Última página">
                 <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
@@ -232,7 +208,6 @@
             <h5 class="modal-title">
               <font-awesome-icon :icon="modalMode === 'nuevo' ? 'plus' : 'edit'" />
               {{ modalMode === 'nuevo' ? 'Agregar nuevo mercado' : 'Modificar mercado' }}
-              {{ modalMode === 'nuevo' ? 'Agregar nuevo mercado' : 'Modificar mercado' }}
             </h5>
             <button type="button" class="btn-close" @click="cerrarModal"></button>
           </div>
@@ -240,11 +215,15 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Oficina <span class="required">*</span></label>
-                <input type="number" class="municipal-form-control" v-model.number="formData.oficina"
-                  :disabled="modalMode === 'modificar'" />
+                <select class="municipal-form-control" v-model.number="formData.oficina"
+                  :disabled="modalMode === 'modificar' || loading">
+                  <option value="">Seleccione...</option>
+                  <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
+                    {{ rec.id_recaudadora }} - {{ rec.descripcion }}
+                  </option>
+                </select>
               </div>
               <div class="form-group col-md-6">
-                <label class="municipal-form-label">Mercado nuevo <span class="required">*</span></label>
                 <label class="municipal-form-label">Mercado nuevo <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.num_mercado_nvo"
                   :disabled="modalMode === 'modificar'" />
@@ -253,7 +232,12 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <input type="number" class="municipal-form-control" v-model.number="formData.categoria" />
+                <select class="municipal-form-control" v-model.number="formData.categoria" :disabled="loading">
+                  <option value="">Seleccione...</option>
+                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                    {{ cat.categoria }} - {{ cat.descripcion }}
+                  </option>
+                </select>
               </div>
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Descripción <span class="required">*</span></label>
@@ -264,11 +248,9 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Cuenta ingreso <span class="required">*</span></label>
-                <label class="municipal-form-label">Cuenta ingreso <span class="required">*</span></label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_ingreso" />
               </div>
               <div class="form-group col-md-6">
-                <label class="municipal-form-label">Cuenta energía</label>
                 <label class="municipal-form-label">Cuenta energía</label>
                 <input type="number" class="municipal-form-control" v-model.number="formData.cuenta_energia" />
               </div>
@@ -278,8 +260,8 @@
                 <label class="municipal-form-label">Zona <span class="required">*</span></label>
                 <select class="municipal-form-control" v-model.number="formData.id_zona" :disabled="loading">
                   <option value="">Seleccione...</option>
-                  <option v-for="zona in zonas" :key="zona.id_zona" :value="zona.id_zona">
-                    {{ zona.ctrol_zona }} - {{ zona.zona }}
+                  <option v-for="zona in zonas" :key="zona.cvezona" :value="zona.cvezona">
+                    {{ zona.cvezona }} - {{ zona.zona }}
                   </option>
                 </select>
               </div>
@@ -331,6 +313,7 @@ export default {
     const recaudadoras = ref([]);
     const mercados = ref([]);
     const zonas = ref([]);
+    const categorias = ref([]);
     const selectedRec = ref('');
 
     // Paginación
@@ -409,10 +392,10 @@ export default {
       try {
         const response = await axios.post('/api/generic', {
           eRequest: {
-            Operacion: 'sp_get_zonas',
+            Operacion: 'sp_get_zonas_all',
             Base: 'padron_licencias',
-            Parametros: [],
-            Esquema: 'publico'
+            Esquema: 'publico',
+            Parametros: []
           }
         });
 
@@ -427,6 +410,32 @@ export default {
           icon: 'error',
           title: 'Error',
           text: 'No se pudieron cargar las zonas: ' + err.message
+        });
+      }
+    };
+
+    const fetchCategorias = async () => {
+      try {
+        const response = await axios.post('/api/generic', {
+          eRequest: {
+            Operacion: 'sp_categoria_list',
+            Base: 'mercados',
+            Esquema: 'publico',
+            Parametros: []
+          }
+        });
+
+        if (response.data?.eResponse?.success) {
+          categorias.value = response.data.eResponse.data.result || [];
+        } else {
+          throw new Error(response.data?.eResponse?.message || 'Error al obtener categorías');
+        }
+      } catch (err) {
+        console.error('Error fetchCategorias:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las categorías: ' + err.message
         });
       }
     };
@@ -520,9 +529,12 @@ export default {
         num_mercado: null
       };
 
-      // Cargar catálogo de zonas si no está cargado
+      // Cargar catálogos si no están cargados
       if (zonas.value.length === 0) {
         await fetchZonas();
+      }
+      if (categorias.value.length === 0) {
+        await fetchCategorias();
       }
 
       showModal.value = true;
@@ -532,9 +544,12 @@ export default {
       modalMode.value = 'modificar';
       formData.value = { ...mercado };
 
-      // Cargar catálogo de zonas si no está cargado
+      // Cargar catálogos si no están cargados
       if (zonas.value.length === 0) {
         await fetchZonas();
+      }
+      if (categorias.value.length === 0) {
+        await fetchCategorias();
       }
 
       showModal.value = true;
@@ -546,16 +561,32 @@ export default {
 
     const guardarMercado = async () => {
       // Validar campos requeridos
-      if (!formData.value.oficina || !formData.value.num_mercado_nvo || !formData.value.categoria ||
-        !formData.value.descripcion || !formData.value.cuenta_ingreso || !formData.value.id_zona ||
-        !formData.value.tipo_emision) {
+      const camposFaltantes = [];
+
+      if (!formData.value.oficina) camposFaltantes.push('Oficina');
+      if (!formData.value.num_mercado_nvo) camposFaltantes.push('Mercado nuevo');
+      if (!formData.value.categoria) camposFaltantes.push('Categoría');
+      if (!formData.value.descripcion || formData.value.descripcion.trim() === '') camposFaltantes.push('Descripción');
+      if (!formData.value.cuenta_ingreso) camposFaltantes.push('Cuenta ingreso');
+      if (!formData.value.id_zona) camposFaltantes.push('Zona');
+      if (!formData.value.tipo_emision) camposFaltantes.push('Tipo Emisión');
+
+      if (camposFaltantes.length > 0) {
+        console.log('❌ Validación fallida - Campos faltantes:', camposFaltantes);
+        console.log('📋 Datos actuales del formulario:', JSON.stringify(formData.value, null, 2));
+
+        const mensaje = `Faltan los siguientes campos: ${camposFaltantes.join(', ')}`;
+
         Swal.fire({
           icon: 'warning',
           title: 'Campos incompletos',
-          text: 'Por favor complete todos los campos obligatorios marcados con *'
+          text: mensaje
         });
         return;
       }
+
+      console.log('✅ Validación exitosa - Guardando mercado');
+      console.log('📋 Datos a enviar:', JSON.stringify(formData.value, null, 2));
 
       loading.value = true;
 
@@ -684,6 +715,7 @@ export default {
       recaudadoras,
       mercados,
       zonas,
+      categorias,
       selectedRec,
 
       // Paginación
@@ -702,6 +734,7 @@ export default {
       // Métodos
       fetchRecaudadoras,
       fetchZonas,
+      fetchCategorias,
       cargarCatalogo,
       onRecChange,
       limpiarFiltros,

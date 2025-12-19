@@ -74,6 +74,18 @@
               <font-awesome-icon icon="check-circle"/>
               <strong>{{ result[0].mensaje || 'Reporte generado exitosamente' }}</strong>
 
+              <!-- Botones de reporte -->
+              <div class="report-actions">
+                <button class="btn-report btn-preview" @click="verReporte">
+                  <font-awesome-icon icon="eye" />
+                  <span>Ver Reporte</span>
+                </button>
+                <button class="btn-report btn-download" @click="descargarReporte">
+                  <font-awesome-icon icon="download" />
+                  <span>Descargar Reporte</span>
+                </button>
+              </div>
+
               <!-- Detalles del Reporte -->
               <div class="result-details" v-if="result[0].folio_reporte">
                 <h6><font-awesome-icon icon="file-alt"/> Información del Reporte</h6>
@@ -145,12 +157,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { usePdfGenerator } from '@/composables/usePdfGenerator'
 
 const BASE_DB = 'multas_reglamentos'
 const OP_REPORTE = 'RECAUDADORA_IMPRIME_DESCTOS'
 const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
+const { verReporteTabular, descargarReporteTabular } = usePdfGenerator()
 
 const filters = ref({
   cuenta: '',
@@ -192,6 +206,129 @@ function formatDate(dateStr) {
     month: 'long',
     day: 'numeric'
   })
+}
+
+function verReporte() {
+  console.log('📄 Generando vista previa del reporte')
+  try {
+    if (!result.value || !Array.isArray(result.value) || result.value.length === 0) {
+      console.error('No hay datos para generar el reporte')
+      return
+    }
+
+    const datos = result.value[0]
+    const titulo = 'Reporte de Descuentos'
+    const subtitulo = `Cuenta: ${filters.value.cuenta} - Ejercicio: ${filters.value.ejercicio}`
+
+    // Preparar datos para el reporte tabular
+    const datosReporte = [
+      {
+        concepto: 'Clave de Cuenta',
+        valor: filters.value.cuenta || 'N/A'
+      },
+      {
+        concepto: 'Folio del Reporte',
+        valor: datos.folio_reporte || 'N/A'
+      },
+      {
+        concepto: 'Ejercicio',
+        valor: filters.value.ejercicio || 'N/A'
+      },
+      {
+        concepto: 'Fecha de Generación',
+        valor: datos.fecha_generacion ? formatDate(datos.fecha_generacion) : 'N/A'
+      },
+      {
+        concepto: 'Total de Descuentos',
+        valor: datos.total_descuentos || '0'
+      },
+      {
+        concepto: 'Porcentaje Promedio',
+        valor: datos.porcentaje_promedio ? `${datos.porcentaje_promedio}%` : 'N/A'
+      },
+      {
+        concepto: 'Monto Total',
+        valor: formatCurrency(datos.monto_total || 0)
+      }
+    ]
+
+    const opciones = {
+      titulo: titulo,
+      subtitulo: subtitulo,
+      ejercicio: filters.value.ejercicio || new Date().getFullYear(),
+      columnas: [
+        { key: 'concepto', header: 'Concepto', type: 'text' },
+        { key: 'valor', header: 'Valor', type: 'text' }
+      ]
+    }
+
+    verReporteTabular(datosReporte, opciones)
+    console.log('✅ Vista previa generada exitosamente')
+  } catch (e) {
+    console.error('❌ Error al generar vista previa:', e)
+  }
+}
+
+function descargarReporte() {
+  console.log('⬇️ Descargando reporte PDF')
+  try {
+    if (!result.value || !Array.isArray(result.value) || result.value.length === 0) {
+      console.error('No hay datos para descargar el reporte')
+      return
+    }
+
+    const datos = result.value[0]
+    const titulo = 'Reporte de Descuentos'
+    const subtitulo = `Cuenta: ${filters.value.cuenta} - Ejercicio: ${filters.value.ejercicio}`
+
+    // Preparar datos para el reporte tabular
+    const datosReporte = [
+      {
+        concepto: 'Clave de Cuenta',
+        valor: filters.value.cuenta || 'N/A'
+      },
+      {
+        concepto: 'Folio del Reporte',
+        valor: datos.folio_reporte || 'N/A'
+      },
+      {
+        concepto: 'Ejercicio',
+        valor: filters.value.ejercicio || 'N/A'
+      },
+      {
+        concepto: 'Fecha de Generación',
+        valor: datos.fecha_generacion ? formatDate(datos.fecha_generacion) : 'N/A'
+      },
+      {
+        concepto: 'Total de Descuentos',
+        valor: datos.total_descuentos || '0'
+      },
+      {
+        concepto: 'Porcentaje Promedio',
+        valor: datos.porcentaje_promedio ? `${datos.porcentaje_promedio}%` : 'N/A'
+      },
+      {
+        concepto: 'Monto Total',
+        valor: formatCurrency(datos.monto_total || 0)
+      }
+    ]
+
+    const opciones = {
+      titulo: titulo,
+      subtitulo: subtitulo,
+      ejercicio: filters.value.ejercicio || new Date().getFullYear(),
+      columnas: [
+        { key: 'concepto', header: 'Concepto', type: 'text' },
+        { key: 'valor', header: 'Valor', type: 'text' }
+      ]
+    }
+
+    descargarReporteTabular(datosReporte, opciones)
+    const nombreArchivo = `descuentos_${filters.value.cuenta}_${filters.value.ejercicio}.pdf`
+    console.log(`✅ Reporte descargado exitosamente: ${nombreArchivo}`)
+  } catch (e) {
+    console.error('❌ Error al descargar reporte:', e)
+  }
 }
 </script>
 
@@ -316,5 +453,68 @@ function formatDate(dateStr) {
   font-size: 0.85rem;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Botones de reporte */
+.report-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(212, 237, 218, 0.3);
+  border-radius: 8px;
+  border: 1px solid #c3e6cb;
+}
+
+.btn-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-report:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-preview {
+  background: linear-gradient(135deg, #28a745 0%, #20963d 100%);
+  color: white;
+}
+
+.btn-preview:hover {
+  background: linear-gradient(135deg, #218838 0%, #1c7430 100%);
+}
+
+.btn-download {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+}
+
+.btn-download:hover {
+  background: linear-gradient(135deg, #0069d9 0%, #004085 100%);
+}
+
+.btn-report svg {
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .report-actions {
+    flex-direction: column;
+  }
+
+  .btn-report {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

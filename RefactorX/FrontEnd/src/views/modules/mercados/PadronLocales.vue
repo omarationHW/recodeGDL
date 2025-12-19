@@ -38,8 +38,8 @@
               <label class="municipal-form-label">Oficina (Recaudadora) <span class="required">*</span></label>
               <select class="municipal-form-control" v-model="selectedRec" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
+                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
                 </option>
               </select>
             </div>
@@ -215,7 +215,7 @@ const mostrarAyuda = () => {
   showToast('Ayuda: Seleccione una oficina recaudadora para generar el padrón de locales', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }

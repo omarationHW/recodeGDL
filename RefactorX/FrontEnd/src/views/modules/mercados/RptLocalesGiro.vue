@@ -14,7 +14,7 @@
         <div class="municipal-card-header"><h5><font-awesome-icon icon="filter" /> Filtros</h5></div>
         <div class="municipal-card-body">
           <div class="form-row">
-            <div class="form-group"><label class="municipal-form-label">Recaudadora <span class="required">*</span></label><select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading"><option value="">Seleccione...</option><option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option></select></div>
+            <div class="form-group"><label class="municipal-form-label">Recaudadora <span class="required">*</span></label><select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading"><option value="">Seleccione...</option><option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">{{ rec.id_recaudadora }} - {{ rec.descripcion }}</option></select></div>
             <div class="form-group"><label class="municipal-form-label">Mercado</label><select v-model="filters.mercado" class="municipal-form-control" :disabled="loading || !mercados.length"><option value="">Todos</option><option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">{{ merc.num_mercado_nvo }} - {{ merc.descripcion }}</option></select></div>
             <div class="form-group"><label class="municipal-form-label">Giro</label><select v-model="filters.giro" class="municipal-form-control" :disabled="loading"><option value="">Todos</option><option v-for="g in giros" :key="g.id_giro" :value="g.id_giro">{{ g.descripcion }}</option></select></div>
           </div>

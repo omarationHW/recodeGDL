@@ -23,8 +23,8 @@
               <label class="municipal-form-label">Recaudadora <span class="text-danger">*</span></label>
               <select v-model="filters.recaudadora" class="municipal-form-control" @change="onRecaudadoraChange" required>
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
+                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
                 </option>
               </select>
             </div>

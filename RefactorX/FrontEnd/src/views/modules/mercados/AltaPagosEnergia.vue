@@ -32,8 +32,8 @@
               <select class="municipal-form-control" v-model="filters.idRecaudadora" @change="onRecChange"
                 :disabled="loading || panelPagoVisible">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
+                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
                 </option>
               </select>
             </div>
@@ -153,8 +153,8 @@
               <label class="municipal-form-label">Oficina de Pago *</label>
               <select class="municipal-form-control" v-model="pago.oficinaPago" :disabled="loading">
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
+                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
                 </option>
               </select>
             </div>

@@ -34,10 +34,10 @@
                 <option value="">Seleccione...</option>
                 <option
                   v-for="rec in recaudadoras"
-                  :key="rec.id_rec"
-                  :value="rec.id_rec"
+                  :key="rec.id_recaudadora"
+                  :value="rec.id_recaudadora"
                 >
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
                 </option>
               </select>
             </div>

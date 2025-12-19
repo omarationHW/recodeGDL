@@ -49,7 +49,7 @@
                   <td>{{ item.descripcion }}</td>        
                   <td>
                     <div class="button-group button-group-sm">
-                      <button class="btn-municipal-primary btn-sm" @click.stop="abrirModalEditar(item)" title="Editar">
+                      <button class="btn-municipal-primary btn-sm" @click.stop="abrirModal(item)" title="Editar">
                         <font-awesome-icon icon="edit" />
                       </button>
                       <button class="btn-municipal-danger btn-sm" @click.stop="eliminar(item)" title="Eliminar">

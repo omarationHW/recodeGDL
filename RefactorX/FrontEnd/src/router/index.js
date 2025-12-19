@@ -382,7 +382,7 @@ const router = createRouter({
         { path: 'paso-adeudos', name: 'mercados-paso-adeudos', component: () => import('@/views/modules/mercados/PasoAdeudos.vue') },
         { path: 'paso-ene', name: 'mercados-paso-ene', component: () => import('@/views/modules/mercados/PasoEne.vue') },
         { path: 'paso-mdos', name: 'mercados-paso-mdos', component: () => import('@/views/modules/mercados/PasoMdos.vue') },
-        { path: 'menu', name: 'mercados-menu', component: () => import('@/views/modules/mercados/Menu.vue') }
+        // { path: 'menu', name: 'mercados-menu', component: () => import('@/views/modules/mercados/Menu.vue') }
       ]
     },
     // MERCADOS - Acceso (sin layout)

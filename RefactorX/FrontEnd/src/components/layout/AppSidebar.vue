@@ -2490,13 +2490,54 @@ const filterBySystem = (items, sistema) => {
   return filterRecursive(items)
 }
 
+// Función para ocultar items específicos basándose en la sesión
+const filterByAuthentication = (items) => {
+  const isAuthenticated = sessionService.isAuthenticated()
+  const sistema = sessionService.getSistema()
+
+  const filterRecursive = (items) => {
+    return items.reduce((acc, item) => {
+      // Si el usuario está logueado, ocultar "Acceso" del sistema actual
+      if (isAuthenticated && item.path) {
+        // Verificar si es una ruta de acceso del sistema actual
+        // Ejemplos: /mercados/acceso, /estacionamiento-exclusivo/acceso, etc.
+        const isAccesoRoute = item.path.endsWith('/acceso') || item.path.endsWith('/accesos')
+        const belongsToCurrentSystem = sistema && item.path.startsWith(`/${sistema}`)
+
+        if (isAccesoRoute && belongsToCurrentSystem) {
+          return acc // No incluir este item (ocultar acceso del sistema actual)
+        }
+      }
+
+      // Si tiene hijos, filtrar recursivamente
+      if (item.children && item.children.length > 0) {
+        const filteredChildren = filterRecursive(item.children)
+        // Solo incluir si tiene hijos después del filtrado
+        if (filteredChildren.length > 0) {
+          acc.push({ ...item, children: filteredChildren })
+        }
+      } else {
+        // Es un nodo hoja, incluirlo
+        acc.push(item)
+      }
+
+      return acc
+    }, [])
+  }
+
+  return filterRecursive(items)
+}
+
 // Computed para items filtrados y ordenados
 const filteredItems = computed(() => {
   // Primero filtrar por sistema
   const systemFiltered = filterBySystem(menuItems, currentSystem.value)
 
+  // Filtrar por autenticación (ocultar items específicos si está logueado)
+  const authFiltered = filterByAuthentication(systemFiltered)
+
   // Luego aplicar filtro de búsqueda
-  const searchFiltered = filterMenuItems(systemFiltered, searchQuery.value)
+  const searchFiltered = filterMenuItems(authFiltered, searchQuery.value)
 
   // Finalmente ordenar
   return sortMenu(searchFiltered)

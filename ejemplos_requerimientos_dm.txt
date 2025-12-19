@@ -1,0 +1,554 @@
+=== DOCUMENTACIÓN: recaudadora_requerimientos_dm ===
+
+Fecha: 2025-12-18
+Stored Procedure: publico.recaudadora_requerimientos_dm(VARCHAR, INTEGER)
+Base de Datos: multas_reglamentos
+Tabla: public.reqbfpredial
+Componente: RequerimientosDM.vue
+
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ORIGINAL
+═══════════════════════════════════════════════════════════════════════════
+
+ERROR: relation "catastro_gdl.h_reqpredial" does not exist
+El stored procedure intentaba usar una tabla inexistente en el esquema
+catastro_gdl.
+
+SOLUCIÓN
+═══════════════════════════════════════════════════════════════════════════
+
+Se actualizó el stored procedure para usar la tabla public.reqbfpredial
+que contiene requerimientos prediales de beneficios fiscales con
+118,842 registros (años 1981-2015).
+
+═══════════════════════════════════════════════════════════════════════════
+
+FUNCIÓN DISPONIBLE
+═══════════════════════════════════════════════════════════════════════════
+
+**recaudadora_requerimientos_dm**: Consultar requerimientos DM
+
+PARÁMETROS:
+- p_clave_cuenta: VARCHAR (opcional) - Cuenta a buscar
+- p_ejercicio: INTEGER (opcional) - Año del requerimiento
+
+VALORES RETORNADOS (TABLA):
+
+| Campo          | Tipo    | Descripción                          |
+|----------------|---------|--------------------------------------|
+| cvereq         | INTEGER | ID del requerimiento (cuenta)        |
+| folio          | INTEGER | Folio de ejecutoria                  |
+| cuenta         | TEXT    | Cuenta del contribuyente             |
+| ejercicio      | INTEGER | Año del requerimiento                |
+| fecha_emision  | TEXT    | Fecha de emisión (DD/MM/YYYY)        |
+| fecha_entrega  | TEXT    | Fecha de entrega (DD/MM/YYYY)        |
+| impuesto       | NUMERIC | Importe del impuesto                 |
+| recargos       | NUMERIC | Recargos                             |
+| gastos         | NUMERIC | Gastos de ejecución                  |
+| multas         | NUMERIC | Multas                               |
+| total          | NUMERIC | Total a pagar                        |
+| vigencia       | TEXT    | Estatus del requerimiento            |
+
+═══════════════════════════════════════════════════════════════════════════
+
+DATOS DISPONIBLES
+═══════════════════════════════════════════════════════════════════════════
+
+Tabla: public.reqbfpredial
+- Total de registros: 118,842
+- Rango de años: 1981 - 2015
+- Cuentas únicas: 118,842 (una cuenta por registro)
+- Total importe acumulado: $930,057,136.48
+
+DISTRIBUCIÓN POR VIGENCIA:
+- V (Vigente): 99,606 registros → $930,057,136.48
+- E (Entregado): 5,064 registros → $0.00
+- i/I (Inactivo): 11,435 registros → $0.00
+- F: 2,232 registros → $0.00
+- X: 487 registros → $0.00
+- C (Cancelado): 18 registros → $0.00
+
+DISTRIBUCIÓN POR AÑO (TOP 10):
+- 2015: 31,106 registros → $70,317,338.88
+- 2014: 18,382 registros → $63,143,184.56
+- 2013: 7,461 registros → $54,054,232.09
+- 2012: 4,978 registros → $42,401,391.74
+- 2011: 4,278 registros → $44,075,335.65
+- 2010: 3,096 registros → $47,612,335.86
+- 2009: 3,045 registros → $41,950,157.79
+- 2008: 2,244 registros → $30,873,850.83
+- 2007: 2,265 registros → $29,950,032.04
+- 2006: 2,116 registros → $30,725,922.18
+
+═══════════════════════════════════════════════════════════════════════════
+
+ESTATUS DE VIGENCIA
+═══════════════════════════════════════════════════════════════════════════
+
+| Código | Descripción | Registros |
+|--------|-------------|-----------|
+| V      | Vigente     | 99,606    |
+| E      | Entregado   | 5,064     |
+| C      | Cancelado   | 18        |
+| P      | Pendiente   | 0         |
+| I/i    | Inactivo    | 11,435    |
+| F      | Otro        | 2,232     |
+| X      | Otro        | 487       |
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: CONSULTAR REQUERIMIENTOS DEL AÑO 2015
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: 2015
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 100 (límite del SP)
+✅ Todos del año 2015
+
+Registros de muestra que aparecerán:
+
+1. Cuenta: 519955 | Folio: 624 | Ejercicio: 2015
+   Fecha Emisión: 09/11/2015 | Fecha Entrega: 09/11/2015
+   Impuesto: $1,733.27 | Total: $0.00
+   Vigencia: Entregado
+
+2. Cuenta: 519953 | Folio: 624 | Ejercicio: 2015
+   Fecha Emisión: 09/11/2015 | Fecha Entrega: 09/11/2015
+   Impuesto: $179.26 | Total: $355.31
+   Vigencia: Vigente
+
+3. Cuenta: 519930 | Folio: 624 | Ejercicio: 2015
+   Fecha Emisión: 09/11/2015 | Fecha Entrega: 09/11/2015
+   Impuesto: $2,531.66 | Recargos: $25.32 | Total: $0.00
+   Vigencia: Entregado
+
+✨ El año 2015 tiene 31,106 registros disponibles
+✨ Total importe del año 2015: $70,317,338.88
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: BUSCAR POR CUENTA ESPECÍFICA
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 519955
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 1
+
+Detalle del registro:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID (cvereq): 519955
+Folio: 624
+Cuenta: 519955
+Ejercicio: 2015
+
+FECHAS:
+- Fecha Emisión: 09/11/2015
+- Fecha Entrega: 09/11/2015
+
+Vigencia: Entregado
+
+IMPORTES:
+- Impuesto: $1,733.27
+- Recargos: $0.00
+- Gastos: $0.00
+- Multas: $0.00
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL: $0.00
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 Búsqueda exacta por número de cuenta
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: BUSCAR CUENTA CON IMPORTE VIGENTE
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 519953
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 1
+
+Detalle:
+- ID: 519953
+- Folio: 624
+- Ejercicio: 2015
+- Fecha Emisión: 09/11/2015
+- Fecha Entrega: 09/11/2015
+- Impuesto: $179.26
+- Recargos: $0.00
+- Gastos: $0.00
+- Multas: $0.00
+- **Total: $355.31** 💰
+- Vigencia: **Vigente** ✅
+
+✨ Este registro tiene importe vigente a pagar
+✨ Ideal para probar visualización de importes activos
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 4: BUSCAR COMBINADO (CUENTA + AÑO)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 519955
+- Año: 2015
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 1
+
+Este ejemplo combina ambos filtros para una búsqueda precisa.
+
+Resultado:
+- Cuenta: 519955
+- Folio: 624
+- Ejercicio: 2015
+- Total: $0.00
+- Vigencia: Entregado
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 5: BUSCAR POR AÑO 2014
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: 2014
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 100 (límite del SP)
+✅ Todos del año 2014
+
+Información del año 2014:
+- Total registros disponibles: 18,382
+- Total importe: $63,143,184.56
+- Principalmente registros vigentes
+
+💡 El segundo año con más registros
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 6: BUSCAR POR AÑO 2013
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: 2013
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 100 (límite del SP)
+✅ Todos del año 2013
+
+Información del año 2013:
+- Total registros disponibles: 7,461
+- Total importe: $54,054,232.09
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 7: BÚSQUEDA PARCIAL POR CUENTA
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 5199
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Múltiples registros que contengan "5199" en el número de cuenta
+
+Ejemplos de resultados:
+- Cuenta: 519955
+- Cuenta: 519953
+- Cuenta: 519930
+- Cuenta: 519913
+- Cuenta: 519908
+- ... y más cuentas que coincidan
+
+💡 La búsqueda es parcial (ILIKE '%5199%')
+💡 Útil cuando solo conoces parte del número de cuenta
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 8: BUSCAR TODOS LOS REGISTROS
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: (dejar vacío o 0)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 100 (límite del SP)
+✅ Ordenados por año DESC y cuenta DESC
+
+Los registros más recientes (año 2015) aparecerán primero.
+
+Muestra:
+1. Cuenta: 519955 | Año: 2015 | Vigencia: Entregado
+2. Cuenta: 519953 | Año: 2015 | Vigencia: Vigente
+3. Cuenta: 519930 | Año: 2015 | Vigencia: Entregado
+... (97 registros más)
+
+💡 Sin filtros, muestra los 100 más recientes
+💡 Base de datos total: 118,842 registros
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 9: BUSCAR AÑO ANTIGUO (1981)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: 1981
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Registros del año más antiguo disponible
+
+💡 La tabla tiene datos desde 1981
+💡 Útil para verificar rango histórico completo
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 10: BÚSQUEDA SIN RESULTADOS
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 999999999
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 0
+✅ Mensaje: "Sin resultados"
+
+💡 Prueba el manejo de búsquedas sin coincidencias
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN DE DATOS CLAVE PARA PRUEBAS
+═══════════════════════════════════════════════════════════════════════════
+
+📌 CUENTAS VÁLIDAS PARA PRUEBAS:
+✅ 519955 → Año 2015, Entregado, Total $0.00
+✅ 519953 → Año 2015, Vigente, Total $355.31 💰
+✅ 519930 → Año 2015, Entregado, Total $0.00
+✅ 519913 → Año 2015, Entregado, Total $0.00
+✅ 519908 → Año 2015, Entregado, Total $0.00
+
+📌 AÑOS VÁLIDOS CON MÁS DATOS:
+✅ 2015 → 31,106 registros ($70.3M)
+✅ 2014 → 18,382 registros ($63.1M)
+✅ 2013 → 7,461 registros ($54.0M)
+✅ 2012 → 4,978 registros ($42.4M)
+✅ 2011 → 4,278 registros ($44.1M)
+
+📌 ESTATUS DISPONIBLES:
+✅ Vigente (V) → 99,606 registros
+✅ Entregado (E) → 5,064 registros
+✅ Inactivo (I/i) → 11,435 registros
+✅ Cancelado (C) → 18 registros
+
+📌 FOLIOS:
+✅ Folio 624 → Múltiples registros del año 2015
+
+═══════════════════════════════════════════════════════════════════════════
+
+CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+**Caso 1: Consulta por año**
+- Usuario necesita ver todos los requerimientos de un año específico
+- Ingresa el año (ej: 2015)
+- Sistema muestra hasta 100 registros del año
+- Usuario puede revisar los requerimientos más recientes
+
+**Caso 2: Búsqueda específica de cuenta**
+- Usuario tiene número de cuenta completo
+- Ingresa la cuenta exacta (ej: 519953)
+- Sistema muestra el requerimiento de esa cuenta
+- Usuario ve detalle de importes y vigencia
+
+**Caso 3: Búsqueda combinada**
+- Usuario conoce cuenta y año
+- Ingresa ambos filtros
+- Sistema muestra resultado preciso
+- Útil para verificaciones específicas
+
+**Caso 4: Búsqueda parcial**
+- Usuario solo conoce parte del número de cuenta
+- Ingresa fragmento (ej: 5199)
+- Sistema encuentra todas las cuentas que coincidan
+- Usuario puede identificar la cuenta correcta
+
+═══════════════════════════════════════════════════════════════════════════
+
+COMPORTAMIENTO DEL COMPONENTE
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Filtros opcionales**
+   - Ambos filtros son opcionales
+   - Sin filtros: muestra 100 más recientes
+   - Con filtros: aplica búsqueda específica
+
+2. **Búsqueda parcial en cuenta**
+   - Usa ILIKE '%valor%'
+   - Encuentra coincidencias en cualquier parte
+
+3. **Búsqueda exacta en año**
+   - Compara axodesde = p_ejercicio
+   - Solo registros del año exacto
+
+4. **Límite de resultados**
+   - Máximo 100 registros por consulta
+   - Ordenados por año DESC, cuenta DESC
+   - Los más recientes aparecen primero
+
+5. **Paginación**
+   - 10 registros por página
+   - Controles de navegación
+   - Contador de registros
+
+6. **Formato de importes**
+   - Todos los importes con 2 decimales
+   - Símbolo $ en la visualización
+   - Total en negrita
+
+7. **Formato de fechas**
+   - DD/MM/YYYY
+   - "N/A" si no hay fecha
+
+8. **Badges de vigencia**
+   - Vigente: badge verde
+   - Entregado: badge azul/verde
+   - Cancelado: badge rojo
+   - Pendiente: badge amarillo
+   - Otros: badge gris
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ **Tabla correcta**
+   Ahora usa public.reqbfpredial en lugar de catastro_gdl.h_reqpredial
+
+⚠️ **Mapeo de campos**
+   - cvereq = cvecuenta (ID del requerimiento)
+   - folio = cveejecut (folio de ejecutoria)
+   - ejercicio = axodesde (año desde)
+   - fecha_entrega = feccap (fecha de captura)
+
+⚠️ **118,842 registros disponibles**
+   Base de datos con 35 años de histórico (1981-2015)
+
+⚠️ **$930 millones en requerimientos**
+   Total acumulado de importes vigentes
+
+⚠️ **99,606 registros vigentes**
+   La mayoría de los requerimientos están activos
+
+⚠️ **Límite de 100 registros**
+   El SP limita resultados a 100 para optimizar rendimiento
+
+⚠️ **Fechas siempre presentes**
+   Todos los registros tienen fecha de emisión y captura
+
+⚠️ **Búsqueda optimizada**
+   Índices en cvecuenta y axodesde para búsquedas rápidas
+
+═══════════════════════════════════════════════════════════════════════════
+
+PRUEBAS REALIZADAS
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Consulta sin filtros (100 más recientes)
+✅ Filtro por cuenta específica
+✅ Filtro por año
+✅ Filtro combinado (cuenta + año)
+✅ Búsqueda parcial por cuenta
+✅ Formato de fechas DD/MM/YYYY
+✅ Formato de importes con decimales
+✅ Conversión de vigencia a texto
+✅ Ordenamiento por año y cuenta DESC
+✅ Límite de 100 registros
+✅ Manejo de valores NULL
+✅ Verificación de datos históricos (1981-2015)
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN
+═══════════════════════════════════════════════════════════════════════════
+
+Función: publico.recaudadora_requerimientos_dm(VARCHAR, INTEGER)
+Tabla: public.reqbfpredial
+Base de datos: multas_reglamentos
+Componente: RequerimientosDM.vue
+
+Características:
+✅ 118,842 requerimientos prediales disponibles
+✅ Histórico de 35 años (1981-2015)
+✅ Filtros opcionales (cuenta + año)
+✅ Búsqueda parcial en cuenta
+✅ 12 columnas de información
+✅ Formato DD/MM/YYYY para fechas
+✅ Importes con 2 decimales
+✅ Conversión de vigencia a texto
+✅ Ordenamiento optimizado
+✅ Límite de 100 registros
+
+Datos destacados:
+- Total importes: $930,057,136.48
+- Registros vigentes: 99,606 (84%)
+- Año con más datos: 2015 (31,106 registros)
+- Folio más común: 624
+
+Uso:
+- Parámetros opcionales: cuenta y/o año
+- Sin parámetros: muestra 100 más recientes
+- Con parámetros: búsqueda específica
+- Paginación: 10 por página
+- Ordenamiento: año DESC, cuenta DESC
+
+Pruebas:
+- Todas las pruebas pasadas exitosamente
+- Función lista para producción
+- Componente RequerimientosDM.vue completamente funcional
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

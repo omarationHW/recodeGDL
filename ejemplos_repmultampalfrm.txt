@@ -1,0 +1,305 @@
+=== EJEMPLOS PARA PROBAR repmultampalfrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: function publico.recaudadora_repmultampalfrm(unknown) does not exist
+HINT: No function matches the given name and argument types.
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.h_multasnvo (histórico de multas)
+que tiene 626,583 registros y genera el reporte mensual de multas municipales
+agregando por mes para el ejercicio fiscal especificado.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_repmultampalfrm**: Retorna reporte mensual de multas municipales
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_ejercicio: INTEGER (año del ejercicio fiscal, ejemplo: 2024)
+
+--- VALORES RETORNADOS ---
+
+| Campo            | Tipo    | Descripción                                  |
+|------------------|---------|----------------------------------------------|
+| mes              | INTEGER | Número del mes (1-12)                        |
+| nombre_mes       | VARCHAR | Nombre del mes en español                    |
+| cantidad_multas  | BIGINT  | Número de multas en el mes                   |
+| total_multas     | NUMERIC | Suma de montos de multas                     |
+| total_gastos     | NUMERIC | Suma de gastos de ejecución                  |
+| total_general    | NUMERIC | Suma total (multas + gastos)                 |
+| promedio_multa   | NUMERIC | Promedio por multa en el mes                 |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla h_multasnvo se agrega así:
+- EXTRACT(MONTH FROM fecha_acta) → mes
+- Nombre del mes (CASE) → nombre_mes
+- COUNT(*) → cantidad_multas
+- SUM(multa) → total_multas
+- SUM(gastos) → total_gastos
+- SUM(total) → total_general
+- AVG(total) → promedio_multa
+
+--- EJEMPLO 1: Reporte mensual del ejercicio fiscal 2024 ---
+
+Parámetros:
+- Ejercicio: 2024
+
+Resultado esperado:
+- Total meses con actividad: 12
+- Total multas: 26,317
+- Total general: $426,942,770.62
+- Promedio por multa: $16,223.08
+
+Ejemplo de resultados (primeros 6 meses):
+| Mes | Nombre    | Cant.Multas | Tot.Multas      | Tot.Gastos  | Tot.General     | Promedio     |
+|-----|-----------|-------------|-----------------|-------------|-----------------|--------------|
+|  1  | Enero     |       4,006 | $  31,625,527   | $   578,276 | $  41,693,764   | $  10,407.83 |
+|  2  | Febrero   |       2,181 | $  34,484,603   | $    46,902 | $  47,158,592   | $  21,622.46 |
+|  3  | Marzo     |       1,915 | $  19,438,313   | $         0 | $  26,965,330   | $  14,081.11 |
+|  4  | Abril     |       2,162 | $  19,433,505   | $         0 | $  27,803,958   | $  12,860.30 |
+|  5  | Mayo      |       2,627 | $  29,334,868   | $         0 | $  41,160,957   | $  15,668.43 |
+|  6  | Junio     |       1,714 | $  18,404,048   | $         0 | $  26,216,506   | $  15,295.51 |
+
+TOTALES 2024: 26,317 multas | $312,791,373 | $625,178 | $426,942,771 | Promedio: $16,223
+
+Análisis:
+- Mes con más multas: Enero (4,006 multas)
+- Mes con menos multas: Septiembre (1,434 multas)
+- Mes con mayor recaudación: Octubre ($61,711,745)
+- Mes con menor recaudación: Septiembre ($23,065,971)
+
+--- EJEMPLO 2: Reporte mensual del ejercicio fiscal 2023 ---
+
+Parámetros:
+- Ejercicio: 2023
+
+Resultado esperado:
+- Total meses con actividad: 12
+- Total multas: 33,903
+- Total general: $485,861,159.90
+- Promedio por multa: $14,330.92
+
+Top 3 meses con mayor recaudación 2023:
+| Mes      | Cant.Multas | Tot.General     | Promedio     |
+|----------|-------------|-----------------|--------------|
+| Octubre  |       3,689 | $  60,378,933   | $  16,367.29 |
+| Marzo    |       3,030 | $  58,835,580   | $  19,417.68 |
+| Noviembre|       3,880 | $  53,110,478   | $  13,688.27 |
+
+TOTAL 2023: 33,903 multas | $485,861,160 | Promedio: $14,330.92
+
+Análisis:
+- 2023 tuvo el mayor número de multas (33,903)
+- Mayor actividad en Octubre y Marzo
+- Promedio por multa menor que 2024
+
+--- EJEMPLO 3: Reporte mensual del ejercicio fiscal 2022 ---
+
+Parámetros:
+- Ejercicio: 2022
+
+Resultado esperado:
+- Total meses con actividad: 12
+- Total multas: 23,301
+- Total general: $192,923,453.47
+- Promedio por multa: $8,279.62
+
+Comparación de ejercicios fiscales:
+| Ejercicio | Meses | Total Multas  | Total General    | Promedio/Multa |
+|-----------|-------|---------------|------------------|----------------|
+| 2022      |    12 |        23,301 | $ 192,923,453    | $     8,279.62 |
+| 2023      |    12 |        33,903 | $ 485,861,160    | $    14,330.92 |
+| 2024      |    12 |        26,317 | $ 426,942,771    | $    16,223.08 |
+
+Tendencias:
+- Incremento en promedio por multa año con año
+- 2023 tuvo el mayor número de multas
+- 2024 muestra el mayor promedio por multa ($16,223)
+- La recaudación se mantiene alta en 2023-2024
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Por Mes (Ejercicio 2024):**
+- Enero: Mayor cantidad de multas (4,006)
+- Octubre: Mayor recaudación ($61.7M)
+- Febrero: Mayor promedio por multa ($21,622)
+- Septiembre: Menor actividad (1,434 multas, $23M)
+
+**Totales 2024:**
+- Total multas: 26,317
+- Total recaudado: $426,942,771
+- Promedio anual: $16,223 por multa
+- 12 meses con actividad
+
+**Tendencias mensuales:**
+- Primer trimestre: Alta actividad (8,102 multas)
+- Segundo trimestre: Actividad moderada (6,503 multas)
+- Tercer trimestre: Baja actividad (6,238 multas)
+- Cuarto trimestre: Actividad media (5,474 multas)
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **626,583 registros históricos disponibles**
+  - Multas desde 2015 hasta 2024
+  - Agrupación por mes automática
+
+✓ **Agregación mensual**
+  - Reportes mensuales completos
+  - Totales calculados automáticamente
+  - Promedio por multa en cada mes
+
+✓ **Campos completos**
+  - Mes numérico y nombre
+  - Cantidad de multas
+  - Montos de multas
+  - Gastos de ejecución
+  - Total general
+  - Promedio por multa
+
+✓ **Análisis temporal**
+  - 12 meses siempre mostrados
+  - Comparación mes a mes
+  - Tendencias identificables
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo contiene el histórico completo
+   de multas municipales con fecha_acta para agregación temporal.
+
+⚠️ **Agregación por fecha_acta**
+   Se usa la fecha del acta (no fecha de pago) para agrupar
+   las multas por mes.
+
+⚠️ **NULL handling**
+   Se filtran registros con fecha_acta NULL para evitar
+   datos incompletos en el reporte.
+
+⚠️ **Totales incluyen gastos**
+   El total_general incluye tanto multas como gastos de ejecución.
+   Para solo multas, usar el campo total_multas.
+
+⚠️ **Promedio calculado**
+   El promedio_multa se calcula dividiendo el total_general
+   entre la cantidad de multas del mes.
+
+⚠️ **Todos los meses mostrados**
+   El reporte muestra los 12 meses que tuvieron actividad,
+   permitiendo análisis completo del ejercicio fiscal.
+
+--- CASOS DE USO ---
+
+**Caso 1: Reporte anual mensual**
+1. Ejercicio: 2024
+2. Resultado: Desglose mensual de 12 meses
+3. Usar para: Reporte mensual, análisis de tendencias
+
+**Caso 2: Comparación entre ejercicios**
+1. Ejecutar múltiples consultas con diferentes años
+2. Comparar totales y promedios
+3. Identificar tendencias anuales
+4. Usar para: Análisis histórico, proyecciones
+
+**Caso 3: Análisis de estacionalidad**
+1. Identificar meses con mayor/menor actividad
+2. Comparar recaudación por mes
+3. Detectar patrones estacionales
+4. Usar para: Planeación operativa, asignación de recursos
+
+**Caso 4: Evaluación de desempeño**
+1. Verificar metas mensuales
+2. Comparar con presupuestos
+3. Analizar eficiencia recaudatoria
+4. Usar para: Reportes gerenciales, KPIs
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (reporte 2024)
+const params = {
+  ejercicio: 2024
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "mes": 1,
+      "nombre_mes": "Enero",
+      "cantidad_multas": 4006,
+      "total_multas": 31625526.50,
+      "total_gastos": 578275.74,
+      "total_general": 41693763.90,
+      "promedio_multa": 10407.83
+    },
+    {
+      "mes": 2,
+      "nombre_mes": "Febrero",
+      "cantidad_multas": 2181,
+      "total_multas": 34484603.40,
+      "total_gastos": 46902.24,
+      "total_general": 47158591.92,
+      "promedio_multa": 21622.46
+    },
+    // ... más meses (3-12)
+  ],
+  "total": 12
+}
+```
+
+El componente repmultampalfrm.vue debería:
+1. Recibir array de 12 registros (uno por mes)
+2. Mostrar tabla con columnas: Mes, Nombre Mes, Cant.Multas, Tot.Multas, Tot.Gastos, Tot.General, Promedio
+3. Filtro para:
+   - Selector de ejercicio fiscal (2015-2024)
+4. Calcular totales anuales (suma de todos los meses)
+5. Mostrar gráficas:
+   - Gráfica de líneas de tendencia mensual
+   - Gráfica de barras por mes
+   - Gráfica de comparación año vs año
+6. Exportar a Excel/PDF
+7. Formato de moneda con separadores de miles
+8. Resaltar mes con mayor/menor actividad
+9. Mostrar estadísticas: promedio anual, total anual, etc.
+
+--- RESUMEN ---
+
+Problema: Función publico.recaudadora_repmultampalfrm no existía
+
+Solución: Función usa tabla public.h_multasnvo con agregación mensual
+
+Características:
+- 626,583 registros históricos disponibles
+- Agregación por mes y ejercicio fiscal
+- Cálculo automático de totales y promedios
+- Nombres de meses en español
+- Datos de múltiples ejercicios fiscales (2015-2024)
+
+Resultado:
+- Reporte mensual por ejercicio fiscal
+- 12 meses con estadísticas completas
+- Totales de multas, gastos y general
+- Promedio por multa en cada mes
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del histórico
+- Agregación eficiente por mes
+- Análisis de tendencias mensuales
+- Comparación entre ejercicios fiscales
+- Identificación de patrones estacionales
+- Base para KPIs y reportes gerenciales
+
+Uso recomendado:
+- Especificar ejercicio fiscal (año)
+- Ideal para reportes mensuales oficiales
+- Análisis de tendencias y estacionalidad
+- Comparaciones interanuales
+- Evaluación de metas y presupuestos
+- Reportes ejecutivos y gerenciales

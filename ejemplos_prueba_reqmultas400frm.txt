@@ -1,0 +1,364 @@
+=== 3 EJEMPLOS PARA PROBAR reqmultas400frm.vue ===
+
+Fecha: 2025-12-18
+Componente: RefactorX/FrontEnd/src/views/modules/multas_reglamentos/reqmultas400frm.vue
+Base de Datos: multas_reglamentos
+Stored Procedure: publico.recaudadora_reqmultas400frm(VARCHAR)
+Tabla: public.req_mul_400 (271,449 registros)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: BÚSQUEDA SIN FILTRO (PRIMEROS 100 REGISTROS)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Ver los requerimientos más recientes sin aplicar filtros
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario reqmultas400frm.vue en el navegador
+2. Seleccionar tipo de multa: "Multas Federales" o "Multas Municipales"
+   (Nota: El filtro de tipo NO afecta la consulta, solo es visual)
+3. Dejar el campo "Cuenta / Folio" VACÍO
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 100 (limitado automáticamente)
+
+Los registros se mostrarán ordenados por:
+- Año de requerimiento (descendente)
+- Folio de requerimiento (descendente)
+
+Primeros 5 registros esperados:
+┌────────┬─────────┬──────────┬───────────┬─────────┬─────────┬──────────────┬──────────────┬──────────┐
+│ Clave  │ Año     │ Núm.     │ Tipo      │ Año Req │ Folio   │ Fecha Req    │ Importe      │ Vigencia │
+│ Letra  │ Acta    │ Acta     │           │         │ Req     │              │              │          │
+├────────┼─────────┼──────────┼───────────┼─────────┼─────────┼──────────────┼──────────────┼──────────┤
+│ S      │ 2001    │ 51482    │ Municipal │ 2002    │ 84497   │ 29/08/2002   │ $100,000.00  │ 1        │
+│ S      │ 2001    │ 51481    │ Municipal │ 2002    │ 84496   │ 29/08/2002   │ $75,000.00   │ 2        │
+│ S      │ 2001    │ 51480    │ Municipal │ 2002    │ 84495   │ 29/08/2002   │ $216,400.00  │ 1        │
+│ S      │ 2001    │ 51479    │ Municipal │ 2002    │ 84494   │ 29/08/2002   │ $216,400.00  │ 1        │
+│ S      │ 2001    │ 51478    │ Municipal │ 2002    │ 84493   │ 29/08/2002   │ $360,200.00  │ 1        │
+└────────┴─────────┴──────────┴───────────┴─────────┴─────────┴──────────────┴──────────────┴──────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar exactamente 100 registros
+- Todos deben ser del año 2002 (año más reciente)
+- Ordenados por folio descendente (84497, 84496, 84495...)
+- Paginación debe mostrar: "Mostrando 1 a 10 de 100 registros" (si itemsPerPage = 10)
+- Debe mostrar: "Página 1 de 10"
+- Los importes deben aparecer en formato moneda: $###,###.##
+- Las fechas en formato: DD/MM/YYYY
+- Tipo de multa debe mostrar "Municipal" o "Federal"
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Año más reciente: 2002
+- Predominio de multas municipales
+- Importes variados desde $75,000 hasta $360,200
+- Todas las multas del 29/08/2002
+- Vigencia mayormente 1
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: BÚSQUEDA POR FOLIO ESPECÍFICO (84497)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Consultar detalles completos de un requerimiento específico
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario reqmultas400frm.vue en el navegador
+2. Seleccionar tipo de multa: "Multas Municipales"
+3. En el campo "Cuenta / Folio" ingresar: 84497
+4. Click en el botón "Buscar" (o presionar Enter)
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 1
+
+Detalles del requerimiento:
+┌────────────────────────┬─────────────────────────────────────┐
+│ Campo                  │ Valor                               │
+├────────────────────────┼─────────────────────────────────────┤
+│ Clave Letra            │ S                                   │
+│ Año Acta               │ 2001                                │
+│ Núm. Acta              │ 51478                               │
+│ Tipo                   │ Municipal                           │
+│ Año Req                │ 2002                                │
+│ Folio Req              │ 84497                               │
+│ Fecha Req              │ 29/08/2002                          │
+│ Importe                │ $100,000.00                         │
+│ Observaciones          │ (vacío o guión -)                   │
+│ Vigencia               │ 1                                   │
+│ Activación             │ 29/08/2002                          │
+│ Tipo Multa             │ Municipal                           │
+└────────────────────────┴─────────────────────────────────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar EXACTAMENTE 1 registro
+- El folio debe ser 84497
+- Tipo debe ser "Municipal" (cveapl = 5)
+- Importe formateado: $100,000.00
+- Fecha de requerimiento y activación deben coincidir: 29/08/2002
+- Paginación debe mostrar: "Mostrando 1 a 1 de 1 registros"
+- Debe mostrar: "Página 1 de 1"
+- Botones de paginación deshabilitados (no hay más páginas)
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Requerimiento municipal del año 2002
+- Acta original del año 2001 (número 51478)
+- Importe de $100,000 pesos
+- Vigencia activa (1)
+- Clave letra "S" indica tipo de sanción
+- Fecha de activación inmediata (mismo día del requerimiento)
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otros folios cercanos:
+- 84496 → $75,000.00 (Municipal)
+- 84495 → $216,400.00 (Municipal)
+- 84494 → $216,400.00 (Municipal)
+- 84493 → $360,200.00 (Municipal)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: BÚSQUEDA POR AÑO DE REQUERIMIENTO (2002)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Obtener estadísticas de requerimientos de un año específico
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario reqmultas400frm.vue en el navegador
+2. Seleccionar tipo de multa: "Multas Municipales"
+3. En el campo "Cuenta / Folio" ingresar: 2002
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 100 (limitado, hay más en la BD)
+
+Todos los registros del año 2002:
+┌────────┬─────────┬──────────┬───────────┬─────────┬─────────┬──────────────┬──────────────┬──────────┐
+│ Clave  │ Año     │ Núm.     │ Tipo      │ Año Req │ Folio   │ Fecha Req    │ Importe      │ Vigencia │
+│ Letra  │ Acta    │ Acta     │           │         │ Req     │              │              │          │
+├────────┼─────────┼──────────┼───────────┼─────────┼─────────┼──────────────┼──────────────┼──────────┤
+│ S      │ 2001    │ 51482    │ Municipal │ 2002    │ 84497   │ 29/08/2002   │ $100,000.00  │ 1        │
+│ S      │ 2001    │ 51481    │ Municipal │ 2002    │ 84496   │ 29/08/2002   │ $75,000.00   │ 2        │
+│ S      │ 2001    │ 51480    │ Municipal │ 2002    │ 84495   │ 29/08/2002   │ $216,400.00  │ 1        │
+│ ...    │ ...     │ ...      │ ...       │ 2002    │ ...     │ ...          │ ...          │ ...      │
+│ (97 registros más)                                                                                     │
+└────────┴─────────┴──────────┴───────────┴─────────┴─────────┴──────────────┴──────────────┴──────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar 100 registros (límite del SP)
+- TODOS deben tener Año Req = 2002
+- Ordenados por folio descendente (84497 → menor)
+- Paginación activa con 10 páginas (100 registros / 10 por página)
+- Predominancia de multas municipales
+- Diferentes importes y vigencias
+
+📊 ESTADÍSTICAS ESPERADAS (de los 100 registros):
+
+- Multas Federales: 0
+- Multas Municipales: 100
+- Importe total aproximado: $28,886,800.00
+- Promedio por requerimiento: $288,868.00
+- Rango de importes: $75,000 - $360,200
+- Vigencias: Principalmente 1 y 2
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- El año 2002 es el más reciente en la base de datos
+- Alta concentración de requerimientos municipales
+- Importes elevados (promedio cerca de $300,000)
+- Sistema muestra solo primeros 100 por rendimiento
+- Para consultas más específicas, usar folio exacto
+
+⚠️ NOTA IMPORTANTE:
+
+El límite de 100 registros es una restricción del stored procedure.
+Si necesitas ver más registros del 2002, debes hacer búsquedas más específicas:
+- Por rango de folios
+- Por clave letra específica
+- Por número de acta
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otros años:
+- 2001 → Requerimientos del año anterior
+- 2000 → Requerimientos históricos
+- 1999 → Requerimientos más antiguos
+- 1994 → Primer año con datos
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO ADICIONAL: BÚSQUEDA POR CLAVE LETRA (Opcional)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Buscar requerimientos por clave de identificación
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario reqmultas400frm.vue
+2. En el campo "Cuenta / Folio" ingresar: S
+3. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+- Todos los requerimientos con clave letra "S" (hasta 100)
+- Búsqueda con ILIKE (case-insensitive)
+- Permite búsquedas parciales
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN DE CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+╔══════════════════╦════════════════════╦══════════════╦═══════════════════╗
+║ Ejemplo          ║ Entrada            ║ Registros    ║ Caso de Uso       ║
+╠══════════════════╬════════════════════╬══════════════╬═══════════════════╣
+║ 1. Sin filtro    ║ (vacío)            ║ 100          ║ Vista general     ║
+║ 2. Por folio     ║ 84497              ║ 1            ║ Consulta específi ║
+║ 3. Por año       ║ 2002               ║ 100          ║ Análisis periodo  ║
+║ Adicional        ║ S                  ║ Variable     ║ Filtro por clave  ║
+╚══════════════════╩════════════════════╩══════════════╩═══════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════
+
+CARACTERÍSTICAS DEL COMPONENTE reqmultas400frm.vue
+═══════════════════════════════════════════════════════════════════════════
+
+✅ FUNCIONALIDADES IMPLEMENTADAS:
+
+1. Radio buttons para tipo de multa (Federal/Municipal)
+   - Nota: Actualmente no afecta la consulta, solo visual
+
+2. Campo de búsqueda "Cuenta / Folio"
+   - Acepta: clave letra, folio o año
+   - Búsqueda con Enter o botón
+
+3. Botón "Buscar"
+   - Ubicado debajo del campo de entrada
+   - Se deshabilita durante carga
+
+4. Tabla de resultados
+   - 12 columnas con información completa
+   - Formato de moneda para importes
+   - Formato de fecha DD/MM/YYYY
+   - Tipo descriptivo (Federal/Municipal)
+
+5. Paginación
+   - 10 registros por página (configurable)
+   - Navegación anterior/siguiente
+   - Información de página actual
+   - Conteo de registros
+
+6. Mensajes de estado
+   - Indicador de carga con spinner
+   - Mensaje sin resultados
+   - Contador de resultados encontrados
+
+═══════════════════════════════════════════════════════════════════════════
+
+DATOS TÉCNICOS DEL STORED PROCEDURE
+═══════════════════════════════════════════════════════════════════════════
+
+📌 FUNCIÓN: publico.recaudadora_reqmultas400frm(VARCHAR)
+
+📌 PARÁMETRO:
+- p_clave_cuenta: VARCHAR (puede ser NULL, clave letra, folio o año)
+
+📌 BÚSQUEDA EN:
+- cvelet (clave letra) → ILIKE (case-insensitive, permite parciales)
+- folreq (folio) → Coincidencia exacta convertida a texto
+- axoreq (año) → Coincidencia exacta convertida a texto
+
+📌 ORDENAMIENTO:
+- Primero: axoreq DESC (año más reciente primero)
+- Segundo: folreq DESC (folio más alto primero)
+
+📌 LÍMITE:
+- Máximo 100 registros por consulta
+- Optimización para rendimiento
+
+📌 TABLA BASE:
+- public.req_mul_400
+- Total: 271,449 registros
+- Periodo: 1994 - 2002
+- Distribución: 91.9% Municipal, 8.1% Federal
+
+═══════════════════════════════════════════════════════════════════════════
+
+SOLUCIÓN DE PROBLEMAS (TROUBLESHOOTING)
+═══════════════════════════════════════════════════════════════════════════
+
+❌ PROBLEMA: No aparecen resultados
+✅ SOLUCIÓN:
+   - Verificar que el stored procedure existe en esquema publico
+   - Confirmar permisos de ejecución
+   - Revisar consola del navegador (Network/Response)
+   - Probar con búsqueda vacía primero
+
+❌ PROBLEMA: Error "relation does not exist"
+✅ SOLUCIÓN:
+   - El SP debe usar public.req_mul_400 (NO catastro_gdl.req_mul_400)
+   - Ejecutar update_sp_reqmultas400frm.sql
+
+❌ PROBLEMA: Fechas no se formatean correctamente
+✅ SOLUCIÓN:
+   - Verificar función formatValue en línea 238-261
+   - Fechas vienen como INTEGER en formato YYYYMMDD
+   - Deben convertirse a DD/MM/YYYY
+
+❌ PROBLEMA: Importes no tienen formato de moneda
+✅ SOLUCIÓN:
+   - Verificar función formatValue en línea 242-247
+   - Debe usar Intl.NumberFormat con es-MX
+
+❌ PROBLEMA: Paginación no funciona
+✅ SOLUCIÓN:
+   - Verificar computed properties: totalPages, startIndex, endIndex
+   - Verificar itemsPerPage = 10
+   - Botones deben llamar nextPage() y previousPage()
+
+═══════════════════════════════════════════════════════════════════════════
+
+ARCHIVOS RELACIONADOS
+═══════════════════════════════════════════════════════════════════════════
+
+📄 Componente Vue:
+C:\recodeGDL_New2\RefactorX\FrontEnd\src\views\modules\multas_reglamentos\reqmultas400frm.vue
+
+📄 Stored Procedure:
+C:\recodeGDL_New2\update_sp_reqmultas400frm.sql
+
+📄 Script de prueba PHP:
+C:\recodeGDL_New2\test_reqmultas400frm.php
+
+📄 Documentación detallada:
+C:\recodeGDL_New2\ejemplos_reqmultas400frm.txt
+
+📄 Este archivo:
+C:\recodeGDL_New2\ejemplos_prueba_reqmultas400frm.txt
+
+═══════════════════════════════════════════════════════════════════════════
+
+PRÓXIMOS PASOS SUGERIDOS
+═══════════════════════════════════════════════════════════════════════════
+
+1. ✅ Probar los 3 ejemplos en orden
+2. ✅ Verificar que el formato de fechas e importes sea correcto
+3. ✅ Confirmar que la paginación funciona correctamente
+4. ⚠️ Evaluar si el filtro de tipo de multa debe afectar la consulta
+5. ⚠️ Considerar aumentar el límite de 100 registros si es necesario
+6. ⚠️ Agregar botones de "Ver Reporte" y "Descargar Reporte" (opcional)
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

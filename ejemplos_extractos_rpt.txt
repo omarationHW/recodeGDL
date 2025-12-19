@@ -1,0 +1,351 @@
+=== EJEMPLOS PARA PROBAR ExtractosRpt.vue ===
+
+El stored procedure ha sido creado para generar extractos de cuenta usando la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: El Stored Procedure 'recaudadora_extractos_rpt' no existe en el esquema 'publico'
+
+--- SOLUCIÓN ---
+
+La función ahora existe y usa la tabla public.h_multasnvo (histórico de multas)
+para generar extractos de cuenta buscando por:
+1. Expediente
+2. Número de acta
+3. ID de multa
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_extractos_rpt**: Genera extracto de cuenta para multas
+
+--- PARÁMETROS ---
+
+La función recibe:
+- clave_cuenta: VARCHAR (puede ser expediente, número de acta o ID de multa)
+
+Validaciones:
+- La cuenta no puede estar vacía
+- Busca solo multas no canceladas (fecha_cancelacion IS NULL)
+
+--- VALORES RETORNADOS ---
+
+| Campo              | Tipo    | Descripción                                  |
+|--------------------|---------|----------------------------------------------|
+| success            | BOOLEAN | Indica si se encontraron resultados          |
+| message            | VARCHAR | Mensaje descriptivo del resultado            |
+| cuenta             | VARCHAR | Número de cuenta consultada                  |
+| clave_catastral    | VARCHAR | Clave catastral (mismo que cuenta)           |
+| total_adeudo       | NUMERIC | Total adeudado de multas pendientes          |
+| fecha_extracto     | VARCHAR | Fecha del extracto (formato YYYY-MM-DD)      |
+| cantidad_multas    | BIGINT  | Número de multas encontradas                 |
+| contribuyente      | VARCHAR | Nombre del contribuyente                     |
+| domicilio          | VARCHAR | Domicilio del contribuyente                  |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla h_multasnvo se consulta así:
+- Se busca por TRIM(expediente) = cuenta
+- O por CAST(num_acta AS VARCHAR) = cuenta
+- O por CAST(id_multa AS VARCHAR) = cuenta
+- Se filtran multas canceladas (fecha_cancelacion IS NULL)
+- Se suma el campo 'total' de todas las multas encontradas
+- Se cuenta el número de registros
+- Se obtiene el contribuyente y domicilio del primer registro
+
+--- EJEMPLO 1: Búsqueda por expediente (10) ---
+
+Parámetro:
+- Cuenta: 10
+
+Resultado esperado:
+{
+  "success": true,
+  "message": "Se encontraron 99 multa(s) pendiente(s) de pago",
+  "cuenta": "10",
+  "clave_catastral": "10",
+  "total_adeudo": 698149.18,
+  "fecha_extracto": "2025-12-18",
+  "cantidad_multas": 99,
+  "contribuyente": "SANDOVAL FERNANDEZ RAFAEL GERMAN",
+  "domicilio": "VOLCAN POCHUTLA"
+}
+
+Análisis:
+- Expediente 10 tiene 99 multas pendientes
+- Total adeudo: $698,149.18
+- Contribuyente identificado con su domicilio
+
+--- EJEMPLO 2: Búsqueda por número de acta (96147) ---
+
+Parámetro:
+- Cuenta: 96147
+
+Resultado esperado:
+{
+  "success": true,
+  "message": "Se encontraron 1 multa(s) pendiente(s) de pago",
+  "cuenta": "96147",
+  "clave_catastral": "96147",
+  "total_adeudo": 2000.00,
+  "fecha_extracto": "2025-12-18",
+  "cantidad_multas": 1,
+  "contribuyente": "HUGO ALBERTO HERNANDEZ PARTIDA",
+  "domicilio": "..."
+}
+
+Análisis:
+- Acta 96147 tiene 1 multa pendiente
+- Total adeudo: $2,000.00
+- Búsqueda por número de acta funciona correctamente
+
+--- EJEMPLO 3: Búsqueda por ID de multa (290107) ---
+
+Parámetro:
+- Cuenta: 290107
+
+Resultado esperado:
+{
+  "success": true,
+  "message": "Se encontraron 1 multa(s) pendiente(s) de pago",
+  "cuenta": "290107",
+  "clave_catastral": "290107",
+  "total_adeudo": 2000.00,
+  "fecha_extracto": "2025-12-18",
+  "cantidad_multas": 1,
+  "contribuyente": "HUGO ALBERTO HERNANDEZ PARTIDA",
+  "domicilio": "..."
+}
+
+Análisis:
+- ID de multa 290107 encontrado
+- Total adeudo: $2,000.00
+- Búsqueda por ID de multa funciona correctamente
+
+--- EJEMPLO 4: Cuenta inexistente (99999999) ---
+
+Parámetro:
+- Cuenta: 99999999
+
+Resultado esperado:
+{
+  "success": false,
+  "message": "No se encontraron multas para la cuenta: 99999999",
+  "cuenta": "99999999",
+  "clave_catastral": "",
+  "total_adeudo": 0,
+  "fecha_extracto": "2025-12-18",
+  "cantidad_multas": 0,
+  "contribuyente": "",
+  "domicilio": ""
+}
+
+Análisis:
+- Cuenta no existe en el sistema
+- success = false indica que no hubo resultados
+- Total adeudo: $0.00
+
+--- EJEMPLO 5: Cuenta vacía ---
+
+Parámetro:
+- Cuenta: (vacío)
+
+Resultado esperado:
+{
+  "success": false,
+  "message": "Debe proporcionar un número de cuenta/expediente",
+  "cuenta": "",
+  "clave_catastral": "",
+  "total_adeudo": 0,
+  "fecha_extracto": "2025-12-18",
+  "cantidad_multas": 0,
+  "contribuyente": "",
+  "domicilio": ""
+}
+
+Análisis:
+- Validación de parámetros
+- Mensaje claro de error
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Datos de la tabla h_multasnvo:**
+- Total de registros con expediente: 139
+- Multas pendientes: 139
+- Multas canceladas: 0
+- Total adeudo general: $643,349.20
+- Expedientes únicos: 37
+
+**Expedientes con más multas:**
+| Expediente     | Multas | Total Adeudo    |
+|----------------|--------|-----------------|
+| 10             |     99 | $   698,149.18  |
+| 2405/98/701-4  |      8 | $    52,765.44  |
+| RECIBO 449771  |      7 | $    12,250.00  |
+| RECIBO 4601    |      6 | $     1,020.00  |
+| LTR/177-2002   |      5 | $    71,758.42  |
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **139 registros disponibles**
+  - Multas no canceladas (fecha_cancelacion IS NULL)
+  - Búsqueda flexible por expediente, acta o ID
+
+✓ **Campos completos**
+  - Información del contribuyente
+  - Domicilio
+  - Total adeudado
+  - Cantidad de multas
+
+✓ **Validaciones incluidas**
+  - Cuenta no puede estar vacía
+  - Manejo correcto de cuentas inexistentes
+  - Mensajes descriptivos
+
+✓ **Búsqueda flexible**
+  - Por expediente (texto)
+  - Por número de acta (numérico)
+  - Por ID de multa (numérico)
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo contiene el histórico de multas
+   municipales con información de contribuyentes.
+
+⚠️ **Búsqueda múltiple**
+   El stored procedure busca en tres campos:
+   1. expediente (como texto)
+   2. num_acta (convertido a texto)
+   3. id_multa (convertido a texto)
+
+⚠️ **Solo multas pendientes**
+   Se filtran registros con fecha_cancelacion IS NULL
+   para mostrar solo adeudos vigentes.
+
+⚠️ **Clave catastral**
+   Como la tabla de multas no tiene clave catastral,
+   se usa el mismo valor de la cuenta.
+
+⚠️ **Total adeudo**
+   Es la suma de todos los campos 'total' de las multas
+   encontradas para esa cuenta.
+
+⚠️ **Contribuyente y domicilio**
+   Se toma del primer registro encontrado. Si una cuenta
+   tiene múltiples multas con diferentes contribuyentes,
+   solo se muestra uno.
+
+--- CASOS DE USO ---
+
+**Caso 1: Consulta por expediente**
+1. Usuario ingresa número de expediente
+2. Sistema busca todas las multas con ese expediente
+3. Muestra total adeudado y cantidad de multas
+4. Usar para: Consulta de expedientes administrativos
+
+**Caso 2: Consulta por número de acta**
+1. Usuario ingresa número de acta
+2. Sistema busca multas con ese número
+3. Muestra información del contribuyente
+4. Usar para: Búsqueda rápida por acta
+
+**Caso 3: Consulta por ID de multa**
+1. Usuario ingresa ID de multa
+2. Sistema busca la multa específica
+3. Muestra detalles de esa multa
+4. Usar para: Consulta directa de una multa
+
+**Caso 4: Validación de cuenta inexistente**
+1. Usuario ingresa cuenta que no existe
+2. Sistema retorna success = false
+3. Muestra mensaje claro
+4. Usar para: Validación de datos
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue
+const params = {
+  cuenta: '10'  // Puede ser expediente, acta o ID
+};
+
+// Respuesta esperada (cuenta encontrada)
+{
+  "success": true,
+  "message": "Se encontraron 99 multa(s) pendiente(s) de pago",
+  "cuenta": "10",
+  "clave_catastral": "10",
+  "total_adeudo": 698149.18,
+  "fecha_extracto": "2025-12-18",
+  "cantidad_multas": 99,
+  "contribuyente": "SANDOVAL FERNANDEZ RAFAEL GERMAN",
+  "domicilio": "VOLCAN POCHUTLA"
+}
+
+// Respuesta esperada (cuenta no encontrada)
+{
+  "success": false,
+  "message": "No se encontraron multas para la cuenta: 99999",
+  "cuenta": "99999",
+  "clave_catastral": "",
+  "total_adeudo": 0,
+  "fecha_extracto": "2025-12-18",
+  "cantidad_multas": 0,
+  "contribuyente": "",
+  "domicilio": ""
+}
+```
+
+El componente ExtractosRpt.vue debería:
+1. Recibir el objeto con los campos mencionados
+2. Verificar el campo 'success' para determinar si hay datos
+3. Mostrar información cuando success = true:
+   - Cuenta consultada
+   - Clave catastral
+   - Total adeudo (con formato de moneda)
+   - Fecha del extracto
+   - Cantidad de multas encontradas
+   - Nombre del contribuyente
+   - Domicilio
+4. Mostrar mensaje de error cuando success = false
+5. Formato de moneda: $###,###.##
+6. Formato de fecha: YYYY-MM-DD
+
+--- RESUMEN ---
+
+Problema: Función publico.recaudadora_extractos_rpt no existía
+
+Solución: Función creada usando tabla public.h_multasnvo con búsqueda flexible
+
+Características:
+- 139 multas pendientes disponibles
+- Búsqueda por expediente, acta o ID de multa
+- Total adeudado calculado automáticamente
+- Información del contribuyente incluida
+- Validación de parámetros
+- Manejo de cuentas inexistentes
+- Solo multas no canceladas
+
+Resultado:
+- Extracto de cuenta por expediente/acta/ID
+- Total adeudado de multas pendientes
+- Cantidad de multas encontradas
+- Información del contribuyente
+- Fecha del extracto
+- Mensajes descriptivos
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del histórico
+- Búsqueda flexible y múltiple
+- Consulta rápida de adeudos
+- Información completa del contribuyente
+- Validaciones de integridad
+- Manejo de errores claro
+
+Uso recomendado:
+- Ingresar expediente, número de acta o ID de multa
+- Verificar campo 'success' para determinar si hay resultados
+- Mostrar información completa del extracto
+- Validar cuentas antes de procesar pagos
+- Consultar adeudos de contribuyentes

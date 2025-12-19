@@ -1,0 +1,315 @@
+=== EJEMPLOS PARA PROBAR reqmultas400frm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla public.req_mul_400 en lugar de catastro_gdl.req_mul_400.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "catastro_gdl.req_mul_400" does not exist
+La tabla estaba en el esquema incorrecto (catastro_gdl)
+
+--- SOLUCIÓN ---
+
+El stored procedure ahora usa la tabla public.req_mul_400 que existe
+en la BD multas_reglamentos con 271,449 registros de requerimientos
+de multas 400.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_reqmultas400frm**: Retorna requerimientos de multas 400
+
+--- PARÁMETROS ---
+
+La función recibe:
+- clave_cuenta: VARCHAR (puede ser clave letra, folio o año de requerimiento)
+- Si es NULL o vacío, retorna los primeros 100 registros
+
+Validaciones:
+- Limitado a 100 registros por consulta
+- Búsqueda flexible por múltiples campos
+
+--- VALORES RETORNADOS ---
+
+| Campo          | Tipo    | Descripción                                  |
+|----------------|---------|----------------------------------------------|
+| cvelet         | TEXT    | Clave letra                                  |
+| cvenum         | INTEGER | Año acta                                     |
+| ctarfc         | INTEGER | Número de acta                               |
+| cveapl         | INTEGER | Tipo de aplicación (5=Municipal, 6=Federal)  |
+| axoreq         | INTEGER | Año de requerimiento                         |
+| folreq         | INTEGER | Folio de requerimiento                       |
+| fecreq         | TEXT    | Fecha de requerimiento (YYYYMMDD)            |
+| impcuo         | NUMERIC | Importe de la cuota                          |
+| observr        | TEXT    | Observaciones                                |
+| vigreq         | TEXT    | Vigencia del requerimiento                   |
+| actreq         | TEXT    | Activación del requerimiento (YYYYMMDD)      |
+| tipo_multa     | TEXT    | Tipo descriptivo (Federal/Municipal/Otro)    |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla public.req_mul_400 se consulta así:
+- Búsqueda por cvelet (clave letra) con ILIKE
+- O por folreq (folio) convertido a texto
+- O por axoreq (año) convertido a texto
+- tipo_multa se calcula con CASE basado en cveapl
+- Ordenado por axoreq DESC, folreq DESC
+- Limitado a 100 registros
+
+--- EJEMPLO 1: Búsqueda sin filtro (primeros 100) ---
+
+Parámetro:
+- Cuenta: (vacío o NULL)
+
+Resultado esperado:
+- Total registros: 100
+- Los 100 requerimientos más recientes
+
+Ejemplo de resultados:
+| Folio | Año Req | Tipo      | Importe      | Vigencia |
+|-------|---------|-----------|--------------|----------|
+| 84497 | 2002    | Municipal | $100,000.00  | 1        |
+| 84496 | 2002    | Municipal | $75,000.00   | 2        |
+| 84495 | 2002    | Municipal | $216,400.00  | 1        |
+| 84494 | 2002    | Municipal | $216,400.00  | 1        |
+| 84493 | 2002    | Municipal | $360,200.00  | 1        |
+
+Análisis:
+- Muestra los requerimientos más recientes (año 2002)
+- Predominan multas municipales
+- Importes variados
+- Vigencia 1 o 2
+
+--- EJEMPLO 2: Búsqueda por folio (84497) ---
+
+Parámetro:
+- Cuenta: 84497
+
+Resultado esperado:
+- Total registros: 1
+- Detalles completos del requerimiento
+
+Detalles del requerimiento:
+- Clave Letra: S
+- Año Acta: 2001
+- Número Acta: 51478
+- Tipo: Municipal (cveapl = 5)
+- Año Requerimiento: 2002
+- Folio: 84497
+- Fecha Requerimiento: 20020829 (29/08/2002)
+- Importe: $100,000.00
+- Vigencia: 1
+- Activación: 20020829 (29/08/2002)
+
+Análisis:
+- Requerimiento municipal del año 2002
+- Folio específico identificado
+- Importe de $100,000.00
+- Fecha de requerimiento y activación coinciden
+
+--- EJEMPLO 3: Búsqueda por año (2002) ---
+
+Parámetro:
+- Cuenta: 2002
+
+Resultado esperado:
+- Total registros: 100 (limitado)
+- Requerimientos del año 2002
+
+Estadísticas del año 2002:
+- Multas Federales: 0
+- Multas Municipales: 100
+- Importe total: $28,886,800.00
+- Promedio por requerimiento: $288,868.00
+
+Análisis:
+- Año 2002 tiene muchos requerimientos
+- Solo municipales en los primeros 100
+- Alto valor promedio por requerimiento
+- Sistema limita a 100 resultados
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Datos generales de la tabla:**
+- Total de registros: 271,449
+- Tipos de aplicación: 2 (Municipal y Federal)
+- Años de requerimiento: 9 (1994 - 2002)
+- Distribución:
+  - Municipal: 249,349 (91.9%)
+  - Federal: 22,100 (8.1%)
+
+**Periodo de datos:**
+- Rango de años: 1994 - 2002
+- 9 años de historial de requerimientos
+- Promedio: ~30,161 requerimientos por año
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **271,449 requerimientos disponibles**
+  - Requerimientos de multas 400 (formulario 400)
+  - Búsqueda flexible por múltiples campos
+
+✓ **Campos completos**
+  - Información del acta original
+  - Datos del requerimiento
+  - Importes y vigencias
+  - Fechas de activación
+
+✓ **Búsqueda flexible**
+  - Por clave letra (texto)
+  - Por folio (numérico)
+  - Por año de requerimiento (numérico)
+  - Sin parámetros: primeros 100
+
+✓ **Ordenamiento inteligente**
+  - Por año descendente
+  - Por folio descendente
+  - Los más recientes primero
+
+✓ **Límite de resultados**
+  - Máximo 100 registros por consulta
+  - Evita sobrecarga del sistema
+  - Búsquedas más específicas recomendadas
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.req_mul_400 contiene requerimientos
+   de multas del formulario 400.
+
+⚠️ **Esquema corregido**
+   Se cambió de catastro_gdl.req_mul_400 a public.req_mul_400
+   que es la tabla correcta en la BD multas_reglamentos.
+
+⚠️ **Límite de 100 registros**
+   Solo retorna máximo 100 registros por consulta.
+   Para ver más, hacer búsquedas más específicas.
+
+⚠️ **Tipos de multa**
+   cveapl = 5: Municipal
+   cveapl = 6: Federal
+   Otro valor: Clasificado como "Otro"
+
+⚠️ **Formato de fechas**
+   fecreq y actreq están en formato YYYYMMDD (entero)
+   Ejemplo: 20020829 = 29 de Agosto de 2002
+
+⚠️ **Búsqueda ILIKE**
+   La búsqueda por clave letra usa ILIKE (case-insensitive)
+   Permite búsquedas parciales con comodines.
+
+--- CASOS DE USO ---
+
+**Caso 1: Consulta general**
+1. Usuario no ingresa cuenta
+2. Sistema retorna primeros 100 requerimientos
+3. Muestra los más recientes
+4. Usar para: Navegación general, vista rápida
+
+**Caso 2: Búsqueda por folio específico**
+1. Usuario ingresa número de folio
+2. Sistema busca ese folio exacto
+3. Muestra detalles completos
+4. Usar para: Consulta específica de un requerimiento
+
+**Caso 3: Búsqueda por año**
+1. Usuario ingresa año (ej: 2002)
+2. Sistema busca requerimientos de ese año
+3. Muestra hasta 100 registros
+4. Usar para: Análisis por periodo, estadísticas
+
+**Caso 4: Búsqueda por clave letra**
+1. Usuario ingresa clave letra (ej: "S")
+2. Sistema busca coincidencias parciales
+3. Muestra requerimientos con esa clave
+4. Usar para: Filtrado por tipo de clave
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (búsqueda por folio)
+const params = {
+  cuenta: '84497'
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "cvelet": "S",
+      "cvenum": 2001,
+      "ctarfc": 51478,
+      "cveapl": 5,
+      "axoreq": 2002,
+      "folreq": 84497,
+      "fecreq": "20020829",
+      "impcuo": 100000,
+      "observr": "",
+      "vigreq": "1",
+      "actreq": "20020829",
+      "tipo_multa": "Municipal"
+    }
+  ],
+  "total": 1
+}
+
+// Respuesta esperada (búsqueda sin filtro)
+{
+  "data": [
+    // ... 100 registros
+  ],
+  "total": 100
+}
+```
+
+El componente reqmultas400frm.vue debería:
+1. Recibir el array de requerimientos
+2. Mostrar tabla con columnas: Clave Letra, Año Acta, Núm. Acta, Tipo, Año Req, Folio, Fecha Req, Importe, Vigencia
+3. Filtros para:
+   - Tipo de Multa (radio buttons: Federal/Municipal)
+   - Cuenta/Folio (text input)
+4. Formateo especial:
+   - Importes con formato de moneda ($###,###.##)
+   - Fechas en formato DD/MM/YYYY
+   - Tipo descriptivo (Federal/Municipal)
+5. Paginación implementada
+6. Límite de 100 resultados por búsqueda
+7. Búsqueda sin filtros muestra primeros 100
+8. Ordenar por año y folio descendente
+
+--- RESUMEN ---
+
+Problema: Tabla catastro_gdl.req_mul_400 no existía
+
+Solución: Stored procedure actualizado para usar public.req_mul_400
+
+Características:
+- 271,449 requerimientos disponibles (1994-2002)
+- Búsqueda por clave letra, folio o año
+- Tabla correcta en esquema public
+- Límite de 100 registros por consulta
+- Ordenamiento por año y folio descendente
+- Tipos: Municipal (91.9%) y Federal (8.1%)
+
+Resultado:
+- Consulta de requerimientos multas 400
+- Información completa del requerimiento
+- Datos del acta original
+- Importes y vigencias
+- Fechas de activación
+- Tipo descriptivo de multa
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del sistema 400
+- Búsqueda flexible y múltiple
+- Consulta rápida de requerimientos
+- Información completa del requerimiento
+- Límite de resultados para rendimiento
+- Ordenamiento inteligente
+
+Uso recomendado:
+- Búsquedas específicas por folio o año
+- Consulta general sin filtros para navegación
+- Análisis de requerimientos por tipo
+- Verificación de importes y vigencias
+- Consulta de fechas de activación
+- Búsqueda parcial por clave letra

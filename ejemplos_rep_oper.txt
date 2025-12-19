@@ -1,0 +1,341 @@
+=== EJEMPLOS PARA PROBAR RepOper.vue ===
+
+El stored procedure ha sido creado para generar reporte de operaciones usando la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: function publico.recaudadora_rep_oper(unknown, unknown) does not exist
+HINT: No function matches the given name and argument types.
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.h_multasnvo (histórico de multas)
+para generar el reporte de operaciones por dependencia en rango de fechas,
+mostrando estadísticas de multas emitidas, canceladas y pendientes.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_rep_oper**: Retorna reporte de operaciones por dependencia
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_desde: DATE (fecha inicial del rango, ejemplo: '2024-01-01')
+- p_hasta: DATE (fecha final del rango, ejemplo: '2024-01-31')
+
+Validaciones:
+- Ambas fechas son requeridas
+- La fecha desde no puede ser mayor que la fecha hasta
+
+--- VALORES RETORNADOS ---
+
+| Campo                | Tipo    | Descripción                                  |
+|---------------------|---------|----------------------------------------------|
+| dependencia          | INTEGER | ID de la dependencia                         |
+| nombre_dependencia   | VARCHAR | Nombre descriptivo de la dependencia         |
+| total_operaciones    | BIGINT  | Total de operaciones en el periodo           |
+| multas_emitidas      | BIGINT  | Multas emitidas (no canceladas)              |
+| multas_canceladas    | BIGINT  | Multas canceladas                            |
+| multas_pendientes    | BIGINT  | Multas pendientes de pago                    |
+| total_multas         | NUMERIC | Suma de montos de multas                     |
+| total_gastos         | NUMERIC | Suma de gastos de ejecución                  |
+| total_general        | NUMERIC | Suma total (multas + gastos)                 |
+| promedio_operacion   | NUMERIC | Promedio por operación                       |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla h_multasnvo se agrega así:
+- id_dependencia → dependencia (ID)
+- id_dependencia → nombre_dependencia (construido con CASE)
+- COUNT(*) → total_operaciones
+- COUNT(WHERE cancelacion IS NULL) → multas_emitidas
+- COUNT(WHERE cancelacion IS NOT NULL) → multas_canceladas
+- COUNT(WHERE cancelacion IS NULL AND cvepago IS NULL) → multas_pendientes
+- SUM(multa) → total_multas
+- SUM(gastos) → total_gastos
+- SUM(total) → total_general
+- AVG(total) → promedio_operacion
+- Filtro por fecha_acta entre p_desde y p_hasta
+
+--- EJEMPLO 1: Reporte de operaciones de un mes (Enero 2024) ---
+
+Parámetros:
+- Desde: 2024-01-01
+- Hasta: 2024-01-31
+
+Resultado esperado:
+- Total dependencias: 7
+- Total operaciones: 4,006
+- Multas emitidas: 3,994
+- Multas canceladas: 12
+- Multas pendientes: 3,702
+- Total general: $41,693,763.90
+- Promedio: $10,407.83
+
+Ejemplo de resultados:
+| Dep | Nombre                        | Tot.Oper | Emitidas | Canceladas | Pendientes | Tot.General     | Promedio    |
+|-----|-------------------------------|----------|----------|------------|------------|-----------------|-------------|
+|  5  | Dependencia 5 - Obras         |    1,338 |    1,338 |          0 |      1,240 | $  24,465,335   | $  18,285   |
+|  7  | Dependencia 7 - Reglamentos   |    1,258 |    1,253 |          5 |      1,147 | $   7,315,610   | $   5,815   |
+|  3  | Dependencia 3 - Tránsito      |      725 |      722 |          3 |        672 | $   6,753,828   | $   9,316   |
+|  1  | Dependencia 1 - Predial       |      337 |      333 |          4 |        331 | $   2,026,056   | $   6,012   |
+| 35  | Dependencia 35 - Vía Pública  |      270 |      270 |          0 |        240 | $     695,428   | $   2,576   |
+
+TOTALES ENERO: 4,006 operaciones | Emitidas: 3,994 | Canceladas: 12 | Pendientes: 3,702 | $41,693,764 | Promedio: $10,408
+
+Análisis:
+- Dependencia 5 (Obras) lidera con 1,338 operaciones
+- Top 3 dependencias representan 82% del total de operaciones
+- Mayor promedio por operación: Dependencia 5 ($18,285)
+- 12 multas canceladas en el mes (0.3%)
+- 92.4% de multas pendientes de pago
+
+--- EJEMPLO 2: Reporte de operaciones trimestral (Q1 2024) ---
+
+Parámetros:
+- Desde: 2024-01-01
+- Hasta: 2024-03-31
+
+Resultado esperado:
+- Total dependencias: 7
+- Total operaciones: 8,102
+- Multas emitidas: 8,089
+- Multas canceladas: 13
+- Multas pendientes: 7,766
+- Total general: $115,817,685.82
+- Promedio: $14,294.95
+
+Top 3 dependencias Q1 2024:
+| Dep | Nombre                        | Tot.Oper | Emitidas | Canceladas | Pendientes | Tot.General     |
+|-----|-------------------------------|----------|----------|------------|------------|-----------------|
+|  5  | Dependencia 5 - Obras         |    2,944 |    2,944 |          0 |      2,837 | $  65,726,836   |
+|  3  | Dependencia 3 - Tránsito      |    1,584 |    1,581 |          3 |      1,527 | $  21,877,586   |
+|  7  | Dependencia 7 - Reglamentos   |    2,322 |    2,316 |          6 |      2,208 | $  21,698,474   |
+
+TOTAL Q1: 8,102 operaciones | Emitidas: 8,089 | Canceladas: 13 | $115,817,686 | Promedio: $14,295
+
+Análisis:
+- Q1 muestra 8,102 operaciones en 3 meses
+- Promedio trimestral: $14,295 por operación
+- Dependencia 5 mantiene liderazgo con 36.3% de operaciones
+- Solo 13 multas canceladas en Q1 (0.16%)
+- 95.9% de multas pendientes de pago
+
+--- EJEMPLO 3: Reporte de operaciones semanal (1-7 Enero 2024) ---
+
+Parámetros:
+- Desde: 2024-01-01
+- Hasta: 2024-01-07
+
+Resultado esperado:
+- Total dependencias: 7
+- Total operaciones: 606
+- Total general: $4,985,022.68
+- Promedio: $8,226.11
+
+Comparación de periodos 2024:
+| Periodo         | Dependencias | Operaciones | Emitidas | Canceladas | Pendientes | Total General    | Promedio    |
+|-----------------|--------------|-------------|----------|------------|------------|------------------|-------------|
+| Semana 1        |            7 |         606 |      606 |          0 |        606 | $    4,985,023   | $   8,226   |
+| Enero           |            7 |       4,006 |    3,994 |         12 |      3,702 | $   41,693,764   | $  10,408   |
+| Febrero         |            7 |       2,181 |    2,180 |          1 |      2,149 | $   47,158,592   | $  21,622   |
+| Marzo           |            6 |       1,915 |    1,915 |          0 |      1,915 | $   26,965,330   | $  14,081   |
+| Q1 (Ene-Mar)    |            7 |       8,102 |    8,089 |         13 |      7,766 | $  115,817,686   | $  14,295   |
+| Q2 (Abr-Jun)    |            7 |       6,503 |    6,503 |          0 |      6,475 | $   95,181,422   | $  14,637   |
+
+Tendencias:
+- Febrero tuvo el mayor promedio por operación ($21,622)
+- Q1 tuvo mayor actividad que Q2 en número de operaciones
+- Promedio por operación aumentó de Q1 a Q2
+- Muy bajo porcentaje de cancelaciones (< 0.2%)
+- Alta tasa de multas pendientes (> 95%)
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Por Dependencia (Enero 2024):**
+- Dependencia 5 (Obras): 33.4% del total de operaciones
+- Dependencia 7 (Reglamentos): 31.4% del total de operaciones
+- Dependencia 3 (Tránsito): 18.1% del total de operaciones
+- Top 3 dependencias: 82.9% del total de operaciones
+
+**Análisis de periodos:**
+- Enero: 4,006 operaciones, promedio $10,408
+- Febrero: 2,181 operaciones, promedio $21,622 (mayor)
+- Marzo: 1,915 operaciones, promedio $14,081
+- Q1: 8,102 operaciones, promedio $14,295
+- Q2: 6,503 operaciones, promedio $14,637
+
+**Tasas de operaciones:**
+- Multas emitidas: ~99.8% del total
+- Multas canceladas: ~0.2% del total
+- Multas pendientes: ~95% de las emitidas
+- Multas pagadas: ~5% de las emitidas
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **626,583 registros históricos disponibles**
+  - Operaciones desde 2015 hasta 2024
+  - Filtro flexible por rango de fechas
+
+✓ **Agregación por dependencia**
+  - Totales calculados automáticamente
+  - Separación por estado (emitidas, canceladas, pendientes)
+  - Promedios por operación
+
+✓ **Campos completos**
+  - Total de operaciones
+  - Multas por estado
+  - Montos de multas y gastos
+  - Total general
+  - Promedio por operación
+
+✓ **Validaciones incluidas**
+  - Fechas requeridas
+  - Fecha desde no puede ser mayor que hasta
+  - Manejo correcto de NULL
+
+✓ **Ordenamiento inteligente**
+  - Resultados ordenados por total_general descendente
+  - Facilita identificación de dependencias más activas
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo contiene el histórico completo
+   de operaciones de multas municipales.
+
+⚠️ **Filtro por fecha_acta**
+   Se usa la fecha del acta (no fecha de pago) para filtrar
+   las operaciones en el rango especificado.
+
+⚠️ **Estados de multas**
+   - Emitidas: multas donde fecha_cancelacion IS NULL
+   - Canceladas: multas donde fecha_cancelacion IS NOT NULL
+   - Pendientes: multas sin pago (cvepago IS NULL)
+
+⚠️ **Totales incluyen gastos**
+   El total_general incluye tanto multas como gastos de ejecución.
+   Para solo multas, usar el campo total_multas.
+
+⚠️ **Validación de fechas**
+   Si la fecha desde es mayor que la fecha hasta, se genera
+   un error y no se ejecuta la consulta.
+
+⚠️ **Rango flexible**
+   Se puede consultar cualquier rango: días, semanas, meses,
+   trimestres, semestres o años completos.
+
+--- CASOS DE USO ---
+
+**Caso 1: Reporte mensual de operaciones**
+1. Desde: Primer día del mes
+2. Hasta: Último día del mes
+3. Resultado: Operaciones mensuales por dependencia
+4. Usar para: Reportes mensuales, seguimiento de actividad
+
+**Caso 2: Reporte trimestral**
+1. Desde: Primer día del trimestre
+2. Hasta: Último día del trimestre
+3. Resultado: Operaciones trimestrales agregadas
+4. Usar para: Evaluación trimestral, comparación entre trimestres
+
+**Caso 3: Análisis de eficiencia**
+1. Comparar multas emitidas vs canceladas
+2. Calcular tasa de cancelación
+3. Analizar multas pendientes vs pagadas
+4. Usar para: Evaluación de eficiencia operativa
+
+**Caso 4: Comparación de periodos**
+1. Ejecutar múltiples consultas con diferentes rangos
+2. Comparar totales y promedios
+3. Identificar tendencias
+4. Usar para: Análisis comparativo, proyecciones
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (enero 2024)
+const params = {
+  desde: '2024-01-01',
+  hasta: '2024-01-31'
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "dependencia": 5,
+      "nombre_dependencia": "Dependencia 5 - Obras",
+      "total_operaciones": 1338,
+      "multas_emitidas": 1338,
+      "multas_canceladas": 0,
+      "multas_pendientes": 1240,
+      "total_multas": 24210662.00,
+      "total_gastos": 254673.18,
+      "total_general": 24465335.18,
+      "promedio_operacion": 18285.00
+    },
+    // ... más dependencias
+  ],
+  "total": 7
+}
+```
+
+El componente RepOper.vue debería:
+1. Recibir array de dependencias con sus estadísticas
+2. Mostrar tabla con columnas: Dep, Nombre, Tot.Oper, Emitidas, Canceladas, Pendientes, Tot.General, Promedio
+3. Filtros para:
+   - Fecha desde (date picker)
+   - Fecha hasta (date picker)
+   - Validación: desde no puede ser mayor que hasta
+4. Calcular totales generales (suma de todas las dependencias)
+5. Mostrar indicadores:
+   - Total de operaciones
+   - Tasa de cancelación
+   - Tasa de pago
+   - Operaciones pendientes
+6. Exportar a Excel/PDF
+7. Formato de moneda con separadores de miles
+8. Formato de números con separadores de miles
+9. Ordenar por total_general descendente
+10. Resaltar la dependencia con mayor actividad
+
+--- RESUMEN ---
+
+Problema: Función publico.recaudadora_rep_oper no existía con parámetros
+
+Solución: Función usa tabla public.h_multasnvo con filtro por rango de fechas
+
+Características:
+- 626,583 registros históricos disponibles
+- Agregación por dependencia en rango de fechas
+- Cálculo automático de totales, promedios y estados
+- Separación por estado (emitidas, canceladas, pendientes)
+- Validación de fechas
+- Nombres descriptivos de dependencias
+- Rangos de fechas flexibles
+
+Resultado:
+- Reporte de operaciones por rango de fechas
+- Totales de multas, gastos y general
+- Estadísticas por estado de multa
+- Promedio por operación
+- Ordenado por total_general descendente
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del histórico
+- Flexibilidad total en rangos de fechas
+- Análisis de operaciones por periodo
+- Comparación entre periodos
+- Identificación de dependencias más activas
+- Análisis de eficiencia operativa
+- Validaciones de integridad de datos
+
+Uso recomendado:
+- Especificar rango de fechas válido (desde <= hasta)
+- Ideal para reportes de operaciones mensuales, trimestrales, semestrales
+- Comparaciones entre periodos
+- Análisis de distribución por dependencia
+- Evaluación de eficiencia operativa
+- Reportes ejecutivos con estadísticas

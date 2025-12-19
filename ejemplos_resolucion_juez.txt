@@ -1,0 +1,556 @@
+=== DOCUMENTACIÓN: recaudadora_resolucion_juez ===
+
+Fecha: 2025-12-18
+Stored Procedure: publico.recaudadora_resolucion_juez(VARCHAR, INTEGER)
+Base de Datos: multas_reglamentos
+Tabla: public.resolucion_juez
+Componente: ResolucionJuez.vue
+
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ORIGINAL
+═══════════════════════════════════════════════════════════════════════════
+
+ERROR: relation "catastro_gdl.resolucion_juez" does not exist
+El stored procedure intentaba usar una tabla inexistente en el esquema
+catastro_gdl.
+
+SOLUCIÓN
+═══════════════════════════════════════════════════════════════════════════
+
+Se actualizó el stored procedure para usar la tabla public.resolucion_juez
+que contiene 59 resoluciones judiciales sobre impuesto predial
+(años 1998-2023).
+
+═══════════════════════════════════════════════════════════════════════════
+
+FUNCIÓN DISPONIBLE
+═══════════════════════════════════════════════════════════════════════════
+
+**recaudadora_resolucion_juez**: Consultar resoluciones de juez
+
+PARÁMETROS:
+- p_clave_cuenta: VARCHAR (opcional) - Cuenta a buscar
+- p_folio: INTEGER (opcional) - Folio/ID de la resolución
+
+VALORES RETORNADOS (TABLA):
+
+| Campo                      | Tipo      | Descripción                          |
+|----------------------------|-----------|--------------------------------------|
+| id_resolucion              | INTEGER   | ID único de la resolución            |
+| folio                      | INTEGER   | Folio (mismo que id_resolucion)      |
+| cuenta                     | TEXT      | Cuenta del contribuyente             |
+| periodo                    | TEXT      | Periodo (formato año/bim - año/bim)  |
+| axo_inicio                 | INTEGER   | Año inicial                          |
+| bim_inicio                 | INTEGER   | Bimestre inicial                     |
+| axo_fin                    | INTEGER   | Año final                            |
+| bim_fin                    | INTEGER   | Bimestre final                       |
+| accesorios                 | TEXT      | Con/Sin accesorios                   |
+| fecha_calcular             | DATE      | Fecha de cálculo                     |
+| vigencia                   | TEXT      | Estatus de la resolución             |
+| cvepago                    | INTEGER   | Clave de pago                        |
+| notificaciones_canceladas  | TEXT      | Lista de notificaciones canceladas   |
+| observaciones              | TEXT      | Detalles de la resolución judicial   |
+| fecha_alta                 | TIMESTAMP | Fecha de registro                    |
+| usuario_alta               | TEXT      | Usuario que registró                 |
+| fecha_baja                 | TIMESTAMP | Fecha de baja (si aplica)            |
+| usuario_baja               | TEXT      | Usuario que dio de baja              |
+
+═══════════════════════════════════════════════════════════════════════════
+
+DATOS DISPONIBLES
+═══════════════════════════════════════════════════════════════════════════
+
+Tabla: public.resolucion_juez
+- Total de registros: 59
+- IDs: 1 - 59
+- Cuentas únicas: 26
+- Rango de años: 1998 - 2023
+
+DISTRIBUCIÓN POR VIGENCIA:
+- Vigente (V): 55 registros (93%)
+- Cancelado (C): 4 registros (7%)
+
+ACCESORIOS:
+- Con accesorios (C): 59 registros (100%)
+
+CUENTAS CON MÁS RESOLUCIONES:
+- 334489: 9 resoluciones
+- 9218: 7 resoluciones
+- 366071: 7 resoluciones
+- 204928: 5 resoluciones
+- 125097: 3 resoluciones
+
+═══════════════════════════════════════════════════════════════════════════
+
+ESTATUS DE VIGENCIA
+═══════════════════════════════════════════════════════════════════════════
+
+| Código | Descripción | Registros |
+|--------|-------------|-----------|
+| V      | Vigente     | 55        |
+| C      | Cancelado   | 4         |
+| A      | Activo      | 0         |
+| P      | Pendiente   | 0         |
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: CONSULTAR TODAS LAS RESOLUCIONES
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Folio: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar"
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 59 (todas las resoluciones)
+
+Registros más recientes que aparecerán:
+
+1. ID/Folio: 59 | Cuenta: 98925
+   Periodo: 2019/1 - 2022/2
+   Accesorios: Con accesorios
+   Vigencia: Vigente
+   Notif. Canceladas: 4242436,4315170,4424850
+   Observaciones: OF TES/LGS/2663/2024 EXP V-4553/2022 SE DECLARO
+                  NULIDAD LISA Y LLANA DE LOS ACCESORIOS...
+   Usuario: msaucedo | Fecha: 08/08/2024
+
+2. ID/Folio: 58 | Cuenta: 376230
+   Periodo: 2013/1 - 2017/6
+   Accesorios: Con accesorios
+   Vigencia: Vigente
+   Notif. Canceladas: 3152519,3543261,3637753,3739554,3870670,3999786
+   Observaciones: EXP. II-1420/2018 SE DECLARA NULIDAD DEL CONCEPTO
+                  DE COBRO RESPECTO DE MULTA, RECARGOS...
+   Usuario: msaucedo | Fecha: 08/05/2024
+
+3. ID/Folio: 57 | Cuenta: 247299
+   Periodo: 2019/1 - 2022/4
+   Accesorios: Con accesorios
+   Vigencia: Vigente
+   Observaciones: EXP. 568/2023 II SALA UNITARIA SE DECLARA NULIDAD...
+   Usuario: msaucedo | Fecha: 08/05/2024
+
+✨ Todas las resoluciones judiciales disponibles
+✨ Ordenadas por ID descendente (más recientes primero)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: BUSCAR POR CUENTA ESPECÍFICA
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 98925
+- Folio: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 1
+
+Detalle de la resolución:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID/Folio: 59
+Cuenta: 98925
+Periodo: 2019/1 - 2022/2
+
+Detalles del periodo:
+- Año inicial: 2019, Bimestre inicial: 1
+- Año final: 2022, Bimestre final: 2
+
+Accesorios: Con accesorios
+Vigencia: Vigente
+CVE Pago: 0
+
+Notificaciones Canceladas:
+4242436, 4315170, 4424850
+
+Observaciones:
+OF TES/LGS/2663/2024 EXP V-4553/2022 SE DECLARO NULIDAD LISA Y LLANA
+DE LOS ACCESORIOS CUANTIFICADOS EN EL CREDITO FISCAL 2022-916143 QUE
+SE CONTABILIZAN EN LA DETERMINACION DEL CREITO FISCAL CTA 4-U-3114
+ACCESORIOS GENERADOS DEL 1BIM 2019 AL 2 BIM 2022
+
+Usuario Alta: msaucedo
+Fecha Alta: 08/08/2024 18:09:46
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 Búsqueda exacta por número de cuenta
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: BUSCAR POR FOLIO
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Folio: 59
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 1
+
+Resultado:
+- ID: 59
+- Folio: 59
+- Cuenta: 98925
+- Periodo: 2019/1 - 2022/2
+- Accesorios: Con accesorios
+- Vigencia: Vigente
+
+💡 Búsqueda directa por número de folio/ID
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 4: BUSCAR CUENTA CON MÚLTIPLES RESOLUCIONES
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 334489
+- Folio: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 9
+
+Esta cuenta tiene 9 resoluciones judiciales diferentes,
+ideal para probar la visualización de múltiples registros.
+
+Muestra de resultados:
+- Diferentes periodos
+- Todas con accesorios
+- Diversas fechas de resolución
+- Múltiples expedientes judiciales
+
+💡 La cuenta con más resoluciones en el sistema
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 5: BUSCAR OTRA CUENTA CON MÚLTIPLES RESOLUCIONES
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 9218
+- Folio: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 7
+
+Segunda cuenta con más resoluciones.
+7 resoluciones judiciales diferentes.
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 6: BUSCAR CUENTA CON 7 RESOLUCIONES
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 366071
+- Folio: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 7
+
+Otra cuenta con 7 resoluciones judiciales.
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 7: BÚSQUEDA PARCIAL POR CUENTA
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 334
+- Folio: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Múltiples registros que contengan "334" en el número de cuenta
+
+Ejemplos de cuentas que coincidirán:
+- 334489 (9 resoluciones)
+- Y cualquier otra cuenta que contenga "334"
+
+💡 La búsqueda es parcial (ILIKE '%334%')
+💡 Útil cuando solo conoces parte del número de cuenta
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 8: BÚSQUEDA COMBINADA (CUENTA + FOLIO)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 98925
+- Folio: 59
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 1
+
+Este ejemplo combina ambos filtros para una búsqueda muy específica.
+
+Resultado:
+- ID: 59
+- Cuenta: 98925
+- Periodo: 2019/1 - 2022/2
+- Vigencia: Vigente
+
+💡 Útil para verificar una resolución específica
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 9: BÚSQUEDA SIN RESULTADOS
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 999999999
+- Folio: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 0
+✅ Mensaje: "Sin resultados"
+
+💡 Prueba el manejo de búsquedas sin coincidencias
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 10: BUSCAR FOLIO QUE NO EXISTE
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Folio: 999
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros: 0
+✅ Mensaje: "Sin resultados"
+
+💡 Los folios válidos van del 1 al 59
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN DE DATOS CLAVE PARA PRUEBAS
+═══════════════════════════════════════════════════════════════════════════
+
+📌 CUENTAS VÁLIDAS PARA PRUEBAS:
+✅ 334489 → 9 resoluciones (la que más tiene)
+✅ 9218 → 7 resoluciones
+✅ 366071 → 7 resoluciones
+✅ 204928 → 5 resoluciones
+✅ 125097 → 3 resoluciones
+✅ 98925 → 1 resolución (registro más reciente)
+✅ 376230 → 1 resolución
+✅ 247299 → 1 resolución
+
+📌 FOLIOS VÁLIDOS:
+✅ 1 - 59 (todos válidos)
+✅ 59 → Resolución más reciente (2024)
+✅ 58, 57, 56, 55 → Resoluciones recientes
+
+📌 PERIODOS:
+- Más antiguos: desde 1998
+- Más recientes: hasta 2023
+- Variedad de bimestres: 1-6
+
+📌 VIGENCIA:
+✅ Vigente (V) → 55 registros (mayoría)
+✅ Cancelado (C) → 4 registros
+
+📌 ACCESORIOS:
+✅ Con accesorios (C) → 59 registros (100%)
+
+═══════════════════════════════════════════════════════════════════════════
+
+CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+**Caso 1: Consulta general**
+- Usuario necesita ver todas las resoluciones judiciales
+- No ingresa filtros
+- Sistema muestra las 59 resoluciones
+- Ordenadas por ID descendente (más recientes primero)
+
+**Caso 2: Búsqueda por cuenta**
+- Usuario tiene el número de cuenta de un contribuyente
+- Ingresa la cuenta completa o parcial
+- Sistema muestra todas las resoluciones de esa cuenta
+- Usuario puede ver historial de resoluciones
+
+**Caso 3: Búsqueda por folio**
+- Usuario conoce el folio/ID de la resolución
+- Ingresa el folio
+- Sistema muestra la resolución específica
+- Útil para consultas rápidas
+
+**Caso 4: Verificación de resolución específica**
+- Usuario necesita confirmar una resolución
+- Ingresa cuenta Y folio
+- Sistema muestra resultado preciso
+- Usuario verifica detalles completos
+
+═══════════════════════════════════════════════════════════════════════════
+
+COMPORTAMIENTO DEL COMPONENTE
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Filtros opcionales**
+   - Ambos filtros son opcionales
+   - Sin filtros: muestra todas las resoluciones
+   - Con filtros: aplica búsqueda específica
+
+2. **Búsqueda parcial en cuenta**
+   - Usa ILIKE '%valor%'
+   - Encuentra coincidencias en cualquier parte
+
+3. **Búsqueda exacta en folio**
+   - Compara id_resolucion = p_folio
+   - Solo la resolución con ese ID
+
+4. **Límite de resultados**
+   - Máximo 100 registros (nunca se alcanza con 59)
+   - Ordenados por ID DESC
+   - Los más recientes aparecen primero
+
+5. **Paginación**
+   - 10 registros por página
+   - Controles de navegación
+   - Contador de registros
+
+6. **Formato de periodo**
+   - Formato: "año/bim - año/bim"
+   - Ejemplo: "2019/1 - 2022/2"
+   - Badge de color azul (badge-info)
+
+7. **Observaciones truncadas**
+   - Máximo 60 caracteres en tabla
+   - Tooltip muestra texto completo
+   - Útil para observaciones largas
+
+8. **Badges de vigencia**
+   - Vigente: badge verde (success)
+   - Cancelado: badge rojo (danger)
+   - Activo: badge azul (primary)
+   - Otros: badge gris (secondary)
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ **Tabla correcta**
+   Ahora usa public.resolucion_juez en lugar de catastro_gdl.resolucion_juez
+
+⚠️ **59 registros únicamente**
+   Base de datos pequeña pero con información muy importante
+   (resoluciones judiciales sobre impuesto predial)
+
+⚠️ **26 cuentas únicas**
+   Algunos contribuyentes tienen múltiples resoluciones
+
+⚠️ **Todas con accesorios**
+   El 100% de las resoluciones son "Con accesorios"
+
+⚠️ **Observaciones detalladas**
+   Cada resolución incluye detalles del expediente judicial,
+   número de sala, tipo de nulidad, etc.
+
+⚠️ **Notificaciones canceladas**
+   35 registros tienen lista de notificaciones canceladas
+   (números separados por comas)
+
+⚠️ **Periodos históricos**
+   Cubre desde 1998 hasta 2023 (25 años de resoluciones)
+
+⚠️ **Usuario "msaucedo"**
+   La mayoría de resoluciones registradas por este usuario
+
+⚠️ **Fechas de alta recientes**
+   Muchas resoluciones capturadas en 2024 (registro reciente
+   de resoluciones históricas)
+
+═══════════════════════════════════════════════════════════════════════════
+
+PRUEBAS REALIZADAS
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Consulta sin filtros (todas las resoluciones)
+✅ Filtro por cuenta específica
+✅ Filtro por folio
+✅ Filtro combinado (cuenta + folio)
+✅ Búsqueda parcial por cuenta
+✅ Formato de periodo año/bim - año/bim
+✅ Conversión de vigencia a texto
+✅ Conversión de accesorios a texto
+✅ Manejo de valores NULL
+✅ Ordenamiento por ID DESC
+✅ Estructura de 18 columnas
+✅ Verificación de notificaciones canceladas
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN
+═══════════════════════════════════════════════════════════════════════════
+
+Función: publico.recaudadora_resolucion_juez(VARCHAR, INTEGER)
+Tabla: public.resolucion_juez
+Base de datos: multas_reglamentos
+Componente: ResolucionJuez.vue
+
+Características:
+✅ 59 resoluciones judiciales disponibles
+✅ 26 cuentas únicas
+✅ Histórico de 25 años (1998-2023)
+✅ Filtros opcionales (cuenta + folio)
+✅ Búsqueda parcial en cuenta
+✅ 18 columnas de información
+✅ Detalles completos de expedientes judiciales
+✅ Notificaciones canceladas
+✅ Conversión de códigos a texto
+✅ Ordenamiento por ID descendente
+
+Datos destacados:
+- Vigentes: 55 (93%)
+- Cancelados: 4 (7%)
+- Con accesorios: 59 (100%)
+- Cuenta con más resoluciones: 334489 (9)
+- Resolución más reciente: ID 59 (08/08/2024)
+
+Uso:
+- Parámetros opcionales: cuenta y/o folio
+- Sin parámetros: muestra todas las resoluciones
+- Con parámetros: búsqueda específica
+- Paginación: 10 por página
+- Ordenamiento: ID DESC
+
+Pruebas:
+- Todas las pruebas pasadas exitosamente
+- Función lista para producción
+- Componente ResolucionJuez.vue completamente funcional
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

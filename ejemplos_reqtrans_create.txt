@@ -1,0 +1,447 @@
+=== DOCUMENTACIÓN: recaudadora_reqtrans_create ===
+
+Fecha: 2025-12-18
+Stored Procedure: publico.recaudadora_reqtrans_create(JSON)
+Base de Datos: multas_reglamentos
+Tabla: public.reqdiftransmision
+
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ORIGINAL
+═══════════════════════════════════════════════════════════════════════════
+
+Error al crear registro: relation "catastro_gdl.reqdiftransmision" does not exist
+La función intentaba insertar en una tabla del esquema incorrecto.
+
+SOLUCIÓN
+═══════════════════════════════════════════════════════════════════════════
+
+El stored procedure ha sido actualizado para usar public.reqdiftransmision
+que es la tabla correcta en la BD multas_reglamentos.
+
+═══════════════════════════════════════════════════════════════════════════
+
+FUNCIÓN DISPONIBLE
+═══════════════════════════════════════════════════════════════════════════
+
+**recaudadora_reqtrans_create**: Crear nuevo requerimiento de diferencias de transmisión
+
+PARÁMETRO:
+- p_registro: JSON con los datos del nuevo requerimiento
+
+CAMPOS DEL JSON (parámetro):
+
+| Campo        | Tipo    | Requerido | Default      | Descripción                    |
+|--------------|---------|-----------|--------------|--------------------------------|
+| clave_cuenta | TEXT    | SÍ        | -            | Cuenta del contribuyente       |
+| folio        | INTEGER | No        | 0            | Folio de transmisión           |
+| ejercicio    | INTEGER | No        | Año actual   | Año del requerimiento          |
+| estatus      | TEXT    | No        | 'Vigente'    | Estatus (Vigente/Cancelado/etc)|
+| recaud       | INTEGER | No        | 1            | Recaudación                    |
+| impuesto     | NUMERIC | No        | 0            | Importe del impuesto           |
+| recargos     | NUMERIC | No        | 0            | Importe de recargos            |
+| multa        | NUMERIC | No        | 0            | Importe de multa               |
+| gastos       | NUMERIC | No        | 0            | Importe de gastos              |
+
+VALORES RETORNADOS (JSON):
+
+| Campo   | Tipo    | Descripción                                |
+|---------|---------|--------------------------------------------|
+| success | BOOLEAN | true si se creó correctamente, false si no |
+| message | TEXT    | Mensaje descriptivo del resultado          |
+| cvereq  | INTEGER | ID del nuevo requerimiento (si success)    |
+
+═══════════════════════════════════════════════════════════════════════════
+
+VALIDACIONES IMPLEMENTADAS
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Campo requerido: clave_cuenta**
+   - Si está vacío o NULL, retorna error
+   - Mensaje: "La cuenta es requerida"
+
+2. **Duplicado: cuenta + ejercicio**
+   - Verifica si ya existe un requerimiento para esa cuenta en ese año
+   - Mensaje: "Ya existe un requerimiento para esta cuenta en el año XXXX"
+
+3. **Generación automática de ID**
+   - cvereq se genera automáticamente (MAX + 1)
+   - No se puede especificar manualmente
+
+4. **Cálculo automático de total**
+   - total = impuesto + recargos + multa + gastos
+   - Se calcula automáticamente
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: CREACIÓN SIMPLE (SOLO CAMPOS REQUERIDOS)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Crear requerimiento con datos mínimos
+
+🔧 JSON DE ENTRADA:
+
+```json
+{
+  "clave_cuenta": "999888777",
+  "folio": 12345,
+  "ejercicio": 2025,
+  "estatus": "Vigente"
+}
+```
+
+📊 RESPUESTA ESPERADA:
+
+```json
+{
+  "success": true,
+  "message": "Registro creado correctamente",
+  "cvereq": 6
+}
+```
+
+✅ VALIDACIONES:
+
+- Registro creado exitosamente
+- cvereq generado automáticamente (6)
+- folioreq = cvereq (6)
+- vigencia = 'V' (Vigente)
+- fecemi = Fecha actual
+- capturista = 'SYSTEM'
+- Todos los importes en 0
+- Total = 0
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: CREACIÓN CON IMPORTES
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Crear requerimiento con desglose de importes
+
+🔧 JSON DE ENTRADA:
+
+```json
+{
+  "clave_cuenta": "888777666",
+  "folio": 0,
+  "ejercicio": 2025,
+  "estatus": "Vigente",
+  "impuesto": 1500.50,
+  "recargos": 150.00,
+  "multa": 300.00,
+  "gastos": 50.00
+}
+```
+
+📊 RESPUESTA ESPERADA:
+
+```json
+{
+  "success": true,
+  "message": "Registro creado correctamente",
+  "cvereq": 7
+}
+```
+
+✅ VALIDACIONES:
+
+- Registro creado exitosamente
+- cvereq generado automáticamente (7)
+- Importes guardados correctamente:
+  * Impuesto: $1,500.50
+  * Recargos: $150.00
+  * Multa: $300.00
+  * Gastos: $50.00
+  * **Total calculado: $2,000.50**
+- folio = 0 (sin asignar)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: ERROR - CUENTA DUPLICADA
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Intentar crear requerimiento duplicado
+
+🔧 JSON DE ENTRADA:
+
+```json
+{
+  "clave_cuenta": "999888777",
+  "ejercicio": 2025,
+  "estatus": "Vigente"
+}
+```
+
+Nota: Ya existe un requerimiento para esta cuenta en 2025
+
+📊 RESPUESTA ESPERADA:
+
+```json
+{
+  "success": false,
+  "message": "Ya existe un requerimiento para esta cuenta en el año 2025"
+}
+```
+
+✅ VALIDACIONES:
+
+- No se crea el registro
+- Validación funcionando correctamente
+- Previene duplicados
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 4: ERROR - CAMPO REQUERIDO FALTANTE
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Intentar crear sin cuenta
+
+🔧 JSON DE ENTRADA:
+
+```json
+{
+  "ejercicio": 2025
+}
+```
+
+Nota: Falta el campo clave_cuenta
+
+📊 RESPUESTA ESPERADA:
+
+```json
+{
+  "success": false,
+  "message": "La cuenta es requerida"
+}
+```
+
+✅ VALIDACIONES:
+
+- No se crea el registro
+- Validación de campo requerido funcionando
+- Mensaje claro y descriptivo
+
+═══════════════════════════════════════════════════════════════════════════
+
+COMPORTAMIENTO AUTOMÁTICO
+═══════════════════════════════════════════════════════════════════════════
+
+La función realiza las siguientes operaciones automáticamente:
+
+1. **Generación de cvereq**
+   - Obtiene MAX(cvereq) + 1
+   - No se puede especificar manualmente
+
+2. **Asignación de folioreq**
+   - folioreq = cvereq
+   - Se asigna automáticamente
+
+3. **Conversión de estatus**
+   - 'Vigente' → 'V'
+   - 'Cancelado' → 'C'
+   - 'Pendiente' → 'P'
+   - 'Activo' → '1'
+   - 'Inactivo' → '0'
+   - Otro → 'V' (default)
+
+4. **Cálculo de total**
+   - total = impuesto + recargos + multa + gastos
+   - Se calcula automáticamente
+
+5. **Valores por defecto**
+   - cveproceso = 'N' (Nuevo)
+   - zona = 0
+   - subzona = 0
+   - fecemi = CURRENT_DATE
+   - feccap = CURRENT_DATE
+   - capturista = 'SYSTEM'
+   - recaud = 1 (si no se especifica)
+
+6. **Campos opcionales con 0**
+   - multa_imp = 0
+   - multa_ext = 0
+   - actualizacion = 0
+   - gastos_req = gastos
+
+═══════════════════════════════════════════════════════════════════════════
+
+USO DESDE VUE.JS
+═══════════════════════════════════════════════════════════════════════════
+
+```javascript
+// Ejemplo de llamada desde Vue
+async function crearRequerimiento() {
+  const registro = {
+    clave_cuenta: '999888777',
+    folio: 12345,
+    ejercicio: 2025,
+    estatus: 'Vigente',
+    impuesto: 1500.50,
+    recargos: 150.00,
+    multa: 300.00,
+    gastos: 50.00
+  };
+
+  try {
+    const data = await execute('RECAUDADORA_REQTRANS_CREATE', BASE_DB, [
+      {
+        nombre: 'p_registro',
+        tipo: 'json',
+        valor: JSON.stringify(registro)
+      }
+    ]);
+
+    // Parsear respuesta
+    const response = typeof data === 'string' ? JSON.parse(data) : data;
+
+    if (response.success) {
+      console.log('Registro creado:', response.cvereq);
+      alert('Registro creado correctamente');
+      // Recargar lista
+      buscarGeneral();
+    } else {
+      console.error('Error:', response.message);
+      alert('Error: ' + response.message);
+    }
+  } catch (e) {
+    console.error('Error al crear:', e);
+    alert('Error al crear el registro');
+  }
+}
+```
+
+═══════════════════════════════════════════════════════════════════════════
+
+CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+**Caso 1: Crear requerimiento simple**
+- Usuario ingresa cuenta y ejercicio
+- Sistema genera ID automáticamente
+- Se crea con valores por defecto
+
+**Caso 2: Crear requerimiento con importes**
+- Usuario ingresa cuenta, ejercicio e importes
+- Sistema calcula total automáticamente
+- Se guarda con desglose completo
+
+**Caso 3: Validación de duplicado**
+- Usuario intenta crear requerimiento que ya existe
+- Sistema detecta duplicado (cuenta + año)
+- Muestra mensaje de error descriptivo
+
+**Caso 4: Validación de campos**
+- Usuario olvida ingresar cuenta
+- Sistema valida campo requerido
+- Muestra mensaje de error claro
+
+═══════════════════════════════════════════════════════════════════════════
+
+PRUEBAS REALIZADAS
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Creación con campos mínimos
+✅ Creación con importes completos
+✅ Validación de duplicado
+✅ Validación de campo requerido
+✅ Generación automática de cvereq
+✅ Cálculo automático de total
+✅ Conversión de estatus a vigencia
+✅ Asignación de valores por defecto
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ **Tabla correcta**
+   La función ahora usa public.reqdiftransmision en lugar de
+   catastro_gdl.reqdiftransmision.
+
+⚠️ **Campo clave_cuenta es requerido**
+   La función valida que este campo no esté vacío ni sea NULL.
+
+⚠️ **Validación de duplicado**
+   No se permite crear dos requerimientos para la misma cuenta
+   en el mismo año (ejercicio).
+
+⚠️ **cvereq autogenerado**
+   No se puede especificar el cvereq manualmente. Se genera
+   automáticamente como MAX + 1.
+
+⚠️ **Total calculado automáticamente**
+   No es necesario enviar el campo "total" en el JSON, se
+   calcula sumando todos los importes.
+
+⚠️ **Formato JSON estricto**
+   El parámetro debe ser un JSON válido. Los números deben ser
+   números, no strings.
+
+⚠️ **Manejo de errores**
+   La función captura todas las excepciones y retorna un JSON
+   con success: false y el mensaje de error.
+
+═══════════════════════════════════════════════════════════════════════════
+
+CAMPOS DE LA TABLA
+═══════════════════════════════════════════════════════════════════════════
+
+Campos que se insertan automáticamente:
+
+| Campo          | Valor automático                  | Descripción                    |
+|----------------|-----------------------------------|--------------------------------|
+| cvereq         | MAX(cvereq) + 1                   | ID único autogenerado          |
+| recaud         | p_registro->>'recaud' o 1         | Recaudación                    |
+| axoreq         | p_registro->>'ejercicio' o año    | Año del requerimiento          |
+| folioreq       | cvereq                            | Mismo que cvereq               |
+| cveproceso     | 'N'                               | Nuevo                          |
+| cvecuenta      | p_registro->>'clave_cuenta'       | Cuenta del contribuyente       |
+| foliotransm    | p_registro->>'folio' o 0          | Folio de transmisión           |
+| impuesto       | p_registro->>'impuesto' o 0       | Importe impuesto               |
+| recargos       | p_registro->>'recargos' o 0       | Importe recargos               |
+| multa_imp      | 0                                 | Multa impuesto                 |
+| multa_ext      | 0                                 | Multa extemporánea             |
+| actualizacion  | 0                                 | Actualización                  |
+| gastos         | p_registro->>'gastos' o 0         | Gastos de ejecución            |
+| multa          | p_registro->>'multa' o 0          | Multa                          |
+| gastos_req     | gastos                            | Gastos de requerimiento        |
+| total          | suma de todos los importes        | Total a pagar                  |
+| zona           | 0                                 | Zona                           |
+| subzona        | 0                                 | Subzona                        |
+| vigencia       | Según estatus                     | V/C/P/1/0                      |
+| fecemi         | CURRENT_DATE                      | Fecha de emisión               |
+| feccap         | CURRENT_DATE                      | Fecha de captura               |
+| capturista     | 'SYSTEM'                          | Usuario que captura            |
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN
+═══════════════════════════════════════════════════════════════════════════
+
+Función: publico.recaudadora_reqtrans_create(JSON)
+Tabla: public.reqdiftransmision
+Base de datos: multas_reglamentos
+
+Características:
+✅ Validación de campos requeridos
+✅ Validación de duplicados
+✅ Generación automática de ID
+✅ Cálculo automático de totales
+✅ Valores por defecto inteligentes
+✅ Manejo de errores completo
+✅ Retorno en formato JSON
+✅ Compatibilidad con Vue.js
+
+Uso:
+- Enviar JSON con los datos del requerimiento
+- Recibir JSON con resultado (success, message, cvereq)
+- Manejar errores de validación apropiadamente
+- Actualizar lista después de crear
+
+Pruebas:
+- Todas las pruebas pasadas exitosamente
+- Función lista para producción
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

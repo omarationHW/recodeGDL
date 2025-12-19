@@ -1,0 +1,425 @@
+=== EJEMPLOS DETALLADOS PARA PROBAR REQ.VUE ===
+
+Fecha: 2025-12-18
+Stored Procedure: publico.recaudadora_req(VARCHAR, INTEGER)
+Componente: Req.vue
+
+═══════════════════════════════════════════════════════════════════════════
+
+DATOS DISPONIBLES EN LA TABLA
+═══════════════════════════════════════════════════════════════════════════
+
+Total de registros: 10
+Registros con fecha de emisión: 2 (años 2013 y 2015)
+Registros sin fecha de emisión: 8
+Registros con importe > $0: 1 (ID 4)
+Registros con importe = $0: 9
+
+Cuentas disponibles:
+- Cuenta 0: 9 registros
+- Cuenta 99945: 1 registro (año 2013, total $149,838.90)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: CONSULTAR TODOS LOS REQUERIMIENTOS
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: (dejar vacío o 0)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 10
+
+Registros que aparecerán:
+
+1. ID: 11 | Folio: 159644 | Tipo: R | Cuenta: 0
+   Fecha: 31/12/2015 | Vigencia: Cancelado | Total: $0.00
+
+2. ID: 4 | Folio: 45 | Tipo: R | Cuenta: 99945
+   Fecha: 01/02/2013 | Vigencia: Vigente | Total: $149,838.90 ⭐
+
+3. ID: 13 | Folio: 36 | Tipo: N | Cuenta: 0
+   Sin fecha | Vigencia: Vigente | Total: $0.00
+
+4. ID: 12 | Folio: 7708864 | Tipo: R | Cuenta: 0
+   Sin fecha | Vigencia: Vigente | Total: $0.00
+
+5. ID: 10 | Folio: 58 | Tipo: N | Cuenta: 0
+   Sin fecha | Vigencia: Cancelado | Total: $0.00
+
+6. ID: 9 | Folio: 51 | Tipo: N | Cuenta: 0
+   Sin fecha | Vigencia: Cancelado | Total: $0.00
+
+7. ID: 8 | Folio: 59 | Tipo: N | Cuenta: 0
+   Sin fecha | Vigencia: Cancelado | Total: $0.00
+
+8. ID: 7 | Folio: 60 | Tipo: R | Cuenta: 0
+   Sin fecha | Vigencia: Cancelado | Total: $0.00
+
+9. ID: 6 | Folio: 18776 | Tipo: R | Cuenta: 0
+   Sin fecha | Vigencia: Vigente | Total: $0.00
+
+10. ID: 5 | Folio: 18774 | Tipo: R | Cuenta: 0
+    Sin fecha | Vigencia: Vigente | Total: $0.00
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: BUSCAR REQUERIMIENTO CON IMPORTE (CUENTA 99945)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 99945
+- Año: (dejar vacío o 0)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 1
+
+Detalle del registro:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID: 4
+Folio Requerimiento: 45
+Tipo: R
+Cuenta: 99945
+Ejecutoria: 554
+
+FECHAS:
+- Fecha Emisión: 01/02/2013
+- Fecha Ejecución: 17/04/2013
+- Fecha Práctica: 15/05/2013
+
+Vigencia: Vigente
+
+DESGLOSE DE IMPORTES:
+- Importe: $67,075.00
+- Recargos: $46,281.75
+- Multas Extemporáneas: $450.00
+- Multas Otras: $33,537.50
+- Gastos: $2,494.65
+- Gastos Req: $0.00
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL: $149,838.90 💰
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Observaciones: PRUEBA MODIFICACION   CON CAMBIOS
+
+✨ ESTE ES EL ÚNICO REGISTRO CON IMPORTE REAL
+✨ IDEAL PARA PROBAR VISUALIZACIÓN DE MONTOS
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: BUSCAR POR AÑO 2013
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: 2013
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 1
+
+Registro encontrado:
+- ID: 4
+- Folio: 45
+- Tipo: R
+- Cuenta: 99945
+- Ejecutoria: 554
+- Fecha Emisión: 01/02/2013
+- Fecha Ejecución: 17/04/2013
+- Fecha Práctica: 15/05/2013
+- Vigencia: Vigente
+- Total: $149,838.90
+
+💡 Este es el mismo registro del Ejemplo 2
+💡 Es el único requerimiento emitido en 2013
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 4: BUSCAR POR AÑO 2015
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: 2015
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 1
+
+Registro encontrado:
+- ID: 11
+- Folio: 159644
+- Tipo: R
+- Cuenta: 0
+- Ejecutoria: 0
+- Fecha Emisión: 31/12/2015
+- Fecha Ejecución: 31/12/2015
+- Fecha Práctica: 31/12/2015
+- Fecha Baja: 21/04/2022
+- Vigencia: Cancelado
+- Total: $0.00
+
+⚠️ Este registro está CANCELADO (fecha baja: 21/04/2022)
+⚠️ Importe en $0.00
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 5: BÚSQUEDA COMBINADA (CUENTA 99945 + AÑO 2013)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 99945
+- Año: 2013
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 1
+
+Este ejemplo combina ambos filtros y debería retornar el mismo
+registro del Ejemplo 2 y 3 (el único con importe real).
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 6: BUSCAR CUENTA 0 (REGISTROS SIN CUENTA ASIGNADA)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 0
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 9
+
+Registros (ordenados por fecha desc):
+
+1. ID: 11 | Folio: 159644 | Año: 2015 | Vigencia: Cancelado
+2. ID: 13 | Folio: 36 | Sin fecha | Vigencia: Vigente
+3. ID: 12 | Folio: 7708864 | Sin fecha | Vigencia: Vigente
+4. ID: 10 | Folio: 58 | Sin fecha | Vigencia: Cancelado
+5. ID: 9 | Folio: 51 | Sin fecha | Vigencia: Cancelado
+6. ID: 8 | Folio: 59 | Sin fecha | Vigencia: Cancelado
+7. ID: 7 | Folio: 60 | Sin fecha | Vigencia: Cancelado
+8. ID: 6 | Folio: 18776 | Sin fecha | Vigencia: Vigente
+9. ID: 5 | Folio: 18774 | Sin fecha | Vigencia: Vigente
+
+💡 Todos estos registros tienen cuenta = 0
+💡 Solo 1 tiene fecha de emisión (ID 11)
+💡 Todos tienen importe = $0.00
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 7: BÚSQUEDA POR FOLIO (BÚSQUEDA PARCIAL)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 45
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 2
+
+Registros encontrados:
+1. ID: 4 | Folio: 45 | Cuenta: 99945 | Total: $149,838.90
+   (Coincide porque 99945 contiene "45")
+
+2. ID: 11 | Folio: 159644 | Cuenta: 0 | Total: $0.00
+   (Coincide porque 159644 contiene "45")
+
+💡 La búsqueda es parcial (ILIKE '%45%')
+💡 Busca en el campo de cuenta (cvecta)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 8: BUSCAR REGISTROS VIGENTES (BÚSQUEDA POR FOLIO)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 18774
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 1
+
+Registro:
+- ID: 5
+- Folio: 18774
+- Tipo: R
+- Cuenta: 0
+- Vigencia: Vigente
+- Total: $0.00
+
+💡 Búsqueda por parte del folio
+💡 Registro vigente sin fecha de emisión
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 9: BUSCAR REGISTROS CANCELADOS CON OBSERVACIONES
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: (dejar vacío)
+
+Luego en los resultados, buscar registros con Vigencia = "Cancelado"
+
+📊 REGISTROS CANCELADOS DISPONIBLES:
+
+1. ID: 11 | Folio: 159644 | Cuenta: 0
+   Fecha Baja: 21/04/2022
+   Observaciones: Sin observaciones
+
+2. ID: 10 | Folio: 58 | Cuenta: 0
+   Fecha Baja: 25/03/2022
+   Observaciones: SE CANCELA CONFORME AL OFICIO DPF/IP/043/2021
+                  DE FECHA 13/01/2022
+
+3. ID: 9 | Folio: 51 | Cuenta: 0
+   Fecha Baja: 25/03/2022
+   Observaciones: SE CANCELA CONFORME AL OFICIO DPF/IP/027/2022
+                  DE FECHA 10/01/2022
+
+4. ID: 8 | Folio: 59 | Cuenta: 0
+   Fecha Baja: 25/03/2022
+   Observaciones: SE CANCELA CONFORME AL OFICIO DPF/IP/042/2022
+                  DE FECHA 13/01/2022
+
+5. ID: 7 | Folio: 60 | Cuenta: 0
+   Fecha Baja: 25/03/2022
+   Observaciones: SE CANCELA CONFORME AL OFICIO DPF/IP/041/2022
+                  DE FECHA 13/01/2022
+
+💡 Todos los registros cancelados tienen fecha de baja
+💡 4 de 5 tienen observaciones con número de oficio
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 10: BÚSQUEDA QUE NO RETORNA RESULTADOS
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: 999999
+- Año: (dejar vacío)
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 0
+✅ Mensaje: "Sin resultados"
+
+💡 Este ejemplo prueba el manejo de búsquedas sin coincidencias
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 11: BÚSQUEDA POR AÑO SIN DATOS
+═══════════════════════════════════════════════════════════════════════════
+
+📋 DATOS A INGRESAR:
+- Cuenta: (dejar vacío)
+- Año: 2024
+
+🔍 ACCIÓN:
+Hacer clic en "Buscar" o presionar Enter
+
+📊 RESULTADO ESPERADO:
+✅ Total de registros encontrados: 0
+✅ Mensaje: "Sin resultados"
+
+💡 No hay registros del año 2024
+💡 Solo hay datos de 2013 y 2015
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN DE DATOS CLAVE PARA PRUEBAS
+═══════════════════════════════════════════════════════════════════════════
+
+📌 CUENTAS VÁLIDAS:
+✅ 0 → 9 registros
+✅ 99945 → 1 registro con importe $149,838.90
+
+📌 AÑOS VÁLIDOS:
+✅ 2013 → 1 registro (cuenta 99945)
+✅ 2015 → 1 registro (cuenta 0)
+
+📌 FOLIOS INTERESANTES:
+✅ 45 → Cuenta 99945, año 2013, importe $149,838.90
+✅ 159644 → Cuenta 0, año 2015, cancelado
+✅ 18774, 18776 → Cuenta 0, vigentes, sin fecha
+✅ 7708864 → Cuenta 0, vigente, sin fecha
+
+📌 TIPOS DE REQUERIMIENTO:
+✅ R (Otro tipo R) → 6 registros
+✅ N (Otro tipo N) → 4 registros
+
+📌 ESTATUS:
+✅ Vigente → 5 registros
+✅ Cancelado → 5 registros
+
+📌 REGISTROS CON DATOS COMPLETOS:
+✅ ID 4 (Folio 45) → El más completo con fechas e importes
+✅ ID 11 (Folio 159644) → Completo pero cancelado
+
+═══════════════════════════════════════════════════════════════════════════
+
+CASOS DE PRUEBA RECOMENDADOS
+═══════════════════════════════════════════════════════════════════════════
+
+✅ CASO 1: Verificar que muestra todos los registros (Ejemplo 1)
+✅ CASO 2: Verificar importes y desglose correcto (Ejemplo 2)
+✅ CASO 3: Verificar filtro por año (Ejemplos 3 y 4)
+✅ CASO 4: Verificar filtro combinado (Ejemplo 5)
+✅ CASO 5: Verificar búsqueda parcial (Ejemplo 7)
+✅ CASO 6: Verificar registros sin resultados (Ejemplos 10 y 11)
+✅ CASO 7: Verificar visualización de fechas (Ejemplos 2, 3, 4)
+✅ CASO 8: Verificar estatus cancelado (Ejemplo 9)
+✅ CASO 9: Verificar paginación (si hay más de 10 registros)
+✅ CASO 10: Verificar búsqueda con Enter
+
+═══════════════════════════════════════════════════════════════════════════
+
+TIPS PARA PRUEBAS
+═══════════════════════════════════════════════════════════════════════════
+
+💡 El registro más útil para pruebas es el ID 4 (cuenta 99945):
+   - Tiene fechas completas
+   - Tiene importes reales
+   - Tiene desglose completo
+   - Está vigente
+   - Tiene observaciones
+
+💡 Para probar fechas, usar años 2013 o 2015
+
+💡 Para probar registros sin fecha, usar cuenta 0
+
+💡 Para probar importes en $0, usar cualquier registro excepto ID 4
+
+💡 Para probar cancelados, buscar folios 51, 58, 59, 60, 159644
+
+💡 Para probar búsqueda parcial, usar partes de números de cuenta
+   como "45" que coincide con 99945 y 159644
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,302 @@
+================================================================================
+EJEMPLOS PARA PROBAR SolSdosFavor.vue
+================================================================================
+
+STORED PROCEDURE: publico.recaudadora_sol_sdos_favor(VARCHAR)
+BASE DE DATOS: multas_reglamentos
+TABLA: public.solic_sdosfavor
+REGISTROS: 25,968 solicitudes | 19,193 cuentas únicas
+AÑOS: 2006 - 2024
+CAMBIO APLICADO: catastro_gdl.solic_sdosfavor → public.solic_sdosfavor
+
+================================================================================
+DESCRIPCIÓN
+================================================================================
+
+Consulta y gestión de solicitudes de saldos a favor.
+Búsqueda flexible por múltiples criterios:
+- Número de cuenta (cvecuenta)
+- Número de folio
+- ID de solicitud
+- Nombre del solicitante
+
+Retorna información completa de la solicitud incluyendo:
+- Identificación (ID, folio, año)
+- Datos de la cuenta
+- Domicilio completo (calle, exterior, interior, colonia, sector, código postal)
+- Contacto (teléfono, solicitante)
+- Estado (status: P/T/C/A)
+- Observaciones detalladas
+- Fechas (captura, término)
+- Datos de control (inconformidad, peticionario, documentos)
+
+FILTRO: Búsqueda flexible y opcional (vacío muestra primeros 100 registros)
+
+================================================================================
+DISTRIBUCIÓN POR ESTATUS
+================================================================================
+
+T (Terminado):  20,661 registros (79.6%)
+P (Pendiente):   5,181 registros (19.9%)
+C (Cancelado):     126 registros (0.5%)
+
+================================================================================
+EJEMPLOS PARA CADA TIPO DE BÚSQUEDA
+================================================================================
+
+1. BÚSQUEDA POR CUENTA:
+-----------------------
+Cuenta: 551949
+  → 1 resultado
+  - ID Solicitud: 26141
+  - Año/Folio: 2024/1274
+  - Domicilio: SAN CARLOS 138
+  - Colonia: JARDINES DE LOS HISTORIADORES
+  - Solicitante: GONZALEZ TORRES ARMANDO
+  - Status: P (Pendiente)
+  - Fecha Captura: 24/10/2024
+  - Capturista: esgomez
+  - Observaciones: SOLICITA TRANSLADO DE PAGOS...
+
+Otras cuentas de ejemplo:
+  - 551389
+  - 550863
+
+2. BÚSQUEDA POR FOLIO:
+----------------------
+Folio: 1975
+  → 20 resultados
+  Ejemplo 1: ID 23315 | Cuenta: 519755 | Folio: 1609 | Status: P
+  Ejemplo 2: ID 21975 | Cuenta: 424791 | Folio: 271  | Status: P
+
+Otros folios de ejemplo:
+  - 1974
+  - 1973
+
+3. BÚSQUEDA POR NOMBRE DEL SOLICITANTE:
+----------------------------------------
+Nombre: GONZALEZ
+  → Múltiples resultados de solicitantes con apellido González
+
+Nombre: ARMANDO
+  → Busca en cualquier parte del nombre
+
+Ejemplo encontrado:
+  - GONZALEZ TORRES ARMANDO | Cuenta: 551949 | Folio: 1274
+
+4. BÚSQUEDA PARCIAL (últimos dígitos de cuenta):
+-------------------------------------------------
+Buscar: 949
+  → 100 resultados (límite máximo)
+  Encuentra todas las cuentas que contengan "949"
+  Ejemplo: 551949, 394964, 46949, etc.
+
+5. VER REGISTROS MÁS RECIENTES (sin filtro):
+--------------------------------------------
+Dejar campo vacío o buscar sin texto
+  → 100 registros más recientes (límite)
+
+Primeros 3 registros:
+  1. ID: 26176 | Cuenta: 295685 | Folio: 1310 | CASTELLANOS BELTRAN MA. DE JES
+  2. ID: 26175 | Cuenta: 142963 | Folio: 1309 | SANCHEZ SIGALA LUIS
+  3. ID: 26174 | Cuenta: 103753 | Folio: 1308 | GONZALEZ HERNANDEZ RENE
+
+================================================================================
+ESTRUCTURA DE RETORNO (20 COLUMNAS)
+================================================================================
+
+id_solic         INTEGER   - ID único de la solicitud
+axofol           SMALLINT  - Año del folio
+folio            INTEGER   - Número de folio
+cvecuenta        INTEGER   - Clave de cuenta del contribuyente
+domp             TEXT      - Domicilio/calle
+extp             TEXT      - Número exterior
+intp             TEXT      - Número interior
+colp             TEXT      - Colonia
+secp             TEXT      - Sector
+codp             INTEGER   - Código postal
+telefono         TEXT      - Teléfono de contacto
+solicitante      TEXT      - Nombre del solicitante
+status           TEXT      - Estado (P=Pendiente, T=Terminado, C=Cancelado, A=Autorizado)
+observaciones    TEXT      - Observaciones y detalles de la solicitud
+feccap           DATE      - Fecha de captura
+capturista       TEXT      - Usuario que capturó la solicitud
+fecha_termino    DATE      - Fecha de término (si aplica)
+inconf           SMALLINT  - Número de inconformidad
+peticionario     SMALLINT  - Número de peticionario
+doctos           TEXT      - Documentos relacionados
+
+================================================================================
+CASOS DE PRUEBA EN LA INTERFAZ
+================================================================================
+
+CASO 1: Búsqueda por cuenta específica
+---------------------------------------
+Campo: Cuenta / Folio / Solicitante
+Valor: 551949
+Resultado esperado: 1 registro (Solicitud más reciente de 2024)
+
+CASO 2: Búsqueda por folio
+---------------------------
+Campo: Cuenta / Folio / Solicitante
+Valor: 1975
+Resultado esperado: 20 registros con folio o cuenta que contenga "1975"
+
+CASO 3: Búsqueda por nombre
+----------------------------
+Campo: Cuenta / Folio / Solicitante
+Valor: GONZALEZ
+Resultado esperado: Múltiples registros con "GONZALEZ" en el nombre
+
+CASO 4: Búsqueda parcial (últimos dígitos)
+-------------------------------------------
+Campo: Cuenta / Folio / Solicitante
+Valor: 949
+Resultado esperado: Hasta 100 registros con cuentas que contengan "949"
+
+CASO 5: Ver más recientes (sin filtro)
+---------------------------------------
+Campo: Cuenta / Folio / Solicitante
+Valor: (vacío)
+Resultado esperado: 100 solicitudes más recientes ordenadas por ID DESC
+
+CASO 6: Búsqueda por ID de solicitud
+-------------------------------------
+Campo: Cuenta / Folio / Solicitante
+Valor: 26141
+Resultado esperado: 1 registro específico
+
+================================================================================
+VALIDACIONES DEL FORMULARIO
+================================================================================
+
+✓ Campo de búsqueda es OPCIONAL (puede estar vacío)
+✓ Búsqueda flexible: acepta cuenta, folio, ID o nombre
+✓ Búsqueda parcial funciona (ILIKE '%valor%')
+✓ Búsqueda case-insensitive (mayúsculas/minúsculas no importan)
+✓ Límite de 100 registros por consulta
+✓ Ordenado por ID solicitud DESC (más recientes primero)
+✓ Paginación de 10 registros por página
+✓ Botón "Limpiar" para resetear búsqueda
+
+================================================================================
+VISUALIZACIÓN EN LA INTERFAZ
+================================================================================
+
+La tabla muestra 20 columnas completas:
+- ID Solicitud
+- Folio
+- Año
+- Cuenta
+- Domicilio (completo: calle, ext, int, colonia, sector, código)
+- Teléfono
+- Solicitante
+- Status (con badge de color)
+- Observaciones (truncadas con tooltip)
+- Fecha Captura
+- Capturista
+- Fecha Término
+- Inconf
+- Peticionario
+- Doctos
+
+Colores de Status:
+- P (Pendiente): Badge amarillo (warning)
+- A (Autorizado): Badge verde (success)
+- C (Cancelado): Badge rojo (danger)
+- T (Terminado): Badge azul (info)
+
+================================================================================
+NOTAS TÉCNICAS
+================================================================================
+
+BÚSQUEDA MÚLTIPLE:
+El stored procedure busca en 4 campos simultáneamente:
+- cvecuenta::TEXT ILIKE '%valor%'
+- folio::TEXT ILIKE '%valor%'
+- id_solic::TEXT ILIKE '%valor%'
+- solicitante ILIKE '%valor%'
+
+CARACTERÍSTICAS:
+- Búsqueda case-insensitive (ILIKE)
+- Campos CHAR con TRIM() aplicado
+- NULL handling con COALESCE
+- Límite: 100 registros máximo
+- Orden: id_solic DESC (más recientes primero)
+- Manejo de excepciones con RAISE EXCEPTION
+
+FILTRO FLEXIBLE:
+- NULL o vacío → muestra primeros 100 registros
+- Con valor → busca en múltiples campos simultáneamente
+
+================================================================================
+CORRECCIÓN APLICADA
+================================================================================
+
+ANTES:
+  FROM catastro_gdl.solic_sdosfavor s
+  ❌ ERROR: relation "catastro_gdl.solic_sdosfavor" does not exist
+
+DESPUÉS:
+  FROM public.solic_sdosfavor s
+  ✅ CORRECTO: Tabla existe con 25,968 registros
+
+================================================================================
+CONSULTA SQL DIRECTA (para pruebas en pgAdmin)
+================================================================================
+
+-- Búsqueda por cuenta
+SELECT * FROM publico.recaudadora_sol_sdos_favor('551949');
+
+-- Búsqueda por folio
+SELECT * FROM publico.recaudadora_sol_sdos_favor('1975');
+
+-- Búsqueda por nombre
+SELECT * FROM publico.recaudadora_sol_sdos_favor('GONZALEZ');
+
+-- Búsqueda parcial
+SELECT * FROM publico.recaudadora_sol_sdos_favor('949');
+
+-- Ver más recientes (sin filtro)
+SELECT * FROM publico.recaudadora_sol_sdos_favor('');
+SELECT * FROM publico.recaudadora_sol_sdos_favor(NULL);
+
+-- Búsqueda por ID
+SELECT * FROM publico.recaudadora_sol_sdos_favor('26141');
+
+-- Contar resultados
+SELECT COUNT(*) FROM publico.recaudadora_sol_sdos_favor('GONZALEZ');
+
+-- Filtrar por status específico
+SELECT * FROM publico.recaudadora_sol_sdos_favor('')
+WHERE status = 'P';  -- Solo pendientes
+
+-- Filtrar por año
+SELECT * FROM publico.recaudadora_sol_sdos_favor('')
+WHERE axofol = 2024;  -- Solo del 2024
+
+================================================================================
+EJEMPLOS PRÁCTICOS PARA EL USUARIO
+================================================================================
+
+EJEMPLO 1: "Quiero ver las solicitudes de la cuenta 551949"
+→ Buscar: 551949
+→ Resultado: 1 solicitud encontrada
+
+EJEMPLO 2: "Necesito todas las solicitudes con folio 1975"
+→ Buscar: 1975
+→ Resultado: 20 solicitudes encontradas
+
+EJEMPLO 3: "Dame las solicitudes de personas apellidadas González"
+→ Buscar: GONZALEZ
+→ Resultado: Múltiples solicitudes
+
+EJEMPLO 4: "Quiero ver las solicitudes más recientes"
+→ Buscar: (dejar vacío) y hacer clic en Buscar
+→ Resultado: 100 solicitudes más recientes
+
+EJEMPLO 5: "Busco solicitudes con cuentas que terminen en 949"
+→ Buscar: 949
+→ Resultado: Hasta 100 solicitudes con "949" en cuenta/folio/ID/nombre
+
+================================================================================

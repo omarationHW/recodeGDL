@@ -1,0 +1,338 @@
+=== EJEMPLOS PARA PROBAR pagosmultfrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- public.pagos_400 (6,403,164 pagos del impuesto predial 400)
+
+IMPORTANTE:
+- 6,403,164 pagos disponibles (millones de registros)
+- Búsqueda por: número de cuenta y año
+- Límite de 100 registros por consulta
+- Años: 1988-1999 (principalmente años 90)
+- Años en formato corto: 90=1990, 99=1999
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.pagos_multiples" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla public.pagos_400 (tabla de pagos del impuesto predial 400)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_pagosmultfrm**: Busca múltiples pagos del predial 400
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_cuenta: VARCHAR (número de cuenta, puede estar vacío)
+- p_anio: INTEGER (año, NULL = todos)
+
+Búsqueda en 2 campos:
+1. Cuenta (número de cuenta predial)
+2. Año de pago (axopag)
+
+--- EJEMPLO 1: Sin filtro (últimos 100 pagos) ---
+
+Parámetros:
+- p_cuenta: '' (vacío)
+- p_anio: NULL (todos)
+
+Resultado esperado:
+✓ Total encontrados: 100 pagos (límite)
+✓ Ordenados por fecha más reciente
+✓ Campos: id_pago, cuenta, anio, mes, dia, oficina, cajero, operacion, tipo_operacion, secuencia, recaudacion, importe, fecha_pago
+
+Ejemplo de resultado:
+- ID: 5
+- Cuenta: 9154
+- Fecha: 99/12/2 (1999-12-02)
+- Oficina: 1
+- Cajero: E
+- Operación: 9947
+- Importe: $9,260.00
+
+--- EJEMPLO 2: Búsqueda por cuenta ---
+
+Parámetros:
+- p_cuenta: '19748'
+- p_anio: NULL
+
+Resultado esperado:
+✓ Total encontrados: 98 pagos
+✓ Todos los pagos de la cuenta 19748
+✓ Ejemplos:
+
+1. Cuenta: 19748, Fecha: 99/3/29, Importe: $77,495.00
+2. Cuenta: 19748, Fecha: 99/2/26, Importe: $20,700.00
+3. Cuenta: 19748, Fecha: 99/1/26, Importe: $19,125.00
+
+--- EJEMPLO 3: Búsqueda por año ---
+
+Parámetros:
+- p_cuenta: '' (vacío)
+- p_anio: 1990
+
+Resultado esperado:
+✓ Total encontrados: 100 pagos (límite)
+✓ Solo pagos del año 1990
+✓ Ejemplos:
+
+1. Cuenta: 52619, Fecha: 90/12/31, Importe: $759.00
+2. Cuenta: 50126, Fecha: 90/12/31, Importe: $13,360.00
+3. Cuenta: 50126, Fecha: 90/12/31, Importe: $52,340.00
+
+--- CAMPOS RETORNADOS ---
+
+| Campo            | Tipo     | Descripción                                    |
+|------------------|----------|------------------------------------------------|
+| id_pago          | INTEGER  | ID generado (1, 2, 3...)                       |
+| cuenta           | INTEGER  | Número de cuenta predial                       |
+| anio             | SMALLINT | Año de pago (formato corto: 90=1990)           |
+| mes              | SMALLINT | Mes de pago (1-12)                             |
+| dia              | SMALLINT | Día de pago (1-31)                             |
+| oficina          | SMALLINT | Oficina de pago                                |
+| cajero           | VARCHAR  | Cajero que procesó                             |
+| operacion        | INTEGER  | Número de operación                            |
+| tipo_operacion   | VARCHAR  | Manual, Automático o Desconocido               |
+| secuencia        | SMALLINT | Secuencia                                      |
+| recaudacion      | SMALLINT | Código de recaudación                          |
+| importe          | NUMERIC  | Importe del pago                               |
+| fecha_pago       | DATE     | Fecha construida (año+mes+día)                 |
+
+--- MAPEO DE TIPO DE OPERACIÓN ---
+
+| Código (DB) | Descripción  | Cantidad      | Porcentaje |
+|-------------|--------------|---------------|------------|
+| M           | Manual       | 1,697,022     | 26.5%      |
+| A           | Automático   | 40            | 0.001%     |
+| Otros       | Desconocido  | 4,706,102     | 73.5%      |
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Búsqueda por cuenta y año**
+   Puedes combinar ambos filtros:
+   - Solo por cuenta: p_cuenta='19748', p_anio=NULL
+   - Solo por año: p_cuenta='', p_anio=1990
+   - Ambos filtros: p_cuenta='19748', p_anio=1990
+
+⚠️ Límite de 100 registros por página
+   La función retorna máximo 100 registros por consulta
+   Ordenados por año, mes, día descendente (más recientes primero)
+
+⚠️ Búsqueda case-insensitive
+   Usa ILIKE para búsqueda parcial sin importar mayúsculas/minúsculas
+
+⚠️ Años en formato corto
+   Los años están almacenados en formato corto:
+   - 88 = 1988
+   - 90 = 1990
+   - 95 = 1995
+   - 99 = 1999
+   La función convierte automáticamente: añade 1900 si < 100
+
+⚠️ Campos pueden estar vacíos
+   Muchos registros tienen campos NULL o vacíos:
+   - Cajero puede estar vacío
+   - Tipo de operación mayormente "Desconocido" (73.5%)
+   - Oficina puede estar vacía
+
+⚠️ Fecha construida
+   fecha_pago se construye a partir de año+mes+día
+   Si algún valor es inválido, retorna NULL
+   Día limitado a 28 para evitar fechas inválidas
+
+⚠️ Importes variables
+   - Mínimo: $0.00
+   - Máximo: valores muy altos (datos históricos)
+   - Promedio: $105,444,123.97
+
+⚠️ Búsqueda de cuenta es parcial
+   Si buscas '19748', también encontrará '119748'
+   Usa ILIKE con '%' en ambos lados
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: public
+Tabla: pagos_400 (6,403,164 registros)
+
+Campos principales:
+- axopag: Año de pago (SMALLINT, formato corto)
+- mespag: Mes de pago (SMALLINT)
+- diapag: Día de pago (SMALLINT)
+- ofnpag: Oficina de pago (SMALLINT)
+- cajpag: Cajero (CHARACTER 1)
+- opepag: Operación (INTEGER)
+- tpopag: Tipo de operación (CHARACTER 1: M/A)
+- secpag: Secuencia (SMALLINT)
+- recaud: Recaudación (SMALLINT)
+- urbrus: Campo adicional (SMALLINT)
+- cuenta: Número de cuenta (INTEGER)
+- mupio: Municipio (SMALLINT)
+- dsdpag: Campo adicional (SMALLINT)
+- hstpag: Campo adicional (SMALLINT)
+- impto: Importe (NUMERIC)
+- flag: Bandera (SMALLINT)
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT
+    ROW_NUMBER() OVER (ORDER BY p.axopag DESC, p.mespag DESC, p.diapag DESC) AS id_pago,
+    p.cuenta,
+    p.axopag AS anio,
+    p.mespag AS mes,
+    p.diapag AS dia,
+    p.ofnpag AS oficina,
+    TRIM(COALESCE(p.cajpag, '')) AS cajero,
+    p.opepag AS operacion,
+    CASE
+        WHEN TRIM(p.tpopag) = 'M' THEN 'Manual'
+        WHEN TRIM(p.tpopag) = 'A' THEN 'Automático'
+        ELSE 'Desconocido'
+    END AS tipo_operacion,
+    p.secpag AS secuencia,
+    p.recaud AS recaudacion,
+    COALESCE(p.impto, 0) AS importe,
+    CASE
+        WHEN p.axopag > 0 AND p.mespag BETWEEN 1 AND 12 AND p.diapag BETWEEN 1 AND 31 THEN
+            MAKE_DATE(
+                CASE WHEN p.axopag < 100 THEN 1900 + p.axopag ELSE p.axopag END,
+                p.mespag,
+                LEAST(p.diapag, 28)
+            )
+        ELSE NULL
+    END AS fecha_pago
+FROM public.pagos_400 p
+WHERE
+    (p_cuenta = '' OR p_cuenta IS NULL OR p.cuenta::TEXT ILIKE '%' || p_cuenta || '%')
+    AND (p_anio IS NULL OR p.axopag = p_anio OR (p.axopag < 100 AND p.axopag = p_anio - 1900))
+ORDER BY p.axopag DESC, p.mespag DESC, p.diapag DESC, p.opepag DESC
+LIMIT 100
+```
+
+Criterios:
+1. Si cuenta vacío: no filtra por cuenta
+2. Si año NULL: no filtra por año
+3. Búsqueda parcial en cuenta con ILIKE
+4. Año maneja formato corto (añade 1900 si < 100)
+5. Ordenamiento: fecha descendente (más reciente primero)
+6. Límite: 100 registros máximo
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 100 pagos encontrados
+✅ Test con cuenta '19748': 98 pagos
+✅ Test con año 1990: 100 pagos
+✅ Test con filtro combinado (cuenta + año): 4 pagos
+✅ Stored procedure actualizado exitosamente
+✅ Búsqueda combinable funcional
+✅ Límite de 100 registros aplicado
+✅ Ordenamiento por fecha descendente correcto
+✅ Conversión de años formato corto funcional
+
+--- ESTADÍSTICAS ---
+
+Total de pagos: 6,403,164
+
+Por año (top 5):
+- 1990: 514,428 pagos (8.0%)
+- 1994: 484,817 pagos (7.6%)
+- 1988: 471,963 pagos (7.4%)
+- 1995: 445,593 pagos (7.0%)
+- 1991: 442,063 pagos (6.9%)
+
+Por tipo de operación:
+- Desconocido: 4,706,102 pagos (73.5%)
+- Manual: 1,697,022 pagos (26.5%)
+- Automático: 40 pagos (0.001%)
+
+Importes:
+- Total general: $675,176,018,640,052.00
+- Promedio: $105,444,123.97
+- Mínimo: $0.00
+- Máximo: $270,000,000,000,050.00
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver últimos pagos**
+1. Llamar recaudadora_pagosmultfrm('', NULL)
+2. Retorna los últimos 100 pagos
+3. Revisar fechas e importes
+
+**Caso 2: Buscar pagos de una cuenta**
+1. Llamar recaudadora_pagosmultfrm('19748', NULL)
+2. Retorna todos los pagos de esa cuenta (hasta 100)
+3. Puede haber múltiples pagos
+
+**Caso 3: Buscar pagos por año**
+1. Llamar recaudadora_pagosmultfrm('', 1990)
+2. Retorna pagos del año 1990
+3. Útil para reportes anuales
+
+**Caso 4: Buscar pagos específicos (cuenta + año)**
+1. Llamar recaudadora_pagosmultfrm('19748', 1990)
+2. Retorna pagos de esa cuenta en ese año
+3. Búsqueda más precisa
+
+**Caso 5: Consultar histórico de pagos**
+1. Llamar recaudadora_pagosmultfrm('', NULL)
+2. Revisar campo fecha_pago para orden cronológico
+3. Identificar patrones de pago
+
+--- FLUJO RECOMENDADO ---
+
+1. **Búsqueda inicial**
+   ```
+   recaudadora_pagosmultfrm('', NULL)
+   → Retorna: últimos 100 pagos ordenados por fecha
+   ```
+
+2. **Filtrar por cuenta**
+   ```
+   recaudadora_pagosmultfrm('cuenta', NULL)
+   → Retorna: pagos de esa cuenta
+   ```
+
+3. **Filtrar por año**
+   ```
+   recaudadora_pagosmultfrm('', 1990)
+   → Retorna: pagos del año 1990
+   ```
+
+4. **Interpretar resultados**
+   - Revisar campo 'fecha_pago' (formato DATE)
+   - Campo 'anio' en formato corto (90=1990)
+   - Campo 'tipo_operacion' (mayormente Desconocido)
+   - Campo 'importe' muestra monto del pago
+   - Campos 'cajero', 'oficina' pueden estar vacíos
+
+5. **Refinar búsqueda**
+   - Combinar filtros para búsquedas más precisas
+   - Usar año específico para acotar resultados
+   - Tener en cuenta búsqueda parcial de cuenta
+
+--- RESUMEN ---
+
+Problema: Tabla publico.pagos_multiples no existe
+
+Solución: Usa public.pagos_400 (tabla de pagos del impuesto predial 400)
+
+Diferencia clave: Búsqueda de múltiples pagos por cuenta y año
+
+Resultado: Sistema funcional para consultar pagos históricos del predial
+
+Características:
+- Búsqueda por número de cuenta
+- Búsqueda por año (1988-1999)
+- Filtros combinables
+- Búsqueda parcial con ILIKE (case-insensitive)
+- Límite de 100 registros por consulta
+- Ordenamiento por fecha descendente
+- Años en formato corto (90=1990)
+- 6.4 millones de pagos disponibles
+- Rango: 1988-1999
+- Promedio: $105 millones por pago
+- Mayoría tipo "Desconocido" (73.5%)

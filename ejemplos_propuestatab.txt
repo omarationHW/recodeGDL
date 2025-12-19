@@ -1,0 +1,279 @@
+=== EJEMPLOS PARA PROBAR Propuestatab.vue ===
+
+El stored procedure ha sido actualizado para retornar conjunto vacío.
+IMPORTANTE: La tabla propuestas_pago NO EXISTE en la base de datos.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.propuestas_pago" does not exist
+
+--- SOLUCIÓN ---
+
+La función ahora retorna conjunto vacío porque la tabla no existe.
+Si se requieren datos reales de propuestas de pago, se debe crear la tabla.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_propuestatab**: Retorna propuestas de pago (conjunto vacío)
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_filtro: VARCHAR (filtro de búsqueda, '' = sin filtro)
+
+Filtro aplicable en:
+- cvecuenta: Clave de cuenta
+- folio: Folio de propuesta
+- cajero: Usuario/cajero
+- cvepago: Código de pago
+
+--- VALORES RETORNADOS ---
+
+| Campo        | Tipo    | Descripción                        |
+|--------------|---------|-------------------------------------|
+| id_propuesta | INTEGER | ID único de la propuesta           |
+| cvepago      | VARCHAR | Código de pago                     |
+| cvecuenta    | VARCHAR | Clave de cuenta                    |
+| recaud       | VARCHAR | Código de recaudación              |
+| caja         | VARCHAR | Número de caja                     |
+| folio        | VARCHAR | Folio de la propuesta              |
+| fecha        | DATE    | Fecha de la propuesta              |
+| hora         | TIME    | Hora de la propuesta               |
+| importe      | NUMERIC | Monto de la propuesta              |
+| cajero       | VARCHAR | Usuario/cajero que hizo la propuesta |
+| cveconcepto  | VARCHAR | Clave de concepto de pago          |
+| estado       | VARCHAR | Estado (PENDIENTE, APROBADA, RECHAZADA) |
+
+--- EJEMPLO 1: Sin filtro (todas las propuestas) ---
+
+Parámetros:
+- Filtro: (vacío)
+
+Resultado esperado:
+- Total registros: 0
+- Mensaje: "No hay propuestas de pago disponibles"
+- Razón: La tabla propuestas_pago no existe
+
+--- EJEMPLO 2: Con filtro por cuenta ---
+
+Parámetros:
+- Filtro: 12345
+
+Resultado esperado:
+- Total registros: 0
+- Mensaje: "No hay propuestas para el filtro especificado"
+- Razón: La tabla propuestas_pago no existe
+
+--- EJEMPLO 3: Con filtro por cajero ---
+
+Parámetros:
+- Filtro: juan
+
+Resultado esperado:
+- Total registros: 0
+- Mensaje: "No hay propuestas para el filtro especificado"
+- Razón: La tabla propuestas_pago no existe
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Conjunto vacío**
+   Esta función NO lee de una tabla real, retorna conjunto vacío:
+   - Utiliza WHERE FALSE para no retornar ninguna fila
+   - Mantiene la estructura esperada por el componente Vue
+   - No hay datos de propuestas de pago disponibles
+
+⚠️ **Tabla no existe**
+   La tabla 'publico.propuestas_pago' NO EXISTE
+   Por eso se retorna conjunto vacío
+
+⚠️ **Búsqueda exhaustiva realizada**
+   Se buscaron tablas con nombres relacionados:
+   - Tablas con 'propuesta': Ninguna encontrada
+   - Tablas de pagos: Ninguna con estructura similar
+   - Tablas con 'hora': Ninguna apropiada
+   - No existe ninguna tabla adecuada en la base de datos
+
+⚠️ **Estructura preparada**
+   La función está lista con la estructura correcta:
+   - 12 campos definidos
+   - Tipos de datos apropiados
+   - Filtrado por múltiples campos
+   - Ordenamiento por fecha/hora descendente
+
+⚠️ **Filtro disponible pero sin efecto**
+   Aunque el parámetro de filtro está disponible:
+   - Filtraría por cuenta, folio, cajero o cvepago
+   - Siempre retorna 0 registros porque no hay tabla
+
+--- LÓGICA DE LA FUNCIÓN ---
+
+La función ejecuta:
+```sql
+SELECT
+    0 AS id_propuesta,
+    '' AS cvepago,
+    '' AS cvecuenta,
+    '' AS recaud,
+    '' AS caja,
+    '' AS folio,
+    NULL AS fecha,
+    NULL AS hora,
+    0 AS importe,
+    '' AS cajero,
+    '' AS cveconcepto,
+    '' AS estado
+WHERE FALSE;  -- Esto hace que no retorne ninguna fila
+```
+
+Criterios:
+1. WHERE FALSE garantiza resultado vacío
+2. Mantiene estructura esperada por Vue
+3. No genera errores en el componente
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: Retorna 0 registros
+✅ Test con filtro 'test': Retorna 0 registros
+✅ Stored procedure actualizado exitosamente
+✅ Estructura correcta mantenida
+✅ Función operacional sin tabla física
+
+--- SI SE REQUIERE USAR TABLA REAL ---
+
+Si se necesita almacenar y consultar propuestas de pago reales,
+se debe crear la tabla con esta estructura:
+
+```sql
+CREATE TABLE public.propuestas_pago (
+    id_propuesta SERIAL PRIMARY KEY,
+    cvepago INTEGER,
+    cvecuenta INTEGER,
+    recaud SMALLINT,
+    caja SMALLINT,
+    folio VARCHAR(20),
+    fecha DATE NOT NULL,
+    hora TIME NOT NULL,
+    importe NUMERIC(15,2) NOT NULL,
+    cajero VARCHAR(50),
+    cveconcepto INTEGER,
+    estado VARCHAR(20) DEFAULT 'PENDIENTE',
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP,
+    usuario_creacion VARCHAR(50),
+    usuario_modificacion VARCHAR(50),
+    CONSTRAINT chk_estado CHECK (estado IN ('PENDIENTE', 'APROBADA', 'RECHAZADA', 'CANCELADA'))
+);
+
+-- Índices para mejorar rendimiento
+CREATE INDEX idx_propuestas_fecha ON public.propuestas_pago(fecha DESC);
+CREATE INDEX idx_propuestas_estado ON public.propuestas_pago(estado);
+CREATE INDEX idx_propuestas_cajero ON public.propuestas_pago(cajero);
+CREATE INDEX idx_propuestas_cuenta ON public.propuestas_pago(cvecuenta);
+
+-- Insertar datos de ejemplo
+INSERT INTO public.propuestas_pago (
+    cvepago, cvecuenta, recaud, caja, folio, fecha, hora,
+    importe, cajero, cveconcepto, estado
+) VALUES
+(1001, 123456, 1, 5, 'PROP-001', CURRENT_DATE, '10:30:00',
+ 1500.00, 'Juan Pérez', 101, 'PENDIENTE'),
+(1002, 789012, 2, 3, 'PROP-002', CURRENT_DATE, '11:45:00',
+ 2300.50, 'María López', 102, 'APROBADA'),
+(1003, 345678, 1, 5, 'PROP-003', CURRENT_DATE - 1, '14:20:00',
+ 850.00, 'Juan Pérez', 103, 'RECHAZADA');
+```
+
+Luego actualizar el stored procedure para leer de esta tabla:
+```sql
+RETURN QUERY
+SELECT
+    p.id_propuesta,
+    p.cvepago::VARCHAR,
+    p.cvecuenta::VARCHAR,
+    p.recaud::VARCHAR,
+    p.caja::VARCHAR,
+    p.folio,
+    p.fecha,
+    p.hora,
+    p.importe,
+    p.cajero,
+    p.cveconcepto::VARCHAR,
+    p.estado
+FROM public.propuestas_pago p
+WHERE
+    (p_filtro = '' OR p_filtro IS NULL OR
+     p.cvecuenta::VARCHAR ILIKE '%' || p_filtro || '%' OR
+     p.folio ILIKE '%' || p_filtro || '%' OR
+     p.cajero ILIKE '%' || p_filtro || '%' OR
+     p.cvepago::VARCHAR ILIKE '%' || p_filtro || '%')
+ORDER BY p.fecha DESC, p.hora DESC, p.id_propuesta DESC;
+```
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver todas las propuestas**
+1. No llenar el campo de filtro
+2. Hacer clic en "Buscar"
+3. Resultado: Lista vacía con mensaje informativo
+4. Razón: No hay tabla de propuestas de pago
+
+**Caso 2: Buscar propuesta por cuenta**
+1. Filtro: 123456
+2. Hacer clic en "Buscar"
+3. Resultado: Lista vacía
+4. Razón: No hay datos disponibles
+
+**Caso 3: Buscar propuesta por cajero**
+1. Filtro: juan
+2. Hacer clic en "Buscar"
+3. Resultado: Lista vacía
+4. Razón: No existe información de propuestas
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Respuesta del endpoint
+{
+  "data": [],
+  "total": 0,
+  "message": "No hay propuestas de pago disponibles"
+}
+```
+
+El componente Propuestatab.vue debería:
+1. Recibir array vacío
+2. Mostrar mensaje "No se encontraron propuestas"
+3. No mostrar tabla o mostrar tabla vacía
+4. No generar errores de JavaScript
+5. Posiblemente mostrar botón para crear nueva propuesta (deshabilitado)
+
+--- RESUMEN ---
+
+Problema: Tabla publico.propuestas_pago no existe
+
+Solución: Función retorna conjunto vacío con estructura correcta
+
+Características:
+- No requiere tabla física
+- Retorna estructura esperada por Vue
+- No genera errores
+- Permite que el componente funcione sin datos
+
+Resultado:
+- Siempre retorna 0 registros
+- Cualquier filtro da mismo resultado
+- Componente Vue funciona normalmente
+- Usuario ve mensaje de "sin datos"
+
+Limitaciones:
+- No hay datos reales de propuestas
+- No almacena información
+- No permite consultas reales
+- Funcionalidad meramente estructural
+
+Recomendación:
+- Si se requiere funcionalidad completa, crear tabla propuestas_pago
+- Implementar workflow de aprobación de propuestas
+- Actualizar stored procedure para leer datos reales
+- Implementar CRUD para gestión de propuestas
+- Considerar auditoría de cambios de estado

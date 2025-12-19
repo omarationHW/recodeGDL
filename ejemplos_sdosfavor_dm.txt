@@ -1,0 +1,231 @@
+================================================================================
+EJEMPLOS PARA PROBAR SdosFavorDM.vue
+================================================================================
+
+STORED PROCEDURE: publico.recaudadora_sdosfavor_dm(VARCHAR)
+BASE DE DATOS: multas_reglamentos
+TABLA: public.saldosafavor
+REGISTROS: 1,243 saldos a favor
+CAMBIO APLICADO: catastro_gdl.saldosafavor → public.saldosafavor
+
+================================================================================
+DESCRIPCIÓN
+================================================================================
+
+Consulta de saldos a favor para Derechos Municipales.
+Lista saldos a favor con información completa incluyendo:
+- Identificación (cuenta, convenio, folio)
+- Montos (saldo inicial, importe aplicado, saldo restante calculado)
+- Estado (Pendiente/Liquidado/Cancelado/Aplicado)
+- Fechas de alta y cancelación
+- Usuarios que dieron de alta o cancelaron
+
+FILTRO: cuenta (opcional, búsqueda parcial con ILIKE)
+
+================================================================================
+DISTRIBUCIÓN POR ESTADO
+================================================================================
+
+Aplicado:     995 registros (80.0%) - Importe aplicado mayor al saldo inicial
+Liquidado:    198 registros (15.9%) - Saldo inicial = Importe aplicado
+Pendiente:     46 registros (3.7%)  - Saldo restante > 0
+Cancelado:      4 registros (0.3%)  - Fecha de cancelación no nula
+
+================================================================================
+ESTADÍSTICAS GENERALES
+================================================================================
+
+Total registros:         1,243
+Rango de cuentas:        260 - 539853
+Total saldo inicial:     $24,284.11
+Total importe aplicado:  $1,695,524.04
+Rango de fechas:         2015-01-30 - 2024-07-26
+
+================================================================================
+TOP 5 AÑOS CON MÁS REGISTROS
+================================================================================
+
+2021: 266 registros
+2010: 221 registros
+2014: 158 registros
+2012: 145 registros
+2015: 135 registros
+
+================================================================================
+CUENTAS DE EJEMPLO PARA PRUEBAS
+================================================================================
+
+BÚSQUEDA COMPLETA (una cuenta):
+-------------------------------
+Cuenta: 539853
+  - ID Convenio: 17923
+  - Folio: ZC1/22/2022
+  - Saldo Inicial: $283.04
+  - Importe Aplicado: $0.00
+  - Saldo Restante: $283.04
+  - Estado: Pendiente
+  - Fecha Alta: 2022-09-29
+  - Usuario Alta: kmoskeda
+
+Cuenta: 531606
+Cuenta: 531445
+Cuenta: 531312
+Cuenta: 525885
+
+BÚSQUEDA PARCIAL (múltiples resultados):
+-------------------------------------
+Búsqueda: 853 → 6 resultados
+  - Cuenta: 539853 | Folio: ZC1/22/2022    | Estado: Pendiente | Saldo: $283.04
+  - Cuenta: 488538 | Folio: 685/2015       | Estado: Aplicado  | Saldo: $-13,003.08
+  - Cuenta: 485336 | Folio: 1369           | Estado: Aplicado  | Saldo: $-2,051.50
+  - ... (3 más)
+
+CUENTAS CON MAYORES SALDOS RESTANTES:
+----------------------------------
+Cuenta: 504368 → Saldo Restante: $3,106.62
+Cuenta: 361657 → Saldo Restante: $2,887.85
+Cuenta: 173810 → Saldo Restante: $1,785.39
+Cuenta: 504451 → Saldo Restante: $1,736.50
+Cuenta: 101435 → Saldo Restante: $1,446.91
+
+================================================================================
+ESTRUCTURA DE RETORNO (11 COLUMNAS)
+================================================================================
+
+cvecuenta            INTEGER   - Clave de cuenta del contribuyente
+id_convenio          INTEGER   - ID del convenio asociado
+folio                TEXT      - Folio del saldo a favor
+saldo_inicial        NUMERIC   - Saldo inicial registrado
+importe_aplicado     NUMERIC   - Importe que se ha aplicado
+saldo_restante       NUMERIC   - Saldo restante (calculado: inicial - aplicado)
+fecha_alta           DATE      - Fecha de alta del registro
+fecha_cancelacion    DATE      - Fecha de cancelación (si aplica)
+usuario_alta         TEXT      - Usuario que dio de alta
+usuario_cancelacion  TEXT      - Usuario que canceló (si aplica)
+estado               TEXT      - Estado: Pendiente/Liquidado/Cancelado/Aplicado
+
+================================================================================
+LÓGICA DE ESTADOS
+================================================================================
+
+Cancelado:  Cuando fecha_cancelacion IS NOT NULL
+Pendiente:  Cuando saldo_restante > 0 y NO cancelado
+Liquidado:  Cuando saldo_restante = 0 y NO cancelado
+Aplicado:   Cuando saldo_restante < 0 y NO cancelado (se aplicó más del saldo)
+
+================================================================================
+CASOS DE PRUEBA EN LA INTERFAZ
+================================================================================
+
+1. BÚSQUEDA ESPECÍFICA - CUENTA CON SALDO PENDIENTE:
+   Cuenta: 539853
+   Resultado esperado: 1 registro (Folio ZC1/22/2022, Saldo $283.04, Estado Pendiente)
+
+2. BÚSQUEDA PARCIAL (últimos dígitos):
+   Cuenta: 853
+   Resultado esperado: 6 registros
+
+3. BÚSQUEDA PARCIAL (primeros dígitos):
+   Cuenta: 539
+   Resultado esperado: Múltiples registros de cuentas que empiezan con 539
+
+4. BÚSQUEDA AMPLIA:
+   Cuenta: 531
+   Resultado esperado: Cuentas: 531606, 531445, 531312, etc.
+
+5. BÚSQUEDA DE CUENTA CON SALDO MAYOR:
+   Cuenta: 504368
+   Resultado esperado: Saldo Restante de $3,106.62
+
+6. VER TODOS (dejar vacío):
+   Cuenta: (vacío)
+   Resultado esperado: Hasta 100 registros ordenados por cuenta DESC
+
+================================================================================
+VALIDACIONES DEL FORMULARIO
+================================================================================
+
+✓ Campo cuenta es OPCIONAL (puede buscar sin filtro)
+✓ Búsqueda parcial funciona (ILIKE '%valor%')
+✓ Límite de 100 registros por consulta
+✓ Ordenado por cuenta DESC (cuentas más recientes primero)
+✓ Saldo restante calculado automáticamente (inicial - aplicado)
+✓ Estado calculado según reglas de negocio
+✓ Paginación de 10 registros por página
+✓ Formato de moneda con 2 decimales
+
+================================================================================
+VISUALIZACIÓN EN LA INTERFAZ
+================================================================================
+
+La tabla muestra 8 columnas principales:
+- Cuenta (cvecuenta)
+- Folio
+- Saldo Inicial (con formato de moneda)
+- Importe Aplicado (con formato de moneda)
+- Saldo Restante (con formato de moneda y color según estado)
+- Estado (con badge de color)
+- Fecha Alta
+- Usuario (usuario_alta)
+
+Colores de Estado:
+- Pendiente: Badge amarillo (warning)
+- Liquidado: Badge verde (success)
+- Cancelado: Badge rojo (danger)
+- Aplicado: Badge gris (secondary)
+
+Colores de Saldo:
+- Saldo Restante > 0: Verde (saldo-pendiente)
+- Saldo Restante = 0: Gris (saldo-liquidado)
+
+================================================================================
+NOTAS TÉCNICAS
+================================================================================
+
+- Búsqueda case-insensitive (ILIKE)
+- Campos CHAR con TRIM() aplicado (folio, usuarios)
+- Saldo restante calculado en la consulta
+- Estado calculado con lógica CASE
+- NULL handling para fechas y usuarios
+- Límite: 100 registros máximo
+- Orden: cvecuenta DESC
+- Saldos negativos posibles (cuando se aplica más del saldo inicial)
+
+================================================================================
+CORRECCIÓN APLICADA
+================================================================================
+
+ANTES:
+  FROM catastro_gdl.saldosafavor s
+  ❌ ERROR: relation "catastro_gdl.saldosafavor" does not exist
+
+DESPUÉS:
+  FROM public.saldosafavor s
+  ✅ CORRECTO: Tabla existe con 1,243 registros
+
+================================================================================
+CONSULTA SQL DIRECTA (para pruebas en pgAdmin)
+================================================================================
+
+-- Búsqueda específica
+SELECT * FROM publico.recaudadora_sdosfavor_dm('539853');
+
+-- Búsqueda parcial
+SELECT * FROM publico.recaudadora_sdosfavor_dm('853');
+
+-- Ver todas (primeras 100)
+SELECT * FROM publico.recaudadora_sdosfavor_dm('');
+SELECT * FROM publico.recaudadora_sdosfavor_dm(NULL);
+
+-- Contar resultados
+SELECT COUNT(*) FROM publico.recaudadora_sdosfavor_dm('853');
+
+-- Buscar solo pendientes
+SELECT * FROM publico.recaudadora_sdosfavor_dm('')
+WHERE estado = 'Pendiente';
+
+-- Buscar solo con saldo restante positivo
+SELECT * FROM publico.recaudadora_sdosfavor_dm('')
+WHERE saldo_restante > 0;
+
+================================================================================

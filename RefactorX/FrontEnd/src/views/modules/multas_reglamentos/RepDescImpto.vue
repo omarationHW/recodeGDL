@@ -43,26 +43,6 @@
             </button>
 
             <button
-              class="btn-municipal-success"
-              :disabled="loading || rows.length === 0"
-              @click="verReporte"
-              title="Ver reporte en PDF"
-            >
-              <font-awesome-icon icon="file-pdf" />
-              Ver Reporte
-            </button>
-
-            <button
-              class="btn-municipal-info"
-              :disabled="loading || rows.length === 0"
-              @click="descargarReporte"
-              title="Descargar reporte en PDF"
-            >
-              <font-awesome-icon icon="download" />
-              Descargar Reporte
-            </button>
-
-            <button
               class="btn-municipal-secondary"
               @click="limpiar"
               :disabled="loading"
@@ -116,6 +96,18 @@
               <strong>Total Recaudado:</strong>
               <span>{{ formatCurrency(totalRecaudado) }}</span>
             </div>
+          </div>
+
+          <!-- Botones de reporte -->
+          <div class="report-actions">
+            <button class="btn-report btn-preview" @click="verReporte">
+              <font-awesome-icon icon="eye" />
+              <span>Ver Reporte</span>
+            </button>
+            <button class="btn-report btn-download" @click="descargarReporte">
+              <font-awesome-icon icon="download" />
+              <span>Descargar Reporte</span>
+            </button>
           </div>
 
           <div class="table-responsive">
@@ -634,5 +626,56 @@ function descargarReporte() {
   padding: 0 1rem;
   font-weight: 500;
   color: #495057;
+}
+
+.report-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.btn-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-report:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-preview {
+  background: linear-gradient(135deg, #28a745 0%, #20963d 100%);
+  color: white;
+}
+
+.btn-preview:hover {
+  background: linear-gradient(135deg, #218838 0%, #1c7430 100%);
+}
+
+.btn-download {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+}
+
+.btn-download:hover {
+  background: linear-gradient(135deg, #0069d9 0%, #004085 100%);
+}
+
+.btn-report svg {
+  font-size: 1rem;
 }
 </style>

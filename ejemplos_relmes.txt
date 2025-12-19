@@ -1,0 +1,281 @@
+=== EJEMPLOS PARA PROBAR relmes.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.relacion_mensual" does not exist
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.h_multasnvo (histórico de multas)
+que tiene 626,583 registros y genera la relación mensual agregando por dependencia.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_relmes**: Retorna relación mensual de multas por dependencia
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_mes: VARCHAR (mes 1-12, NULL o '' para todos los meses del año)
+- p_anio: INTEGER (año, ejemplo: 2024)
+
+Filtros aplicables:
+- Año obligatorio o recomendado
+- Mes opcional (si no se proporciona, trae todo el año)
+
+--- VALORES RETORNADOS ---
+
+| Campo              | Tipo    | Descripción                              |
+|--------------------|---------|------------------------------------------|
+| dependencia        | INTEGER | ID de la dependencia                     |
+| nombre_dependencia | VARCHAR | Nombre descriptivo de la dependencia     |
+| cantidad_multas    | BIGINT  | Número de multas en el periodo           |
+| total_multas       | NUMERIC | Suma de montos de multas                 |
+| total_gastos       | NUMERIC | Suma de gastos de ejecución              |
+| total_general      | NUMERIC | Suma total (multas + gastos)             |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla h_multasnvo se agrega así:
+- id_dependencia → dependencia (ID)
+- id_dependencia → nombre_dependencia (construido)
+- COUNT(*) → cantidad_multas
+- SUM(multa) → total_multas
+- SUM(gastos) → total_gastos
+- SUM(total) → total_general
+- EXTRACT(YEAR FROM fecha_acta) para filtrar año
+- EXTRACT(MONTH FROM fecha_acta) para filtrar mes
+
+--- EJEMPLO 1: Relación anual completa (2024) ---
+
+Parámetros:
+- Mes: (vacío o NULL)
+- Año: 2024
+
+Resultado esperado:
+- Total dependencias: 8
+- Suma de todas las multas del año 2024
+- Agrupado por dependencia
+
+Ejemplo de resultados:
+| Dep | Nombre                        | Cant.Multas | Tot.Multas      | Tot.Gastos  | Tot.General     |
+|-----|-------------------------------|-------------|-----------------|-------------|-----------------|
+|  1  | Dependencia 1 - Predial       |       3,601 | $  19,842,000   | $    41,703 | $  26,484,831   |
+|  3  | Dependencia 3 - Tránsito      |       4,542 | $  54,218,557   | $   108,681 | $  73,953,606   |
+|  5  | Dependencia 5 - Obras         |       9,178 | $ 179,060,525   | $   251,829 | $ 243,724,722   |
+|  7  | Dependencia 7 - Reglamentos   |       6,306 | $  51,220,556   | $   178,511 | $  70,917,618   |
+| 35  | Dependencia 35 - Vía Pública  |         979 | $   1,687,000   | $    31,325 | $   2,552,510   |
+
+TOTALES: 26,317 multas | $312,791,373 | $625,178 | $426,942,771
+
+--- EJEMPLO 2: Relación mensual específica (Junio 2024) ---
+
+Parámetros:
+- Mes: 6
+- Año: 2024
+
+Resultado esperado:
+- Total dependencias activas: 7
+- Solo multas del mes de junio 2024
+- Agrupado por dependencia
+
+Ejemplo de resultados:
+| Dep | Nombre                        | Cant.Multas | Tot.General     |
+|-----|-------------------------------|-------------|-----------------|
+|  1  | Dependencia 1 - Predial       |         132 | $   1,118,500   |
+|  3  | Dependencia 3 - Tránsito      |         344 | $   6,095,800   |
+|  5  | Dependencia 5 - Obras         |         734 | $  15,504,331   |
+|  6  | Dependencia 6                 |         115 | $     564,100   |
+|  7  | Dependencia 7 - Reglamentos   |         346 | $   2,777,650   |
+| 35  | Dependencia 35 - Vía Pública  |          43 | $     156,125   |
+
+TOTAL JUNIO 2024: 1,714 multas | $26,216,506
+
+--- EJEMPLO 3: Relación mensual (Enero 2024) ---
+
+Parámetros:
+- Mes: 1
+- Año: 2024
+
+Resultado esperado:
+- Total dependencias activas: 7
+- Solo multas de enero 2024
+- Comparación con otros meses posible
+
+Comparación mensual 2024:
+| Mes        | Dependencias | Cantidad Multas | Total General    |
+|------------|--------------|-----------------|------------------|
+| Enero      |            7 |           4,006 | $  41,693,764    |
+| Marzo      |            6 |           1,915 | $  26,965,330    |
+| Junio      |            7 |           1,714 | $  26,216,506    |
+| Septiembre |            7 |           1,434 | $  23,065,971    |
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Por Dependencia (Anual 2024):**
+- Dependencia 5 (Obras): Mayor recaudación $243M, 9,178 multas
+- Dependencia 7 (Reglamentos): $70M, 6,306 multas
+- Dependencia 3 (Tránsito): $73M, 4,542 multas
+- Dependencia 1 (Predial): $26M, 3,601 multas
+- Dependencia 35 (Vía Pública): $2.5M, 979 multas
+
+**Totales 2024:**
+- Total multas: 26,317
+- Total recaudado: $426,942,771
+- Promedio por multa: ~$16,225
+
+**Dependencias principales:**
+- 5 dependencias activas constantes
+- 8 dependencias con al menos 1 multa en el año
+- Dependencia 5 (Obras) representa ~57% de la recaudación
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **626,583 registros históricos disponibles**
+  - Multas desde 2015 hasta 2024
+  - Agrupación por dependencia automática
+
+✓ **Agregación flexible**
+  - Por año completo (todos los meses)
+  - Por mes específico (1-12)
+  - Totales calculados automáticamente
+
+✓ **Campos completos**
+  - Cantidad de multas
+  - Montos de multas
+  - Gastos de ejecución
+  - Total general
+
+✓ **Dependencias identificadas**
+  - Nombres descriptivos asignados
+  - Top dependencias fácil de identificar
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo contiene el histórico completo
+   de multas municipales con fecha_acta para agregación temporal.
+
+⚠️ **Agregación por fecha_acta**
+   Se usa la fecha del acta (no fecha de pago) para agrupar
+   las multas por mes y año.
+
+⚠️ **NULL handling**
+   Se filtran registros con fecha_acta o id_dependencia NULL
+   para evitar datos incompletos en el reporte.
+
+⚠️ **Año requerido**
+   Aunque el parámetro p_anio puede ser NULL, se recomienda
+   siempre especificar un año para evitar consultas muy grandes.
+
+⚠️ **Totales incluyen gastos**
+   El total_general incluye tanto multas como gastos de ejecución.
+   Para solo multas, usar el campo total_multas.
+
+--- CASOS DE USO ---
+
+**Caso 1: Reporte anual completo**
+1. Año: 2024
+2. Mes: (vacío)
+3. Resultado: Todas las dependencias con actividad en 2024
+4. Usar para: Reporte anual, comparación entre dependencias
+
+**Caso 2: Reporte mensual específico**
+1. Año: 2024
+2. Mes: 6
+3. Resultado: Dependencias activas en junio 2024
+4. Usar para: Reporte mensual, seguimiento de metas
+
+**Caso 3: Comparación mensual**
+1. Ejecutar múltiples consultas con diferentes meses
+2. Comparar cantidad_multas y total_general
+3. Identificar tendencias y picos
+4. Usar para: Análisis de tendencias, proyecciones
+
+**Caso 4: Análisis por dependencia**
+1. Filtrar resultados por dependencia específica
+2. Comparar mes a mes
+3. Identificar dependencia con mayor/menor actividad
+4. Usar para: Evaluación de desempeño, distribución de recursos
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (relación anual 2024)
+const params = {
+  mes: null,  // o '' para todo el año
+  anio: 2024
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "dependencia": 1,
+      "nombre_dependencia": "Dependencia 1 - Predial",
+      "cantidad_multas": 3601,
+      "total_multas": 19842000.00,
+      "total_gastos": 41703.48,
+      "total_general": 26484831.04
+    },
+    {
+      "dependencia": 3,
+      "nombre_dependencia": "Dependencia 3 - Tránsito",
+      "cantidad_multas": 4542,
+      "total_multas": 54218557.00,
+      "total_gastos": 108681.30,
+      "total_general": 73953605.58
+    },
+    // ... más dependencias
+  ],
+  "total": 8
+}
+```
+
+El componente relmes.vue debería:
+1. Recibir array de dependencias con sus totales
+2. Mostrar tabla con columnas: Dependencia, Nombre, Cant.Multas, Tot.Multas, Tot.Gastos, Tot.General
+3. Filtros para:
+   - Selector de año (2015-2024)
+   - Selector de mes (Todos, 1-12)
+4. Calcular totales generales (suma de todas las dependencias)
+5. Mostrar gráficas:
+   - Gráfica de barras por dependencia
+   - Gráfica de pastel de distribución
+6. Exportar a Excel/PDF
+7. Formato de moneda con separadores de miles
+8. Ordenar por dependencia o por totales
+
+--- RESUMEN ---
+
+Problema: Tabla publico.relacion_mensual no existe
+
+Solución: Función usa tabla public.h_multasnvo con agregación dinámica
+
+Características:
+- 626,583 registros históricos disponibles
+- Agregación por dependencia, año y mes
+- Cálculo automático de totales
+- Nombres descriptivos de dependencias
+- Filtrado flexible (año, mes)
+
+Resultado:
+- Relación mensual/anual por dependencia
+- Totales de multas, gastos y general
+- Cantidad de multas en el periodo
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del histórico
+- Agregación flexible y eficiente
+- Múltiples niveles de detalle (anual/mensual)
+- Fácil comparación entre periodos
+- Identificación de dependencias más activas
+
+Uso recomendado:
+- Siempre especificar año para mejor rendimiento
+- Usar mes NULL para reporte anual
+- Usar mes específico (1-12) para reporte mensual
+- Ideal para reportes gerenciales y análisis de tendencias

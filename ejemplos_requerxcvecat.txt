@@ -1,0 +1,338 @@
+=== EJEMPLOS PARA PROBAR RequerxCvecat.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla public.cartainvpredial en lugar de catastro_gdl.h_reqpredial.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "catastro_gdl.h_reqpredial" does not exist
+       relation "catastro_gdl.controladora" does not exist
+Las tablas estaban en el esquema incorrecto y no existían en multas_reglamentos
+
+--- SOLUCIÓN ---
+
+El stored procedure ahora usa la tabla public.cartainvpredial que existe
+en la BD multas_reglamentos con 18,983 registros de cartas de invitación
+predial (requerimientos de impuesto predial).
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_requerxcvecat**: Retorna requerimientos prediales por clave catastral
+
+--- PARÁMETROS ---
+
+La función recibe:
+- cvecat: VARCHAR (clave catastral completa o parcial)
+- Si es NULL o vacío, retorna los primeros 100 registros
+
+Validaciones:
+- Limitado a 100 registros por consulta
+- Búsqueda flexible con ILIKE (case-insensitive)
+- Permite búsquedas parciales
+
+--- VALORES RETORNADOS ---
+
+| Campo           | Tipo    | Descripción                                     |
+|-----------------|---------|------------------------------------------------|
+| cvereq          | INTEGER | Clave de requerimiento                         |
+| folio           | INTEGER | Folio de carta de invitación                   |
+| cuenta          | INTEGER | Clave de cuenta                                |
+| clave_catastral | TEXT    | Clave catastral                                |
+| ejercicio       | INTEGER | Año inicial del ejercicio fiscal               |
+| fecha_emision   | DATE    | Fecha de emisión de la carta                   |
+| fecha_entrega   | DATE    | Fecha de practicación (entrega)                |
+| impuesto        | NUMERIC | Importe del impuesto predial                   |
+| recargos        | NUMERIC | Importe de recargos                            |
+| gastos          | NUMERIC | Importe de gastos de ejecución                 |
+| multas          | NUMERIC | Importe de multas                              |
+| total           | NUMERIC | Total a pagar                                  |
+| vigencia        | TEXT    | Estatus (Pendiente/Cancelado/Entregado/Vigente)|
+
+--- MAPEO DE CAMPOS ---
+
+La tabla public.cartainvpredial se consulta así:
+- Búsqueda por cvecatnva (clave catastral) con ILIKE
+- cvereq: Identificador único del requerimiento
+- foliocarta: Número de folio de la carta
+- axoini: Año inicial del periodo (se usa como ejercicio)
+- fecprac: Fecha de practicación (se usa como fecha_entrega)
+- vigencia: P=Pendiente, C=Cancelado, E=Entregado, V=Vigente
+- Ordenado por axoini DESC, foliocarta DESC
+- Limitado a 100 registros
+
+--- EJEMPLO 1: Búsqueda sin filtro (primeros 100) ---
+
+Parámetro:
+- Clave Catastral: (vacío o NULL)
+
+Resultado esperado:
+- Total registros: 100
+- Los 100 requerimientos más recientes
+
+Ejemplo de resultados:
+| Folio | Cuenta  | Clave Catastral | Ejercicio | Total        | Vigencia  |
+|-------|---------|-----------------|-----------|--------------|-----------|
+| 6608  | 444538  | D66B2426005     | 2020      | $1,131.06    | Pendiente |
+| 6545  | 430556  | D66A0294043     | 2020      | $2,371.89    | Pendiente |
+| 6427  | 420547  | D66B2908023     | 2020      | $3,424.00    | Pendiente |
+| 6334  | 410637  | D66A0614023     | 2020      | $2,214.35    | Pendiente |
+| 6163  | 393838  | D66B1504034     | 2020      | $277.52      | Pendiente |
+
+Análisis:
+- Muestra los requerimientos más recientes (año 2020)
+- Predominan requerimientos pendientes
+- Importes variados desde $277 hasta $3,424
+- Claves catastrales completas con formato D66...
+
+--- EJEMPLO 2: Búsqueda por clave catastral completa (D65H3003007) ---
+
+Parámetro:
+- Clave Catastral: D65H3003007
+
+Resultado esperado:
+- Total registros: Variable (según coincidencias exactas)
+- Detalles completos del/los requerimiento(s)
+
+Detalles esperados:
+- Clave de Requerimiento: Variable
+- Folio: Variable
+- Cuenta: Variable
+- Clave Catastral: D65H3003007
+- Ejercicio: 2017-2020 (rango posible)
+- Fecha Emisión: 2020-07-08 a 2020-08-04
+- Fecha Entrega: Variable
+- Impuesto: Variable
+- Recargos: Variable
+- Gastos: Variable
+- Multas: Variable
+- Total: Variable
+- Vigencia: Pendiente/Vigente/Cancelado
+
+Análisis:
+- Búsqueda exacta de una clave catastral específica
+- Puede retornar múltiples requerimientos para la misma clave
+- Útil para ver el historial de una propiedad
+- Muestra todos los periodos adeudados
+
+--- EJEMPLO 3: Búsqueda parcial por prefijo (D65) ---
+
+Parámetro:
+- Clave Catastral: D65
+
+Resultado esperado:
+- Total registros: 100 (limitado)
+- Requerimientos con claves que contienen "D65"
+
+Estadísticas del ejemplo:
+- Total Impuesto: $584,507.32
+- Total Recargos: $82,534.10
+- Total Gastos: $46,131.54
+- Total Multas: $174,748.90
+- Total General: $897,528.21
+
+Análisis:
+- Búsqueda parcial permite encontrar múltiples propiedades
+- Útil para buscar en una zona específica (D65 = sector catastral)
+- Sistema limita a 100 resultados
+- Alto valor acumulado de adeudos
+- Predominan impuestos sobre otros conceptos
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Datos generales de la tabla:**
+- Total de registros: 18,983
+- Claves catastrales únicas: 16,552
+- Años de ejercicio: 5 (2002 - 2020)
+- Rango de fechas: 2020-07-08 a 2020-08-04
+- Distribución por vigencia:
+  - Pendiente: 13,498 (71.1%) - $138,777,602.99
+  - Vigente: 5,469 (28.8%) - $62,307,978.87
+  - Cancelado: 16 (0.1%) - $93,698.40
+
+**Periodo de datos:**
+- Ejercicios fiscales: 2002 - 2020
+- Emisión de cartas: Julio-Agosto 2020
+- Promedio: ~1,054 requerimientos por mes
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **18,983 requerimientos disponibles**
+  - Cartas de invitación al pago predial
+  - Búsqueda flexible por clave catastral
+  - Datos de 2020 (emisión reciente)
+
+✓ **Campos completos**
+  - Información fiscal completa
+  - Desglose de adeudos
+  - Fechas de emisión y practicación
+  - Estatus actualizado
+
+✓ **Búsqueda flexible**
+  - Por clave catastral completa
+  - Por prefijo (búsqueda parcial)
+  - Case-insensitive (mayúsculas/minúsculas)
+  - Sin parámetros: primeros 100
+
+✓ **Ordenamiento inteligente**
+  - Por ejercicio fiscal descendente
+  - Por folio descendente
+  - Los más recientes primero
+
+✓ **Límite de resultados**
+  - Máximo 100 registros por consulta
+  - Evita sobrecarga del sistema
+  - Búsquedas más específicas recomendadas
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.cartainvpredial contiene cartas de invitación
+   para el pago de impuesto predial (requerimientos prediales).
+
+⚠️ **Esquema corregido**
+   Se cambió de catastro_gdl.h_reqpredial a public.cartainvpredial
+   que es la tabla correcta en la BD multas_reglamentos.
+
+⚠️ **Sin JOIN necesario**
+   La tabla ya incluye la clave catastral (cvecatnva), no necesita
+   unirse con la tabla controladora.
+
+⚠️ **Límite de 100 registros**
+   Solo retorna máximo 100 registros por consulta.
+   Para ver más, hacer búsquedas más específicas.
+
+⚠️ **Vigencias disponibles**
+   P = Pendiente (no pagado, activo)
+   V = Vigente (activo, en proceso)
+   C = Cancelado (anulado)
+   E = Entregado (notificado)
+
+⚠️ **Formato de fechas**
+   fecha_emision y fecha_entrega están en formato DATE
+   Deben mostrarse en formato DD/MM/YYYY
+
+⚠️ **Búsqueda ILIKE**
+   La búsqueda por clave catastral usa ILIKE (case-insensitive)
+   Permite búsquedas parciales con comodines automáticos.
+
+⚠️ **Ejercicio fiscal**
+   El campo "ejercicio" corresponde a axoini (año inicial)
+   Representa el primer año del periodo adeudado.
+
+--- CASOS DE USO ---
+
+**Caso 1: Consulta general**
+1. Usuario no ingresa clave catastral
+2. Sistema retorna primeros 100 requerimientos
+3. Muestra los más recientes (año 2020)
+4. Usar para: Navegación general, vista rápida
+
+**Caso 2: Búsqueda por clave catastral completa**
+1. Usuario ingresa clave completa (ej: D65H3003007)
+2. Sistema busca esa clave exacta
+3. Muestra historial de adeudos de esa propiedad
+4. Usar para: Consulta específica de una propiedad
+
+**Caso 3: Búsqueda por zona/sector**
+1. Usuario ingresa prefijo (ej: D65)
+2. Sistema busca todas las claves que contienen ese texto
+3. Muestra hasta 100 propiedades de ese sector
+4. Usar para: Análisis por zona, estadísticas sectoriales
+
+**Caso 4: Búsqueda por cuenta**
+1. Usuario ingresa parte de la clave que conoce
+2. Sistema busca coincidencias parciales
+3. Muestra propiedades relacionadas
+4. Usar para: Búsqueda cuando no se tiene clave completa
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (búsqueda por clave catastral)
+const params = {
+  cvecat: 'D65H3003007'
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "cvereq": 1234,
+      "folio": 456,
+      "cuenta": 123456,
+      "clave_catastral": "D65H3003007",
+      "ejercicio": 2017,
+      "fecha_emision": "2020-07-09",
+      "fecha_entrega": "2020-07-16",
+      "impuesto": 10944.56,
+      "recargos": 3393.00,
+      "gastos": 860.38,
+      "multas": 3191.65,
+      "total": 18964.65,
+      "vigencia": "Pendiente"
+    }
+  ],
+  "total": 1
+}
+
+// Respuesta esperada (búsqueda sin filtro)
+{
+  "data": [
+    // ... 100 registros
+  ],
+  "total": 100
+}
+```
+
+El componente RequerxCvecat.vue debería:
+1. Recibir el array de requerimientos
+2. Mostrar tabla con columnas: Cvereq, Folio, Cuenta, Clave Catastral, Ejercicio,
+   Fecha Emisión, Fecha Entrega, Impuesto, Recargos, Gastos, Multas, Total, Vigencia
+3. Campo de búsqueda para:
+   - Clave Catastral (text input)
+4. Formateo especial:
+   - Importes con formato de moneda ($###,###.##)
+   - Fechas en formato DD/MM/YYYY
+   - Vigencia descriptiva (Pendiente/Cancelado/Entregado/Vigente)
+5. Paginación implementada
+6. Límite de 100 resultados por búsqueda
+7. Búsqueda sin filtros muestra primeros 100
+8. Ordenar por ejercicio y folio descendente
+
+--- RESUMEN ---
+
+Problema: Tabla catastro_gdl.h_reqpredial no existía
+
+Solución: Stored procedure actualizado para usar public.cartainvpredial
+
+Características:
+- 18,983 requerimientos disponibles (2002-2020)
+- Búsqueda por clave catastral (completa o parcial)
+- Tabla correcta en esquema public
+- Límite de 100 registros por consulta
+- Ordenamiento por ejercicio y folio descendente
+- Vigencias: Pendiente (71%), Vigente (29%), Cancelado (0.1%)
+- Total adeudos: $201,179,280.26
+
+Resultado:
+- Consulta de requerimientos prediales
+- Información completa del requerimiento
+- Desglose de impuesto, recargos, gastos y multas
+- Fechas de emisión y entrega
+- Estatus de vigencia
+- Datos reales del sistema 2020
+
+Ventajas:
+- Datos oficiales de cartas de invitación
+- Búsqueda flexible por clave catastral
+- Consulta rápida de adeudos prediales
+- Información completa por propiedad
+- Límite de resultados para rendimiento
+- Ordenamiento inteligente
+
+Uso recomendado:
+- Búsquedas específicas por clave catastral completa
+- Consulta general sin filtros para navegación
+- Análisis de requerimientos por zona (prefijo)
+- Verificación de importes y vigencias
+- Consulta de fechas de emisión y entrega
+- Búsqueda parcial cuando no se tiene clave completa

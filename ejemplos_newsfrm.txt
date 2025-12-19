@@ -1,0 +1,98 @@
+=== EJEMPLOS PARA PROBAR newsfrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- publico.multas (416,928 multas)
+
+IMPORTANTE:
+- 416,928 multas disponibles
+- Búsqueda en 3 campos: folio, contribuyente, año
+- Paginación con offset y limit (50 por página)
+- Ordenamiento por fecha más reciente (novedades)
+- Estados: Activa (409,177), Cancelada (7,751)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.multas_novedades" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla publico.multas (tabla principal de multas)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_newsfrm**: Busca multas recientes con paginación
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_filtro: VARCHAR (búsqueda general, puede estar vacío)
+- p_offset: INTEGER (inicio de página, default 0)
+- p_limit: INTEGER (cantidad de registros, default 50)
+
+Búsqueda en 3 campos:
+1. Folio (num_acta)
+2. Contribuyente (nombre)
+3. Año (axo_acta)
+
+--- EJEMPLO 1: Sin filtro (novedades recientes) ---
+
+Parámetros:
+- p_filtro: '' (vacío)
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados: 50 multas
+✓ Total en BD: 416,928
+✓ Ordenadas por fecha más reciente
+✓ Campos: id_multa, folio, anio, fecha_acta, contribuyente, domicilio, giro, multa, gastos, total, estatus, observacion, total_count
+
+--- EJEMPLO 2: Búsqueda por contribuyente ---
+
+Parámetros:
+- p_filtro: 'GARCIA'
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados: 50 multas
+✓ Total coincidencias: 15,883
+✓ Busca en folio, contribuyente y año
+
+--- EJEMPLO 3: Búsqueda por año ---
+
+Parámetros:
+- p_filtro: '2025'
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados: 50 multas
+✓ Total del 2025: 6,039
+✓ Solo multas del año 2025
+
+--- CAMPOS RETORNADOS ---
+
+| Campo           | Tipo    | Descripción                          |
+|-----------------|---------|--------------------------------------|
+| id_multa        | INTEGER | Identificador único                  |
+| folio           | VARCHAR | Número de acta                       |
+| anio            | INTEGER | Año de acta                          |
+| fecha_acta      | DATE    | Fecha del acta                       |
+| fecha_recepcion | DATE    | Fecha de recepción                   |
+| contribuyente   | VARCHAR | Nombre del contribuyente             |
+| domicilio       | VARCHAR | Domicilio                            |
+| giro            | VARCHAR | Giro comercial                       |
+| multa           | NUMERIC | Importe de multa                     |
+| gastos          | NUMERIC | Gastos de ejecución                  |
+| total           | NUMERIC | Total                                |
+| estatus         | VARCHAR | Activa o Cancelada                   |
+| observacion     | TEXT    | Observaciones                        |
+| total_count     | BIGINT  | Total de registros (para paginación) |
+
+--- RESUMEN ---
+
+Problema: Tabla publico.multas_novedades no existe
+Solución: Usa publico.multas con ordenamiento por fecha descendente
+Características: Búsqueda en 3 campos, paginación, novedades primero
+Total disponible: 416,928 multas

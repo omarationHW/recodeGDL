@@ -1,0 +1,313 @@
+=== EJEMPLOS PARA PROBAR polcon.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla auditoria (29.5M registros).
+IMPORTANTE: Retorna pólizas consolidadas con datos REALES de movimientos contables.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.polizas_consolidadas" does not exist
+
+--- SOLUCIÓN ---
+
+Se encontró y usó la tabla **public.auditoria** que contiene movimientos contables.
+La función agrupa 29.5 millones de movimientos por cuenta de aplicación (cvectaapl).
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_polcon**: Retorna pólizas consolidadas desde tabla auditoria
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_fecha_desde: DATE (fecha inicial, NULL = sin filtro de fecha inicial)
+- p_fecha_hasta: DATE (fecha final, NULL = sin filtro de fecha final)
+
+NOTA: La tabla auditoria tiene axopago (año) y bimini (bimestre), no fecha completa.
+El filtro extrae el AÑO de las fechas proporcionadas para filtrar.
+
+--- VALORES RETORNADOS ---
+
+| Campo           | Tipo    | Descripción                                 |
+|-----------------|---------|---------------------------------------------|
+| cvectaapl       | VARCHAR | Código de cuenta aplicación                 |
+| ctaaplicacion   | VARCHAR | Descripción (generada: "Cuenta Aplicación X") |
+| totpar          | BIGINT  | Total de pagos únicos (cvepago distintos)   |
+| suma            | NUMERIC | Suma total de montos                        |
+| num_movimientos | BIGINT  | Número total de movimientos                 |
+
+--- DATOS DE LA TABLA AUDITORIA ---
+
+Estadísticas generales:
+- Total registros: 29,572,443 movimientos
+- Cuentas diferentes: 932 cuentas de aplicación
+- Pagos únicos: 11,633,621 pagos
+- Rango de años: 1990-2024
+- Excluye: Movimientos cancelados (cancelacion = 'C')
+
+Top 5 cuentas por volumen:
+1. 110110000: 5M movimientos - $10,205M
+2. 40401: 3.5M movimientos - $3,022M
+3. 110120000: 3M movimientos - $2,093M
+4. 550800000: 1.8M movimientos - $224K
+5. 46202: 1.3M movimientos - $118M
+
+--- EJEMPLO 1: Sin fechas (todas las pólizas) ---
+
+Parámetros:
+- Fecha Desde: (vacío)
+- Fecha Hasta: (vacío)
+
+Resultado esperado:
+- Total registros: 932 cuentas de aplicación
+- Tiempo: ~10 segundos
+- Incluye: Todos los movimientos desde 1990 hasta 2024
+
+Ejemplo de datos retornados:
+```
+cvectaapl: 110110000
+ctaaplicacion: Cuenta Aplicación 110110000
+totpar: 5,012,414 pagos
+suma: $10,205,780,578.54
+num_movimientos: 5,016,344
+```
+
+--- EJEMPLO 2: Con rango de fechas completo (año 2024) ---
+
+Parámetros:
+- Fecha Desde: 2024-01-01
+- Fecha Hasta: 2024-12-31
+
+Resultado esperado:
+- Total registros: 624 cuentas
+- Tiempo: ~4-5 segundos
+- Incluye: Solo movimientos con axopago = 2024
+
+Top 5 cuentas del 2024:
+1. 46202: 1,391,529 movimientos - $117,985,972.41
+2. 550800000: 1,378,152 movimientos - $172,150.64
+3. 992100014: 1,175,668 movimientos - $-312,173,254.67
+4. 46902: 1,028,217 movimientos - $74,247.55
+5. 23421: 549,519 movimientos - $-169,407,670.51
+
+--- EJEMPLO 3: Con fecha desde solamente (desde 2020) ---
+
+Parámetros:
+- Fecha Desde: 2020-01-01
+- Fecha Hasta: (vacío)
+
+Resultado esperado:
+- Total registros: 624 cuentas
+- Tiempo: ~10 segundos
+- Incluye: Movimientos con axopago >= 2020
+- Total movimientos: 13,182,492
+- Suma total: $30,007,331,230.10
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Datos reales**
+   Esta función lee de la tabla 'public.auditoria':
+   - 29.5 millones de movimientos contables
+   - Agrupa por cvectaapl (cuenta de aplicación)
+   - Excluye movimientos cancelados
+   - Retorna datos consolidados reales
+
+⚠️ **Filtrado por año**
+   - La tabla auditoria tiene axopago (año de pago)
+   - El filtro extrae el AÑO de las fechas proporcionadas
+   - Ejemplo: '2024-06-15' → filtra axopago = 2024
+   - No filtra por mes/día, solo por año
+
+⚠️ **Descripción de cuentas**
+   - No existe catálogo de cuentas de aplicación
+   - ctaaplicacion se genera como "Cuenta Aplicación XXXXX"
+   - Para nombres reales, se requiere crear catálogo
+
+⚠️ **Tiempo de respuesta**
+   - Sin filtros: ~10 segundos (procesa 29.5M registros)
+   - Con filtro de año: ~4-5 segundos
+   - Con filtro desde año: ~10 segundos
+   - Los tiempos dependen del servidor
+
+⚠️ **Valores negativos**
+   Algunas cuentas tienen sumas negativas:
+   - 992100014: $-312M (devoluciones/ajustes)
+   - 23421: $-169M
+   - Esto es normal en movimientos contables
+
+--- LÓGICA DE LA FUNCIÓN ---
+
+La función ejecuta:
+```sql
+SELECT
+    cvectaapl,
+    'Cuenta Aplicación ' || cvectaapl AS ctaaplicacion,
+    COUNT(DISTINCT cvepago) AS totpar,
+    SUM(monto) AS suma,
+    COUNT(*) AS num_movimientos
+FROM public.auditoria
+WHERE
+    cvectaapl IS NOT NULL
+    AND cancelacion IS DISTINCT FROM 'C'
+    AND (fecha_desde IS NULL OR axopago >= YEAR(fecha_desde))
+    AND (fecha_hasta IS NULL OR axopago <= YEAR(fecha_hasta))
+GROUP BY cvectaapl
+ORDER BY num_movimientos DESC
+```
+
+Criterios:
+1. Agrupa por cvectaapl (cuenta de aplicación)
+2. Excluye cancelados (cancelacion = 'C')
+3. Filtra por año si se proporcionan fechas
+4. Cuenta pagos únicos (totpar)
+5. Suma montos totales (suma)
+6. Cuenta movimientos (num_movimientos)
+7. Ordena por mayor cantidad de movimientos
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin fechas: 932 cuentas, 10.83s
+✅ Test año 2024 (2024-01-01 a 2024-12-31): 624 cuentas, 4.54s
+✅ Test desde 2020 (2020-01-01 en adelante): 624 cuentas, 9.82s
+✅ Test periodo 2015-2018: 625 cuentas, 5.19s, 12.8M movimientos
+✅ Stored procedure actualizado exitosamente
+✅ Función operacional con datos reales
+
+--- INTERPRETACIÓN DE RESULTADOS ---
+
+**cvectaapl (Código de cuenta)**
+- Código numérico de cuenta contable
+- Ejemplos: 110110000 (efectivo?), 40401, 110120000
+- Sin descripción en catálogo
+
+**totpar (Total partidas)**
+- Cantidad de pagos únicos (cvepago distintos)
+- Representa transacciones diferentes
+
+**suma (Suma total)**
+- Suma de todos los montos de la cuenta
+- Puede ser negativo (devoluciones/ajustes)
+- En pesos mexicanos
+
+**num_movimientos (Número de movimientos)**
+- Cantidad total de registros en auditoria
+- Puede ser mayor que totpar (un pago puede tener múltiples movimientos)
+
+--- CASOS DE USO ---
+
+**Caso 1: Consultar todas las pólizas consolidadas**
+1. No llenar ningún campo de fecha
+2. Hacer clic en "Buscar"
+3. Resultado: 932 cuentas con todos los movimientos históricos
+4. Tiempo: ~10 segundos
+5. Útil para: Análisis completo de movimientos contables
+
+**Caso 2: Consultar pólizas de un año específico**
+1. Fecha Desde: 2024-01-01
+2. Fecha Hasta: 2024-12-31
+3. Hacer clic en "Buscar"
+4. Resultado: 624 cuentas del año 2024
+5. Tiempo: ~4-5 segundos
+6. Útil para: Reportes anuales, cierre de ejercicio
+
+**Caso 3: Consultar desde un año específico**
+1. Fecha Desde: 2020-01-01
+2. Fecha Hasta: (vacío)
+3. Hacer clic en "Buscar"
+4. Resultado: 624 cuentas desde 2020
+5. Total: 13.2M movimientos, $30B
+6. Útil para: Análisis de últimos años
+
+**Caso 4: Consultar periodo específico**
+1. Fecha Desde: 2015-01-01
+2. Fecha Hasta: 2018-12-31
+3. Hacer clic en "Buscar"
+4. Resultado: 625 cuentas entre 2015-2018
+5. Total: 12.8M movimientos
+6. Útil para: Análisis histórico de periodo
+
+--- FLUJO RECOMENDADO ---
+
+1. **Consulta rápida (año actual)**
+   - Fecha Desde: 2024-01-01
+   - Fecha Hasta: 2024-12-31
+   → Rápido (~5s), datos actuales
+
+2. **Consulta de últimos años**
+   - Fecha Desde: 2020-01-01
+   - Fecha Hasta: (vacío)
+   → Moderado (~10s), datos recientes
+
+3. **Consulta completa**
+   - Ambas fechas vacías
+   → Lento (~10s), todos los datos históricos
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Respuesta del endpoint (sin fechas)
+{
+  "data": [
+    {
+      "cvectaapl": "110110000",
+      "ctaaplicacion": "Cuenta Aplicación 110110000",
+      "totpar": 5012414,
+      "suma": 10205780578.54,
+      "num_movimientos": 5016344
+    },
+    {
+      "cvectaapl": "40401",
+      "ctaaplicacion": "Cuenta Aplicación 40401",
+      "totpar": 3495783,
+      "suma": 3022199810.62,
+      "num_movimientos": 3507492
+    },
+    // ... más registros
+  ],
+  "total": 932
+}
+```
+
+El componente polcon.vue debería:
+1. Mostrar tabla con las cuentas y sus totales
+2. Formatear montos como moneda ($X,XXX,XXX.XX)
+3. Formatear cantidades con separadores de miles
+4. Permitir ordenar por columnas
+5. Posiblemente paginar resultados (932 registros)
+6. Mostrar indicador de carga (consultas toman varios segundos)
+
+--- RESUMEN ---
+
+Problema: Tabla publico.polizas_consolidadas no existía
+
+Solución: Usar tabla public.auditoria con agregación por cvectaapl
+
+Características:
+- Usa tabla real con 29.5M movimientos
+- Agrupa por cuenta de aplicación
+- Excluye movimientos cancelados
+- Filtra por año (no por fecha exacta)
+- 932 cuentas diferentes
+- Datos desde 1990 hasta 2024
+
+Rendimiento:
+- Sin filtros: ~10 segundos
+- Con filtro de año: ~4-5 segundos
+- Consultas pesadas pero con datos reales
+
+Limitaciones:
+- No hay catálogo de descripciones de cuentas
+- Filtro solo por año (no por mes/día)
+- Consultas pueden tardar varios segundos
+- ctaaplicacion es generado, no real
+
+Ventajas:
+- Datos reales de movimientos contables
+- 29.5 millones de transacciones
+- Agregación correcta por cuenta
+- Filtrado funcional por periodo
+
+Recomendación:
+- Usar filtros de fecha para mejorar rendimiento
+- Implementar paginación en Vue para manejar 932 registros
+- Considerar crear catálogo de cuentas para descripciones reales
+- Mostrar indicador de carga mientras procesa

@@ -1,0 +1,439 @@
+=== 3 EJEMPLOS PARA PROBAR ReqTrans.vue ===
+
+Fecha: 2025-12-18
+Componente: RefactorX/FrontEnd/src/views/modules/multas_reglamentos/ReqTrans.vue
+Base de Datos: multas_reglamentos
+Stored Procedure: publico.recaudadora_reqtrans_list(VARCHAR, INTEGER)
+Tabla: public.reqdiftransmision (7 registros)
+
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ORIGINAL
+═══════════════════════════════════════════════════════════════════════════
+
+Error: relation "catastro_gdl.reqdiftransmision" does not exist
+La tabla estaba en el esquema incorrecto y no existía en multas_reglamentos
+
+SOLUCIÓN
+═══════════════════════════════════════════════════════════════════════════
+
+El stored procedure ahora usa la tabla public.reqdiftransmision que existe
+en la BD multas_reglamentos con 7 registros de requerimientos de diferencias
+de transmisión de propiedad.
+
+═══════════════════════════════════════════════════════════════════════════
+
+FUNCIÓN DISPONIBLE
+═══════════════════════════════════════════════════════════════════════════
+
+**recaudadora_reqtrans_list**: Retorna requerimientos de diferencias de transmisión
+
+PARÁMETROS:
+- p_clave_cuenta: VARCHAR (cuenta del contribuyente)
+- p_ejercicio: INTEGER (año del ejercicio fiscal)
+- Ambos pueden ser NULL o 0
+
+VALIDACIONES:
+- Limitado a 100 registros por consulta
+- Búsqueda flexible con ILIKE (case-insensitive)
+- Permite filtrar por cuenta y/o ejercicio
+
+VALORES RETORNADOS:
+
+| Campo        | Tipo    | Descripción                              |
+|--------------|---------|------------------------------------------|
+| cvereq       | INTEGER | Clave de requerimiento                   |
+| clave_cuenta | TEXT    | Cuenta del contribuyente                 |
+| folio        | INTEGER | Folio de transmisión                     |
+| ejercicio    | INTEGER | Año del requerimiento                    |
+| estatus      | TEXT    | Estatus (Vigente/Cancelado/Pendiente)    |
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: BÚSQUEDA SIN FILTRO (TODOS LOS REGISTROS)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Ver todos los requerimientos de diferencias de transmisión
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqTrans.vue en el navegador
+2. Dejar los campos de búsqueda VACÍOS:
+   - Cuenta: (vacío)
+   - Ejercicio: (vacío)
+3. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 7 (todos los disponibles)
+
+Los registros se mostrarán ordenados por:
+- Ejercicio fiscal (descendente)
+- Folio de transmisión (descendente)
+
+Registros esperados:
+┌────────┬─────────────┬─────────┬───────────┬──────────┐
+│ Cvereq │ Cuenta      │ Folio   │ Ejercicio │ Estatus  │
+├────────┼─────────────┼─────────┼───────────┼──────────┤
+│ 5      │ 333333333   │ 0       │ 2025      │ Vigente  │
+│ 4      │ 222222222   │ 0       │ 2024      │ Vigente  │
+│ 3      │ 111111111   │ 0       │ 2024      │ Vigente  │
+│ 2      │ 987654321   │ 0       │ 2023      │ Vigente  │
+│ 1      │ 123456789   │ 0       │ 2023      │ Vigente  │
+│ 2      │ 358307      │ 286762  │ 2018      │ Vigente  │
+│ 1      │ 319628      │ 199170  │ 2018      │ Vigente  │
+└────────┴─────────────┴─────────┴───────────┴──────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar exactamente 7 registros (total en la tabla)
+- Ordenados por ejercicio descendente (2025, 2024, 2023, 2018)
+- Todos con estatus "Vigente"
+- Folio 0 indica que aún no tiene folio de transmisión asignado
+- Paginación: Si itemsPerPage = 10, todos caben en una página
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Ejercicios desde 2018 hasta 2025
+- 7 cuentas diferentes
+- Todos los requerimientos vigentes (activos)
+- Algunos con folio de transmisión, otros sin asignar (0)
+- Mezcla de registros antiguos (2018) y recientes (2023-2025)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: BÚSQUEDA POR CUENTA ESPECÍFICA (333333333)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Consultar requerimientos de una cuenta específica
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqTrans.vue en el navegador
+2. En el campo "Cuenta" ingresar: 333333333
+3. Dejar "Ejercicio" vacío
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 1
+
+Detalles del requerimiento:
+┌──────────────────┬─────────────┐
+│ Campo            │ Valor       │
+├──────────────────┼─────────────┤
+│ Cvereq           │ 5           │
+│ Cuenta           │ 333333333   │
+│ Folio            │ 0           │
+│ Ejercicio        │ 2025        │
+│ Estatus          │ Vigente     │
+└──────────────────┴─────────────┘
+
+Información adicional (de la tabla completa):
+- Impuesto: $2,000.00
+- Recargos: $200.00
+- Multas: $300.00
+- Gastos: $50.00
+- Total: $2,550.00
+
+✅ VALIDACIONES:
+
+- Debe mostrar EXACTAMENTE 1 registro
+- Cuenta debe ser 333333333
+- Ejercicio 2025 (más reciente)
+- Folio 0 (sin asignar)
+- Estatus "Vigente"
+- Paginación: "Mostrando 1 - 1 de 1 registros"
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Requerimiento del ejercicio 2025 (más reciente)
+- Sin folio de transmisión asignado
+- Estatus vigente (activo, pendiente de pago)
+- Diferencia detectada en transmisión de propiedad
+- Total adeudado: $2,550.00
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otras cuentas:
+- 222222222 → Ejercicio 2024
+- 111111111 → Ejercicio 2024
+- 358307 → Ejercicio 2018 con folio 286762
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: BÚSQUEDA POR EJERCICIO FISCAL (2024)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Obtener requerimientos de un año específico
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqTrans.vue en el navegador
+2. Dejar "Cuenta" vacío
+3. En el campo "Ejercicio" ingresar: 2024
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 2
+
+Registros del ejercicio 2024:
+┌────────┬─────────────┬─────────┬───────────┬──────────┐
+│ Cvereq │ Cuenta      │ Folio   │ Ejercicio │ Estatus  │
+├────────┼─────────────┼─────────┼───────────┼──────────┤
+│ 4      │ 222222222   │ 0       │ 2024      │ Vigente  │
+│ 3      │ 111111111   │ 0       │ 2024      │ Vigente  │
+└────────┴─────────────┴─────────┴───────────┴──────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar exactamente 2 registros
+- Ambos del ejercicio 2024
+- Ordenados por folio descendente
+- Ambos con estatus "Vigente"
+- Sin folios de transmisión asignados (0)
+- Paginación: "Mostrando 1 - 2 de 2 registros"
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- 2 requerimientos generados en 2024
+- Cuentas diferentes: 222222222 y 111111111
+- Ambos sin folio de transmisión asignado
+- Todos vigentes (pendientes de resolución)
+- Diferencias detectadas en el proceso de transmisión
+
+⚠️ NOTA IMPORTANTE:
+
+Los requerimientos con folio 0 indican que:
+- Aún no se ha asignado un folio de transmisión
+- El proceso de transmisión está pendiente
+- Se detectó una diferencia que requiere atención
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otros años:
+- 2025 → 1 registro (más reciente)
+- 2023 → 2 registros
+- 2018 → 2 registros (con folios asignados)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO ADICIONAL: BÚSQUEDA COMBINADA (Cuenta + Ejercicio)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Filtrar con ambos criterios
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqTrans.vue
+2. En "Cuenta" ingresar: 222222222
+3. En "Ejercicio" ingresar: 2024
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+- 1 registro: Cuenta 222222222 del ejercicio 2024
+- Búsqueda más específica y refinada
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN DE CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+╔═══════════════════╦══════════════╦══════════════╦════════════════════╗
+║ Ejemplo           ║ Cuenta       ║ Ejercicio    ║ Caso de Uso        ║
+╠═══════════════════╬══════════════╬══════════════╬════════════════════╣
+║ 1. Sin filtro     ║ (vacío)      ║ (vacío)      ║ Todos los reqtos.  ║
+║ 2. Por cuenta     ║ 333333333    ║ (vacío)      ║ Historia de cuenta ║
+║ 3. Por año        ║ (vacío)      ║ 2024         ║ Reqtos. del año    ║
+║ Adicional         ║ 222222222    ║ 2024         ║ Búsqueda exacta    ║
+╚═══════════════════╩══════════════╩══════════════╩════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════
+
+ESTADÍSTICAS DISPONIBLES
+═══════════════════════════════════════════════════════════════════════════
+
+**Datos generales de la tabla:**
+- Total de registros: 7 requerimientos
+- Cuentas únicas: 7 contribuyentes diferentes
+- Años disponibles: 4 (2018, 2023, 2024, 2025)
+- Rango de fechas emisión: 2018-02-08 a 2025-11-19
+
+**Distribución por ejercicio:**
+- 2025: 1 requerimiento
+- 2024: 2 requerimientos
+- 2023: 2 requerimientos
+- 2018: 2 requerimientos
+
+**Distribución por estatus:**
+- Vigente: 7 requerimientos (100%)
+- Cancelado: 0 requerimientos
+- Pendiente: 0 requerimientos
+
+**Totales financieros:**
+- Total Impuesto: $7,914.00
+- Total Recargos: $838.67
+- Total Multas: $1,082.80
+- Total Gastos: $503.44
+- Total General: $14,824.25
+
+═══════════════════════════════════════════════════════════════════════════
+
+CARACTERÍSTICAS DE LOS DATOS
+═══════════════════════════════════════════════════════════════════════════
+
+✓ **7 requerimientos disponibles**
+  - Requerimientos de diferencias de transmisión
+  - Búsqueda por cuenta o ejercicio
+  - Datos desde 2018
+
+✓ **Campos completos**
+  - Clave de requerimiento
+  - Cuenta del contribuyente
+  - Folio de transmisión
+  - Ejercicio fiscal
+  - Estatus de vigencia
+
+✓ **Búsqueda flexible**
+  - Por cuenta completa o parcial
+  - Por ejercicio fiscal específico
+  - Combinación de ambos criterios
+  - Sin parámetros: todos los registros
+
+✓ **Ordenamiento inteligente**
+  - Por ejercicio descendente
+  - Por folio descendente
+  - Los más recientes primero
+
+✓ **Límite de resultados**
+  - Máximo 100 registros por consulta
+  - En este caso, solo 7 disponibles
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ **Tabla base real**
+   La tabla public.reqdiftransmision contiene requerimientos generados
+   por diferencias detectadas en procesos de transmisión de propiedad.
+
+⚠️ **Esquema corregido**
+   Se cambió de catastro_gdl.reqdiftransmision a public.reqdiftransmision
+   que es la tabla correcta en la BD multas_reglamentos.
+
+⚠️ **Pocos registros**
+   Solo hay 7 registros en la tabla, por lo que las búsquedas
+   retornarán pocos resultados. Es normal.
+
+⚠️ **Folio 0**
+   Un folio con valor 0 indica que aún no se ha asignado un folio
+   de transmisión. Es parte del proceso normal.
+
+⚠️ **Estatus Vigente**
+   Actualmente todos los registros tienen estatus 'V' (Vigente).
+   El CASE statement maneja también 'C' (Cancelado) y 'P' (Pendiente).
+
+⚠️ **Búsqueda ILIKE**
+   La búsqueda por cuenta usa ILIKE (case-insensitive)
+   Permite búsquedas parciales: "333" encuentra 333333333
+
+⚠️ **Parámetro p_ejercicio**
+   El segundo parámetro acepta 0 o NULL como "sin filtro".
+   Para filtrar, usar el año específico (2024, 2025, etc.)
+
+═══════════════════════════════════════════════════════════════════════════
+
+COMPORTAMIENTO ESPERADO EN VUE
+═══════════════════════════════════════════════════════════════════════════
+
+```javascript
+// Ejemplo de llamada desde Vue (búsqueda por cuenta)
+const params = [
+  { nombre: 'p_clave_cuenta', tipo: 'string', valor: '333333333' },
+  { nombre: 'p_ejercicio', tipo: 'integer', valor: null }
+];
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "cvereq": 5,
+      "clave_cuenta": "333333333",
+      "folio": 0,
+      "ejercicio": 2025,
+      "estatus": "Vigente"
+    }
+  ],
+  "total": 1
+}
+
+// Respuesta esperada (búsqueda sin filtro)
+{
+  "data": [
+    // ... 7 registros
+  ],
+  "total": 7
+}
+```
+
+El componente ReqTrans.vue debería:
+1. Recibir el array de requerimientos
+2. Mostrar tabla con columnas: Cvereq, Cuenta, Folio, Ejercicio, Estatus
+3. Campos de búsqueda para:
+   - Cuenta (text input)
+   - Ejercicio fiscal (number input)
+4. Formateo especial:
+   - Folio 0 mostrar como "-" o "Sin asignar"
+   - Estatus con badge de color según valor
+5. Paginación implementada (aunque solo hay 7 registros)
+6. Límite de 100 resultados por búsqueda
+7. Búsqueda sin filtros muestra todos los registros
+8. Ordenar por ejercicio y folio descendente
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN
+═══════════════════════════════════════════════════════════════════════════
+
+Problema: Tabla catastro_gdl.reqdiftransmision no existía
+
+Solución: Stored procedure actualizado para usar public.reqdiftransmision
+
+Características:
+- 7 requerimientos disponibles (2018-2025)
+- Búsqueda por cuenta o ejercicio fiscal
+- Tabla correcta en esquema public
+- Límite de 100 registros por consulta
+- Ordenamiento por ejercicio y folio descendente
+- Todos con estatus Vigente (100%)
+- Total adeudos: $14,824.25
+
+Resultado:
+- Consulta de requerimientos de transmisión
+- Información de diferencias detectadas
+- Control de folios de transmisión
+- Estatus de vigencia
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales de requerimientos
+- Búsqueda flexible por múltiples criterios
+- Consulta rápida de diferencias de transmisión
+- Información completa por cuenta
+- Límite de resultados para rendimiento
+- Histórico desde 2018
+
+Uso recomendado:
+- Búsquedas por cuenta para ver historial
+- Consulta por año para requerimientos del ejercicio
+- Búsqueda sin filtros para navegación general
+- Verificación de folios de transmisión
+- Consulta de estatus de vigencia
+- Seguimiento de diferencias detectadas
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

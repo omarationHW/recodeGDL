@@ -1,0 +1,456 @@
+=== 3 EJEMPLOS PARA PROBAR ReqPromocion.vue ===
+
+Fecha: 2025-12-18
+Componente: RefactorX/FrontEnd/src/views/modules/multas_reglamentos/ReqPromocion.vue
+Base de Datos: multas_reglamentos
+Stored Procedure: publico.recaudadora_req_promocion(VARCHAR, INTEGER)
+Tabla: public.c_descpred (1,289 registros)
+
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ORIGINAL
+═══════════════════════════════════════════════════════════════════════════
+
+Error: relation "catastro_gdl.descuentos2008" does not exist
+La tabla estaba en el esquema incorrecto y no existía en multas_reglamentos
+
+SOLUCIÓN
+═══════════════════════════════════════════════════════════════════════════
+
+El stored procedure ahora usa la tabla public.c_descpred que existe
+en la BD multas_reglamentos con 1,289 tipos de descuentos prediales.
+
+El campo "importe" se mapea al campo "porcentaje" de la tabla:
+- importe = porcentaje de descuento
+- Ejemplo: importe 50 = 50% de descuento
+
+═══════════════════════════════════════════════════════════════════════════
+
+FUNCIÓN DISPONIBLE
+═══════════════════════════════════════════════════════════════════════════
+
+**recaudadora_req_promocion**: Retorna catálogo de descuentos/promociones prediales
+
+PARÁMETROS:
+- p_clave_cuenta: VARCHAR (código de descuento)
+- p_ejercicio: INTEGER (año del ejercicio fiscal)
+- Ambos pueden ser NULL
+
+VALIDACIONES:
+- Limitado a 100 registros por consulta
+- Búsqueda flexible con ILIKE (case-insensitive)
+- Permite filtrar por código y/o año
+
+VALORES RETORNADOS:
+
+| Campo        | Tipo    | Descripción                              |
+|--------------|---------|------------------------------------------|
+| cvedescuento | INTEGER | Código del descuento                     |
+| descripcion  | TEXT    | Descripción del tipo de descuento        |
+| importe      | NUMERIC | Porcentaje de descuento (50 = 50%)       |
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: BÚSQUEDA SIN FILTRO (PRIMEROS 100 REGISTROS)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Ver el catálogo de descuentos más recientes
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqPromocion.vue en el navegador
+2. Dejar los campos de búsqueda VACÍOS:
+   - Clave Cuenta: (vacío)
+   - Ejercicio: (vacío)
+3. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 100 (limitado automáticamente)
+
+Los registros se mostrarán ordenados por:
+- Código de descuento (descendente)
+
+Primeros 5 registros esperados:
+┌─────────┬───────────────────────────────────────┬────────────┐
+│ Código  │ Descripción                           │ Porcentaje │
+├─────────┼───────────────────────────────────────┼────────────┤
+│ 999999  │ SUBSIDIO POR PRONTO PAGO 2024         │ 10%        │
+│ 1363    │ 0.0004572 - NATURACION EXTENSI        │ 30%        │
+│ 1362    │ 0.0004318 - NATURACION EXTENSI        │ 30%        │
+│ 1361    │ 0.0004064 - NATURACION EXTENSI        │ 30%        │
+│ 1360    │ 0.000381 - NATURACION EXTENSIV        │ 30%        │
+└─────────┴───────────────────────────────────────┴────────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar exactamente 100 registros
+- Códigos ordenados descendente (999999, 1363, 1362...)
+- Paginación debe mostrar: "Mostrando 1 - 10 de 100 registros"
+- Debe mostrar: "Página 1 de 10"
+- Porcentajes deben mostrarse como números (10, 30, 50, etc.)
+- Descripciones completas y sin espacios extra
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Códigos más recientes primero
+- Variedad de porcentajes: 10%, 30%, 50%, 100%
+- Tipos de descuentos:
+  * Subsidio por pronto pago
+  * Descuentos por naturalización
+  * Descuentos demográficos
+- Años desde 1994 hasta 2024
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: BÚSQUEDA POR CÓDIGO ESPECÍFICO (1162)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Consultar detalles de un descuento específico
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqPromocion.vue en el navegador
+2. En el campo "Clave Cuenta" ingresar: 1162
+3. Dejar "Ejercicio" vacío
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 1
+
+Detalles del descuento:
+┌──────────────────┬─────────────────────────┐
+│ Campo            │ Valor                   │
+├──────────────────┼─────────────────────────┤
+│ Código           │ 1162                    │
+│ Descripción      │ VIUDAS (O) 2024         │
+│ Porcentaje       │ 50%                     │
+└──────────────────┴─────────────────────────┘
+
+Información adicional del catálogo:
+- Año: 2024
+- Aplica cuota fija: Sí
+- Límite valor fiscal: $600,000.00
+- Tipo de aplicación: Viudas/Viudos
+
+✅ VALIDACIONES:
+
+- Debe mostrar EXACTAMENTE 1 registro
+- Código debe ser 1162
+- Descripción: "VIUDAS (O) 2024"
+- Porcentaje: 50%
+- Paginación: "Mostrando 1 - 1 de 1 registros"
+- Página 1 de 1
+- Botones de paginación deshabilitados
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Descuento para viudas/viudos
+- 50% de descuento en impuesto predial
+- Vigente para ejercicio 2024
+- Aplica para propiedades con valor fiscal hasta $600,000
+- Beneficio social para población vulnerable
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otros códigos:
+- 1159 → Mayores de 60 años 2024 (50%)
+- 1161 → Pensionados 2024 (50%)
+- 1163 → Discapacitados 2024 (50%)
+- 999999 → Subsidio pronto pago 2024 (10%)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: BÚSQUEDA POR EJERCICIO FISCAL (2024)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Obtener descuentos vigentes para un año específico
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqPromocion.vue en el navegador
+2. Dejar "Clave Cuenta" vacío
+3. En el campo "Ejercicio" ingresar: 2024
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: Variable (depende de cuántos descuentos hay para 2024)
+
+Ejemplo de registros del ejercicio 2024:
+┌─────────┬───────────────────────────────────────┬────────────┐
+│ Código  │ Descripción                           │ Porcentaje │
+├─────────┼───────────────────────────────────────┼────────────┤
+│ 1165    │ MAYORES DE 60 AÑOS 2024               │ 50%        │
+│ 1163    │ DISCAPACITADOS 2024                   │ 50%        │
+│ 1162    │ VIUDAS (O) 2024                       │ 50%        │
+│ 1161    │ PENSIONADOS 2024                      │ 50%        │
+│ 1159    │ MAYORES DE 60 AÑOS 2024               │ 50%        │
+│ ...     │ ...                                   │ ...        │
+└─────────┴───────────────────────────────────────┴────────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar solo registros del año 2024
+- Ordenados por código descendente
+- Incluye todos los tipos de descuentos vigentes
+- Paginación según cantidad de registros
+- Variedad de porcentajes (10%, 50%, 80%, 100%)
+
+📊 ESTADÍSTICAS ESPERADAS (año 2024):
+
+Distribución por tipo de descuento:
+- Descuentos demográficos (60+ años, pensionados): 50%
+- Descuentos sociales (viudas, discapacitados): 50%
+- Descuentos institucionales: Variable
+- Subsidio pronto pago: 10%
+
+Distribución por porcentaje:
+- 10%: Pronto pago
+- 50%: Descuentos sociales/demográficos
+- 80%: Instituciones especiales
+- 100%: Casos especiales
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Catálogo completo de descuentos vigentes para 2024
+- Predominan descuentos del 50% para población vulnerable
+- Incluye subsidio de pronto pago (10%)
+- Descuentos institucionales con porcentajes variables
+- Política fiscal actual de beneficios sociales
+
+⚠️ NOTA IMPORTANTE:
+
+Los descuentos del mismo porcentaje pueden tener:
+- Diferentes límites de valor fiscal
+- Diferentes condiciones de aplicación
+- Diferentes requisitos de edad o documentación
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otros años:
+- 2023 → Descuentos del año anterior
+- 2022 → Descuentos históricos recientes
+- 2020 → Descuentos durante pandemia
+- 2015 → Descuentos históricos
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO ADICIONAL: BÚSQUEDA COMBINADA (Código + Año)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Filtrar con ambos criterios
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario ReqPromocion.vue
+2. En "Clave Cuenta" ingresar: 116 (búsqueda parcial)
+3. En "Ejercicio" ingresar: 2024
+4. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+- Todos los descuentos del 2024 con código que contenga "116"
+- Ejemplo: 1161, 1162, 1163, 1165
+- Búsqueda más específica y refinada
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN DE CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+╔═══════════════════╦══════════════╦══════════════╦════════════════════╗
+║ Ejemplo           ║ Clave        ║ Ejercicio    ║ Caso de Uso        ║
+╠═══════════════════╬══════════════╬══════════════╬════════════════════╣
+║ 1. Sin filtro     ║ (vacío)      ║ (vacío)      ║ Catálogo completo  ║
+║ 2. Por código     ║ 1162         ║ (vacío)      ║ Descuento específ. ║
+║ 3. Por año        ║ (vacío)      ║ 2024         ║ Vigentes año       ║
+║ Adicional         ║ 116          ║ 2024         ║ Búsqueda combinada ║
+╚═══════════════════╩══════════════╩══════════════╩════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════
+
+ESTADÍSTICAS DISPONIBLES
+═══════════════════════════════════════════════════════════════════════════
+
+**Datos generales de la tabla:**
+- Total de registros: 1,289 tipos de descuentos
+- Años disponibles: 31 (1994 - 2024)
+- Porcentaje promedio: 52.98%
+- Porcentaje mínimo: 0%
+- Porcentaje máximo: 100%
+
+**Distribución por porcentaje:**
+- 50%: 592 descuentos (45.9%) ← Más común
+- 80%: 167 descuentos (13.0%)
+- 60%: 154 descuentos (11.9%)
+- 10%: 136 descuentos (10.5%)
+- 100%: 96 descuentos (7.4%)
+- Otros: Resto distribuido
+
+**Tipos de descuentos principales:**
+1. Demográficos (60+ años, pensionados)
+2. Sociales (viudas, discapacitados)
+3. Institucionales (asistencia social)
+4. Pronto pago (subsidios)
+5. Especiales (diversos criterios)
+
+═══════════════════════════════════════════════════════════════════════════
+
+CARACTERÍSTICAS DE LOS DATOS
+═══════════════════════════════════════════════════════════════════════════
+
+✓ **1,289 tipos de descuentos disponibles**
+  - Catálogo de descuentos prediales
+  - Búsqueda por código o año
+  - Histórico desde 1994
+
+✓ **Campos completos**
+  - Código único de descuento
+  - Descripción clara del beneficio
+  - Porcentaje de descuento
+  - Año de vigencia
+  - Límites de valor fiscal
+
+✓ **Búsqueda flexible**
+  - Por código completo o parcial
+  - Por ejercicio fiscal
+  - Combinación de ambos criterios
+  - Sin parámetros: catálogo completo
+
+✓ **Ordenamiento inteligente**
+  - Por código descendente
+  - Descuentos más recientes primero
+
+✓ **Límite de resultados**
+  - Máximo 100 registros por consulta
+  - Evita sobrecarga del sistema
+  - Búsquedas más específicas recomendadas
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ **Tabla base real**
+   La tabla public.c_descpred es el catálogo oficial de descuentos
+   prediales del sistema de recaudación.
+
+⚠️ **Esquema corregido**
+   Se cambió de catastro_gdl.descuentos2008 a public.c_descpred
+   que es la tabla correcta en la BD multas_reglamentos.
+
+⚠️ **Campo "importe"**
+   El campo "importe" retornado es en realidad el campo "porcentaje"
+   de la tabla c_descpred. Representa el porcentaje de descuento:
+   - 50 = 50% de descuento
+   - 100 = 100% de descuento (exención total)
+
+⚠️ **Límite de 100 registros**
+   Solo retorna máximo 100 registros por consulta.
+   Para ver más, hacer búsquedas más específicas por año.
+
+⚠️ **Parámetro p_ejercicio**
+   El segundo parámetro (ejercicio) es INTEGER y opcional.
+   Permite filtrar descuentos por año fiscal específico.
+
+⚠️ **Búsqueda ILIKE**
+   La búsqueda por código usa ILIKE (case-insensitive)
+   Permite búsquedas parciales: "116" encuentra 1161, 1162, 1163...
+
+⚠️ **Descuentos vigentes**
+   No todos los descuentos están activos. El año del ejercicio
+   (axodescto) indica para qué año fue creado el descuento.
+
+═══════════════════════════════════════════════════════════════════════════
+
+COMPORTAMIENTO ESPERADO EN VUE
+═══════════════════════════════════════════════════════════════════════════
+
+```javascript
+// Ejemplo de llamada desde Vue (búsqueda por código)
+const params = [
+  { nombre: 'p_clave_cuenta', tipo: 'string', valor: '1162' },
+  { nombre: 'p_ejercicio', tipo: 'integer', valor: null }
+];
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "cvedescuento": 1162,
+      "descripcion": "VIUDAS (O) 2024",
+      "importe": 50
+    }
+  ],
+  "total": 1
+}
+
+// Respuesta esperada (búsqueda sin filtro)
+{
+  "data": [
+    // ... 100 registros
+  ],
+  "total": 100
+}
+```
+
+El componente ReqPromocion.vue debería:
+1. Recibir el array de descuentos
+2. Mostrar tabla con columnas: Código, Descripción, Porcentaje
+3. Campos de búsqueda para:
+   - Código de descuento (text input)
+   - Ejercicio fiscal (number input)
+4. Formateo especial:
+   - Porcentaje con símbolo % (50%)
+   - Descripciones limpias sin espacios extra
+5. Paginación implementada
+6. Límite de 100 resultados por búsqueda
+7. Búsqueda sin filtros muestra primeros 100
+8. Ordenar por código descendente
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN
+═══════════════════════════════════════════════════════════════════════════
+
+Problema: Tabla catastro_gdl.descuentos2008 no existía
+
+Solución: Stored procedure actualizado para usar public.c_descpred
+
+Características:
+- 1,289 tipos de descuentos disponibles (1994-2024)
+- Búsqueda por código o ejercicio fiscal
+- Tabla correcta en esquema public
+- Límite de 100 registros por consulta
+- Ordenamiento por código descendente
+- Porcentajes: 0% a 100%, promedio 53%
+- Campo "importe" mapea a "porcentaje"
+
+Resultado:
+- Consulta de catálogo de descuentos
+- Información de tipos de beneficios fiscales
+- Porcentajes de descuento aplicables
+- Vigencia por ejercicio fiscal
+- Datos oficiales del sistema
+
+Ventajas:
+- Catálogo oficial de descuentos
+- Búsqueda flexible por múltiples criterios
+- Consulta rápida de beneficios disponibles
+- Información completa de cada descuento
+- Límite de resultados para rendimiento
+- Histórico desde 1994
+
+Uso recomendado:
+- Búsquedas por código específico para ver detalles
+- Consulta por año para descuentos vigentes
+- Búsqueda sin filtros para navegación general
+- Verificación de porcentajes y condiciones
+- Consulta de descuentos disponibles por ejercicio
+- Análisis de políticas fiscales por año
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

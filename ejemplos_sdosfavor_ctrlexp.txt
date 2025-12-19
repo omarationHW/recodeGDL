@@ -1,0 +1,172 @@
+================================================================================
+EJEMPLOS PARA PROBAR SdosFavor_CtrlExp.vue
+================================================================================
+
+STORED PROCEDURE: publico.recaudadora_sdosfavor_ctrlexp(VARCHAR)
+BASE DE DATOS: multas_reglamentos
+TABLA: public.solic_sdosfavor
+REGISTROS: 25,968 solicitudes | 19,193 cuentas únicas
+AÑOS: 2006 - 2024
+
+================================================================================
+DESCRIPCIÓN
+================================================================================
+
+Control de expedientes de saldos a favor.
+Lista solicitudes de saldos a favor con información completa incluyendo:
+- Datos de identificación (ID, año/folio)
+- Información de la cuenta
+- Domicilio completo
+- Datos del solicitante
+- Estatus (Pendiente/Terminado/Cancelado/Autorizado)
+- Observaciones
+- Fechas de captura y término
+- Datos de control (inconformidad, peticionario, documentos)
+
+FILTRO REQUERIDO: cuenta (búsqueda parcial con ILIKE)
+
+================================================================================
+DISTRIBUCIÓN POR ESTATUS
+================================================================================
+
+T (Terminado):  20,661 registros (79.6%)
+P (Pendiente):   5,181 registros (19.9%)
+C (Cancelado):     126 registros (0.5%)
+
+================================================================================
+TOP 5 AÑOS CON MÁS SOLICITUDES
+================================================================================
+
+2019: 1,975 solicitudes
+2016: 1,959 solicitudes
+2013: 1,944 solicitudes
+2017: 1,871 solicitudes
+2022: 1,704 solicitudes
+
+================================================================================
+CUENTAS DE EJEMPLO PARA PRUEBAS
+================================================================================
+
+BÚSQUEDA COMPLETA (una solicitud):
+-------------------------------
+Cuenta: 551949
+  - ID Solicitud: 26141
+  - Año/Folio: 2024/1274
+  - Domicilio: SAN CARLOS 138
+  - Colonia: JARDINES DE LOS HISTORIADORES
+  - Solicitante: GONZALEZ TORRES ARMANDO
+  - Estatus: Pendiente
+  - Fecha Captura: 24/10/2024
+  - Capturista: esgomez
+  - Observaciones: SOLICITA TRANSLADO DE PAGOS DE CUENTA PREDIAL
+    DE TLAQUEPAQUE U-000805 A LA CUENTA 2-U-105005
+
+Cuenta: 551389
+Cuenta: 550863
+Cuenta: 550848
+Cuenta: 550839
+
+BÚSQUEDA PARCIAL (múltiples resultados):
+-------------------------------------
+Búsqueda: 949 → 82 resultados
+  - Cuenta: 551949 | Folio: 1274 | Estatus: Pendiente
+  - Cuenta: 394964 | Folio: 1165 | Estatus: Pendiente
+  - Cuenta: 46949  | Folio: 1142 | Estatus: Pendiente
+  - ... (79 más)
+
+CUENTAS CON MÚLTIPLES SOLICITUDES (para probar historiales):
+---------------------------------------------------------
+Cuenta: 380358 → 19 solicitudes
+Cuenta: 11179  → 17 solicitudes
+Cuenta: 12160  → 16 solicitudes
+Cuenta: 395600 → 16 solicitudes
+Cuenta: 98603  → 15 solicitudes
+
+================================================================================
+ESTRUCTURA DE RETORNO (19 COLUMNAS)
+================================================================================
+
+id_solicitud     INTEGER   - ID único de la solicitud
+anio_folio       INTEGER   - Año del folio
+folio            INTEGER   - Número de folio
+cuenta           TEXT      - Clave de cuenta del contribuyente
+domicilio        TEXT      - Calle y número del domicilio
+exterior         TEXT      - Número exterior
+interior         TEXT      - Número interior
+colonia          TEXT      - Nombre de la colonia
+cp               TEXT      - Código postal
+telefono         TEXT      - Teléfono de contacto
+solicitante      TEXT      - Nombre del solicitante
+estatus          TEXT      - Estado: Pendiente/Terminado/Cancelado/Autorizado
+observaciones    TEXT      - Observaciones y detalles de la solicitud
+fecha_captura    TEXT      - Fecha de captura (DD/MM/YYYY)
+capturista       TEXT      - Usuario que capturó la solicitud
+fecha_termino    TEXT      - Fecha de término (DD/MM/YYYY)
+inconformidad    INTEGER   - Número de inconformidad
+peticionario     INTEGER   - Número de peticionario
+documentos       TEXT      - Documentos relacionados
+
+================================================================================
+CASOS DE PRUEBA EN LA INTERFAZ
+================================================================================
+
+1. BÚSQUEDA ESPECÍFICA:
+   Cuenta: 551949
+   Resultado esperado: 1 registro (ID 26141, Folio 2024/1274)
+
+2. BÚSQUEDA PARCIAL (últimos dígitos):
+   Cuenta: 949
+   Resultado esperado: 82 registros
+
+3. BÚSQUEDA PARCIAL (primeros dígitos):
+   Cuenta: 551
+   Resultado esperado: Múltiples registros de cuentas que empiezan con 551
+
+4. HISTORIAL DE CUENTA:
+   Cuenta: 380358
+   Resultado esperado: 19 solicitudes de la misma cuenta
+
+5. CUENTA CON SOLICITUDES RECIENTES:
+   Cuenta: 551389
+   Resultado esperado: Solicitudes del año 2024
+
+================================================================================
+VALIDACIONES DEL FORMULARIO
+================================================================================
+
+✓ Campo cuenta es REQUERIDO (no se puede buscar sin cuenta)
+✓ Búsqueda parcial funciona (ILIKE '%valor%')
+✓ Límite de 100 registros por consulta
+✓ Ordenado por ID solicitud DESC (más recientes primero)
+✓ Columnas generadas dinámicamente desde el resultado
+✓ Paginación de 10 registros por página
+
+================================================================================
+NOTAS TÉCNICAS
+================================================================================
+
+- Búsqueda case-insensitive (ILIKE)
+- Status mapeado a texto legible (P→Pendiente, T→Terminado, C→Cancelado)
+- Fechas formateadas a DD/MM/YYYY
+- Campos CHAR con TRIM() aplicado
+- NULL handling con COALESCE
+- Límite: 100 registros máximo
+- Orden: id_solic DESC (más recientes primero)
+
+================================================================================
+CONSULTA SQL DIRECTA (para pruebas en pgAdmin)
+================================================================================
+
+-- Búsqueda específica
+SELECT * FROM publico.recaudadora_sdosfavor_ctrlexp('551949');
+
+-- Búsqueda parcial
+SELECT * FROM publico.recaudadora_sdosfavor_ctrlexp('949');
+
+-- Ver todas (primeras 100)
+SELECT * FROM publico.recaudadora_sdosfavor_ctrlexp('');
+
+-- Contar resultados
+SELECT COUNT(*) FROM publico.recaudadora_sdosfavor_ctrlexp('949');
+
+================================================================================

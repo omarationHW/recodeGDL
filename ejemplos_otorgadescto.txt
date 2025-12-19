@@ -1,0 +1,352 @@
+=== EJEMPLOS PARA PROBAR Otorgadescto.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- public.aut_desctosotorgados (33 descuentos otorgados)
+
+IMPORTANTE:
+- 33 descuentos otorgados disponibles
+- Búsqueda por: ID de multa (clave_cuenta) y ejercicio (año)
+- Límite de 50 registros por consulta con paginación
+- Estados: Vigente (27), Cancelado (6)
+- Tipos: Porcentaje (32), Importe (1)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.descuentos_otorgados" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla public.aut_desctosotorgados (autorizaciones de descuentos otorgados)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_otorga_descto**: Busca descuentos otorgados con paginación
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_clave_cuenta: VARCHAR (ID de multa, puede estar vacío)
+- p_ejercicio: INTEGER (año, 0 = todos)
+- p_offset: INTEGER (inicio de página, default 0)
+- p_limit: INTEGER (cantidad de registros, default 50)
+
+Búsqueda en 2 campos:
+1. ID de Multa (id_multa)
+2. Ejercicio/Año (axo)
+
+--- EJEMPLO 1: Sin filtro (todos los descuentos) ---
+
+Parámetros:
+- p_clave_cuenta: '' (vacío)
+- p_ejercicio: 0 (todos)
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados: 33 descuentos
+✓ Ordenados por fecha más reciente
+✓ Campos: folio_descto, tipo, id_multa, ejercicio, descripcion, fecha_inicio, fecha_fin, porcentaje_autorizado, monto_autorizado, motivo, fecha_captura, usuario_captura, vigencia, quien_autorizo, tipo_descuento, adeudo, total_count
+
+Ejemplo de resultado:
+- Folio: 34
+- ID Multa: 413995
+- Ejercicio: 2025
+- Descripción: ECOLOGIA Y MEDIO AMBIENTE-2025-718 D 3
+- Fecha Inicio: 2025-07-25
+- Fecha Fin: 2025-07-25
+- Porcentaje: 30%
+- Adeudo: $8,000.00
+- Tipo: Porcentaje
+- Vigencia: Vigente
+
+--- EJEMPLO 2: Búsqueda por ID de multa ---
+
+Parámetros:
+- p_clave_cuenta: 'JBB3383'
+- p_ejercicio: 0
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados: 4 descuentos
+✓ Todos los descuentos otorgados para la multa JBB3383
+✓ Diferentes años y porcentajes
+
+Ejemplos de resultados:
+1. Folio: 6, Multa: JBB3383, Ejercicio: 2013, Porcentaje: 25%, Adeudo: $326.00
+2. Folio: 4, Multa: JBB3383, Ejercicio: 2013, Porcentaje: 35%, Adeudo: $326.00
+3. Folio: 3, Multa: JBB3383, Ejercicio: 0, Porcentaje: 30%, Adeudo: $326.00
+
+--- EJEMPLO 3: Búsqueda por ejercicio/año ---
+
+Parámetros:
+- p_clave_cuenta: '' (vacío)
+- p_ejercicio: 2023
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados: 18 descuentos
+✓ Solo descuentos del año 2023
+✓ Ordenados por fecha más reciente
+
+Ejemplos de resultados:
+1. Folio: 26, Multa: 406402, Fecha: 2023-10-26, Porcentaje: 80%
+2. Folio: 25, Multa: 405578, Fecha: 2023-09-18, Porcentaje: 70%
+3. Folio: 24, Multa: 400912, Fecha: 2023-04-12, Porcentaje: 95%
+
+--- CAMPOS RETORNADOS ---
+
+| Campo                   | Tipo    | Descripción                                    |
+|-------------------------|---------|------------------------------------------------|
+| folio_descto            | INTEGER | Identificador único del descuento              |
+| tipo                    | INTEGER | Tipo de descuento (catálogo)                   |
+| id_multa                | VARCHAR | Identificador de la multa                      |
+| ejercicio               | INTEGER | Año del descuento                              |
+| descripcion             | VARCHAR | Descripción del descuento                      |
+| fecha_inicio            | DATE    | Fecha inicio de vigencia                       |
+| fecha_fin               | DATE    | Fecha fin de vigencia                          |
+| porcentaje_autorizado   | SMALLINT| Porcentaje autorizado (0-100)                  |
+| monto_autorizado        | NUMERIC | Monto autorizado en pesos                      |
+| motivo                  | VARCHAR | Motivo del descuento                           |
+| fecha_captura           | DATE    | Fecha de captura/actualización                 |
+| usuario_captura         | VARCHAR | Usuario que capturó                            |
+| vigencia                | VARCHAR | Vigente o Cancelado                            |
+| quien_autorizo          | SMALLINT| Quien autorizó el descuento                    |
+| tipo_descuento          | VARCHAR | Porcentaje o Importe                           |
+| adeudo                  | NUMERIC | Adeudo original                                |
+| total_count             | BIGINT  | Total de registros (para paginación)           |
+
+--- MAPEO DE ESTADOS ---
+
+| Vigencia (DB) | Descripción | Total | Porcentaje |
+|---------------|-------------|-------|------------|
+| B             | Vigente     | 27    | 81.8%      |
+| C             | Cancelado   | 6     | 18.2%      |
+
+--- MAPEO DE TIPOS DE DESCUENTO ---
+
+| Tipo (DB) | Descripción | Total | Porcentaje |
+|-----------|-------------|-------|------------|
+| P         | Porcentaje  | 32    | 97.0%      |
+| I         | Importe     | 1     | 3.0%       |
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Búsqueda combinable**
+   Puedes combinar ambos filtros:
+   - Solo por ID de multa: p_clave_cuenta='402591', p_ejercicio=0
+   - Solo por ejercicio: p_clave_cuenta='', p_ejercicio=2023
+   - Ambos filtros: p_clave_cuenta='402591', p_ejercicio=2023
+
+⚠️ Límite de 50 registros por página
+   La función retorna máximo 50 registros por consulta
+   Ordenados por fecha de captura más reciente
+
+⚠️ Búsqueda case-insensitive
+   Usa ILIKE para búsqueda parcial sin importar mayúsculas/minúsculas
+
+⚠️ Vigencia derivada de campo vigencia
+   - B = Vigente (descuento activo)
+   - C = Cancelado (descuento cancelado)
+
+⚠️ Tipo de descuento
+   - P = Porcentaje (más común, 97%)
+   - I = Importe (poco común, 3%)
+
+⚠️ Porcentajes autorizados
+   - Mínimo: 20%
+   - Máximo: 95%
+   - Promedio: 71.25%
+
+⚠️ Ejercicio puede ser 0
+   Algunos descuentos no tienen ejercicio asignado (axo=0)
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: public
+Tabla: aut_desctosotorgados (33 registros)
+
+Campos principales:
+- folio_descto: Identificador único (INTEGER)
+- tipo: Tipo de descuento (INTEGER)
+- id_multa: Identificador de multa (CHARACTER 10)
+- axo: Año del descuento (INTEGER)
+- datos_descto: Descripción (VARCHAR 255)
+- fecha_inicio: Fecha inicio vigencia (DATE)
+- fecha_fin: Fecha fin vigencia (DATE)
+- por_aut: Porcentaje autorizado (SMALLINT)
+- monto_aut: Monto autorizado (NUMERIC 16,2)
+- motivo: Motivo del descuento (VARCHAR 255)
+- fecha_act: Fecha de captura (DATE)
+- user_cap: Usuario captura (CHARACTER 10)
+- vigencia: Vigencia (CHARACTER 2: B=Vigente, C=Cancelado)
+- quien_aut: Quien autorizó (SMALLINT)
+- tipo_descto: Tipo (CHARACTER 1: P=Porcentaje, I=Importe)
+- adeudo: Adeudo original (NUMERIC 16,2)
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT
+    d.folio_descto,
+    d.tipo,
+    TRIM(d.id_multa) AS id_multa,
+    COALESCE(d.axo, 0) AS ejercicio,
+    COALESCE(d.datos_descto, '') AS descripcion,
+    d.fecha_inicio,
+    d.fecha_fin,
+    COALESCE(d.por_aut, 0) AS porcentaje_autorizado,
+    COALESCE(d.monto_aut, 0) AS monto_autorizado,
+    COALESCE(d.motivo, '') AS motivo,
+    d.fecha_act AS fecha_captura,
+    TRIM(COALESCE(d.user_cap, '')) AS usuario_captura,
+    CASE
+        WHEN TRIM(d.vigencia) = 'B' THEN 'Vigente'
+        WHEN TRIM(d.vigencia) = 'C' THEN 'Cancelado'
+        ELSE 'Desconocido'
+    END AS vigencia,
+    COALESCE(d.quien_aut, 0) AS quien_autorizo,
+    CASE
+        WHEN TRIM(d.tipo_descto) = 'P' THEN 'Porcentaje'
+        WHEN TRIM(d.tipo_descto) = 'I' THEN 'Importe'
+        ELSE 'Desconocido'
+    END AS tipo_descuento,
+    COALESCE(d.adeudo, 0) AS adeudo
+FROM public.aut_desctosotorgados d
+WHERE
+    (p_clave_cuenta = '' OR p_clave_cuenta IS NULL OR d.id_multa::TEXT ILIKE '%' || p_clave_cuenta || '%')
+    AND (p_ejercicio = 0 OR p_ejercicio IS NULL OR d.axo = p_ejercicio)
+ORDER BY d.fecha_act DESC, d.folio_descto DESC
+OFFSET p_offset
+LIMIT p_limit
+```
+
+Criterios:
+1. Si clave_cuenta vacío: no filtra por ID multa
+2. Si ejercicio = 0: no filtra por año
+3. Búsqueda parcial en id_multa con ILIKE
+4. Ordenamiento: fecha de captura más reciente primero
+5. Límite: 50 registros máximo por página
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 33 descuentos encontrados
+✅ Test con id_multa 'JBB3383': 4 coincidencias
+✅ Test con ejercicio 2022: 2 descuentos
+✅ Test con ejercicio 2023: 18 descuentos
+✅ Test con filtro combinado (multa + ejercicio): 1 descuento
+✅ Stored procedure actualizado exitosamente
+✅ Búsqueda combinable funcional
+✅ Límite de 50 registros aplicado
+✅ Ordenamiento por fecha descendente correcto
+✅ Estados mapeados correctamente (Vigente/Cancelado)
+✅ Tipos mapeados correctamente (Porcentaje/Importe)
+
+--- ESTADÍSTICAS ---
+
+Total de descuentos: 33
+
+Por vigencia:
+- Vigente: 27 (81.8%)
+- Cancelado: 6 (18.2%)
+
+Por tipo:
+- Porcentaje: 32 (97.0%)
+- Importe: 1 (3.0%)
+
+Por año:
+- 2025: 4 descuentos
+- 2024: 4 descuentos
+- 2023: 18 descuentos
+- 2022: 2 descuentos
+- 2013: 3 descuentos
+
+Porcentajes autorizados:
+- Mínimo: 20%
+- Máximo: 95%
+- Promedio: 71.25%
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver todos los descuentos otorgados**
+1. Llamar recaudadora_otorga_descto('', 0, 0, 50)
+2. Retorna los 33 descuentos más recientes
+3. Revisar vigencias y porcentajes
+
+**Caso 2: Buscar descuentos de una multa específica**
+1. Llamar recaudadora_otorga_descto('JBB3383', 0, 0, 50)
+2. Retorna todos los descuentos de esa multa
+3. Puede haber múltiples descuentos para una misma multa
+
+**Caso 3: Buscar descuentos por año**
+1. Llamar recaudadora_otorga_descto('', 2023, 0, 50)
+2. Retorna todos los descuentos del 2023
+3. Útil para reportes anuales
+
+**Caso 4: Buscar descuento específico (multa + año)**
+1. Llamar recaudadora_otorga_descto('402591', 2023, 0, 50)
+2. Retorna descuentos específicos de esa multa en ese año
+3. Búsqueda más precisa
+
+**Caso 5: Verificar descuentos vigentes**
+1. Llamar recaudadora_otorga_descto('', 0, 0, 50)
+2. Filtrar resultados donde vigencia = 'Vigente'
+3. Revisar fecha_fin para vencimiento
+
+--- FLUJO RECOMENDADO ---
+
+1. **Búsqueda inicial**
+   ```
+   recaudadora_otorga_descto('', 0, 0, 50)
+   → Retorna: todos los 33 descuentos ordenados por fecha reciente
+   ```
+
+2. **Filtrar por multa**
+   ```
+   recaudadora_otorga_descto('id_multa', 0, 0, 50)
+   → Retorna: descuentos de esa multa específica
+   ```
+
+3. **Filtrar por año**
+   ```
+   recaudadora_otorga_descto('', 2023, 0, 50)
+   → Retorna: descuentos del año 2023
+   ```
+
+4. **Interpretar resultados**
+   - Revisar campo 'vigencia' para estado actual
+   - Revisar campo 'tipo_descuento' (Porcentaje o Importe)
+   - Campo 'porcentaje_autorizado' indica el % de descuento
+   - Campo 'adeudo' indica el adeudo original
+   - Campos 'fecha_inicio' y 'fecha_fin' indican periodo de vigencia
+
+5. **Refinar búsqueda**
+   - Combinar filtros para búsquedas más precisas
+   - Usar paginación si hay muchos resultados
+
+--- RESUMEN ---
+
+Problema: Tabla publico.descuentos_otorgados no existe
+
+Solución: Usa public.aut_desctosotorgados (autorizaciones de descuentos)
+
+Diferencia clave: Búsqueda por ID de multa y ejercicio/año
+
+Resultado: Sistema funcional para consultar descuentos otorgados
+
+Características:
+- Búsqueda por ID de multa (clave_cuenta)
+- Búsqueda por ejercicio/año
+- Filtros combinables
+- Búsqueda parcial con ILIKE (case-insensitive)
+- Límite de 50 registros por consulta con paginación
+- Ordenamiento por fecha de captura descendente
+- Estados descriptivos (Vigente/Cancelado)
+- Tipos descriptivos (Porcentaje/Importe)
+- 33 descuentos otorgados disponibles
+- Promedio de descuento: 71.25%
+- Total vigentes: 27 (81.8%)
+- Total cancelados: 6 (18.2%)

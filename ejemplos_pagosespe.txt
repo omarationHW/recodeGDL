@@ -1,0 +1,321 @@
+=== EJEMPLOS PARA PROBAR PagosEspe.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- public.autpagoesp (3,728 autorizaciones de pagos especiales)
+
+IMPORTANTE:
+- 3,728 autorizaciones de pagos especiales disponibles
+- Búsqueda por: clave de cuenta y ejercicio (año)
+- Límite de 100 registros por consulta
+- Años: 1994-2023 (principalmente 1995-2010)
+- Rango de fechas: 1999-11-04 a 2023-08-29
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.pagos_especiales" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla public.autpagoesp (autorizaciones de pagos especiales)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_pagos_espe**: Busca autorizaciones de pagos especiales
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_clave_cuenta: VARCHAR (clave de cuenta, puede estar vacío)
+- p_ejercicio: INTEGER (año, NULL = todos)
+
+Búsqueda en 2 campos:
+1. Clave de cuenta (cvecuenta)
+2. Ejercicio/Año (axoini o axofin)
+
+--- EJEMPLO 1: Sin filtro (últimas 100 autorizaciones) ---
+
+Parámetros:
+- p_clave_cuenta: '' (vacío)
+- p_ejercicio: NULL (todos)
+
+Resultado esperado:
+✓ Total encontrados: 100 autorizaciones (límite)
+✓ Ordenadas por fecha más reciente
+✓ Campos: cveaut, cvecuenta, bimestre_inicio, año_inicio, bimestre_fin, año_fin, fecha_autorizacion, autorizado_por, cve_pago, estado, monto_autorizado, observaciones
+
+Ejemplo de resultado:
+- Clave Aut: 6270
+- Cuenta: 15657
+- Periodo: Bim 1/2021 - Bim 6/2023
+- Fecha Autorización: 2023-08-29
+- Autorizado por: msaucedo
+- Clave Pago: 999999
+- Estado: Autorizado
+
+--- EJEMPLO 2: Búsqueda por cuenta ---
+
+Parámetros:
+- p_clave_cuenta: '104241'
+- p_ejercicio: NULL
+
+Resultado esperado:
+✓ Total encontrados: 1 autorización
+✓ Autorización específica de la cuenta 104241
+✓ Ejemplo:
+
+Clave Aut: 1, Cuenta: 104241, Fecha: 1999-11-04, Autorizado por: sigonzal
+
+--- EJEMPLO 3: Búsqueda por ejercicio/año ---
+
+Parámetros:
+- p_clave_cuenta: '' (vacío)
+- p_ejercicio: 1999
+
+Resultado esperado:
+✓ Total encontrados: 100 autorizaciones (límite)
+✓ Autorizaciones que incluyen el año 1999 (inicio o fin)
+✓ Ejemplos:
+
+1. Clave Aut: 2736, Cuenta: 324878, Periodo: 1999-2002
+2. Clave Aut: 2589, Cuenta: 308889, Periodo: 1999-2001
+3. Clave Aut: 2569, Cuenta: 411399, Periodo: 1995-1999
+
+--- CAMPOS RETORNADOS ---
+
+| Campo                | Tipo     | Descripción                                    |
+|----------------------|----------|------------------------------------------------|
+| cveaut               | INTEGER  | Clave de autorización (identificador único)    |
+| cvecuenta            | VARCHAR  | Clave de cuenta                                |
+| bimestre_inicio      | SMALLINT | Bimestre inicial (1-6)                         |
+| año_inicio           | SMALLINT | Año inicial                                    |
+| bimestre_fin         | SMALLINT | Bimestre final (1-6)                           |
+| año_fin              | SMALLINT | Año final                                      |
+| fecha_autorizacion   | DATE     | Fecha de autorización                          |
+| autorizado_por       | VARCHAR  | Usuario que autorizó                           |
+| cve_pago             | INTEGER  | Clave de pago                                  |
+| estado               | VARCHAR  | Estado (siempre 'Autorizado')                  |
+| monto_autorizado     | NUMERIC  | Monto autorizado (no disponible, retorna 0)    |
+| observaciones        | TEXT     | Observaciones (no disponible, retorna vacío)   |
+
+--- MAPEO DE BIMESTRES ---
+
+| Bimestre | Meses       |
+|----------|-------------|
+| 1        | Ene-Feb     |
+| 2        | Mar-Abr     |
+| 3        | May-Jun     |
+| 4        | Jul-Ago     |
+| 5        | Sep-Oct     |
+| 6        | Nov-Dic     |
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Búsqueda por cuenta y ejercicio**
+   Puedes combinar ambos filtros:
+   - Solo por cuenta: p_clave_cuenta='104241', p_ejercicio=NULL
+   - Solo por ejercicio: p_clave_cuenta='', p_ejercicio=1999
+   - Ambos filtros: p_clave_cuenta='104241', p_ejercicio=1999
+
+⚠️ Límite de 100 registros por página
+   La función retorna máximo 100 registros por consulta
+   Ordenados por fecha de autorización más reciente
+
+⚠️ Búsqueda case-insensitive
+   Usa ILIKE para búsqueda parcial sin importar mayúsculas/minúsculas
+
+⚠️ Estado siempre es 'Autorizado'
+   Todos los registros son autorizaciones aprobadas
+
+⚠️ Campos no disponibles
+   - monto_autorizado: NO disponible (retorna 0)
+   - observaciones: NO disponible (retorna vacío)
+
+⚠️ Periodos multi-año
+   Algunas autorizaciones cubren múltiples años:
+   - Periodo: Bim 1/2021 - Bim 6/2023 (3 años)
+   - Filtro por ejercicio busca en año_inicio O año_fin
+
+⚠️ Bimestres van de 1 a 6
+   - 1: Ene-Feb
+   - 2: Mar-Abr
+   - 3: May-Jun
+   - 4: Jul-Ago
+   - 5: Sep-Oct
+   - 6: Nov-Dic
+
+⚠️ Clave de pago común
+   Muchas autorizaciones tienen cve_pago = 999999 (valor genérico)
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: public
+Tabla: autpagoesp (3,728 registros)
+
+Campos principales:
+- cveaut: Clave de autorización (INTEGER)
+- bimini: Bimestre inicial (SMALLINT 1-6)
+- axoini: Año inicial (SMALLINT)
+- bimfin: Bimestre final (SMALLINT 1-6)
+- axofin: Año final (SMALLINT)
+- fecaut: Fecha de autorización (DATE)
+- autorizo: Usuario que autorizó (CHARACTER 8)
+- cvecuenta: Clave de cuenta (INTEGER)
+- cvepago: Clave de pago (INTEGER)
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT
+    p.cveaut,
+    COALESCE(p.cvecuenta::VARCHAR, '') AS cvecuenta,
+    COALESCE(p.bimini, 0) AS bimestre_inicio,
+    COALESCE(p.axoini, 0) AS año_inicio,
+    COALESCE(p.bimfin, 0) AS bimestre_fin,
+    COALESCE(p.axofin, 0) AS año_fin,
+    p.fecaut AS fecha_autorizacion,
+    TRIM(COALESCE(p.autorizo, '')) AS autorizado_por,
+    COALESCE(p.cvepago, 0) AS cve_pago,
+    'Autorizado' AS estado,
+    0 AS monto_autorizado,
+    '' AS observaciones
+FROM public.autpagoesp p
+WHERE
+    (p_clave_cuenta = '' OR p_clave_cuenta IS NULL OR p.cvecuenta::TEXT ILIKE '%' || p_clave_cuenta || '%')
+    AND (p_ejercicio IS NULL OR p.axoini = p_ejercicio OR p.axofin = p_ejercicio)
+ORDER BY p.fecaut DESC, p.cveaut DESC
+LIMIT 100
+```
+
+Criterios:
+1. Si cuenta vacío: no filtra por cuenta
+2. Si ejercicio NULL: no filtra por año
+3. Búsqueda parcial en cuenta con ILIKE
+4. Ejercicio busca en año inicial O año final
+5. Ordenamiento: fecha de autorización más reciente primero
+6. Límite: 100 registros máximo
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 100 autorizaciones encontradas
+✅ Test con cuenta '104241': 1 autorización
+✅ Test con ejercicio 1999: 100 autorizaciones
+✅ Test con filtro combinado (cuenta + ejercicio): 1 autorización
+✅ Stored procedure actualizado exitosamente
+✅ Búsqueda combinable funcional
+✅ Límite de 100 registros aplicado
+✅ Ordenamiento por fecha descendente correcto
+✅ Estados mapeados correctamente (todos 'Autorizado')
+
+--- ESTADÍSTICAS ---
+
+Total de autorizaciones: 3,728
+
+Por año inicial (top 5):
+- 1995: 660 autorizaciones (17.7%)
+- 2004: 523 autorizaciones (14.0%)
+- 2010: 337 autorizaciones (9.0%)
+- 2000: 302 autorizaciones (8.1%)
+- 1994: 253 autorizaciones (6.8%)
+
+Por bimestre inicial:
+- Bimestre 1 (Ene-Feb): 2,545 autorizaciones (68.3%)
+- Bimestre 6 (Nov-Dic): 513 autorizaciones (13.8%)
+- Bimestre 4 (Jul-Ago): 235 autorizaciones (6.3%)
+- Bimestre 5 (Sep-Oct): 198 autorizaciones (5.3%)
+- Bimestre 3 (May-Jun): 123 autorizaciones (3.3%)
+- Bimestre 2 (Mar-Abr): 114 autorizaciones (3.1%)
+
+Usuarios que más autorizaron (top 5):
+- mperez: 522 autorizaciones (14.0%)
+- alopez: 368 autorizaciones (9.9%)
+- fjmora: 295 autorizaciones (7.9%)
+- DIngreso: 289 autorizaciones (7.8%)
+- mlcisner: 282 autorizaciones (7.6%)
+
+Rango de fechas:
+- Primera autorización: 1999-11-04
+- Última autorización: 2023-08-29
+- Periodo: 24 años
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver todas las autorizaciones recientes**
+1. Llamar recaudadora_pagos_espe('', NULL)
+2. Retorna las últimas 100 autorizaciones
+3. Revisar fechas y usuarios autorizantes
+
+**Caso 2: Buscar autorizaciones de una cuenta**
+1. Llamar recaudadora_pagos_espe('104241', NULL)
+2. Retorna autorizaciones de esa cuenta específica
+3. Puede haber múltiples autorizaciones para una cuenta
+
+**Caso 3: Buscar autorizaciones por año**
+1. Llamar recaudadora_pagos_espe('', 1999)
+2. Retorna autorizaciones que incluyen ese año
+3. Útil para reportes anuales
+
+**Caso 4: Buscar autorización específica (cuenta + año)**
+1. Llamar recaudadora_pagos_espe('104241', 1999)
+2. Retorna autorizaciones específicas
+3. Búsqueda más precisa
+
+**Caso 5: Verificar periodo de autorización**
+1. Llamar recaudadora_pagos_espe('', NULL)
+2. Revisar campos bimestre_inicio, año_inicio, bimestre_fin, año_fin
+3. Identificar periodos autorizados
+
+--- FLUJO RECOMENDADO ---
+
+1. **Búsqueda inicial**
+   ```
+   recaudadora_pagos_espe('', NULL)
+   → Retorna: últimas 100 autorizaciones ordenadas por fecha
+   ```
+
+2. **Filtrar por cuenta**
+   ```
+   recaudadora_pagos_espe('cuenta', NULL)
+   → Retorna: autorizaciones de esa cuenta
+   ```
+
+3. **Filtrar por año**
+   ```
+   recaudadora_pagos_espe('', 1999)
+   → Retorna: autorizaciones del año 1999
+   ```
+
+4. **Interpretar resultados**
+   - Revisar campo 'estado' (siempre 'Autorizado')
+   - Campo 'periodo' muestra bimestre/año inicio y fin
+   - Campo 'autorizado_por' muestra usuario autorizante
+   - Campo 'cve_pago' indica pago relacionado
+   - Campo 'monto_autorizado' no está disponible (siempre 0)
+
+5. **Refinar búsqueda**
+   - Combinar filtros para búsquedas más precisas
+   - Usar paginación si hay muchos resultados
+
+--- RESUMEN ---
+
+Problema: Tabla publico.pagos_especiales no existe
+
+Solución: Usa public.autpagoesp (autorizaciones de pagos especiales)
+
+Diferencia clave: Búsqueda por cuenta y ejercicio/año
+
+Resultado: Sistema funcional para consultar autorizaciones de pagos especiales
+
+Características:
+- Búsqueda por clave de cuenta
+- Búsqueda por ejercicio/año (inicio o fin)
+- Filtros combinables
+- Búsqueda parcial con ILIKE (case-insensitive)
+- Límite de 100 registros por consulta
+- Ordenamiento por fecha de autorización descendente
+- Periodos en bimestres (1-6)
+- 3,728 autorizaciones disponibles
+- Rango: 1999-2023 (24 años)
+- Principal bimestre: Ene-Feb (68.3%)
+- Campos monto_autorizado y observaciones no disponibles

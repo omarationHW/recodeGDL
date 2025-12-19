@@ -1,0 +1,445 @@
+=== DOCUMENTACIÓN: recaudadora_reqtrans_delete ===
+
+Fecha: 2025-12-18
+Stored Procedure: publico.recaudadora_reqtrans_delete(JSON)
+Base de Datos: multas_reglamentos
+Tabla: public.reqdiftransmision
+
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ORIGINAL
+═══════════════════════════════════════════════════════════════════════════
+
+Error al eliminar: relation "catastro_gdl.reqdiftransmision" does not exist
+La función intentaba eliminar de una tabla del esquema incorrecto.
+
+SOLUCIÓN
+═══════════════════════════════════════════════════════════════════════════
+
+El stored procedure ha sido actualizado para usar public.reqdiftransmision
+que es la tabla correcta en la BD multas_reglamentos.
+
+═══════════════════════════════════════════════════════════════════════════
+
+FUNCIÓN DISPONIBLE
+═══════════════════════════════════════════════════════════════════════════
+
+**recaudadora_reqtrans_delete**: Eliminar requerimiento de diferencias de transmisión
+
+PARÁMETRO:
+- p_registro: JSON con el ID del registro a eliminar
+
+CAMPOS DEL JSON (parámetro):
+
+| Campo  | Tipo    | Requerido | Descripción                          |
+|--------|---------|-----------|--------------------------------------|
+| cvereq | INTEGER | SÍ        | ID único del registro a eliminar     |
+
+VALORES RETORNADOS (JSON):
+
+| Campo          | Tipo    | Descripción                                |
+|----------------|---------|---------------------------------------------|
+| success        | BOOLEAN | true si se eliminó, false si hubo error    |
+| message        | TEXT    | Mensaje descriptivo del resultado           |
+| cvereq         | INTEGER | ID del registro eliminado (si success)      |
+| clave_cuenta   | TEXT    | Cuenta del registro eliminado (si success)  |
+| ejercicio      | INTEGER | Ejercicio del registro eliminado (si success)|
+| rows_affected  | INTEGER | Número de filas eliminadas (si success)     |
+
+═══════════════════════════════════════════════════════════════════════════
+
+VALIDACIONES IMPLEMENTADAS
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Campo requerido: cvereq**
+   - Si está vacío, NULL o <= 0, retorna error
+   - Mensaje: "Error: No se proporcionó el ID del registro. Por favor recargue la página."
+
+2. **Existencia del registro**
+   - Verifica si el registro existe antes de intentar eliminarlo
+   - Mensaje: "El registro no existe o ya fue eliminado"
+
+3. **Foreign key violations**
+   - Detecta si el registro está siendo usado por otras tablas
+   - Mensaje: "No se puede eliminar: El registro está siendo usado por otros registros"
+
+4. **Información del registro eliminado**
+   - Guarda información del registro antes de eliminarlo
+   - Retorna cuenta y ejercicio para mensaje de confirmación
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: ELIMINACIÓN EXITOSA
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Eliminar un registro existente
+
+🔧 JSON DE ENTRADA:
+
+```json
+{
+  "cvereq": 9
+}
+```
+
+📊 RESPUESTA ESPERADA:
+
+```json
+{
+  "success": true,
+  "message": "Registro eliminado correctamente",
+  "cvereq": 9,
+  "clave_cuenta": "777666555",
+  "ejercicio": 2025,
+  "rows_affected": 1
+}
+```
+
+✅ VALIDACIONES:
+
+- Registro eliminado exitosamente
+- ID: 9
+- Cuenta eliminada: 777666555
+- Ejercicio: 2025
+- 1 fila afectada en la base de datos
+- Registro ya no existe en la tabla
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: ERROR - REGISTRO YA ELIMINADO
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Intentar eliminar un registro que ya no existe
+
+🔧 JSON DE ENTRADA:
+
+```json
+{
+  "cvereq": 9
+}
+```
+
+Nota: Este registro ya fue eliminado anteriormente
+
+📊 RESPUESTA ESPERADA:
+
+```json
+{
+  "success": false,
+  "message": "El registro no existe o ya fue eliminado"
+}
+```
+
+✅ VALIDACIONES:
+
+- No se realiza ninguna operación DELETE
+- Validación de existencia funcionando correctamente
+- Mensaje claro y descriptivo
+- Previene errores en la base de datos
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: ERROR - CAMPO REQUERIDO FALTANTE
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Intentar eliminar sin proporcionar cvereq
+
+🔧 JSON DE ENTRADA:
+
+```json
+{
+  "clave_cuenta": "123456"
+}
+```
+
+Nota: Falta el campo cvereq (requerido)
+
+📊 RESPUESTA ESPERADA:
+
+```json
+{
+  "success": false,
+  "message": "Error: No se proporcionó el ID del registro. Por favor recargue la página."
+}
+```
+
+✅ VALIDACIONES:
+
+- No se realiza ninguna operación DELETE
+- Validación de campo requerido funcionando
+- Mensaje sugiere al usuario recargar la página
+- Protege la integridad de los datos
+
+═══════════════════════════════════════════════════════════════════════════
+
+COMPORTAMIENTO AUTOMÁTICO
+═══════════════════════════════════════════════════════════════════════════
+
+La función realiza las siguientes operaciones automáticamente:
+
+1. **Validación de cvereq**
+   - Verifica que sea un número entero válido
+   - Verifica que sea mayor que 0
+   - Maneja errores de conversión de tipo
+
+2. **Verificación de existencia**
+   - Consulta si el registro existe antes de eliminarlo
+   - Previene errores al intentar eliminar registros inexistentes
+
+3. **Almacenamiento de información**
+   - Guarda cuenta y ejercicio del registro antes de eliminarlo
+   - Retorna esta información en el mensaje de confirmación
+
+4. **Manejo de foreign keys**
+   - Detecta si hay relaciones con otras tablas
+   - Retorna mensaje descriptivo en caso de violación de FK
+
+5. **Verificación post-eliminación**
+   - Confirma cuántas filas fueron afectadas
+   - Retorna error si no se eliminó ninguna fila
+
+═══════════════════════════════════════════════════════════════════════════
+
+USO DESDE VUE.JS
+═══════════════════════════════════════════════════════════════════════════
+
+```javascript
+// Ejemplo de llamada desde Vue
+async function eliminarRequerimiento(cvereq) {
+  // Confirmar con el usuario
+  if (!confirm('¿Está seguro de eliminar este requerimiento?')) {
+    return;
+  }
+
+  const registro = {
+    cvereq: cvereq  // ID del registro a eliminar
+  };
+
+  try {
+    const data = await execute('RECAUDADORA_REQTRANS_DELETE', BASE_DB, [
+      {
+        nombre: 'p_registro',
+        tipo: 'json',
+        valor: JSON.stringify(registro)
+      }
+    ]);
+
+    // Parsear respuesta
+    const response = typeof data === 'string' ? JSON.parse(data) : data;
+
+    if (response.success) {
+      console.log('Registro eliminado:', response.cvereq);
+      console.log('Cuenta:', response.clave_cuenta);
+      console.log('Ejercicio:', response.ejercicio);
+
+      alert('Registro eliminado correctamente');
+
+      // Recargar lista después de eliminar
+      buscarGeneral();
+    } else {
+      console.error('Error:', response.message);
+      alert('Error: ' + response.message);
+    }
+  } catch (e) {
+    console.error('Error al eliminar:', e);
+    alert('Error al eliminar el registro');
+  }
+}
+
+// Uso en el template
+// <button @click="eliminarRequerimiento(registro.cvereq)">Eliminar</button>
+```
+
+═══════════════════════════════════════════════════════════════════════════
+
+CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+**Caso 1: Eliminación normal**
+- Usuario selecciona un registro de la lista
+- Sistema muestra confirmación: "¿Está seguro de eliminar?"
+- Usuario confirma
+- Sistema elimina el registro
+- Muestra mensaje de éxito con información del registro eliminado
+- Recarga la lista automáticamente
+
+**Caso 2: Registro ya eliminado**
+- Usuario intenta eliminar un registro que ya no existe
+- Sistema detecta que el registro no existe
+- Muestra mensaje: "El registro no existe o ya fue eliminado"
+- No realiza ninguna operación en la BD
+- Sugiere al usuario recargar la lista
+
+**Caso 3: Error de integridad referencial**
+- Usuario intenta eliminar un registro que tiene relaciones
+- Sistema detecta violación de foreign key
+- Muestra mensaje: "No se puede eliminar: El registro está siendo usado"
+- No elimina el registro
+- Usuario puede primero eliminar registros relacionados
+
+**Caso 4: Error de comunicación**
+- Se pierde el ID del registro (cvereq no se envía)
+- Sistema detecta campo faltante
+- Muestra mensaje: "Error: No se proporcionó el ID. Por favor recargue la página"
+- Sugiere al usuario recargar para obtener datos actualizados
+
+═══════════════════════════════════════════════════════════════════════════
+
+FLUJO DE ELIMINACIÓN RECOMENDADO
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Usuario hace clic en botón "Eliminar"**
+   - El componente Vue obtiene el cvereq del registro
+   - Muestra diálogo de confirmación
+
+2. **Usuario confirma la eliminación**
+   - Se construye el JSON con cvereq
+   - Se llama al stored procedure
+   - Se muestra indicador de carga
+
+3. **Sistema procesa la eliminación**
+   - Valida que cvereq esté presente
+   - Verifica que el registro exista
+   - Guarda información del registro
+   - Elimina el registro de la BD
+
+4. **Sistema retorna respuesta**
+   - Si success: Muestra mensaje de éxito con datos eliminados
+   - Si error: Muestra mensaje de error específico
+
+5. **Actualización de la interfaz**
+   - Oculta indicador de carga
+   - Recarga la lista de registros
+   - El registro eliminado ya no aparece
+
+═══════════════════════════════════════════════════════════════════════════
+
+PRUEBAS REALIZADAS
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Eliminación exitosa de registro
+✅ Validación de campo cvereq requerido
+✅ Validación de registro inexistente
+✅ Validación de registro ya eliminado
+✅ Verificación post-eliminación en BD
+✅ Retorno de información del registro eliminado
+✅ Manejo de foreign key violations
+✅ Manejo de errores de conversión de tipos
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ **Tabla correcta**
+   La función ahora usa public.reqdiftransmision en lugar de
+   catastro_gdl.reqdiftransmision.
+
+⚠️ **Campo cvereq es requerido**
+   La función valida que este campo esté presente y sea válido.
+   Sin cvereq, la eliminación no se puede realizar.
+
+⚠️ **Operación irreversible**
+   La eliminación es permanente. Se recomienda siempre mostrar
+   un diálogo de confirmación antes de llamar a esta función.
+
+⚠️ **Información de confirmación**
+   La función retorna cuenta y ejercicio del registro eliminado
+   para mostrar mensaje descriptivo al usuario.
+
+⚠️ **Foreign keys**
+   Si el registro tiene relaciones con otras tablas, la eliminación
+   fallará con un mensaje descriptivo. Primero elimine los registros
+   relacionados.
+
+⚠️ **Formato JSON estricto**
+   El parámetro debe ser un JSON válido con cvereq como número entero.
+
+⚠️ **Manejo de errores**
+   La función captura todas las excepciones y retorna un JSON
+   con success: false y el mensaje de error correspondiente.
+
+⚠️ **Recargar lista**
+   Después de una eliminación exitosa, siempre recargue la lista
+   de registros para reflejar los cambios en la interfaz.
+
+═══════════════════════════════════════════════════════════════════════════
+
+COMPARACIÓN CON OTRAS OPERACIONES
+═══════════════════════════════════════════════════════════════════════════
+
+**CREATE vs DELETE:**
+- CREATE: Genera nuevo cvereq automáticamente
+- DELETE: Requiere cvereq existente
+
+**UPDATE vs DELETE:**
+- UPDATE: Modifica datos pero mantiene el registro
+- DELETE: Elimina permanentemente el registro
+
+**LIST vs DELETE:**
+- LIST: Solo consulta, no modifica datos
+- DELETE: Modifica la base de datos permanentemente
+
+═══════════════════════════════════════════════════════════════════════════
+
+SEGURIDAD
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Validación de entrada**
+   - cvereq debe ser un entero válido
+   - cvereq debe ser mayor que 0
+
+2. **Verificación de existencia**
+   - El registro debe existir antes de eliminarlo
+   - Previene operaciones DELETE innecesarias
+
+3. **Foreign key constraints**
+   - Respeta las relaciones entre tablas
+   - No permite eliminar registros con dependencias
+
+4. **Manejo de excepciones**
+   - Todas las excepciones son capturadas
+   - Retorna mensajes descriptivos sin exponer detalles técnicos
+
+5. **Permisos**
+   - Función otorgada a usuario 'refact'
+   - Función otorgada a PUBLIC (revisar según políticas de seguridad)
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN FINAL
+═══════════════════════════════════════════════════════════════════════════
+
+Función: publico.recaudadora_reqtrans_delete(JSON)
+Tabla: public.reqdiftransmision
+Base de datos: multas_reglamentos
+
+**CRUD Completo para ReqTrans.vue:**
+✅ CREATE - recaudadora_reqtrans_create (Crear nuevos requerimientos)
+✅ READ   - recaudadora_reqtrans_list (Listar requerimientos)
+✅ UPDATE - recaudadora_reqtrans_update (Actualizar requerimientos)
+✅ DELETE - recaudadora_reqtrans_delete (Eliminar requerimientos)
+
+Características de DELETE:
+✅ Validación de campo requerido (cvereq)
+✅ Validación de existencia del registro
+✅ Manejo de foreign key violations
+✅ Retorno de información del registro eliminado
+✅ Manejo de errores completo
+✅ Retorno en formato JSON
+✅ Compatibilidad con Vue.js
+
+Uso:
+- Enviar JSON con cvereq del registro a eliminar
+- Recibir JSON con resultado (success, message, datos del eliminado)
+- Manejar errores de validación apropiadamente
+- Mostrar confirmación antes de eliminar
+- Actualizar lista después de eliminar
+
+Pruebas:
+- Todas las pruebas pasadas exitosamente
+- Función lista para producción
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

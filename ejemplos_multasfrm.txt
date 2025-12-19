@@ -1,0 +1,289 @@
+=== EJEMPLOS PARA PROBAR multasfrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- publico.multas (416,928 multas)
+
+IMPORTANTE:
+- 416,928 multas disponibles
+- Búsqueda multi-campo: folio, contribuyente, domicilio, giro, licencia
+- Límite de 100 registros por consulta
+- Estados: Activa (409,177), Cancelada (7,751)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.multas_general" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla publico.multas (tabla principal de multas)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_multasfrm**: Búsqueda general de multas
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_filtro: VARCHAR (búsqueda general, puede estar vacío)
+
+Búsqueda en 5 campos simultáneamente:
+1. Folio (num_acta)
+2. Contribuyente (nombre)
+3. Domicilio
+4. Giro (giro comercial)
+5. Licencia (num_licencia)
+
+--- EJEMPLO 1: Búsqueda sin filtro (últimas 100 multas) ---
+
+Parámetro: '' (vacío)
+
+Resultado esperado:
+✓ Total encontrados: 100 multas (límite)
+✓ Multas más recientes primero
+✓ Campos retornados:
+  - id_multa: 412441
+  - folio: 652
+  - anio: 2025
+  - fecha_acta: (fecha del acta)
+  - contribuyente: PROMOTORA NAACE, S. DE R.L. DE C.V.
+  - domicilio: TURIN
+  - giro: PLURIFAMILIAR
+  - licencia: (número de licencia si existe)
+  - total: $45,000.00
+  - estatus: Activa
+
+--- EJEMPLO 2: Búsqueda por contribuyente ---
+
+Parámetro: 'GARCIA'
+
+Resultado esperado:
+✓ Total encontrados: 100 multas (límite)
+✓ Todas las multas con 'GARCIA' en alguno de los 5 campos
+✓ Ejemplos:
+  - Folio: 10390/2013 - DE LA O GARCIA IRMA MARISSA - Total: $2,000.00
+  - Folio: 15781/2012 - HERNANDEZ GARCIA ERIKA - Total: $3,000.00
+  - Folio: 8227/2013 - ALEMAN QUEVEDO NESTOR (con "GARCIA" en domicilio) - Total: $3,600.00
+
+--- EJEMPLO 3: Búsqueda por giro ---
+
+Parámetro: 'COMERCIO'
+
+Resultado esperado:
+✓ Total encontrados: 100 multas (límite)
+✓ Todas las multas con 'COMERCIO' en el giro o en otros campos
+✓ Ejemplos:
+  - Folio: 989/2015 - Giro: COMERCIO - Total: $540.00
+  - Folio: 90805/2013 - Giro: COMERCIO AMBULANTE - Total: $2,400.00
+  - Folio: 11741/2006 - Giro: COMERCIO EN VIA PUBLICA - Total: $300.00
+
+--- CAMPOS RETORNADOS ---
+
+| Campo         | Tipo    | Descripción                                    |
+|---------------|---------|------------------------------------------------|
+| id_multa      | INTEGER | Identificador único de la multa                |
+| folio         | VARCHAR | Número de acta                                 |
+| anio          | INTEGER | Año de acta                                    |
+| fecha_acta    | DATE    | Fecha del acta                                 |
+| contribuyente | VARCHAR | Nombre del contribuyente                       |
+| domicilio     | VARCHAR | Domicilio del contribuyente                    |
+| giro          | VARCHAR | Giro comercial                                 |
+| licencia      | VARCHAR | Número de licencia                             |
+| total         | NUMERIC | Total de la multa                              |
+| estatus       | VARCHAR | Activa o Cancelada                             |
+
+--- MAPEO DE ESTADOS ---
+
+| Estatus   | Criterio                            | Total    | Porcentaje |
+|-----------|-------------------------------------|----------|------------|
+| Activa    | fecha_cancelacion IS NULL           | 409,177  | 98.1%      |
+| Cancelada | fecha_cancelacion IS NOT NULL       | 7,751    | 1.9%       |
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Búsqueda multi-campo**
+   El filtro busca en 5 campos simultáneamente con OR
+   Si introduces 'GARCIA', buscará en folio, contribuyente, domicilio, giro y licencia
+
+⚠️ Límite de 100 registros
+   La función retorna máximo 100 registros por consulta
+   Ordenados por fecha más reciente primero
+
+⚠️ Búsqueda case-insensitive
+   Usa ILIKE para búsqueda parcial sin importar mayúsculas/minúsculas
+   'garcia' = 'GARCIA' = 'Garcia'
+
+⚠️ Estado derivado de fecha_cancelacion
+   - Si fecha_cancelacion IS NULL → Activa
+   - Si fecha_cancelacion IS NOT NULL → Cancelada
+
+⚠️ Campo licencia puede estar vacío
+   No todas las multas tienen número de licencia
+   Se retorna como cadena vacía si no existe
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: publico
+Tabla: multas (416,928 registros)
+
+Campos principales:
+- id_multa: Identificador único (INTEGER)
+- num_acta: Número de acta / folio (INTEGER)
+- axo_acta: Año de acta (SMALLINT)
+- fecha_acta: Fecha del acta (DATE)
+- contribuyente: Nombre del contribuyente (VARCHAR 306)
+- domicilio: Domicilio (VARCHAR 336)
+- giro: Giro comercial (VARCHAR 336)
+- num_licencia: Número de licencia (INTEGER)
+- total: Total de la multa (NUMERIC)
+- fecha_cancelacion: Fecha de cancelación (DATE, NULL = activa)
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT
+    m.id_multa,
+    m.num_acta AS folio,
+    m.axo_acta AS anio,
+    m.fecha_acta,
+    m.contribuyente,
+    m.domicilio,
+    m.giro,
+    m.num_licencia AS licencia,
+    m.total,
+    CASE
+        WHEN m.fecha_cancelacion IS NOT NULL THEN 'Cancelada'
+        ELSE 'Activa'
+    END AS estatus
+FROM publico.multas m
+WHERE
+    CASE
+        WHEN p_filtro = '' OR p_filtro IS NULL THEN TRUE
+        ELSE (
+            m.num_acta::TEXT ILIKE '%' || p_filtro || '%'
+            OR m.contribuyente ILIKE '%' || p_filtro || '%'
+            OR m.domicilio ILIKE '%' || p_filtro || '%'
+            OR m.giro ILIKE '%' || p_filtro || '%'
+            OR m.num_licencia::TEXT ILIKE '%' || p_filtro || '%'
+        )
+    END
+ORDER BY m.fecha_acta DESC, m.id_multa DESC
+LIMIT 100
+```
+
+Criterios:
+1. Si filtro vacío: retorna todas (100 más recientes)
+2. Si hay filtro: busca coincidencias en 5 campos con OR
+3. Ordenamiento: fecha más reciente primero
+4. Límite: 100 registros máximo
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 100 multas más recientes
+✅ Test con contribuyente 'GARCIA': 100 coincidencias
+✅ Test con folio '1234': 100 coincidencias
+✅ Test con giro 'COMERCIO': 100 coincidencias
+✅ Stored procedure actualizado exitosamente
+✅ Búsqueda multi-campo funcional
+✅ Límite de 100 registros aplicado
+✅ Ordenamiento por fecha descendente correcto
+
+--- ESTADÍSTICAS ---
+
+Total de multas: 416,928
+
+Por estado:
+- Activa: 409,177 (98.1%)
+- Cancelada: 7,751 (1.9%)
+
+Por año (últimos 5):
+- 2025: 5,869 multas
+- 2024: 4,080 multas
+- 2023: 4,009 multas
+- 2022: 3,813 multas
+- 2021: 1,575 multas
+
+Giros más comunes (top 5):
+- BAR ANEXO A RESTAURANT: 6,023 multas
+- CASA HABITACION: 5,621 multas
+- HABITACIONAL: 3,306 multas
+- ABARROTES: 2,799 multas
+- TALLER MECANICO: 2,644 multas
+
+Montos:
+- Total general: $1,803,773,396.49
+- Promedio: $4,326.34
+- Mínimo: $0.00
+- Máximo: (valor muy alto)
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver últimas multas**
+1. Llamar recaudadora_multasfrm('')
+2. Retorna las 100 multas más recientes
+3. Revisar estados y montos
+
+**Caso 2: Buscar multa por folio**
+1. Llamar recaudadora_multasfrm('1234')
+2. Retorna multas que contengan '1234' en folio o en otros campos
+3. Puede haber múltiples coincidencias
+
+**Caso 3: Buscar multas de un contribuyente**
+1. Llamar recaudadora_multasfrm('NOMBRE')
+2. Retorna multas de contribuyentes con ese nombre
+3. Búsqueda parcial, no requiere nombre completo
+
+**Caso 4: Buscar por giro comercial**
+1. Llamar recaudadora_multasfrm('RESTAURANTE')
+2. Retorna multas con ese giro
+3. También busca en otros campos (multi-campo)
+
+**Caso 5: Buscar por licencia**
+1. Llamar recaudadora_multasfrm('12345')
+2. Busca en número de licencia y en otros campos
+3. Puede encontrar por folio o licencia
+
+--- FLUJO RECOMENDADO ---
+
+1. **Búsqueda inicial**
+   ```
+   recaudadora_multasfrm('')
+   → Retorna: últimas 100 multas
+   ```
+
+2. **Filtrar por criterio**
+   ```
+   recaudadora_multasfrm('criterio')
+   → Retorna: hasta 100 multas que coincidan en cualquier campo
+   ```
+
+3. **Interpretar resultados**
+   - Revisar campo 'estatus' para estado
+   - Revisar campo 'total' para monto
+   - Campo 'giro' indica el tipo de negocio
+   - Campo 'licencia' puede estar vacío
+
+4. **Refinar búsqueda**
+   - Si hay muchos resultados, hacer búsqueda más específica
+   - Usar términos únicos para reducir coincidencias
+
+--- RESUMEN ---
+
+Problema: Tabla publico.multas_general no existe
+
+Solución: Usa publico.multas (tabla principal de multas)
+
+Diferencia clave: Búsqueda multi-campo en 5 campos simultáneamente
+
+Resultado: Sistema funcional para búsqueda general de multas
+
+Características:
+- Búsqueda multi-campo (5 campos simultáneos)
+- Búsqueda parcial con ILIKE (case-insensitive)
+- Límite de 100 registros por consulta
+- Ordenamiento por fecha descendente
+- Estados descriptivos (Activa/Cancelada)
+- 416,928 multas disponibles
+- Promedio: $4,326.34 por multa
+- Total acumulado: $1,803 millones

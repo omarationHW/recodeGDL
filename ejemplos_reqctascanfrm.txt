@@ -1,0 +1,303 @@
+=== EJEMPLOS PARA PROBAR reqctascanfrm.vue ===
+
+El stored procedure ha sido creado para consultar cuentas canceladas usando la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: function publico.recaudadora_reqctascanfrm(unknown) does not exist
+HINT: No function matches the given name and argument types.
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.h_multasnvo (histórico de multas)
+para consultar multas canceladas asociadas a una cuenta específica,
+filtrando por fecha_cancelacion IS NOT NULL.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_reqctascanfrm**: Retorna multas canceladas por cuenta
+
+--- PARÁMETROS ---
+
+La función recibe:
+- clave_cuenta: VARCHAR (puede ser expediente, número de acta o ID de multa)
+
+Validaciones:
+- La clave de cuenta no puede estar vacía
+- Solo retorna multas con fecha_cancelacion IS NOT NULL
+
+--- VALORES RETORNADOS ---
+
+| Campo                | Tipo    | Descripción                                  |
+|---------------------|---------|----------------------------------------------|
+| id_multa             | INTEGER | ID de la multa                               |
+| num_acta             | INTEGER | Número de acta                               |
+| expediente           | VARCHAR | Número de expediente                         |
+| fecha_acta           | DATE    | Fecha del acta                               |
+| fecha_cancelacion    | DATE    | Fecha de cancelación                         |
+| contribuyente        | VARCHAR | Nombre del contribuyente                     |
+| domicilio            | VARCHAR | Domicilio del contribuyente                  |
+| dependencia          | INTEGER | ID de la dependencia                         |
+| nombre_dependencia   | VARCHAR | Nombre descriptivo de la dependencia         |
+| multa                | NUMERIC | Monto de la multa                            |
+| gastos               | NUMERIC | Gastos de ejecución                          |
+| total                | NUMERIC | Total (multa + gastos)                       |
+| observacion          | TEXT    | Observaciones sobre la multa                 |
+| user_baja            | VARCHAR | Usuario que dio de baja/canceló la multa     |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla h_multasnvo se consulta así:
+- Filtro principal: fecha_cancelacion IS NOT NULL
+- Búsqueda por: expediente, num_acta o id_multa
+- Todos los campos se retornan directamente
+- nombre_dependencia se construye con CASE
+- Ordenado por fecha_cancelacion DESC
+
+--- EJEMPLO 1: Búsqueda por número de acta (114559) ---
+
+Parámetro:
+- Cuenta: 114559
+
+Resultado esperado:
+- Total registros: 5
+- Multas canceladas asociadas al acta 114559
+
+Ejemplo de resultado:
+| ID     | Num.Acta | F.Cancelación | Contribuyente           | Total    | Usuario   |
+|--------|----------|---------------|-------------------------|----------|-----------|
+| 298699 | 114559   | 2011-09-23    | RAMOS OSORIO ANA MARIA  | $165.00  | squinter  |
+| ...    | ...      | ...           | ...                     | ...      | ...       |
+
+Análisis:
+- 5 multas encontradas
+- Todas del acta 114559
+- Canceladas en diferentes fechas
+- Usuario squinter realizó las cancelaciones
+
+--- EJEMPLO 2: Búsqueda por número de acta (2) ---
+
+Parámetro:
+- Cuenta: 2
+
+Resultado esperado:
+- Total registros: 1
+- Multa cancelada
+
+Ejemplo de resultado:
+| ID     | Num.Acta | Expediente | F.Cancelación | Total   | Usuario   |
+|--------|----------|------------|---------------|---------|-----------|
+| 265939 | 2        |            | 2008-09-23    | $0.00   | squinter  |
+
+Análisis:
+- 1 multa encontrada
+- Cancelada hace mucho tiempo (2008)
+- Sin expediente asociado
+- Total cancelado: $0.00
+
+--- EJEMPLO 3: Cuenta inexistente (99999999) ---
+
+Parámetro:
+- Cuenta: 99999999
+
+Resultado esperado:
+- Total registros: 0
+- No se encontraron multas canceladas
+
+Análisis:
+- Búsqueda sin resultados
+- Sistema maneja correctamente cuentas inexistentes
+- No genera errores
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Datos generales de multas canceladas:**
+- Total multas canceladas: 615
+- Dependencias con cancelaciones: 11
+- Total cancelado: $12,147,202.05
+- Promedio por cancelación: $19,751.55
+- Primera cancelación: 2002-10-18
+- Última cancelación: 2025-04-17
+
+**Periodo de cancelaciones:**
+- Rango: 2002 - 2025
+- 23 años de historial de cancelaciones
+- Promedio: ~27 cancelaciones por año
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **615 multas canceladas disponibles**
+  - Multas con fecha_cancelacion IS NOT NULL
+  - Búsqueda flexible por expediente, acta o ID
+
+✓ **Campos completos**
+  - Información del contribuyente
+  - Fechas de acta y cancelación
+  - Montos de multa y gastos
+  - Usuario que canceló
+  - Observaciones
+
+✓ **Validaciones incluidas**
+  - Cuenta no puede estar vacía
+  - Manejo correcto de cuentas inexistentes
+  - Mensajes claros
+
+✓ **Búsqueda flexible**
+  - Por expediente (texto)
+  - Por número de acta (numérico)
+  - Por ID de multa (numérico)
+
+✓ **Ordenamiento**
+  - Por fecha_cancelacion descendente
+  - Las cancelaciones más recientes primero
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo contiene el histórico de multas
+   municipales, incluyendo las canceladas.
+
+⚠️ **Solo multas canceladas**
+   Se filtran solo registros con fecha_cancelacion IS NOT NULL.
+   Las multas activas/pendientes no aparecen.
+
+⚠️ **Búsqueda múltiple**
+   El stored procedure busca en tres campos:
+   1. expediente (como texto)
+   2. num_acta (convertido a texto)
+   3. id_multa (convertido a texto)
+
+⚠️ **Usuario de baja**
+   El campo user_baja indica quién canceló la multa.
+   Puede ser NULL si no está registrado.
+
+⚠️ **Total cancelado**
+   Es la suma de multa + gastos al momento de la cancelación.
+   Representa el monto que fue liberado.
+
+⚠️ **Observaciones**
+   El campo observacion puede contener el motivo de la cancelación
+   u otra información relevante.
+
+--- CASOS DE USO ---
+
+**Caso 1: Consulta por expediente**
+1. Usuario ingresa número de expediente
+2. Sistema busca multas canceladas con ese expediente
+3. Muestra historial de cancelaciones
+4. Usar para: Auditorías, revisión de cancelaciones
+
+**Caso 2: Consulta por número de acta**
+1. Usuario ingresa número de acta
+2. Sistema busca multas canceladas con ese número
+3. Muestra detalles de la cancelación
+4. Usar para: Verificación de actas canceladas
+
+**Caso 3: Consulta por ID de multa**
+1. Usuario ingresa ID de multa
+2. Sistema busca si esa multa fue cancelada
+3. Muestra detalles completos
+4. Usar para: Consulta directa de una multa específica
+
+**Caso 4: Validación de cancelaciones**
+1. Verificar si una cuenta tiene cancelaciones
+2. Revisar fechas y usuarios de cancelación
+3. Analizar montos cancelados
+4. Usar para: Control y auditoría
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue
+const params = {
+  cuenta: '114559'  // Puede ser expediente, acta o ID
+};
+
+// Respuesta esperada (cuenta con cancelaciones)
+{
+  "data": [
+    {
+      "id_multa": 298699,
+      "num_acta": 114559,
+      "expediente": "",
+      "fecha_acta": "2011-01-15",
+      "fecha_cancelacion": "2011-09-23",
+      "contribuyente": "RAMOS OSORIO ANA MARIA",
+      "domicilio": "CALLE EJEMPLO 123",
+      "dependencia": 7,
+      "nombre_dependencia": "Dependencia 7 - Reglamentos",
+      "multa": 150.00,
+      "gastos": 15.00,
+      "total": 165.00,
+      "observacion": "Cancelación por revisión",
+      "user_baja": "squinter"
+    },
+    // ... más multas canceladas
+  ],
+  "total": 5
+}
+
+// Respuesta esperada (cuenta sin cancelaciones)
+{
+  "data": [],
+  "total": 0
+}
+```
+
+El componente reqctascanfrm.vue debería:
+1. Recibir el array de multas canceladas
+2. Mostrar tabla con columnas: ID, Num.Acta, Expediente, F.Cancelación, Contribuyente, Dependencia, Total, Usuario
+3. Filtro para:
+   - Cuenta (text input)
+   - Validación: cuenta no puede estar vacía
+4. Mostrar información de cada cancelación:
+   - Fechas de acta y cancelación
+   - Datos del contribuyente
+   - Montos cancelados
+   - Usuario que canceló
+5. Calcular totales si hay múltiples cancelaciones
+6. Formato de moneda con separadores de miles
+7. Formato de fechas: YYYY-MM-DD
+8. Ordenar por fecha_cancelacion descendente
+9. Resaltar información importante
+
+--- RESUMEN ---
+
+Problema: Función publico.recaudadora_reqctascanfrm no existía
+
+Solución: Función usa tabla public.h_multasnvo con filtro de cancelaciones
+
+Características:
+- 615 multas canceladas disponibles
+- Búsqueda por expediente, acta o ID de multa
+- Filtro: fecha_cancelacion IS NOT NULL
+- Información completa de la cancelación
+- Validación de parámetros
+- Manejo de cuentas inexistentes
+- Usuario que canceló registrado
+
+Resultado:
+- Consulta de cuentas canceladas
+- Historial de cancelaciones por cuenta
+- Información del contribuyente
+- Fechas y usuarios de cancelación
+- Montos cancelados
+- Ordenado por fecha_cancelacion descendente
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del histórico
+- Búsqueda flexible y múltiple
+- Consulta rápida de cancelaciones
+- Información completa del contribuyente
+- Auditoría de cancelaciones
+- Control de usuarios
+- Validaciones de integridad
+
+Uso recomendado:
+- Ingresar expediente, número de acta o ID de multa
+- Verificar cancelaciones de una cuenta
+- Auditar cancelaciones históricas
+- Validar montos cancelados
+- Revisar usuarios que cancelaron
+- Control y seguimiento de cancelaciones

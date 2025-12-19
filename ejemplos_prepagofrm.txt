@@ -1,0 +1,322 @@
+=== EJEMPLOS PARA PROBAR prepagofrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla lic_pago_alt (30,547 registros).
+IMPORTANTE: Retorna prepagos/pagos alternativos de licencias con datos REALES.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.prepagos" does not exist
+
+--- SOLUCIÓN ---
+
+Se encontró y usó la tabla **public.lic_pago_alt** que contiene pagos alternativos de licencias.
+La función retorna pagos que funcionan como prepagos con límite de 100 resultados.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_prepagofrm**: Retorna prepagos/pagos alternativos de licencias
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_busqueda: VARCHAR (término de búsqueda, '' = todos los registros)
+
+Búsqueda en:
+- cvepago: Código de pago
+- licencia: Número de licencia
+- s_trans: Folio de transacción
+
+--- VALORES RETORNADOS ---
+
+| Campo      | Tipo    | Descripción                              |
+|------------|---------|------------------------------------------|
+| cvepago    | INTEGER | Código de pago                           |
+| cvecuenta  | VARCHAR | Número de licencia                       |
+| folio      | VARCHAR | Folio de transacción                     |
+| fecha_pago | DATE    | Fecha de registro del pago               |
+| importe    | NUMERIC | Importe total del pago                   |
+| caja       | VARCHAR | Origen del pago (Caja 1, 2, 3, etc.)     |
+| cajero     | VARCHAR | Línea de captura/cajero                  |
+| cancelado  | VARCHAR | NO (conciliado) o PENDIENTE (sin conciliar) |
+
+--- DATOS DE LA TABLA LIC_PAGO_ALT ---
+
+Estadísticas generales:
+- Total registros: 30,547 pagos alternativos
+- Licencias diferentes: 11,377
+- Suma total: $21,054,704.64
+- Rango de fechas: 2007-03-10 a 2025-08-27
+- Límite de resultados: 100 registros por consulta
+
+Estados de pagos:
+- NO: Pago conciliado (tiene fecha_concilia)
+- PENDIENTE: Pago sin conciliar (fecha_concilia NULL)
+
+--- EJEMPLO 1: Sin búsqueda (últimos 100 registros) ---
+
+Parámetros:
+- Búsqueda: (vacío)
+
+Resultado esperado:
+- Total registros: 100 (límite)
+- Ordenado por: Fecha descendente (más recientes primero)
+- Incluye: Últimos pagos registrados
+
+Ejemplo de datos retornados:
+```
+CVE Pago: 13878146
+Licencia: 391289
+Folio: 053292
+Fecha: 2025-08-26
+Importe: $2,442.00
+Caja: Caja 175
+Cajero: 3912892425130577000847064281
+Estado: NO (conciliado)
+```
+
+--- EJEMPLO 2: Búsqueda por licencia específica ---
+
+Parámetros:
+- Búsqueda: 200277
+
+Resultado esperado:
+- Total registros: 2 pagos
+- Licencia: 200277
+- Fechas: 2007-2008
+- Importes: $136.00 y $172.00
+
+Detalles:
+- Folio 1: 0000000008000000000000003337 - $136.00 (2007-03-13)
+- Folio 2: 0000001393000000000000067055 - $172.00 (2008-06-03)
+
+--- EJEMPLO 3: Búsqueda por folio parcial ---
+
+Parámetros:
+- Búsqueda: 3337
+
+Resultado esperado:
+- Total registros: 26 pagos
+- Folios que contienen: 3337
+- Ejemplo: 333746, 033372, etc.
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Datos reales**
+   Esta función lee de la tabla 'public.lic_pago_alt':
+   - 30,547 registros de pagos alternativos de licencias
+   - Permite búsqueda flexible por múltiples campos
+   - Límite de 100 resultados para rendimiento
+
+⚠️ **Límite de resultados**
+   - Solo retorna los últimos 100 registros
+   - Ordenados por fecha descendente
+   - Para ver más, usar búsqueda específica
+
+⚠️ **Campo "cancelado"**
+   - NO: Pago ya conciliado (procesado)
+   - PENDIENTE: Pago sin conciliar
+   - Se determina por existencia de fecha_concilia
+
+⚠️ **Campo "caja"**
+   - Se construye desde s_origen
+   - Ejemplos: Caja 1, Caja 2, Caja 175, etc.
+   - Indica el origen/punto de pago
+
+⚠️ **Campo "cajero"**
+   - Corresponde al campo 'linea'
+   - Línea de captura del pago
+   - Formato numérico largo
+
+⚠️ **Búsqueda flexible**
+   - Busca en cvepago, licencia y folio
+   - Usa ILIKE (case insensitive)
+   - Permite búsquedas parciales
+
+--- LÓGICA DE LA FUNCIÓN ---
+
+La función ejecuta:
+```sql
+SELECT
+    cvepago,
+    licencia AS cvecuenta,
+    s_trans AS folio,
+    fecha_registro AS fecha_pago,
+    t_importe AS importe,
+    'Caja ' || s_origen AS caja,
+    COALESCE(linea, 'N/A') AS cajero,
+    CASE WHEN fecha_concilia IS NOT NULL THEN 'NO' ELSE 'PENDIENTE' END AS cancelado
+FROM public.lic_pago_alt
+WHERE
+    (busqueda = '' OR
+     cvepago ILIKE '%busqueda%' OR
+     licencia ILIKE '%busqueda%' OR
+     s_trans ILIKE '%busqueda%')
+ORDER BY fecha_registro DESC, cvepago DESC
+LIMIT 100
+```
+
+Criterios:
+1. Mapea campos de lic_pago_alt a estructura esperada
+2. Permite búsqueda opcional por varios campos
+3. Construye campo 'caja' desde s_origen
+4. Determina estado desde fecha_concilia
+5. Ordena por fecha descendente
+6. Limita a 100 resultados
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin búsqueda: 100 registros (límite aplicado)
+✅ Test búsqueda por licencia 200277: 2 registros encontrados
+✅ Test búsqueda por folio 3337: 26 registros encontrados
+✅ Stored procedure actualizado exitosamente
+✅ Función operacional con datos reales
+
+--- INTERPRETACIÓN DE RESULTADOS ---
+
+**cvepago (Código de pago)**
+- ID único del pago
+- Puede ser 0 si aún no se asignó
+
+**cvecuenta (Licencia)**
+- Número de licencia asociada
+- Ejemplos: 391289, 439274, 54694
+
+**folio (Folio de transacción)**
+- Número de transacción bancaria
+- Formato numérico largo
+- Ejemplo: 053292, 376464
+
+**fecha_pago (Fecha)**
+- Fecha de registro del pago
+- Formato: YYYY-MM-DD
+- Rango: 2007 a 2025
+
+**importe (Monto)**
+- Importe total del pago
+- En pesos mexicanos
+- Ejemplo: $589.00, $2,442.00
+
+**caja (Origen)**
+- Punto de pago
+- Ejemplos: Caja 1, Caja 175
+- Construido desde s_origen
+
+**cajero (Línea)**
+- Línea de captura
+- Identificador del cajero/terminal
+- Formato numérico largo
+
+**cancelado (Estado)**
+- NO: Pago conciliado
+- PENDIENTE: Sin conciliar
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver últimos prepagos registrados**
+1. No llenar el campo de búsqueda
+2. Hacer clic en "Buscar"
+3. Resultado: Últimos 100 pagos ordenados por fecha
+4. Útil para: Revisar pagos recientes
+
+**Caso 2: Buscar pagos de una licencia específica**
+1. Búsqueda: 200277 (número de licencia)
+2. Hacer clic en "Buscar"
+3. Resultado: Todos los pagos de esa licencia
+4. Útil para: Historial de pagos de una licencia
+
+**Caso 3: Buscar por folio de transacción**
+1. Búsqueda: 3337 (folio completo o parcial)
+2. Hacer clic en "Buscar"
+3. Resultado: Pagos con ese folio
+4. Útil para: Rastrear una transacción específica
+
+**Caso 4: Buscar por código de pago**
+1. Búsqueda: 13878146 (cvepago)
+2. Hacer clic en "Buscar"
+3. Resultado: Pago específico
+4. Útil para: Verificar un pago por su código
+
+--- FLUJO RECOMENDADO ---
+
+1. **Consulta rápida (últimos pagos)**
+   - Campo vacío
+   → Rápido, muestra últimos 100
+
+2. **Búsqueda por licencia**
+   - Número de licencia
+   → Encuentra todos los pagos de esa licencia
+
+3. **Búsqueda por folio**
+   - Folio de transacción
+   → Localiza transacción bancaria
+
+4. **Búsqueda por código**
+   - CVE pago
+   → Encuentra pago exacto
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Respuesta del endpoint (sin búsqueda)
+{
+  "data": [
+    {
+      "cvepago": 13878146,
+      "cvecuenta": "391289",
+      "folio": "053292",
+      "fecha_pago": "2025-08-26",
+      "importe": 2442.00,
+      "caja": "Caja 175",
+      "cajero": "3912892425130577000847064281",
+      "cancelado": "NO"
+    },
+    // ... más registros (hasta 100)
+  ],
+  "total": 100
+}
+```
+
+El componente prepagofrm.vue debería:
+1. Mostrar tabla con los pagos
+2. Formatear importes como moneda
+3. Formatear fechas legibles
+4. Mostrar estado (NO/PENDIENTE)
+5. Permitir búsqueda en campo de texto
+6. Mostrar indicador si hay límite de 100
+7. Resaltar pagos PENDIENTES
+
+--- RESUMEN ---
+
+Problema: Tabla publico.prepagos no existía
+
+Solución: Usar tabla public.lic_pago_alt (pagos alternativos de licencias)
+
+Características:
+- Usa tabla real con 30,547 pagos
+- Pagos de licencias desde 2007
+- Búsqueda flexible por múltiples campos
+- Límite de 100 resultados
+- Estados: NO (conciliado) o PENDIENTE
+
+Rendimiento:
+- Consulta rápida (~1 segundo)
+- Límite de 100 para eficiencia
+- Búsquedas específicas más rápidas
+
+Limitaciones:
+- Solo 100 registros por consulta
+- Tabla específica de licencias
+- No incluye otros tipos de prepagos
+
+Ventajas:
+- Datos reales de pagos
+- Búsqueda flexible
+- Estados de conciliación
+- Ordenamiento por fecha
+- 30K+ registros disponibles
+
+Recomendación:
+- Usar búsqueda específica para mejores resultados
+- Filtrar por licencia para historial completo
+- Revisar pagos PENDIENTES regularmente
+- Los últimos registros (2025) son los más actuales

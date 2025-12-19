@@ -117,6 +117,18 @@
             </div>
           </div>
 
+          <!-- Botones de reporte -->
+          <div class="report-actions">
+            <button class="btn-report btn-preview" @click="verReporte">
+              <font-awesome-icon icon="eye" />
+              <span>Ver Reporte</span>
+            </button>
+            <button class="btn-report btn-download" @click="descargarReporte">
+              <font-awesome-icon icon="download" />
+              <span>Descargar Reporte</span>
+            </button>
+          </div>
+
           <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
@@ -220,10 +232,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { usePdfGenerator } from '@/composables/usePdfGenerator'
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_RELMES'
 const { loading, execute } = useApi()
+const { verReporteTabular, descargarReporteTabular } = usePdfGenerator()
 
 const filters = ref({
   mes: '',
@@ -370,6 +384,80 @@ function formatCurrency(amount) {
     style: 'currency',
     currency: 'MXN'
   }).format(amount)
+}
+
+function verReporte() {
+  console.log('📄 Generando vista previa del reporte')
+  error.value = null
+  try {
+    const periodo = filters.value.mes ? `${nombreMes(filters.value.mes)} ${filters.value.anio}` : `Año ${filters.value.anio}`
+
+    const opciones = {
+      titulo: 'Relación Mensual de Multas por Dependencia',
+      subtitulo: periodo,
+      ejercicio: periodo,
+      columnas: [
+        { key: 'dependencia', header: 'Dep.', type: 'number' },
+        { key: 'nombre_dependencia', header: 'Nombre Dependencia', type: 'text' },
+        { key: 'cantidad_multas', header: 'Cantidad', type: 'number' },
+        { key: 'total_multas', header: 'Total Multas', type: 'currency' },
+        { key: 'total_gastos', header: 'Total Gastos', type: 'currency' },
+        { key: 'total_general', header: 'Total General', type: 'currency' }
+      ],
+      totales: {
+        dependencia: '',
+        nombre_dependencia: '',
+        cantidad_multas: totalMultas.value,
+        total_multas: totalMultasImporte.value,
+        total_gastos: totalGastos.value,
+        total_general: totalRecaudado.value
+      }
+    }
+
+    verReporteTabular(todosResultados.value, opciones)
+    console.log('✅ Vista previa generada exitosamente')
+  } catch (e) {
+    console.error('❌ Error al generar vista previa:', e)
+    error.value = `Error al generar vista previa del PDF: ${e.message}`
+  }
+}
+
+function descargarReporte() {
+  console.log('⬇️ Descargando reporte PDF')
+  error.value = null
+  try {
+    const periodo = filters.value.mes ? `${nombreMes(filters.value.mes)} ${filters.value.anio}` : `Año ${filters.value.anio}`
+
+    const opciones = {
+      titulo: 'Relación Mensual de Multas por Dependencia',
+      subtitulo: periodo,
+      ejercicio: periodo,
+      columnas: [
+        { key: 'dependencia', header: 'Dep.', type: 'number' },
+        { key: 'nombre_dependencia', header: 'Nombre Dependencia', type: 'text' },
+        { key: 'cantidad_multas', header: 'Cantidad', type: 'number' },
+        { key: 'total_multas', header: 'Total Multas', type: 'currency' },
+        { key: 'total_gastos', header: 'Total Gastos', type: 'currency' },
+        { key: 'total_general', header: 'Total General', type: 'currency' }
+      ],
+      totales: {
+        dependencia: '',
+        nombre_dependencia: '',
+        cantidad_multas: totalMultas.value,
+        total_multas: totalMultasImporte.value,
+        total_gastos: totalGastos.value,
+        total_general: totalRecaudado.value
+      }
+    }
+
+    descargarReporteTabular(todosResultados.value, opciones)
+    const nombreArchivo = `relacion_mensual_${filters.value.mes || 'anual'}_${filters.value.anio}.pdf`
+    success.value = `Reporte listo para descargar: ${nombreArchivo}`
+    console.log('✅ Reporte descargado exitosamente')
+  } catch (e) {
+    console.error('❌ Error al descargar reporte:', e)
+    error.value = `Error al descargar el PDF: ${e.message}`
+  }
 }
 </script>
 
@@ -596,5 +684,56 @@ function formatCurrency(amount) {
   background-color: #cfe2ff;
   border: 1px solid #b6d4fe;
   color: #084298;
+}
+
+.report-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.btn-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-report:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-preview {
+  background: linear-gradient(135deg, #28a745 0%, #20963d 100%);
+  color: white;
+}
+
+.btn-preview:hover {
+  background: linear-gradient(135deg, #218838 0%, #1c7430 100%);
+}
+
+.btn-download {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+}
+
+.btn-download:hover {
+  background: linear-gradient(135deg, #0069d9 0%, #004085 100%);
+}
+
+.btn-report svg {
+  font-size: 1rem;
 }
 </style>

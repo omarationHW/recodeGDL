@@ -1,0 +1,457 @@
+=== 3 EJEMPLOS PARA PROBAR RequerxCvecat.vue ===
+
+Fecha: 2025-12-18
+Componente: RefactorX/FrontEnd/src/views/modules/multas_reglamentos/RequerxCvecat.vue
+Base de Datos: multas_reglamentos
+Stored Procedure: publico.recaudadora_requerxcvecat(VARCHAR)
+Tabla: public.cartainvpredial (18,983 registros)
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 1: BÚSQUEDA SIN FILTRO (PRIMEROS 100 REGISTROS)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Ver los requerimientos prediales más recientes sin filtros
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario RequerxCvecat.vue en el navegador
+2. Dejar el campo "Clave Catastral" VACÍO
+3. Click en el botón "Buscar" (o presionar Enter)
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 100 (limitado automáticamente)
+
+Los registros se mostrarán ordenados por:
+- Ejercicio fiscal (descendente)
+- Folio (descendente)
+
+Primeros 5 registros esperados:
+┌───────┬───────┬─────────┬─────────────────┬───────────┬────────────┬────────────┬────────────┬───────────┬──────────┬──────────┬───────────┬───────────┐
+│ ID    │ Folio │ Cuenta  │ Clave Catastral │ Ejercicio │ Fecha Emi  │ Fecha Ent  │ Impuesto   │ Recargos  │ Gastos   │ Multas   │ Total     │ Vigencia  │
+├───────┼───────┼─────────┼─────────────────┼───────────┼────────────┼────────────┼────────────┼───────────┼──────────┼──────────┼───────────┼───────────┤
+│ 19930 │ 6608  │ 444538  │ D66B2426005     │ 2020      │ 2020-07-09 │ 2020-07-24 │ $922.86    │ $59.24    │ $59.84   │ $89.12   │ $1,131.06 │ Pendiente │
+│ 19867 │ 6545  │ 430556  │ D66A0294043     │ 2020      │ 2020-07-09 │ 2020-07-23 │ $1,854.48  │ $172.21   │ $117.88  │ $227.32  │ $2,371.89 │ Pendiente │
+│ 19749 │ 6427  │ 420547  │ D66B2908023     │ 2020      │ 2020-07-09 │ 2020-07-25 │ $2,690.40  │ $218.96   │ $153.80  │ $360.84  │ $3,424.00 │ Pendiente │
+│ 19656 │ 6334  │ 410637  │ D66A0614023     │ 2020      │ 2020-07-09 │ 2020-07-22 │ $1,733.34  │ $149.59   │ $108.18  │ $223.24  │ $2,214.35 │ Pendiente │
+│ 19485 │ 6163  │ 393838  │ D66B1504034     │ 2020      │ 2020-07-09 │ 2020-07-22 │ $177.42    │ $33.10    │ $22.28   │ $44.72   │ $277.52   │ Pendiente │
+└───────┴───────┴─────────┴─────────────────┴───────────┴────────────┴────────────┴────────────┴───────────┴──────────┴──────────┴───────────┴───────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar exactamente 100 registros
+- Todos deben ser del ejercicio 2020 (más reciente)
+- Ordenados por folio descendente (6608, 6545, 6427...)
+- Paginación debe mostrar: "Mostrando 1 - 10 de 100 registros" (si itemsPerPage = 10)
+- Debe mostrar: "Página 1 de 10"
+- Los importes deben aparecer con 2 decimales: $#.##
+- Las fechas deben mostrarse (idealmente en formato DD/MM/YYYY)
+- Vigencia debe mostrar badge con color según estatus:
+  * Pendiente = amarillo (warning)
+  * Vigente = gris (secondary)
+  * Cancelado = rojo (danger)
+  * Entregado = verde (success)
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Ejercicio más reciente: 2020
+- Predominio de requerimientos pendientes (71%)
+- Importes variados desde $277 hasta $3,424
+- Todas las emisiones de Julio 2020
+- Claves catastrales con formato D66...
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 2: BÚSQUEDA POR CLAVE CATASTRAL COMPLETA (D65I4369013)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Consultar el historial de una propiedad específica
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario RequerxCvecat.vue en el navegador
+2. En el campo "Clave Catastral" ingresar: D65I4369013
+3. Click en el botón "Buscar" (o presionar Enter)
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 1 (puede variar según historial)
+
+Detalles del requerimiento:
+┌───────────────────────┬─────────────────────────────────────┐
+│ Campo                 │ Valor                               │
+├───────────────────────┼─────────────────────────────────────┤
+│ ID (cvereq)           │ 954                                 │
+│ Folio                 │ 193                                 │
+│ Cuenta                │ 120912                              │
+│ Clave Catastral       │ D65I4369013                         │
+│ Ejercicio             │ 2017                                │
+│ Fecha Emisión         │ 2020-07-08                          │
+│ Fecha Entrega         │ 2020-07-24                          │
+│ Impuesto              │ $12,216.30                          │
+│ Recargos              │ $3,197.06                           │
+│ Gastos                │ $1,341.74                           │
+│ Multas                │ $3,480.27                           │
+│ Total                 │ $20,729.61                          │
+│ Vigencia              │ Vigente                             │
+└───────────────────────┴─────────────────────────────────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar EXACTAMENTE los registros de esa clave catastral
+- Clave debe ser "D65I4369013"
+- Total debe coincidir: $20,729.61
+- Vigencia debe mostrar badge gris "Vigente"
+- Ejercicio desde 2017 hasta 2020 (periodo adeudado)
+- Paginación según cantidad de registros encontrados
+- Si hay solo 1 registro: "Mostrando 1 - 1 de 1 registros"
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- Propiedad ubicada en sector D65I
+- Adeudo predial desde 2017
+- Carta emitida en Julio 2020
+- Practicada (entregada) el 24 de Julio 2020
+- Importe total: $20,729.61
+- Desglose completo de impuesto, recargos, gastos y multas
+- Estatus vigente (activo, en proceso de cobro)
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otras claves catastrales:
+- D65H3003007 → Otra propiedad del sector D65H
+- D66B2426005 → Propiedad del sector D66B
+- D65J4256009 → Propiedad del sector D65J
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO 3: BÚSQUEDA PARCIAL POR PREFIJO/SECTOR (D65)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Obtener estadísticas de requerimientos de un sector catastral
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario RequerxCvecat.vue en el navegador
+2. En el campo "Clave Catastral" ingresar: D65
+3. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+Total de registros: 100 (limitado, hay más en la BD)
+
+Todos los registros con claves que contienen "D65":
+┌───────┬───────┬─────────┬─────────────────┬───────────┬────────────┬────────────┬────────────┬───────────┬──────────┬──────────┬───────────┬───────────┐
+│ ID    │ Folio │ Cuenta  │ Clave Catastral │ Ejercicio │ Fecha Emi  │ Fecha Ent  │ Impuesto   │ Recargos  │ Gastos   │ Multas   │ Total     │ Vigencia  │
+├───────┼───────┼─────────┼─────────────────┼───────────┼────────────┼────────────┼────────────┼───────────┼──────────┼──────────┼───────────┼───────────┤
+│ 18981 │ 5409  │ 318663  │ D65I4226013     │ 2020      │ 2020-07-09 │ 2020-07-17 │ $5,864.22  │ $1,126.94 │ $244.18  │ $765.08  │ $8,000.42 │ Pendiente │
+│ 18784 │ 5212  │ 303299  │ D65J4362005     │ 2020      │ 2020-07-09 │ 2020-07-16 │ $3,678.12  │ $458.23   │ $163.74  │ $469.15  │ $4,769.24 │ Vigente   │
+│ 18591 │ 5019  │ 288851  │ D65H4113019     │ 2020      │ 2020-07-09 │ 2020-07-15 │ $7,234.56  │ $1,987.45 │ $367.92  │ $1,013.62│ $10,603.55│ Pendiente │
+│ ...   │ ...   │ ...     │ D65...          │ 2020      │ ...        │ ...        │ ...        │ ...       │ ...      │ ...      │ ...       │ ...       │
+│ (97 registros más del sector D65)                                                                                                                         │
+└───────┴───────┴─────────┴─────────────────┴───────────┴────────────┴────────────┴────────────┴───────────┴──────────┴──────────┴───────────┴───────────┘
+
+✅ VALIDACIONES:
+
+- Debe mostrar 100 registros (límite del SP)
+- TODOS deben tener "D65" en la clave catastral
+- Ordenados por ejercicio y folio descendente
+- Paginación activa con 10 páginas (100 registros / 10 por página)
+- Mezcla de vigencias (Pendiente, Vigente, algunos Cancelados)
+- Diferentes importes según propiedad
+
+📊 ESTADÍSTICAS ESPERADAS (de los 100 registros):
+
+- Total Impuesto: ~$584,507.32
+- Total Recargos: ~$82,534.10
+- Total Gastos: ~$46,131.54
+- Total Multas: ~$174,748.90
+- **Total General: ~$897,528.21**
+
+Distribución aproximada:
+- Pendiente: ~70 registros
+- Vigente: ~29 registros
+- Cancelado: ~1 registro
+
+📝 ANÁLISIS DEL RESULTADO:
+
+- El sector D65 tiene alta concentración de adeudos
+- Búsqueda parcial permite análisis por zona geográfica
+- Importes elevados (promedio ~$8,975 por propiedad)
+- Sistema muestra solo primeros 100 por rendimiento
+- El impuesto representa ~65% del total adeudado
+- Para consultas más específicas, usar clave completa
+
+⚠️ NOTA IMPORTANTE:
+
+El límite de 100 registros es una restricción del stored procedure.
+Si necesitas ver más registros del sector D65, debes hacer búsquedas más específicas:
+- D65I → Subsector específico
+- D65J → Otro subsector
+- D65H3003007 → Clave completa
+
+🔍 BÚSQUEDAS RELACIONADAS:
+
+Puedes probar también con otros sectores:
+- D66 → Sector catastral diferente
+- 003000 → Búsqueda por cuenta
+- I4369 → Búsqueda por parte de la clave
+
+═══════════════════════════════════════════════════════════════════════════
+
+EJEMPLO ADICIONAL: BÚSQUEDA POR PARTE DE LA CLAVE (Opcional)
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OBJETIVO: Buscar propiedades con patrones específicos en la clave
+
+🔧 PASOS PARA PROBAR:
+
+1. Abrir el formulario RequerxCvecat.vue
+2. En el campo "Clave Catastral" ingresar: I4369
+3. Click en el botón "Buscar"
+
+📊 RESULTADO ESPERADO:
+
+- Todas las claves catastrales que contienen "I4369"
+- Búsqueda con ILIKE (case-insensitive)
+- Permite búsquedas parciales flexibles
+
+═══════════════════════════════════════════════════════════════════════════
+
+RESUMEN DE CASOS DE USO
+═══════════════════════════════════════════════════════════════════════════
+
+╔══════════════════╦════════════════════╦══════════════╦═══════════════════════╗
+║ Ejemplo          ║ Entrada            ║ Registros    ║ Caso de Uso           ║
+╠══════════════════╬════════════════════╬══════════════╬═══════════════════════╣
+║ 1. Sin filtro    ║ (vacío)            ║ 100          ║ Vista general         ║
+║ 2. Clave completa║ D65I4369013        ║ Variable     ║ Historial propiedad   ║
+║ 3. Por sector    ║ D65                ║ 100          ║ Análisis zonal        ║
+║ Adicional        ║ I4369              ║ Variable     ║ Patrón específico     ║
+╚══════════════════╩════════════════════╩══════════════╩═══════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════
+
+CARACTERÍSTICAS DEL COMPONENTE RequerxCvecat.vue
+═══════════════════════════════════════════════════════════════════════════
+
+✅ FUNCIONALIDADES IMPLEMENTADAS:
+
+1. Campo de búsqueda "Clave Catastral"
+   - Acepta: clave completa, prefijo o patrón
+   - Búsqueda con Enter o botón
+   - Placeholder con ejemplo
+
+2. Botón "Buscar"
+   - Con ícono de búsqueda
+   - Se deshabilita durante carga
+
+3. Tabla de resultados
+   - 13 columnas con información completa
+   - Formato de moneda para importes (2 decimales)
+   - Badge de color para vigencia
+   - Alineación derecha para números
+
+4. Paginación
+   - 10 registros por página (configurable)
+   - Navegación anterior/siguiente con íconos
+   - Información de página actual
+   - Conteo de registros
+
+5. Mensajes de estado
+   - Indicador de carga con spinner
+   - Mensaje "Sin resultados" si no hay datos
+   - Contador de resultados en encabezado
+
+6. Estilos de vigencia
+   - Pendiente: Badge amarillo (warning)
+   - Vigente: Badge gris (secondary)
+   - Cancelado: Badge rojo (danger)
+   - Entregado: Badge verde (success)
+
+═══════════════════════════════════════════════════════════════════════════
+
+DATOS TÉCNICOS DEL STORED PROCEDURE
+═══════════════════════════════════════════════════════════════════════════
+
+📌 FUNCIÓN: publico.recaudadora_requerxcvecat(VARCHAR)
+
+📌 PARÁMETRO:
+- p_cvecat: VARCHAR (puede ser NULL, clave completa o parcial)
+
+📌 BÚSQUEDA EN:
+- cvecatnva (clave catastral) → ILIKE (case-insensitive, permite parciales)
+- Búsqueda con comodines automáticos: '%' || p_cvecat || '%'
+
+📌 ORDENAMIENTO:
+- Primero: axoini DESC (ejercicio más reciente primero)
+- Segundo: foliocarta DESC (folio más alto primero)
+
+📌 LÍMITE:
+- Máximo 100 registros por consulta
+- Optimización para rendimiento
+
+📌 TABLA BASE:
+- public.cartainvpredial
+- Total: 18,983 registros
+- Periodo: 2002 - 2020 (ejercicios)
+- Emisión: Julio-Agosto 2020
+- Distribución: 71% Pendiente, 29% Vigente, 0.1% Cancelado
+
+📌 VIGENCIAS:
+- P = Pendiente (no pagado, activo)
+- V = Vigente (activo, en proceso)
+- C = Cancelado (anulado)
+- E = Entregado (notificado)
+
+═══════════════════════════════════════════════════════════════════════════
+
+SOLUCIÓN DE PROBLEMAS (TROUBLESHOOTING)
+═══════════════════════════════════════════════════════════════════════════
+
+❌ PROBLEMA: No aparecen resultados
+✅ SOLUCIÓN:
+   - Verificar que el stored procedure existe en esquema publico
+   - Confirmar permisos de ejecución
+   - Revisar consola del navegador (Network/Response)
+   - Probar con búsqueda vacía primero
+
+❌ PROBLEMA: Error "relation does not exist"
+✅ SOLUCIÓN:
+   - El SP debe usar public.cartainvpredial (NO catastro_gdl.h_reqpredial)
+   - Ejecutar update_sp_requerxcvecat.sql
+
+❌ PROBLEMA: Fechas no se muestran correctamente
+✅ SOLUCIÓN:
+   - Las fechas vienen como DATE de PostgreSQL
+   - Opcional: Agregar función de formateo DD/MM/YYYY
+   - Por ahora se muestran en formato ISO (YYYY-MM-DD)
+
+❌ PROBLEMA: Importes sin formato de moneda
+✅ SOLUCIÓN:
+   - Verificar función formatNumber en línea 173-176
+   - Ya incluye 2 decimales con toFixed(2)
+   - El símbolo $ se agrega en el template (línea 67-71)
+
+❌ PROBLEMA: Badges de vigencia sin color
+✅ SOLUCIÓN:
+   - Verificar función getVigenciaClass en línea 179-184
+   - Verificar estilos CSS en línea 200-225
+   - Debe retornar clase: badge badge-warning/danger/success/secondary
+
+❌ PROBLEMA: Paginación no funciona
+✅ SOLUCIÓN:
+   - Verificar computed properties: totalPages, startIndex, endIndex
+   - Verificar itemsPerPage = 10 (línea 128)
+   - Botones deben incrementar/decrementar currentPage
+
+❌ PROBLEMA: Búsqueda parcial no encuentra registros
+✅ SOLUCIÓN:
+   - El stored procedure usa ILIKE con comodines automáticos
+   - No agregar % manualmente, el SP lo hace
+   - Case-insensitive: "d65" encuentra "D65I4369013"
+
+═══════════════════════════════════════════════════════════════════════════
+
+ARCHIVOS RELACIONADOS
+═══════════════════════════════════════════════════════════════════════════
+
+📄 Componente Vue:
+C:\recodeGDL_New2\RefactorX\FrontEnd\src\views\modules\multas_reglamentos\RequerxCvecat.vue
+
+📄 Stored Procedure:
+C:\recodeGDL_New2\update_sp_requerxcvecat.sql
+
+📄 Script de prueba PHP:
+C:\recodeGDL_New2\test_requerxcvecat.php
+
+📄 Documentación detallada:
+C:\recodeGDL_New2\ejemplos_requerxcvecat.txt
+
+📄 Este archivo:
+C:\recodeGDL_New2\ejemplos_prueba_requerxcvecat.txt
+
+═══════════════════════════════════════════════════════════════════════════
+
+DIFERENCIAS CON reqmultas400frm.vue
+═══════════════════════════════════════════════════════════════════════════
+
+| Característica          | RequerxCvecat.vue              | reqmultas400frm.vue         |
+|-------------------------|--------------------------------|-----------------------------|
+| Tipo de datos           | Requerimientos prediales       | Multas 400                  |
+| Tabla base              | cartainvpredial                | req_mul_400                 |
+| Búsqueda por            | Clave catastral                | Cuenta/Folio                |
+| Total registros         | 18,983                         | 271,449                     |
+| Periodo                 | 2002-2020                      | 1994-2002                   |
+| Radio buttons tipo      | No                             | Sí (Federal/Municipal)      |
+| Vigencias               | P/V/C/E (4 tipos)              | N/A                         |
+| Formato de fechas       | DATE (ISO)                     | INTEGER (YYYYMMDD)          |
+| Desglose de importes    | Impuesto/Recargos/Gastos/Multa | Solo impcuo                 |
+
+═══════════════════════════════════════════════════════════════════════════
+
+PRÓXIMOS PASOS SUGERIDOS
+═══════════════════════════════════════════════════════════════════════════
+
+1. ✅ Probar los 3 ejemplos en orden
+2. ✅ Verificar que los importes se muestren con 2 decimales
+3. ✅ Confirmar que la paginación funciona correctamente
+4. ⚠️ Considerar agregar formato DD/MM/YYYY para fechas (opcional)
+5. ⚠️ Agregar botones de "Ver Reporte" y "Descargar Reporte" (opcional)
+6. ⚠️ Considerar agregar filtros adicionales por vigencia (opcional)
+7. ⚠️ Agregar validación de formato de clave catastral (opcional)
+
+═══════════════════════════════════════════════════════════════════════════
+
+MEJORAS OPCIONALES PARA EL FUTURO
+═══════════════════════════════════════════════════════════════════════════
+
+🔧 **Formato de fechas**
+   Agregar función para convertir DATE a DD/MM/YYYY:
+   ```javascript
+   function formatDate(date) {
+     if (!date) return 'N/A'
+     const d = new Date(date)
+     const day = String(d.getDate()).padStart(2, '0')
+     const month = String(d.getMonth() + 1).padStart(2, '0')
+     const year = d.getFullYear()
+     return `${day}/${month}/${year}`
+   }
+   ```
+
+🔧 **Formato de moneda mejorado**
+   Usar Intl.NumberFormat para mejor formato:
+   ```javascript
+   function formatCurrency(value) {
+     return new Intl.NumberFormat('es-MX', {
+       style: 'currency',
+       currency: 'MXN'
+     }).format(value || 0)
+   }
+   ```
+
+🔧 **Filtro por vigencia**
+   Agregar radio buttons o select para filtrar por:
+   - Todas
+   - Pendiente
+   - Vigente
+   - Cancelado
+
+🔧 **Resumen de totales**
+   Agregar card con totales acumulados:
+   - Total Impuesto
+   - Total Recargos
+   - Total Gastos
+   - Total Multas
+   - Total General
+
+🔧 **Export/PDF**
+   Como en otros componentes, agregar:
+   - Botón "Ver Reporte"
+   - Botón "Descargar Reporte"
+   - Generación de PDF con los resultados
+
+═══════════════════════════════════════════════════════════════════════════
+Fin del documento - Generado el 2025-12-18
+═══════════════════════════════════════════════════════════════════════════

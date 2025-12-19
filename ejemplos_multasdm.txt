@@ -1,0 +1,332 @@
+=== EJEMPLOS PARA PROBAR MultasDM.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- publico.multas (416,928 multas)
+
+IMPORTANTE:
+- 416,928 multas disponibles
+- Búsqueda por clave cuenta (num_acta/axo_acta)
+- Filtro por ejercicio (año)
+- Paginación con offset y limit
+- Estados: Activa (409,177), Cancelada (7,751)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.multas_dm" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla publico.multas (tabla principal de multas)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_multas_dm**: Busca multas con filtros y paginación
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_clave_cuenta: VARCHAR (búsqueda en num_acta/axo_acta, puede estar vacío)
+- p_ejercicio: INTEGER (filtro por año, 0 = todos)
+- p_offset: INTEGER (inicio de página, default 0)
+- p_limit: INTEGER (cantidad de registros, default 50)
+
+--- EJEMPLO 1: Búsqueda sin filtros (primera página) ---
+
+Parámetros:
+- p_clave_cuenta: '' (vacío)
+- p_ejercicio: 0 (todos)
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados en página: 50
+✓ Total en base de datos: 416,928
+✓ Campos retornados:
+  - id_multa: 412441
+  - clave_cuenta: 652/2025
+  - folio: 652
+  - ejercicio: 2025
+  - contribuyente: PROMOTORA NAACE, S. DE R.L. DE C.V.
+  - domicilio: TURIN
+  - id_dependencia: (código de dependencia)
+  - expediente: (número de expediente)
+  - multa: $45,000.00
+  - gastos: $0.00
+  - total: $45,000.00
+  - fecha_acta: (fecha del acta)
+  - fecha_recepcion: (fecha de recepción)
+  - fecha_cancelacion: NULL (si está activa)
+  - estado: Activa
+  - observacion: (texto de observaciones)
+  - giro: (giro comercial)
+  - recaud: (recaudadora)
+  - zona: (zona)
+  - subzona: (subzona)
+  - total_count: 416,928 (para paginación)
+
+--- EJEMPLO 2: Búsqueda por clave cuenta ---
+
+Parámetros:
+- p_clave_cuenta: '1234'
+- p_ejercicio: 0
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados en página: 50
+✓ Total coincidencias: 239 multas con "1234" en la clave
+✓ Ejemplos:
+  - Clave: 11234/2008 - S/C - Total: $0.00
+  - Clave: 1234/2025 - SALGADO RAMIREZ UZIEL - Total: $0.00
+  - Clave: 1234/2025 - INMOBILIARIA RINCONADA DEL ARROYO - Total: $2,450.00
+
+--- EJEMPLO 3: Filtro por ejercicio (año 2025) ---
+
+Parámetros:
+- p_clave_cuenta: '' (vacío)
+- p_ejercicio: 2025
+- p_offset: 0
+- p_limit: 50
+
+Resultado esperado:
+✓ Total encontrados en página: 50
+✓ Total multas del 2025: 5,869
+✓ Ejemplos:
+  - Folio: 652/2025 - PROMOTORA NAACE, S. DE R.L. DE C.V. - Total: $45,000.00
+  - Folio: 716/2025 - EQUITECNOVO S DE RL DE CV - Total: $2,000.00
+  - Folio: 1248/2025 - EQUITECNOVO S DE RL DE CV - Total: $3,750.00
+
+--- CAMPOS RETORNADOS ---
+
+| Campo             | Tipo    | Descripción                                    |
+|-------------------|---------|------------------------------------------------|
+| id_multa          | INTEGER | Identificador único de la multa                |
+| clave_cuenta      | VARCHAR | Clave compuesta: num_acta/axo_acta             |
+| folio             | VARCHAR | Número de acta                                 |
+| ejercicio         | INTEGER | Año de acta (axo_acta)                         |
+| contribuyente     | VARCHAR | Nombre del contribuyente                       |
+| domicilio         | VARCHAR | Domicilio del contribuyente                    |
+| id_dependencia    | SMALLINT| Código de dependencia                          |
+| expediente        | VARCHAR | Número de expediente                           |
+| multa             | NUMERIC | Importe de la multa                            |
+| gastos            | NUMERIC | Gastos de ejecución                            |
+| total             | NUMERIC | Total = multa + gastos                         |
+| fecha_acta        | DATE    | Fecha del acta                                 |
+| fecha_recepcion   | DATE    | Fecha de recepción                             |
+| fecha_cancelacion | DATE    | Fecha de cancelación (NULL si activa)          |
+| estado            | VARCHAR | Activa o Cancelada                             |
+| observacion       | TEXT    | Observaciones adicionales                      |
+| giro              | VARCHAR | Giro comercial                                 |
+| recaud            | SMALLINT| Recaudadora                                    |
+| zona              | SMALLINT| Zona                                           |
+| subzona           | SMALLINT| Subzona                                        |
+| total_count       | BIGINT  | Total de registros que cumplen el filtro       |
+
+--- MAPEO DE ESTADOS ---
+
+| Estado    | Criterio                            | Total    | Porcentaje |
+|-----------|-------------------------------------|----------|------------|
+| Activa    | fecha_cancelacion IS NULL           | 409,177  | 98.1%      |
+| Cancelada | fecha_cancelacion IS NOT NULL       | 7,751    | 1.9%       |
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Filtro de ejercicio**
+   - Si p_ejercicio = 0 → Retorna todos los ejercicios
+   - Si p_ejercicio = año → Filtra solo ese año (axo_acta = año)
+   - Es un filtro exacto, no de rango
+
+⚠️ Paginación obligatoria
+   El stored procedure espera parámetros de paginación (offset, limit)
+   Default: 50 registros por página
+
+⚠️ Campo total_count
+   Incluye el total de registros que cumplen el filtro
+   Útil para calcular el número total de páginas en el frontend
+
+⚠️ Búsqueda en clave_cuenta
+   El filtro p_clave_cuenta busca en:
+   - Clave cuenta completa (num_acta/axo_acta)
+   - Usa ILIKE para búsqueda parcial case-insensitive
+
+⚠️ Estado derivado de fecha_cancelacion
+   - Si fecha_cancelacion IS NULL → Activa
+   - Si fecha_cancelacion IS NOT NULL → Cancelada
+
+⚠️ Filtros combinables
+   Puedes usar clave_cuenta + ejercicio simultáneamente
+   Ejemplo: Buscar '100' en ejercicio 2024
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: publico
+Tabla: multas (416,928 registros)
+
+Campos principales:
+- id_multa: Identificador único (INTEGER)
+- num_acta: Número de acta (INTEGER)
+- axo_acta: Año de acta / ejercicio (SMALLINT)
+- contribuyente: Nombre del contribuyente (VARCHAR 306)
+- domicilio: Domicilio (VARCHAR 336)
+- id_dependencia: Código de dependencia (SMALLINT)
+- expediente: Número de expediente (CHARACTER 20)
+- multa: Importe de multa (NUMERIC)
+- gastos: Gastos de ejecución (NUMERIC)
+- total: Total (NUMERIC)
+- fecha_acta: Fecha del acta (DATE)
+- fecha_recepcion: Fecha de recepción (DATE)
+- fecha_cancelacion: Fecha de cancelación (DATE, NULL = activa)
+- observacion: Observaciones (TEXT)
+- giro: Giro comercial (VARCHAR 336)
+- recaud: Recaudadora (SMALLINT)
+- zona: Zona (SMALLINT)
+- subzona: Subzona (SMALLINT)
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT
+    m.id_multa,
+    (m.num_acta || '/' || m.axo_acta) AS clave_cuenta,
+    (campos...)
+FROM publico.multas m
+WHERE
+    (p_clave_cuenta = '' OR p_clave_cuenta IS NULL
+     OR (m.num_acta || '/' || m.axo_acta) ILIKE '%' || p_clave_cuenta || '%')
+    AND (p_ejercicio = 0 OR p_ejercicio IS NULL OR m.axo_acta = p_ejercicio)
+ORDER BY m.fecha_acta DESC, m.id_multa DESC
+OFFSET p_offset
+LIMIT p_limit
+```
+
+Criterios:
+1. Si clave_cuenta vacía: retorna todas (según ejercicio)
+2. Si hay clave_cuenta: busca en clave compuesta
+3. Si ejercicio = 0: retorna todos los años
+4. Si ejercicio > 0: filtra por ese año específico
+5. Ordenamiento: fecha más reciente primero
+6. Paginación: OFFSET y LIMIT
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtros, página 1: 50 multas (de 416,928 totales)
+✅ Test con clave '1234': 50 multas (de 239 coincidencias)
+✅ Test con ejercicio 2025: 50 multas (de 5,869 del 2025)
+✅ Test combinado '100' + 2024: 5 multas encontradas
+✅ Test paginación página 2 (offset 50): 50 multas
+✅ Stored procedure actualizado exitosamente
+✅ Campo total_count correcto para paginación
+✅ Filtros funcionando correctamente
+
+--- ESTADÍSTICAS ---
+
+Total de multas: 416,928
+
+Por estado:
+- Activa: 409,177 (98.1%)
+- Cancelada: 7,751 (1.9%)
+
+Por ejercicio (últimos 5 años):
+- 2025: 5,869 multas
+- 2024: 4,080 multas
+- 2023: 4,009 multas
+- 2022: 3,813 multas
+- 2021: 1,575 multas
+
+Montos totales:
+- Total multas: $1,778,397,046.18
+- Total gastos: $26,864,823.27
+- Total general: $1,803,773,396.49
+- Promedio por multa: $4,326.34
+
+--- CASOS DE USO ---
+
+**Caso 1: Listar todas las multas (primera página)**
+1. Llamar recaudadora_multas_dm('', 0, 0, 50)
+2. Retorna las 50 primeras multas más recientes
+3. Usar total_count para calcular total de páginas
+
+**Caso 2: Buscar multa por clave**
+1. Llamar recaudadora_multas_dm('1234', 0, 0, 50)
+2. Retorna hasta 50 multas que contengan '1234'
+3. Puede haber múltiples páginas
+
+**Caso 3: Filtrar por ejercicio**
+1. Llamar recaudadora_multas_dm('', 2025, 0, 50)
+2. Retorna solo multas del año 2025
+3. Total_count muestra cuántas hay del 2025
+
+**Caso 4: Filtro combinado**
+1. Llamar recaudadora_multas_dm('100', 2024, 0, 50)
+2. Retorna multas que contengan '100' del año 2024
+3. Filtros se aplican simultáneamente (AND)
+
+**Caso 5: Navegar a siguiente página**
+1. Llamar recaudadora_multas_dm('', 0, 50, 50) para página 2
+2. Llamar recaudadora_multas_dm('', 0, 100, 50) para página 3
+3. Incrementar offset en 50 por cada página
+
+--- FLUJO RECOMENDADO ---
+
+1. **Primera carga**
+   ```
+   recaudadora_multas_dm('', 0, 0, 50)
+   → Retorna: primeras 50 multas + total_count
+   ```
+
+2. **Calcular total de páginas**
+   ```
+   total_pages = CEIL(total_count / limit)
+   ```
+
+3. **Buscar con filtro de clave**
+   ```
+   recaudadora_multas_dm('criterio', 0, 0, 50)
+   → Retorna: hasta 50 multas que coincidan + total_count
+   ```
+
+4. **Filtrar por ejercicio**
+   ```
+   recaudadora_multas_dm('', 2025, 0, 50)
+   → Retorna: multas del año 2025
+   ```
+
+5. **Filtrar combinado**
+   ```
+   recaudadora_multas_dm('criterio', 2025, 0, 50)
+   → Retorna: multas que coincidan del año 2025
+   ```
+
+6. **Cambiar de página**
+   ```
+   recaudadora_multas_dm(filtro_clave, filtro_año, page * 50, 50)
+   → Retorna: multas de la página solicitada
+   ```
+
+--- RESUMEN ---
+
+Problema: Tabla publico.multas_dm no existe
+
+Solución: Usa publico.multas (tabla principal de multas)
+
+Características principales:
+- Tabla única con todos los campos necesarios
+- Búsqueda por clave_cuenta (num_acta/axo_acta)
+- Filtro por ejercicio (año exacto)
+- Paginación con OFFSET y LIMIT
+- Campo total_count para frontend
+
+Resultado: Sistema funcional para consulta de multas con filtros y paginación
+
+Características:
+- Búsqueda flexible por clave cuenta
+- Filtro exacto por ejercicio (año)
+- Filtros combinables (clave + ejercicio)
+- Paginación con OFFSET y LIMIT
+- Campo total_count para paginación en frontend
+- 416,928 multas disponibles
+- Estados: Activa (98.1%), Cancelada (1.9%)
+- Montos totales: $1,803 millones
+- Promedio por multa: $4,326.34

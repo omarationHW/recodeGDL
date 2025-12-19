@@ -1,0 +1,273 @@
+=== EJEMPLOS PARA PROBAR RepDescImpto.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.relacion_mensual" does not exist
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.h_multasnvo (histórico de multas)
+que tiene 626,583 registros y genera el reporte del ejercicio fiscal
+agregando por dependencia para el año especificado.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_rep_desc_impto**: Retorna reporte anual de multas por dependencia
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_ejercicio: INTEGER (año del ejercicio fiscal, ejemplo: 2024)
+
+--- VALORES RETORNADOS ---
+
+| Campo              | Tipo    | Descripción                              |
+|--------------------|---------|------------------------------------------|
+| dependencia        | INTEGER | ID de la dependencia                     |
+| nombre_dependencia | VARCHAR | Nombre descriptivo de la dependencia     |
+| cantidad_multas    | BIGINT  | Número de multas en el ejercicio         |
+| total_multas       | NUMERIC | Suma de montos de multas                 |
+| total_gastos       | NUMERIC | Suma de gastos de ejecución              |
+| total_general      | NUMERIC | Suma total (multas + gastos)             |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla h_multasnvo se agrega así:
+- id_dependencia → dependencia (ID)
+- id_dependencia → nombre_dependencia (construido con CASE)
+- COUNT(*) → cantidad_multas
+- SUM(multa) → total_multas
+- SUM(gastos) → total_gastos
+- SUM(total) → total_general
+- EXTRACT(YEAR FROM fecha_acta) para filtrar ejercicio
+
+--- EJEMPLO 1: Reporte del ejercicio fiscal 2024 ---
+
+Parámetros:
+- Ejercicio: 2024
+
+Resultado esperado:
+- Total dependencias: 8
+- Total multas: 26,317
+- Total general: $426,942,770.62
+
+Ejemplo de resultados:
+| Dep | Nombre                        | Cant.Multas | Tot.Multas      | Tot.Gastos  | Tot.General     |
+|-----|-------------------------------|-------------|-----------------|-------------|-----------------|
+|  1  | Dependencia 1 - Predial       |       3,601 | $  19,842,000   | $    41,703 | $  26,484,831   |
+|  3  | Dependencia 3 - Tránsito      |       4,542 | $  54,218,557   | $   108,681 | $  73,953,606   |
+|  5  | Dependencia 5 - Obras         |       9,178 | $ 179,060,525   | $   251,829 | $ 243,724,722   |
+|  6  | Dependencia 6                 |         778 | $   3,267,015   | $     4,980 | $   4,452,785   |
+|  7  | Dependencia 7 - Reglamentos   |       6,306 | $  51,220,556   | $   178,511 | $  70,917,618   |
+| 35  | Dependencia 35 - Vía Pública  |         979 | $   1,687,000   | $    31,325 | $   2,552,510   |
+| 39  | Dependencia 39                |         932 | $   3,495,720   | $     8,150 | $   4,856,700   |
+
+TOTALES 2024: 26,317 multas | $312,791,373 | $625,178 | $426,942,771
+
+--- EJEMPLO 2: Reporte del ejercicio fiscal 2023 ---
+
+Parámetros:
+- Ejercicio: 2023
+
+Resultado esperado:
+- Total dependencias: 12
+- Total multas: 33,900
+- Total general: $485,860,537.46
+
+Top 3 dependencias 2023:
+| Dep | Nombre                        | Cant.Multas | Tot.General     |
+|-----|-------------------------------|-------------|-----------------|
+|  5  | Dependencia 5 - Obras         |       4,643 | $ 165,380,747   |
+|  3  | Dependencia 3 - Tránsito      |       7,929 | $ 138,820,403   |
+|  7  | Dependencia 7 - Reglamentos   |      11,082 | $ 121,142,999   |
+
+TOTAL 2023: 33,900 multas | $485,860,537
+
+--- EJEMPLO 3: Reporte del ejercicio fiscal 2022 ---
+
+Parámetros:
+- Ejercicio: 2022
+
+Resultado esperado:
+- Total dependencias: 11
+- Total multas: 23,301
+- Total general: $192,923,453.47
+
+Comparación de ejercicios fiscales:
+| Ejercicio | Dependencias | Cantidad Multas | Total General    |
+|-----------|--------------|-----------------|------------------|
+| 2022      |           11 |          23,301 | $ 192,923,453    |
+| 2023      |           12 |          33,900 | $ 485,860,537    |
+| 2024      |            8 |          26,317 | $ 426,942,771    |
+
+Tendencia:
+- 2023 tuvo el mayor número de multas y recaudación
+- 2024 muestra una disminución respecto a 2023
+- La dependencia 5 (Obras) consistentemente es la de mayor recaudación
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Por Dependencia (Ejercicio 2024):**
+- Dependencia 5 (Obras): Mayor recaudación $243M, 9,178 multas
+- Dependencia 3 (Tránsito): $73M, 4,542 multas
+- Dependencia 7 (Reglamentos): $70M, 6,306 multas
+- Dependencia 1 (Predial): $26M, 3,601 multas
+
+**Totales 2024:**
+- Total multas: 26,317
+- Total recaudado: $426,942,771
+- Promedio por multa: ~$16,225
+
+**Dependencias principales:**
+- 8 dependencias activas en 2024
+- Dependencia 5 (Obras) representa ~57% de la recaudación
+- Top 3 dependencias representan ~90% del total
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **626,583 registros históricos disponibles**
+  - Multas desde 2015 hasta 2024
+  - Agrupación por dependencia automática
+
+✓ **Agregación por ejercicio fiscal**
+  - Reportes anuales completos
+  - Totales calculados automáticamente
+
+✓ **Campos completos**
+  - Cantidad de multas
+  - Montos de multas
+  - Gastos de ejecución
+  - Total general
+
+✓ **Dependencias identificadas**
+  - Nombres descriptivos asignados
+  - Top dependencias fácil de identificar
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo contiene el histórico completo
+   de multas municipales con fecha_acta para agregación temporal.
+
+⚠️ **Agregación por fecha_acta**
+   Se usa la fecha del acta (no fecha de pago) para agrupar
+   las multas por ejercicio fiscal.
+
+⚠️ **NULL handling**
+   Se filtran registros con fecha_acta o id_dependencia NULL
+   para evitar datos incompletos en el reporte.
+
+⚠️ **Totales incluyen gastos**
+   El total_general incluye tanto multas como gastos de ejecución.
+   Para solo multas, usar el campo total_multas.
+
+⚠️ **Ejercicio fiscal completo**
+   El reporte incluye todas las multas del año especificado
+   (enero a diciembre), sin filtro por mes.
+
+--- CASOS DE USO ---
+
+**Caso 1: Reporte anual del ejercicio actual**
+1. Ejercicio: 2024
+2. Resultado: Todas las dependencias con actividad en 2024
+3. Usar para: Reporte anual, evaluación de desempeño
+
+**Caso 2: Comparación entre ejercicios**
+1. Ejecutar múltiples consultas con diferentes años
+2. Comparar cantidad_multas y total_general
+3. Identificar tendencias anuales
+4. Usar para: Análisis histórico, proyecciones futuras
+
+**Caso 3: Análisis por dependencia**
+1. Identificar dependencias con mayor recaudación
+2. Comparar año a año
+3. Evaluar desempeño por dependencia
+4. Usar para: Distribución de recursos, metas institucionales
+
+**Caso 4: Auditoría fiscal**
+1. Verificar totales de ejercicios anteriores
+2. Comparar con presupuestos
+3. Validar datos históricos
+4. Usar para: Auditorías, reportes oficiales
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (reporte ejercicio 2024)
+const params = {
+  ejercicio: 2024
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "dependencia": 1,
+      "nombre_dependencia": "Dependencia 1 - Predial",
+      "cantidad_multas": 3601,
+      "total_multas": 19842000.00,
+      "total_gastos": 41703.48,
+      "total_general": 26484831.04
+    },
+    {
+      "dependencia": 3,
+      "nombre_dependencia": "Dependencia 3 - Tránsito",
+      "cantidad_multas": 4542,
+      "total_multas": 54218557.00,
+      "total_gastos": 108681.30,
+      "total_general": 73953605.58
+    },
+    // ... más dependencias
+  ],
+  "total": 8
+}
+```
+
+El componente RepDescImpto.vue debería:
+1. Recibir array de dependencias con sus totales
+2. Mostrar tabla con columnas: Dependencia, Nombre, Cant.Multas, Tot.Multas, Tot.Gastos, Tot.General
+3. Filtro para:
+   - Selector de ejercicio fiscal (2015-2024)
+4. Calcular totales generales (suma de todas las dependencias)
+5. Mostrar gráficas:
+   - Gráfica de barras por dependencia
+   - Gráfica de pastel de distribución
+   - Gráfica de tendencia por ejercicio
+6. Exportar a Excel/PDF
+7. Formato de moneda con separadores de miles
+8. Ordenar por dependencia o por totales
+
+--- RESUMEN ---
+
+Problema: Tabla publico.relacion_mensual no existe
+
+Solución: Función usa tabla public.h_multasnvo con agregación por ejercicio fiscal
+
+Características:
+- 626,583 registros históricos disponibles
+- Agregación por dependencia y año
+- Cálculo automático de totales
+- Nombres descriptivos de dependencias
+- Datos de múltiples ejercicios fiscales (2015-2024)
+
+Resultado:
+- Reporte anual por dependencia
+- Totales de multas, gastos y general
+- Cantidad de multas en el ejercicio
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del histórico
+- Agregación eficiente por ejercicio
+- Comparación entre ejercicios fiscales
+- Identificación de dependencias más activas
+- Base para análisis de tendencias
+
+Uso recomendado:
+- Especificar ejercicio fiscal (año)
+- Ideal para reportes anuales oficiales
+- Comparaciones interanuales
+- Análisis de desempeño institucional
+- Auditorías y reportes gerenciales

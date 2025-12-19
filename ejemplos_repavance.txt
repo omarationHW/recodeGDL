@@ -1,0 +1,333 @@
+=== EJEMPLOS PARA PROBAR repavance.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: function publico.recaudadora_repavance(unknown, unknown) does not exist
+HINT: No function matches the given name and argument types.
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.h_multasnvo (histórico de multas)
+que tiene 626,583 registros y genera el reporte de avance por rango de fechas
+agregando por dependencia con cálculos de totales, promedios y porcentajes.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_repavance**: Retorna reporte de avance por rango de fechas
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_desde: DATE (fecha inicial del rango, ejemplo: '2024-01-01')
+- p_hasta: DATE (fecha final del rango, ejemplo: '2024-01-31')
+
+Validaciones:
+- Ambas fechas son requeridas
+- La fecha desde no puede ser mayor que la fecha hasta
+
+--- VALORES RETORNADOS ---
+
+| Campo              | Tipo    | Descripción                                  |
+|--------------------|---------|----------------------------------------------|
+| dependencia        | INTEGER | ID de la dependencia                         |
+| nombre_dependencia | VARCHAR | Nombre descriptivo de la dependencia         |
+| cantidad_multas    | BIGINT  | Número de multas en el periodo               |
+| total_multas       | NUMERIC | Suma de montos de multas                     |
+| total_gastos       | NUMERIC | Suma de gastos de ejecución                  |
+| total_general      | NUMERIC | Suma total (multas + gastos)                 |
+| promedio_multa     | NUMERIC | Promedio por multa                           |
+| porcentaje_total   | NUMERIC | Porcentaje sobre el total del periodo        |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla h_multasnvo se agrega así:
+- id_dependencia → dependencia (ID)
+- id_dependencia → nombre_dependencia (construido con CASE)
+- COUNT(*) → cantidad_multas
+- SUM(multa) → total_multas
+- SUM(gastos) → total_gastos
+- SUM(total) → total_general
+- AVG(total) → promedio_multa
+- (SUM(total) / total_general_periodo) * 100 → porcentaje_total
+- Filtro por fecha_acta entre p_desde y p_hasta
+
+--- EJEMPLO 1: Reporte de avance de un mes (Enero 2024) ---
+
+Parámetros:
+- Desde: 2024-01-01
+- Hasta: 2024-01-31
+
+Resultado esperado:
+- Total dependencias: 7
+- Total multas: 4,006
+- Total general: $41,693,763.90
+- Promedio: $10,407.83
+
+Ejemplo de resultados:
+| Dep | Nombre                        | Cant.Multas | Tot.General     | Promedio    | % Total |
+|-----|-------------------------------|-------------|-----------------|-------------|---------|
+|  5  | Dependencia 5 - Obras         |       1,338 | $  24,465,335   | $  18,285   |  58.68% |
+|  7  | Dependencia 7 - Reglamentos   |       1,258 | $   7,315,610   | $   5,815   |  17.55% |
+|  3  | Dependencia 3 - Tránsito      |         725 | $   6,753,828   | $   9,316   |  16.20% |
+|  1  | Dependencia 1 - Predial       |         337 | $   2,026,056   | $   6,012   |   4.86% |
+| 35  | Dependencia 35 - Vía Pública  |         270 | $     695,428   | $   2,576   |   1.67% |
+
+TOTALES ENERO: 4,006 multas | $41,693,764 | Promedio: $10,408 | 100%
+
+Análisis:
+- Dependencia 5 (Obras) lidera con 58.68% del total
+- Top 3 dependencias representan 92.43% del total
+- Mayor promedio por multa: Dependencia 5 ($18,285)
+
+--- EJEMPLO 2: Reporte de avance trimestral (Q1 2024) ---
+
+Parámetros:
+- Desde: 2024-01-01
+- Hasta: 2024-03-31
+
+Resultado esperado:
+- Total dependencias: 7
+- Total multas: 8,102
+- Total general: $115,817,685.82
+- Promedio: $14,294.95
+
+Top 3 dependencias Q1 2024:
+| Dep | Nombre                        | Cant.Multas | Tot.General     | % Total |
+|-----|-------------------------------|-------------|-----------------|---------|
+|  5  | Dependencia 5 - Obras         |       2,944 | $  65,726,836   |  56.75% |
+|  3  | Dependencia 3 - Tránsito      |       1,584 | $  21,877,586   |  18.89% |
+|  7  | Dependencia 7 - Reglamentos   |       2,322 | $  21,698,474   |  18.74% |
+
+TOTAL Q1: 8,102 multas | $115,817,686 | Promedio: $14,295
+
+Análisis:
+- Q1 muestra 8,102 multas en 3 meses
+- Promedio trimestral: $14,295 por multa
+- Dependencia 5 mantiene liderazgo con 56.75%
+
+--- EJEMPLO 3: Reporte de avance semestral (Semestre 1, 2024) ---
+
+Parámetros:
+- Desde: 2024-01-01
+- Hasta: 2024-06-30
+
+Resultado esperado:
+- Total dependencias: 7
+- Total multas: 14,605
+- Total general: $210,999,107.32
+- Promedio: $14,447.05
+
+Comparación de periodos 2024:
+| Periodo         | Dependencias | Multas  | Total General    | Promedio    |
+|-----------------|--------------|---------|------------------|-------------|
+| Enero           |            7 |   4,006 | $  41,693,764    | $  10,408   |
+| Q1 (Ene-Mar)    |            7 |   8,102 | $ 115,817,686    | $  14,295   |
+| Q2 (Abr-Jun)    |            7 |   6,503 | $  95,181,422    | $  14,637   |
+| Semestre 1      |            7 |  14,605 | $ 210,999,107    | $  14,447   |
+
+Tendencias:
+- Incremento en promedio por multa a lo largo del año
+- Q1 tuvo mayor actividad que Q2
+- Promedio semestral: $14,447 por multa
+- Consistencia en 7 dependencias activas
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Por Dependencia (Año 2024 completo):**
+- Dependencia 5 (Obras): 57.09% del total anual
+- Dependencia 3 (Tránsito): 17.32% del total anual
+- Dependencia 7 (Reglamentos): 16.61% del total anual
+- Top 3 dependencias: 91.02% del total
+
+**Análisis de periodos:**
+- Enero: 4,006 multas, promedio $10,408
+- Q1: 8,102 multas, promedio $14,295
+- Q2: 6,503 multas, promedio $14,637
+- Semestre 1: 14,605 multas, promedio $14,447
+
+**Porcentajes por dependencia (típicos):**
+- Dependencia 5: ~57-59% (Mayor recaudador)
+- Dependencia 3: ~16-18%
+- Dependencia 7: ~16-18%
+- Otras dependencias: ~7-10%
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **626,583 registros históricos disponibles**
+  - Multas desde 2015 hasta 2024
+  - Filtro flexible por rango de fechas
+
+✓ **Agregación por dependencia**
+  - Totales calculados automáticamente
+  - Promedios por multa
+  - Porcentajes sobre el total del periodo
+
+✓ **Campos completos**
+  - Cantidad de multas
+  - Montos de multas
+  - Gastos de ejecución
+  - Total general
+  - Promedio por multa
+  - Porcentaje sobre el total
+
+✓ **Validaciones incluidas**
+  - Fechas requeridas
+  - Fecha desde no puede ser mayor que hasta
+  - Manejo correcto de NULL
+
+✓ **Ordenamiento inteligente**
+  - Resultados ordenados por total_general descendente
+  - Facilita identificación de principales contribuyentes
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo contiene el histórico completo
+   de multas municipales con fecha_acta para filtrado temporal.
+
+⚠️ **Filtro por fecha_acta**
+   Se usa la fecha del acta (no fecha de pago) para filtrar
+   las multas en el rango especificado.
+
+⚠️ **NULL handling**
+   Se filtran registros con fecha_acta o id_dependencia NULL
+   para evitar datos incompletos en el reporte.
+
+⚠️ **Totales incluyen gastos**
+   El total_general incluye tanto multas como gastos de ejecución.
+   Para solo multas, usar el campo total_multas.
+
+⚠️ **Porcentaje calculado dinámicamente**
+   El porcentaje_total se calcula sobre el total del periodo
+   especificado, no sobre un total anual fijo.
+
+⚠️ **Validación de fechas**
+   Si la fecha desde es mayor que la fecha hasta, se genera
+   un error y no se ejecuta la consulta.
+
+⚠️ **Rango flexible**
+   Se puede consultar cualquier rango: días, semanas, meses,
+   trimestres, semestres o años completos.
+
+--- CASOS DE USO ---
+
+**Caso 1: Reporte mensual de avance**
+1. Desde: Primer día del mes
+2. Hasta: Último día del mes
+3. Resultado: Avance mensual por dependencia
+4. Usar para: Reportes mensuales, seguimiento de metas
+
+**Caso 2: Reporte trimestral**
+1. Desde: Primer día del trimestre
+2. Hasta: Último día del trimestre
+3. Resultado: Avance trimestral agregado
+4. Usar para: Evaluación trimestral, comparación entre trimestres
+
+**Caso 3: Reporte personalizado**
+1. Desde: Cualquier fecha inicio
+2. Hasta: Cualquier fecha fin
+3. Resultado: Avance en el periodo específico
+4. Usar para: Análisis ad-hoc, periodos especiales
+
+**Caso 4: Comparación de periodos**
+1. Ejecutar múltiples consultas con diferentes rangos
+2. Comparar totales y porcentajes
+3. Identificar tendencias
+4. Usar para: Análisis comparativo, proyecciones
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (enero 2024)
+const params = {
+  desde: '2024-01-01',
+  hasta: '2024-01-31'
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "dependencia": 5,
+      "nombre_dependencia": "Dependencia 5 - Obras",
+      "cantidad_multas": 1338,
+      "total_multas": 24210662.00,
+      "total_gastos": 254673.18,
+      "total_general": 24465335.18,
+      "promedio_multa": 18285.00,
+      "porcentaje_total": 58.68
+    },
+    {
+      "dependencia": 7,
+      "nombre_dependencia": "Dependencia 7 - Reglamentos",
+      "cantidad_multas": 1258,
+      "total_multas": 7187109.00,
+      "total_gastos": 128500.60,
+      "total_general": 7315609.60,
+      "promedio_multa": 5815.27,
+      "porcentaje_total": 17.55
+    },
+    // ... más dependencias
+  ],
+  "total": 7
+}
+```
+
+El componente repavance.vue debería:
+1. Recibir array de dependencias con sus estadísticas
+2. Mostrar tabla con columnas: Dep, Nombre, Cant.Multas, Tot.Multas, Tot.Gastos, Tot.General, Promedio, %
+3. Filtros para:
+   - Fecha desde (date picker)
+   - Fecha hasta (date picker)
+   - Validación: desde no puede ser mayor que hasta
+4. Calcular totales generales (suma de todas las dependencias)
+5. Mostrar gráficas:
+   - Gráfica de pastel con distribución por dependencia (%)
+   - Gráfica de barras con totales por dependencia
+   - Indicador de progreso por dependencia
+6. Exportar a Excel/PDF
+7. Formato de moneda con separadores de miles
+8. Formato de porcentajes con 2 decimales
+9. Ordenar por total_general descendente
+10. Resaltar la dependencia con mayor recaudación
+
+--- RESUMEN ---
+
+Problema: Función publico.recaudadora_repavance no existía con parámetros
+
+Solución: Función usa tabla public.h_multasnvo con filtro por rango de fechas
+
+Características:
+- 626,583 registros históricos disponibles
+- Agregación por dependencia en rango de fechas
+- Cálculo automático de totales, promedios y porcentajes
+- Validación de fechas
+- Nombres descriptivos de dependencias
+- Rangos de fechas flexibles
+
+Resultado:
+- Reporte de avance por rango de fechas
+- Totales de multas, gastos y general
+- Promedio por multa
+- Porcentaje sobre el total del periodo
+- Ordenado por total_general descendente
+- Datos reales del sistema
+
+Ventajas:
+- Datos oficiales del histórico
+- Flexibilidad total en rangos de fechas
+- Análisis de avance por periodo
+- Comparación entre periodos
+- Identificación de dependencias más activas
+- Porcentajes calculados automáticamente
+- Validaciones de integridad de datos
+
+Uso recomendado:
+- Especificar rango de fechas válido (desde <= hasta)
+- Ideal para reportes de avance mensuales, trimestrales, semestrales
+- Comparaciones entre periodos
+- Análisis de distribución por dependencia
+- Evaluación de cumplimiento de metas
+- Reportes ejecutivos con porcentajes

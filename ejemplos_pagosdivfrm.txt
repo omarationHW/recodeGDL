@@ -1,0 +1,316 @@
+=== EJEMPLOS PARA PROBAR pagosdivfrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- public.pago_diversos (440,073 pagos diversos)
+
+IMPORTANTE:
+- 440,073 pagos diversos disponibles
+- Búsqueda en 4 campos: ID pago, contribuyente, concepto, referencia
+- Límite de 100 registros por consulta
+- Años: principalmente 2002-2014
+- Pagos con referencia: 23,626 (5.4%)
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.pagos_diversos" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla public.pago_diversos (tabla de pagos diversos históricos)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_pagosdivfrm**: Busca pagos diversos
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_clave_cuenta: VARCHAR (búsqueda general, puede estar vacío)
+
+Búsqueda en 4 campos:
+1. ID de pago (cvepago)
+2. Contribuyente (nombre)
+3. Concepto (descripción del pago)
+4. Referencia (número de referencia)
+
+--- EJEMPLO 1: Sin filtro (últimos 100 pagos) ---
+
+Parámetro: '' (vacío)
+
+Resultado esperado:
+✓ Total encontrados: 100 pagos (límite)
+✓ Ordenados por ID descendente (más recientes primero)
+✓ Campos retornados: id_pago, clave_cuenta, folio_pago, fecha_pago, contribuyente, domicilio, concepto, monto, forma_pago, referencia, cajero, estatus, observaciones
+
+Ejemplo de resultado:
+- ID: 8108543
+- Folio: 8108543
+- Fecha: 2014-Nov-Dic
+- Contribuyente: ARACELI HERNANDEZ
+- Domicilio: CONOCIDO
+- Concepto: PAGO DE CERTIFICADO DE PROPIEDAD DE LA CUENTA 1-2086
+- Referencia: 0
+- Estatus: Pagado
+
+--- EJEMPLO 2: Búsqueda por contribuyente ---
+
+Parámetro: 'HERNANDEZ'
+
+Resultado esperado:
+✓ Total encontrados: 100 pagos (límite)
+✓ Busca en ID, contribuyente, concepto y referencia
+✓ Ejemplo de coincidencias:
+
+1. ID: 8108543, Contribuyente: ARACELI HERNANDEZ, Fecha: 2014-Nov-Dic
+2. ID: 8108210, Contribuyente: F JAVIER HERNANDEZ GARCIA, Fecha: 2014-Nov-Dic
+3. ID: 8108208, Contribuyente: F JAVIER HERNANDEZ GARCIA, Fecha: 2014-Nov-Dic
+
+--- EJEMPLO 3: Búsqueda por concepto ---
+
+Parámetro: 'CERTIFICADO'
+
+Resultado esperado:
+✓ Total encontrados: 100 pagos (límite)
+✓ Pagos que contienen 'CERTIFICADO' en el concepto
+✓ Ejemplos:
+
+1. ID: 8108543, Concepto: PAGO DE CERTIFICADO DE PROPIEDAD...
+2. ID: 8108384, Concepto: PAGO POR CERTIFICADO CON HISTORIAL CATASTRAL...
+3. ID: 8108340, Concepto: PAGO POR CERTIFICADO CON HISTORIAL CATASTRAL...
+
+--- CAMPOS RETORNADOS ---
+
+| Campo         | Tipo    | Descripción                                    |
+|---------------|---------|------------------------------------------------|
+| id_pago       | INTEGER | Identificador único del pago                   |
+| clave_cuenta  | VARCHAR | Referencia (puede ser 0)                       |
+| folio_pago    | VARCHAR | Folio del pago (mismo que id_pago)            |
+| fecha_pago    | TEXT    | Fecha en formato "Año-Bimestre" (ej: 2014-Nov-Dic) |
+| contribuyente | VARCHAR | Nombre del contribuyente                       |
+| domicilio     | VARCHAR | Domicilio del contribuyente                    |
+| concepto      | TEXT    | Descripción del pago                           |
+| monto         | NUMERIC | Monto del pago (no disponible, retorna 0)     |
+| forma_pago    | VARCHAR | Forma de pago (no disponible, retorna 'N/A')  |
+| referencia    | VARCHAR | Número de referencia                           |
+| cajero        | VARCHAR | Cajero (no disponible, retorna 'N/A')         |
+| estatus       | VARCHAR | Estatus (siempre 'Pagado')                    |
+| observaciones | TEXT    | Observaciones (no disponible, retorna vacío)  |
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Búsqueda multi-campo**
+   El filtro busca en 4 campos simultáneamente con OR:
+   - ID de pago (cvepago)
+   - Contribuyente
+   - Concepto
+   - Referencia
+   Si introduces 'HERNANDEZ', buscará en todos estos campos
+
+⚠️ Límite de 100 registros
+   La función retorna máximo 100 registros por consulta
+   Ordenados por ID descendente (más recientes primero)
+
+⚠️ Búsqueda case-insensitive
+   Usa ILIKE para búsqueda parcial sin importar mayúsculas/minúsculas
+   'certificado' = 'CERTIFICADO' = 'Certificado'
+
+⚠️ Campos no disponibles
+   La tabla original tiene estructura limitada:
+   - monto: NO disponible (retorna 0)
+   - forma_pago: NO disponible (retorna 'N/A')
+   - cajero: NO disponible (retorna 'N/A')
+   - observaciones: NO disponible (retorna vacío)
+
+⚠️ Fecha en formato especial
+   La fecha se muestra como "Año-Bimestre":
+   - 2014-Ene-Feb (bimestre 1)
+   - 2014-Mar-Abr (bimestre 2)
+   - 2014-May-Jun (bimestre 3)
+   - 2014-Jul-Ago (bimestre 4)
+   - 2014-Sep-Oct (bimestre 5)
+   - 2014-Nov-Dic (bimestre 6)
+
+⚠️ Referencia puede ser 0
+   Solo 23,626 pagos tienen referencia > 0 (5.4%)
+   El resto tiene referencia = 0
+
+⚠️ Estatus siempre es 'Pagado'
+   Todos los registros son pagos históricos completados
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: public
+Tabla: pago_diversos (440,073 registros)
+
+Campos principales:
+- cvepago: Identificador único (INTEGER)
+- contribuyente: Nombre del contribuyente (VARCHAR 100)
+- domicilio: Domicilio (VARCHAR 50)
+- concepto: Descripción del pago (TEXT)
+- referencia: Número de referencia (INTEGER)
+- bimini: Bimestre inicial (INTEGER 1-6)
+- axoini: Año inicial (INTEGER)
+- bimfin: Bimestre final (INTEGER 1-6)
+- axofin: Año final (INTEGER)
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT
+    p.cvepago AS id_pago,
+    COALESCE(p.referencia::VARCHAR, '') AS clave_cuenta,
+    p.cvepago::VARCHAR AS folio_pago,
+    CASE
+        WHEN p.axoini > 0 AND p.bimini > 0 THEN
+            p.axoini::VARCHAR || '-' ||
+            CASE p.bimini
+                WHEN 1 THEN 'Ene-Feb'
+                WHEN 2 THEN 'Mar-Abr'
+                WHEN 3 THEN 'May-Jun'
+                WHEN 4 THEN 'Jul-Ago'
+                WHEN 5 THEN 'Sep-Oct'
+                WHEN 6 THEN 'Nov-Dic'
+                ELSE 'N/A'
+            END
+        WHEN p.axoini > 0 THEN p.axoini::VARCHAR
+        ELSE 'N/A'
+    END AS fecha_pago,
+    COALESCE(p.contribuyente, 'N/A')::VARCHAR AS contribuyente,
+    COALESCE(p.domicilio, '')::VARCHAR AS domicilio,
+    COALESCE(p.concepto, '')::TEXT AS concepto,
+    0::NUMERIC AS monto,
+    'N/A'::VARCHAR AS forma_pago,
+    COALESCE(p.referencia::VARCHAR, '')::VARCHAR AS referencia,
+    'N/A'::VARCHAR AS cajero,
+    'Pagado'::VARCHAR AS estatus,
+    ''::TEXT AS observaciones
+FROM public.pago_diversos p
+WHERE
+    CASE
+        WHEN p_clave_cuenta = '' OR p_clave_cuenta IS NULL THEN TRUE
+        ELSE (
+            p.cvepago::TEXT ILIKE '%' || p_clave_cuenta || '%'
+            OR p.contribuyente ILIKE '%' || p_clave_cuenta || '%'
+            OR p.concepto ILIKE '%' || p_clave_cuenta || '%'
+            OR p.referencia::TEXT ILIKE '%' || p_clave_cuenta || '%'
+        )
+    END
+ORDER BY p.cvepago DESC
+LIMIT 100
+```
+
+Criterios:
+1. Si filtro vacío: retorna últimos 100 pagos
+2. Si hay filtro: busca coincidencias en 4 campos con OR
+3. Ordenamiento: ID descendente (más recientes primero)
+4. Límite: 100 registros máximo
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 100 pagos encontrados
+✅ Test con contribuyente 'HERNANDEZ': 100 coincidencias
+✅ Test con concepto 'CERTIFICADO': 100 coincidencias
+✅ Test con referencia '282234': 3 coincidencias
+✅ Test con ID '8108543': 1 coincidencia
+✅ Stored procedure actualizado exitosamente
+✅ Búsqueda multi-campo funcional
+✅ Límite de 100 registros aplicado
+✅ Ordenamiento por ID descendente correcto
+
+--- ESTADÍSTICAS ---
+
+Total de pagos diversos: 440,073
+
+Pagos con referencia:
+- Con referencia > 0: 23,626 (5.4%)
+- Sin referencia (0): 416,447 (94.6%)
+
+Por año (top 5):
+- 2003: 33,188 pagos (7.5%)
+- 2004: 19,204 pagos (4.4%)
+- 2013: 18,315 pagos (4.2%)
+- 2014: 11,624 pagos (2.6%)
+- 2002: 10,235 pagos (2.3%)
+
+Por bimestre:
+- Bimestre 1 (Ene-Feb): 9,651 pagos
+- Bimestre 2 (Mar-Abr): 9,013 pagos
+- Bimestre 3 (May-Jun): 9,216 pagos
+- Bimestre 4 (Jul-Ago): 7,606 pagos
+- Bimestre 5 (Sep-Oct): 10,675 pagos
+- Bimestre 6 (Nov-Dic): 9,551 pagos
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver últimos pagos diversos**
+1. Llamar recaudadora_pagosdivfrm('')
+2. Retorna los últimos 100 pagos
+3. Revisar conceptos y contribuyentes
+
+**Caso 2: Buscar pagos de un contribuyente**
+1. Llamar recaudadora_pagosdivfrm('NOMBRE')
+2. Retorna pagos de contribuyentes con ese nombre
+3. Búsqueda parcial, no requiere nombre completo
+
+**Caso 3: Buscar pagos por concepto**
+1. Llamar recaudadora_pagosdivfrm('CERTIFICADO')
+2. Retorna pagos con ese concepto
+3. También busca en otros campos (multi-campo)
+
+**Caso 4: Buscar pago por referencia**
+1. Llamar recaudadora_pagosdivfrm('282234')
+2. Busca en número de referencia
+3. Puede haber múltiples pagos con la misma referencia
+
+**Caso 5: Buscar pago por ID específico**
+1. Llamar recaudadora_pagosdivfrm('8108543')
+2. Busca por ID de pago
+3. Retorna el pago específico
+
+--- FLUJO RECOMENDADO ---
+
+1. **Búsqueda inicial**
+   ```
+   recaudadora_pagosdivfrm('')
+   → Retorna: últimos 100 pagos diversos
+   ```
+
+2. **Filtrar por criterio**
+   ```
+   recaudadora_pagosdivfrm('criterio')
+   → Retorna: hasta 100 pagos que coincidan en cualquier campo
+   ```
+
+3. **Interpretar resultados**
+   - Revisar campo 'estatus' (siempre 'Pagado')
+   - Revisar campo 'concepto' para tipo de pago
+   - Campo 'fecha_pago' muestra año-bimestre
+   - Campo 'monto' no está disponible (siempre 0)
+   - Campo 'referencia' puede ser 0 (sin referencia)
+
+4. **Refinar búsqueda**
+   - Si hay muchos resultados, hacer búsqueda más específica
+   - Usar términos únicos para reducir coincidencias
+
+--- RESUMEN ---
+
+Problema: Tabla publico.pagos_diversos no existe
+
+Solución: Usa public.pago_diversos (tabla de pagos diversos históricos)
+
+Diferencia clave: Búsqueda multi-campo en 4 campos simultáneamente
+
+Resultado: Sistema funcional para consultar pagos diversos históricos
+
+Características:
+- Búsqueda multi-campo (4 campos simultáneos)
+- Búsqueda parcial con ILIKE (case-insensitive)
+- Límite de 100 registros por consulta
+- Ordenamiento por ID descendente
+- Fecha en formato año-bimestre
+- 440,073 pagos diversos disponibles
+- Principalmente años 2002-2014
+- Solo 5.4% tiene referencia asignada
+- Campos monto, forma_pago, cajero no disponibles

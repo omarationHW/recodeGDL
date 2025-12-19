@@ -1,0 +1,268 @@
+=== EJEMPLOS PARA PROBAR multas400frm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla existente:
+- publico.multas_mpal_400 (273,247 multas municipales formato 400)
+
+IMPORTANTE:
+- 273,247 multas municipales disponibles
+- Búsqueda por: número de acta, año, contribuyente, dependencia, lote
+- Estados: Activa (A), Pagada (P), Cancelada (C), B, T
+- Límite de 100 registros por consulta
+- Fechas en formato YYMMDD convertidas automáticamente
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.multas_400" does not exist
+
+--- SOLUCIÓN ---
+
+Ahora usa la tabla publico.multas_mpal_400 (multas municipales formato 400)
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_multas400frm**: Busca multas por filtro general
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_filtro: VARCHAR (texto de búsqueda general, puede estar vacío)
+
+Búsqueda en:
+- Número de acta (numacta)
+- Año de acta (axoacta)
+- Contribuyente (nombre)
+- Dependencia (depen)
+- Número de lote (numlote)
+
+--- EJEMPLO 1: Búsqueda sin filtro (últimas 100 multas) ---
+
+Parámetro: '' (vacío)
+
+Resultado esperado:
+✓ Total encontrados: 100 multas (límite)
+✓ Multas más recientes primero
+✓ Campos retornados:
+  - id_multa: 122401
+  - num_acta: 122401
+  - axo_acta: 2002
+  - fecha_acta: 2002-10-09
+  - contribuyente: HECTOR RODRIGUEZ CUEVAS
+  - domicilio: AV NANCE 1716-2
+  - id_dependencia: R
+  - expediente: (vacío)
+  - multa: $75,000.00
+  - gastos: $75,000.00
+  - total: $150,000.00
+  - cvepago: null
+  - fecha_recepcion: 2002-10-11
+  - observacion: Pagada
+
+--- EJEMPLO 2: Búsqueda por número de acta ---
+
+Parámetro: '100'
+
+Resultado esperado:
+✓ Total encontrados: 100 multas (límite)
+✓ Todas las actas que contengan '100' en su número
+✓ Ejemplos:
+  - Acta: 121003/2002 - NUEVO TAURINO S.A - $200,000.00
+  - Acta: 10096/2002 - MA DE LOS ANGELES - $32,000.00
+  - Acta: 10099/2002 - MAURILIO SANDOVAL - $50,000.00
+
+--- EJEMPLO 3: Búsqueda por contribuyente ---
+
+Parámetro: 'GARCIA'
+
+Resultado esperado:
+✓ Total encontrados: 100 multas (límite)
+✓ Todas las multas de contribuyentes con 'GARCIA' en el nombre
+✓ Ejemplos:
+  - Acta: 122226/2002 - ENRIQUE GARCIA RAMOS - $100,000.00
+  - Acta: 121112/2002 - RABAGO GARCIA JOSE ALFONSO - $100,000.00
+  - Acta: 121150/2002 - IDELFONSO GARCIA MA JUDITH - $20,000.00
+
+--- CAMPOS RETORNADOS ---
+
+| Campo             | Tipo    | Descripción                                |
+|-------------------|---------|--------------------------------------------|
+| id_multa          | VARCHAR | Número de acta (usado como ID)            |
+| num_acta          | VARCHAR | Número de acta                             |
+| axo_acta          | VARCHAR | Año de acta                                |
+| fecha_acta        | DATE    | Fecha de alta (convertida de YYMMDD)      |
+| contribuyente     | VARCHAR | Nombre del contribuyente                   |
+| domicilio         | VARCHAR | Domicilio del contribuyente                |
+| id_dependencia    | VARCHAR | Código de dependencia                      |
+| expediente        | VARCHAR | Expediente (no disponible, siempre vacío)  |
+| multa             | NUMERIC | Importe de la multa                        |
+| gastos            | NUMERIC | Gastos (importe inicial)                   |
+| total             | NUMERIC | Total (multa + gastos)                     |
+| cvepago           | VARCHAR | Clave de pago (no disponible, siempre null)|
+| fecha_recepcion   | DATE    | Fecha de recepción (convertida)            |
+| observacion       | TEXT    | Estado descriptivo de la multa             |
+
+--- MAPEO DE ESTADOS ---
+
+| Estado en observacion | Código BD | Descripción              | Total    |
+|-----------------------|-----------|--------------------------|----------|
+| Pagada                | P         | Multa pagada             | 159,624  |
+| Activa                | A         | Multa activa/vigente     | 104,296  |
+| Cancelada             | C         | Multa cancelada          | 1,344    |
+| Estado B              | B         | Estado B                 | 7,815    |
+| Estado T              | T         | Estado T                 | 168      |
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Conversión de fechas**
+   Las fechas están almacenadas como INTEGER en formato YYMMDD
+   Se convierten automáticamente agregando '19' al inicio (ej: 980318 → 1998-03-18)
+
+⚠️ Límite de 100 registros
+   La función retorna máximo 100 registros por consulta
+   Ordenados por fecha más reciente primero
+
+⚠️ Campos no disponibles
+   expediente: No existe en la tabla (siempre vacío)
+   cvepago: No existe en la tabla (siempre null)
+
+⚠️ Búsqueda amplia
+   El filtro busca en 5 campos diferentes simultáneamente:
+   - Número de acta
+   - Año de acta
+   - Contribuyente
+   - Dependencia
+   - Número de lote
+
+⚠️ Espacios en campos de texto
+   Los campos nombre y domici tienen formato CHARACTER con espacios
+   Se usa TRIM() automáticamente para limpiar espacios
+
+--- TABLA USADA ---
+
+Base de datos: multas_reglamentos
+Esquema: publico
+Tabla: multas_mpal_400 (273,247 registros)
+
+Campos principales:
+- numacta: Número de acta (INTEGER)
+- axoacta: Año de acta (SMALLINT)
+- fecalt: Fecha alta (INTEGER formato YYMMDD)
+- nombre: Contribuyente (CHARACTER 30)
+- domici: Domicilio (CHARACTER 30)
+- depen: Dependencia (CHARACTER 1)
+- impmul: Importe multa (NUMERIC)
+- impini: Importe inicial (NUMERIC)
+- cvevig: Clave vigencia (CHARACTER 1)
+- fecrec: Fecha recepción (INTEGER formato YYMMDD)
+- numlote: Número de lote (INTEGER)
+
+--- LÓGICA DE BÚSQUEDA ---
+
+La función ejecuta:
+```sql
+SELECT (campos...)
+FROM publico.multas_mpal_400 m
+WHERE CASE
+    WHEN p_filtro = '' OR p_filtro IS NULL THEN TRUE
+    ELSE (m.numacta::TEXT ILIKE '%' || p_filtro || '%'
+          OR m.axoacta::TEXT ILIKE '%' || p_filtro || '%'
+          OR TRIM(m.nombre) ILIKE '%' || p_filtro || '%'
+          OR m.depen::TEXT ILIKE '%' || p_filtro || '%'
+          OR m.numlote::TEXT ILIKE '%' || p_filtro || '%')
+END
+ORDER BY m.fecalt DESC, m.numacta DESC
+LIMIT 100
+```
+
+Criterios:
+1. Si filtro vacío: retorna todas (100 más recientes)
+2. Si hay filtro: busca coincidencias parciales en 5 campos
+3. Ordenamiento: fecha más reciente primero
+4. Límite: 100 registros máximo
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 100 multas encontradas
+✅ Test con número '100': 100 coincidencias
+✅ Test con nombre 'GARCIA': 100 coincidencias
+✅ Conversión de fechas funcional (YYMMDD → DATE)
+✅ Stored procedure actualizado exitosamente
+✅ Búsqueda multi-campo funcional
+✅ Límite de 100 registros aplicado
+✅ Ordenamiento por fecha descendente correcto
+
+--- ESTADÍSTICAS ---
+
+Total de multas: 273,247
+
+Por estado:
+- Pagada (P): 159,624 (58.4%)
+- Activa (A): 104,296 (38.2%)
+- Estado B (B): 7,815 (2.9%)
+- Cancelada (C): 1,344 (0.5%)
+- Estado T (T): 168 (0.06%)
+
+Distribución de montos:
+- Total acumulado: Millones de pesos
+- Promedio por multa: Variable
+- Rango: Desde miles hasta cientos de miles de pesos
+
+Rangos de fechas:
+- Fechas históricas desde años 90s
+- Formato YYMMDD (6 dígitos)
+- Algunas fechas pueden ser inválidas en BD original
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver últimas multas**
+1. Llamar recaudadora_multas400frm('')
+2. Retorna las 100 multas más recientes
+3. Revisar estados y montos
+
+**Caso 2: Buscar multa por número de acta**
+1. Llamar recaudadora_multas400frm('12345')
+2. Retorna multas que contengan '12345' en el número de acta
+3. Puede haber múltiples coincidencias
+
+**Caso 3: Buscar multas de un contribuyente**
+1. Llamar recaudadora_multas400frm('NOMBRE')
+2. Retorna multas de contribuyentes con ese nombre
+3. Búsqueda parcial, no requiere nombre completo
+
+--- FLUJO RECOMENDADO ---
+
+1. **Búsqueda inicial**
+   ```
+   recaudadora_multas400frm('')
+   → Retorna: últimas 100 multas
+   ```
+
+2. **Filtrar por criterio**
+   ```
+   recaudadora_multas400frm('criterio')
+   → Retorna: hasta 100 multas que coincidan
+   ```
+
+3. **Interpretar resultados**
+   - Revisar campo 'observacion' para estado
+   - Revisar campo 'total' para monto
+   - Campos 'expediente' y 'cvepago' siempre están vacíos/null
+
+--- RESUMEN ---
+
+Problema: Tabla publico.multas_400 no existe
+
+Solución: Usa publico.multas_mpal_400 (multas municipales formato 400)
+
+Diferencia clave: Fechas en formato INTEGER YYMMDD convertidas a DATE
+
+Resultado: Sistema funcional para consulta de multas municipales
+
+Características:
+- Búsqueda multi-campo (5 campos simultáneos)
+- Conversión automática de fechas
+- Límite de 100 registros por consulta
+- Ordenamiento por fecha descendente
+- Soporte para búsqueda parcial (ILIKE)
+- Limpieza de espacios en texto (TRIM)
+- 273,247 multas disponibles
+- Estados descriptivos en campo observacion

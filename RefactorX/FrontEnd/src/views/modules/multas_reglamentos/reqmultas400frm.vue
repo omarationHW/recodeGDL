@@ -30,25 +30,23 @@
 
           <!-- Búsqueda General -->
           <div class="search-section">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Cuenta / Folio</label>
-                <input
-                  class="municipal-form-control"
-                  v-model="filters.cuenta"
-                  placeholder="Ingrese cuenta o folio"
-                  @keyup.enter="buscarGeneral"
-                />
-              </div>
-              <div class="button-wrapper">
-                <button
-                  class="btn-municipal-primary"
-                  :disabled="loading"
-                  @click="buscarGeneral"
-                >
-                  Buscar
-                </button>
-              </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Cuenta / Folio</label>
+              <input
+                class="municipal-form-control"
+                v-model="filters.cuenta"
+                placeholder="Ingrese cuenta o folio"
+                @keyup.enter="buscarGeneral"
+              />
+            </div>
+            <div class="button-group">
+              <button
+                class="btn-municipal-primary"
+                :disabled="loading"
+                @click="buscarGeneral"
+              >
+                Buscar
+              </button>
             </div>
           </div>
         </div>
@@ -307,13 +305,15 @@ function formatValue(value, column) {
 }
 
 .form-group {
-  flex: 1;
-  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
 }
 
-.button-wrapper {
+.button-group {
   display: flex;
-  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .btn-municipal-secondary {

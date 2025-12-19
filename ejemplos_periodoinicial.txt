@@ -1,0 +1,288 @@
+=== EJEMPLOS PARA PROBAR PeriodoInicial.vue ===
+
+El stored procedure ha sido actualizado para retornar valores predeterminados.
+IMPORTANTE: La tabla publico.parametros_sistema NO EXISTE en la base de datos.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.parametros_sistema" does not exist
+
+--- SOLUCIÓN ---
+
+La función ahora retorna valores predeterminados porque la tabla no existe.
+Si se requieren valores reales, se debe crear la tabla parametros_sistema.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_periodo_inicial**: Retorna parámetros del sistema predeterminados
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_ejercicio: INTEGER (año/ejercicio, NULL = año actual)
+
+--- VALORES RETORNADOS PREDETERMINADOS ---
+
+| Campo                     | Valor Predeterminado              | Descripción                        |
+|---------------------------|-----------------------------------|------------------------------------|
+| municipio                 | 'Guadalajara'                     | Nombre del municipio (fijo)        |
+| ejercicio                 | Año solicitado o año actual       | Ejercicio fiscal                   |
+| bimestre_inicial          | 1                                 | Bimestre inicial (Ene-Feb)         |
+| año_inicial               | Mismo que ejercicio               | Año inicial                        |
+| bimestre_final            | 6                                 | Bimestre final (Nov-Dic)           |
+| año_final                 | Mismo que ejercicio               | Año final                          |
+| director                  | 'N/A'                             | Director (no disponible)           |
+| tesorero                  | 'N/A'                             | Tesorero (no disponible)           |
+| presidente                | 'N/A'                             | Presidente (no disponible)         |
+| salario                   | 0                                 | Salario (no disponible)            |
+| aplica_descuento_recargo  | true                              | Aplica descuento/recargo           |
+
+--- EJEMPLO 1: Sin parámetro (año actual) ---
+
+Parámetro:
+- p_ejercicio: NULL
+
+Resultado esperado:
+```json
+{
+  "municipio": "Guadalajara",
+  "ejercicio": 2025,
+  "bimestre_inicial": 1,
+  "año_inicial": 2025,
+  "bimestre_final": 6,
+  "año_final": 2025,
+  "director": "N/A",
+  "tesorero": "N/A",
+  "presidente": "N/A",
+  "salario": 0,
+  "aplica_descuento_recargo": true
+}
+```
+
+--- EJEMPLO 2: Con ejercicio 2024 ---
+
+Parámetro:
+- p_ejercicio: 2024
+
+Resultado esperado:
+```json
+{
+  "municipio": "Guadalajara",
+  "ejercicio": 2024,
+  "bimestre_inicial": 1,
+  "año_inicial": 2024,
+  "bimestre_final": 6,
+  "año_final": 2024,
+  "director": "N/A",
+  "tesorero": "N/A",
+  "presidente": "N/A",
+  "salario": 0,
+  "aplica_descuento_recargo": true
+}
+```
+
+--- EJEMPLO 3: Con ejercicio 2023 ---
+
+Parámetro:
+- p_ejercicio: 2023
+
+Resultado esperado:
+```json
+{
+  "municipio": "Guadalajara",
+  "ejercicio": 2023,
+  "bimestre_inicial": 1,
+  "año_inicial": 2023,
+  "bimestre_final": 6,
+  "año_final": 2023,
+  "director": "N/A",
+  "tesorero": "N/A",
+  "presidente": "N/A",
+  "salario": 0,
+  "aplica_descuento_recargo": true
+}
+```
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Valores predeterminados**
+   Esta función NO lee de una tabla, retorna valores constantes:
+   - Municipio: Siempre 'Guadalajara'
+   - Bimestre inicial: Siempre 1 (Ene-Feb)
+   - Bimestre final: Siempre 6 (Nov-Dic)
+   - Director, Tesorero, Presidente: Siempre 'N/A'
+   - Salario: Siempre 0
+   - Aplica Descuento/Recargo: Siempre true
+
+⚠️ **Tabla no existe**
+   La tabla 'publico.parametros_sistema' NO EXISTE
+   Por eso se retornan valores predeterminados
+
+⚠️ **Ejercicio dinámico**
+   El único valor que cambia es el 'ejercicio':
+   - Si se pasa NULL: Retorna año actual (2025)
+   - Si se pasa un año: Retorna ese año
+
+⚠️ **Periodo siempre es año completo**
+   Bimestre inicial = 1 (Ene-Feb)
+   Bimestre final = 6 (Nov-Dic)
+   Esto cubre el año completo
+
+⚠️ **Personal administrativo no disponible**
+   Director, Tesorero, Presidente: 'N/A'
+   Estos datos no están disponibles en ninguna tabla
+
+⚠️ **Salario no disponible**
+   Salario: 0
+   Este dato no está disponible
+
+--- LÓGICA DE LA FUNCIÓN ---
+
+La función ejecuta:
+```sql
+SELECT
+    'Guadalajara' AS municipio,
+    COALESCE(p_ejercicio, EXTRACT(YEAR FROM CURRENT_DATE)) AS ejercicio,
+    1 AS bimestre_inicial,
+    COALESCE(p_ejercicio, EXTRACT(YEAR FROM CURRENT_DATE)) AS año_inicial,
+    6 AS bimestre_final,
+    COALESCE(p_ejercicio, EXTRACT(YEAR FROM CURRENT_DATE)) AS año_final,
+    'N/A' AS director,
+    'N/A' AS tesorero,
+    'N/A' AS presidente,
+    0 AS salario,
+    true AS aplica_descuento_recargo
+```
+
+Criterios:
+1. Si ejercicio es NULL: Usa año actual
+2. Si ejercicio tiene valor: Usa ese valor
+3. Todos los demás valores son constantes
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin parámetro (año actual): Retorna ejercicio 2025
+✅ Test con ejercicio 2024: Retorna ejercicio 2024
+✅ Test con ejercicio 2023: Retorna ejercicio 2023
+✅ Stored procedure actualizado exitosamente
+✅ Valores predeterminados correctos
+✅ Función operacional sin tabla física
+
+--- SI SE REQUIERE USAR TABLA REAL ---
+
+Si se necesita almacenar y consultar valores reales de parámetros del sistema,
+se debe crear la tabla con esta estructura:
+
+```sql
+CREATE TABLE public.parametros_sistema (
+    id SERIAL PRIMARY KEY,
+    municipio VARCHAR(100),
+    ejercicio INTEGER,
+    bimestre_inicial SMALLINT,
+    año_inicial INTEGER,
+    bimestre_final SMALLINT,
+    año_final INTEGER,
+    director VARCHAR(200),
+    tesorero VARCHAR(200),
+    presidente VARCHAR(200),
+    salario NUMERIC(10,2),
+    aplica_descuento_recargo BOOLEAN DEFAULT true
+);
+
+-- Insertar valores iniciales
+INSERT INTO public.parametros_sistema (
+    municipio, ejercicio, bimestre_inicial, año_inicial,
+    bimestre_final, año_final, director, tesorero, presidente,
+    salario, aplica_descuento_recargo
+) VALUES (
+    'Guadalajara', 2025, 1, 2025, 6, 2025,
+    'Director Municipal', 'Tesorero Municipal', 'Presidente Municipal',
+    50000, true
+);
+```
+
+Luego actualizar el stored procedure para leer de esta tabla:
+```sql
+SELECT
+    p.municipio,
+    p.ejercicio,
+    p.bimestre_inicial,
+    p.año_inicial,
+    p.bimestre_final,
+    p.año_final,
+    p.director,
+    p.tesorero,
+    p.presidente,
+    p.salario,
+    p.aplica_descuento_recargo
+FROM public.parametros_sistema p
+WHERE p_ejercicio IS NULL OR p.ejercicio = p_ejercicio
+ORDER BY p.ejercicio DESC
+LIMIT 1;
+```
+
+--- CASOS DE USO ---
+
+**Caso 1: Obtener parámetros del año actual**
+1. Llamar recaudadora_periodo_inicial(NULL)
+2. Retorna configuración del año 2025
+3. Usar valores en el sistema
+
+**Caso 2: Obtener parámetros de año específico**
+1. Llamar recaudadora_periodo_inicial(2024)
+2. Retorna configuración del año 2024
+3. Útil para consultas históricas
+
+**Caso 3: Configurar sistema**
+1. El componente Vue obtiene los parámetros
+2. Muestra configuración al usuario
+3. Puede permitir edición (requeriría crear tabla)
+
+--- FLUJO RECOMENDADO ---
+
+1. **Obtener parámetros actuales**
+   ```
+   recaudadora_periodo_inicial(NULL)
+   → Retorna: parámetros del año actual (2025)
+   ```
+
+2. **Obtener parámetros de año anterior**
+   ```
+   recaudadora_periodo_inicial(2024)
+   → Retorna: parámetros del año 2024
+   ```
+
+3. **Interpretar resultados**
+   - municipio: Nombre del municipio
+   - ejercicio: Año fiscal
+   - bimestre_inicial/final: Periodo fiscal
+   - director/tesorero/presidente: Personal administrativo (N/A)
+   - salario: Salario de referencia (0)
+   - aplica_descuento_recargo: Indica si aplican descuentos/recargos
+
+--- RESUMEN ---
+
+Problema: Tabla publico.parametros_sistema no existe
+
+Solución: Función retorna valores predeterminados constantes
+
+Características:
+- No requiere tabla física
+- Retorna valores razonables predeterminados
+- Municipio fijo: Guadalajara
+- Ejercicio: Año solicitado o actual
+- Periodo: Año completo (Bim 1-6)
+- Personal administrativo: N/A
+- Salario: 0
+- Descuento/Recargo: Aplicable (true)
+
+Limitaciones:
+- No almacena valores personalizados
+- No permite edición
+- Director, Tesorero, Presidente no disponibles
+- Salario no disponible
+
+Recomendación:
+- Si se requiere funcionalidad completa, crear tabla parametros_sistema
+- Actualizar stored procedure para leer de tabla real
+- Implementar CRUD para mantenimiento de parámetros

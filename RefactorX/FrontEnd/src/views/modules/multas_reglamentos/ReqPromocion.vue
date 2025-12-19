@@ -25,7 +25,8 @@
                   v-model="filters.cuenta"
                   placeholder="Ingrese ID de descuento"
                   @keyup.enter="buscarGeneral"
-                /></div>
+                />
+              </div>
               <div class="form-group">
                 <label class="municipal-form-label">Año</label>
                 <input
@@ -36,15 +37,15 @@
                   @keyup.enter="buscarGeneral"
                 />
               </div>
-              <div class="button-wrapper">
-                <button
-                  class="btn-municipal-primary"
-                  :disabled="loading"
-                  @click="buscarGeneral"
-                >
-                  Buscar
-                </button>
-              </div>
+            </div>
+            <div class="button-group">
+              <button
+                class="btn-municipal-primary"
+                :disabled="loading"
+                @click="buscarGeneral"
+              >
+                Buscar
+              </button>
             </div>
           </div>
         </div>
@@ -278,9 +279,10 @@ function formatValue(value, column) {
   min-width: 200px;
 }
 
-.button-wrapper {
+.button-group {
   display: flex;
-  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .btn-municipal-secondary {

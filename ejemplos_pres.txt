@@ -1,0 +1,347 @@
+=== EJEMPLOS PARA PROBAR pres.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla auditoria (29.5M registros).
+IMPORTANTE: Simula presupuesto devengado desde movimientos de auditoría con datos REALES.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.presupuesto_devengado" does not exist
+
+--- SOLUCIÓN ---
+
+Se encontró y usó la tabla **public.auditoria** para simular presupuesto devengado.
+Convierte datos bimestrales a mensuales dividiendo cada bimestre en 2 meses.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_pres**: Retorna presupuesto devengado simulado desde tabla auditoria
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_filtro: VARCHAR (filtro de búsqueda por ejercicio, '' = todos)
+
+Filtro aplicable:
+- ejercicio: Búsqueda por año fiscal (ILIKE)
+
+--- VALORES RETORNADOS ---
+
+| Campo          | Tipo    | Descripción                              |
+|----------------|---------|------------------------------------------|
+| ejercicio      | INTEGER | Año fiscal (1991-2024)                   |
+| titulo         | VARCHAR | 'Movimientos de Auditoria' (fijo)       |
+| capitulo       | VARCHAR | 'Cuenta Aplicación' (fijo)              |
+| cta_aplicacion | VARCHAR | Código de cuenta (cvectaapl)             |
+| fecha_ingreso  | DATE    | 1 de enero del ejercicio                 |
+| presup_anual   | NUMERIC | Suma anual total                         |
+| ingreso_total  | NUMERIC | Igual que presup_anual                   |
+| enero          | NUMERIC | Monto estimado para enero                |
+| febrero        | NUMERIC | Monto estimado para febrero              |
+| marzo          | NUMERIC | Monto estimado para marzo                |
+| abril          | NUMERIC | Monto estimado para abril                |
+| mayo           | NUMERIC | Monto estimado para mayo                 |
+| junio          | NUMERIC | Monto estimado para junio                |
+| julio          | NUMERIC | Monto estimado para julio                |
+| agosto         | NUMERIC | Monto estimado para agosto               |
+| septiembre     | NUMERIC | Monto estimado para septiembre           |
+| octubre        | NUMERIC | Monto estimado para octubre              |
+| noviembre      | NUMERIC | Monto estimado para noviembre            |
+| diciembre      | NUMERIC | Monto estimado para diciembre            |
+
+--- DATOS DE LA TABLA AUDITORIA ---
+
+Estadísticas generales:
+- Total registros: 224 combinaciones (ejercicio + cuenta)
+- Ejercicios disponibles: 34 años (1991-2024)
+- Fuente: Tabla auditoria con 29.5M movimientos
+- Conversión: Datos bimestrales → mensuales
+
+Ejemplo año 2024:
+- 6 cuentas de aplicación
+- Presupuesto total: $1,460,511,675.95
+- Q1 (Ene-Mar): $695M
+- Q2 (Abr-Jun): $422M
+- Q3 (Jul-Sep): $20M
+- Q4 (Oct-Dic): $13M
+
+Top 3 cuentas 2024:
+1. 110110000: $1,151M (79% del total)
+2. 110120000: $248M (17% del total)
+3. 110130000: $56M (4% del total)
+
+--- EJEMPLO 1: Sin filtro (todos los ejercicios) ---
+
+Parámetros:
+- Filtro: (vacío)
+
+Resultado esperado:
+- Total registros: 224
+- Ejercicios: 34 años (1991-2024)
+- Tiempo: ~1-2 segundos
+- Ordenado por: Ejercicio descendente, presupuesto descendente
+
+Ejemplo de datos retornados:
+```
+Ejercicio: 2024
+Cuenta: 110110000
+Presup Anual: $1,151,777,875.04
+Enero: $152,958,728.57
+Febrero: $152,958,728.57
+Marzo: $389,132,379.23
+```
+
+--- EJEMPLO 2: Filtro por ejercicio 2024 ---
+
+Parámetros:
+- Filtro: 2024
+
+Resultado esperado:
+- Total registros: 6 cuentas
+- Presupuesto total: $1,460,511,675.95
+- Tiempo: ~2-3 segundos
+
+Distribución por trimestre:
+- Q1: $695,049,836.36 (47.7%)
+- Q2: $422,566,596.52 (28.9%)
+- Q3: $20,470,906.56 (1.4%)
+- Q4: $13,690,535.60 (0.9%)
+
+--- EJEMPLO 3: Filtro por ejercicio 2023 ---
+
+Parámetros:
+- Filtro: 2023
+
+Resultado esperado:
+- Total registros: 6 cuentas
+- Presupuesto total: $1,421,253,056.14
+- Similar distribución a 2024
+
+--- NOTAS CRÍTICAS ---
+
+⚠️ **IMPORTANTE: Datos simulados**
+   Esta función NO usa una tabla de presupuesto real:
+   - Lee de tabla auditoria (movimientos contables)
+   - Simula presupuesto devengado
+   - Convierte bimestres a meses
+   - Datos APROXIMADOS, no exactos
+
+⚠️ **Conversión bimestral a mensual**
+   - Bimestre 1 (Ene-Feb) → divide monto / 2 para cada mes
+   - Bimestre 2 (Mar-Abr) → divide monto / 2 para cada mes
+   - Bimestre 3 (May-Jun) → divide monto / 2 para cada mes
+   - Bimestre 4 (Jul-Ago) → divide monto / 2 para cada mes
+   - Bimestre 5 (Sep-Oct) → divide monto / 2 para cada mes
+   - Bimestre 6 (Nov-Dic) → divide monto / 2 para cada mes
+   - Ejemplo: Si bimestre 1 = $1000, entonces enero=$500, febrero=$500
+
+⚠️ **Precisión de datos**
+   - Los montos mensuales son ESTIMADOS
+   - Se asume distribución uniforme en el bimestre
+   - La realidad podría ser diferente
+   - Útil para análisis general, no para precisión absoluta
+
+⚠️ **Filtro flexible**
+   - Filtro usa ILIKE (case insensitive)
+   - Permite búsquedas parciales
+   - Ejemplo: '202' encuentra 2020, 2021, 2022, 2023, 2024
+
+⚠️ **Rendimiento**
+   - Sin filtro: ~2 segundos (procesa todos los años)
+   - Con filtro: ~2-3 segundos
+   - Consulta pesada por agregación de 29.5M registros
+
+⚠️ **Años disponibles**
+   - Rango: 1991-2024
+   - 34 ejercicios diferentes
+   - Algunos años pueden tener pocas cuentas
+   - Años recientes tienen más datos
+
+--- LÓGICA DE LA FUNCIÓN ---
+
+La función ejecuta:
+```sql
+WITH datos_bimestrales AS (
+    -- Agrupa auditoria por ejercicio, cuenta y bimestre
+    SELECT ejercicio, cvectaapl, bimini, SUM(monto)
+    FROM auditoria
+    WHERE axopago > 1990 AND cancelacion <> 'C'
+    GROUP BY ejercicio, cvectaapl, bimini
+),
+datos_mensuales AS (
+    -- Convierte bimestres a meses (divide monto/2)
+    SELECT
+        ejercicio, cvectaapl,
+        SUM(CASE bimini=1 THEN monto/2 END) AS enero,
+        SUM(CASE bimini=1 THEN monto/2 END) AS febrero,
+        ... (para cada mes)
+    FROM datos_bimestrales
+    GROUP BY ejercicio, cvectaapl
+)
+SELECT * FROM datos_mensuales
+ORDER BY ejercicio DESC, total DESC
+```
+
+Criterios:
+1. Lee movimientos de auditoria
+2. Excluye cancelados
+3. Agrupa por año, cuenta y bimestre
+4. Convierte bimestres a meses dividiendo entre 2
+5. Retorna estructura de presupuesto
+
+--- PRUEBAS REALIZADAS ---
+
+✅ Test sin filtro: 224 registros, 34 ejercicios, 1.65s
+✅ Test ejercicio 2024: 6 cuentas, $1.46B total, 2.6s
+✅ Test ejercicio 2023: 6 cuentas, $1.42B total
+✅ Stored procedure actualizado exitosamente
+✅ Función operacional con datos reales
+
+--- INTERPRETACIÓN DE RESULTADOS ---
+
+**ejercicio (Año fiscal)**
+- Año del presupuesto
+- Rango: 1991-2024
+- Más datos en años recientes
+
+**cta_aplicacion (Cuenta)**
+- Código de cuenta contable
+- Ejemplos: 110110000, 110120000
+- Sin descripción (solo código)
+
+**presup_anual (Presupuesto)**
+- Suma total del año
+- Incluye todos los meses
+- En pesos mexicanos
+
+**enero-diciembre (Meses)**
+- Montos mensuales estimados
+- Derivados de bimestres
+- Cada bimestre dividido en 2
+
+**ingreso_total**
+- Igual que presup_anual
+- Total acumulado del año
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver todo el presupuesto histórico**
+1. Filtro: (vacío)
+2. Hacer clic en "Buscar"
+3. Resultado: 224 registros de 34 años
+4. Útil para: Análisis histórico completo
+
+**Caso 2: Presupuesto de año específico**
+1. Filtro: 2024
+2. Hacer clic en "Buscar"
+3. Resultado: 6 cuentas, $1.46B
+4. Útil para: Análisis del año actual
+
+**Caso 3: Presupuesto de últimos años**
+1. Filtro: 202
+2. Hacer clic en "Buscar"
+3. Resultado: Años 2020-2024
+4. Útil para: Tendencias recientes
+
+**Caso 4: Comparar ejercicios**
+1. Consultar 2024 y anotar total
+2. Consultar 2023 y anotar total
+3. Calcular diferencia
+4. Útil para: Análisis comparativo
+
+--- FLUJO RECOMENDADO ---
+
+1. **Consulta año actual**
+   - Filtro: 2024
+   → Rápido, datos más relevantes
+
+2. **Consulta año anterior**
+   - Filtro: 2023
+   → Comparar con actual
+
+3. **Consulta rango reciente**
+   - Filtro: 202
+   → Ver últimos 5 años
+
+4. **Consulta histórica completa**
+   - Filtro: (vacío)
+   → Análisis de largo plazo
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Respuesta del endpoint (filtro 2024)
+{
+  "data": [
+    {
+      "ejercicio": 2024,
+      "titulo": "Movimientos de Auditoria",
+      "capitulo": "Cuenta Aplicación",
+      "cta_aplicacion": "110110000",
+      "fecha_ingreso": "2024-01-01",
+      "presup_anual": 1151777875.04,
+      "ingreso_total": 1151777875.04,
+      "enero": 152958728.57,
+      "febrero": 152958728.57,
+      "marzo": 389132379.23,
+      "abril": 153014918.57,
+      "mayo": 153014918.57,
+      "junio": 116536759.38,
+      "julio": 9765169.81,
+      "agosto": 9765169.81,
+      "septiembre": 940566.94,
+      "octubre": 4640896.76,
+      "noviembre": 4640896.76,
+      "diciembre": 4408742.09
+    },
+    // ... más cuentas
+  ],
+  "total": 6
+}
+```
+
+El componente pres.vue debería:
+1. Mostrar tabla con ejercicios y cuentas
+2. Formatear montos como moneda
+3. Permitir ver desglose mensual
+4. Mostrar totales anuales
+5. Permitir filtrar por ejercicio
+6. Posiblemente mostrar gráficas
+7. Indicar que datos son aproximados
+
+--- RESUMEN ---
+
+Problema: Tabla publico.presupuesto_devengado no existía
+
+Solución: Usar tabla public.auditoria para simular presupuesto
+
+Características:
+- Usa tabla auditoria (29.5M registros)
+- Convierte datos bimestrales a mensuales
+- 224 registros de 34 ejercicios
+- Datos desde 1991 hasta 2024
+- Filtro por ejercicio
+
+Rendimiento:
+- Sin filtro: ~2 segundos
+- Con filtro: ~2-3 segundos
+- Consultas pesadas por agregación
+
+Limitaciones:
+- No es presupuesto real, son movimientos
+- Datos mensuales son ESTIMADOS (bimestre/2)
+- Sin descripciones de cuentas
+- Precisión limitada
+
+Ventajas:
+- Datos reales de auditoría
+- 34 años de historia
+- Desglose mensual (aproximado)
+- Filtrado funcional
+- 224 combinaciones disponibles
+
+Recomendación:
+- Usar para análisis general
+- No confiar en precisión absoluta mensual
+- Los totales anuales son más confiables
+- Útil para tendencias y comparaciones
+- Considerar crear tabla real de presupuesto para precisión

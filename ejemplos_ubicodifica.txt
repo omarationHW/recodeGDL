@@ -1,0 +1,320 @@
+================================================================================
+EJEMPLOS PARA PROBAR Ubicodifica.vue
+================================================================================
+
+STORED PROCEDURE: publico.recaudadora_ubicodifica(VARCHAR)
+BASE DE DATOS: multas_reglamentos
+TABLA: public.cartainvpredial
+REGISTROS: 18,983 ubicaciones/codificaciones
+CAMBIO APLICADO: catastro_gdl.ubicacion_req → public.cartainvpredial
+
+================================================================================
+DESCRIPCIÓN
+================================================================================
+
+Gestión de ubicaciones y codificaciones de direcciones.
+Basado en cartas de invitación predial con información de ubicación completa.
+
+Búsqueda flexible por múltiples criterios:
+- Número de cuenta (cvecuenta)
+- Calle/Domicilio
+- Número exterior
+- Colonia
+- Observaciones
+
+Retorna información completa de ubicación incluyendo:
+- Cuenta
+- Domicilio completo (calle, exterior, interior, colonia)
+- Vigencia (V=Vigente, P=Pagado, C=Cancelado)
+- Fecha de alta
+- Usuario que capturó
+
+FILTRO: Búsqueda flexible y opcional (vacío muestra primeros 100 vigentes)
+
+================================================================================
+DISTRIBUCIÓN POR VIGENCIA
+================================================================================
+
+P (Pagado):     13,498 registros (71.1%)
+V (Vigente):     5,469 registros (28.8%)
+C (Cancelado):      16 registros (0.1%)
+
+Nota: Los registros vigentes se priorizan en el ordenamiento.
+
+================================================================================
+LIMITACIONES DE DATOS
+================================================================================
+
+⚠️ IMPORTANTE: La tabla cartainvpredial no contiene todos los campos:
+
+CAMPOS DISPONIBLES:
+- cvecuenta ✓
+- domicilio (calle) ✓
+- noexterior (exterior) ✓
+- interior ✓
+- colonia ✓
+- observaciones (obs) ✓
+- fec_alta (feccap) ✓
+- usuario_alta (capturista) ✓
+- vigencia ✓
+
+CAMPOS CON VALORES POR DEFECTO:
+- fec_baja: Retorna NULL (no disponible)
+- fec_mov: Retorna NULL (no disponible)
+- usuario_mov: Retorna vacío (no disponible)
+
+Los usuarios verán "N/A" en estos campos en la interfaz.
+
+================================================================================
+EJEMPLOS PARA CADA TIPO DE BÚSQUEDA
+================================================================================
+
+1. BÚSQUEDA POR CUENTA:
+-----------------------
+Cuenta: 529691
+  → 1 resultado
+  - Domicilio: GUTIERREZ RITA 001714
+  - Colonia: HUENTITAN EL ALTO
+  - Vigencia: V (Vigente)
+  - Fec. Alta: 04/08/2020
+  - Usuario Alta: dlgonzal
+
+Otras cuentas de ejemplo:
+  - 529674
+  - 529365
+
+2. BÚSQUEDA POR COLONIA:
+------------------------
+Colonia: 18 DE MARZO
+  → 66 resultados
+  Ejemplo 1: Cuenta: 167640 | VEINTE DE NOVIEMBRE 001369
+  Ejemplo 2: Cuenta: 513201 | WEECKS L. ROBERTO 000835
+  Ejemplo 3: Cuenta: 167616 | VEINTE DE NOVIEMBRE 001304
+
+Otras colonias de ejemplo:
+  - 1º DE MAYO
+  - 5 DE MAYO 2A. SECC.
+
+3. BÚSQUEDA POR DOMICILIO/CALLE:
+--------------------------------
+Domicilio: RAYON
+  → Múltiples resultados de domicilios que contengan "RAYON"
+
+Domicilio: GUTIERREZ
+  → Encuentra domicilios como "GUTIERREZ RITA"
+
+4. BÚSQUEDA PARCIAL (últimos dígitos de cuenta):
+-------------------------------------------------
+Buscar: 691
+  → 61 resultados
+  Encuentra todas las cuentas que contengan "691"
+  Ejemplo: 529691, etc.
+
+5. VER REGISTROS VIGENTES (sin filtro):
+---------------------------------------
+Dejar campo vacío o buscar sin texto
+  → 100 registros vigentes más recientes (límite)
+
+Primeros 3 registros:
+  1. Cuenta: 25977 | RAYON | Vigencia: V
+  2. Cuenta: 38166 | AGUAMARINA | Vigencia: V
+  3. Cuenta: 12759 | COMETA | Vigencia: V
+
+================================================================================
+ESTRUCTURA DE RETORNO (12 COLUMNAS)
+================================================================================
+
+cvecuenta        INTEGER   - Clave de cuenta del contribuyente
+domicilio        TEXT      - Calle/Domicilio
+noexterior       TEXT      - Número exterior
+interior         TEXT      - Número interior
+colonia          TEXT      - Colonia
+observaciones    TEXT      - Observaciones adicionales
+fec_alta         DATE      - Fecha de alta/captura
+usuario_alta     TEXT      - Usuario que capturó (capturista)
+vigencia         TEXT      - Estado (V=Vigente, P=Pagado, C=Cancelado)
+fec_baja         DATE      - Fecha de baja (NULL - no disponible)
+fec_mov          DATE      - Fecha de movimiento (NULL - no disponible)
+usuario_mov      TEXT      - Usuario que modificó (vacío - no disponible)
+
+================================================================================
+CASOS DE PRUEBA EN LA INTERFAZ
+================================================================================
+
+CASO 1: Búsqueda por cuenta específica
+---------------------------------------
+Campo: Cuenta / Domicilio / Colonia
+Valor: 529691
+Resultado esperado: 1 registro (GUTIERREZ RITA, HUENTITAN EL ALTO)
+
+CASO 2: Búsqueda por colonia
+-----------------------------
+Campo: Cuenta / Domicilio / Colonia
+Valor: 18 DE MARZO
+Resultado esperado: 66 registros de esa colonia
+
+CASO 3: Búsqueda por domicilio/calle
+-------------------------------------
+Campo: Cuenta / Domicilio / Colonia
+Valor: RAYON
+Resultado esperado: Múltiples registros con "RAYON" en domicilio
+
+CASO 4: Búsqueda parcial (últimos dígitos)
+-------------------------------------------
+Campo: Cuenta / Domicilio / Colonia
+Valor: 691
+Resultado esperado: 61 registros con cuentas/domicilios que contengan "691"
+
+CASO 5: Ver registros vigentes (sin filtro)
+-------------------------------------------
+Campo: Cuenta / Domicilio / Colonia
+Valor: (vacío)
+Resultado esperado: 100 registros vigentes ordenados
+
+================================================================================
+VALIDACIONES DEL FORMULARIO
+================================================================================
+
+✓ Campo de búsqueda es OPCIONAL (puede estar vacío)
+✓ Búsqueda flexible: acepta cuenta, domicilio, exterior, colonia u observaciones
+✓ Búsqueda parcial funciona (ILIKE '%valor%')
+✓ Búsqueda case-insensitive
+✓ Límite de 100 registros por consulta
+✓ Ordenado por: vigentes primero, luego por fecha más reciente
+✓ Paginación de 10 registros por página
+✓ Botón "Limpiar" para resetear búsqueda
+
+================================================================================
+VISUALIZACIÓN EN LA INTERFAZ
+================================================================================
+
+La tabla muestra 12 columnas:
+- Cuenta (cvecuenta)
+- Domicilio
+- No. Ext (noexterior)
+- Interior
+- Colonia
+- Observaciones (truncadas con tooltip)
+- Vigencia (con badge de color)
+- Fec. Alta
+- Usuario Alta
+- Fec. Baja (siempre N/A)
+- Fec. Mov (siempre N/A)
+- Usuario Mov (siempre N/A)
+
+Colores de Vigencia:
+- V (Vigente): Badge verde (success)
+- P (Pagado): Badge rojo (danger) - aunque el pago es positivo
+- C (Cancelado): Badge amarillo (warning)
+- N (No Vigente): Badge gris (secondary) - si existe
+
+================================================================================
+NOTAS TÉCNICAS
+================================================================================
+
+BÚSQUEDA MÚLTIPLE:
+El stored procedure busca en 5 campos simultáneamente:
+- cvecuenta::TEXT ILIKE '%valor%'
+- calle (domicilio) ILIKE '%valor%'
+- exterior ILIKE '%valor%'
+- colonia ILIKE '%valor%'
+- obs (observaciones) ILIKE '%valor%'
+
+CARACTERÍSTICAS:
+- Búsqueda case-insensitive (ILIKE)
+- NULL handling con COALESCE
+- Límite: 100 registros máximo
+- Orden: vigentes primero (V=0, otros=1), luego fec_alta DESC
+- Manejo de excepciones con RAISE EXCEPTION
+
+TABLA ORIGEN:
+- public.cartainvpredial: Cartas de invitación predial
+- Contiene información de ubicación de cuentas prediales
+- Periodo: 2020-07-08 a 2020-08-04
+- Todas las cuentas son únicas (18,983 cuentas = 18,983 registros)
+
+MAPEO DE CAMPOS:
+- domicilio ← calle
+- noexterior ← exterior
+- observaciones ← obs
+- fec_alta ← feccap
+- usuario_alta ← capturista
+- fec_baja ← NULL
+- fec_mov ← NULL
+- usuario_mov ← ''
+
+================================================================================
+CORRECCIÓN APLICADA
+================================================================================
+
+ANTES:
+  FROM catastro_gdl.ubicacion_req u
+  ❌ ERROR: relation "catastro_gdl.ubicacion_req" does not exist
+
+DESPUÉS:
+  FROM public.cartainvpredial c
+  ✅ CORRECTO: Tabla existe con 18,983 registros
+
+CAMBIOS EN MAPEO:
+- domicilio ← calle (en lugar de campo domicilio directo)
+- observaciones ← obs (en lugar de campo observaciones directo)
+- fec_alta ← feccap (en lugar de campo fec_alta directo)
+- usuario_alta ← capturista (en lugar de campo usuario_alta directo)
+
+================================================================================
+CONSULTA SQL DIRECTA (para pruebas en pgAdmin)
+================================================================================
+
+-- Búsqueda por cuenta
+SELECT * FROM publico.recaudadora_ubicodifica('529691');
+
+-- Búsqueda por colonia
+SELECT * FROM publico.recaudadora_ubicodifica('18 DE MARZO');
+
+-- Búsqueda por domicilio
+SELECT * FROM publico.recaudadora_ubicodifica('RAYON');
+SELECT * FROM publico.recaudadora_ubicodifica('GUTIERREZ');
+
+-- Búsqueda parcial
+SELECT * FROM publico.recaudadora_ubicodifica('691');
+
+-- Ver vigentes (sin filtro)
+SELECT * FROM publico.recaudadora_ubicodifica('');
+SELECT * FROM publico.recaudadora_ubicodifica(NULL);
+
+-- Contar resultados
+SELECT COUNT(*) FROM publico.recaudadora_ubicodifica('18 DE MARZO');
+
+-- Filtrar solo vigentes
+SELECT * FROM publico.recaudadora_ubicodifica('')
+WHERE vigencia = 'V';
+
+-- Filtrar solo pagados
+SELECT * FROM publico.recaudadora_ubicodifica('')
+WHERE vigencia = 'P';
+
+================================================================================
+EJEMPLOS PRÁCTICOS PARA EL USUARIO
+================================================================================
+
+EJEMPLO 1: "Quiero ver la ubicación de la cuenta 529691"
+→ Buscar: 529691
+→ Resultado: 1 ubicación (GUTIERREZ RITA, HUENTITAN EL ALTO)
+
+EJEMPLO 2: "Dame todas las ubicaciones de la colonia 18 DE MARZO"
+→ Buscar: 18 DE MARZO
+→ Resultado: 66 ubicaciones
+
+EJEMPLO 3: "Busco domicilios en la calle RAYON"
+→ Buscar: RAYON
+→ Resultado: Múltiples ubicaciones
+
+EJEMPLO 4: "Quiero ver todas las ubicaciones vigentes"
+→ Buscar: (dejar vacío) y hacer clic en Buscar
+→ Resultado: 100 ubicaciones vigentes (primero las vigentes)
+
+EJEMPLO 5: "Busco cuentas que terminen en 691"
+→ Buscar: 691
+→ Resultado: 61 ubicaciones con "691" en cuenta/domicilio/colonia
+
+================================================================================

@@ -1,0 +1,339 @@
+=== EJEMPLOS PARA PROBAR reimpfrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla noadeudo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.documentos_reimprimir" does not exist
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.noadeudo (constancias de no adeudo)
+que tiene 636,322 registros con folios para reimprimir.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_reimpfrm**: Retorna documentos para reimprimir usando tabla noadeudo
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_folio: INTEGER (filtro por folio específico)
+- p_tipo_documento: VARCHAR (filtro por tipo de documento)
+- p_id_dependencia: INTEGER (filtro por recaudación 1-6)
+- p_filtro: VARCHAR (búsqueda adicional por texto libre)
+
+Filtros aplicables:
+- Folio específico del documento
+- Tipo de documento (siempre NO ADEUDO en esta tabla)
+- Dependencia/Recaudación
+- Texto libre en folio, nombre, solicitud
+
+--- VALORES RETORNADOS ---
+
+| Campo          | Tipo    | Descripción                           |
+|----------------|---------|---------------------------------------|
+| folio          | INTEGER | Folio del documento                   |
+| tipo_documento | VARCHAR | Tipo (NO ADEUDO)                      |
+| fecha          | DATE    | Fecha de emisión                      |
+| contribuyente  | VARCHAR | Nombre del solicitante/autorizador    |
+| dependencia    | VARCHAR | Recaudación (1-6)                     |
+| axo_acta       | INTEGER | Año del documento                     |
+| num_acta       | VARCHAR | Número de solicitud                   |
+| importe        | NUMERIC | Monto (0 para constancias no adeudo)  |
+| estatus        | VARCHAR | VIGENTE, PROCESADO, INACTIVO          |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla noadeudo se mapea así:
+- folio → folio (folio del documento)
+- 'NO ADEUDO' → tipo_documento (constante)
+- fecha → fecha (fecha de emisión)
+- autoriza → contribuyente (nombre de quien autoriza/solicita)
+- recaud → dependencia (Recaudación 1-6)
+- axo → axo_acta (año del documento)
+- solicitud → num_acta (número de solicitud)
+- 0 → importe (no aplica para constancias de no adeudo)
+- vigencia → estatus (V=VIGENTE, NULL=PROCESADO, otro=INACTIVO)
+
+--- EJEMPLO 1: Sin filtros (últimos documentos) ---
+
+Parámetros:
+- Folio: (vacío)
+- Tipo documento: (vacío)
+- Dependencia: (vacío)
+- Filtro adicional: (vacío)
+
+Resultado esperado:
+- Total registros: hasta 100 (límite configurado)
+- Muestra los documentos más recientes
+- Ordenados por fecha descendente
+- Documentos de 2024 (más recientes)
+
+Ejemplo de registros:
+| Folio   | Tipo      | Fecha      | Solicitante                  | Dependencia   | Año  | Estatus   |
+|---------|-----------|------------|------------------------------|---------------|------|-----------|
+| 6449285 | NO ADEUDO | 2024-11-21 | ING. JOSE ALBERTO BRAVO...   | Recaudación 3 | 2024 | PROCESADO |
+| 6449284 | NO ADEUDO | 2024-11-21 | ING. JOSE ALBERTO BRAVO...   | Recaudación 3 | 2024 | PROCESADO |
+| 6449280 | NO ADEUDO | 2024-11-21 | LIC. KARLA BEATRIZ MOSQ...   | Recaudación 2 | 2024 | PROCESADO |
+| 6449279 | NO ADEUDO | 2024-11-21 | LIC. KARLA BEATRIZ MOSQ...   | Recaudación 2 | 2024 | PROCESADO |
+
+--- EJEMPLO 2: Búsqueda por folio específico ---
+
+Parámetros:
+- Folio: 6448661
+- Tipo documento: (vacío)
+- Dependencia: (vacío)
+- Filtro adicional: (vacío)
+
+Resultado esperado:
+- Total registros: 1 documento
+- Solo el documento con ese folio específico
+- Información completa del documento
+
+Ejemplo:
+- Folio: 6448661
+- Tipo: NO ADEUDO
+- Fecha: 2024-11-21
+- Solicitante: LIC. KARLA BEATRIZ MOSQUEDA SA
+- Dependencia: Recaudación 2
+- Año: 2024
+- Num Solicitud: 6448661
+- Importe: $0.00
+- Estatus: PROCESADO
+
+--- EJEMPLO 3: Búsqueda por recaudación (dependencia 2) ---
+
+Parámetros:
+- Folio: (vacío)
+- Tipo documento: (vacío)
+- Dependencia: 2
+- Filtro adicional: (vacío)
+
+Resultado esperado:
+- Total registros: hasta 100
+- Solo documentos de Recaudación 2
+- Documentos más recientes primero
+
+Distribución típica en sample de 100:
+- Recaudación 2: ~63 documentos (mayoría)
+- Otras recaudaciones: 0 (filtrado)
+
+Ejemplo de registros:
+| Folio   | Fecha      | Solicitante                  | Dependencia   |
+|---------|------------|------------------------------|---------------|
+| 6449280 | 2024-11-21 | LIC. KARLA BEATRIZ MOSQUEDA  | Recaudación 2 |
+| 6449279 | 2024-11-21 | LIC. KARLA BEATRIZ MOSQUEDA  | Recaudación 2 |
+| 6449278 | 2024-11-21 | LIC. KARLA BEATRIZ MOSQUEDA  | Recaudación 2 |
+
+--- EJEMPLO 4: Búsqueda por texto libre (nombre) ---
+
+Parámetros:
+- Folio: (vacío)
+- Tipo documento: (vacío)
+- Dependencia: (vacío)
+- Filtro adicional: KARLA
+
+Resultado esperado:
+- Total registros: hasta 100
+- Solo documentos donde aparece "KARLA" en:
+  * Nombre del solicitante/autorizador
+  * Folio (si contiene la cadena)
+  * Número de solicitud
+- Ordenados por fecha descendente
+
+Ejemplo de registros:
+- Múltiples folios autorizados por "LIC. KARLA BEATRIZ MOSQUEDA SA"
+- Todos de Recaudación 2
+- Fechas recientes (2024)
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Por Estatus:**
+- PROCESADO: 99.4% (632,316 documentos)
+- VIGENTE: 0.6% (4,006 documentos)
+
+**Por Recaudación (en sample de 100):**
+- Recaudación 2: ~63% (mayoría)
+- Recaudación 4: ~17%
+- Recaudación 5: ~8%
+- Recaudación 3: ~7%
+- Recaudación 1: ~4%
+- Recaudación 6: ~1%
+
+**Por Año (últimos 5 años):**
+- 2024: 29,152 registros
+- 2023: 31,353 registros
+- 2022: 30,715 registros
+- 2021: 27,245 registros
+- 2020: 23,478 registros
+
+**Total:**
+- 636,322 documentos de no adeudo disponibles
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **636,322 registros reales disponibles**
+  - Constancias de no adeudo municipales
+  - Datos desde 2015 hasta 2024
+
+✓ **Búsqueda versátil**
+  - Por folio específico (más común)
+  - Por recaudación/dependencia
+  - Por texto libre (nombre, folio, solicitud)
+  - Combinación de filtros
+
+✓ **Campos completos**
+  - Folio único para reimprimir
+  - Fecha de emisión
+  - Nombre del solicitante
+  - Recaudación que emitió
+  - Año y número de solicitud
+  - Estatus del documento
+
+✓ **Límite de 100 registros**
+  - Evita sobrecarga del sistema
+  - Muestra más recientes primero
+  - Suficiente para búsquedas típicas
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.noadeudo contiene constancias de no adeudo
+   emitidas por el sistema municipal de recaudación.
+
+⚠️ **Tipo de documento único**
+   Esta función solo retorna documentos tipo "NO ADEUDO".
+   Para otros tipos de documentos (recibos, actas) se necesitarían
+   otras tablas o funciones.
+
+⚠️ **Límite de 100 registros**
+   La función limita a 100 resultados para evitar sobrecarga.
+   Para búsquedas amplias, usar filtros más específicos.
+
+⚠️ **Importe siempre $0**
+   Las constancias de no adeudo no tienen importe asociado,
+   el campo siempre retorna 0.
+
+⚠️ **Mayoría PROCESADO**
+   El 99.4% de los documentos tienen estatus PROCESADO (NULL en BD).
+   Solo 0.6% tienen vigencia explícita marcada como 'V'.
+
+⚠️ **Folios únicos**
+   Cada folio es único y se puede usar para reimprimir el documento
+   específico desde el sistema.
+
+--- CASOS DE USO ---
+
+**Caso 1: Reimprimir por folio conocido**
+1. Usuario tiene el folio del documento
+2. Ingresar folio: 6448661
+3. Hacer clic en "Buscar" o "Reimprimir"
+4. Resultado: Documento específico para reimprimir
+5. Sistema genera PDF o imprime directamente
+
+**Caso 2: Ver últimos documentos emitidos**
+1. No llenar ningún filtro
+2. Hacer clic en "Buscar"
+3. Resultado: Últimos 100 documentos (más recientes)
+4. Usuario puede seleccionar el que necesita
+
+**Caso 3: Buscar por recaudación**
+1. Seleccionar Recaudación: 2
+2. Hacer clic en "Buscar"
+3. Resultado: Documentos de esa recaudación
+4. Útil para verificar documentos por oficina
+
+**Caso 4: Buscar por nombre del solicitante**
+1. Filtro adicional: KARLA (nombre completo o parcial)
+2. Hacer clic en "Buscar"
+3. Resultado: Documentos autorizados/solicitados por esa persona
+4. Útil cuando el usuario no recuerda el folio
+
+**Caso 5: Buscar por año**
+1. Aunque no hay filtro de año directo en parámetros
+2. Se puede filtrar localmente en Vue por axo_acta
+3. O usar el filtro de texto con el año: 2024
+4. Resultado: Documentos de ese año
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (búsqueda por folio)
+const params = {
+  folio: 6448661,
+  tipo_documento: null,
+  id_dependencia: null,
+  filtro: null
+};
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "folio": 6448661,
+      "tipo_documento": "NO ADEUDO",
+      "fecha": "2024-11-21",
+      "contribuyente": "LIC. KARLA BEATRIZ MOSQUEDA SA",
+      "dependencia": "Recaudación 2",
+      "axo_acta": 2024,
+      "num_acta": "6448661",
+      "importe": 0.00,
+      "estatus": "PROCESADO"
+    }
+  ],
+  "total": 1
+}
+```
+
+El componente reimpfrm.vue debería:
+1. Recibir array de documentos disponibles para reimprimir
+2. Mostrar tabla con columnas: Folio, Tipo, Fecha, Solicitante, Dependencia, Estatus
+3. Campo de búsqueda por folio (principal)
+4. Filtro por recaudación/dependencia
+5. Campo de búsqueda adicional por texto
+6. Botón "Reimprimir" por cada documento
+7. Al hacer clic en "Reimprimir":
+   - Generar PDF del documento
+   - O enviar a impresora directamente
+   - Marcar como reimpreso (opcional)
+8. Paginación si hay más de 100 resultados
+9. Ordenamiento por fecha descendente
+
+--- RESUMEN ---
+
+Problema: Tabla publico.documentos_reimprimir no existe
+
+Solución: Función usa tabla public.noadeudo con mapeo completo
+
+Características:
+- 636,322 constancias de no adeudo
+- Folios únicos para reimprimir
+- Años disponibles: 2015-2024
+- Búsqueda por folio, recaudación, texto libre
+- Límite de 100 registros por consulta
+
+Resultado:
+- Componente Vue recibe documentos reales para reimprimir
+- Búsqueda funcional por múltiples criterios
+- Información completa del documento
+- Folio único para identificación
+
+Ventajas:
+- Datos oficiales del sistema
+- Gran volumen de documentos disponibles
+- Búsqueda flexible y versátil
+- Folios únicos facilitan reimpresión
+- Información completa (fecha, solicitante, recaudación)
+
+Limitaciones:
+- Solo tipo "NO ADEUDO" en esta tabla
+- Importe siempre es 0 (no aplica)
+- Límite de 100 resultados por consulta
+- Para otros tipos de documentos se necesitan otras tablas
+
+Uso recomendado:
+- Búsqueda principal por folio (más eficiente)
+- Usar filtros para reducir resultados
+- Ideal para reimprimir constancias de no adeudo
+- Verificar folios antes de reimprimir

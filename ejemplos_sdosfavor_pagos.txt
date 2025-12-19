@@ -1,0 +1,283 @@
+================================================================================
+EJEMPLOS PARA PROBAR SdosFavor_Pagos.vue
+================================================================================
+
+STORED PROCEDURE: publico.recaudadora_sdosfavor_pagos(VARCHAR)
+BASE DE DATOS: multas_reglamentos
+TABLAS: public.pagos_sdosfavor (JOIN) public.solic_sdosfavor
+REGISTROS: 3 pagos de saldos a favor
+ESTADO: Stored procedure creado desde cero
+
+================================================================================
+DESCRIPCIÓN
+================================================================================
+
+Consulta de pagos relacionados con saldos a favor.
+Hace JOIN entre:
+- public.pagos_sdosfavor (tabla de relación: id_solic, cvepago, status)
+- public.solic_sdosfavor (tabla de solicitudes con datos del contribuyente)
+
+Retorna información completa del pago incluyendo:
+- Identificación (ID, cuenta, folio, ejercicio)
+- Importe de inconformidad
+- Solicitante
+- Estado del pago (Pendiente/Terminado/Cancelado)
+- CVE Pago
+
+FILTRO: cuenta (opcional, búsqueda parcial con ILIKE)
+
+================================================================================
+LIMITACIONES DE DATOS ACTUALES
+================================================================================
+
+⚠️ IMPORTANTE: La tabla pagos_sdosfavor tiene estructura limitada:
+- Solo 3 registros disponibles
+- Solo 3 campos: id_solic, cvepago, status
+
+CAMPOS CON VALORES POR DEFECTO:
+- imp_pago: Retorna 0 (no disponible en tablas actuales)
+- saldo_favor: Retorna 0 (no disponible en tablas actuales)
+- fecha_pago: Usa fecha_captura de la solicitud (feccap)
+- imp_inconform: Usa campo 'inconf' de la solicitud
+
+Si en el futuro se agregan más campos a pagos_sdosfavor o se relacionan
+más tablas, el stored procedure deberá actualizarse para incluir esos datos.
+
+================================================================================
+DISTRIBUCIÓN POR ESTADO
+================================================================================
+
+Pendiente: 3 registros (100%)
+
+Todos los pagos actuales están en estado Pendiente (P).
+
+================================================================================
+RELACIONES ENTRE TABLAS
+================================================================================
+
+Registro 1:
+  ID Solic: 36
+  CVE Pago: 2720448
+  Status: P (Pendiente)
+  Cuenta: 77154
+  Folio: 22
+  Ejercicio: 2007
+
+Registro 2 y 3:
+  ID Solic: 302 (misma solicitud, 2 pagos diferentes)
+  CVE Pago: 4058946, 4058920
+  Status: P (Pendiente)
+  Cuenta: 5826
+  Folio: 286
+  Ejercicio: 2007
+
+================================================================================
+CUENTAS DE EJEMPLO PARA PRUEBAS
+================================================================================
+
+BÚSQUEDA POR CUENTA ESPECÍFICA:
+-------------------------------
+Cuenta: 77154
+  - ID Pago Favor: 36
+  - Folio: 22
+  - Ejercicio: 2007
+  - Imp. Inconform: $24.00
+  - Fecha Pago: 09/01/2007
+  - Solicitante: GONZALEZ CASTILLO MARIA GUADAL
+  - Status: Pendiente
+  - CVE Pago: 2720448
+
+Cuenta: 5826 (tiene 2 pagos)
+  Pago 1:
+  - ID Pago Favor: 302
+  - Folio: 286
+  - Ejercicio: 2007
+  - Imp. Inconform: $22.00
+  - Fecha Pago: 01/03/2007
+  - Solicitante: GONZALEZ JIMENEZ CARLOS ENRIQU
+  - Status: Pendiente
+  - CVE Pago: 4058946
+
+  Pago 2:
+  - ID Pago Favor: 302
+  - Folio: 286
+  - Ejercicio: 2007
+  - Imp. Inconform: $22.00
+  - Fecha Pago: 01/03/2007
+  - Solicitante: GONZALEZ JIMENEZ CARLOS ENRIQU
+  - Status: Pendiente
+  - CVE Pago: 4058920
+
+BÚSQUEDA PARCIAL:
+-------------------------------------
+Búsqueda: 58 → 2 resultados (cuenta 5826)
+Búsqueda: 771 → 1 resultado (cuenta 77154)
+Búsqueda: 5826 → 2 resultados
+
+================================================================================
+ESTRUCTURA DE RETORNO (11 COLUMNAS)
+================================================================================
+
+id_pago_favor        INTEGER   - ID del pago (usa id_solic)
+cvecuenta            INTEGER   - Clave de cuenta del contribuyente
+folio                INTEGER   - Folio de la solicitud
+ejercicio            INTEGER   - Año de ejercicio (axofol)
+imp_inconform        NUMERIC   - Importe de inconformidad (campo inconf)
+imp_pago             NUMERIC   - Importe del pago (retorna 0 por limitación)
+saldo_favor          NUMERIC   - Saldo a favor (retorna 0 por limitación)
+fecha_pago           TEXT      - Fecha del pago (usa feccap DD/MM/YYYY)
+solicitante          TEXT      - Nombre del solicitante
+status_pago          TEXT      - Estado: Pendiente/Terminado/Cancelado
+cvepago              INTEGER   - Clave del pago en el sistema
+
+================================================================================
+CASOS DE PRUEBA EN LA INTERFAZ
+================================================================================
+
+1. BÚSQUEDA POR CUENTA 77154:
+   Resultado esperado: 1 registro (Folio 22, Ejercicio 2007)
+
+2. BÚSQUEDA POR CUENTA 5826:
+   Resultado esperado: 2 registros (mismo folio 286, diferentes cvepago)
+
+3. BÚSQUEDA PARCIAL - ÚLTIMOS DÍGITOS:
+   Cuenta: 826
+   Resultado esperado: 2 registros de cuenta 5826
+
+4. BÚSQUEDA PARCIAL - PRIMEROS DÍGITOS:
+   Cuenta: 77
+   Resultado esperado: 1 registro de cuenta 77154
+
+5. VER TODOS (sin filtro):
+   Cuenta: (vacío)
+   Resultado esperado: 3 registros total
+
+================================================================================
+VALIDACIONES DEL FORMULARIO
+================================================================================
+
+✓ Campo cuenta es OPCIONAL (puede buscar sin filtro)
+✓ Búsqueda parcial funciona (ILIKE '%valor%')
+✓ Límite de 100 registros por consulta
+✓ Ordenado por id_solic DESC
+✓ JOIN con solic_sdosfavor para obtener datos del contribuyente
+✓ Status mapeado a texto (P→Pendiente, T→Terminado, C→Cancelado)
+✓ Fecha formateada DD/MM/YYYY
+✓ Paginación de 10 registros por página
+
+================================================================================
+VISUALIZACIÓN EN LA INTERFAZ
+================================================================================
+
+La tabla muestra 9 columnas:
+- ID (id_pago_favor)
+- Cuenta (cvecuenta)
+- Folio
+- Ejercicio
+- Imp. Inconform (con formato de moneda)
+- Imp. Pago (con formato de moneda) ⚠️ siempre $0.00
+- Saldo Favor (con formato de moneda) ⚠️ siempre $0.00
+- Fecha Pago
+- Solicitante
+
+NOTA: Los usuarios verán $0.00 en imp_pago y saldo_favor debido a las
+limitaciones actuales de datos en la tabla pagos_sdosfavor.
+
+================================================================================
+NOTAS TÉCNICAS
+================================================================================
+
+- Búsqueda case-insensitive (ILIKE)
+- LEFT JOIN entre pagos_sdosfavor y solic_sdosfavor
+- Status mapeado (P→Pendiente, T→Terminado, C→Cancelado)
+- Fecha formateada DD/MM/YYYY
+- Campo solicitante con TRIM() aplicado
+- NULL handling con COALESCE
+- Límite: 100 registros máximo
+- Orden: id_solic DESC
+
+MAPEO DE CAMPOS:
+- id_pago_favor ← ps.id_solic
+- cvecuenta ← s.cvecuenta
+- folio ← s.folio
+- ejercicio ← s.axofol
+- imp_inconform ← s.inconf
+- imp_pago ← 0 (valor por defecto)
+- saldo_favor ← 0 (valor por defecto)
+- fecha_pago ← s.feccap (fecha captura)
+- solicitante ← s.solicitante
+- status_pago ← ps.status (mapeado)
+- cvepago ← ps.cvepago
+
+================================================================================
+ESTRUCTURA DE LAS TABLAS UTILIZADAS
+================================================================================
+
+public.pagos_sdosfavor (3 registros):
+  - id_solic (INTEGER) → FK a solic_sdosfavor
+  - cvepago (INTEGER)
+  - status (VARCHAR(2))
+
+public.solic_sdosfavor (25,968 registros):
+  - id_solic (INTEGER) → PK
+  - cvecuenta (INTEGER)
+  - folio (INTEGER)
+  - axofol (SMALLINT) → ejercicio
+  - solicitante (CHAR)
+  - inconf (SMALLINT) → imp_inconform
+  - feccap (DATE) → fecha_pago
+  ... otros campos
+
+================================================================================
+CONSULTA SQL DIRECTA (para pruebas en pgAdmin)
+================================================================================
+
+-- Ver todos los pagos (3 registros)
+SELECT * FROM publico.recaudadora_sdosfavor_pagos('');
+SELECT * FROM publico.recaudadora_sdosfavor_pagos(NULL);
+
+-- Búsqueda por cuenta específica
+SELECT * FROM publico.recaudadora_sdosfavor_pagos('77154');
+SELECT * FROM publico.recaudadora_sdosfavor_pagos('5826');
+
+-- Búsqueda parcial
+SELECT * FROM publico.recaudadora_sdosfavor_pagos('826');
+SELECT * FROM publico.recaudadora_sdosfavor_pagos('77');
+
+-- Contar resultados
+SELECT COUNT(*) FROM publico.recaudadora_sdosfavor_pagos('');
+
+-- Ver estructura del JOIN original
+SELECT
+    ps.id_solic,
+    ps.cvepago,
+    ps.status,
+    s.cvecuenta,
+    s.folio,
+    s.axofol,
+    s.solicitante
+FROM public.pagos_sdosfavor ps
+LEFT JOIN public.solic_sdosfavor s ON ps.id_solic = s.id_solic;
+
+================================================================================
+POSIBLES MEJORAS FUTURAS
+================================================================================
+
+Si en el futuro se necesitan datos reales para imp_pago y saldo_favor:
+
+1. Agregar campos a pagos_sdosfavor:
+   ALTER TABLE public.pagos_sdosfavor
+   ADD COLUMN importe_pago NUMERIC,
+   ADD COLUMN saldo_favor NUMERIC,
+   ADD COLUMN fecha_pago DATE;
+
+2. Hacer JOIN con tabla de pagos general (si existe una relación con cvepago)
+
+3. Actualizar el stored procedure para usar los nuevos campos:
+   - ps.importe_pago as imp_pago
+   - ps.saldo_favor as saldo_favor
+   - ps.fecha_pago as fecha_pago
+
+Por ahora, el stored procedure funciona con los datos disponibles.
+
+================================================================================

@@ -19,9 +19,9 @@
         <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">Tipo de Documento *</label>
+              <label class="municipal-form-label">Tipo de Documento</label>
               <select class="municipal-form-control" v-model="filtros.tipo_documento">
-                <option value="">Seleccione...</option>
+                <option value="">Todos</option>
                 <option value="multa">Multa</option>
                 <option value="recibo">Recibo de Pago</option>
                 <option value="requerimiento">Requerimiento</option>
@@ -64,7 +64,7 @@
           <div class="button-group">
             <button
               class="btn-municipal-primary"
-              :disabled="loading || !filtros.tipo_documento"
+              :disabled="loading"
               @click="reimprimir"
             >
               <font-awesome-icon icon="search" v-if="!loading" />
@@ -80,10 +80,6 @@
               <font-awesome-icon icon="eraser" />
               Limpiar
             </button>
-          </div>
-
-          <div class="help-text">
-            <small>* Campos requeridos</small>
           </div>
         </div>
       </div>
@@ -235,7 +231,7 @@ const { loading, execute } = useApi()
 const { verPDF, descargarPDF } = usePdfGenerator()
 
 const filtros = ref({
-  tipo_documento: 'multa',
+  tipo_documento: '',
   folio: null,
   id_dependencia: '',
   formato: 'original'
@@ -275,10 +271,7 @@ async function reimprimir() {
   buscado.value = true
   paginaActual.value = 1
 
-  if (!filtros.value.tipo_documento) {
-    error.value = 'El tipo de documento es requerido'
-    return
-  }
+  // Permitir búsqueda sin tipo de documento específico
 
   try {
     console.log('🖨️ Ejecutando búsqueda:', OP)
@@ -293,7 +286,7 @@ async function reimprimir() {
       },
       {
         nombre: 'p_tipo_documento',
-        valor: filtros.value.tipo_documento,
+        valor: filtros.value.tipo_documento || null,
         tipo: 'string'
       },
       {
@@ -302,8 +295,8 @@ async function reimprimir() {
         tipo: 'integer'
       },
       {
-        nombre: 'p_formato',
-        valor: filtros.value.formato,
+        nombre: 'p_filtro',
+        valor: null,
         tipo: 'string'
       }
     ]
@@ -330,9 +323,8 @@ async function reimprimir() {
       } else {
         success.value = `${arr.length} documentos encontrados`
       }
-    } else {
-      error.value = 'No se encontraron documentos con los criterios especificados'
     }
+    // No establecer error aquí, ya existe un mensaje informativo en el template
 
   } catch (e) {
     error.value = e.message || 'Error al buscar documentos'
@@ -343,7 +335,7 @@ async function reimprimir() {
 
 function limpiar() {
   filtros.value = {
-    tipo_documento: 'multa',
+    tipo_documento: '',
     folio: null,
     id_dependencia: '',
     formato: 'original'
@@ -410,10 +402,10 @@ function descargarPDFDocumento(documento) {
   }
 }
 
-// Cargar documentos recientes al montar
-onMounted(() => {
-  reimprimir()
-})
+// No cargar automáticamente, esperar a que el usuario haga clic en "Buscar"
+// onMounted(() => {
+//   reimprimir()
+// })
 </script>
 
 <style scoped>

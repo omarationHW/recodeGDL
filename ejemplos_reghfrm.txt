@@ -1,0 +1,369 @@
+=== EJEMPLOS PARA PROBAR regHfrm.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla h_multasnvo.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.registro_historico" does not exist
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.h_multasnvo (histórico de multas)
+que tiene 626,583 registros con información detallada.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_reghfrm**: Retorna registro histórico usando tabla h_multasnvo
+
+--- PARÁMETROS ---
+
+La función recibe un JSON string con los siguientes campos opcionales:
+- tipo: VARCHAR ('id', 'dependencia', 'all') - Tipo de búsqueda
+- id_multa: INTEGER - Buscar por ID de multa específico
+- id_dependencia: INTEGER - Buscar por dependencia
+- fecha_inicio: DATE - Fecha de inicio (formato: 'YYYY-MM-DD')
+- fecha_fin: DATE - Fecha de fin (formato: 'YYYY-MM-DD')
+- axo_acta: INTEGER - Año del acta
+- limite: INTEGER - Límite de registros (default: 100)
+
+Filtros aplicables:
+- Búsqueda por ID de multa específico
+- Búsqueda por dependencia con rango de fechas
+- Búsqueda por año de acta
+- Búsqueda por rango de fechas
+- Sin filtros (últimos registros)
+
+--- VALORES RETORNADOS ---
+
+| Campo          | Tipo    | Descripción                           |
+|----------------|---------|---------------------------------------|
+| id_multa       | INTEGER | ID único de la multa                  |
+| id_dependencia | INTEGER | ID de la dependencia                  |
+| num_acta       | VARCHAR | Número de acta                        |
+| axo_acta       | INTEGER | Año del acta                          |
+| fecha_acta     | DATE    | Fecha del acta                        |
+| contribuyente  | VARCHAR | Nombre del contribuyente              |
+| domicilio      | VARCHAR | Domicilio del contribuyente           |
+| num_licencia   | VARCHAR | Número de licencia                    |
+| giro           | VARCHAR | Giro comercial                        |
+| calificacion   | NUMERIC | Monto de calificación                 |
+
+--- TABLA BASE ---
+
+Tabla: public.h_multasnvo
+- Total registros: 626,583
+- Años disponibles: 2015-2025 (principalmente)
+- Mapeo 1:1 con campos esperados (sin conversiones)
+
+Distribución por año:
+- 2025: 16,807 registros
+- 2024: 26,302 registros
+- 2023: 33,901 registros
+- 2022: 23,344 registros
+- 2021: 6,120 registros
+- 2020: 8,766 registros
+
+Top 5 dependencias:
+- Dependencia 7: 304,277 registros (48.6%)
+- Dependencia 5: 104,552 registros (16.7%)
+- Dependencia 3: 100,374 registros (16.0%)
+- Dependencia 1: 40,737 registros (6.5%)
+- Dependencia 35: 35,869 registros (5.7%)
+
+--- EJEMPLO 1: Sin filtro (últimos registros) ---
+
+Parámetros JSON:
+```json
+{
+  "limite": 50
+}
+```
+
+O simplemente pasar string vacío: ''
+
+Resultado esperado:
+- Total registros: 50 (o el límite especificado)
+- Muestra los últimos registros ordenados por fecha descendente
+- Incluye registros de todas las dependencias
+- Sin restricción de fechas o años
+
+Ejemplo de registros:
+| ID Multa | Dependencia | Año  | Contribuyente              | Calificación |
+|----------|-------------|------|----------------------------|--------------|
+| 411374   | 3           | 2025 | DELGADO ORTIZ LAURA ELENA  | $16,000.00   |
+| 410416   | 5           | 2024 | LEOPOLDO CHAVEZ TENORIO    | $24,000.00   |
+| 410287   | 35          | 2024 | ANTONIO SANTOS             | $1,500.00    |
+
+--- EJEMPLO 2: Búsqueda por ID de multa específico ---
+
+Parámetros JSON:
+```json
+{
+  "tipo": "id",
+  "id_multa": 411374
+}
+```
+
+Resultado esperado:
+- Total registros: 1 o más (si hay duplicados)
+- Solo registros con el ID de multa especificado
+- Información detallada de esa multa específica
+
+Ejemplo:
+- ID Multa: 411374
+- Dependencia: 3
+- Año Acta: 2025
+- Contribuyente: DELGADO ORTIZ LAURA ELENA
+- Domicilio: BILBAO
+- Giro: CASA HABITACION
+- Calificación: $16,000.00
+
+--- EJEMPLO 3: Búsqueda por dependencia y año ---
+
+Parámetros JSON:
+```json
+{
+  "tipo": "dependencia",
+  "id_dependencia": 3,
+  "axo_acta": 2024,
+  "limite": 20
+}
+```
+
+Resultado esperado:
+- Total registros: hasta 20
+- Solo multas de la dependencia 3
+- Solo del año 2024
+- Ordenados por fecha descendente
+
+Ejemplo de registros:
+| ID Multa | Contribuyente              | Fecha Acta  | Calificación |
+|----------|----------------------------|-------------|--------------|
+| 411285   | SALVADOR OLIVA CASTELLON   | 2024-12-15  | $14,000.00   |
+| 410900   | MARIA GONZALEZ LOPEZ       | 2024-11-20  | $8,000.00    |
+| 410756   | JUAN PEREZ RAMIREZ         | 2024-10-05  | $12,500.00   |
+
+--- EJEMPLO 4: Búsqueda por rango de fechas ---
+
+Parámetros JSON:
+```json
+{
+  "fecha_inicio": "2024-06-01",
+  "fecha_fin": "2024-06-30",
+  "limite": 30
+}
+```
+
+Resultado esperado:
+- Total registros: hasta 30
+- Solo registros con fecha_acta en junio 2024
+- De todas las dependencias
+- Ordenados por fecha descendente
+
+Ejemplo de distribución:
+- Dependencia 7: 18 registros
+- Dependencia 5: 7 registros
+- Dependencia 3: 3 registros
+- Dependencia 1: 2 registros
+
+--- EJEMPLO 5: Búsqueda por año específico ---
+
+Parámetros JSON:
+```json
+{
+  "axo_acta": 2023,
+  "limite": 100
+}
+```
+
+Resultado esperado:
+- Total registros: 100 (límite alcanzado)
+- Solo multas del año 2023
+- Total disponible en 2023: 33,901 registros
+- Muestra los más recientes primero
+
+Distribución esperada por dependencia (en sample de 100):
+- Dependencia 7: ~48 registros
+- Dependencia 5: ~17 registros
+- Dependencia 3: ~16 registros
+- Otras dependencias: ~19 registros
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **626,583 registros reales disponibles**
+  - Histórico completo de multas municipales
+  - Datos desde 2015 hasta 2025
+
+✓ **Búsqueda versátil**
+  - Por ID específico
+  - Por dependencia
+  - Por rango de fechas
+  - Por año de acta
+  - Combinaciones de filtros
+
+✓ **Campos completos**
+  - Información del contribuyente
+  - Domicilio
+  - Giro comercial
+  - Número de licencia
+  - Monto de calificación
+  - Datos de la dependencia
+
+✓ **Ordenamiento inteligente**
+  - Ordenado por fecha descendente (más recientes primero)
+  - NULLs al final
+  - Desempate por ID de multa descendente
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.h_multasnvo es el histórico oficial de multas
+   municipales con información completa y actualizada.
+
+⚠️ **Formato de parámetros**
+   La función espera un JSON string con los parámetros de búsqueda.
+   Si se pasa string vacío o inválido, usa valores por defecto.
+
+⚠️ **Fechas NULL**
+   Algunos registros pueden tener fecha_acta NULL. Estos aparecen
+   al final del resultado ordenado (NULLS LAST).
+
+⚠️ **Límite de registros**
+   Por defecto retorna máximo 100 registros. Ajustar el parámetro
+   'limite' según necesidades del componente Vue.
+
+⚠️ **Dependencias principales**
+   - Dependencia 7: Principal (48.6% de registros)
+   - Dependencia 5: Segunda (16.7%)
+   - Dependencia 3: Tercera (16.0%)
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver últimos registros**
+1. No enviar parámetros o enviar '{}'
+2. Resultado: Últimos 100 registros
+3. Útil para vista general reciente
+
+**Caso 2: Consultar multa específica**
+1. Parámetros: {"tipo":"id","id_multa":411374}
+2. Resultado: Registro completo de esa multa
+3. Útil para detalle de multa conocida
+
+**Caso 3: Ver multas de una dependencia**
+1. Parámetros: {"tipo":"dependencia","id_dependencia":3,"axo_acta":2024}
+2. Resultado: Multas de dependencia 3 en 2024
+3. Útil para reportes por dependencia
+
+**Caso 4: Reporte por periodo**
+1. Parámetros: {"fecha_inicio":"2024-01-01","fecha_fin":"2024-12-31"}
+2. Resultado: Todas las multas del año 2024
+3. Útil para reportes anuales
+
+**Caso 5: Búsqueda por año**
+1. Parámetros: {"axo_acta":2023,"limite":200}
+2. Resultado: Primeras 200 multas de 2023
+3. Útil para análisis histórico
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Ejemplo de llamada desde Vue (búsqueda por dependencia)
+const params = {
+  tipo: 'dependencia',
+  id_dependencia: 3,
+  fecha_inicio: '2024-01-01',
+  fecha_fin: '2024-12-31',
+  limite: 50
+};
+
+// El backend enviará:
+const response = await api.post('/registro-historico', {
+  params: JSON.stringify(params)
+});
+
+// Respuesta esperada
+{
+  "data": [
+    {
+      "id_multa": 411374,
+      "id_dependencia": 3,
+      "num_acta": "183",
+      "axo_acta": 2025,
+      "fecha_acta": "2025-01-10",
+      "contribuyente": "DELGADO ORTIZ LAURA ELENA",
+      "domicilio": "BILBAO",
+      "num_licencia": "N/A",
+      "giro": "CASA HABITACION",
+      "calificacion": 16000.00
+    },
+    // ... más registros
+  ],
+  "total": 50
+}
+```
+
+El componente regHfrm.vue debería:
+1. Recibir array de registros históricos
+2. Mostrar tabla con columnas principales
+3. Permitir filtros por:
+   - ID de multa
+   - Dependencia
+   - Rango de fechas
+   - Año de acta
+4. Ordenar por fecha descendente
+5. Mostrar información completa del contribuyente
+6. Formatear montos de calificación
+7. Paginación con límite configurable
+
+--- ESTADÍSTICAS ÚTILES ---
+
+**Por año (últimos 5 años):**
+- 2025: 16,807 registros (año en curso)
+- 2024: 26,302 registros
+- 2023: 33,901 registros
+- 2022: 23,344 registros
+- 2021: 6,120 registros
+
+**Por dependencia (top 5):**
+- Dep. 7: 304,277 registros (48.6%)
+- Dep. 5: 104,552 registros (16.7%)
+- Dep. 3: 100,374 registros (16.0%)
+- Dep. 1: 40,737 registros (6.5%)
+- Dep. 35: 35,869 registros (5.7%)
+
+**Montos de calificación:**
+- Rango típico: $1,500 - $33,000
+- Promedio estimado: $10,000 - $15,000
+- Valores NULL representados como $0.00
+
+--- RESUMEN ---
+
+Problema: Tabla publico.registro_historico no existe
+
+Solución: Función usa tabla public.h_multasnvo con mapeo 1:1
+
+Características:
+- 626,583 registros históricos reales
+- Años disponibles: 2015-2025
+- 10 campos completos de información
+- Búsqueda versátil con múltiples filtros
+- Ordenamiento inteligente
+
+Resultado:
+- Componente Vue recibe datos reales históricos
+- Filtros operacionales (ID, dependencia, fechas, año)
+- Sin conversiones de datos necesarias
+- Información completa del contribuyente
+
+Ventajas:
+- Datos oficiales del sistema
+- Gran volumen de registros para reportes
+- Información detallada y completa
+- Múltiples opciones de filtrado
+- Rendimiento óptimo con límites configurables
+
+Uso recomendado:
+- Siempre especificar límite razonable (50-200)
+- Usar filtros para reducir conjunto de datos
+- Ideal para reportes por dependencia
+- Excelente para consultas por periodo

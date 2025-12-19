@@ -1,0 +1,286 @@
+=== EJEMPLOS PARA PROBAR RegSecyMas.vue ===
+
+El stored procedure ha sido actualizado para usar la tabla ejecutor.
+
+--- PROBLEMA ORIGINAL ---
+
+Error: relation "publico.ejecutores_administrativos" does not exist
+
+--- SOLUCIÓN ---
+
+La función ahora usa la tabla public.ejecutor (ejecutores administrativos)
+que tiene 574 registros con información completa.
+
+--- FUNCIÓN DISPONIBLE ---
+
+**recaudadora_regsecymas**: Retorna ejecutores administrativos usando tabla ejecutor
+
+--- PARÁMETROS ---
+
+La función recibe:
+- p_busqueda: VARCHAR (búsqueda de texto, '' = sin filtro)
+
+Filtro aplicable en:
+- nombre: Nombre completo del ejecutor (paterno + materno + nombres)
+- cve_eje: Clave del ejecutor
+- ini_rfc: RFC del ejecutor
+- id_rec: ID de recaudación
+
+--- VALORES RETORNADOS ---
+
+| Campo       | Tipo    | Descripción                              |
+|-------------|---------|------------------------------------------|
+| id_ejecutor | INTEGER | ID único del ejecutor                    |
+| cve_eje     | VARCHAR | Clave del ejecutor                       |
+| nombre      | VARCHAR | Nombre completo                          |
+| ini_rfc     | VARCHAR | RFC inicial del ejecutor                 |
+| hom_rfc     | VARCHAR | RFC homologado (mismo que inicial)       |
+| id_rec      | VARCHAR | ID de recaudación                        |
+| categoria   | VARCHAR | VIGENTE, CANCELADO, BLOQUEADO           |
+| vigencia    | VARCHAR | ACTIVO, INACTIVO, BLOQUEADO             |
+
+--- MAPEO DE CAMPOS ---
+
+La tabla ejecutor se mapea así:
+- cveejecutor → id_ejecutor (ID único)
+- cveejecutor → cve_eje (clave)
+- paterno + materno + nombres → nombre (concatenado)
+- rfc → ini_rfc (RFC inicial)
+- rfc → hom_rfc (RFC homologado, mismo valor)
+- recaud → id_rec (ID de recaudación)
+- vigencia (V/C/B) → categoria (VIGENTE/CANCELADO/BLOQUEADO)
+- vigencia (V/C/B) → vigencia (ACTIVO/INACTIVO/BLOQUEADO)
+
+--- EJEMPLO 1: Sin filtro (todos los ejecutores) ---
+
+Parámetros:
+- Búsqueda: (vacío)
+
+Resultado esperado:
+- Total registros: 574
+- Muestra todos los ejecutores administrativos
+- Ordenados por clave y nombre
+
+Distribución por estado:
+- ACTIVO (Vigentes): 471 ejecutores (82.1%)
+- INACTIVO (Cancelados): 86 ejecutores (15.0%)
+- BLOQUEADO: 17 ejecutores (2.9%)
+
+Ejemplo de registros:
+| Clave | Nombre                           | RFC           | Categoría | Vigencia |
+|-------|----------------------------------|---------------|-----------|----------|
+| 1     | MALDONADO ASTORGA WILLIAM        | MAAW780312JR5 | VIGENTE   | ACTIVO   |
+| 2     | TORRES URIBE LUIS MARIANO        | TOUL590501LM3 | VIGENTE   | ACTIVO   |
+| 3     | ARROYO MARTINEZ ALBERTO SAUL     | AOMA520929FZ6 | VIGENTE   | ACTIVO   |
+| 4     | ROBLES PRADO JOSE MANUEL         | ROPM401008II8 | VIGENTE   | ACTIVO   |
+| 5     | MARTINEZ GONZALEZ MIGUEL ANGEL   | MAGM700311NL9 | VIGENTE   | ACTIVO   |
+
+--- EJEMPLO 2: Búsqueda por nombre (ALBERTO) ---
+
+Parámetros:
+- Búsqueda: ALBERTO
+
+Resultado esperado:
+- Total registros: 26
+- Solo ejecutores que contienen "ALBERTO" en su nombre
+- Búsqueda case-insensitive
+
+Ejemplo de registros:
+| Clave | Nombre                              | RFC           | Estado    |
+|-------|-------------------------------------|---------------|-----------|
+| 3     | ARROYO MARTINEZ ALBERTO SAUL        | AOMA520929FZ6 | VIGENTE   |
+| 214   | ZAMORA MEDINA J. ALBERTO            | xxxxx         | VIGENTE   |
+| 260   | LOPEZ RODRIGUEZ ALBERTO             | xxxxx         | VIGENTE   |
+| 314   | CEDILLO CANELA JUAN ALBERTO         | xxxxx         | VIGENTE   |
+| 366   | ARROYO ECHEVERRIA CHRISTOPER ALBERTO| xxxxx         | VIGENTE   |
+| 369   | PALOMINO VEGA MARIO ALBERTO         | xxxxx         | VIGENTE   |
+
+Total: 26 ejecutores con "ALBERTO" en el nombre
+
+--- EJEMPLO 3: Búsqueda por RFC (AOMA) ---
+
+Parámetros:
+- Búsqueda: AOMA
+
+Resultado esperado:
+- Total registros: 1
+- Solo ejecutores cuyo RFC contiene "AOMA"
+
+Ejemplo:
+- Clave: 3
+- Nombre: ARROYO MARTINEZ ALBERTO SAUL
+- RFC Inicial: AOMA520929FZ6
+- RFC Homologado: AOMA520929FZ6
+- ID Recaudación: 1
+- Categoría: VIGENTE
+- Vigencia: ACTIVO
+
+--- ESTADÍSTICAS DISPONIBLES ---
+
+**Por Vigencia:**
+- ACTIVO: 471 ejecutores (82.1%)
+- INACTIVO: 86 ejecutores (15.0%)
+- BLOQUEADO: 17 ejecutores (2.9%)
+
+**Por Categoría:**
+- VIGENTE: 471 ejecutores (82.1%)
+- CANCELADO: 86 ejecutores (15.0%)
+- BLOQUEADO: 17 ejecutores (2.9%)
+
+**Total:**
+- 574 ejecutores administrativos registrados
+
+--- CARACTERÍSTICAS DE LOS DATOS ---
+
+✓ **574 registros reales disponibles**
+  - Catálogo completo de ejecutores administrativos
+  - Información actualizada del sistema
+
+✓ **Búsqueda funcional**
+  - Busca en nombre completo
+  - Busca en clave de ejecutor
+  - Busca en RFC
+  - Busca en ID de recaudación
+  - Case-insensitive (ILIKE)
+
+✓ **Campos completos**
+  - ID y clave de ejecutor
+  - Nombre completo (paterno + materno + nombres)
+  - RFC completo
+  - ID de recaudación
+  - Categoría y vigencia
+
+✓ **Estados claros**
+  - VIGENTE/ACTIVO: Ejecutores en servicio (82%)
+  - CANCELADO/INACTIVO: Ejecutores dados de baja (15%)
+  - BLOQUEADO: Ejecutores bloqueados temporalmente (3%)
+
+--- NOTAS IMPORTANTES ---
+
+⚠️ **Tabla base real**
+   La tabla public.ejecutor es el catálogo oficial de ejecutores
+   administrativos del sistema municipal.
+
+⚠️ **Nombres completos**
+   Los nombres se concatenan de: paterno + materno + nombres
+   con TRIM para eliminar espacios extra.
+
+⚠️ **RFC homologado**
+   El campo hom_rfc tiene el mismo valor que ini_rfc porque
+   la tabla solo tiene un campo RFC.
+
+⚠️ **Mayoría vigentes**
+   El 82.1% de los ejecutores están en estado VIGENTE/ACTIVO.
+   Solo el 15% están cancelados y 3% bloqueados.
+
+⚠️ **Búsqueda amplia**
+   La búsqueda es muy permisiva. Por ejemplo, buscar "3" puede
+   retornar muchos resultados porque "3" aparece en claves, RFCs, etc.
+   Se recomienda usar términos más específicos.
+
+--- CASOS DE USO ---
+
+**Caso 1: Ver todos los ejecutores**
+1. No llenar el campo de búsqueda
+2. Hacer clic en "Buscar" o "Consultar"
+3. Resultado: Lista de 574 ejecutores
+4. Ordenados por clave ascendente
+
+**Caso 2: Buscar ejecutor por nombre**
+1. Búsqueda: ALBERTO (o cualquier nombre)
+2. Hacer clic en "Buscar"
+3. Resultado: 26 ejecutores con "ALBERTO" en el nombre
+4. Incluye vigentes y cancelados
+
+**Caso 3: Buscar por RFC**
+1. Búsqueda: AOMA520929 (RFC completo o parcial)
+2. Hacer clic en "Buscar"
+3. Resultado: 1 ejecutor específico
+4. Información completa del ejecutor
+
+**Caso 4: Buscar por clave específica**
+1. Búsqueda: 3 (número de clave)
+2. Hacer clic en "Buscar"
+3. Resultado: Ejecutores cuya clave contiene "3"
+4. Puede retornar múltiples resultados (3, 13, 23, 30, 31, etc.)
+
+**Caso 5: Filtrar solo vigentes**
+1. Búsqueda: (vacío para obtener todos)
+2. El componente Vue puede filtrar por vigencia localmente
+3. Filtrar columna "Vigencia" = "ACTIVO"
+4. Resultado: 471 ejecutores vigentes
+
+--- COMPORTAMIENTO ESPERADO EN VUE ---
+
+```javascript
+// Respuesta del endpoint (ejemplo sin filtro)
+{
+  "data": [
+    {
+      "id_ejecutor": 1,
+      "cve_eje": "1",
+      "nombre": "MALDONADO ASTORGA WILLIAM",
+      "ini_rfc": "MAAW780312JR5",
+      "hom_rfc": "MAAW780312JR5",
+      "id_rec": "1",
+      "categoria": "VIGENTE",
+      "vigencia": "ACTIVO"
+    },
+    {
+      "id_ejecutor": 2,
+      "cve_eje": "2",
+      "nombre": "TORRES URIBE LUIS MARIANO",
+      "ini_rfc": "TOUL590501LM3",
+      "hom_rfc": "TOUL590501LM3",
+      "id_rec": "1",
+      "categoria": "VIGENTE",
+      "vigencia": "ACTIVO"
+    },
+    // ... 572 registros más
+  ],
+  "total": 574
+}
+```
+
+El componente RegSecyMas.vue debería:
+1. Recibir array de ejecutores
+2. Mostrar tabla con columnas: Clave, Nombre, RFC, Categoría, Vigencia
+3. Campo de búsqueda para filtrar
+4. Ordenamiento por clave
+5. Indicadores visuales de estado:
+   - Verde/Check para ACTIVO
+   - Gris/X para INACTIVO
+   - Rojo/Bloqueo para BLOQUEADO
+6. Posibilidad de filtrar por estado
+7. Exportar a Excel/PDF
+
+--- RESUMEN ---
+
+Problema: Tabla publico.ejecutores_administrativos no existe
+
+Solución: Función usa tabla public.ejecutor con mapeo completo
+
+Características:
+- 574 ejecutores administrativos
+- Búsqueda en nombre, clave, RFC, ID recaudación
+- Estados: VIGENTE (82%), CANCELADO (15%), BLOQUEADO (3%)
+- Información completa: nombre, RFC, recaudación
+
+Resultado:
+- Componente Vue recibe datos reales
+- Catálogo oficial de ejecutores
+- Búsqueda funcional y flexible
+- Sin conversiones complejas
+
+Ventajas:
+- Datos oficiales del sistema
+- Catálogo completo y actualizado
+- Información detallada de cada ejecutor
+- Estados claros (vigente/cancelado/bloqueado)
+- Búsqueda en múltiples campos
+
+Uso recomendado:
+- Usar términos específicos en la búsqueda (nombre, RFC completo)
+- Evitar búsquedas muy genéricas (números sueltos)
+- Ideal para consulta de ejecutores por nombre o RFC
+- Útil para verificar vigencia de ejecutores

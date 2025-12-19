@@ -149,7 +149,7 @@ async function pagar() {
 
       resultado.value = {
         success: res.success || false,
-        mensaje: res.mensaje || 'Operación completada',
+        mensaje: res.mensaje || 'Proceso completado',
         procesados: res.procesados || 0,
         errores: res.errores || 0,
         detalles: detalles
@@ -157,7 +157,7 @@ async function pagar() {
     } else {
       resultado.value = {
         success: true,
-        mensaje: 'Operación completada',
+        mensaje: 'Proceso completado',
         procesados: 0,
         errores: 0,
         detalles: []

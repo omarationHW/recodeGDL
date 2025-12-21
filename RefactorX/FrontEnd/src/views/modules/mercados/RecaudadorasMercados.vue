@@ -201,7 +201,7 @@
     </div>
 
     <!-- Modal para Nuevo/Modificar Mercado -->
-    <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal">
+    <div v-if="showModal" class="modal-overlay">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -232,12 +232,16 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <select class="municipal-form-control" v-model.number="formData.categoria" :disabled="loading">
-                  <option value="">Seleccione...</option>
+                <select class="municipal-form-control" v-model.number="formData.categoria" :disabled="loading || loadingCatalogos">
+                  <option value="">{{ loadingCatalogos ? 'Cargando categorías...' : 'Seleccione...' }}</option>
                   <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
                     {{ cat.categoria }} - {{ cat.descripcion }}
                   </option>
                 </select>
+                <div v-if="loadingCatalogos" class="text-muted small mt-1">
+                  <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  Cargando categorías...
+                </div>
               </div>
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Descripción <span class="required">*</span></label>
@@ -258,12 +262,16 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Zona <span class="required">*</span></label>
-                <select class="municipal-form-control" v-model.number="formData.id_zona" :disabled="loading">
-                  <option value="">Seleccione...</option>
+                <select class="municipal-form-control" v-model.number="formData.id_zona" :disabled="loading || loadingCatalogos">
+                  <option value="">{{ loadingCatalogos ? 'Cargando zonas...' : 'Seleccione...' }}</option>
                   <option v-for="zona in zonas" :key="zona.cvezona" :value="zona.cvezona">
                     {{ zona.cvezona }} - {{ zona.zona }}
                   </option>
                 </select>
+                <div v-if="loadingCatalogos" class="text-muted small mt-1">
+                  <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  Cargando zonas...
+                </div>
               </div>
               <div class="form-group col-md-6">
                 <label class="municipal-form-label">Tipo Emisión <span class="required">*</span></label>
@@ -277,11 +285,11 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
+            <button type="button" class="btn-municipal-secondary" @click="cerrarModal" :disabled="loadingCatalogos">
               <font-awesome-icon icon="times" />
               Cancelar
             </button>
-            <button type="button" class="btn-municipal-primary" @click="guardarMercado">
+            <button type="button" class="btn-municipal-primary" @click="guardarMercado" :disabled="loadingCatalogos">
               <font-awesome-icon icon="save" />
               Guardar
             </button>
@@ -305,6 +313,7 @@ export default {
 
     // Estado reactivo
     const loading = ref(false);
+    const loadingCatalogos = ref(false);
     const error = ref(null);
     const showFilters = ref(true);
     const searchPerformed = ref(false);
@@ -529,30 +538,40 @@ export default {
         num_mercado: null
       };
 
-      // Cargar catálogos si no están cargados
-      if (zonas.value.length === 0) {
-        await fetchZonas();
-      }
-      if (categorias.value.length === 0) {
-        await fetchCategorias();
-      }
-
       showModal.value = true;
+
+      // Cargar catálogos si no están cargados
+      loadingCatalogos.value = true;
+      try {
+        if (zonas.value.length === 0) {
+          await fetchZonas();
+        }
+        if (categorias.value.length === 0) {
+          await fetchCategorias();
+        }
+      } finally {
+        loadingCatalogos.value = false;
+      }
     };
 
     const modificarMercado = async (mercado) => {
       modalMode.value = 'modificar';
       formData.value = { ...mercado };
 
-      // Cargar catálogos si no están cargados
-      if (zonas.value.length === 0) {
-        await fetchZonas();
-      }
-      if (categorias.value.length === 0) {
-        await fetchCategorias();
-      }
-
       showModal.value = true;
+
+      // Cargar catálogos si no están cargados
+      loadingCatalogos.value = true;
+      try {
+        if (zonas.value.length === 0) {
+          await fetchZonas();
+        }
+        if (categorias.value.length === 0) {
+          await fetchCategorias();
+        }
+      } finally {
+        loadingCatalogos.value = false;
+      }
     };
 
     const cerrarModal = () => {
@@ -707,6 +726,7 @@ export default {
     return {
       // Estado
       loading,
+      loadingCatalogos,
       error,
       showFilters,
       searchPerformed,

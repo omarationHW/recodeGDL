@@ -143,7 +143,7 @@
     </div>
 
     <!-- Modal de Edición -->
-    <div v-if="showModal" class="modal-backdrop" @click.self="cerrarModal">
+    <div v-if="showModal" class="modal-backdrop">
       <div class="modal-dialog-centered">
         <div class="modal-content modal-municipal">
         <div class="modal-header municipal-modal-header">

@@ -50,7 +50,6 @@
         <h5>Padrón Global de Locales</h5>
         <div>
           <button class="btn-municipal-primary me-2" @click="exportExcel" :disabled="loading">Exportar Excel</button>
-          <button class="btn-municipal-secondary" @click="$router.push('/')">Salir</button>
         </div>
       </div>
       <div class="municipal-card-body p-0">

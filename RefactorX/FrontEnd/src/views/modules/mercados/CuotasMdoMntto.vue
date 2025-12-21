@@ -166,7 +166,7 @@
     </div>
 
     <!-- Modal para crear/editar cuota -->
-    <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal">
+    <div v-if="showModal" class="modal-overlay">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -243,7 +243,7 @@
     </div>
 
     <!-- Modal confirmación eliminar -->
-    <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="cancelarEliminar">
+    <div v-if="showDeleteConfirm" class="modal-overlay">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header bg-danger text-white">

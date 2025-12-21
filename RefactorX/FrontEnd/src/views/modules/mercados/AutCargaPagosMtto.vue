@@ -142,7 +142,7 @@
     </div>
 
     <!-- Modal para Crear/Editar -->
-    <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal">
+    <div v-if="showModal" class="modal-overlay">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -347,12 +347,13 @@ function cerrarModal() {
 async function cargarUsuarios() {
   try {
     showLoading('Cargando usuarios', 'Por favor espere');
-    const p_oficina = 1; // TODO: Obtener de sesión
+    const p_oficina = 0; // TODO: Obtener de sesión
 
     const response = await axios.post('/api/generic', {
       eRequest: {
         Operacion: 'sp_get_users_with_permission',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(p_oficina) }
         ]
@@ -382,6 +383,7 @@ async function cargarDatos() {
       eRequest: {
         Operacion: 'sp_list_autcargapag',
         Base: 'mercados',
+        Esquema: 'publico',
         Parametros: [
           { Nombre: 'p_oficina', Valor: parseInt(p_oficina) }
         ]

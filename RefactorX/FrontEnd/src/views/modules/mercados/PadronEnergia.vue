@@ -34,8 +34,8 @@
                 <option value="">Seleccione...</option>
                 <option
                   v-for="rec in recaudadoras"
-                  :key="rec.id_recaudadora"
-                  :value="rec.id_recaudadora"
+                  :key="rec.id_rec"
+                  :value="rec.id_rec"
                 >
                  {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
@@ -358,6 +358,7 @@ const fetchRecaudadoras = async () => {
 
 // Evento cuando cambia la recaudadora
 const onRecaudadoraChange = async () => {
+  console.log('Recaudadora changed to:', form.value)
   form.value.mercado_id = ''
   mercados.value = []
   searchExecuted.value = false

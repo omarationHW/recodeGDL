@@ -149,7 +149,7 @@
     </div>
 
     <!-- Modal Editar -->
-    <div v-if="showModal" class="modal d-block" @click.self="cerrarModal">
+    <div v-if="showModal" class="modal d-block">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">

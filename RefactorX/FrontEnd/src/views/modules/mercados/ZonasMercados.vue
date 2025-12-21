@@ -184,7 +184,7 @@ const cargarZonas = async () => {
       eRequest: {
         Operacion: 'sp_zonas_list',
         Base: 'padron_licencias',
-        Esquema: 'publico',
+        Esquema: 'public',
         Parametros: []
       }
     });
